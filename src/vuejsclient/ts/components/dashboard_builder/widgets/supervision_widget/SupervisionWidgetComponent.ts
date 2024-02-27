@@ -100,7 +100,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -183,7 +183,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
      */
     private async update_visible_options(): Promise<void> {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
         let rows: ISupervisedItem[] = [];
 
         this.is_busy = true;
@@ -217,9 +217,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.pagination_count = data.total_count;
         this.items = rows;
 
-        let items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
+        const items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
 
-        for (let i in this.items) {
+        for (const i in this.items) {
             const item = this.items[i];
 
             const identifier: string = this.get_identifier(item);
@@ -245,8 +245,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             available_api_type_ids = this.supervision_api_type_ids;
         }
 
-        for (let i in available_api_type_ids) {
-            let api_type_id = available_api_type_ids[i];
+        for (const i in available_api_type_ids) {
+            const api_type_id = available_api_type_ids[i];
 
             if (api_type_id != supervision_type) {
                 delete api_field_filters[api_type_id];
@@ -282,7 +282,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private get_date(item: ISupervisedItem): string {
-        const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[item._type];
         const field = moduletable.getFieldFromId(field_names<ISupervisedItem>().last_update);
 
         return field ? Dates.format_segment(item.last_update, field.segmentation_type) : null;
@@ -301,24 +301,24 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private toggle_all_selection(value: boolean) {
-        for (let i in this.items) {
-            let item = this.items[i];
+        for (const i in this.items) {
+            const item = this.items[i];
 
-            let identifier: string = this.get_identifier(item);
+            const identifier: string = this.get_identifier(item);
 
             Vue.set(this.selected_items, identifier, value);
         }
     }
 
     private async mark_as_unread() {
-        let tosave: ISupervisedItem[] = [];
+        const tosave: ISupervisedItem[] = [];
 
-        for (let identifier in this.selected_items) {
+        for (const identifier in this.selected_items) {
             if (!this.selected_items[identifier]) {
                 continue;
             }
 
-            let item: ISupervisedItem = this.items_by_identifier[identifier];
+            const item: ISupervisedItem = this.items_by_identifier[identifier];
 
             if (!item) {
                 continue;
@@ -343,14 +343,14 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private async mark_as_read() {
-        let tosave: ISupervisedItem[] = [];
+        const tosave: ISupervisedItem[] = [];
 
-        for (let identifier in this.selected_items) {
+        for (const identifier in this.selected_items) {
             if (!this.selected_items[identifier]) {
                 continue;
             }
 
-            let item: ISupervisedItem = this.items_by_identifier[identifier];
+            const item: ISupervisedItem = this.items_by_identifier[identifier];
 
             if (!item) {
                 continue;
@@ -401,7 +401,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         let options: SupervisionWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptionsVO;
                 options = options ? new SupervisionWidgetOptionsVO().from(options) : null;
             }
@@ -441,7 +441,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.items_by_identifier) {
+        for (const i in this.items_by_identifier) {
             if (!this.selected_items[i]) {
                 return false;
             }
@@ -455,7 +455,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.items_by_identifier) {
+        for (const i in this.items_by_identifier) {
             if (this.selected_items[i]) {
                 return true;
             }

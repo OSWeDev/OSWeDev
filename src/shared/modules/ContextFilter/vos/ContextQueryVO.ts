@@ -172,7 +172,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         join_on_fields: ContextQueryJoinOnFieldVO[],
     ): ContextQueryVO {
 
-        let context_query_join: ContextQueryJoinVO = ContextQueryJoinVO.createNew(joined_context_query, joined_table_alias, join_on_fields, join_type);
+        const context_query_join: ContextQueryJoinVO = ContextQueryJoinVO.createNew(joined_context_query, joined_table_alias, join_on_fields, join_type);
         if (!this.joined_context_queries) {
             this.joined_context_queries = [];
         }
@@ -242,10 +242,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
             return this;
         }
 
-        let to_add: string[] = [];
+        const to_add: string[] = [];
         if (isArray(API_TYPE_IDs)) {
-            for (let i in API_TYPE_IDs) {
-                let API_TYPE_ID = API_TYPE_IDs[i];
+            for (const i in API_TYPE_IDs) {
+                const API_TYPE_ID = API_TYPE_IDs[i];
 
                 if (!API_TYPE_ID) {
                     continue;
@@ -743,15 +743,15 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         API_TYPE_ID: string = null,
         fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
 
-        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        const target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
         if (!matroids || !matroids.length) {
             // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
             return this.filter_is_null('id', target_API_TYPE_ID);
         }
 
-        let matroid_api_type_id: string = matroids[0]._type;
-        for (let i in matroids) {
-            let matroid = matroids[i];
+        const matroid_api_type_id: string = matroids[0]._type;
+        for (const i in matroids) {
+            const matroid = matroids[i];
             if (matroid._type != matroid_api_type_id) {
                 throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type : '
                     + matroid_api_type_id + '(index 0) != ' + matroid._type + '(index ' + i + ')');
@@ -759,27 +759,27 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
-        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
-        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+        const target_moduletable = ModuleTableController.module_tables_by_vo_type[target_API_TYPE_ID];
+        const var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        const target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
-        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
+        const matroid_module_table = ModuleTableController.module_tables_by_vo_type[matroid_api_type_id];
+        const matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        const matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
 
-        for (let i in matroids) {
-            let matroid: IMatroid = matroids[i];
+        for (const i in matroids) {
+            const matroid: IMatroid = matroids[i];
             let this_matroid_head_filter: ContextFilterVO = null;
 
             if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
                 this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
             }
 
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
-                let matroid_field_id = matroid_field.field_id;
-                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
-                let target_moduletable_field = target_moduletable.getFieldFromId(target_field_id);
+            for (const j in matroid_fields) {
+                const matroid_field = matroid_fields[j];
+                const matroid_field_id = matroid_field.field_id;
+                const target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+                const target_moduletable_field = target_moduletable.getFieldFromId(target_field_id);
 
                 let this_filter = null;
                 switch (target_moduletable_field.field_type) {
@@ -822,15 +822,15 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         API_TYPE_ID: string = null,
         fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
 
-        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        const target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
         if (!matroids || !matroids.length) {
             // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
             return this.filter_is_null('id', target_API_TYPE_ID);
         }
 
-        let matroid_api_type_id: string = matroids[0]._type;
-        for (let i in matroids) {
-            let matroid = matroids[i];
+        const matroid_api_type_id: string = matroids[0]._type;
+        for (const i in matroids) {
+            const matroid = matroids[i];
             if (matroid._type != matroid_api_type_id) {
                 throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type : '
                     + matroid_api_type_id + '(index 0) != ' + matroid._type + '(index ' + i + ')');
@@ -838,26 +838,26 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
-        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
-        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+        const target_moduletable = ModuleTableController.module_tables_by_vo_type[target_API_TYPE_ID];
+        const var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        const target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
-        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
+        const matroid_module_table = ModuleTableController.module_tables_by_vo_type[matroid_api_type_id];
+        const matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        const matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
 
-        for (let i in matroids) {
-            let matroid: IMatroid = matroids[i];
+        for (const i in matroids) {
+            const matroid: IMatroid = matroids[i];
             let this_matroid_head_filter: ContextFilterVO = null;
 
             if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
                 this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
             }
 
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
-                let matroid_field_id = matroid_field.field_id;
-                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+            for (const j in matroid_fields) {
+                const matroid_field = matroid_fields[j];
+                const matroid_field_id = matroid_field.field_id;
+                const target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
 
                 let this_filter = null;
                 switch (matroid_field.field_type) {
@@ -1145,7 +1145,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
-        let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
+        const res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed  : ' + this.base_api_type_id);
         }
@@ -1174,19 +1174,19 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         log_func('ContextQueryVO - base_api_type_id:' + this.base_api_type_id);
         log_func('               - active_api_type_ids: ' + this.active_api_type_ids);
 
-        let fields_num = (this.fields ? this.fields.length : 0);
+        const fields_num = (this.fields ? this.fields.length : 0);
         if (fields_num) {
-            for (let i in this.fields) {
-                let field = this.fields[i];
+            for (const i in this.fields) {
+                const field = this.fields[i];
                 log_func('               - field:' + i + '/' + fields_num);
                 field.log(is_error);
             }
         }
 
-        let filters_num = (this.filters ? this.filters.length : 0);
+        const filters_num = (this.filters ? this.filters.length : 0);
         if (filters_num) {
-            for (let i in this.filters) {
-                let filter_ = this.filters[i];
+            for (const i in this.filters) {
+                const filter_ = this.filters[i];
                 log_func('               - filter:' + i + '/' + filters_num);
                 filter_.log(is_error);
             }
@@ -1197,7 +1197,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * Faire la requête simplement et récupérer le résultat brut
      */
     public async select_one(): Promise<any> {
-        let res = await ModuleContextFilter.getInstance().select(this);
+        const res = await ModuleContextFilter.getInstance().select(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_one is not allowed : ' + this.base_api_type_id);
         }
@@ -1211,7 +1211,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public async select_datatable_row(
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any> {
-        let res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
+        const res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed : ' + this.base_api_type_id);
         }
@@ -1248,7 +1248,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!fields) {
             return this;
         }
-        let api_type_ids = fields.map((f) => f.api_type_id);
+        const api_type_ids = fields.map((f) => f.api_type_id);
         return this.using(api_type_ids);
     }
 
@@ -1267,18 +1267,18 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         /**
          * Récursivité sur les filtres qui contiennent des filtres (pas sur les sub_querys)
          */
-        for (let i in filters) {
-            let filter_ = filters[i];
+        for (const i in filters) {
+            const filter_ = filters[i];
 
-            if (!!filter_?.left_hook) {
+            if (filter_?.left_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.left_hook]);
             }
-            if (!!filter_?.right_hook) {
+            if (filter_?.right_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.right_hook]);
             }
         }
 
-        let api_type_ids = filters.map((f) => f.vo_type);
+        const api_type_ids = filters.map((f) => f.vo_type);
         return this.using(api_type_ids);
     }
 
@@ -1294,7 +1294,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
             return this;
         }
 
-        let api_type_ids = sorts.filter((f) => f && f.vo_type).map((f) => f.vo_type);
+        const api_type_ids = sorts.filter((f) => f && f.vo_type).map((f) => f.vo_type);
         return this.using(api_type_ids);
     }
 
@@ -1307,7 +1307,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
  * @param API_TYPE_ID le type de base de la query
  */
 export const query = (API_TYPE_ID: string) => {
-    let res = new ContextQueryVO();
+    const res = new ContextQueryVO();
 
     res.base_api_type_id = API_TYPE_ID;
     res.active_api_type_ids = [API_TYPE_ID];

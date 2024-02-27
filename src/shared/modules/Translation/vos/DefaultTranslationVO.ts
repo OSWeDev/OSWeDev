@@ -12,7 +12,7 @@ export default class DefaultTranslationVO {
     public static create_new(
         default_translations: { [code_lang: string]: string },
         code_text: string = null) {
-        let res = new DefaultTranslationVO();
+        const res = new DefaultTranslationVO();
 
         res.default_translations = default_translations;
         res.code_text = code_text;

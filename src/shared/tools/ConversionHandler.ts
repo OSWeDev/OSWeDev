@@ -5,7 +5,7 @@ export default class ConversionHandler {
     /* istanbul ignore next: nothing to test here */
     public static forceNumber(e: string | number): number {
         try {
-            let res = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
+            const res = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
             if (isNaN(res)) {
                 return null;
             }
@@ -21,11 +21,11 @@ export default class ConversionHandler {
             return null;
         }
 
-        let res = [];
+        const res = [];
         try {
-            for (let i in es) {
-                let e = es[i];
-                let resi = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
+            for (const i in es) {
+                const e = es[i];
+                const resi = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
                 if (isNaN(resi)) {
                     res.push(null);
                     continue;

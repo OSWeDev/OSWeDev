@@ -240,7 +240,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * @return {Promise<void>}
      */
     private async save_shared_filters(shared_filters: SharedFiltersVO): Promise<void> {
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_builder.shared_filters.save_start'), () =>
             new Promise(async (resolve, reject) => {
@@ -282,7 +282,7 @@ export default class DashboardSharedFiltersComponent extends VueComponentBase {
      * @returns {Promise<void>}
      */
     private async delete_shared_filters(shared_filters: SharedFiltersVO): Promise<void> {
-        let self = this;
+        const self = this;
 
         if (!shared_filters) {
             return;

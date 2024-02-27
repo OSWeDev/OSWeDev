@@ -8,14 +8,14 @@ export default class PromiseTools {
      * @returns Si aucune erreur, le résultat de toutes les promises, sinon la première erreur
      */
     public async wait_all_settled(): Promise<Array<PromiseSettledResult<any>>> {
-        let res: Array<PromiseSettledResult<any>> = await Promise.allSettled(this.querys);
+        const res: Array<PromiseSettledResult<any>> = await Promise.allSettled(this.querys);
 
         if (!res || !res.length) {
             throw new Error('No result');
         }
 
-        for (let i in res) {
-            let result = res[i];
+        for (const i in res) {
+            const result = res[i];
 
             if (result.status === "rejected") {
                 // TODO: May be throw and catch (to only log the error without stopping the queued promises)
@@ -34,7 +34,7 @@ export default class PromiseTools {
  * @returns
  */
 export const all_promises = (querys: Array<Promise<any>>): Promise<Array<PromiseSettledResult<any>>> => {
-    let res = new PromiseTools();
+    const res = new PromiseTools();
 
     res.querys = querys;
 

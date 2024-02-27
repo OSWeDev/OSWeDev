@@ -25,10 +25,10 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
         let theme_ids: number[] = [];
 
         // Protection/ Détection Max_ranges
-        let param_theme_ids: number[] = (param.theme_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.theme_id_ranges) >= 0) ?
+        const param_theme_ids: number[] = (param.theme_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.theme_id_ranges) >= 0) ?
             RangeHandler.get_all_segmented_elements_from_ranges(param.theme_id_ranges) :
             null;
-        let param_module_ids: number[] = (param.module_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
+        const param_module_ids: number[] = (param.module_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
             RangeHandler.get_all_segmented_elements_from_ranges(param.module_id_ranges) :
             null;
 

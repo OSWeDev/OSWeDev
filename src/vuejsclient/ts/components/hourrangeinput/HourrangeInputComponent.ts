@@ -80,7 +80,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
     private emitInput(): void {
 
         let new_value = null;
-        let hourstart: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.segmentation_type_value);
+        const hourstart: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.segmentation_type_value);
         let hourend: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.segmentation_type_value);
 
         if (this.auto_next_day && hourend && hourstart && (hourend <= hourstart)) {
@@ -100,7 +100,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.is_same(old_value, new_value))) {
             return;

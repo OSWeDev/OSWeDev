@@ -38,7 +38,7 @@ export default class ModulesAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let modulesMenuBranch: MenuElementVO =
+        const modulesMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
@@ -63,13 +63,13 @@ export default class ModulesAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        for (let i in ModulesManager.getInstance().modules_by_name) {
-            let wrapper = ModulesManager.getInstance().modules_by_name[i];
+        for (const i in ModulesManager.getInstance().modules_by_name) {
+            const wrapper = ModulesManager.getInstance().modules_by_name[i];
             if (!wrapper) {
                 continue;
             }
 
-            let sharedModule = wrapper.getModuleComponentByRole(Module.SharedModuleRoleName);
+            const sharedModule = wrapper.getModuleComponentByRole(Module.SharedModuleRoleName);
             if (!sharedModule) {
                 continue;
             }

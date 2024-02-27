@@ -128,7 +128,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
      */
     @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options(): void {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -203,7 +203,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
         // (on initialization) if context exist and selected_months exist overwrite months_range
         let months_ranges: NumRange[] = [];
-        for (let i in this.selected_months) {
+        for (const i in this.selected_months) {
             if (!this.selected_months[i]) {
                 continue;
             }
@@ -221,7 +221,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         }
 
@@ -248,7 +248,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(
+            const new_root = ContextFilterVOHandler.add_context_filter_to_tree(
                 root_context_filter,
                 context_filter
             );
@@ -274,7 +274,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un context_filter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!this.force_selected_months_reset) && (!(months_ranges?.length > 0))) {
-            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -295,11 +295,11 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
-        if (!!context_filter) {
+        if (context_filter) {
             if (!RangeHandler.are_same(context_filter.param_numranges, months_ranges)) {
                 context_filter.param_numranges = months_ranges;
 
-                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(
+                const new_root = ContextFilterVOHandler.add_context_filter_to_tree(
                     root_context_filter,
                     context_filter
                 );
@@ -336,7 +336,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(
                 root_context_filter,
                 ContextFilterVO.TYPE_DATE_MONTH
@@ -377,7 +377,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
         let options: MonthFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptionsVO;
                 options = options ? new MonthFilterWidgetOptionsVO().from(options) : null;
             }
@@ -407,7 +407,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        const other_filter_selected_months = this.relative_to_this_filter.selected_months;
         if (!other_filter_selected_months) {
             return null;
         }
@@ -456,7 +456,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: MonthFilterWidgetOptionsVO = this.widget_options;
+        const options: MonthFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;

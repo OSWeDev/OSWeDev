@@ -25,8 +25,8 @@ export default class ProgramPlanTools {
             return null;
         }
 
-        for (let i in target_contacts) {
-            let target_contact = target_contacts[i];
+        for (const i in target_contacts) {
+            const target_contact = target_contacts[i];
 
             res = (target_contact.firstname ? ((res != '') ? '<br><hr>' : '') + target_contact.firstname : '');
             res += (target_contact.lastname ? ((res != '') ? ' ' : '') + target_contact.lastname : '');

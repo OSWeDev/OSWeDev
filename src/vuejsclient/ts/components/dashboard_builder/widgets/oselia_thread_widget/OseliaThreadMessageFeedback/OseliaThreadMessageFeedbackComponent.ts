@@ -73,7 +73,7 @@ export default class OseliaThreadMessageFeedbackComponent extends VueComponentBa
     }
 
     private async add_feedback(positive: boolean) {
-        let feedback = new OseliaThreadMessageFeedbackVO();
+        const feedback = new OseliaThreadMessageFeedbackVO();
         feedback.assistant_thread_message_id = this.thread_message.id;
         feedback.assistant_id = this.thread_message.assistant_id;
         feedback.prompt_id = this.thread_message.prompt_id;

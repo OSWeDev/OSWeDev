@@ -39,9 +39,9 @@ export default class ModulePopup extends Module {
     }
 
     private initializePopupVO() {
-        let only_roles = ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().only_roles, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Seulement les rôles sélectionnés (laisser vide pour tout le monde)');
+        const only_roles = ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().only_roles, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Seulement les rôles sélectionnés (laisser vide pour tout le monde)');
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().activated_ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, "Période d'affichage").set_segmentation_type(TimeSegment.TYPE_DAY),
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().title, ModuleTableFieldVO.FIELD_TYPE_html, 'Titre', true),
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().message, ModuleTableFieldVO.FIELD_TYPE_html, 'Message', true),
@@ -50,7 +50,7 @@ export default class ModulePopup extends Module {
             only_roles,
         ];
 
-        let table = new ModuleTableVO(this, PopupVO.API_TYPE_ID, () => new PopupVO(), fields, null, 'Popups');
+        const table = new ModuleTableVO(this, PopupVO.API_TYPE_ID, () => new PopupVO(), fields, null, 'Popups');
         this.datatables.push(table);
 
         only_roles.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);

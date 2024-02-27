@@ -8,7 +8,7 @@ export default class BooleanHandler {
 
         let res = false;
 
-        for (let i in bools) {
+        for (const i in bools) {
             res = res || bools[i];
         }
 
@@ -23,7 +23,7 @@ export default class BooleanHandler {
 
         let res = true;
 
-        for (let i in bools) {
+        for (const i in bools) {
             res = res && bools[i];
         }
 

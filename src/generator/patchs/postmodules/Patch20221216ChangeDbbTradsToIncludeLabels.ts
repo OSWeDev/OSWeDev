@@ -31,11 +31,11 @@ export default class Patch20221216ChangeDbbTradsToIncludeLabels implements IGene
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        let codes = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', DashboardBuilderController.PAGE_NAME_CODE_PREFIX).select_vos<TranslatableTextVO>();
-        let full_name = VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID].full_name;
+        const codes = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', DashboardBuilderController.PAGE_NAME_CODE_PREFIX).select_vos<TranslatableTextVO>();
+        const full_name = ModuleTableController.module_tables_by_vo_type[TranslatableTextVO.API_TYPE_ID].full_name;
 
-        for (let i in codes) {
-            let code = codes[i];
+        for (const i in codes) {
+            const code = codes[i];
 
             if (code.code_text.indexOf('.___LABEL___') > -1) {
                 continue;

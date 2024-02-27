@@ -60,7 +60,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         if (this.editable_uqr && this.editable_uqr.reponses) {
-            for (let i in this.editable_uqr.reponses) {
+            for (const i in this.editable_uqr.reponses) {
                 this.selected_reponse[this.editable_uqr.reponses[i]] = true;
             }
         }
@@ -92,7 +92,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         this.editable_uqr.date = Dates.now();
         this.editable_uqr.reponses = [];
 
-        for (let reponse_id in this.selected_reponse) {
+        for (const reponse_id in this.selected_reponse) {
             if (this.selected_reponse[reponse_id]) {
                 this.editable_uqr.reponses.push(parseInt(reponse_id));
             }
@@ -110,8 +110,8 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     private show_validation() {
         this.is_validated = true;
 
-        for (let i in this.reponses) {
-            let reponse: AnimationReponseVO = this.reponses[i];
+        for (const i in this.reponses) {
+            const reponse: AnimationReponseVO = this.reponses[i];
 
             if (!reponse.valid) {
                 this.classe_reponses[reponse.id] = 'opacity';
@@ -174,7 +174,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     }
 
     get is_disabled(): boolean {
-        for (let reponse_id in this.selected_reponse) {
+        for (const reponse_id in this.selected_reponse) {
             if (this.selected_reponse[reponse_id]) {
                 return false;
             }
@@ -184,14 +184,14 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     }
 
     get name_editable_field() {
-        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationQRVO.API_TYPE_ID]);
     }
 
     get description_editable_field() {
-        return SimpleDatatableFieldVO.createNew('description').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('description').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationQRVO.API_TYPE_ID]);
     }
 
     get explicatif_editable_field() {
-        return SimpleDatatableFieldVO.createNew('explicatif').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('explicatif').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationQRVO.API_TYPE_ID]);
     }
 }

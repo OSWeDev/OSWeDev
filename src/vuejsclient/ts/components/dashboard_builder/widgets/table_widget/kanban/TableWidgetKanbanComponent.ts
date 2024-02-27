@@ -190,7 +190,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         if (!this.actual_rows_query) {
             return null;
         }
-        let query_string: string = await this.actual_rows_query.get_select_query_str();
+        const query_string: string = await this.actual_rows_query.get_select_query_str();
         await navigator.clipboard.writeText(query_string);
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
@@ -200,10 +200,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = []; //number
+        const res: string[] = []; //number
 
-        for (let i in this.sorted_link_datatable_field_uids) {
-            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+        for (const i in this.sorted_link_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
 
             if (row[datatable_field_uid]) {
                 res.push(this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
@@ -218,10 +218,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = []; //number
+        const res: string[] = []; //number
 
-        for (let i in this.sorted_link_datatable_field_uids) {
-            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+        for (const i in this.sorted_link_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
 
             if (row[datatable_field_uid]) {
                 res.push(row[datatable_field_uid]);
@@ -237,10 +237,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = []; //number
+        const res: string[] = []; //number
 
-        for (let i in this.sorted_image_datatable_field_uids) {
-            let datatable_field_uid = this.sorted_image_datatable_field_uids[i];
+        for (const i in this.sorted_image_datatable_field_uids) {
+            const datatable_field_uid = this.sorted_image_datatable_field_uids[i];
 
             if (row[datatable_field_uid]) {
                 res.push(row[datatable_field_uid]);
@@ -259,17 +259,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.columns) {
+        for (const i in this.columns) {
 
-            let field = this.columns[i];
+            const field = this.columns[i];
 
             if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
                 continue;
             }
 
-            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+            const module_table_field = ModuleTableController.module_tables_by_vo_type[field.api_type_id].get_field_by_id(field.field_id);
 
             if (module_table_field.field_type == ModuleTableFieldVO.FIELD_TYPE_file_ref) {
                 res.push(field.datatable_field_uid);
@@ -290,17 +290,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.columns) {
+        for (const i in this.columns) {
 
-            let field = this.columns[i];
+            const field = this.columns[i];
 
             if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
                 continue;
             }
 
-            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+            const module_table_field = ModuleTableController.module_tables_by_vo_type[field.api_type_id].get_field_by_id(field.field_id);
 
             if (module_table_field.field_type == ModuleTableFieldVO.FIELD_TYPE_image_ref) {
                 res.push(field.datatable_field_uid);
@@ -315,7 +315,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
+        return ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
     }
 
     private async on_change_kanban_element(evt, originalEvent) {
@@ -359,13 +359,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             try {
 
-                let kanban_table = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
-                let new_kanban_column_value = kanban_table.voConstructor();
+                const kanban_table = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
+                const new_kanban_column_value = kanban_table.voConstructor();
                 new_kanban_column_value[this.kanban_column.field_id] = this.new_kanban_column_value;
                 if (this.widget_options.use_kanban_column_weight_if_exists && kanban_table.getFieldFromId(field_names<IWeightedItem & IDistantVOBase>().weight)) {
                     new_kanban_column_value['weight'] = this.kanban_column_values.length;
                 }
-                let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_kanban_column_value);
+                const res = await ModuleDAO.getInstance().insertOrUpdateVO(new_kanban_column_value);
                 if ((!res) || (!res.id)) {
                     throw new Error('Erreur lors de la création de la colonne');
                 }
@@ -422,14 +422,14 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return false;
         }
 
-        let kanban_table = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
+        const kanban_table = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
         if (!kanban_table) {
             return false;
         }
 
-        let fields = kanban_table.get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = kanban_table.get_fields();
+        for (const i in fields) {
+            const field = fields[i];
             if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && (field.field_required && !field.has_default)) {
                 return false;
             }
@@ -440,9 +440,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
 
     private async on_move_columns_kanban_element(evt, originalEvent) {
-        let self = this;
+        const self = this;
 
-        let kanban_column_ref_field_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
+        const kanban_column_ref_field_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
         if (!kanban_column_ref_field_id) {
             throw new Error('No kanban_column_ref_field_id id');
         }
@@ -460,10 +460,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        let old_index = self.widget_options.use_kanban_column_weight_if_exists ? evt.oldIndex : null;
-        let new_index = self.widget_options.use_kanban_column_weight_if_exists ? evt.newIndex : null;
+        const old_index = self.widget_options.use_kanban_column_weight_if_exists ? evt.oldIndex : null;
+        const new_index = self.widget_options.use_kanban_column_weight_if_exists ? evt.newIndex : null;
 
-        let diff_index = (new_index != null) && (old_index != new_index);
+        const diff_index = (new_index != null) && (old_index != new_index);
 
         if (!diff_index) {
             // aucune modification - on devrait pas vraiment arriver ici, ya peut-etre une désynchronisation, on reload les datas
@@ -473,17 +473,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         // On clone les données pour pouvoir les réinjecter si besoin
-        let kanban_column_values_copy = cloneDeep(self.kanban_column_values);
+        const kanban_column_values_copy = cloneDeep(self.kanban_column_values);
 
         // On stocke les lignes qu'on modifie pour les insérer en base
-        let updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
-        let promises = [];
-        let errors: string[] = [];
+        const updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
+        const promises = [];
+        const errors: string[] = [];
 
         if (diff_index) {
             // changement d'index : si on a un poids ok sinon on refuse tout simplement le changement de poids
             if (self.widget_options.use_kanban_column_weight_if_exists) {
-                let mv_elts = self.kanban_column_values.splice(old_index, 1);
+                const mv_elts = self.kanban_column_values.splice(old_index, 1);
                 self.kanban_column_values.splice(new_index, 0, mv_elts[0]);
                 promises.push(self.update_column_weights(updated_data_rows_by_id, errors));
             } else {
@@ -506,9 +506,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             try {
 
-                let updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : [];
+                const updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : [];
                 if (updated_data_rows.length >= 0) {
-                    let insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+                    const insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
                     if (!insert_res) {
                         throw new Error('Erreur lors de l\'insertion du kanban_element');
                     }
@@ -543,9 +543,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private async on_move_kanban_element(evt, originalEvent) {
 
-        let self = this;
+        const self = this;
 
-        let kanban_element_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
+        const kanban_element_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
 
         if (!kanban_element_id) {
             throw new Error('No kanban element id');
@@ -554,8 +554,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * un kanban, on édite soit un enum au sein du api_type_id, soit le lien vers un autre api_type_id
          */
-        let row_api_type_id = self.crud_activated_api_type;
-        let kanban_column_api_type_id = self.kanban_column.api_type_id;
+        const row_api_type_id = self.crud_activated_api_type;
+        const kanban_column_api_type_id = self.kanban_column.api_type_id;
         let data_field_id = self.kanban_column.field_id;
 
         if (kanban_column_api_type_id == row_api_type_id) {
@@ -570,12 +570,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
 
             // On ne doit trouver qu'une seule liaison possible entre les 2 api_type_ids
-            let crud_table = VOsTypesManager.moduleTables_by_voType[self.crud_activated_api_type];
-            let fields = crud_table.get_fields();
+            const crud_table = ModuleTableController.module_tables_by_vo_type[self.crud_activated_api_type];
+            const fields = crud_table.get_fields();
 
             let data_field: ModuleTableFieldVO = null;
-            for (let i in fields) {
-                let field = fields[i];
+            for (const i in fields) {
+                const field = fields[i];
 
                 if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == self.kanban_column.api_type_id)) {
                     if (!data_field) {
@@ -592,17 +592,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // let old_column_value = db_element[data_field_id];
         // let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
 
-        let old_column_value = evt.from ? evt.from.getAttribute('draggable_list_id') : null;
-        let new_column_value = evt.to ? evt.to.getAttribute('draggable_list_id') : null;
+        const old_column_value = evt.from ? evt.from.getAttribute('draggable_list_id') : null;
+        const new_column_value = evt.to ? evt.to.getAttribute('draggable_list_id') : null;
 
-        let old_column_index = old_column_value ? this.kanban_column_values_to_index[old_column_value.toString()] : null;
-        let new_column_index = new_column_value ? this.kanban_column_values_to_index[new_column_value.toString()] : null;
+        const old_column_index = old_column_value ? this.kanban_column_values_to_index[old_column_value.toString()] : null;
+        const new_column_index = new_column_value ? this.kanban_column_values_to_index[new_column_value.toString()] : null;
 
-        let old_index = self.kanban_column.kanban_use_weight ? evt.oldIndex : null;
-        let new_index = self.kanban_column.kanban_use_weight ? evt.newIndex : null;
+        const old_index = self.kanban_column.kanban_use_weight ? evt.oldIndex : null;
+        const new_index = self.kanban_column.kanban_use_weight ? evt.newIndex : null;
 
-        let diff_list = (new_column_index != null) && (new_column_index != old_column_index);
-        let diff_index = (new_index != null) && (old_index != new_index);
+        const diff_list = (new_column_index != null) && (new_column_index != old_column_index);
+        const diff_index = (new_index != null) && (old_index != new_index);
 
         if (!diff_index && !diff_list) {
             // aucune modification - on devrait pas vraiment arriver ici, ya peut-etre une désynchronisation, on reload les datas
@@ -612,16 +612,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         // On clone les données pour pouvoir les réinjecter si besoin
-        let data_rows_copy = cloneDeep(self.data_rows);
+        const data_rows_copy = cloneDeep(self.data_rows);
 
         // On stocke les lignes qu'on modifie pour les insérer en base
-        let updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
-        let promises = [];
-        let errors: string[] = [];
+        const updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
+        const promises = [];
+        const errors: string[] = [];
 
         if (diff_list) {
 
-            let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+            const mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
             self.data_rows[new_column_index].splice(new_index, 0, mv_elts[0]);
             promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id, kanban_element_id));
             // On update forcément le kanban_element_id
@@ -633,7 +633,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             if (self.kanban_column.kanban_use_weight) {
                 if (!diff_list) {
                     // Si on a diff_list, c'est déjà fait
-                    let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+                    const mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
                     self.data_rows[old_column_index].splice(new_index, 0, mv_elts[0]);
                     promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id));
                 }
@@ -659,9 +659,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             try {
 
-                let updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : null;
+                const updated_data_rows = updated_data_rows_by_id ? Object.values(updated_data_rows_by_id) : null;
                 if (updated_data_rows.length >= 0) {
-                    let insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+                    const insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
                     if (!insert_res) {
                         throw new Error('Erreur lors de l\'insertion du kanban_element');
                     }
@@ -703,9 +703,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         updated_data_rows_by_id: { [id: number]: IDistantVOBase },
         errors: string[]) {
 
-        let vos = await query(this.kanban_column.api_type_id).select_vos();
-        let vos_by_column_value = {};
-        for (let i in vos) {
+        const vos = await query(this.kanban_column.api_type_id).select_vos();
+        const vos_by_column_value = {};
+        for (const i in vos) {
             vos_by_column_value[vos[i][this.kanban_column.field_id]] = vos[i];
         }
 
@@ -714,11 +714,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        for (let i in this.kanban_column_values) {
-            let new_weight = parseInt(i);
-            let kanban_column_value = this.kanban_column_values[i];
+        for (const i in this.kanban_column_values) {
+            const new_weight = parseInt(i);
+            const kanban_column_value = this.kanban_column_values[i];
 
-            let db_element = vos_by_column_value[kanban_column_value];
+            const db_element = vos_by_column_value[kanban_column_value];
             if (!db_element) {
                 ConsoleHandler.error('Kanban column value not found');
                 continue;
@@ -757,13 +757,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         force_id: number = null) {
 
         // on doit récup les datas depuis la base pour chaque vo à modifier
-        let promises = [];
-        let self = this;
+        const promises = [];
+        const self = this;
 
-        for (let i in this.data_rows[column_index]) {
-            let new_weight = parseInt(i);
-            let data_row = this.data_rows[column_index][i];
-            let data_row_id = data_row.id || data_row['__crud_actions'];
+        for (const i in this.data_rows[column_index]) {
+            const new_weight = parseInt(i);
+            const data_row = this.data_rows[column_index][i];
+            const data_row_id = data_row.id || data_row['__crud_actions'];
 
             if (ignore_id && (data_row_id == ignore_id)) {
                 continue;
@@ -780,7 +780,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                 promises.push((async () => {
 
-                    let db_element = await query(self.crud_activated_api_type).filter_by_id(data_row_id).select_vo();
+                    const db_element = await query(self.crud_activated_api_type).filter_by_id(data_row_id).select_vo();
                     if ((!db_element) || ((db_element['weight'] == new_weight) &&
                         ((!force_id) || (db_element[data_field_id] == this.kanban_column_index_to_ref_field_id[column_index])))) {
                         // ConsoleHandler.warn('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
@@ -848,10 +848,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        let filtered_value = vo ? vo[datatable_field_uid] : null;
+        const filtered_value = vo ? vo[datatable_field_uid] : null;
 
         this.is_filtering_by = true;
-        let filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
+        const filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
         filtering_by_active_field_filter.vo_type = column.api_type_id;
         filtering_by_active_field_filter.field_id = column.field_id;
 
@@ -864,7 +864,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 filtering_by_active_field_filter.by_id(filtered_value);
             }
         } else {
-            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
             switch (field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_html:
                 case ModuleTableFieldVO.FIELD_TYPE_password:
@@ -978,12 +978,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return true;
         }
 
-        let columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
+        const columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
             (c.field_id == this.filtering_by_active_field_filter.field_id) ||
             ((!c.field_id) && (this.filtering_by_active_field_filter.field_id == 'id')) ||
             ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_id == 'id'))
         ));
-        let column = columns ? columns[0] : null;
+        const column = columns ? columns[0] : null;
         if (!column) {
             return true;
         }
@@ -996,7 +996,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
             return row['__crud_actions'] == this.filtering_by_active_field_filter.param_numeric;
         } else {
-            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
             switch (field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_html:
                 case ModuleTableFieldVO.FIELD_TYPE_password:
@@ -1207,7 +1207,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if (this.can_delete_all_right == null) {
-            let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
+            const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
             if (!crud) {
                 this.can_delete_all_right = this.can_delete_right;
             } else {
@@ -1228,7 +1228,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private async open_update(type: string, id: number) {
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([type]);
-        let update_vo = await query(type).filter_by_id(id).select_vo();
+        const update_vo = await query(type).filter_by_id(id).select_vo();
 
         if (update_vo && update_vo.id) {
             await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
@@ -1236,9 +1236,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async onclose_modal() {
-        let route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
+        const route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
 
-        let route_params = cloneDeep(this.$route.params);
+        const route_params = cloneDeep(this.$route.params);
 
         delete route_params.dashboard_vo_action;
         delete route_params.dashboard_vo_id;
@@ -1263,7 +1263,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
+            const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 await this.open_update(api_type_id, parseInt(this.dashboard_vo_id));
@@ -1273,7 +1273,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
+            const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 await this.confirm_delete(api_type_id, parseInt(this.dashboard_vo_id));
@@ -1283,7 +1283,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
+            const api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 this.open_vocus(api_type_id, parseInt(this.dashboard_vo_id));
@@ -1388,10 +1388,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
-        let res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
 
             res[column.datatable_field_uid] = column;
         }
@@ -1407,17 +1407,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get columns(): TableColumnDescVO[] {
-        let options: TableWidgetOptionsVO = this.widget_options;
+        const options: TableWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.columns)) {
             return null;
         }
 
-        let res: TableColumnDescVO[] = [];
+        const res: TableColumnDescVO[] = [];
         let sticky_left: number = 0;
-        for (let i in options.columns) {
+        for (const i in options.columns) {
 
-            let column = options.columns[i];
+            const column = options.columns[i];
 
             if (column.readonly == null) {
                 column.readonly = true;
@@ -1460,13 +1460,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // this.array_of_headers = final_array_of_header;
         // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau pour l'affichage final dans le dashboardboardbuilder
         for (const u in res) {
-            let column = res[u];
-            let final_res = [];
+            const column = res[u];
+            const final_res = [];
             if (column.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
                 //pour mettre a plat les colonne pour l affichage
                 for (const r in column.children) {
-                    let children = column.children[r];
-                    let index = column.children.indexOf(children);
+                    const children = column.children[r];
+                    const index = column.children.indexOf(children);
                     // column.children.push(Object.assign(new TableColumnDescVO(), children));
                     final_res.push(Object.assign(new TableColumnDescVO(), children));
                     // res.push(Object.assign(new TableColumnDescVO(), children));
@@ -1490,7 +1490,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         let res: number = 0;
 
-        for (let i in this.columns) {
+        for (const i in this.columns) {
             if (this.columns[i].hide_from_table) {
                 continue;
             }
@@ -1511,7 +1511,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         let res: number = 0;
 
-        for (let i in this.columns) {
+        for (const i in this.columns) {
             if (!this.is_column_type_number(this.columns[i])) {
                 res++;
                 continue;
@@ -1522,18 +1522,18 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get fields(): { [column_id: number]: DatatableField<any, any> } {
-        let res: { [column_id: number]: DatatableField<any, any> } = {};
+        const res: { [column_id: number]: DatatableField<any, any> } = {};
 
         if (!this.widget_options) {
             return res;
         }
 
-        for (let i in this.columns) {
-            let column: TableColumnDescVO = this.columns[i];
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
             let moduleTable: ModuleTableVO;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
-                moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
+                moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
             }
 
             switch (column.type) {
@@ -1541,7 +1541,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
-                    let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
+                    const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                         column.id.toString(),
                         column.var_id,
                         column.filter_type,
@@ -1551,7 +1551,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     res[column.id] = var_data_field;
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
-                    let field = moduleTable.get_field_by_id(column.field_id);
+                    const field = moduleTable.get_field_by_id(column.field_id);
                     // let field_type = field ? field.field_type : moduletablfiel
                     // switch (field.field_type) {
 
@@ -1566,7 +1566,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         break;
                     }
 
-                    let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+                    const data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
                     if (data_field['set_translatable_title']) {
@@ -1591,7 +1591,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         //     let moduleTable: ModuleTableVO;
 
         //     if (column.type != TableColumnDescVO.TYPE_header) {
-        //         moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
+        //         moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
         //     }
 
         //     switch (column.type) {
@@ -1610,7 +1610,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         //             for (let f = 0; f < column.children.length; f++) {
         //                 let children = column.children[f];
         //                 if (!semaphore || children.field_id != semaphore) {
-        //                     moduleTable = VOsTypesManager.moduleTables_by_voType[children.api_type_id];
+        //                     moduleTable = ModuleTableController.module_tables_by_vo_type[children.api_type_id];
         //                     let result = this.switch_for_type_header(children, moduleTable);
         //                     result.is_required = true;
         //                     res[children.id] = result;
@@ -1665,7 +1665,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 res = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
             case TableColumnDescVO.TYPE_var_ref:
-                let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
+                const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
                     column.id.toString(),
                     column.var_id,
                     column.filter_type,
@@ -1675,7 +1675,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 res = var_data_field;
                 break;
             case TableColumnDescVO.TYPE_vo_field_ref:
-                let field = moduleTable.get_field_by_id(column.field_id);
+                const field = moduleTable.get_field_by_id(column.field_id);
                 // let field_type = field ? field.field_type : moduletablfiel
                 // switch (field.field_type) {
 
@@ -1690,7 +1690,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     break;
                 }
 
-                let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+                const data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                 // sur un simple on set le label
                 if (data_field['set_translatable_title']) {
@@ -1729,7 +1729,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private async throttled_do_update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.table_columns = cloneDeep(this.columns);
         this.last_calculation_cpt = launch_cpt;
@@ -1775,8 +1775,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         let crud_api_type_id = this.crud_activated_api_type;
         if (!crud_api_type_id) {
-            for (let column_id in this.fields) {
-                let field = this.fields[column_id];
+            for (const column_id in this.fields) {
+                const field = this.fields[column_id];
 
                 if (!field.vo_type_id) {
                     continue;
@@ -1792,7 +1792,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        let query_: ContextQueryVO = query(crud_api_type_id)
+        const query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
@@ -1814,7 +1814,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         // Si on est sur un kanban, on ordonne par weight si c'est activé
-        let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
+        const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
 
         if (this.kanban_column && this.kanban_column.kanban_use_weight && kanban_moduletable.has_field_id(field_names<IWeightedItem & IDistantVOBase>().weight)) {
             query_.set_sort(new SortByVO(this.kanban_column.api_type_id, field_names<IWeightedItem & IDistantVOBase>().weight, true));
@@ -1823,7 +1823,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
                 ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
 
-                let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+                const field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
                 query_.set_sort(new SortByVO(field.vo_type_id, field.module_table_field_id, (this.order_asc_on_id != null)));
             }
@@ -1833,18 +1833,18 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             query_.filter_is_false(field_names<IArchivedVOBase>().archived);
         }
 
-        let clone = cloneDeep(this.columns_by_field_id);
-        for (let field_id in clone) {
-            let field = clone[field_id];
+        const clone = cloneDeep(this.columns_by_field_id);
+        for (const field_id in clone) {
+            const field = clone[field_id];
             if (field.type == TableColumnDescVO.TYPE_header) {
                 for (const key in field.children) {
-                    let child = field.children[key];
+                    const child = field.children[key];
                     clone[child.datatable_field_uid] = child;
                 }
             }
         }
-        for (let column_id in this.fields) {
-            let field = this.fields[column_id];
+        for (const column_id in this.fields) {
+            const field = this.fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
@@ -1868,7 +1868,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
 
             // let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
-            let column: TableColumnDescVO = clone[field.datatable_field_uid];
+            const column: TableColumnDescVO = clone[field.datatable_field_uid];
 
             let aggregator: number = VarConfVO.NO_AGGREGATOR;
 
@@ -1895,7 +1895,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+        const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -1920,7 +1920,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             let has_filter: boolean = false;
 
-            for (let field_id in this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+            for (const field_id in this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
                 if (this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
                     has_filter = true;
                     break;
@@ -1941,9 +1941,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         // Si on a des widgets, on va ajouter les exclude values si y'en a
-        for (let i in this.all_page_widget) {
-            let page_widget: DashboardPageWidgetVO = this.all_page_widget[i];
-            let widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
+        for (const i in this.all_page_widget) {
+            const page_widget: DashboardPageWidgetVO = this.all_page_widget[i];
+            const widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
 
             if (!widget) {
                 continue;
@@ -1955,7 +1955,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             let options: FieldValueFilterWidgetOptions = null;
             try {
-                if (!!page_widget.json_options) {
+                if (page_widget.json_options) {
                     options = JSON.parse(page_widget.json_options);
                 }
             } catch (error) {
@@ -1975,9 +1975,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             );
         }
 
-        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+        for (const i in this.fields) {
+            const field = this.fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
@@ -2006,7 +2006,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.kanban_column_index_to_ref_field_id = {};
         this.kanban_column_values_to_index = {};
 
-        let kanban_column_field = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
+        const kanban_column_field = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
         switch (kanban_column_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_enum:
                 this.kanban_column_values = Object.keys(kanban_column_field.enum_values);
@@ -2020,16 +2020,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     kanban_column_values_query = kanban_column_values_query.set_sort(new SortByVO(this.kanban_column.api_type_id, 'weight', true));
                 }
 
-                let id_column = new TableColumnDescVO();
+                const id_column = new TableColumnDescVO();
                 id_column.api_type_id = this.kanban_column.api_type_id;
                 id_column.field_id = 'id';
                 id_column.type = TableColumnDescVO.TYPE_vo_field_ref;
 
-                let id_field = new CRUDActionsDatatableFieldVO();
+                const id_field = new CRUDActionsDatatableFieldVO();
                 id_field._vo_type_id = this.kanban_column.api_type_id;
                 id_field.module_table_field_id = 'id';
 
-                let kanban_column_values_with_raw_and_ids = await kanban_column_values_query.select_datatable_rows({
+                const kanban_column_values_with_raw_and_ids = await kanban_column_values_query.select_datatable_rows({
                     ['id']: id_column,
                     [this.kanban_column.datatable_field_uid]: this.kanban_column
                 }, {
@@ -2038,9 +2038,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 });
                 this.kanban_column_values = kanban_column_values_with_raw_and_ids ? kanban_column_values_with_raw_and_ids.map((row: any) => row[this.kanban_column.field_id]) : [];
 
-                for (let i in kanban_column_values_with_raw_and_ids) {
-                    let row = kanban_column_values_with_raw_and_ids[i];
-                    let kanban_index = parseInt(i);
+                for (const i in kanban_column_values_with_raw_and_ids) {
+                    const row = kanban_column_values_with_raw_and_ids[i];
+                    const kanban_index = parseInt(i);
 
                     this.kanban_column_values_to_index[row[this.kanban_column_field.field_id].toString()] = kanban_index;
                     this.kanban_column_index_to_ref_field_id[kanban_index] = row['id'];
@@ -2051,16 +2051,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * On fait une requête par kanban_value pour que la limite s'applique bien à chaque colonne
          */
-        let rows_by_kanban_index: { [kanban_index: number]: any[] } = {};
+        const rows_by_kanban_index: { [kanban_index: number]: any[] } = {};
 
-        let promises = [];
-        for (let i in this.kanban_column_values) {
-            let kanban_column_value = this.kanban_column_values[i];
-            let kanban_index = parseInt(i);
+        const promises = [];
+        for (const i in this.kanban_column_values) {
+            const kanban_column_value = this.kanban_column_values[i];
+            const kanban_index = parseInt(i);
 
             promises.push((async () => {
 
-                let cloned_query = cloneDeep(query_);
+                const cloned_query = cloneDeep(query_);
                 switch (kanban_column_field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_enum:
 
@@ -2104,17 +2104,17 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * On regroupe par la colonne kanban
          */
-        let kanban_column_counts = {};
-        for (let kanban_index_str in rows_by_kanban_index) {
-            let rows = rows_by_kanban_index[kanban_index_str];
-            let kanban_column_index = parseInt(kanban_index_str);
+        const kanban_column_counts = {};
+        for (const kanban_index_str in rows_by_kanban_index) {
+            const rows = rows_by_kanban_index[kanban_index_str];
+            const kanban_column_index = parseInt(kanban_index_str);
 
             kanban_column_counts[kanban_column_index] = rows ? rows.length : 0;
         }
 
         this.data_rows = rows_by_kanban_index;
         this.kanban_column_counts = kanban_column_counts;
-        let context_query: ContextQueryVO = cloneDeep(query_);
+        const context_query: ContextQueryVO = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
         context_query.query_distinct = true;
@@ -2141,8 +2141,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.columns) {
-            let column: TableColumnDescVO = this.columns[i];
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
 
             if (column.kanban_column) {
                 return column;
@@ -2160,7 +2160,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -2173,7 +2173,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             this.order_asc_on_id = null;
             this.order_desc_on_id = null;
 
-            for (let i in this.columns) {
+            for (const i in this.columns) {
                 if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_asc) {
                     this.order_asc_on_id = this.columns[i].id;
                     break;
@@ -2187,7 +2187,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.widget_options.limit;
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
-        let promises = [
+        const promises = [
             this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
@@ -2196,12 +2196,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     private async update_filter_by_access_cache() {
 
-        let promises = [];
-        let self = this;
-        for (let i in this.widget_options.columns) {
-            let column = this.widget_options.columns[i];
+        const promises = [];
+        const self = this;
+        for (const i in this.widget_options.columns) {
+            const column = this.widget_options.columns[i];
 
-            if (!!column.filter_by_access) {
+            if (column.filter_by_access) {
                 promises.push((async () => {
                     VueAppBase.getInstance().vueInstance.$set(self.filter_by_access_cache, column.filter_by_access, await ModuleAccessPolicy.getInstance().checkAccess(column.filter_by_access));
                     ConsoleHandler.log(column.filter_by_access + ':' + self.filter_by_access_cache[column.filter_by_access]);
@@ -2233,7 +2233,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         let options: TableWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
                 options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
@@ -2245,12 +2245,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private open_vocus(api_type_id: string, id: number) {
-        let routeData = this.$router.resolve({ path: this.getVocusLink(api_type_id, id) });
+        const routeData = this.$router.resolve({ path: this.getVocusLink(api_type_id, id) });
         window.open(routeData.href, '_blank');
     }
 
     private async confirm_delete(api_type_id: string, id: number) {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression
@@ -2266,7 +2266,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TableWidgetComponent.confirm_delete.start'));
 
-                        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
+                        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
                         if ((!res) || (res.length != 1) || (!res[0].id)) {
                             self.snotify.error(self.label('TableWidgetComponent.confirm_delete.ko'));
                         } else {
@@ -2287,7 +2287,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private async confirm_delete_all() {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression
@@ -2345,13 +2345,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return null;
         }
 
-        let context_query = cloneDeep(this.actual_rows_query);
+        const context_query = cloneDeep(this.actual_rows_query);
         if (!limit_to_page) {
             context_query.set_limit(0, 0);
 
             // On doit aussi ajuster les sub_queries en jointure dans ce cas
-            for (let i in context_query.joined_context_queries) {
-                let joined_context_query = context_query.joined_context_queries[i];
+            for (const i in context_query.joined_context_queries) {
+                const joined_context_query = context_query.joined_context_queries[i];
 
                 if (!joined_context_query) {
                     continue;
@@ -2361,12 +2361,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        let export_name = this.dashboard_page.translatable_name_code_text ?
+        const export_name = this.dashboard_page.translatable_name_code_text ?
             "Export-" + this.t(this.dashboard_page.translatable_name_code_text) + "-" + Dates.now() + ".xlsx" :
             "Export-" + Dates.now() + ".xlsx";
-        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+        for (const i in this.fields) {
+            const field = this.fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
@@ -2391,10 +2391,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
-        let res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+        const res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
@@ -2409,30 +2409,30 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get do_not_use_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
-        let res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
+        const res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
             }
 
-            let do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+            const do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
 
             // On supprime les filtres à ne pas prendre en compte pour créer le bon param
             if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
-                let all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+                const all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
 
-                for (let j in column.do_not_user_filter_active_ids) {
-                    let page_filter_id = column.do_not_user_filter_active_ids[j];
+                for (const j in column.do_not_user_filter_active_ids) {
+                    const page_filter_id = column.do_not_user_filter_active_ids[j];
 
-                    let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
+                    const page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[page_filter_id];
                     if (!page_widget) {
                         continue;
                     }
 
-                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+                    const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
 
                     if (page_widget_options?.vo_field_ref) {
                         if (!do_not_use[page_widget_options.vo_field_ref.api_type_id]) {
@@ -2453,16 +2453,16 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
-        let res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
+        const res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
             }
 
-            let varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+            const varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 column.var_id,
                 column.filter_custom_field_filters
             );
@@ -2474,14 +2474,14 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get datatable_columns_labels(): any {
-        let res: any = {};
+        const res: any = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
 
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
-                    let child = column.children[key];
+                    const child = column.children[key];
                     res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
                 }
             } else {
@@ -2493,10 +2493,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get exportable_datatable_custom_field_columns(): { [datatable_field_uid: string]: string } {
-        let res: { [datatable_field_uid: string]: string } = {};
+        const res: { [datatable_field_uid: string]: string } = {};
 
-        for (let i in this.columns) {
-            let column: TableColumnDescVO = this.columns[i];
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
 
             if (!column.exportable) {
                 continue;
@@ -2513,13 +2513,13 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get exportable_datatable_columns(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.columns) {
-            let column: TableColumnDescVO = this.columns[i];
+        for (const i in this.columns) {
+            const column: TableColumnDescVO = this.columns[i];
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
-                    let child = column.children[key];
+                    const child = column.children[key];
                     if (!child.exportable) {
                         continue;
                     }
@@ -2545,19 +2545,19 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private get_exportable_datatable_data(): any[] {
-        let exportable_datatable_data = [];
+        const exportable_datatable_data = [];
 
-        for (let i in this.data_rows) {
-            let datas = this.data_rows[i];
+        for (const i in this.data_rows) {
+            const datas = this.data_rows[i];
 
-            for (let j in datas) {
-                let data = datas[j];
+            for (const j in datas) {
+                const data = datas[j];
 
-                let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(data, this.export_datatable, this.exportable_datatable_columns);
-                if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+                const cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(data, this.export_datatable, this.exportable_datatable_columns);
+                if (cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
                     delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
                 }
-                if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+                if (cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
                     delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
                 }
 
@@ -2569,10 +2569,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     get export_datatable(): Datatable<any> {
-        let res = new Datatable(this.crud_activated_api_type);
+        const res = new Datatable(this.crud_activated_api_type);
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (const i in this.fields) {
+            const field = this.fields[i];
 
             if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
                 continue;
@@ -2591,7 +2591,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
      * On demande si on veut exporter tout en juste la page actuellement lue
      */
     private async choose_export_type() {
-        let self = this;
+        const self = this;
 
         if (this.default_export_option) {
 
@@ -2642,9 +2642,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
      * @param limit_to_page se limiter à la page vue, ou renvoyer toutes les datas suivant les filtres actifs
      */
     private async do_export_to_xlsx(limit_to_page: boolean = true) {
-        let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
+        const param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
 
-        if (!!param) {
+        if (param) {
 
             this.show_export_alert = false;
 
@@ -2675,7 +2675,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private get_style_th(column: TableColumnDescVO) {
-        let res = {};
+        const res = {};
 
         if (!column) {
             return res;
@@ -2707,7 +2707,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     }
 
     private get_style_td(column: TableColumnDescVO) {
-        let res = {};
+        const res = {};
 
         if (!column) {
             return res;
@@ -2741,7 +2741,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return res;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
         if (!field) {
             return res;
         }
@@ -2764,20 +2764,20 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return;
         }
 
-        let promises = [];
+        const promises = [];
 
-        for (let i in this.columns) {
+        for (const i in this.columns) {
             if (!this.is_column_type_number(this.columns[i])) {
                 continue;
             }
 
-            let column = this.columns[i];
+            const column = this.columns[i];
 
             if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
                 continue;
             }
 
-            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            const field = ModuleTableController.module_tables_by_vo_type[column.api_type_id].getFieldFromId(column.field_id);
             if (!field) {
                 continue;
             }
@@ -2786,9 +2786,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 this.column_total[column.api_type_id] = {};
             }
 
-            let alias_field: string = column.field_id + "_" + column.api_type_id;
+            const alias_field: string = column.field_id + "_" + column.api_type_id;
 
-            let query_: ContextQueryVO = query(column.api_type_id)
+            const query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
@@ -2797,7 +2797,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));
 
             promises.push((async () => {
-                let res = await ModuleContextFilter.getInstance().select(query_);
+                const res = await ModuleContextFilter.getInstance().select(query_);
 
                 if (res && res[0]) {
                     let column_total: number = res[0][alias_field];
@@ -2839,8 +2839,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.all_page_widget) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (const i in this.all_page_widget) {
+            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;
@@ -2875,47 +2875,47 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     // }
 
     get contextmenu_items(): any {
-        let contextmenu_items: any = {};
+        const contextmenu_items: any = {};
 
         contextmenu_items['archive'] = {
             name: this.label('TableWidgetTableComponent.contextmenu.archive'),
             disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return true;
                 }
 
-                let use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
                 if (!use_kanban_card_archive_if_exists) {
                     return true;
                 }
 
-                let kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
-                let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[kanban_api_type_id];
-                let item_id = elt.getAttribute('item_id');
+                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
+                const item_id = elt.getAttribute('item_id');
                 return (!item_id) || !kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived);
             },
             callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return;
                 }
 
-                let use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
+                const use_kanban_card_archive_if_exists = elt.getAttribute('use_kanban_card_archive_if_exists');
                 if (!use_kanban_card_archive_if_exists) {
                     return;
                 }
 
-                let item_id = elt.getAttribute('item_id');
+                const item_id = elt.getAttribute('item_id');
 
                 if (!item_id) {
                     return;
                 }
 
-                let kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
-                let kanban_moduletable = VOsTypesManager.moduleTables_by_voType[kanban_api_type_id];
+                const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
+                const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
 
                 if (!kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived)) {
                     return;

@@ -110,10 +110,10 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return null;
         }
 
-        let res: DashboardPageVO[] = [];
+        const res: DashboardPageVO[] = [];
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
             if (!page.hide_navigation) {
                 res.push(page);
             }
@@ -250,14 +250,14 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     get pages_name_code_text(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.pages) {
             return res;
         }
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
 
             res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
         }

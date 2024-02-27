@@ -64,10 +64,10 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     public async validate_formatted_data(module_datas: AnimationImportModuleVO[]): Promise<AnimationImportModuleVO[]> {
 
-        let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
-        let modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        const themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+        const modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
-        for (let module_data of module_datas) {
+        for (const module_data of module_datas) {
 
             if (this.alreadyPresent(module_data, modules_db)) {
                 module_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -75,7 +75,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
                 continue;
             }
 
-            let associated_theme: AnimationThemeVO = themes.find((theme) => theme.id_import == module_data.theme_id_import);
+            const associated_theme: AnimationThemeVO = themes.find((theme) => theme.id_import == module_data.theme_id_import);
 
             if (!associated_theme) {
                 module_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -113,18 +113,18 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
             return false;
         }
 
-        let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+        const themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
-        let modulesInDB: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
+        const modulesInDB: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
         let succeeded = true;
-        for (let i in moduleDatas) {
-            let moduleData: AnimationImportModuleVO = moduleDatas[i];
+        for (const i in moduleDatas) {
+            const moduleData: AnimationImportModuleVO = moduleDatas[i];
             if (!this.alreadyPresent(moduleData, modulesInDB)) {
 
-                let module: AnimationModuleVO = this.createModuleBase(moduleData, themes, roles);
-                let queryRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(module);
+                const module: AnimationModuleVO = this.createModuleBase(moduleData, themes, roles);
+                const queryRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(module);
 
                 if (!queryRes) {
                     succeeded = false;
@@ -144,8 +144,8 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
      * @returns true if already in db
      */
     private alreadyPresent(moduleData: AnimationImportModuleVO, modules: AnimationModuleVO[]): boolean {
-        let module_data_id_import = this.restoreData(moduleData.id_import);
-        let alreadyPresentModule = modules.find((module: AnimationModuleVO) => module.id_import == module_data_id_import);
+        const module_data_id_import = this.restoreData(moduleData.id_import);
+        const alreadyPresentModule = modules.find((module: AnimationModuleVO) => module.id_import == module_data_id_import);
         if (alreadyPresentModule) {
             return true;
         }
@@ -154,7 +154,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     private createModuleBase(moduleData: AnimationImportModuleVO, themes: AnimationThemeVO[], roles: RoleVO[]): AnimationModuleVO {
 
-        let module: AnimationModuleVO = new AnimationModuleVO();
+        const module: AnimationModuleVO = new AnimationModuleVO();
 
         module.name = this.restoreData(moduleData.name);
         module.description = this.restoreData(moduleData.description);
@@ -165,8 +165,8 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         module.role_id_ranges = this.restoreRoleIdRanges(moduleData.role_id_ranges, roles);
         module.id_import = this.restoreData(moduleData.id_import);
 
-        let module_theme = this.restoreData(moduleData.theme_id_import);
-        let associated_theme = themes.find((theme) => theme.id_import == module_theme);
+        const module_theme = this.restoreData(moduleData.theme_id_import);
+        const associated_theme = themes.find((theme) => theme.id_import == module_theme);
 
         if (associated_theme) {
             module.theme_id = associated_theme.id;
@@ -188,26 +188,26 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
     }
 
     private restoreRoleIdRanges(stringified_role_names: string, roles: RoleVO[]): NumRange[] {
-        let role_names = this.restoreData(stringified_role_names);
+        const role_names = this.restoreData(stringified_role_names);
         if (!role_names) {
             return role_names;
         }
         let role_ids = [];
-        for (let role_name of role_names) {
-            let referenced_role = roles.find((role) => role.translatable_name == role_name);
+        for (const role_name of role_names) {
+            const referenced_role = roles.find((role) => role.translatable_name == role_name);
             role_ids.push(referenced_role.id);
         }
 
         role_ids = role_ids.sort();
-        let role_numranges: NumRange[] = [];
+        const role_numranges: NumRange[] = [];
 
-        for (let id of role_ids) {
+        for (const id of role_ids) {
 
             if (role_ids.includes(id - 1)) {
-                let role_numrange = role_numranges[role_numranges.length - 1];
+                const role_numrange = role_numranges[role_numranges.length - 1];
                 role_numrange.max += 1;
             } else {
-                let numRange = NumRange.createNew(id, id + 1, true, false, NumSegment.TYPE_INT);
+                const numRange = NumRange.createNew(id, id + 1, true, false, NumSegment.TYPE_INT);
                 role_numranges.push(numRange);
             }
         }

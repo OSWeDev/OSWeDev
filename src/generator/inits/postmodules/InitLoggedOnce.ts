@@ -26,15 +26,15 @@ export default class InitLoggedOnce implements IGeneratorWorker {
 
     // istanbul ignore next: nothing to test : work
     public async work() {
-        let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
-        let update_users: UserVO[] = [];
+        const users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
+        const update_users: UserVO[] = [];
 
-        for (let i in users) {
-            let user = users[i];
+        for (const i in users) {
+            const user = users[i];
 
-            let logs: UserLogVO[] = await query(UserLogVO.API_TYPE_ID).filter_by_num_eq('user_id', user.id).select_vos();
-            for (let j in logs) {
-                let log = logs[j];
+            const logs: UserLogVO[] = await query(UserLogVO.API_TYPE_ID).filter_by_num_eq('user_id', user.id).select_vos();
+            for (const j in logs) {
+                const log = logs[j];
 
                 if (log.impersonated) {
                     continue;

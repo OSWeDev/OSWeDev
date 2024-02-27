@@ -47,7 +47,7 @@ export default class ImportTypeCSVHandler {
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
 
         return new Promise(async (resolve, reject) => {
-            let inputStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+            const inputStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
                 if ((!muted) && !historic.use_fast_track) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
@@ -63,7 +63,7 @@ export default class ImportTypeCSVHandler {
                 return;
             }
 
-            let raw_rows: any[] = [];
+            const raw_rows: any[] = [];
             inputStream
                 .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: ';' }))
                 .on('data', function (row) {
@@ -80,10 +80,10 @@ export default class ImportTypeCSVHandler {
                         case DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL:
 
                             // On cherche à retrouver les colonnes par le nom sur la ligne des titres de colonnes
-                            let row_index: number = dataImportFormat.column_labels_row_index;
+                            const row_index: number = dataImportFormat.column_labels_row_index;
                             let column_index: number = 0;
 
-                            for (let i in dataImportColumns) {
+                            for (const i in dataImportColumns) {
                                 dataImportColumns[i].column_index = null;
                             }
 
@@ -92,9 +92,9 @@ export default class ImportTypeCSVHandler {
                             let empty_columns: number = 0;
                             while (empty_columns < 10) {
 
-                                let column_data_string: any = (raw_rows && raw_rows[row_index]) ? raw_rows[row_index][column_index] : null;
+                                const column_data_string: any = (raw_rows && raw_rows[row_index]) ? raw_rows[row_index][column_index] : null;
 
-                                if (!!column_data_string) {
+                                if (column_data_string) {
                                     let titre: string = ImportTypeCSVHandler.getInstance().getStringfromColumnDataString(column_data_string);
 
                                     if ((!!titre) && (TypesHandler.getInstance().isString(titre))) {
@@ -104,15 +104,15 @@ export default class ImportTypeCSVHandler {
                                         titre = titre.replace(/\n/ig, '');
                                         titre = titre.replace(/\r/ig, '');
 
-                                        for (let i in dataImportColumns) {
-                                            let dataImportColumn = dataImportColumns[i];
+                                        for (const i in dataImportColumns) {
+                                            const dataImportColumn = dataImportColumns[i];
 
-                                            let titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
+                                            const titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
                                             let found: boolean = (dataImportColumn.title && (TextHandler.getInstance().standardize_for_comparaison(dataImportColumn.title) == titre_standard));
 
                                             if (!found) {
-                                                for (let other_column_labels_i in dataImportColumn.other_column_labels) {
-                                                    let other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
+                                                for (const other_column_labels_i in dataImportColumn.other_column_labels) {
+                                                    const other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
 
                                                     if (other_column_label && (TextHandler.getInstance().standardize_for_comparaison(other_column_label) == titre_standard)) {
                                                         found = true;
@@ -142,7 +142,7 @@ export default class ImportTypeCSVHandler {
                             }
 
                             let misses_mandatory_columns: boolean = false;
-                            for (let i in dataImportColumns) {
+                            for (const i in dataImportColumns) {
                                 if ((dataImportColumns[i].column_index === null) && (dataImportColumns[i].mandatory)) {
 
                                     // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
@@ -181,7 +181,7 @@ export default class ImportTypeCSVHandler {
     public async importFileBatchMode(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
-            let inputStream: ReadStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+            const inputStream: ReadStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
                 if (!muted) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
@@ -213,7 +213,7 @@ export default class ImportTypeCSVHandler {
                                 // On cherche à retrouver les colonnes par le nom sur la ligne des titres de colonnes
                                 let column_index: number = 0;
 
-                                for (let i in dataImportColumns) {
+                                for (const i in dataImportColumns) {
                                     dataImportColumns[i].column_index = null;
                                 }
 
@@ -222,9 +222,9 @@ export default class ImportTypeCSVHandler {
                                 let empty_columns: number = 0;
                                 while (empty_columns < 10) {
 
-                                    let column_data_string: any = (raw_row_data) ? raw_row_data[column_index] : null;
+                                    const column_data_string: any = (raw_row_data) ? raw_row_data[column_index] : null;
 
-                                    if (!!column_data_string) {
+                                    if (column_data_string) {
                                         let titre: string = ImportTypeCSVHandler.getInstance().getStringfromColumnDataString(column_data_string);
 
                                         if ((!!titre) && (TypesHandler.getInstance().isString(titre))) {
@@ -234,15 +234,15 @@ export default class ImportTypeCSVHandler {
                                             titre = titre.replace(/\n/ig, '');
                                             titre = titre.replace(/\r/ig, '');
 
-                                            for (let i in dataImportColumns) {
-                                                let dataImportColumn = dataImportColumns[i];
+                                            for (const i in dataImportColumns) {
+                                                const dataImportColumn = dataImportColumns[i];
 
-                                                let titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
+                                                const titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
                                                 let found: boolean = (dataImportColumn.title && (TextHandler.getInstance().standardize_for_comparaison(dataImportColumn.title) == titre_standard));
 
                                                 if (!found) {
-                                                    for (let other_column_labels_i in dataImportColumn.other_column_labels) {
-                                                        let other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
+                                                    for (const other_column_labels_i in dataImportColumn.other_column_labels) {
+                                                        const other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
 
                                                         if (other_column_label && (TextHandler.getInstance().standardize_for_comparaison(other_column_label) == titre_standard)) {
                                                             found = true;
@@ -272,7 +272,7 @@ export default class ImportTypeCSVHandler {
                                 }
 
                                 let misses_mandatory_columns: boolean = false;
-                                for (let i in dataImportColumns) {
+                                for (const i in dataImportColumns) {
                                     if ((dataImportColumns[i].column_index === null) && (dataImportColumns[i].mandatory)) {
 
                                         // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
@@ -295,9 +295,9 @@ export default class ImportTypeCSVHandler {
                         }
                     } else if (raw_row_index > dataImportFormat.column_labels_row_index) {
 
-                        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+                        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[dataImportFormat.api_type_id];
 
-                        let rowData: IImportedData = {
+                        const rowData: IImportedData = {
                             _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
                             importation_state: ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                             not_validated_msg: null,
@@ -313,7 +313,7 @@ export default class ImportTypeCSVHandler {
                         }
 
                         if (batch_datas && (batch_datas.length >= dataImportFormat.batch_size)) {
-                            let self = this;
+                            const self = this;
                             self.pause();
 
                             if (dataImportFormat.use_multiple_connections) {
@@ -353,7 +353,7 @@ export default class ImportTypeCSVHandler {
 
         return new Promise(async (resolve, reject) => {
 
-            let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
+            const fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
             if ((!fileVO) || (!fileVO.path)) {
                 if (!muted) {
@@ -366,7 +366,7 @@ export default class ImportTypeCSVHandler {
             /**
              * On test le cas fichier vide :
              */
-            let file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+            const file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
             if (!file_size) {
                 if ((!!importHistoric) && (!!importHistoric.id)) {
                     resolve(null);
@@ -515,7 +515,7 @@ export default class ImportTypeCSVHandler {
     }
 
     public parseExcelDate(dateValue: string): number {
-        let res: number = null;
+        const res: number = null;
         if (dateValue) {
             // it is a string, but it really represents a number and not a date
             if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
@@ -523,7 +523,7 @@ export default class ImportTypeCSVHandler {
             }
             // else assume a string representing a date
             // we use few allowed formats, but explicitly parse not strictly
-            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+            const formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
             return moment(dateValue, formats, false).utc(true).unix();
         }
         return res;
@@ -536,14 +536,14 @@ export default class ImportTypeCSVHandler {
         raw_rows: any[]): IImportedData[] {
         let row_index: number = dataImportFormat.first_row_index;
         let last_row_has_data: boolean = true;
-        let datas: IImportedData[] = [];
+        const datas: IImportedData[] = [];
 
-        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
 
-            let raw_row_data = raw_rows ? raw_rows[row_index] : null;
-            let rowData: IImportedData = {
+            const raw_row_data = raw_rows ? raw_rows[row_index] : null;
+            const rowData: IImportedData = {
                 _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
                 importation_state: ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                 not_validated_msg: null,
@@ -570,22 +570,22 @@ export default class ImportTypeCSVHandler {
 
         let last_row_has_data = false;
 
-        for (let i in dataImportColumns) {
-            let dataImportColumn: DataImportColumnVO = dataImportColumns[i];
+        for (const i in dataImportColumns) {
+            const dataImportColumn: DataImportColumnVO = dataImportColumns[i];
 
             if (dataImportColumn.column_index == null) {
                 continue;
             }
 
-            let moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
+            const moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
 
             if (!moduletable_field) {
                 continue;
             }
 
-            let column_index: number = dataImportColumn.column_index;
+            const column_index: number = dataImportColumn.column_index;
 
-            let column_data_string: string = raw_row_data ? raw_row_data[column_index] : null;
+            const column_data_string: string = raw_row_data ? raw_row_data[column_index] : null;
 
             try {
 

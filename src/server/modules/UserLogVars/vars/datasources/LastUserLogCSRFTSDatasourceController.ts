@@ -21,7 +21,7 @@ export default class LastUserLogCSRFTSDatasourceController extends DataSourceCon
 
     public async get_data(param: UserDataRangesVO): Promise<number> {
 
-        let last_csrf: UserLogVO = await query(UserLogVO.API_TYPE_ID)
+        const last_csrf: UserLogVO = await query(UserLogVO.API_TYPE_ID)
             .filter_by_num_x_ranges('user_id', param.user_id_ranges)
             .filter_is_false('impersonated')
             .filter_by_num_eq('log_type', UserLogVO.LOG_TYPE_CSRF_REQUEST)

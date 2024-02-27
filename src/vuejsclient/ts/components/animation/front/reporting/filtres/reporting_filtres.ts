@@ -33,7 +33,7 @@ export default class VueAnimationReportingFiltresComponent extends VueComponentB
     }
 
     private condition_by_anim_theme(anim_module: AnimationModuleVO, anim_theme_options: DataFilterOption[]): boolean {
-        let res: boolean = true;
+        const res: boolean = true;
 
         if (this.get_filter_anim_theme_active_options && this.get_filter_anim_theme_active_options.length > 0) {
             return this.get_filter_anim_theme_active_options.find((e) => e.id == anim_module.theme_id) != null;

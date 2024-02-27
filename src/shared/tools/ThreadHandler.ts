@@ -15,7 +15,7 @@ export default class ThreadHandler {
 
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'sleep', reason_ID);
 
-        let date_in_ms = Dates.now_ms();
+        const date_in_ms = Dates.now_ms();
         return new Promise<any>((resolve) => {
             setTimeout(async () => {
 
@@ -24,7 +24,7 @@ export default class ThreadHandler {
                     await ThreadHandler.sleep(timeout, 'sleep.pause_on_db_disconnection', pause_on_db_disconnection);
                 }
 
-                let date_out_ms = Dates.now_ms();
+                const date_out_ms = Dates.now_ms();
                 StatsController.register_stat_DUREE('ThreadHandler', 'sleep', reason_ID, date_out_ms - date_in_ms);
 
                 resolve("sleep");
@@ -45,7 +45,7 @@ export default class ThreadHandler {
 
         StatsController.register_stat_COMPTEUR('ThreadHandler', 'set_interval', reason_ID);
 
-        let interval_uid = ThreadHandler.current_interval_uid++;
+        const interval_uid = ThreadHandler.current_interval_uid++;
         ThreadHandler.intervals[interval_uid] = true;
         ThreadHandler.sleep(timeout, reason_ID, pause_on_db_disconnection).then(async () => {
 

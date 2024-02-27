@@ -57,10 +57,10 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.get_custom_filters) {
-            let get_custom_filter = this.get_custom_filters[i];
+        for (const i in this.get_custom_filters) {
+            const get_custom_filter = this.get_custom_filters[i];
 
             if (get_custom_filter == this.custom_filter_name) {
                 continue;
@@ -75,7 +75,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
     private change_custom_filter(custom_filter: string) {
         this.custom_filter_name = custom_filter;
         if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
-            let custom_filters = Array.from(this.get_custom_filters);
+            const custom_filters = Array.from(this.get_custom_filters);
             custom_filters.push(custom_filter);
             this.set_custom_filters(custom_filters);
         }
@@ -129,13 +129,13 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: DOWFilterWidgetOptions = this.widget_options;
+        const options: DOWFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -171,7 +171,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
 
         let options: DOWFilterWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
                 options = options ? new DOWFilterWidgetOptions(
                     options.is_vo_field_ref, options.vo_field_ref,
@@ -191,7 +191,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = new DOWFilterWidgetOptions(this.is_vo_field_ref, null, null);
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;

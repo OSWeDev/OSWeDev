@@ -45,7 +45,7 @@ export default class ImportTypeXLSXHandler {
      */
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
 
-        let workbook: WorkBook = await this.loadWorkbook(historic, dataImportFormat, muted);
+        const workbook: WorkBook = await this.loadWorkbook(historic, dataImportFormat, muted);
         if (!workbook) {
             if (!muted) {
                 await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
@@ -92,7 +92,7 @@ export default class ImportTypeXLSXHandler {
         }
 
         let worsheet_datas: IImportedData[] = null;
-        while (!!worksheet) {
+        while (worksheet) {
 
             worsheet_datas = null;
             if (dataImportFormat.type_sheet_position == DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) {
@@ -106,10 +106,10 @@ export default class ImportTypeXLSXHandler {
                 case DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL:
 
                     // On cherche à retrouver les colonnes par le nom sur la ligne des titres de colonnes
-                    let row_index: number = dataImportFormat.column_labels_row_index;
+                    const row_index: number = dataImportFormat.column_labels_row_index;
                     let column_index: number = 0;
 
-                    for (let i in dataImportColumns) {
+                    for (const i in dataImportColumns) {
                         dataImportColumns[i].column_index = null;
                     }
 
@@ -118,10 +118,10 @@ export default class ImportTypeXLSXHandler {
                     let empty_columns: number = 0;
                     while (empty_columns < 10) {
 
-                        let cell_address: CellAddress = { c: column_index, r: row_index };
-                        let column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
+                        const cell_address: CellAddress = { c: column_index, r: row_index };
+                        const column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
 
-                        if (!!column_data_string) {
+                        if (column_data_string) {
                             let titre: string = this.getStringfromColumnDataString(column_data_string);
 
                             if ((!!titre) && (TypesHandler.getInstance().isString(titre))) {
@@ -131,15 +131,15 @@ export default class ImportTypeXLSXHandler {
                                 titre = titre.replace(/\n/ig, '');
                                 titre = titre.replace(/\r/ig, '');
 
-                                for (let i in dataImportColumns) {
-                                    let dataImportColumn = dataImportColumns[i];
+                                for (const i in dataImportColumns) {
+                                    const dataImportColumn = dataImportColumns[i];
 
-                                    let titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
+                                    const titre_standard = TextHandler.getInstance().standardize_for_comparaison(titre);
                                     let found: boolean = (dataImportColumn.title && (TextHandler.getInstance().standardize_for_comparaison(dataImportColumn.title) == titre_standard));
 
                                     if (!found) {
-                                        for (let other_column_labels_i in dataImportColumn.other_column_labels) {
-                                            let other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
+                                        for (const other_column_labels_i in dataImportColumn.other_column_labels) {
+                                            const other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
 
                                             if (other_column_label && (TextHandler.getInstance().standardize_for_comparaison(other_column_label) == titre_standard)) {
                                                 found = true;
@@ -169,7 +169,7 @@ export default class ImportTypeXLSXHandler {
                     }
 
                     let misses_mandatory_columns: boolean = false;
-                    for (let i in dataImportColumns) {
+                    for (const i in dataImportColumns) {
                         if ((dataImportColumns[i].column_index === null) && (dataImportColumns[i].mandatory)) {
 
                             // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
@@ -347,14 +347,14 @@ export default class ImportTypeXLSXHandler {
                 dateValue = parseFloat(dateValue);
             }
             if (typeof dateValue === 'number') {
-                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
+                const dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
                 // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
-                var monthToJs = dt.m - 1;
+                const monthToJs = dt.m - 1;
                 return moment(new Date(dt.y, monthToJs, dt.d)).utc(true).unix();
             }
             // else assume a string representing a date
             // we use few allowed formats, but explicitly parse not strictly
-            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+            const formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
             return moment(dateValue, formats, false).utc(true).unix();
         }
         return null;
@@ -368,14 +368,14 @@ export default class ImportTypeXLSXHandler {
         worksheet: WorkSheet): IImportedData[] {
         let row_index: number = dataImportFormat.first_row_index;
         let last_row_has_data: boolean = true;
-        let datas: IImportedData[] = [];
+        const datas: IImportedData[] = [];
 
-        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
             last_row_has_data = false;
 
-            let rowData: IImportedData = {
+            const rowData: IImportedData = {
                 _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
                 importation_state: ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                 not_validated_msg: null,
@@ -386,23 +386,23 @@ export default class ImportTypeXLSXHandler {
                 imported_line_number: row_index
             } as any;
 
-            for (let i in dataImportColumns) {
-                let dataImportColumn: DataImportColumnVO = dataImportColumns[i];
+            for (const i in dataImportColumns) {
+                const dataImportColumn: DataImportColumnVO = dataImportColumns[i];
 
                 if (dataImportColumn.column_index == null) {
                     continue;
                 }
 
-                let moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
+                const moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
 
                 if (!moduletable_field) {
                     continue;
                 }
 
-                let column_index: number = dataImportColumn.column_index;
-                let cell_address: CellAddress = { c: column_index, r: row_index };
+                const column_index: number = dataImportColumn.column_index;
+                const cell_address: CellAddress = { c: column_index, r: row_index };
 
-                let column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
+                const column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
 
                 try {
 
@@ -473,7 +473,7 @@ export default class ImportTypeXLSXHandler {
 
     private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {
         let workbook: WorkBook = null;
-        let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
+        const fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
         if ((!fileVO) || (!fileVO.path)) {
             if (!muted) {
@@ -505,7 +505,7 @@ export default class ImportTypeXLSXHandler {
         let worksheet: WorkSheet = null;
 
         try {
-            let sheet_name: string = workbook.SheetNames[index];
+            const sheet_name: string = workbook.SheetNames[index];
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
             ConsoleHandler.error(error);
@@ -520,7 +520,7 @@ export default class ImportTypeXLSXHandler {
         let worksheet: WorkSheet = null;
 
         try {
-            let sheet_name: string = dataImportFormat.sheet_name;
+            const sheet_name: string = dataImportFormat.sheet_name;
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
             ConsoleHandler.error(error);

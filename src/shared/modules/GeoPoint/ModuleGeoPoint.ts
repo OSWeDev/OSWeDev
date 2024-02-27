@@ -36,7 +36,7 @@ export default class ModuleGeoPoint extends Module {
 
     public async get_geopoint(rue: string, cp: string, ville: string): Promise<GeoPointVO> {
         if (rue || cp || ville) {
-            let adresse: string[] = [
+            const adresse: string[] = [
                 (rue ? rue : ''),
                 (cp ? cp : ''),
                 (ville ? ville : '')
@@ -53,9 +53,9 @@ export default class ModuleGeoPoint extends Module {
             return null;
         }
 
-        let path: string = encodeURI(GeoPointHandler.URL_API + adresse);
+        const path: string = encodeURI(GeoPointHandler.URL_API + adresse);
 
-        let res: GeoPointResponseVO = await ModuleRequest.getInstance().sendRequestFromApp(
+        const res: GeoPointResponseVO = await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
             GeoPointHandler.HOST_API,
             path,
@@ -65,7 +65,7 @@ export default class ModuleGeoPoint extends Module {
         );
 
         if (res && res.features && res.features.length > 0) {
-            let geopoint_feature: GeoPointFeatureVO = res.features[0];
+            const geopoint_feature: GeoPointFeatureVO = res.features[0];
 
             if (!geopoint_feature || !geopoint_feature.geometry || !geopoint_feature.geometry.coordinates || geopoint_feature.geometry.coordinates.length != 2) {
                 return null;

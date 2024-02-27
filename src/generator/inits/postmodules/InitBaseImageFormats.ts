@@ -26,7 +26,7 @@ export default class InitBaseImageFormats implements IGeneratorWorker {
 
     public async work(db: IDatabase<any>) {
 
-        let existings: ImageFormatVO[] = await query(ImageFormatVO.API_TYPE_ID).select_vos();
+        const existings: ImageFormatVO[] = await query(ImageFormatVO.API_TYPE_ID).select_vos();
         if ((!!existings) && (!!existings.length)) {
             return;
         }

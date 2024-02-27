@@ -31,7 +31,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         try {
-            let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+            const langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             if ((langs != null) && (langs.length > 0)) {
                 return;
             }
@@ -45,7 +45,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
         try {
             let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', code_lang).select_one();
 
-            if (!!lang) {
+            if (lang) {
                 return;
             }
 

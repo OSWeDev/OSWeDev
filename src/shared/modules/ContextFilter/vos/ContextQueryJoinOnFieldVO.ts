@@ -19,7 +19,7 @@ export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
         initial_context_query_field_id_or_alias: string
     ): ContextQueryJoinOnFieldVO {
 
-        let res: ContextQueryJoinOnFieldVO = new ContextQueryJoinOnFieldVO();
+        const res: ContextQueryJoinOnFieldVO = new ContextQueryJoinOnFieldVO();
 
         res.joined_table_alias = joined_table_alias;
         res.joined_table_field_alias = joined_table_field_alias;

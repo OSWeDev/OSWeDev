@@ -20,7 +20,7 @@ export default class ContextQueryJoinVO implements IDistantVOBase {
         join_on_fields: ContextQueryJoinOnFieldVO[],
         join_type: number = ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN): ContextQueryJoinVO {
 
-        let res: ContextQueryJoinVO = new ContextQueryJoinVO();
+        const res: ContextQueryJoinVO = new ContextQueryJoinVO();
 
         res.joined_context_query = joined_context_query;
         res.joined_table_alias = joined_table_alias;
@@ -42,7 +42,7 @@ export default class ContextQueryJoinVO implements IDistantVOBase {
 
     public join_on_field(joined_table_field_id_or_alias: string, initial_context_query_api_type_id: string, initial_context_query_field_id_or_alias: string): ContextQueryJoinVO {
 
-        let join_on_field = ContextQueryJoinOnFieldVO.createNew(
+        const join_on_field = ContextQueryJoinOnFieldVO.createNew(
             this.joined_table_alias,
             joined_table_field_id_or_alias,
             initial_context_query_api_type_id,

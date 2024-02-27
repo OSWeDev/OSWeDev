@@ -106,7 +106,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
 
     @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -174,7 +174,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return;
         }
 
-        let month = (this.min_month == null) ? null : parseInt(this.min_month.toString());
+        const month = (this.min_month == null) ? null : parseInt(this.min_month.toString());
         if (this.widget_options.min_month != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.min_month = month;
@@ -189,7 +189,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return;
         }
 
-        let month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min.toString());
+        const month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min.toString());
         if (this.widget_options.auto_select_month_min != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_month_min = month;
@@ -204,7 +204,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return;
         }
 
-        let month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max.toString());
+        const month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max.toString());
         if (this.widget_options.auto_select_month_max != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_month_max = month;
@@ -219,7 +219,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return;
         }
 
-        let month = (this.max_month == null) ? null : parseInt(this.max_month.toString());
+        const month = (this.max_month == null) ? null : parseInt(this.max_month.toString());
         if (this.widget_options.max_month != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.max_month = month;
@@ -454,7 +454,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
 
         let options: MonthFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptionsVO;
                 options = options ? new MonthFilterWidgetOptionsVO().from(options) : null;
             }
@@ -474,7 +474,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             );
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
@@ -515,7 +515,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return null;
         }
 
-        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        const other_filter_selected_months = this.relative_to_this_filter.selected_months;
         if (!other_filter_selected_months) {
             return null;
         }
@@ -528,10 +528,10 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
             return null;
         }
 
-        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+        const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
 
-        for (let i in this.all_months_page_widgets) {
-            let month_page_widget = this.all_months_page_widgets[i];
+        for (const i in this.all_months_page_widgets) {
+            const month_page_widget = this.all_months_page_widgets[i];
 
             if (month_page_widget.id == this.page_widget.id) {
                 continue;
@@ -551,13 +551,13 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
                 continue;
             }
 
-            if (!!other_filter_options.is_vo_field_ref) {
+            if (other_filter_options.is_vo_field_ref) {
                 if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
                     continue;
                 }
 
                 const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (!!res[name]) {
+                if (res[name]) {
                     continue;
                 }
                 res[name] = month_page_widget;
@@ -567,7 +567,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
                 }
 
                 const name = 'Widget ID:' + month_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (!!res[name]) {
+                if (res[name]) {
                     continue;
                 }
                 res[name] = month_page_widget;
@@ -582,7 +582,7 @@ export default class MonthFilterWidgetOptionsButtonSetterComponent extends VueCo
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: MonthFilterWidgetOptionsVO = this.widget_options;
+        const options: MonthFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;

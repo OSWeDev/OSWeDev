@@ -61,31 +61,31 @@ export default class ModuleFeedback extends Module {
     }
 
     private initializeFeedbackStateVO() {
-        let name = ModuleTableFieldController.create_new(FeedbackStateVO.API_TYPE_ID, field_names<FeedbackStateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        const name = ModuleTableFieldController.create_new(FeedbackStateVO.API_TYPE_ID, field_names<FeedbackStateVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
-        let fields = [
+        const fields = [
             name,
             ModuleTableFieldController.create_new(FeedbackStateVO.API_TYPE_ID, field_names<FeedbackStateVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false),
             ModuleTableFieldController.create_new(FeedbackStateVO.API_TYPE_ID, field_names<FeedbackStateVO>().is_default_state, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Etat par défaut', true, true, false),
         ];
 
-        let table = new ModuleTableVO(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
+        const table = new ModuleTableVO(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
         this.datatables.push(table);
     }
 
     private initializeFeedbackVO() {
-        let user_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let state_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().state_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etat', false);
-        let confirmation_mail_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().confirmation_mail_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mail de confirmation', false);
-        let impersonated_from_user_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().impersonated_from_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
-        let screen_capture_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_1_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 1', true).not_add_to_crud();
-        let screen_capture_2_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_2_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 2', false).not_add_to_crud();
-        let screen_capture_3_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_3_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 3', false).not_add_to_crud();
-        let file_attachment_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_1_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 1', false).not_add_to_crud();
-        let file_attachment_2_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_2_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 2', false).not_add_to_crud();
-        let file_attachment_3_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_3_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 3', false).not_add_to_crud();
+        const user_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const state_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().state_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etat', false);
+        const confirmation_mail_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().confirmation_mail_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mail de confirmation', false);
+        const impersonated_from_user_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().impersonated_from_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
+        const screen_capture_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_1_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 1', true).not_add_to_crud();
+        const screen_capture_2_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_2_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 2', false).not_add_to_crud();
+        const screen_capture_3_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().screen_capture_3_id, ModuleTableFieldVO.FIELD_TYPE_image_ref, 'Capture écran 3', false).not_add_to_crud();
+        const file_attachment_1_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_1_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 1', false).not_add_to_crud();
+        const file_attachment_2_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_2_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 2', false).not_add_to_crud();
+        const file_attachment_3_id = ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().file_attachment_3_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Pièce jointe 3', false).not_add_to_crud();
 
-        let fields = [
+        const fields = [
             user_id,
             impersonated_from_user_id,
             state_id,
@@ -129,7 +129,7 @@ export default class ModuleFeedback extends Module {
             ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().preferred_times_called, ModuleTableFieldVO.FIELD_TYPE_string, 'Horaires de préférence', false).hide_from_datatable(),
         ];
 
-        let table = new ModuleTableVO(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');
+        const table = new ModuleTableVO(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');
         this.datatables.push(table);
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);

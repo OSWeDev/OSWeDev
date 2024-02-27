@@ -1,6 +1,7 @@
+import ModuleTableController from '../modules/DAO/ModuleTableController';
+import ModuleTableVO from '../modules/DAO/vos/ModuleTableVO';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
-import ModuleTableVO from '../modules/ModuleTableVO';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
@@ -50,13 +51,13 @@ export default class ObjectHandler {
      * Copie d'object VO. Pas opti mais fonctionnel
      */
     public static clone_vo<T extends IDistantVOBase>(vo: T): T {
-        return ModuleTableVO.default_from_api_version(ModuleTableVO.default_get_api_version(vo));
+        return ModuleTableController.translate_vos_from_api(ModuleTableController.translate_vos_to_api(vo));
     }
 
     public static clone_vos<T extends IDistantVOBase>(vos: T[]): T[] {
-        let res: T[] = [];
+        const res: T[] = [];
 
-        for (let i in vos) {
+        for (const i in vos) {
             res.push(ObjectHandler.clone_vo(vos[i]));
         }
 
@@ -84,7 +85,7 @@ export default class ObjectHandler {
             return ObjectHandler.deepmerge;
         }
 
-        let customMerge = options.customMerge(key);
+        const customMerge = options.customMerge(key);
 
         return typeof customMerge === 'function' ? customMerge : ObjectHandler.deepmerge;
     }
@@ -117,7 +118,7 @@ export default class ObjectHandler {
     }
 
     public static merge_object<T>(target, source, options): T {
-        let destination = new target.constructor();
+        const destination = new target.constructor();
 
         if (options.is_mergeable_object(target)) {
             ObjectHandler.get_keys(target).forEach((key) => {
@@ -156,9 +157,9 @@ export default class ObjectHandler {
         // implementations can use it. The caller may not replace it.
         options.clone_unless_otherwise_pecified = ObjectHandler.clone_unless_otherwise_pecified;
 
-        let sourceIsArray = Array.isArray(source);
-        let targetIsArray = Array.isArray(target);
-        let sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
+        const sourceIsArray = Array.isArray(source);
+        const targetIsArray = Array.isArray(target);
+        const sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
 
         if (!sourceAndTargetTypesMatch) {
             return ObjectHandler.clone_unless_otherwise_pecified(source, options);
@@ -179,14 +180,14 @@ export default class ObjectHandler {
     }
 
     public static is_special(value) {
-        let stringValue = Object.prototype.toString.call(value);
+        const stringValue = Object.prototype.toString.call(value);
 
         return stringValue === '[object RegExp]'
             || stringValue === '[object Date]';
     }
 
     public static map_array_by_object_field_value<T>(target: T[], field: string): { [i: string]: T } {
-        let res: { [i: string]: T } = {};
+        const res: { [i: string]: T } = {};
 
         for (const key in target) {
             const obj = target[key];
@@ -205,17 +206,17 @@ export default class ObjectHandler {
 
 
     public static map_by_number_field_from_array<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
-        let res: { [i: number]: T } = {};
+        const res: { [i: number]: T } = {};
 
-        for (let i in a) {
-            let e = a[i];
+        for (const i in a) {
+            const e = a[i];
             res[e[map_index_field_id]] = e;
         }
         return res;
     }
 
     public static sort_by_key<T>(target: T, sort_func = null): T {
-        let result: T = {} as T;
+        const result: T = {} as T;
 
         return Object.keys(target)
             .sort()
@@ -243,23 +244,23 @@ export default class ObjectHandler {
     }
 
     public static sortObjectByKey(obj: {}, sort_func = null): {} {
-        let keys = [];
-        let sorted_obj = {};
+        const keys = [];
+        const sorted_obj = {};
 
-        for (let key in obj) {
+        for (const key in obj) {
             if (obj.hasOwnProperty(key)) {
                 keys.push(key);
             }
         }
 
-        if (!!sort_func) {
+        if (sort_func) {
             keys.sort(sort_func);
         } else {
             keys.sort();
         }
 
-        for (let i in keys) {
-            let key = keys[i];
+        for (const i in keys) {
+            const key = keys[i];
             sorted_obj[key] = obj[key];
         }
 
@@ -267,47 +268,47 @@ export default class ObjectHandler {
     }
 
     public static arrayFromMap<T>(map: { [i: number]: T }): T[] {
-        let res: T[] = [];
+        const res: T[] = [];
 
-        for (let i in map) {
+        for (const i in map) {
             res.push(map[i]);
         }
         return res;
     }
 
     public static mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
-        let res: { [i: number]: T } = {};
+        const res: { [i: number]: T } = {};
 
-        for (let i in a) {
-            let e = a[i];
+        for (const i in a) {
+            const e = a[i];
             res[e[map_index_field_id]] = e;
         }
         return res;
     }
 
     public static mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
-        let res: { [i: string]: T } = {};
+        const res: { [i: string]: T } = {};
 
-        for (let i in a) {
-            let e = a[i];
+        for (const i in a) {
+            const e = a[i];
             res[e[map_index_field_id]] = e;
         }
         return res;
     }
 
     public static mapFromIdsArray(a: number[]): { [i: number]: boolean } {
-        let res: { [i: number]: boolean } = {};
+        const res: { [i: number]: boolean } = {};
 
-        for (let i in a) {
+        for (const i in a) {
             res[a[i]] = true;
         }
         return res;
     }
 
     public static getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
-        let res: number[] = [];
+        const res: number[] = [];
 
-        for (let i in vos) {
+        for (const i in vos) {
             if (!vos[i]) {
                 continue;
             }
@@ -320,9 +321,9 @@ export default class ObjectHandler {
      * @param map The map of type {[index:number] : any} from which we want to extract the indexes as number[]
      */
     public static getNumberMapIndexes(map: { [index: number]: any }): number[] {
-        let res: number[] = [];
+        const res: number[] = [];
 
-        for (let i in map) {
+        for (const i in map) {
             try {
                 res.push(parseInt(i.toString()));
             } catch (error) {
@@ -341,7 +342,7 @@ export default class ObjectHandler {
      * @param object
      */
     public static hasAtLeastOneAttribute(object): boolean {
-        for (let i in object) {
+        for (const i in object) {
             return true;
         }
 
@@ -356,7 +357,7 @@ export default class ObjectHandler {
     public static hasOneAndOnlyOneAttribute(object): boolean {
 
         let res: boolean = false;
-        for (let i in object) {
+        for (const i in object) {
 
             if (!res) {
                 res = true;
@@ -372,8 +373,8 @@ export default class ObjectHandler {
      * @param object
      */
     public static shiftAttribute(object): any {
-        for (let i in object) {
-            let res = object[i];
+        for (const i in object) {
+            const res = object[i];
             delete object[i];
             return res;
         }
@@ -386,7 +387,7 @@ export default class ObjectHandler {
      * @param object
      */
     public static getFirstAttributeName(object): any {
-        for (let i in object) {
+        for (const i in object) {
             return i;
         }
 
@@ -402,11 +403,11 @@ export default class ObjectHandler {
             return null;
         }
 
-        let path_elts = path.split('.');
+        const path_elts = path.split('.');
         let e = object;
 
-        for (let i in path_elts) {
-            let path_elt = path_elts[i];
+        for (const i in path_elts) {
+            const path_elt = path_elts[i];
 
             if (!e[path_elt]) {
                 return null;
@@ -419,10 +420,10 @@ export default class ObjectHandler {
 
 
     public static filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
-        let res: { [id: number]: T } = {};
+        const res: { [id: number]: T } = {};
 
-        for (let id in elts_by_id) {
-            let elt = elts_by_id[id];
+        for (const id in elts_by_id) {
+            const elt = elts_by_id[id];
 
             if (RangeHandler.elt_intersects_range(parseInt(id.toString()), range)) {
                 if (typeof elt != 'undefined') {
@@ -435,10 +436,10 @@ export default class ObjectHandler {
     }
 
     public static filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
-        let res: { [id: number]: T } = {};
+        const res: { [id: number]: T } = {};
 
-        for (let id in elts_by_id) {
-            let elt = elts_by_id[id];
+        for (const id in elts_by_id) {
+            const elt = elts_by_id[id];
 
             if (RangeHandler.elt_intersects_any_range(parseInt(id.toString()), ranges)) {
                 res[id] = elt;

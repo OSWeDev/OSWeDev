@@ -422,7 +422,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //         this.custom_filter_names_1 = {};
     //     }
 
-    //     let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+    //     let fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
     //     for (let i in fields) {
     //         let field = fields[i];
 
@@ -454,7 +454,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     //         this.custom_filter_names_2 = {};
     //     }
 
-    //     let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+    //     let fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
     //     for (let i in fields) {
     //         let field = fields[i];
 

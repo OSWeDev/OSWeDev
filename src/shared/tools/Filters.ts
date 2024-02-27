@@ -66,7 +66,7 @@ export default class FilterObj<T, U, K> {
         toObject?: K,
         type?: string,
     ): FilterObj<T, U, K> {
-        let res: FilterObj<T, U, K> = new FilterObj<T, U, K>();
+        const res: FilterObj<T, U, K> = new FilterObj<T, U, K>();
 
         res.read = read;
         res.write = write;
@@ -88,7 +88,7 @@ export default class FilterObj<T, U, K> {
 // }
 
 
-let readToTstzFilter = (
+const readToTstzFilter = (
     value: number | string,
     segment_type: number = TimeSegment.TYPE_DAY
 ): string => {
@@ -112,7 +112,7 @@ let readToTstzFilter = (
     return Dates.format_segment(value, segment_type);
 };
 
-let writeToTstzFilter = (value: string | number): number => {
+const writeToTstzFilter = (value: string | number): number => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
@@ -123,7 +123,7 @@ let writeToTstzFilter = (value: string | number): number => {
     throw new Error("Not implemented");
 };
 
-let readToHourFilter = (
+const readToHourFilter = (
     value: number | string,
     rounded: boolean = false,
     negativeValue: boolean = false,
@@ -148,7 +148,7 @@ let readToHourFilter = (
     if (rounded) {
         value = Math.round(value);
     }
-    let duration = Math.abs(value * 60 * 60);
+    const duration = Math.abs(value * 60 * 60);
     let heures = Math.floor(Durations.as(duration, HourSegment.TYPE_HOUR));
     let minutes = Math.round(Durations.as(duration, HourSegment.TYPE_MINUTE) - heures * 60);
 
@@ -190,7 +190,7 @@ let readToHourFilter = (
     );
 };
 
-let writeToHourFilter = (value: string | number): number => {
+const writeToHourFilter = (value: string | number): number => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
@@ -206,8 +206,8 @@ let writeToHourFilter = (value: string | number): number => {
         return parseFloat(value);
     }
 
-    let parts = value.split(/[:hH]/);
-    let minutes = parts[1];
+    const parts = value.split(/[:hH]/);
+    const minutes = parts[1];
     if (!minutes) {
         return parseFloat(parts[0]);
     }
@@ -215,35 +215,35 @@ let writeToHourFilter = (value: string | number): number => {
     return parseFloat(parts[0]) + ((parseFloat(minutes) + 0.0) / 60);
 };
 
-export let hourFilter = FilterObj.createNew(
+export const hourFilter = FilterObj.createNew(
     readToHourFilter,
     writeToHourFilter,
     null,
     FilterObj.FILTER_TYPE_hour,
 );
 
-export let tstzFilter = FilterObj.createNew(
+export const tstzFilter = FilterObj.createNew(
     readToTstzFilter,
     writeToTstzFilter,
     null,
     FilterObj.FILTER_TYPE_tstz,
 );
 
-let readToPlanningCheckFilter = (value: number): string => {
+const readToPlanningCheckFilter = (value: number): string => {
     if (value == null) {
         return null;
     }
     return value == 1 ? "OUI" : "NON";
 };
 
-let writeToPlanningCheckFilter = (value: string): number => {
+const writeToPlanningCheckFilter = (value: string): number => {
     if (value == null) {
         return (null);
     }
     return value == "OUI" ? 1 : -1;
 };
 
-export let planningCheckFilter = FilterObj.createNew(
+export const planningCheckFilter = FilterObj.createNew(
     readToPlanningCheckFilter,
     writeToPlanningCheckFilter,
     null,
@@ -251,21 +251,21 @@ export let planningCheckFilter = FilterObj.createNew(
 );
 
 
-let readToAlerteCheckFilter = (value: number): string => {
+const readToAlerteCheckFilter = (value: number): string => {
     if (value == null) {
         return null;
     }
     return value == 1 ? "ALERTE" : "";
 };
 
-let writeToAlerteCheckFilter = (value: string): number => {
+const writeToAlerteCheckFilter = (value: string): number => {
     if (value == null) {
         return null;
     }
     return value == "ALERTE" ? 1 : -1;
 };
 
-export let alerteCheckFilter = FilterObj.createNew(
+export const alerteCheckFilter = FilterObj.createNew(
     readToAlerteCheckFilter,
     writeToAlerteCheckFilter,
     null,
@@ -281,7 +281,7 @@ export interface IAmountFilter {
     currency: string;
 }
 
-let readToAmountFilter = (
+const readToAmountFilter = (
     value: number | string,
     fractional_digits: number = 0,
     k: boolean = false,
@@ -340,19 +340,19 @@ let readToAmountFilter = (
     return currency + ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractional_digits);
 };
 
-let writeToAmountFilter = (value: string | number): number => {
+const writeToAmountFilter = (value: string | number): number => {
 
     if ((value === null) || (typeof value === "undefined")) {
         return null;
     }
 
-    let currency = "€";
-    let result = value.toString()
+    const currency = "€";
+    const result = value.toString()
         .replace(currency, "")
         .replace(/,/g, ".")
         .replace(/[^-0-9.]/g, "");
 
-    let res = parseFloat(result);
+    const res = parseFloat(result);
     if (isNaN(res)) {
         return 0;
     }
@@ -402,7 +402,7 @@ export interface IPercentFilter {
  * @param explicit_sign Renvoie +2,2% au lieu de 2,2% pour indiquer le signe de façon explicit même quand il est positif
  */
 
-let readToPercentFilter = (
+const readToPercentFilter = (
     value: number | string,
     fractional_digits: number = 0,
     pts: boolean = false,
@@ -421,7 +421,7 @@ let readToPercentFilter = (
         return null;
     }
 
-    let returns_infinity: boolean = (treat_999_as_infinite && (number_value >= 999)) || (treat_999_as_infinite && (number_value <= -999));
+    const returns_infinity: boolean = (treat_999_as_infinite && (number_value >= 999)) || (treat_999_as_infinite && (number_value <= -999));
 
     if ((!!evol_from_prct) && (!returns_infinity)) {
         number_value -= 1;
@@ -447,12 +447,12 @@ let readToPercentFilter = (
     return res;
 };
 
-let writeToPercentFilter = (value: string): number => {
+const writeToPercentFilter = (value: string): number => {
     if (value == null) {
         return (null);
     }
 
-    let result: number = parseFloat(value
+    const result: number = parseFloat(value
         .replace("%", "")
         .replace(",", ".")
         .replace(/[^-0-9.]/g, ""));
@@ -490,9 +490,9 @@ export const percentFilter = FilterObj.createNew(
     FilterObj.FILTER_TYPE_percent,
 );
 
-export let ARRONDI_TYPE_CEIL: number = 0;
-export let ARRONDI_TYPE_FLOOR: number = 1;
-export let ARRONDI_TYPE_ROUND: number = 2;
+export const ARRONDI_TYPE_CEIL: number = 0;
+export const ARRONDI_TYPE_FLOOR: number = 1;
+export const ARRONDI_TYPE_ROUND: number = 2;
 
 /**
  * Interface For IFixed
@@ -506,7 +506,7 @@ export interface IFixed {
     dot_decimal_marker: boolean;
 }
 
-let writeToFixed = (value: string): number => {
+const writeToFixed = (value: string): number => {
     if (TypesHandler.getInstance().isNull(value)) {
         return null;
     }
@@ -514,7 +514,7 @@ let writeToFixed = (value: string): number => {
     return value && value.length ? parseFloat(value) : 0;
 };
 
-let readToFixed = (
+const readToFixed = (
     value: number | string,
     fractional_digits: number = 0,
     rounded: boolean | number = false,
@@ -643,33 +643,33 @@ export const toFixedFilter = FilterObj.createNew(
 // };
 
 
-let readToFixedCeilFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
+const readToFixedCeilFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
     return readToFixed(value, fractional_digits, rounded, ARRONDI_TYPE_CEIL, only_positive, dot_decimal_marker);
 };
 
-export let toFixedCeilFilter = FilterObj.createNew(
+export const toFixedCeilFilter = FilterObj.createNew(
     readToFixedCeilFilter,
     writeToFixed,
     null,
     FilterObj.FILTER_TYPE_toFixedCeil,
 );
 
-let readToFixedFloorFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
+const readToFixedFloorFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
     return readToFixed(value, fractional_digits, rounded, ARRONDI_TYPE_FLOOR, only_positive, dot_decimal_marker);
 };
 
-export let toFixedFloorFilter = FilterObj.createNew(
+export const toFixedFloorFilter = FilterObj.createNew(
     readToFixedFloorFilter,
     writeToFixed,
     null,
     FilterObj.FILTER_TYPE_toFixedFloor,
 );
 
-let readToHideZeroFilter = (value: number): string => {
+const readToHideZeroFilter = (value: number): string => {
     return !value ? "" : String(value);
 };
 
-let writeToHideZeroFilter = (value: string | number): number => {
+const writeToHideZeroFilter = (value: string | number): number => {
     if (value == null) {
         return null;
     }
@@ -677,28 +677,28 @@ let writeToHideZeroFilter = (value: string | number): number => {
     return (value == "") ? 0 : parseFloat(value.toString());
 };
 
-export let hideZeroFilter = FilterObj.createNew(
+export const hideZeroFilter = FilterObj.createNew(
     readToHideZeroFilter,
     writeToHideZeroFilter,
     null,
     FilterObj.FILTER_TYPE_hideZero,
 );
 
-let readToBooleanFilter = (value: boolean): string => {
+const readToBooleanFilter = (value: boolean): string => {
     if (value == null) {
         return null;
     }
     return value ? "OUI" : "";
 };
 
-let writeToBooleanFilter = (value: string): boolean => {
+const writeToBooleanFilter = (value: string): boolean => {
     if (value == null) {
         return null;
     }
     return value == "OUI";
 
 };
-export let booleanFilter = FilterObj.createNew(
+export const booleanFilter = FilterObj.createNew(
     readToBooleanFilter,
     writeToBooleanFilter,
     null,
@@ -706,79 +706,79 @@ export let booleanFilter = FilterObj.createNew(
 );
 
 
-let readToPadHour = (value: number): string => {
+const readToPadHour = (value: number): string => {
     if (value == null) {
         return null;
     }
     return value < 10 ? "0" + value : "" + value;
 };
 
-let writeToPadHour = (value: string): number => {
+const writeToPadHour = (value: string): number => {
     if (value == null) {
         return null;
     }
     return value && value.length ? parseFloat(value.replace(",", ".")) : 0;
 };
 
-export let padHourFilter = FilterObj.createNew(
+export const padHourFilter = FilterObj.createNew(
     readToPadHour,
     writeToPadHour,
     null,
     FilterObj.FILTER_TYPE_padHour,
 );
 
-let readToTruncateFilter = (value: string, nbChars: number): string => {
+const readToTruncateFilter = (value: string, nbChars: number): string => {
     if (nbChars == null) {
         return null;
     }
     return value ? value.substring(0, nbChars) : null;
 };
 
-let writeToTruncateFilter = (value: string): string => {
+const writeToTruncateFilter = (value: string): string => {
     return value;
 };
 
-export let truncateFilter = FilterObj.createNew(
+export const truncateFilter = FilterObj.createNew(
     readToTruncateFilter,
     writeToTruncateFilter,
     null,
     FilterObj.FILTER_TYPE_truncate,
 );
 
-let digitsRE = /(\d{3})(?=\d)/g;
+const digitsRE = /(\d{3})(?=\d)/g;
 
-let readToBignumFilter = (value: number | string): string => {
+const readToBignumFilter = (value: number | string): string => {
     if ((!value && value !== 0) || !isFinite(parseFloat(value.toString()))) {
         return null;
     }
     value = parseFloat(value.toString());
-    let stringified = Math.abs(value).toFixed(2);
-    let _int = stringified.slice(0, -3);
-    let i = _int.length % 3;
-    let head = i > 0 ? _int.slice(0, i) + (_int.length > 3 ? "," : "") : "";
-    let _float = stringified.slice(-3);
-    let sign = value < 0 ? "-" : "";
+    const stringified = Math.abs(value).toFixed(2);
+    const _int = stringified.slice(0, -3);
+    const i = _int.length % 3;
+    const head = i > 0 ? _int.slice(0, i) + (_int.length > 3 ? "," : "") : "";
+    const _float = stringified.slice(-3);
+    const sign = value < 0 ? "-" : "";
     return sign + head + _int.slice(i).replace(digitsRE, "$1,") + _float;
 };
 
-let writeToBignumFilter = (value: string): number => {
+const writeToBignumFilter = (value: string): number => {
     if (value == null) {
         return null;
     }
-    let result = ("" + value)
+    const result = ("" + value)
         //.replace(/,/g, ".")
         .replace(/[^-0-9.]/g, "");
     return value && value.length ? parseFloat(result) : 0;
 };
 
-export let bignumFilter = FilterObj.createNew(
+export const bignumFilter = FilterObj.createNew(
     readToBignumFilter,
     writeToBignumFilter,
     null,
     FilterObj.FILTER_TYPE_bignum,
 );
 
-let readTopositiveNumberFilter = (value: number | string): string => {
+const readTopositiveNumberFilter = (value: number | string): string => {
     if (value == null) {
         return (null);
     }
@@ -795,14 +795,14 @@ let readTopositiveNumberFilter = (value: number | string): string => {
     return "0";
 };
 
-let writeTopositiveNumberFilter = (value: string): number => {
+const writeTopositiveNumberFilter = (value: string): number => {
     if (value == null) {
         return null;
     }
     return parseFloat(value);
 };
 
-export let positiveNumberFilter = FilterObj.createNew(
+export const positiveNumberFilter = FilterObj.createNew(
     readTopositiveNumberFilter,
     writeTopositiveNumberFilter,
     null,

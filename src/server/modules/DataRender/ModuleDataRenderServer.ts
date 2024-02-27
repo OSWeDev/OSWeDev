@@ -94,14 +94,14 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        let dataRenderer: DataRendererVO = await this.getDataRenderer(text);
+        const dataRenderer: DataRendererVO = await this.getDataRenderer(text);
         if (!dataRenderer) {
             return null;
         }
 
-        let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
+        const rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
-        let latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
+        const latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 
         if ((!latest_data) || (!rendererModule.data_timesegment_type)) {
             return null;
@@ -128,7 +128,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
 
-        let timeSegments: TimeSegment[] = TimeSegmentHandler.getAllDataTimeSegments(
+        const timeSegments: TimeSegment[] = TimeSegmentHandler.getAllDataTimeSegments(
             TimeSegmentHandler.getStartTimeSegment(timeSegment),
             TimeSegmentHandler.getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
@@ -141,8 +141,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async clearDataSegments(moduletable: ModuleTableVO, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
-        for (let i in timeSegments) {
-            let timeSegment: TimeSegment = timeSegments[i];
+        for (const i in timeSegments) {
+            const timeSegment: TimeSegment = timeSegments[i];
 
             if (!timeSegments_in) {
                 timeSegments_in = "" + timeSegment.index;

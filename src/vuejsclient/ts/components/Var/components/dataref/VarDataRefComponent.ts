@@ -215,7 +215,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        let clone = VarDataBaseVO.cloneFromVarId(this.var_param);
+        const clone = VarDataBaseVO.cloneFromVarId(this.var_param);
 
         if ((value == null) || isNaN(value) || (value === '')) {
 
@@ -246,7 +246,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         // On va enregistrer un cb qui attend le retour de validation de prise en compte de la nouvelle valeur importée
-        let cb = () => {
+        const cb = () => {
             // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
             if (VarsClientController.getInstance().inline_editing_cb) {
                 VarsClientController.getInstance().inline_editing_cb();
@@ -260,7 +260,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
             ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
-            let bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
+            const bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
             if (bdddata) {
                 ConsoleHandler.log('...trouvé on met à jour');
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
@@ -304,7 +304,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.set_var_conf();
         this.set_editable_field();
 
-        let self = this;
+        const self = this;
         await all_promises([
             this.intersect_in(),
             (async () => {
@@ -353,7 +353,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     let aggregated_var_param = null;
 
-                    for (let var_data_index in datas) {
+                    for (const var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
@@ -454,7 +454,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let params = [this.var_data_value];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -478,9 +478,9 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+        const res = SimpleDatatableFieldVO.createNew("value").setModuleTable(ModuleTableController.module_tables_by_vo_type[this.var_param._type]);
         if (this.filter_obj) {
-            let filter_type: string = this.filter_obj.type;
+            const filter_type: string = this.filter_obj.type;
 
             switch (filter_type) {
                 case FilterObj.FILTER_TYPE_tstz:
@@ -546,14 +546,14 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
 
-        let formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+        const formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
 
         let value: any = this.var_data_value;
 
         if (this.filter) {
             let params = [value];
 
-            if (!!this.filter_additional_params) {
+            if (this.filter_additional_params) {
                 params = params.concat(this.filter_additional_params);
             }
 
@@ -605,7 +605,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (this.filter) {
             let params = [value];
 
-            if (!!this.filter_additional_params) {
+            if (this.filter_additional_params) {
                 params = params.concat(this.filter_additional_params);
             }
 
@@ -653,7 +653,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     get contextmenu_items(): any {
-        let contextmenu_items: any = {};
+        const contextmenu_items: any = {};
 
         if (this.can_explain_var) {
             // contextmenu_items['explain_var'] = {
@@ -692,7 +692,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         contextmenu_items['copy_raw_value'] = {
             name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
             disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return true;
@@ -701,13 +701,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                 return elt.getAttribute('var_data_raw_copyable_value') == null;
             },
             callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return;
                 }
 
-                let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+                const raw_value = elt.getAttribute('var_data_raw_copyable_value');
                 if (!raw_value) {
                     return;
                 }
@@ -720,7 +720,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         contextmenu_items['copy_formatted_value'] = {
             name: this.label('VarDataRefComponent.contextmenu.copy_formatted_value'),
             disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return true;
@@ -729,13 +729,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                 return elt.getAttribute('var_data_formatted_copyable_value') == null;
             },
             callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return;
                 }
 
-                let formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
+                const formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
                 if (!formatted_value) {
                     return;
                 }
@@ -748,7 +748,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         contextmenu_items['copy_var_param_index'] = {
             name: this.label('VarDataRefComponent.contextmenu.copy_var_param_index'),
             disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return true;
@@ -757,13 +757,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                 return elt.getAttribute('var_param_index') == null;
             },
             callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return;
                 }
 
-                let var_param_index = elt.getAttribute('var_param_index');
+                const var_param_index = elt.getAttribute('var_param_index');
                 if (!var_param_index) {
                     return;
                 }
@@ -778,7 +778,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         contextmenu_items['clearimport'] = {
             name: this.label('VarDataRefComponent.contextmenu.clearimport'),
             disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return true;
@@ -787,7 +787,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 return (elt.getAttribute('can_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
             },
             callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
+                const elt = opt.$trigger[0];
 
                 if (!elt) {
                     return;
@@ -797,13 +797,13 @@ export default class VarDataRefComponent extends VueComponentBase {
                     return;
                 }
 
-                let var_param_index = elt.getAttribute('var_param_index');
+                const var_param_index = elt.getAttribute('var_param_index');
 
                 if (!var_param_index) {
                     return;
                 }
 
-                let param = VarDataBaseVO.from_index(var_param_index);
+                const param = VarDataBaseVO.from_index(var_param_index);
 
                 await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
                 await this.$snotify.success(this.label('VarDataRefComponent.contextmenu.importcleared'));
@@ -818,7 +818,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         let res = '';
 
         if ((!!this.var_data) && ((this.var_data_value != 0) || (!this.consider_zero_value_as_null)) && ((this.var_data_value != null) || this.null_value_replacement)) {
-            if (!!this.prefix) {
+            if (this.prefix) {
                 res += this.prefix;
             }
 
@@ -836,7 +836,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 }
             }
 
-            if (!!this.suffix) {
+            if (this.suffix) {
                 res += this.suffix;
             }
         } else {

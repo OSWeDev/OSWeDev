@@ -10,7 +10,7 @@ export default class InputDatatableFieldVO<T, U> extends DatatableField<T, U> {
         datatable_field_uid: string,
         field_type: string): InputDatatableFieldVO<any, any> {
 
-        let res = new InputDatatableFieldVO();
+        const res = new InputDatatableFieldVO();
         res.init(InputDatatableFieldVO.API_TYPE_ID, DatatableField.INPUT_FIELD_TYPE, datatable_field_uid);
         res.field_type = field_type;
         return res;

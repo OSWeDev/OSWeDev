@@ -15,15 +15,15 @@ export default class TableWidgetOptions extends TableWidgetOptionsVO {
     public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: TableWidgetOptions = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
+        const options: TableWidgetOptions = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if (!options) {
             return res;
         }
 
-        for (let i in options.columns) {
-            let column = options.columns[i];
+        for (const i in options.columns) {
+            const column = options.columns[i];
 
             if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
                 for (const key in column.children) {

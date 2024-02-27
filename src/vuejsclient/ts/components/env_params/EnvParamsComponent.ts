@@ -26,7 +26,7 @@ export default class EnvParamsComponent extends VueComponentBase {
     }
 
     get module_table() {
-        return VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID];
+        return ModuleTableController.module_tables_by_vo_type[EnvParamsVO.API_TYPE_ID];
     }
 
     get env_params_fields(): ModuleTableFieldVO[] {
@@ -39,8 +39,8 @@ export default class EnvParamsComponent extends VueComponentBase {
             return {};
         }
 
-        let res: { [field_id: string]: SimpleDatatableFieldVO<any, any> } = {};
-        for (let i in this.env_params_fields) {
+        const res: { [field_id: string]: SimpleDatatableFieldVO<any, any> } = {};
+        for (const i in this.env_params_fields) {
             res[this.env_params_fields[i].field_id] = SimpleDatatableFieldVO.createNew(this.env_params_fields[i].field_id).setModuleTable(this.module_table);
         }
         return res;
@@ -52,7 +52,7 @@ export default class EnvParamsComponent extends VueComponentBase {
 
     private async on_edit_field(vo: EnvParamsVO, field: SimpleDatatableFieldVO<any, any>, data: any): Promise<void> {
 
-        let self = this;
+        const self = this;
         this.$snotify.async(this.label('EnvParamsComponent.on_edit_field.start'), () => new Promise(async (resolve, reject) => {
 
             try {

@@ -53,10 +53,10 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
-        let varConf = VarsController.var_conf_by_name[var_name];
-        let moduletable = VOsTypesManager.moduleTables_by_voType[varConf.var_data_vo_type];
+        const varConf = VarsController.var_conf_by_name[var_name];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[varConf.var_data_vo_type];
 
-        let res: T = moduletable.voConstructor();
+        const res: T = moduletable.voConstructor();
         res._type = varConf.var_data_vo_type;
         res.var_id = varConf.id;
 
@@ -64,10 +64,10 @@ export default class VarDataBaseVO implements IMatroid {
             ConsoleHandler.error("VarDataBaseVO.createNew var_name :: " + var_name);
         }
 
-        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
+        const fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
         let param_i: number = 0;
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
                 // ConsoleHandler.warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
@@ -90,7 +90,7 @@ export default class VarDataBaseVO implements IMatroid {
             param_i++;
         }
 
-        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+        const field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
 
         /**
          * Si on change le type se segmentation on adapte aussi le param
@@ -103,9 +103,9 @@ export default class VarDataBaseVO implements IMatroid {
      * Si on change le type se segmentation on adapte le param
      */
     public static adapt_param_to_varconf_segmentations<T extends VarDataBaseVO>(vardata: T, field_segmentations: { [field_id: string]: number }) {
-        for (let field_id in field_segmentations) {
-            let segmentation_cible = field_segmentations[field_id];
-            let ranges = vardata[field_id];
+        for (const field_id in field_segmentations) {
+            const segmentation_cible = field_segmentations[field_id];
+            const ranges = vardata[field_id];
 
             if (ranges && (segmentation_cible != null)) {
                 vardata[field_id] = RangeHandler.get_ranges_according_to_segment_type(
@@ -115,16 +115,16 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     public static get_varconf_segmentations(varConf: VarConfVO): { [field_id: string]: number } {
-        let res: { [field_id: string]: number } = {};
+        const res: { [field_id: string]: number } = {};
 
         if (!varConf) {
             return res;
         }
 
-        let fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
+        const fields = MatroidController.getMatroidFields(varConf.var_data_vo_type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
             let segmentation_cible = varConf.segment_types ? varConf.segment_types[field.field_id] : null;
             segmentation_cible = (segmentation_cible != null) ?
                 segmentation_cible :
@@ -180,10 +180,10 @@ export default class VarDataBaseVO implements IMatroid {
             return null;
         }
 
-        let res: U[] = [];
+        const res: U[] = [];
 
-        for (let i in params_to_clone) {
-            let param_to_clone = params_to_clone[i];
+        for (const i in params_to_clone) {
+            const param_to_clone = params_to_clone[i];
 
             // On surcharge volontairement le typage, car ici on veut bien avoir U extends T au lieu de l'inverse, ça pose pas de soucis a priori dans l'usage qui est plutôt pour des invalidators
             res.push(this.cloneFromVarName<any, any>(param_to_clone as any, var_name, clone_fields) as U);
@@ -230,14 +230,14 @@ export default class VarDataBaseVO implements IMatroid {
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
         varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
-        let res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
+        const res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
             return null;
         }
         /**
          * Si on change le type se segmentation on adapte aussi le param
          */
-        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+        const field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
         this.adapt_param_to_varconf_segmentations(res, field_segmentations);
 
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
@@ -315,10 +315,10 @@ export default class VarDataBaseVO implements IMatroid {
             return false;
         }
 
-        let fields = MatroidController.getMatroidFields(this._type);
+        const fields = MatroidController.getMatroidFields(this._type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if ((!this[field.field_id]) || (!this[field.field_id].length)) {
                 return false;
@@ -392,7 +392,7 @@ export default class VarDataBaseVO implements IMatroid {
     get is_pixel(): boolean {
 
         if (this._is_pixel == null) {
-            let a = this.index;
+            const a = this.index;
         }
 
         return this._is_pixel;

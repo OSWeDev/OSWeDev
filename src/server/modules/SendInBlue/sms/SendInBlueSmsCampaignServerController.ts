@@ -51,7 +51,7 @@ export default class SendInBlueSmsCampaignServerController {
             return null;
         }
 
-        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts, scheduledAt);
+        const campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts, scheduledAt);
 
         if (!campaign) {
             return false;
@@ -69,13 +69,13 @@ export default class SendInBlueSmsCampaignServerController {
             return null;
         }
 
-        let list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+        const list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
         if (!list || !content || !scheduledAt) {
             return null;
         }
 
-        let recipientsData: any = {
+        const recipientsData: any = {
             listIds: [list.id]
         };
 
@@ -90,7 +90,7 @@ export default class SendInBlueSmsCampaignServerController {
             scheduledAt_clone = Dates.add(Dates.now(), 3, TimeSegment.TYPE_MINUTE);
         }
 
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueSmsCampaignServerController.PATH_CAMPAIGN,
             {
@@ -114,7 +114,7 @@ export default class SendInBlueSmsCampaignServerController {
             return null;
         }
 
-        let postParams: any = {};
+        const postParams: any = {};
 
         let urlSend: string = SendInBlueSmsCampaignServerController.PATH_CAMPAIGN + '/' + campaignId + '/';
 
@@ -130,7 +130,7 @@ export default class SendInBlueSmsCampaignServerController {
             urlSend += SendInBlueSmsCampaignServerController.PATH_CAMPAIGN_SEND_NOW;
         }
 
-        let res: { code: string, message: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
+        const res: { code: string, message: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
             ModuleRequest.METHOD_POST,
             urlSend,
             postParams,

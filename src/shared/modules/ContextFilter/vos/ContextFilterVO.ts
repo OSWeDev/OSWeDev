@@ -313,9 +313,9 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         let res: ContextFilterVO = null;
         let first_filter: ContextFilterVO = null;
         for (let i = 0; i < (filters.length - 1); i++) {
-            let filter_ = filters[i];
+            const filter_ = filters[i];
 
-            let tmp = new ContextFilterVO();
+            const tmp = new ContextFilterVO();
             tmp.filter_type = type;
             tmp.left_hook = filter_;
             tmp.right_hook = res;
@@ -1054,7 +1054,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
  * @param API_TYPE_ID le type de base de la query
  */
 export const filter = (API_TYPE_ID: string = null, field_name: string = null): ContextFilterVO => {
-    let res = new ContextFilterVO();
+    const res = new ContextFilterVO();
     res.field_name = field_name;
     res.filter_type = null;
     res.left_hook = null;

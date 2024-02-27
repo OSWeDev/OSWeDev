@@ -76,7 +76,7 @@ export default class CheckListModalComponent extends VueComponentBase {
         this.has_previous_step = false;
         this.has_next_step = false;
 
-        let state_steps: { [step_name: string]: number } = {};
+        const state_steps: { [step_name: string]: number } = {};
         let is_last_checklist_item: boolean = false;
         let all_steps_done: boolean = true;
         let has_previous_step: boolean = false;
@@ -97,8 +97,8 @@ export default class CheckListModalComponent extends VueComponentBase {
             })());
         }
 
-        for (let i in this.ordered_checkpoints) {
-            let checkpoint = this.ordered_checkpoints[i];
+        for (const i in this.ordered_checkpoints) {
+            const checkpoint = this.ordered_checkpoints[i];
 
             promises.push((async () => {
                 state_steps[checkpoint.name] = await this.checklist_controller.get_state_step(checkpoint.name, this.checklist_item);
@@ -109,7 +109,7 @@ export default class CheckListModalComponent extends VueComponentBase {
 
         promises = [];
 
-        let valid_fields: { [field_name: string]: boolean } = {};
+        const valid_fields: { [field_name: string]: boolean } = {};
         if (this.ordered_checkpoints) {
             // Si on est sur le dernier item, on set la donnée pour pouvoir afficher le bouton de finalisation
             if (this.checkpoint && (this.ordered_checkpoints[(this.ordered_checkpoints.length - 1)].weight == this.checkpoint.weight)) {
@@ -130,7 +130,7 @@ export default class CheckListModalComponent extends VueComponentBase {
                 }
             }
 
-            for (let name in state_steps) {
+            for (const name in state_steps) {
                 if (state_steps[name] != CheckPointVO.STATE_OK) {
                     all_steps_done = false;
                 }
@@ -194,7 +194,7 @@ export default class CheckListModalComponent extends VueComponentBase {
 
                 this.finalize_checklist_starting = true;
 
-                let res: boolean = await this.checklist_controller.finalize_checklist(this.checklist_item);
+                const res: boolean = await this.checklist_controller.finalize_checklist(this.checklist_item);
 
                 if (res) {
                     resolve({
@@ -236,7 +236,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private get_class_cp(cp: ICheckPoint): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (this.checkpoint && (this.checkpoint.id == cp.id)) {
             res.push('active');
@@ -307,10 +307,10 @@ export default class CheckListModalComponent extends VueComponentBase {
     get editable_fields(): Array<DatatableField<any, any>> {
 
         if (!this.checkpoint) {
-            let max_fields: Array<DatatableField<any, any>> = [];
+            const max_fields: Array<DatatableField<any, any>> = [];
 
-            for (let valid_field_name in this.valid_fields) {
-                let editable_field = this.all_editable_fields.find(
+            for (const valid_field_name in this.valid_fields) {
+                const editable_field = this.all_editable_fields.find(
                     (ef) => ef.datatable_field_uid == valid_field_name
                 );
 
@@ -324,10 +324,10 @@ export default class CheckListModalComponent extends VueComponentBase {
             return [];
         }
 
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.all_editable_fields) {
-            let editable_field = this.all_editable_fields[i];
+        for (const i in this.all_editable_fields) {
+            const editable_field = this.all_editable_fields[i];
 
             if (this.checkpoint.item_field_ids.indexOf(editable_field.datatable_field_uid) >= 0) {
                 if (this.checkpoint.item_fields_tooltip) {

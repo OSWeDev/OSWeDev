@@ -33,7 +33,7 @@ export default class ParamsAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleParams.POLICY_BO_ACCESS,

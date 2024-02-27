@@ -17,10 +17,10 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
 
         try {
 
-            let supervised_pdvs: T[] = await query(this.api_type_id).select_vos<T>();
+            const supervised_pdvs: T[] = await query(this.api_type_id).select_vos<T>();
 
-            for (let i in supervised_pdvs) {
-                let supervised_pdv = supervised_pdvs[i];
+            for (const i in supervised_pdvs) {
+                const supervised_pdv = supervised_pdvs[i];
 
                 await this.work_one(supervised_pdv);
             }
@@ -34,12 +34,12 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
     public async work_invalid(): Promise<boolean> {
         try {
 
-            let supervised_pdvs: T[] = await query(this.api_type_id)
+            const supervised_pdvs: T[] = await query(this.api_type_id)
                 .filter_is_true('invalid')
                 .select_vos<T>();
 
-            for (let i in supervised_pdvs) {
-                let supervised_pdv = supervised_pdvs[i];
+            for (const i in supervised_pdvs) {
+                const supervised_pdv = supervised_pdvs[i];
 
                 await this.work_one(supervised_pdv);
             }

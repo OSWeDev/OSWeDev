@@ -44,10 +44,10 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
-        let responses: AnimationReponseVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
+        const responses: AnimationReponseVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
 
-        for (let i in responses) {
-            let reponse: AnimationReponseVO = responses[0];
+        for (const i in responses) {
+            const reponse: AnimationReponseVO = responses[0];
 
             if (!reponse) {
                 continue;

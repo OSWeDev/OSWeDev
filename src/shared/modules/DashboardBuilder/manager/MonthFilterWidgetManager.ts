@@ -28,7 +28,7 @@ export default class MonthFilterWidgetManager {
     public static create_context_filter_from_widget_options(
         widget_options: MonthFilterWidgetOptionsVO
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO = new ContextFilterVO();
+        const context_filter: ContextFilterVO = new ContextFilterVO();
 
         const vo_field_ref = widget_options.vo_field_ref ?? null;
 
@@ -226,8 +226,8 @@ export default class MonthFilterWidgetManager {
     ): { [month: number]: boolean } {
         const selected_months: { [month: number]: boolean } = {};
 
-        for (let month in other_selected_months) {
-            let month_int = parseInt(month);
+        for (const month in other_selected_months) {
+            const month_int = parseInt(month);
 
             if (!other_selected_months[month]) {
                 continue;
@@ -261,7 +261,7 @@ export default class MonthFilterWidgetManager {
 
         const selected_months: { [month: number]: boolean } = {};
 
-        for (let i in available_months) {
+        for (const i in available_months) {
             const month = available_months[i];
 
             selected_months[month] = false;

@@ -24,14 +24,14 @@ export default class PixelVarDataController {
      */
     public get_pixel_card(var_data: VarDataBaseVO): number {
 
-        let varconf = VarsController.var_conf_by_id[var_data.var_id];
+        const varconf = VarsController.var_conf_by_id[var_data.var_id];
         let prod_cardinaux = 1;
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
+        const pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
 
             pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
-            let card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_name]);
+            const card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_name]);
             prod_cardinaux *= card;
         }
 

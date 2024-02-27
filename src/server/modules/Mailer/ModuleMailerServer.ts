@@ -146,7 +146,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                let mailtransport = await nodemailer.createTransport(this.get_transporter());
+                const mailtransport = await nodemailer.createTransport(this.get_transporter());
 
                 ConsoleHandler.log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
@@ -155,7 +155,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
                         ConsoleHandler.error(error);
                         resolve(error);
                     } else {
-                        var log: string = 'Message sent: ' + info.messageId;
+                        const log: string = 'Message sent: ' + info.messageId;
                         ConsoleHandler.log(log);
                         resolve(log);
                     }
@@ -176,7 +176,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
         to: string | Address | Array<string | Address>,
         cc: string | Address | Array<string | Address>,
         bcc: string | Address | Array<string | Address>): boolean {
-        let whitelisted_emails: string[] = ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST ?
+        const whitelisted_emails: string[] = ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST ?
             ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST.split(',') : null;
 
         if ((!whitelisted_emails) || (!whitelisted_emails.length)) {
@@ -202,9 +202,9 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         if (TypesHandler.getInstance().isString(address)) {
             if ((address as string).indexOf(',') >= 0) {
-                let addresses = (address as string).split(',');
-                for (let i in addresses) {
-                    let e = addresses[i];
+                const addresses = (address as string).split(',');
+                for (const i in addresses) {
+                    const e = addresses[i];
 
                     if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
                         return false;
@@ -218,8 +218,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }
 
         if (TypesHandler.getInstance().isArray(address)) {
-            for (let i in address as Array<string | Address>) {
-                let e = address[i];
+            for (const i in address as Array<string | Address>) {
+                const e = address[i];
 
                 if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
                     return false;
@@ -229,7 +229,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
             return true;
         }
 
-        let address_ = address as Address;
+        const address_ = address as Address;
         return whitelisted_emails.indexOf(address_.address) >= 0;
     }
 

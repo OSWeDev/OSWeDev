@@ -47,7 +47,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
      */
     // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
-        let group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleTranslation.POLICY_GROUP);
+        const group: AccessPolicyGroupVO = AccessPolicyServerController.get_registered_policy_group(ModuleTranslation.POLICY_GROUP);
 
         let access: AccessPolicyVO = new AccessPolicyVO();
         access.group_id = group.id;
@@ -69,10 +69,10 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
     public async validate_formatted_data(datas: ImportTranslationRaw[], historic: DataImportHistoricVO): Promise<ImportTranslationRaw[]> {
 
-        let langs_by_code: { [code_lang: string]: LangVO } = await this.get_langs_by_code();
+        const langs_by_code: { [code_lang: string]: LangVO } = await this.get_langs_by_code();
 
-        for (let i in datas) {
-            let data: ImportTranslationRaw = datas[i];
+        for (const i in datas) {
+            const data: ImportTranslationRaw = datas[i];
 
             if (!langs_by_code[data.code_lang]) {
                 data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -112,11 +112,11 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_langs_by_code(): Promise<{ [code_lang: string]: LangVO }> {
-        let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
-        let langs_by_code: { [code_lang: string]: LangVO } = {};
+        const langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+        const langs_by_code: { [code_lang: string]: LangVO } = {};
 
-        for (let i in langs) {
-            let lang = langs[i];
+        for (const i in langs) {
+            const lang = langs[i];
 
             langs_by_code[lang.code_lang] = lang;
         }
@@ -125,11 +125,11 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_translatables_by_code(): Promise<{ [code_text: string]: TranslatableTextVO }> {
-        let translatables: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
-        let translatables_by_code: { [code_text: string]: TranslatableTextVO } = {};
+        const translatables: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
+        const translatables_by_code: { [code_text: string]: TranslatableTextVO } = {};
 
-        for (let i in translatables) {
-            let lang = translatables[i];
+        for (const i in translatables) {
+            const lang = translatables[i];
 
             translatables_by_code[lang.code_text] = lang;
         }
@@ -139,21 +139,21 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
     private async merge_imported_datas_in_translations(datas: ImportTranslationRaw[], historic: DataImportHistoricVO): Promise<boolean> {
 
-        let options = JSON.parse(historic.params);
-        let overwrite: boolean = options.overwrite;
-        let langs_by_code: { [code_lang: string]: LangVO } = await this.get_langs_by_code();
-        let translatables_by_code: { [code_text: string]: TranslatableTextVO } = await this.get_translatables_by_code();
+        const options = JSON.parse(historic.params);
+        const overwrite: boolean = options.overwrite;
+        const langs_by_code: { [code_lang: string]: LangVO } = await this.get_langs_by_code();
+        const translatables_by_code: { [code_text: string]: TranslatableTextVO } = await this.get_translatables_by_code();
 
-        let promises: Array<Promise<any>> = [];
-        let clientMarker: string[] = [];
-        for (let i in datas) {
-            let data: ImportTranslationRaw = datas[i];
+        const promises: Array<Promise<any>> = [];
+        const clientMarker: string[] = [];
+        for (const i in datas) {
+            const data: ImportTranslationRaw = datas[i];
 
-            let lang: LangVO = langs_by_code[data.code_lang];
+            const lang: LangVO = langs_by_code[data.code_lang];
             let translatable: TranslatableTextVO = translatables_by_code[data.code_text];
 
             if (lang && translatable) {
-                let translation: TranslationVO = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable.id);
+                const translation: TranslationVO = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable.id);
 
                 if ((!overwrite) && (!!translation)) {
                     continue;
@@ -172,7 +172,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 translatable = new TranslatableTextVO();
 
                 translatable.code_text = data.code_text;
-                let insertRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
+                const insertRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
 
                 if ((!insertRes) || (!insertRes.id)) {
                     ConsoleHandler.error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
@@ -183,7 +183,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             }
 
 
-            let new_translation: TranslationVO = new TranslationVO();
+            const new_translation: TranslationVO = new TranslationVO();
 
             new_translation.lang_id = lang.id;
             new_translation.text_id = translatable.id;

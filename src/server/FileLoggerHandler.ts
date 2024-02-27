@@ -44,7 +44,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     public log(msg: string, ...params) {
 
-        for (let i in params) {
+        for (const i in params) {
             msg = msg.replace(/$[Oo]/, params[i]);
         }
 
@@ -59,7 +59,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
     }
 
     private log_to_file() {
-        let log = this.log_to_file_cache.join('\n');
+        const log = this.log_to_file_cache.join('\n');
         this.log_to_file_cache = [];
 
         // On essaye de recréer le fichier s'il est perdu

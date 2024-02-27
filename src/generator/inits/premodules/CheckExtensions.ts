@@ -48,7 +48,7 @@ export default class CheckExtensions implements IGeneratorWorker {
 
     public async add_extension_if_not_exists(db: IDatabase<any>, extname: string): Promise<number> {
         try {
-            let ext_exist = await db.query("SELECT * FROM pg_extension WHERE extname='" + extname + "';");
+            const ext_exist = await db.query("SELECT * FROM pg_extension WHERE extname='" + extname + "';");
 
             if (ext_exist?.length > 0) {
                 return 0;

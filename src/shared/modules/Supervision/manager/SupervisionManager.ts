@@ -15,7 +15,7 @@ export default class SupervisionManager {
     public static load_all_supervision_api_type_ids(
         options: { load_actifs: boolean } = { load_actifs: true }
     ): string[] {
-        let available_api_type_ids: string[] = [];
+        const available_api_type_ids: string[] = [];
 
         const registerd_controllers = SupervisionController.getInstance().registered_controllers;
 

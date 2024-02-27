@@ -10,7 +10,7 @@ ConsoleHandler.init();
 test('QueryFilterVO: Build a simple tree with and', () => {
     instance = ContextQueryServerController;
 
-    let f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    const f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_AND);
     expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a'));
@@ -21,7 +21,7 @@ test('QueryFilterVO: Build a simple tree with and', () => {
 test('QueryFilterVO: Build a simple tree with or', () => {
     instance = ContextQueryServerController;
 
-    let f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    const f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_OR);
     expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a'));
@@ -31,7 +31,7 @@ test('QueryFilterVO: Build a simple tree with or', () => {
 test('QueryFilterVO: Build a tree with and in and', () => {
     instance = ContextQueryServerController;
 
-    let f_ =
+    const f_ =
         filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b')).and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_AND);

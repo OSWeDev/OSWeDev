@@ -171,7 +171,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get language(): string {
 
-        if (!!VueAppController.getInstance().data_user_lang) {
+        if (VueAppController.getInstance().data_user_lang) {
             return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
         }
 
@@ -193,7 +193,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     @Watch('field', { immediate: true })
     private onchange_field() {
-        if (!!this.field) {
+        if (this.field) {
             if (this.segmentation_type == null) {
                 if (this.field.moduleTableField) {
                     this.segmentation_type_ = this.field.segmentation_type;
@@ -219,7 +219,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
+        const min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
         let max: number = null;
 
         if (!RangeHandler.is_right_open(this.value)) {
@@ -264,7 +264,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        let new_value: TSRange = RangeHandler.createNew(
+        const new_value: TSRange = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
@@ -278,13 +278,13 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (this.is_segmentation_week) {
             let to_edit: boolean = false;
 
-            let start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
+            const start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
             if (this.tsrange_start && !Dates.isSame(start, moment(this.tsrange_start).utc(true).unix(), TimeSegment.TYPE_DAY)) {
                 this.tsrange_start = new Date(start * 1000);
                 to_edit = true;
             }
 
-            let end: number = RangeHandler.getSegmentedMax(new_value, TimeSegment.TYPE_DAY);
+            const end: number = RangeHandler.getSegmentedMax(new_value, TimeSegment.TYPE_DAY);
             if (this.tsrange_end && !Dates.isSame(end, moment(this.tsrange_end).utc(true).unix(), TimeSegment.TYPE_DAY)) {
                 this.tsrange_end = new Date(end * 1000);
                 to_edit = true;
@@ -298,7 +298,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.is_same(old_value, new_value))) {
             return;
@@ -338,7 +338,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             let start: number = moment(this.tsrange_start).utc(true).unix();
-            let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
+            const hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
 
             if (!hours) {
                 return null;
@@ -369,7 +369,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
-            let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
+            const hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
 
             if (!hours) {
                 return null;
@@ -391,7 +391,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        let end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
+        const end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
 
         return Dates.startOf(end_date_unix, this.segmentation_type_);
     }
@@ -406,7 +406,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (!this.option) {
             return null;
         }
-        let option_arr: string[] = this.option.split('_');
+        const option_arr: string[] = this.option.split('_');
         if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
             return null;
         }

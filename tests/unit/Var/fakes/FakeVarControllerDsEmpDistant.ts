@@ -50,7 +50,7 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
 
     public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<FakeEmpDayDataVO[]> {
 
-        let typed: DAOUpdateVOHolder<FakeEmpDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeEmpDistantVO>;
+        const typed: DAOUpdateVOHolder<FakeEmpDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeEmpDistantVO>;
 
         if (((typed.pre_update_vo as FakeEmpDistantVO).date == (typed.post_update_vo as FakeEmpDistantVO).date) &&
             ((typed.pre_update_vo as FakeEmpDistantVO).value == (typed.post_update_vo as FakeEmpDistantVO).value) &&
@@ -78,7 +78,7 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
 
         let res = 0;
 
-        let datas: FakeEmpDistantVO[] = varDAGNode.datasources[FakeEmpDistantDatasourceController.getInstance().name];
+        const datas: FakeEmpDistantVO[] = varDAGNode.datasources[FakeEmpDistantDatasourceController.getInstance().name];
         datas.forEach((e: FakeEmpDistantVO) => res += e.value);
 
         return res;

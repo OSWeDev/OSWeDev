@@ -12,7 +12,7 @@ import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
-import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class PasswordReset {
 
@@ -31,7 +31,7 @@ export default class PasswordReset {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -46,7 +46,7 @@ export default class PasswordReset {
 
     public async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -62,7 +62,7 @@ export default class PasswordReset {
 
     public async checkCode(email: string, challenge: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -77,7 +77,7 @@ export default class PasswordReset {
 
     public async checkCodeUID(uid: number, challenge: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -131,8 +131,8 @@ export default class PasswordReset {
 
         try {
 
-            let msg = ModuleTableController.validate_field_value(
-                VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId(field_names<UserVO>().password),
+            const msg = ModuleTableController.validate_field_value(
+                ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].getFieldFromId(field_names<UserVO>().password),
                 new_pwd1);
             if (!((!msg) || (msg == ""))) {
 
@@ -154,7 +154,7 @@ export default class PasswordReset {
 
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(
-            ModuleTableVO.default_get_api_version(user, false)
+            ModuleTableController.translate_vos_to_api(user, false)
         );
 
         return true;

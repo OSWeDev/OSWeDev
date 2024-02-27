@@ -43,8 +43,8 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
 
         let nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } } = {};
         let printed_tree: boolean = false;
-        for (let i in nodes) {
-            let node = nodes[i];
+        for (const i in nodes) {
+            const node = nodes[i];
 
             if (this.is_pixel_of_card_supp_1(VarsController.var_conf_by_id[node.var_data.var_id], node.var_data)) {
                 continue;
@@ -54,7 +54,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
              * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
              *  un cache de var_data pas invalidé, et puisque pas invalidé, on y touche pas
              */
-            if (!!node.var_data.id) {
+            if (node.var_data.id) {
                 ConsoleHandler.warn('VarsProcessUpdateDB:worker_async_batch:node.var_data.id:' + node.var_data.id + ':node.var_data.index:' + node.var_data.index + ':is_import:' + (node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT));
                 continue;
             }
@@ -64,7 +64,7 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
             }
 
             // Check de cohérence : on doit pas avoir plusieurs noeuds avec le même index
-            if (!!nodes_by_type_and_index[node.var_data._type][node.var_data.index]) {
+            if (nodes_by_type_and_index[node.var_data._type][node.var_data.index]) {
                 ConsoleHandler.error('VarsProcessUpdateDB:worker_async_batch:Erreur : on a plusieurs noeuds avec le même index : ' + node.var_data.index);
                 if (!printed_tree) {
                     ConsoleHandler.error('VarsProcessUpdateDB:worker_async_batch:Erreur : nodes:' + JSON.stringify(nodes));
@@ -80,19 +80,19 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
             nodes_by_type_and_index = await this.filter_by_BDD_do_cache_param_data(nodes_by_type_and_index);
         }
 
-        let promises = [];
+        const promises = [];
         let result = true;
-        for (let i in nodes_by_type_and_index) {
-            let nodes_by_index: { [index: string]: VarDAGNode } = nodes_by_type_and_index[i];
+        for (const i in nodes_by_type_and_index) {
+            const nodes_by_index: { [index: string]: VarDAGNode } = nodes_by_type_and_index[i];
 
             if (!nodes_by_index) {
                 continue;
             }
 
-            let vars_datas: VarDataBaseVO[] = [];
+            const vars_datas: VarDataBaseVO[] = [];
 
-            for (let j in nodes_by_index) {
-                let node = nodes_by_index[j];
+            for (const j in nodes_by_index) {
+                const node = nodes_by_index[j];
                 vars_datas.push(node.var_data);
             }
 
@@ -129,26 +129,26 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
      * @returns
      */
     private async filter_var_datas_by_index_size_limit(nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } }): Promise<{ [type: string]: { [index: string]: VarDAGNode } }> {
-        let res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
+        const res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
 
         // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
-        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
+        const limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
 
-        for (let _type in nodes_by_type_and_index) {
-            let nodes: { [index: string]: VarDAGNode } = nodes_by_type_and_index[_type];
+        for (const _type in nodes_by_type_and_index) {
+            const nodes: { [index: string]: VarDAGNode } = nodes_by_type_and_index[_type];
 
-            let matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(_type);
+            const matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(_type);
 
-            for (let i in nodes) {
-                let node = nodes[i];
-                let vardata = node.var_data;
+            for (const i in nodes) {
+                const node = nodes[i];
+                const vardata = node.var_data;
                 let refuse_var = false;
 
-                for (let j in matroid_fields) {
-                    let matroid_field = matroid_fields[j];
+                for (const j in matroid_fields) {
+                    const matroid_field = matroid_fields[j];
 
-                    let matroid_field_value = vardata[matroid_field.field_id];
-                    let matroid_field_value_index = RangeHandler.translate_to_bdd(matroid_field_value);
+                    const matroid_field_value = vardata[matroid_field.field_id];
+                    const matroid_field_value_index = RangeHandler.translate_to_bdd(matroid_field_value);
                     if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
                         ConsoleHandler.warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
                         refuse_var = true;
@@ -170,13 +170,13 @@ export default class VarsProcessUpdateDB extends VarsProcessBase {
     }
 
     private async filter_by_BDD_do_cache_param_data(nodes_by_type_and_index: { [type: string]: { [index: string]: VarDAGNode } }): Promise<{ [type: string]: { [index: string]: VarDAGNode } }> {
-        let res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
+        const res_by_type: { [type: string]: { [index: string]: VarDAGNode } } = {};
 
-        for (let _type in nodes_by_type_and_index) {
-            let nodes = nodes_by_type_and_index[_type];
+        for (const _type in nodes_by_type_and_index) {
+            const nodes = nodes_by_type_and_index[_type];
 
-            for (let i in nodes) {
-                let node = nodes[i];
+            for (const i in nodes) {
+                const node = nodes[i];
 
                 if (VarsCacheController.BDD_do_cache_param_data(node)) {
 

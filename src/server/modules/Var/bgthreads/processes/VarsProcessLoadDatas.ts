@@ -33,9 +33,9 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
-        let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+        const dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
         if ((!dss) || (!dss.length)) {
             return true;
@@ -44,7 +44,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         // TODO FIXME JNE DELETE when proven unuseful ==>
         // On ne doit surtout pas charger des datas sources sur des vars de type pixel mais qui n'en sont pas (card > 1)
         if (controller.varConf.pixel_activated) {
-            let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
+            const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
             if (prod_cardinaux != 1) {
                 return true;

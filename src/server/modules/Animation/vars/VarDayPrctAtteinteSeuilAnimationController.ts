@@ -106,12 +106,12 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let animation_params: AnimationParametersVO = varDAGNode.datasources[AnimationParamsRangesDatasourceController.getInstance().name];
+        const qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
+        const animation_params: AnimationParametersVO = varDAGNode.datasources[AnimationParamsRangesDatasourceController.getInstance().name];
         /** AnimationUserModuleVO (info sur la session d’un user sur un module) */
-        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
+        const ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
         /** réponses des utilisateurs */
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        const uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
 
         /** compteur de modules passés en revue */
         let cpt_modules: number = 0;
@@ -119,33 +119,33 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
         let cpt_modules_ok: number = 0;
 
         // on ballaie les modules de chaque thème
-        for (let theme_id in qrs_by_theme_module) {
-            for (let module_id in qrs_by_theme_module[theme_id]) {
+        for (const theme_id in qrs_by_theme_module) {
+            for (const module_id in qrs_by_theme_module[theme_id]) {
                 cpt_modules++;
 
-                let users_answered_module = uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id];
-                let module_has_qr = ObjectHandler.hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
+                const users_answered_module = uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id];
+                const module_has_qr = ObjectHandler.hasAtLeastOneAttribute(qrs_by_theme_module[theme_id][module_id]);
                 // si on a pas de qr ou aucune réponse des utilisateur pour le module on passe au suivant
                 if (!module_has_qr || !users_answered_module) {
                     continue;
                 }
 
-                let qrs_for_module = qrs_by_theme_module[theme_id][module_id];
+                const qrs_for_module = qrs_by_theme_module[theme_id][module_id];
 
                 let cpt_bonnes_reponses: number = 0;
                 let nb_user_has_finished: number = 0;
                 /** les utilisateur passé en revue */
-                let users_checked: { [user_id: number]: boolean } = {};
+                const users_checked: { [user_id: number]: boolean } = {};
 
                 // ballaie les qrs du module
-                for (let qr_i in qrs_for_module) {
-                    let qr: AnimationQRVO = qrs_for_module[qr_i];
-                    let uqrs_for_qr = uqrs_by_theme_module_qr[theme_id][module_id][qr.id];
+                for (const qr_i in qrs_for_module) {
+                    const qr: AnimationQRVO = qrs_for_module[qr_i];
+                    const uqrs_for_qr = uqrs_by_theme_module_qr[theme_id][module_id][qr.id];
 
                     if (uqrs_for_qr) {
                         // ballaie les réponses des différents utilisateurs
-                        for (let uqr of uqrs_for_qr) {
-                            let user_finished_module = ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date;
+                        for (const uqr of uqrs_for_qr) {
+                            const user_finished_module = ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date;
 
                             // on ne prend en compte que les utilisateurs qui ont finit le module
                             if (user_finished_module) {
@@ -164,9 +164,9 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
                 }
 
                 /** nombre de questions sur le module * le nombre de personnes passé en revue */
-                let total_qrs: number = ((qrs_for_module ? Object.values(qrs_for_module).length : 0) * nb_user_has_finished);
+                const total_qrs: number = ((qrs_for_module ? Object.values(qrs_for_module).length : 0) * nb_user_has_finished);
 
-                let prct_reussite: number = total_qrs ? (cpt_bonnes_reponses / total_qrs) : 0;
+                const prct_reussite: number = total_qrs ? (cpt_bonnes_reponses / total_qrs) : 0;
 
                 if (prct_reussite >= animation_params.seuil_validation_module_prct) {
                     cpt_modules_ok++;

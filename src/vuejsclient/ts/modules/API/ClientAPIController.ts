@@ -43,7 +43,7 @@ export default class ClientAPIController implements IAPIController {
 
         return async (...params) => {
 
-            let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
+            const apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
 
             if (!apiDefinition) {
 
@@ -74,8 +74,8 @@ export default class ClientAPIController implements IAPIController {
     }
 
     private async handleAPI<T extends IAPIParamTranslator<T>, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<U> {
-        let translated_param: IAPIParamTranslator<T> = APIControllerWrapper.translate_param(apiDefinition, ...api_params);
-        let api_name = apiDefinition.api_name;
+        const translated_param: IAPIParamTranslator<T> = APIControllerWrapper.translate_param(apiDefinition, ...api_params);
+        const api_name = apiDefinition.api_name;
 
         let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
         if ((API_TYPES_IDS_involved != CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) && !Array.isArray(API_TYPES_IDS_involved)) {
@@ -87,7 +87,7 @@ export default class ClientAPIController implements IAPIController {
         switch (apiDefinition.api_type) {
             case APIDefinition.API_TYPE_GET:
 
-                let url_param: string =
+                const url_param: string =
                     (translated_param && translated_param.translateToURL) ? translated_param.translateToURL() :
                         (translated_param ? translated_param.toString() : "");
 
@@ -115,7 +115,7 @@ export default class ClientAPIController implements IAPIController {
             case APIDefinition.API_TYPE_POST:
                 if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
-                    let filePath: string = await AjaxCacheClientController.getInstance().post(
+                    const filePath: string = await AjaxCacheClientController.getInstance().post(
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
@@ -125,8 +125,8 @@ export default class ClientAPIController implements IAPIController {
 
                     // const { default: $ } = await import('jquery');
 
-                    if (!!filePath) {
-                        let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
+                    if (filePath) {
+                        const iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                         $('body').append(iframe);
                     }
                     return;
@@ -147,13 +147,13 @@ export default class ClientAPIController implements IAPIController {
         // Si on a une api de type result notif, on vient de récupérer un ID normalement, qu'on stocke en attendant la notif
         if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {
             // 2 options, soit le serveur répond en notif et renvoie dans un premier temps le call_id, soit il répond directement avec le résultat
-            let api_res_typed: APINotifTypeResultVO = api_res as APINotifTypeResultVO;
+            const api_res_typed: APINotifTypeResultVO = api_res as APINotifTypeResultVO;
 
             if (!api_res_typed.api_call_id) {
                 return api_res_typed.res as U;
             }
 
-            let promise = new Promise((resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
                 ClientAPIController.api_waiting_for_result_notif_solvers[api_res_typed.api_call_id] = resolve;
             });
             ClientAPIController.api_waiting_for_result_notif_promises[api_res_typed.api_call_id] = promise;

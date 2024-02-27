@@ -111,7 +111,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private async mounted() {
 
-        let promises = [];
+        const promises = [];
         if ((!this.dashboard) || (this.dashboard.id != this.dashboard_id)) {
             promises.push((async () => {
                 this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
@@ -162,8 +162,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.all_page_widget) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (const i in this.all_page_widget) {
+            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;
@@ -179,16 +179,16 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private async wait_for_custom_filters_on_tsranges(var_id: number) {
 
-        let var_conf: VarConfVO = VarsController.var_conf_by_id[var_id];
-        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        const var_conf: VarConfVO = VarsController.var_conf_by_id[var_id];
+        const matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
         let tries = 100;
 
         while (tries > 0) {
 
             let can_exit = true;
-            for (let i in matroid_fields) {
+            for (const i in matroid_fields) {
 
-                let matroid_field = matroid_fields[i];
+                const matroid_field = matroid_fields[i];
 
                 if ((matroid_field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array)
                     && (!this.var_custom_filters[matroid_field.field_id])) {
@@ -229,14 +229,14 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         // On doit attendre le chargement des filtres de date, sinon impossible de créer des params puisqu'on refuse les max ranges sur les dates
         await this.wait_for_custom_filters_on_tsranges(this.var_id);
 
-        let active_field_filters: FieldFiltersVO = cloneDeep(this.get_active_field_filters);
+        const active_field_filters: FieldFiltersVO = cloneDeep(this.get_active_field_filters);
 
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
 
-        let new_param = ModuleVar.getInstance().getVarParamFromDataRow(
+        const new_param = ModuleVar.getInstance().getVarParamFromDataRow(
             this.row_value,
             this.column,
             custom_filters,

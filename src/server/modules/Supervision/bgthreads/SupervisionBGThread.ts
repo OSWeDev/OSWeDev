@@ -53,7 +53,7 @@ export default class SupervisionBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -66,13 +66,13 @@ export default class SupervisionBGThread implements IBGThread {
                 this.MIN_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100, 180000);
             }
 
-            let registered_api_types = SupervisionController.getInstance().registered_controllers;
+            const registered_api_types = SupervisionController.getInstance().registered_controllers;
 
-            let promises = [];
+            const promises = [];
 
-            for (let api_type_id in registered_api_types) {
-                let shared_controller: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
-                let server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
+            for (const api_type_id in registered_api_types) {
+                const shared_controller: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
+                const server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
 
                 // Si pas actif ou pas de time ms saisie, on passe au suivant
                 if ((!shared_controller) || (!shared_controller.is_actif()) || (!server_controller) || (!server_controller.get_execute_time_ms())) {
@@ -80,7 +80,7 @@ export default class SupervisionBGThread implements IBGThread {
                 }
 
                 promises.push((async () => {
-                    let items: ISupervisedItem[] = await query(api_type_id)
+                    const items: ISupervisedItem[] = await query(api_type_id)
                         .filter_is_true('invalid').select_vos<ISupervisedItem>();
 
                     if (server_controller.already_work) {
@@ -117,7 +117,7 @@ export default class SupervisionBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('SupervisionBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('SupervisionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }

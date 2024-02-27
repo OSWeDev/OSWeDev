@@ -20,9 +20,9 @@ export default class DataSourcesController {
 
     public static async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
-        let promises = [];
-        for (let i in dss) {
-            let ds = dss[i];
+        const promises = [];
+        for (const i in dss) {
+            const ds = dss[i];
 
             if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name]) {
                 CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name] = {};
@@ -38,13 +38,13 @@ export default class DataSourcesController {
     public static registerDataSource(
         dataSourcesController: DataSourceControllerBase) {
 
-        if (!!DataSourcesController.registeredDataSourcesController[dataSourcesController.name]) {
+        if (DataSourcesController.registeredDataSourcesController[dataSourcesController.name]) {
             return;
         }
 
         DataSourcesController.registeredDataSourcesController[dataSourcesController.name] = dataSourcesController;
-        for (let i in dataSourcesController.vo_api_type_ids) {
-            let vo_type_dep: string = dataSourcesController.vo_api_type_ids[i];
+        for (const i in dataSourcesController.vo_api_type_ids) {
+            const vo_type_dep: string = dataSourcesController.vo_api_type_ids[i];
 
             if (!DataSourcesController.registeredDataSourcesControllerByVoTypeDep[vo_type_dep]) {
                 DataSourcesController.registeredDataSourcesControllerByVoTypeDep[vo_type_dep] = [];
@@ -56,7 +56,7 @@ export default class DataSourcesController {
     }
 
     private static register_ds_default_translations(ds: DataSourceControllerBase) {
-        if (!!ds.ds_name_default_translations) {
+        if (ds.ds_name_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 ds.ds_name_default_translations,
                 VarsController.get_translatable_ds_name(ds.name)));

@@ -100,12 +100,12 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         BGThreadServerController.registered_BGThreads[bgthread.name] = bgthread;
 
-        let bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
-        let force_run_asap_throttled = (): Promise<boolean> => {
+        const bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
+        const force_run_asap_throttled = (): Promise<boolean> => {
 
             return new Promise(async (resolve, reject) => {
 
-                let thrower = (error) => {
+                const thrower = (error) => {
                     ConsoleHandler.error('failed force_run_asap_throttled on bgthread : ' + bgthread.name + ' : ' + error);
                     resolve(true);
                 };
@@ -206,7 +206,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
                     (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+                    const new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
                     if (new_param != this.block_param_by_name[bgthread.name]) {
                         ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
@@ -220,7 +220,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }
 
-            if (!!this.block_param_by_name[bgthread.name]) {
+            if (this.block_param_by_name[bgthread.name]) {
                 continue;
             }
 

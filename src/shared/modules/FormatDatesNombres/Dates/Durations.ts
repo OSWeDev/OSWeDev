@@ -54,10 +54,10 @@ export default class Durations {
 
             case HourSegment.TYPE_YEAR:
             case HourSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                let date_ys = new Date(duration * 1000);
+                const date_ys = new Date(duration * 1000);
                 return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
             case HourSegment.TYPE_MONTH:
-                let date_ms = new Date(duration * 1000);
+                const date_ms = new Date(duration * 1000);
                 return Math.floor(date_ms.setUTCMonth(date_ms.getUTCMonth() + nb) / 1000);
             case HourSegment.TYPE_WEEK:
                 return Math.floor(60 * 60 * 24 * 7 * nb + duration);
@@ -74,7 +74,7 @@ export default class Durations {
             return null;
         }
 
-        let mm = moment.unix(duration).utc();
+        const mm = moment.unix(duration).utc();
         return mm.format(formatstr);
     }
 
@@ -101,16 +101,16 @@ export default class Durations {
                 coef = 60;
                 break;
             case HourSegment.TYPE_MONTH:
-                let mma = moment.unix(a).utc();
-                let mmb = moment.unix(b).utc();
+                const mma = moment.unix(a).utc();
+                const mmb = moment.unix(b).utc();
                 return mma.diff(mmb, 'month', precise);
             case HourSegment.TYPE_WEEK:
                 coef = 604800;
                 break;
             case HourSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case HourSegment.TYPE_YEAR:
-                let mya = moment.unix(a).utc();
-                let myb = moment.unix(b).utc();
+                const mya = moment.unix(a).utc();
+                const myb = moment.unix(b).utc();
                 return mya.diff(myb, 'year', precise);
             case HourSegment.TYPE_SECOND:
                 return a - b;
@@ -119,8 +119,8 @@ export default class Durations {
                 return a - b;
         }
 
-        let start_a = Dates.startOf(a, segmentation);
-        let start_b = Dates.startOf(b, segmentation);
+        const start_a = Dates.startOf(a, segmentation);
+        const start_b = Dates.startOf(b, segmentation);
         return precise ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 

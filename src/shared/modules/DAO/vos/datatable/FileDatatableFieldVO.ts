@@ -10,7 +10,7 @@ export default class FileDatatableFieldVO<T, U> extends DatatableField<T, U> {
         datatable_field_uid: string,
         parameter_datatable_field_uid: string): FileDatatableFieldVO<any, any> {
 
-        let res = new FileDatatableFieldVO();
+        const res = new FileDatatableFieldVO();
         res.init(FileDatatableFieldVO.API_TYPE_ID, DatatableField.FILE_FIELD_TYPE, datatable_field_uid);
         res.parameter_datatable_field_uid = parameter_datatable_field_uid;
         return res;

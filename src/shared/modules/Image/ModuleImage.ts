@@ -33,12 +33,12 @@ export default class ModuleImage extends Module {
 
     public initialize() {
 
-        let label_field = ModuleTableFieldController.create_new(ImageVO.API_TYPE_ID, field_names<ImageVO>().path, ModuleTableFieldVO.FIELD_TYPE_image_field, 'Image', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(ImageVO.API_TYPE_ID, field_names<ImageVO>().path, ModuleTableFieldVO.FIELD_TYPE_image_field, 'Image', true).unique();
+        const datatable_fields = [
             label_field,
         ];
 
-        let datatable = new ModuleTableVO(this, ImageVO.API_TYPE_ID, () => new ImageVO(), datatable_fields, label_field, "Images");
+        const datatable = new ModuleTableVO(this, ImageVO.API_TYPE_ID, () => new ImageVO(), datatable_fields, label_field, "Images");
         this.datatables.push(datatable);
     }
 }

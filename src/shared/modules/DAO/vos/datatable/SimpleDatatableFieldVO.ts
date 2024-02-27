@@ -27,7 +27,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
     public static createNew(datatable_field_uid: string): SimpleDatatableFieldVO<any, any> {
 
-        let res = new SimpleDatatableFieldVO();
+        const res = new SimpleDatatableFieldVO();
 
         res.init(
             SimpleDatatableFieldVO.API_TYPE_ID,
@@ -58,7 +58,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return amountFilter.read(field_value);
 
                 case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
-                    if (!!this.moduleTableField.translatable_params_field_name) {
+                    if (this.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
                             params = JSON.parse(vo[this.moduleTableField.translatable_params_field_name]);
@@ -100,10 +100,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
 
                     let res: string = "";
-                    for (let i in daterange_array) {
-                        let daterange = daterange_array[i];
+                    for (const i in daterange_array) {
+                        const daterange = daterange_array[i];
 
-                        let parts: string[] = daterange.replace(/[\(\)\[\]]/g, '').split(',');
+                        const parts: string[] = daterange.replace(/[\(\)\[\]]/g, '').split(',');
                         if ((!parts) || (parts.length <= 0)) {
                             continue;
                         }
@@ -127,8 +127,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let res_tstzranges = "";
 
-                    for (let i in field_value) {
-                        let tstzrange: TSRange = field_value[i] as TSRange;
+                    for (const i in field_value) {
+                        const tstzrange: TSRange = field_value[i] as TSRange;
 
                         res_tstzranges += (res_tstzranges == "") ? '' : ' + ';
 
@@ -148,7 +148,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let res_hourrange = "";
 
-                    let hourrange_: HourRange = field_value as HourRange;
+                    const hourrange_: HourRange = field_value as HourRange;
 
                     res_hourrange += (res_hourrange == "") ? '' : ' + ';
 
@@ -170,8 +170,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let res_hourranges = "";
 
-                    for (let i in field_value) {
-                        let hourrange: HourRange = field_value[i] as HourRange;
+                    for (const i in field_value) {
+                        const hourrange: HourRange = field_value[i] as HourRange;
 
                         res_hourranges += (res_hourranges == "") ? '' : ' + ';
 
@@ -193,8 +193,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let res_numranges = "";
 
-                    for (let i in field_value) {
-                        let numrange: NumRange = field_value[i] as NumRange;
+                    for (const i in field_value) {
+                        const numrange: NumRange = field_value[i] as NumRange;
 
                         res_numranges += (res_numranges == "") ? '' : ' + ';
 
@@ -208,12 +208,12 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return res_numranges;
 
                 case ModuleTableFieldVO.FIELD_TYPE_tsrange:
-                    let res_tsrange: string[] = [];
+                    const res_tsrange: string[] = [];
 
                     let none: boolean = true;
 
 
-                    let min_period: number = RangeHandler.getSegmentedMin(field_value, this.segmentation_type, 0, this.return_min_value);
+                    const min_period: number = RangeHandler.getSegmentedMin(field_value, this.segmentation_type, 0, this.return_min_value);
 
                     if (min_period) {
                         res_tsrange.push(Dates.format_segment(min_period, this.segmentation_type, this.format_localized_time));
@@ -222,7 +222,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_tsrange.push('');
                     }
 
-                    let max_period: number = RangeHandler.getSegmentedMax(field_value, this.segmentation_type, this.max_range_offset, this.return_max_value);
+                    const max_period: number = RangeHandler.getSegmentedMax(field_value, this.segmentation_type, this.max_range_offset, this.return_max_value);
 
                     if (max_period) {
                         // Si mon max est différent du min, j'ajoute, sinon ça ne sert à rien car ça affiche en double
@@ -250,11 +250,11 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return none ? '∞' : res_tsrange.join(' - ');
 
                 case ModuleTableFieldVO.FIELD_TYPE_numrange:
-                    let res_numrange: string[] = [];
+                    const res_numrange: string[] = [];
 
                     let none_number: boolean = true;
 
-                    let min_number: number = RangeHandler.getSegmentedMin(field_value, null, 0, this.return_min_value);
+                    const min_number: number = RangeHandler.getSegmentedMin(field_value, null, 0, this.return_min_value);
                     if (min_number) {
                         res_numrange.push(min_number.toFixed(0));
                         none_number = false;
@@ -263,7 +263,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         res_numrange.push('');
                     }
 
-                    let max_number: number = RangeHandler.getSegmentedMax(field_value, null, this.max_range_offset, this.return_max_value);
+                    const max_number: number = RangeHandler.getSegmentedMax(field_value, null, this.max_range_offset, this.return_max_value);
 
                     if (max_number) {
                         if (max_number.toFixed(0) != min_number.toFixed(0)) {
@@ -284,20 +284,20 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                    let date = this.getMomentDateFieldInclusif(field_value, true);
+                    const date = this.getMomentDateFieldInclusif(field_value, true);
                     return Dates.format_segment(date, this.segmentation_type, this.format_localized_time);
 
                 case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                     let res_tstz_array = '';
 
-                    for (let i in field_value) {
-                        let fv = field_value[i];
+                    for (const i in field_value) {
+                        const fv = field_value[i];
 
                         if (res_tstz_array != '') {
                             res_tstz_array += ', ';
                         }
 
-                        let date_fv = this.getMomentDateFieldInclusif(fv, true);
+                        const date_fv = this.getMomentDateFieldInclusif(fv, true);
                         res_tstz_array += Dates.format_segment(date_fv, this.segmentation_type, this.format_localized_time);
                     }
                     return res_tstz_array;
@@ -305,8 +305,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 default:
 
-                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+                    for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (this.field_type == tableFieldTypeController.name) {
                             return tableFieldTypeController.defaultDataToReadIHM(field_value, this.moduleTableField, vo);
@@ -399,14 +399,14 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableFieldVO.FIELD_TYPE_float:
                 case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                    let efloat = parseFloat(value);
+                    const efloat = parseFloat(value);
                     return (isNaN(efloat)) ? null : efloat;
                 case ModuleTableFieldVO.FIELD_TYPE_int:
-                    let eint = parseInt(value);
+                    const eint = parseInt(value);
                     return (isNaN(eint)) ? null : eint;
 
                 case ModuleTableFieldVO.FIELD_TYPE_enum:
-                    for (let i in this.enum_values) {
+                    for (const i in this.enum_values) {
                         if (LocaleManager.getInstance().i18n.t(this.enum_values[i]) == value) {
                             return i;
                         }
@@ -419,7 +419,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         return value;
                     }
 
-                    let parts: string[] = value.split('-');
+                    const parts: string[] = value.split('-');
                     if ((!parts) || (parts.length <= 0)) {
                         return value;
                     }
@@ -446,9 +446,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_int_array:
                 case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
-                    let values: any[] = [];
+                    const values: any[] = [];
 
-                    for (let j in value) {
+                    for (const j in value) {
                         if (value[j]) {
                             values.push(value[j]);
                         }
@@ -479,10 +479,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
 
                 case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                    let res_tstz_array = [];
+                    const res_tstz_array = [];
 
-                    for (let i in value) {
-                        let v = value[i];
+                    for (const i in value) {
+                        const v = value[i];
 
                         switch (this.segmentation_type) {
                             case TimeSegment.TYPE_MONTH:
@@ -505,8 +505,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                 case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 default:
 
-                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+                    for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (this.field_type == tableFieldTypeController.name) {
                             return tableFieldTypeController.defaultReadIHMToData(value, this.moduleTableField, vo);
@@ -576,7 +576,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return this.translatable_title_custom;
         }
 
-        let e = this.moduleTableField.field_label.code_text;
+        const e = this.moduleTableField.field_label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
@@ -585,7 +585,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     }
 
     public enumIdToHumanReadable: (id: number) => string = (id: number) => {
-        let res: string = "";
+        const res: string = "";
 
         if ((typeof id === 'undefined') || (id === null)) {
             return null;
@@ -595,7 +595,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     }
 
     public enumIdToHumanReadableImage: (id: number) => string = (id: number) => {
-        let res: string = "";
+        const res: string = "";
 
         if ((typeof id === 'undefined') || (id === null)) {
             return null;
@@ -609,7 +609,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
-        let res = this.dataToReadIHM(e[this.datatable_field_uid], e);
+        const res = this.dataToReadIHM(e[this.datatable_field_uid], e);
 
         if ((this.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (this.field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
 

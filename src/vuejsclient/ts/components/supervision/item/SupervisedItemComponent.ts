@@ -78,7 +78,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
             return null;
         }
 
-        let segms = this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item);
+        const segms = this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item);
         if (!segms) {
             return null;
         }
@@ -186,7 +186,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
 
         console.log('load_supervised_item', this.supervised_item);
 
-        let promises = [];
+        const promises = [];
         let tmp_hist: ISupervisedItem[] = null;
 
         promises.push((async () => {

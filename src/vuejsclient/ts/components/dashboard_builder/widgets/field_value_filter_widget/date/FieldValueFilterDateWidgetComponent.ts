@@ -81,7 +81,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
         let options: FieldValueFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }
@@ -100,7 +100,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
      */
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options(): void {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -108,7 +108,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if (!options) {
             return null;
@@ -152,7 +152,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
@@ -184,7 +184,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
@@ -195,13 +195,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         }
 
         // (on initialization) if context exist and ts_range
-        let ts_ranges: TSRange[] = [];
+        const ts_ranges: TSRange[] = [];
         ts_ranges.push(this.ts_range);
 
         // If the is no context_filter create a new one with this ts_range
         if (!context_filter) {
-            let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-            let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+            const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+            const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
             context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
 
             this.set_active_field_filter({
@@ -213,11 +213,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         }
 
         // If context_filter exist, replace with the actual ts_range
-        if (!!context_filter) {
+        if (context_filter) {
             if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
                 context_filter.param_tsranges = ts_ranges;
 
-                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+                const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.vo_field_ref.field_id,
@@ -230,7 +230,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -240,13 +240,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get segmentation_type(): number {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         return options ? options.segmentation_type : null;
     }
 
     get exclude_values(): TSRange {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if (!options) {
             return null;
@@ -256,8 +256,8 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get field_date(): SimpleDatatableFieldVO<any, any> {
-        let field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
-            .setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        const field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
+            .setModuleTable(ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id]);
 
         if (this.segmentation_type != null) {
             field.segmentation_type = this.segmentation_type;

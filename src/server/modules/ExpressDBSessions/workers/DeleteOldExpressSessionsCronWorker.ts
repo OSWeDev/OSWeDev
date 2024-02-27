@@ -28,7 +28,7 @@ export default class DeleteOldExpressSessionsCronWorker implements ICronWorker {
     // istanbul ignore next: nothing to test : work
     public async work() {
 
-        let old_sessions = await query(ExpressSessionVO.API_TYPE_ID).filter_by_date_before('expire', Dates.now()).select_vos<ExpressSessionVO>();
+        const old_sessions = await query(ExpressSessionVO.API_TYPE_ID).filter_by_date_before('expire', Dates.now()).select_vos<ExpressSessionVO>();
         await ModuleDAO.getInstance().deleteVOs(old_sessions);
     }
 }

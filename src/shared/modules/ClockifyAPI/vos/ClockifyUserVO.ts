@@ -7,7 +7,7 @@ export default class ClockifyUserVO {
         email: string,
         status: string
     ): ClockifyUserVO {
-        let user: ClockifyUserVO = new ClockifyUserVO();
+        const user: ClockifyUserVO = new ClockifyUserVO();
 
         user.clockify_id = clockify_id;
         user.name = name;

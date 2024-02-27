@@ -21,10 +21,10 @@ test('DAG: test isDeletable', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let node_A = dag.nodes[var_data_A.index];
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const node_A = dag.nodes[var_data_A.index];
     // Pas de incoming deps, donc peut être supprimé
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
@@ -55,8 +55,8 @@ test('DAG: test isDeletable', async () => {
     });
     expect(node_A.is_deletable).toStrictEqual(true);
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let node_B = dag.nodes[var_data_B.index];
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const node_B = dag.nodes[var_data_B.index];
     // Pas de tag updated_db, donc pas de suppression
     expect(node_B.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
@@ -76,28 +76,28 @@ test('DAG: test isComputable', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let node_A = dag.nodes[var_data_A.index];
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const node_A = dag.nodes[var_data_A.index];
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let node_B = dag.nodes[var_data_B.index];
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const node_B = dag.nodes[var_data_B.index];
 
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
-    let node_C = dag.nodes[var_data_C.index];
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+    const node_C = dag.nodes[var_data_C.index];
 
-    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-    let node_E = dag.nodes[var_data_E.index];
+    const var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
+    const node_E = dag.nodes[var_data_E.index];
 
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-    let node_F = dag.nodes[var_data_F.index];
+    const var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
+    const node_F = dag.nodes[var_data_F.index];
 
-    let var_data_G: FakeDataVO = FakeDataHandler.get_var_data_G();
-    let node_G = dag.nodes[var_data_G.index];
+    const var_data_G: FakeDataVO = FakeDataHandler.get_var_data_G();
+    const node_G = dag.nodes[var_data_G.index];
 
-    let var_data_H: FakeDataVO = FakeDataHandler.get_var_data_H();
-    let node_H = dag.nodes[var_data_H.index];
+    const var_data_H: FakeDataVO = FakeDataHandler.get_var_data_H();
+    const node_H = dag.nodes[var_data_H.index];
 
     // Pas de TAG_4_COMPUTING, donc pas de calcul
     expect(node_A.tags).toStrictEqual({
@@ -226,12 +226,12 @@ test('DAG: test addTag', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+    const dag: VarDAG = new VarDAG();
     expect(dag.current_step_tags[VarDAGNode.TAG_0_CREATED]).toBeUndefined();
     expect(dag.tags[VarDAGNode.TAG_0_CREATED]).toBeUndefined();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let node_A: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const node_A: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     expect(node_A.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
@@ -353,15 +353,15 @@ test('DAG: test addOutgoingDep', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+    const dag: VarDAG = new VarDAG();
     expect(dag.current_step_tags[VarDAGNode.TAG_0_CREATED]).toBeUndefined();
     expect(dag.tags[VarDAGNode.TAG_0_CREATED]).toBeUndefined();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let node_A: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const node_A: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let node_B: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const node_B: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
     node_A.addOutgoingDep('DEP:A>B', node_B);
 
@@ -386,14 +386,14 @@ test('DAG: test unlinkFromDAG', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_A: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_A().index];
-    let node_B: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_B().index];
-    let node_C: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_C().index];
-    let node_E: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_E().index];
-    let node_F: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_F().index];
-    let node_G: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_G().index];
-    let node_H: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_H().index];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_A: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_A().index];
+    const node_B: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_B().index];
+    const node_C: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_C().index];
+    const node_E: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_E().index];
+    const node_F: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_F().index];
+    const node_G: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_G().index];
+    const node_H: VarDAGNode = dag.nodes[FakeDataHandler.get_var_data_H().index];
 
     expect(dag.nb_nodes).toStrictEqual(7);
     expect(dag.current_step_tags[VarDAGNode.TAG_0_CREATED]).toStrictEqual({

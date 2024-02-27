@@ -32,16 +32,16 @@ export default class DatatableRowController {
 
     public get_exportable_datatable_row_data(raw_data: IDistantVOBase, datatable: Datatable<any>, exportable_datatable_columns: string[] = null): any {
 
-        let cloned_data = cloneDeep(raw_data);
+        const cloned_data = cloneDeep(raw_data);
 
-        if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+        if (cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
             delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
         }
-        if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+        if (cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
             delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
         }
 
-        for (let column in cloned_data) {
+        for (const column in cloned_data) {
 
             // On allège le vo en gardant que les colonne à exporter
             if (exportable_datatable_columns && (exportable_datatable_columns.indexOf(column) < 0)) {
@@ -51,13 +51,13 @@ export default class DatatableRowController {
             /**
              * On doit aussi traduire les colonnes de type références multiples pour ne pas exporter un objet mais un texte
              */
-            let datatable_field = datatable.getFieldByDatatableFieldUID(column);
+            const datatable_field = datatable.getFieldByDatatableFieldUID(column);
             if (!datatable_field) {
                 // Ex: id
                 continue;
             }
 
-            let field_as_simple = (datatable_field as SimpleDatatableFieldVO<any, any>);
+            const field_as_simple = (datatable_field as SimpleDatatableFieldVO<any, any>);
 
             // Si c'est un custom :
             if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && field_as_simple && field_as_simple.moduleTableField &&
@@ -72,10 +72,10 @@ export default class DatatableRowController {
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
 
-                    let values = cloned_data[column];
+                    const values = cloned_data[column];
                     let res = "";
-                    for (let valuei in values) {
-                        let value = values[valuei];
+                    for (const valuei in values) {
+                        const value = values[valuei];
 
                         if (!value) {
                             continue;
@@ -102,19 +102,19 @@ export default class DatatableRowController {
             return raw_data;
         }
 
-        if (!!datatable.conditional_show) {
+        if (datatable.conditional_show) {
             if (!datatable.conditional_show(raw_data)) {
                 return raw_data;
             }
         }
 
-        let resData: IDistantVOBase = {
+        const resData: IDistantVOBase = {
             id: raw_data.id,
             _type: raw_data._type
         };
 
-        for (let i in datatable.fields) {
-            let field: DatatableField<any, any> = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field: DatatableField<any, any> = datatable.fields[i];
 
             this.get_datatable_row_field_data(raw_data, resData, field, getStoredDatas, prepared_ref_fields_data_for_update);
         }
@@ -135,7 +135,7 @@ export default class DatatableRowController {
                     break;
 
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
+                    const simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
 
                     let value = field.dataToReadIHM(raw_data[simpleField.moduleTableField.field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
@@ -164,7 +164,7 @@ export default class DatatableRowController {
 
                     if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) {
 
-                        for (let vi in value) {
+                        for (const vi in value) {
                             let v = value[vi];
 
                             try {
@@ -207,11 +207,11 @@ export default class DatatableRowController {
                     break;
 
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                    let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
+                    const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
                     if (getStoredDatas && getStoredDatas[manyToOneField.targetModuleTable.vo_type]) {
-                        let ref_data: IDistantVOBase = getStoredDatas[manyToOneField.targetModuleTable.vo_type][raw_data[manyToOneField.srcField.field_id]];
+                        const ref_data: IDistantVOBase = getStoredDatas[manyToOneField.targetModuleTable.vo_type][raw_data[manyToOneField.srcField.field_id]];
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[manyToOneField.srcField.field_id];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
@@ -219,7 +219,7 @@ export default class DatatableRowController {
                     break;
 
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                    let oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
+                    const oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
 
                     resData[field.datatable_field_uid] = [];
 
@@ -236,7 +236,7 @@ export default class DatatableRowController {
                     // }
 
                     if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
-                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                        for (const oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
                             resData[field.datatable_field_uid].push({
                                 id: oneToManyTargetId,
                                 label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
@@ -246,7 +246,7 @@ export default class DatatableRowController {
                     break;
 
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                    let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
+                    const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
                     resData[field.datatable_field_uid] = [];
                     // let dest_ids: number[] = [];
@@ -269,7 +269,7 @@ export default class DatatableRowController {
                     // }
 
                     if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
-                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                        for (const oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
                             resData[field.datatable_field_uid].push({
                                 id: oneToManyTargetId,
                                 label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
@@ -280,14 +280,14 @@ export default class DatatableRowController {
                     break;
 
                 case DatatableField.REF_RANGES_FIELD_TYPE:
-                    let refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
+                    const refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
 
                     resData[field.datatable_field_uid] = [];
 
                     if (getStoredDatas && getStoredDatas[refField.targetModuleTable.vo_type]) {
 
                         RangeHandler.foreach_ranges_sync(raw_data[refField.srcField.field_id], (id: number) => {
-                            let ref_data: IDistantVOBase = getStoredDatas[refField.targetModuleTable.vo_type][id];
+                            const ref_data: IDistantVOBase = getStoredDatas[refField.targetModuleTable.vo_type][id];
                             resData[field.datatable_field_uid].push({
                                 id: id,
                                 label: refField.dataToHumanReadable(ref_data)

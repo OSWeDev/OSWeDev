@@ -74,7 +74,7 @@ export default class StatsController {
             return;
         }
 
-        let default_value = 60000;
+        const default_value = 60000;
         StatsController.getInstance().UNSTACK_THROTTLE = default_value;
         ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
             StatsController.getInstance().UNSTACK_THROTTLE = res;
@@ -95,7 +95,7 @@ export default class StatsController {
             return;
         }
 
-        for (let i in StatVO.AGGREGATOR_LABELS) {
+        for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_COMPTEUR,
                 1, parseInt(i), min_segment_type);
@@ -117,7 +117,7 @@ export default class StatsController {
             return;
         }
 
-        for (let i in StatVO.AGGREGATOR_LABELS) {
+        for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_DUREE,
                 duree_ms, parseInt(i), min_segment_type);
@@ -139,7 +139,7 @@ export default class StatsController {
             return;
         }
 
-        for (let i in StatVO.AGGREGATOR_LABELS) {
+        for (const i in StatVO.AGGREGATOR_LABELS) {
             StatsController.register_stat_agg(
                 category_name, sub_category_name, event_name, StatsTypeVO.TYPE_QUANTITE,
                 quantite, parseInt(i), min_segment_type);
@@ -172,13 +172,13 @@ export default class StatsController {
         //     return;
         // }
 
-        let stat = new StatClientWrapperVO();
+        const stat = new StatClientWrapperVO();
 
         stat.value = value;
         stat.timestamp_s = force_timestamp ? force_timestamp : Dates.now();
 
-        let thread_name = force_thread_name ? force_thread_name : StatsController.THREAD_NAME;
-        let stats_name = category_name + '.' + sub_category_name + '.' + event_name + '.' + stat_type_name + '.' + StatsController.get_aggregator_extension(aggregator) + '.' + thread_name;
+        const thread_name = force_thread_name ? force_thread_name : StatsController.THREAD_NAME;
+        const stats_name = category_name + '.' + sub_category_name + '.' + event_name + '.' + stat_type_name + '.' + StatsController.get_aggregator_extension(aggregator) + '.' + thread_name;
 
         stat.tmp_category_name = category_name;
         stat.tmp_sub_category_name = sub_category_name;
@@ -211,14 +211,14 @@ export default class StatsController {
         }
         StatsController.is_unstacking = true;
 
-        let to_unstack: { [group_name: string]: StatClientWrapperVO[] } = Object.assign({}, StatsController.stacked_registered_stats_by_group_name);
+        const to_unstack: { [group_name: string]: StatClientWrapperVO[] } = Object.assign({}, StatsController.stacked_registered_stats_by_group_name);
         StatsController.stacked_registered_stats_by_group_name = {};
 
-        let unstacking_date: number = Dates.now();
+        const unstacking_date: number = Dates.now();
         if (!StatsController.first_unstacking_date) {
             StatsController.first_unstacking_date = unstacking_date;
         }
-        let to_restack: { [group_name: string]: StatClientWrapperVO[] } = {};
+        const to_restack: { [group_name: string]: StatClientWrapperVO[] } = {};
 
         if ((!to_unstack) || (!Object.keys(to_unstack).length)) {
             StatsController.is_unstacking = false;
@@ -238,30 +238,30 @@ export default class StatsController {
             return;
         }
 
-        let all_new_stats: StatClientWrapperVO[] = [];
+        const all_new_stats: StatClientWrapperVO[] = [];
 
-        for (let group_name in to_unstack) {
-            let stats = to_unstack[group_name];
+        for (const group_name in to_unstack) {
+            const stats = to_unstack[group_name];
 
             if (!stats || !stats.length) {
                 continue;
             }
 
-            let sample_stat = stats[0];
+            const sample_stat = stats[0];
             if (!sample_stat) {
                 continue;
             }
-            let stats_aggregator_min_segment_type = sample_stat.stats_aggregator_min_segment_type;
-            let stats_aggregator = sample_stat.stats_aggregator;
+            const stats_aggregator_min_segment_type = sample_stat.stats_aggregator_min_segment_type;
+            const stats_aggregator = sample_stat.stats_aggregator;
 
-            let current_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(unstacking_date, stats_aggregator_min_segment_type).index;
+            const current_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(unstacking_date, stats_aggregator_min_segment_type).index;
 
             // On n'aggrège que les stats dont le segment est totalement terminé
-            let stats_to_aggregate_by_segment: { [segment_date: number]: StatClientWrapperVO[] } = {};
-            for (let i in stats) {
-                let stat = stats[i];
+            const stats_to_aggregate_by_segment: { [segment_date: number]: StatClientWrapperVO[] } = {};
+            for (const i in stats) {
+                const stat = stats[i];
 
-                let stat_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(stat.timestamp_s, stats_aggregator_min_segment_type).index;
+                const stat_segment_start = TimeSegmentHandler.getCorrespondingTimeSegment(stat.timestamp_s, stats_aggregator_min_segment_type).index;
                 if (stat_segment_start >= current_segment_start) {
                     if (!to_restack[group_name]) {
                         to_restack[group_name] = [];
@@ -276,13 +276,13 @@ export default class StatsController {
                 stats_to_aggregate_by_segment[stat_segment_start].push(stat);
             }
 
-            let aggregated_stats: { [segment_date: number]: StatClientWrapperVO } = {};
+            const aggregated_stats: { [segment_date: number]: StatClientWrapperVO } = {};
 
-            for (let i in stats_to_aggregate_by_segment) {
-                let segment_date = parseInt(i);
-                let segment_stats = stats_to_aggregate_by_segment[segment_date];
+            for (const i in stats_to_aggregate_by_segment) {
+                const segment_date = parseInt(i);
+                const segment_stats = stats_to_aggregate_by_segment[segment_date];
 
-                let aggregated_stat: StatClientWrapperVO = new StatClientWrapperVO();
+                const aggregated_stat: StatClientWrapperVO = new StatClientWrapperVO();
                 aggregated_stat.timestamp_s = segment_date;
                 aggregated_stat.value = 0;
 
@@ -307,7 +307,7 @@ export default class StatsController {
                     case StatsTypeVO.TYPE_COMPTEUR:
 
                         let sum_COMPTEUR = 0;
-                        for (let j in segment_stats) {
+                        for (const j in segment_stats) {
                             sum_COMPTEUR += segment_stats[j].value;
                         }
                         aggregated_stat.value = sum_COMPTEUR;
@@ -318,21 +318,21 @@ export default class StatsController {
                         if (stats_aggregator == StatVO.AGGREGATOR_MEAN) {
                             // Moyenne
                             let sum = 0;
-                            for (let j in segment_stats) {
+                            for (const j in segment_stats) {
                                 sum += segment_stats[j].value;
                             }
                             aggregated_stat.value = sum / segment_stats.length;
                         } else if (stats_aggregator == StatVO.AGGREGATOR_SUM) {
                             // Somme
                             let sum = 0;
-                            for (let j in segment_stats) {
+                            for (const j in segment_stats) {
                                 sum += segment_stats[j].value;
                             }
                             aggregated_stat.value = sum;
                         } else if (stats_aggregator == StatVO.AGGREGATOR_MIN) {
                             // Min
                             let min = null;
-                            for (let j in segment_stats) {
+                            for (const j in segment_stats) {
                                 if ((min === null) || (min > segment_stats[j].value)) {
                                     min = segment_stats[j].value;
                                 }
@@ -341,7 +341,7 @@ export default class StatsController {
                         } else if (stats_aggregator == StatVO.AGGREGATOR_MAX) {
                             // Max
                             let max = null;
-                            for (let j in segment_stats) {
+                            for (const j in segment_stats) {
                                 if ((max === null) || (max < segment_stats[j].value)) {
                                     max = segment_stats[j].value;
                                 }
@@ -368,7 +368,7 @@ export default class StatsController {
 
         StatsController.is_unstacking = false;
         if (to_restack && Object.keys(to_restack).length) {
-            for (let group_name in to_restack) {
+            for (const group_name in to_restack) {
                 if (!StatsController.stacked_registered_stats_by_group_name[group_name]) {
                     StatsController.stacked_registered_stats_by_group_name[group_name] = [];
                 }

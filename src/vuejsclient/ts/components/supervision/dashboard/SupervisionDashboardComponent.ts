@@ -139,7 +139,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     @Watch('filter_text')
     private on_change_filter_text() {
-        let lower_case = this.filter_text ? this.filter_text.toLowerCase() : null;
+        const lower_case = this.filter_text ? this.filter_text.toLowerCase() : null;
         if (lower_case != this.get_filter_text_lower_case) {
             this.set_filter_text_lower_case(lower_case);
             this.debounced_on_change_show();
@@ -213,26 +213,26 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         /** liste des nouvelles sondes à afficher */
-        let new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
-        let new_supervised_items_by_cat_id: { [cat_id: number]: ISupervisedItem } = {};
+        const new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
+        const new_supervised_items_by_cat_id: { [cat_id: number]: ISupervisedItem } = {};
 
         // récupération des catégories et filtrage en fonction de enabled_categories
         if (!this.get_categorys || !this.get_categorys.length) {
-            let categorys = await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>();
+            const categorys = await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>();
             this.set_categorys(categorys.filter((category) => !this.enabled_categories || this.enabled_categories.includes(category.name)));
         }
 
-        let enabled_categories_ids = this.get_categorys.map((cat) => cat.id);
+        const enabled_categories_ids = this.get_categorys.map((cat) => cat.id);
 
-        let api_type_ids: string[] = [];
-        let api_type_ids_by_category_ids: { [id: number]: string[] } = {};
-        let already_add_api_type_ids_by_category_ids: { [id: number]: { [api_type_id: string]: boolean } } = {};
+        const api_type_ids: string[] = [];
+        const api_type_ids_by_category_ids: { [id: number]: string[] } = {};
+        const already_add_api_type_ids_by_category_ids: { [id: number]: { [api_type_id: string]: boolean } } = {};
 
-        let registered_api_types = SupervisionController.getInstance().registered_controllers;
-        let promises = [];
+        const registered_api_types = SupervisionController.getInstance().registered_controllers;
+        const promises = [];
 
-        for (let api_type_id in registered_api_types) {
-            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
+        for (const api_type_id in registered_api_types) {
+            const registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
 
             if (!registered_api_type.is_actif()) {
                 continue;
@@ -251,10 +251,10 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
                 // pour éviter de récuperer le cache
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
-                let items = await query(api_type_id).select_vos<ISupervisedItem>();
+                const items = await query(api_type_id).select_vos<ISupervisedItem>();
 
-                for (let i in items) {
-                    let item = items[i];
+                for (const i in items) {
+                    const item = items[i];
 
                     if (this.is_item_accepted(item/*, (i % 1000 == 0) */) && (!item.category_id || (item.category_id && enabled_categories_ids.includes(item.category_id)))) {
                         new_supervised_items_by_names[item.name] = item;
@@ -312,7 +312,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      * dresse la liste des sondes en la triant par état
      */
     private set_ordered_supervised_items() {
-        let res: ISupervisedItem[] = [];
+        const res: ISupervisedItem[] = [];
         this.nb_errors = 0;
         this.nb_warns = 0;
         this.nb_oks = 0;
@@ -321,8 +321,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.nb_warns_read = 0;
         this.nb_unknowns = 0;
 
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
+        for (const i in this.supervised_items_by_names) {
+            const supervised_item = this.supervised_items_by_names[i];
 
             // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
             if ((this.get_selected_category) && (this.get_selected_category.id != supervised_item.category_id)) {
@@ -412,14 +412,14 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     private set_filtered_categories_with_item() {
-        let res: SupervisedCategoryVO[] = [];
+        const res: SupervisedCategoryVO[] = [];
 
         if (!this.get_categorys || !this.get_categorys.length) {
             return res;
         }
 
-        for (let i in this.get_categorys) {
-            let cat: SupervisedCategoryVO = this.get_categorys[i];
+        for (const i in this.get_categorys) {
+            const cat: SupervisedCategoryVO = this.get_categorys[i];
 
             if (!!this.get_api_type_ids_by_category_ids && !!this.get_api_type_ids_by_category_ids[cat.id] && !!this.get_api_type_ids_by_category_ids[cat.id].length) {
                 res.push(cat);
@@ -477,7 +477,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private select_all() {
         this.valide = !this.valide;
         for (const z in this.ordered_supervised_items) {
-            let item_selected = this.ordered_supervised_items[z];
+            const item_selected = this.ordered_supervised_items[z];
             this.supervised_item_selected[item_selected.name] = item_selected;
         }
 
@@ -511,7 +511,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             return;
         }
         for (const e in this.supervised_item_selected) {
-            let item_selected_for_delete = this.supervised_item_selected[e];
+            const item_selected_for_delete = this.supervised_item_selected[e];
             await this.add_item_to_read(item_selected_for_delete);
         }
         this.supervised_item_selected = {};
@@ -524,9 +524,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         if (Object.keys(this.supervised_item_selected).length == 0) {
             return;
         }
-        let promises = [];
+        const promises = [];
         for (const e in this.supervised_item_selected) {
-            let item_selected_for_delete = this.supervised_item_selected[e];
+            const item_selected_for_delete = this.supervised_item_selected[e];
             promises.push(this.add_item_to_unread(item_selected_for_delete));
         }
         await all_promises(promises);

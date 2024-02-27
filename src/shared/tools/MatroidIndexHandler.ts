@@ -23,7 +23,7 @@ export default class MatroidIndexHandler {
         }
 
         let res: string = '';
-        let minus: boolean = num < 0;
+        const minus: boolean = num < 0;
 
         num = (num < 0) ? -num : num;
 
@@ -47,7 +47,7 @@ export default class MatroidIndexHandler {
         }
 
         let res: number = 0;
-        let minus: boolean = b76[0] == '-';
+        const minus: boolean = b76[0] == '-';
 
         if (minus) {
             b76 = b76.substr(1, b76.length);
@@ -78,7 +78,7 @@ export default class MatroidIndexHandler {
         // Toujours 1 caractère max
         // Inutile sur un index de matroid puisqu'on le retrouve sur le var_id
         if (!is_matroid_index) {
-            let segment_type = MatroidIndexHandler.base_10_num_to_base_76_txt(range.segment_type);
+            const segment_type = MatroidIndexHandler.base_10_num_to_base_76_txt(range.segment_type);
             res += (segment_type == null) ? ((range.range_type == NumRange.RANGE_TYPE) ? NumSegment.TYPE_INT :
                 ((range.range_type == TSRange.RANGE_TYPE) ? TimeSegment.TYPE_SECOND : HourSegment.TYPE_SECOND)) : segment_type;
         }
@@ -101,13 +101,13 @@ export default class MatroidIndexHandler {
         }
 
         // Toujours 1 caractère max
-        let segment_type = is_matroid_index ? matroid_segmentations[field_id] : this.FROM_BASE_76_CARS[index[0]];
+        const segment_type = is_matroid_index ? matroid_segmentations[field_id] : this.FROM_BASE_76_CARS[index[0]];
 
-        let separator_position = index.indexOf('&');
-        let min_max = is_matroid_index ? index : index.substring(1, index.length);
+        const separator_position = index.indexOf('&');
+        const min_max = is_matroid_index ? index : index.substring(1, index.length);
 
         if (separator_position >= 0) {
-            let splitted_min_max = min_max.split('&');
+            const splitted_min_max = min_max.split('&');
             return RangeHandler.createNew(
                 range_type,
                 (splitted_min_max[0] == '') ? RangeHandler.get_left_open_min_value(range_type) : MatroidIndexHandler.base_76_txt_to_base_10_num(splitted_min_max[0]),
@@ -154,7 +154,7 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
         RangeHandler.foreach_ranges_sync(ranges, (e: number) => {
             res.push(MatroidIndexHandler.base_10_num_to_base_76_txt(e));
@@ -168,14 +168,14 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let ranges = [];
+        const ranges = [];
         let splitted_index = [];
         try {
             splitted_index = index.split('$');
         } catch (error) {
             console.error('from_normalized_ranges ; index : ' + index
                 + ' ; range_type : ' + range_type + ' ; is_matroid_index : ' + is_matroid_index
-                + ' ; matroid_segmentations : ' + (!!matroid_segmentations ? JSON.stringify(matroid_segmentations) : '')
+                + ' ; matroid_segmentations : ' + (matroid_segmentations ? JSON.stringify(matroid_segmentations) : '')
                 + ' ; field_id : ' + field_id);
             console.error(error);
         }
@@ -195,10 +195,10 @@ export default class MatroidIndexHandler {
         let res: string = vardata.var_id.toString();
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getMatroidFields(vardata._type);
+        const fields = MatroidController.getMatroidFields(vardata._type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             res += '|' + RangeHandler.humanizeRanges(vardata[field.field_id]);
         }
@@ -214,10 +214,10 @@ export default class MatroidIndexHandler {
         let res: string = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getMatroidFields(vardata._type);
+        const fields = MatroidController.getMatroidFields(vardata._type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             res += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
         }
@@ -236,25 +236,25 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
         let index_prefix = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
         let pixel_field_values = null;
         let index_suffix = '';
 
-        let varconf = VarsController.var_conf_by_id[vardata.var_id];
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
+        const varconf = VarsController.var_conf_by_id[vardata.var_id];
+        const pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
 
             pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
         }
 
         this.normalize_vardata_fields(vardata);
-        let fields = MatroidController.getMatroidFields(vardata._type);
+        const fields = MatroidController.getMatroidFields(vardata._type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (!pixellised_fields_by_id[field.field_id]) {
                 if (!pixel_field_values) {
@@ -271,7 +271,7 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        for (let i in pixel_field_values) {
+        for (const i in pixel_field_values) {
             res.push(index_prefix + '|' + pixel_field_values[i] + index_suffix);
         }
 
@@ -303,8 +303,8 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let var_id: number = this.get_var_id_from_normalized_vardata(index);
-        let var_conf = VarsController.var_conf_by_id[var_id];
+        const var_id: number = this.get_var_id_from_normalized_vardata(index);
+        const var_conf = VarsController.var_conf_by_id[var_id];
 
         if (!var_conf) {
             return null;
@@ -319,16 +319,16 @@ export default class MatroidIndexHandler {
             console.error(error);
         }
 
-        let res: VarDataBaseVO = VOsTypesManager.moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
+        const res: VarDataBaseVO = ModuleTableController.module_tables_by_vo_type[var_conf.var_data_vo_type].voConstructor();
 
         res.var_id = var_id;
-        let fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        const fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
-        let matroid_segmentations = VarDataBaseVO.get_varconf_segmentations(var_conf);
+        const matroid_segmentations = VarDataBaseVO.get_varconf_segmentations(var_conf);
 
         let i = 0;
         while (i < fields.length) {
-            let field = fields[i];
+            const field = fields[i];
             res[field.field_id] = this.from_normalized_ranges(pieces[i + 1], RangeHandler.getRangeType(field), true, matroid_segmentations, field.field_id);
             i++;
         }
@@ -340,8 +340,8 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let var_conf = VarsController.var_conf_by_id[vardata.var_id];
-        let field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
+        const var_conf = VarsController.var_conf_by_id[vardata.var_id];
+        const field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
         VarDataBaseVO.adapt_param_to_varconf_segmentations(vardata, field_segmentations);
     }
 

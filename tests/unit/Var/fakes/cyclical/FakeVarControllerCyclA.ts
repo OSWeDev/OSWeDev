@@ -80,7 +80,7 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_CyclB = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclA.DEP_CyclB, 0);
+        const DEP_CyclB = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclA.DEP_CyclB, 0);
 
         return DEP_CyclB;
     }

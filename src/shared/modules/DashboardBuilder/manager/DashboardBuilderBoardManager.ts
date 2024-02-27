@@ -47,8 +47,8 @@ export default class DashboardBuilderBoardManager {
             .select_vos<DashboardGraphVORefVO>();
 
         // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-        let api_type_ids: string[] = [];
+        const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+        const api_type_ids: string[] = [];
 
         for (const i in db_cells_source) {
             // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];

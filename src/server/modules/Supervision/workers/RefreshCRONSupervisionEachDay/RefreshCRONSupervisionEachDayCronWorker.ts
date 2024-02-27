@@ -32,9 +32,9 @@ export default class RefreshCRONSupervisionEachDayCronWorker implements ICronWor
             /**
              * On refresh les supervisions de type cron
              */
-            let supervised_pdvs: SupervisedCRONVO[] = await query(SupervisedCRONVO.API_TYPE_ID).select_vos<SupervisedCRONVO>();
-            for (let i in supervised_pdvs) {
-                let supervised_pdv = supervised_pdvs[i];
+            const supervised_pdvs: SupervisedCRONVO[] = await query(SupervisedCRONVO.API_TYPE_ID).select_vos<SupervisedCRONVO>();
+            for (const i in supervised_pdvs) {
+                const supervised_pdv = supervised_pdvs[i];
                 supervised_pdv.invalid = true;
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(supervised_pdvs);

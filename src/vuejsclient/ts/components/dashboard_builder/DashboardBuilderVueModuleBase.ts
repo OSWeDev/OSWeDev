@@ -130,7 +130,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_BulkOps() {
-        let BulkOps = new DashboardWidgetVO();
+        const BulkOps = new DashboardWidgetVO();
 
         BulkOps.default_height = 35;
         BulkOps.default_width = 12;
@@ -149,7 +149,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Checklist() {
-        let Checklist = new DashboardWidgetVO();
+        const Checklist = new DashboardWidgetVO();
 
         Checklist.default_height = 35;
         Checklist.default_width = 12;
@@ -168,7 +168,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Supervision() {
-        let supervision = new DashboardWidgetVO();
+        const supervision = new DashboardWidgetVO();
 
         supervision.default_height = 35;
         supervision.default_width = 12;
@@ -187,7 +187,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_SupervisionType() {
-        let supervision_type = new DashboardWidgetVO();
+        const supervision_type = new DashboardWidgetVO();
 
         supervision_type.default_height = 5;
         supervision_type.default_width = 3;
@@ -206,7 +206,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_DataTable() {
-        let Table = new DashboardWidgetVO();
+        const Table = new DashboardWidgetVO();
 
         Table.default_height = 35;
         Table.default_width = 12;
@@ -228,7 +228,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_OseliaThread() {
-        let widget = new DashboardWidgetVO();
+        const widget = new DashboardWidgetVO();
 
         widget.default_height = 35;
         widget.default_width = 6;
@@ -248,7 +248,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
 
     private async initializeWidget_ValueTable() {
-        let Table = new DashboardWidgetVO();
+        const Table = new DashboardWidgetVO();
 
         Table.default_height = 35;
         Table.default_width = 12;
@@ -270,7 +270,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_FieldValueFilter() {
-        let fieldValueFilter = new DashboardWidgetVO();
+        const fieldValueFilter = new DashboardWidgetVO();
 
         fieldValueFilter.default_height = 5;
         fieldValueFilter.default_width = 3;
@@ -292,7 +292,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_DOWFilter() {
-        let DOWFilter = new DashboardWidgetVO();
+        const DOWFilter = new DashboardWidgetVO();
 
         DOWFilter.default_height = 5;
         DOWFilter.default_width = 3;
@@ -311,7 +311,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_MonthFilter() {
-        let MonthFilter = new DashboardWidgetVO();
+        const MonthFilter = new DashboardWidgetVO();
 
         MonthFilter.default_height = 5;
         MonthFilter.default_width = 4;
@@ -330,7 +330,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_AdvancedDateFilter() {
-        let AdvancedDateFilter = new DashboardWidgetVO();
+        const AdvancedDateFilter = new DashboardWidgetVO();
 
         AdvancedDateFilter.default_height = 5;
         AdvancedDateFilter.default_width = 3;
@@ -353,7 +353,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_CurrentUserFilter() {
-        let CurrentUserFilter = new DashboardWidgetVO();
+        const CurrentUserFilter = new DashboardWidgetVO();
 
         CurrentUserFilter.default_height = 5;
         CurrentUserFilter.default_width = 2;
@@ -377,7 +377,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarPieChart() {
-        let VarPieChart = new DashboardWidgetVO();
+        const VarPieChart = new DashboardWidgetVO();
 
         VarPieChart.default_height = 10;
         VarPieChart.default_width = 2;
@@ -466,7 +466,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_YearFilter() {
-        let YearFilter = new DashboardWidgetVO();
+        const YearFilter = new DashboardWidgetVO();
 
         YearFilter.default_height = 5;
         YearFilter.default_width = 2;
@@ -485,7 +485,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ValidationFilters() {
-        let ValidationFilters = new DashboardWidgetVO();
+        const ValidationFilters = new DashboardWidgetVO();
 
         ValidationFilters.default_height = 5;
         ValidationFilters.default_width = 2;
@@ -506,7 +506,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_SaveFavoritesFilters() {
-        let SaveFavoritesFilters = new DashboardWidgetVO();
+        const SaveFavoritesFilters = new DashboardWidgetVO();
 
         SaveFavoritesFilters.default_height = 5;
         SaveFavoritesFilters.default_width = 2;
@@ -534,7 +534,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
-        let ShowFavoritesFilters = new DashboardWidgetVO();
+        const ShowFavoritesFilters = new DashboardWidgetVO();
 
         ShowFavoritesFilters.default_height = 5;
         ShowFavoritesFilters.default_width = 2;
@@ -562,7 +562,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ResetFilters() {
-        let ResetFilters = new DashboardWidgetVO();
+        const ResetFilters = new DashboardWidgetVO();
 
         ResetFilters.default_height = 5;
         ResetFilters.default_width = 2;
@@ -582,7 +582,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_BlocText() {
-        let BlocText = new DashboardWidgetVO();
+        const BlocText = new DashboardWidgetVO();
 
         BlocText.default_height = 5;
         BlocText.default_width = 2;
@@ -602,7 +602,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Var() {
-        let var_widget = new DashboardWidgetVO();
+        const var_widget = new DashboardWidgetVO();
 
         var_widget.default_height = 10;
         var_widget.default_width = 1;
@@ -621,7 +621,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_PageSwitch() {
-        let pageswitch_widget = new DashboardWidgetVO();
+        const pageswitch_widget = new DashboardWidgetVO();
 
         pageswitch_widget.default_height = 5;
         pageswitch_widget.default_width = 2;

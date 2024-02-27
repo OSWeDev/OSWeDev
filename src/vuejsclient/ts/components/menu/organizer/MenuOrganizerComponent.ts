@@ -104,7 +104,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs([this.selected_item]);
-        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
+        const item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
@@ -117,7 +117,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
 
-        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
+        const item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
@@ -126,8 +126,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
     }
 
     private update_nested_item(item: MenuElementVO) {
-        for (let i in this.nestable_items) {
-            let nestable_item = this.nestable_items[i];
+        for (const i in this.nestable_items) {
+            const nestable_item = this.nestable_items[i];
 
             if (nestable_item.id == item.id) {
                 nestable_item.text = this.get_flat_locale_translations[item.translatable_title];
@@ -138,8 +138,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
             if (nestable_item.children && nestable_item.children.length) {
 
-                for (let j in nestable_item.children) {
-                    let nestable_item2 = nestable_item.children[j];
+                for (const j in nestable_item.children) {
+                    const nestable_item2 = nestable_item.children[j];
 
                     if (nestable_item2.id == item.id) {
                         nestable_item2.text = this.get_flat_locale_translations[item.translatable_title];
@@ -150,8 +150,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
                     if (nestable_item2.children && nestable_item2.children.length) {
 
-                        for (let k in nestable_item2.children) {
-                            let nestable_item3 = nestable_item2.children[k];
+                        for (const k in nestable_item2.children) {
+                            const nestable_item3 = nestable_item2.children[k];
 
                             if (nestable_item3.id == item.id) {
                                 nestable_item3.text = this.get_flat_locale_translations[item.translatable_title];
@@ -167,7 +167,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
     }
 
     private async select_menu(item: INestedItem) {
-        if (!!this.selected_item) {
+        if (this.selected_item) {
             await this.reload_selected();
         }
         this.selected_item = this.db_menus_by_ids[item.id];
@@ -241,12 +241,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         /**
          * On commence par mettre tous les noeuds de niveau 0 pour pouvoir ensuite les référencer
          */
-        let updated_nested_items_by_ids: { [id: number]: INestedItem } = {};
-        let dones_ids: { [id: number]: boolean } = {};
+        const updated_nested_items_by_ids: { [id: number]: INestedItem } = {};
+        const dones_ids: { [id: number]: boolean } = {};
         this.app_names = [];
         this.selected_item = null;
-        for (let i in this.db_menus_by_ids) {
-            let db_menu = this.db_menus_by_ids[i];
+        for (const i in this.db_menus_by_ids) {
+            const db_menu = this.db_menus_by_ids[i];
 
             if (this.focus_on_menu_id && (this.focus_on_menu_id == db_menu.id)) {
                 this.selected_item = db_menu;
@@ -285,8 +285,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         /**
          * Ensuite on ajoute le niveau 1
          */
-        for (let i in this.db_menus_by_ids) {
-            let db_menu = this.db_menus_by_ids[i];
+        for (const i in this.db_menus_by_ids) {
+            const db_menu = this.db_menus_by_ids[i];
 
             if (dones_ids[db_menu.id]) {
                 continue;
@@ -315,8 +315,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         /**
          * Ensuite on ajoute le niveau 2
          */
-        for (let i in this.db_menus_by_ids) {
-            let db_menu = this.db_menus_by_ids[i];
+        for (const i in this.db_menus_by_ids) {
+            const db_menu = this.db_menus_by_ids[i];
 
             if (dones_ids[db_menu.id]) {
                 continue;
@@ -324,12 +324,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
             dones_ids[db_menu.id] = true;
 
-            let lvl1_db_menu = this.db_menus_by_ids[db_menu.menu_parent_id];
+            const lvl1_db_menu = this.db_menus_by_ids[db_menu.menu_parent_id];
             if (!updated_nested_items_by_ids[lvl1_db_menu.menu_parent_id]) {
                 continue;
             }
 
-            let lvl1_nested_menu = updated_nested_items_by_ids[lvl1_db_menu.menu_parent_id].children.find((m) => m.id == lvl1_db_menu.id);
+            const lvl1_nested_menu = updated_nested_items_by_ids[lvl1_db_menu.menu_parent_id].children.find((m) => m.id == lvl1_db_menu.id);
 
             if (!lvl1_nested_menu.children) {
                 lvl1_nested_menu.children = [];
@@ -345,14 +345,14 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             });
         }
 
-        let res: INestedItem[] = Object.values(updated_nested_items_by_ids);
+        const res: INestedItem[] = Object.values(updated_nested_items_by_ids);
         WeightHandler.getInstance().sortByWeight(res);
-        for (let i in res) {
-            let n = res[i];
+        for (const i in res) {
+            const n = res[i];
             if (n.children && n.children.length) {
                 WeightHandler.getInstance().sortByWeight(n.children);
-                for (let j in n.children) {
-                    let m = n.children[j];
+                for (const j in n.children) {
+                    const m = n.children[j];
                     if (m.children && m.children.length) {
                         WeightHandler.getInstance().sortByWeight(m.children);
                     }
@@ -369,7 +369,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
     private async update_db_menu() {
 
-        let diffs = [];
+        const diffs = [];
 
         /**
          * On commence par mettre à jour les champs weight et parent_id
@@ -379,29 +379,29 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         /**
          * On vide le champs new_weight et new_parent_id (delete pour undefined) et on les recalcule
          */
-        for (let i in this.nestable_items) {
-            let item = this.nestable_items[i];
+        for (const i in this.nestable_items) {
+            const item = this.nestable_items[i];
             delete item.new_parent_id;
             delete item.new_weight;
         }
 
         // On init d'abord les poids des éléments qu'on trouve en childs
-        for (let i in this.nestable_items) {
-            let item = this.nestable_items[i];
+        for (const i in this.nestable_items) {
+            const item = this.nestable_items[i];
 
             if (item.children && item.children.length) {
 
                 let weight = 0;
-                for (let j in item.children) {
-                    let child = item.children[j];
+                for (const j in item.children) {
+                    const child = item.children[j];
                     child.new_weight = weight++;
                     child.new_parent_id = item.id;
 
                     if (item.children && item.children.length) {
 
                         let weight_lvl2 = 0;
-                        for (let k in child.children) {
-                            let child2 = child.children[k];
+                        for (const k in child.children) {
+                            const child2 = child.children[k];
                             child2.new_weight = weight_lvl2++;
                             child2.new_parent_id = child.id;
                         }
@@ -412,8 +412,8 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
         // Du coup il reste que le niveau 0
         let weight_lvl_0 = 0;
-        for (let i in this.nestable_items) {
-            let item = this.nestable_items[i];
+        for (const i in this.nestable_items) {
+            const item = this.nestable_items[i];
 
             if (typeof item.new_weight !== "undefined") {
                 continue;
@@ -424,12 +424,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         }
 
         // Reste à comparer les anciens et nouveaux
-        for (let i in this.nestable_items) {
-            let item = this.nestable_items[i];
+        for (const i in this.nestable_items) {
+            const item = this.nestable_items[i];
 
             if ((item.new_weight != item.weight) ||
                 (item.new_parent_id != item.parent_id)) {
-                let db_menu = this.db_menus_by_ids[item.id];
+                const db_menu = this.db_menus_by_ids[item.id];
                 db_menu.weight = item.new_weight;
                 db_menu.menu_parent_id = item.new_parent_id;
                 diffs.push(db_menu);
@@ -437,12 +437,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
             if (item.children && item.children.length) {
 
-                for (let j in item.children) {
-                    let child = item.children[j];
+                for (const j in item.children) {
+                    const child = item.children[j];
 
                     if ((child.new_weight != child.weight) ||
                         (child.new_parent_id != child.parent_id)) {
-                        let db_menu = this.db_menus_by_ids[child.id];
+                        const db_menu = this.db_menus_by_ids[child.id];
                         db_menu.weight = child.new_weight;
                         db_menu.menu_parent_id = child.new_parent_id;
                         diffs.push(db_menu);
@@ -450,12 +450,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
                     if (child.children && child.children.length) {
 
-                        for (let k in child.children) {
-                            let child2 = child.children[k];
+                        for (const k in child.children) {
+                            const child2 = child.children[k];
 
                             if ((child2.new_weight != child2.weight) ||
                                 (child2.new_parent_id != child2.parent_id)) {
-                                let db_menu = this.db_menus_by_ids[child2.id];
+                                const db_menu = this.db_menus_by_ids[child2.id];
                                 db_menu.weight = child2.new_weight;
                                 db_menu.menu_parent_id = child2.new_parent_id;
                                 diffs.push(db_menu);

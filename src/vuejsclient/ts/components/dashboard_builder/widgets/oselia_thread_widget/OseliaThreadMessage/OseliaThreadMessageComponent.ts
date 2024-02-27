@@ -113,7 +113,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     }
 
     private async load_avatar_url_and_user_name() {
-        let promises = [];
+        const promises = [];
         promises.push((async () => {
             this.user_name = await ModuleAccessPolicy.getInstance().get_avatar_name(this.thread_message.user_id);
         })());

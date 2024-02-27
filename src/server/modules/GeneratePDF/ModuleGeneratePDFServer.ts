@@ -61,7 +61,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
         }
 
         return await new Promise((resolve, reject) => {
-            let write: NodeJS.WritableStream = fs.createWriteStream(filepathconstructFile);
+            const write: NodeJS.WritableStream = fs.createWriteStream(filepathconstructFile);
 
             // Copie du fichier
             wkhtmltopdf(html, options).pipe(write);

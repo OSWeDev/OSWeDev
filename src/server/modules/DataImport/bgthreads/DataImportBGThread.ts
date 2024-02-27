@@ -58,7 +58,7 @@ export default class DataImportBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -67,7 +67,7 @@ export default class DataImportBGThread implements IBGThread {
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
              */
-            let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
+            const wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
                     if (await VarsDatasVoUpdateHandler.has_vos_cud_or_intersectors()) {
@@ -96,10 +96,10 @@ export default class DataImportBGThread implements IBGThread {
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
             // Si un import est en cours et doit être continué, on le récupère et on continue, sinon on en cherche un autre
-            let importing_dih_id_param: string = await ModuleParams.getInstance().getParamValueAsString(DataImportBGThread.importing_dih_id_param_name);
+            const importing_dih_id_param: string = await ModuleParams.getInstance().getParamValueAsString(DataImportBGThread.importing_dih_id_param_name);
             let importing_dih_id: number = null;
             let dih: DataImportHistoricVO = null;
-            if (!!importing_dih_id_param) {
+            if (importing_dih_id_param) {
                 importing_dih_id = parseInt(importing_dih_id_param);
                 dih = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importing_dih_id).select_vo<DataImportHistoricVO>();
 
@@ -156,7 +156,7 @@ export default class DataImportBGThread implements IBGThread {
                  *  - no import references this one in reimport_of_dih_id
                  *  - last_up_date is older than 5 mninutes
                  */
-                let can_retry = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDataImport.PARAM_CAN_RETRY_FAILED, false, 180000);
+                const can_retry = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDataImport.PARAM_CAN_RETRY_FAILED, false, 180000);
                 if (can_retry) {
                     dih = await this.try_getting_failed_retryable_import();
                 }
@@ -197,32 +197,32 @@ export default class DataImportBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('DataImportBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async prepare_reimports() {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'IN');
 
-        let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
+        const dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
             .set_sorts([
                 new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'start_date', true),
                 new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'id', true)
             ]).select_vos<DataImportHistoricVO>();
 
-        for (let i in dihs) {
-            let dih = dihs[i];
+        for (const i in dihs) {
+            const dih = dihs[i];
 
             await this.handleImportHistoricProgression(dih);
             ConsoleHandler.log('DataImportBGThread REIMPORT DIH[' + dih.id + '] state:' + dih.state + ':');
         }
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'OUT');
         StatsController.register_stat_DUREE('DataImportBGThread', 'prepare_reimports', 'OUT', time_out - time_in);
     }
@@ -243,7 +243,7 @@ export default class DataImportBGThread implements IBGThread {
      */
     private async handlefasttrackerror(importHistoric: DataImportHistoricVO) {
 
-        if (!!ConfigurationService.node_configuration.RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION) {
+        if (ConfigurationService.node_configuration.RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] failed, trying normal importation');
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
@@ -265,9 +265,9 @@ export default class DataImportBGThread implements IBGThread {
         // case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
         importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTING;
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
-        let fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
+        const fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
 
-        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
+        if (ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post formatDatas' +
                 ':IMPORTATION_STATE_FORMATTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) +
                 ':fasttrack_datas:' + ((fasttrack_datas && fasttrack_datas.length) ? fasttrack_datas.length : 0));
@@ -290,7 +290,7 @@ export default class DataImportBGThread implements IBGThread {
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
         await ModuleDataImportServer.getInstance().importDatas(importHistoric, fasttrack_datas);
 
-        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
+        if (ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post importDatas' +
                 ':IMPORTATION_STATE_IMPORTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTED));
         }
@@ -305,7 +305,7 @@ export default class DataImportBGThread implements IBGThread {
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
         await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric, fasttrack_datas);
 
-        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
+        if (ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post posttreatDatas' +
                 ':IMPORTATION_STATE_POSTTREATED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_POSTTREATED));
         }
@@ -382,7 +382,7 @@ export default class DataImportBGThread implements IBGThread {
                 importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
 
-                let new_importHistoric = new DataImportHistoricVO();
+                const new_importHistoric = new DataImportHistoricVO();
                 new_importHistoric.api_type_id = importHistoric.api_type_id;
                 new_importHistoric.autovalidate = true;
                 new_importHistoric.file_id = importHistoric.file_id;
@@ -395,13 +395,13 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
                 new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
                     return false;
                 }
-                let id = insertOrDeleteQueryResult.id;
+                const id = insertOrDeleteQueryResult.id;
                 if ((!id) || (!TypesHandler.getInstance().isNumber(id))) {
                     ConsoleHandler.error('!id dans handleImportHistoricProgression');
                     return false;
@@ -424,7 +424,7 @@ export default class DataImportBGThread implements IBGThread {
          *  - last_up_date is older than 5 mninutes
          */
 
-        let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
+        const dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DataImportHistoricVO>().state, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION)
             .filter_is_null_or_empty(field_names<DataImportHistoricVO>().reimport_of_dih_id)
             .filter_is_null_or_empty(field_names<DataImportHistoricVO>().status_before_reimport)
@@ -436,7 +436,7 @@ export default class DataImportBGThread implements IBGThread {
             return null;
         }
 
-        let dih = dihs[0];
+        const dih = dihs[0];
         await ModuleDataImport.getInstance().reimportdih(dih);
         return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
     }

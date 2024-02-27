@@ -37,7 +37,7 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let maintenanceMenuBranch: MenuElementVO =
+        const maintenanceMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
@@ -64,7 +64,7 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        let maintenance_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[MaintenanceVO.API_TYPE_ID];
+        const maintenance_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[MaintenanceVO.API_TYPE_ID];
         Vue.component('Endmaintenacecomponent', async () => (await import('./endmaintenance_component/endmaintenance_component')));
         maintenance_crud.readDatatable.unshiftField(ComponentDatatableFieldVO.createNew('end_maintenance', 'Endmaintenacecomponent', 'maintenance_over'));
     }

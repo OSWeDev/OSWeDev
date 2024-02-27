@@ -54,7 +54,7 @@ export default class ContextFilterVOManager {
         }
 
         // Le root est déjà rempli, on renvoie un nouvel operateur
-        let context_filter = new ContextFilterVO();
+        const context_filter = new ContextFilterVO();
 
         context_filter.vo_type = context_filter_to_add.vo_type;
         context_filter.field_name = context_filter_to_add.field_name;
@@ -81,7 +81,7 @@ export default class ContextFilterVOManager {
         vo_field_ref: VOFieldRefVO
     ): ContextFilterVO {
 
-        let context_filter = new ContextFilterVO();
+        const context_filter = new ContextFilterVO();
 
         context_filter.field_name = vo_field_ref.field_name;
         context_filter.vo_type = vo_field_ref.api_type_id;
@@ -300,14 +300,14 @@ export default class ContextFilterVOManager {
         }
 
         if (context_filter_tree_root.left_hook) {
-            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
+            const res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
             if (res) {
                 return res;
             }
         }
 
         if (context_filter_tree_root.right_hook) {
-            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
+            const res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
             if (res) {
                 return res;
             }

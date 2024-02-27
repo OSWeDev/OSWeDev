@@ -63,9 +63,9 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
 
-        let themes_db: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+        const themes_db: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
-        for (let theme_data of themes_data) {
+        for (const theme_data of themes_data) {
 
             if (this.alreadyPresent(theme_data, themes_db)) {
                 theme_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -101,16 +101,16 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             return false;
         }
 
-        let themesInDB: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+        const themesInDB: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         let succeeded = true;
-        for (let i in themeDatas) {
-            let themeData: AnimationImportThemeVO = themeDatas[i];
+        for (const i in themeDatas) {
+            const themeData: AnimationImportThemeVO = themeDatas[i];
 
             if (!this.alreadyPresent(themeData, themesInDB)) {
-                let theme: AnimationThemeVO = this.createThemeBase(themeData);
+                const theme: AnimationThemeVO = this.createThemeBase(themeData);
 
-                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(theme);
+                const queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(theme);
 
                 if (!queryRes) {
                     succeeded = false;
@@ -125,8 +125,8 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     }
 
     private alreadyPresent(themeData: AnimationImportThemeVO, themes: AnimationThemeVO[]): boolean {
-        let theme_data_id_import = this.restoreData(themeData.id_import);
-        let alreadyPresentTheme = themes.find((theme: AnimationThemeVO) => theme.id_import == theme_data_id_import);
+        const theme_data_id_import = this.restoreData(themeData.id_import);
+        const alreadyPresentTheme = themes.find((theme: AnimationThemeVO) => theme.id_import == theme_data_id_import);
         if (alreadyPresentTheme) {
             return true;
         }
@@ -139,7 +139,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
      * @returns
      */
     private createThemeBase(themeData: AnimationImportThemeVO): AnimationThemeVO {
-        let theme: AnimationThemeVO = new AnimationThemeVO();
+        const theme: AnimationThemeVO = new AnimationThemeVO();
 
         theme.description = this.restoreData(themeData.description);
         theme.name = this.restoreData(themeData.name);

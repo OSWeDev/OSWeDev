@@ -78,7 +78,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
     private async download_invoice(firm_id: number, invoice_id: string, original: boolean): Promise<string> {
         // Je récupère le pdf de la facture
-        let invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
+        const invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
             "www.facturation.pro",
             "/firms/" + firm_id + "/invoices/" + invoice_id + ".pdf" + (original ? "?original=1" : ""),
@@ -118,7 +118,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
         try {
 
-            let send_mail = await ModuleRequest.getInstance().sendRequestFromApp(
+            const send_mail = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 "www.facturation.pro",
                 "/firms/" + firm_id + "/emails.json?bill_id=" + bill_id,
@@ -142,7 +142,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
         try {
 
-            let finalise = await ModuleRequest.getInstance().sendRequestFromApp(
+            const finalise = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_PATCH,
                 "www.facturation.pro",
                 "/firms/" + firm_id + "/invoices/" + invoice_id + ".json",

@@ -150,7 +150,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.register_single_vo_updates(GPTAssistantAPIThreadVO.API_TYPE_ID, this.thread.id, reflect<this>().thread);
 
         // On check qu'on a un assistant et un seul
-        if (!!this.assistant) {
+        if (this.assistant) {
             this.can_run_assistant = true;
         }
 
@@ -177,7 +177,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         // On check qu'on a un thread et un seul
         //  Si on a 1 thread, on peut avancer. Sinon on doit indiquer soit qu'il faut restreindre la query à un thread (>1), soit que le thread est introuvable (0)
-        let context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+        const context_query_select: ContextQueryVO = query(GPTAssistantAPIThreadVO.API_TYPE_ID)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
@@ -185,9 +185,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
         context_query_select.query_distinct = true;
 
-        let context_query_count: ContextQueryVO = cloneDeep(context_query_select);
+        const context_query_count: ContextQueryVO = cloneDeep(context_query_select);
 
-        let nb_threads = await context_query_count.select_count();
+        const nb_threads = await context_query_count.select_count();
 
         if (!nb_threads) {
             if (this.thread) {
@@ -212,19 +212,19 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         // On check qu'on a un assistant et un seul
         //  Si on a 1 assistant, on peut avancer. Sinon on doit indiquer soit qu'il faut restreindre la query à un assistant (>1), soit que le assistant est introuvable (0)
         //  Sauf si on a un current_default_assistant enregistré dans le thread, auquel cas on peut avancer
-        let context_query_select: ContextQueryVO = query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+        const context_query_select: ContextQueryVO = query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
 
-        let context_query_count: ContextQueryVO = cloneDeep(context_query_select);
+        const context_query_count: ContextQueryVO = cloneDeep(context_query_select);
 
-        let nb_assistants = await context_query_count.select_count();
+        const nb_assistants = await context_query_count.select_count();
 
         if (((!nb_assistants) || (nb_assistants > 1)) && (!!this.thread.current_default_assistant_id)) {
-            let default_assistant: GPTAssistantAPIAssistantVO = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            const default_assistant: GPTAssistantAPIAssistantVO = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .filter_by_id(this.thread.current_default_assistant_id)
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
@@ -248,7 +248,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
 
         // On récupère le assistant
-        let assistant: GPTAssistantAPIAssistantVO = await context_query_select.select_vo<GPTAssistantAPIAssistantVO>();
+        const assistant: GPTAssistantAPIAssistantVO = await context_query_select.select_vo<GPTAssistantAPIAssistantVO>();
 
         if (!assistant) {
             return;
@@ -258,7 +258,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async scroll_to_bottom() {
-        let thread_container_el = this.$refs.thread_container as HTMLElement;
+        const thread_container_el = this.$refs.thread_container as HTMLElement;
 
         if (!thread_container_el) {
             return;
@@ -277,13 +277,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
         this.assistant_is_busy = true;
         self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
-                    let responses = await ModuleGPT.getInstance().ask_assistant(
+                    const responses = await ModuleGPT.getInstance().ask_assistant(
                         self.assistant.gpt_assistant_id,
                         self.thread.gpt_thread_id,
                         self.new_message_text,

@@ -40,7 +40,7 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
         }
 
         if (this.field_values.length == 0) {
-            let res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
+            const res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
             res.id = this.next_id;
             this.field_values.push(res);
         }
@@ -54,7 +54,7 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
     private async created() { }
 
     private add(): void {
-        let res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
+        const res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
         res.id = this.next_id;
         this.field_values.push(res);
     }

@@ -19,7 +19,6 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../../shared/modules/ModuleTableVO';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
@@ -34,6 +33,8 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
+import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -132,18 +133,18 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.api_type_id];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.api_type_id];
         return moduletable;
     }
 
     get field_id_select_options(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.moduletable) {
             return [];
         }
 
-        let fields = this.moduletable.get_fields();
+        const fields = this.moduletable.get_fields();
         fields.forEach((field) => field.is_readonly ? null : res.push(field.field_id));
         return res;
     }
@@ -157,11 +158,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return {};
         }
 
-        let res: { [field_id: string]: string } = {};
-        let fields = this.moduletable.get_fields();
+        const res: { [field_id: string]: string } = {};
+        const fields = this.moduletable.get_fields();
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (field.is_readonly) {
                 continue;
@@ -203,11 +204,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let res: TableColumnDescVO[] = [];
+        const res: TableColumnDescVO[] = [];
 
         if (this.moduletable.default_label_field && (this.moduletable.default_label_field.field_id != this.field_id_selected)) {
 
-            let label_col = new TableColumnDescVO();
+            const label_col = new TableColumnDescVO();
             label_col.api_type_id = this.api_type_id;
             label_col.field_id = this.moduletable.default_label_field.field_id;
             label_col.type = TableColumnDescVO.TYPE_vo_field_ref;
@@ -218,7 +219,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             res.push(label_col);
         }
 
-        let selected_col = new TableColumnDescVO();
+        const selected_col = new TableColumnDescVO();
         selected_col.api_type_id = this.api_type_id;
         selected_col.field_id = this.field_id_selected;
         selected_col.type = TableColumnDescVO.TYPE_vo_field_ref;
@@ -232,7 +233,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     }
 
     get fields(): { [column_id: number]: DatatableField<any, any> } {
-        let res: { [column_id: number]: DatatableField<any, any> } = {};
+        const res: { [column_id: number]: DatatableField<any, any> } = {};
 
         if (!this.moduletable) {
             return res;
@@ -253,7 +254,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             res[1] = data_field;
         }
 
-        let field = this.moduletable.get_field_by_id(this.field_id_selected);
+        const field = this.moduletable.get_field_by_id(this.field_id_selected);
         if (!field) {
             return null;
         }
@@ -284,12 +285,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let res: any[] = [];
+        const res: any[] = [];
 
-        for (let i in this.data_rows) {
-            let row = this.data_rows[i];
-            let cloned_raw = cloneDeep(row);
-            let cloned_res = cloneDeep(row);
+        for (const i in this.data_rows) {
+            const row = this.data_rows[i];
+            const cloned_raw = cloneDeep(row);
+            const cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
             await ContextFilterVOHandler.get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
@@ -303,10 +304,10 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        const res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
-        for (let i in this.columns) {
-            let col = this.columns[i];
+        for (const i in this.columns) {
+            const col = this.columns[i];
             res[col.datatable_field_uid] = col;
         }
 
@@ -315,7 +316,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -336,7 +337,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let query_: ContextQueryVO = query(this.widget_options.api_type_id)
+        const query_: ContextQueryVO = query(this.widget_options.api_type_id)
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
@@ -345,8 +346,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (const i in this.fields) {
+            const field = this.fields[i];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
@@ -370,30 +371,30 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             query_.add_fields([new ContextQueryFieldVO(field.vo_type_id, field.module_table_field_id, field.datatable_field_uid)]);
         }
 
-        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
+        for (const i in this.fields) {
+            const field = this.fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
+        const rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
 
-        let data_rows = [];
-        let promises = [];
-        for (let i in rows) {
-            let row = rows[i];
+        const data_rows = [];
+        const promises = [];
+        for (const i in rows) {
+            const row = rows[i];
 
-            let resData: IDistantVOBase = {
+            const resData: IDistantVOBase = {
                 id: row.id,
                 _type: row._type
             };
-            for (let j in this.fields) {
-                let field = this.fields[j];
+            for (const j in this.fields) {
+                const field = this.fields[j];
 
                 promises.push(ContextFilterVOHandler.get_datatable_row_field_data_async(row, resData, field, null));
             }
@@ -408,7 +409,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        let context_query = cloneDeep(query_);
+        const context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
 
@@ -445,7 +446,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -457,7 +458,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     }
 
     private async confirm_bulkops() {
-        let self = this;
+        const self = this;
         if ((!self.field_id_selected) || (!self.get_dashboard_api_type_ids) || (!self.api_type_id) || (!self.moduletable)) {
             self.snotify.error(self.label('BulkOpsWidgetComponent.bulkops.failed'));
             return;
@@ -478,9 +479,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                 try {
 
-                                    let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
+                                    const new_value = ModuleTableFieldController.translate_field_to_api(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected), false);
 
-                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
+                                    const context_query: ContextQueryVO = query(self.api_type_id).using(self.get_dashboard_api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
                                     FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
                                     await ModuleContextFilter.getInstance().update_vos(
@@ -544,7 +545,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         let options: BulkOpsWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
                 options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
             }

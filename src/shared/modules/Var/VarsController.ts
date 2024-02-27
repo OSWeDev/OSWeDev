@@ -27,8 +27,8 @@ export default class VarsController {
 
     public static initialize(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
         VarsController.var_conf_by_id = var_conf_by_id;
-        for (let i in VarsController.var_conf_by_id) {
-            let conf = VarsController.var_conf_by_id[i];
+        for (const i in VarsController.var_conf_by_id) {
+            const conf = VarsController.var_conf_by_id[i];
             VarsController.var_conf_by_name[conf.name] = conf;
         }
     }
@@ -74,12 +74,12 @@ export default class VarsController {
         var_deps_values: { [dep_id: string]: VarDataBaseVO },
     ): any {
 
-        let res = {
+        const res = {
             self: var_data.value
         };
-        let matroid_bases = MatroidController.getMatroidBases(var_data);
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
+        const matroid_bases = MatroidController.getMatroidBases(var_data);
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
 
             if (!var_data[matroid_base.field_id]) {
                 continue;
@@ -87,10 +87,10 @@ export default class VarsController {
             res[VarsController.get_card_field_code(matroid_base.field_id)] =
                 RangeHandler.getCardinalFromArray(var_data[matroid_base.field_id] as IRange[]);
         }
-        for (let var_dep_id in var_deps_names) {
+        for (const var_dep_id in var_deps_names) {
 
-            let values: number[] = [];
-            for (let param_dep_id in var_deps_values) {
+            const values: number[] = [];
+            for (const param_dep_id in var_deps_values) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
@@ -178,16 +178,16 @@ export default class VarsController {
      * @param ps2
      */
     public static isSameParamArray(ps1: VarDataBaseVO[], ps2: VarDataBaseVO[]): boolean {
-        ps1 = (!!ps1) ? ps1 : [];
-        ps2 = (!!ps2) ? ps2 : [];
+        ps1 = (ps1) ? ps1 : [];
+        ps2 = (ps2) ? ps2 : [];
 
         if (ps1.length != ps2.length) {
             return false;
         }
 
-        for (let i in ps1) {
-            let p1: VarDataBaseVO = ps1[i];
-            let p2: VarDataBaseVO = ps2[i];
+        for (const i in ps1) {
+            const p1: VarDataBaseVO = ps1[i];
+            const p2: VarDataBaseVO = ps2[i];
 
             if (p1.index != p2.index) {
                 return false;
@@ -200,16 +200,16 @@ export default class VarsController {
      * Renvoie var_datas - cutter
      */
     public static substract_vars_datas(var_datas: VarDataBaseVO[], cutter: VarDataBaseVO[]): VarDataBaseVO[] {
-        let temp: { [index: string]: VarDataBaseVO } = {};
+        const temp: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in var_datas) {
-            let var_data = var_datas[i];
+        for (const i in var_datas) {
+            const var_data = var_datas[i];
 
             temp[var_data.index] = var_data;
         }
 
-        for (let j in cutter) {
-            let cut = cutter[j];
+        for (const j in cutter) {
+            const cut = cutter[j];
 
             delete temp[cut.index];
         }

@@ -153,13 +153,13 @@ export default class AccessPolicyServerController {
             return true;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(policy_name);
+        const target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(policy_name);
         if (!target_policy) {
             ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.checkAccessTo(
@@ -182,9 +182,9 @@ export default class AccessPolicyServerController {
     public static async preload_registered_roles_policies() {
         AccessPolicyServerController.registered_roles_policies = {};
 
-        let rolesPolicies: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).select_vos<RolePolicyVO>();
-        for (let i in rolesPolicies) {
-            let rolePolicy: RolePolicyVO = rolesPolicies[i];
+        const rolesPolicies: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).select_vos<RolePolicyVO>();
+        for (const i in rolesPolicies) {
+            const rolePolicy: RolePolicyVO = rolesPolicies[i];
 
             if (!AccessPolicyServerController.registered_roles_policies[rolePolicy.role_id]) {
                 AccessPolicyServerController.registered_roles_policies[rolePolicy.role_id] = {};
@@ -205,11 +205,11 @@ export default class AccessPolicyServerController {
             return false;
         }
 
-        let policy_id: number = AccessPolicyServerController.registered_policies[policy_name.toLowerCase()].id;
-        let roles_ids: number[] = [];
+        const policy_id: number = AccessPolicyServerController.registered_policies[policy_name.toLowerCase()].id;
+        const roles_ids: number[] = [];
 
-        for (let i in roles_names) {
-            let role_name = roles_names[i];
+        for (const i in roles_names) {
+            const role_name = roles_names[i];
 
             if (!AccessPolicyServerController.registered_roles[role_name.toLowerCase()]) {
                 ConsoleHandler.error('has_access_by_name:Failed find role by name:' + role_name);
@@ -236,8 +236,8 @@ export default class AccessPolicyServerController {
             return true;
         }
 
-        for (let i in roles_ids) {
-            let role_id = roles_ids[i];
+        for (const i in roles_ids) {
+            const role_id = roles_ids[i];
 
             if (AccessPolicyServerController.access_matrix[policy_id][role_id] == null) {
                 ConsoleHandler.error('has_access_by_ids:Failed find role by id for policy in matrix:' + role_id + ':' + policy_id);
@@ -277,9 +277,9 @@ export default class AccessPolicyServerController {
     public static async preload_registered_users_roles() {
         AccessPolicyServerController.registered_users_roles = {};
 
-        let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).select_vos<UserRoleVO>();
-        for (let i in usersRoles) {
-            let userRole: UserRoleVO = usersRoles[i];
+        const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).select_vos<UserRoleVO>();
+        for (const i in usersRoles) {
+            const userRole: UserRoleVO = usersRoles[i];
 
             if (!AccessPolicyServerController.registered_users_roles[userRole.user_id]) {
                 AccessPolicyServerController.registered_users_roles[userRole.user_id] = [];
@@ -293,9 +293,9 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         AccessPolicyServerController.clean_registered_roles();
 
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).exec_as_server().select_vos<RoleVO>();
-        for (let i in roles) {
-            let role: RoleVO = roles[i];
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).exec_as_server().select_vos<RoleVO>();
+        for (const i in roles) {
+            const role: RoleVO = roles[i];
 
             AccessPolicyServerController.set_registered_role(role);
 
@@ -316,13 +316,13 @@ export default class AccessPolicyServerController {
         AccessPolicyServerController.clean_registered_policies();
 
         await ModulesManagerServer.getInstance().preload_modules();
-        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).exec_as_server().select_vos<AccessPolicyVO>();
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'AccessPolicyServerController.preload_registered_policies');
-        for (let i in policies) {
-            let policy: AccessPolicyVO = policies[i];
+        const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).exec_as_server().select_vos<AccessPolicyVO>();
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'AccessPolicyServerController.preload_registered_policies');
+        for (const i in policies) {
+            const policy: AccessPolicyVO = policies[i];
 
             await promises_pipeline.push(async () => {
-                let moduleVO: ModuleVO = policy.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(policy.module_id) : null;
+                const moduleVO: ModuleVO = policy.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(policy.module_id) : null;
                 if (policy.module_id && ((!moduleVO) || (!moduleVO.actif))) {
                     return;
                 }
@@ -336,9 +336,9 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         AccessPolicyServerController.clean_registered_policy_groups();
 
-        let groups: AccessPolicyGroupVO[] = await query(AccessPolicyGroupVO.API_TYPE_ID).select_vos<AccessPolicyGroupVO>();
-        for (let i in groups) {
-            let group: AccessPolicyGroupVO = groups[i];
+        const groups: AccessPolicyGroupVO[] = await query(AccessPolicyGroupVO.API_TYPE_ID).select_vos<AccessPolicyGroupVO>();
+        for (const i in groups) {
+            const group: AccessPolicyGroupVO = groups[i];
 
             AccessPolicyServerController.set_registered_policy_group(group);
         }
@@ -348,9 +348,9 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         AccessPolicyServerController.registered_dependencies = {};
 
-        let dependencies: PolicyDependencyVO[] = await query(PolicyDependencyVO.API_TYPE_ID).select_vos<PolicyDependencyVO>();
-        for (let i in dependencies) {
-            let dependency: PolicyDependencyVO = dependencies[i];
+        const dependencies: PolicyDependencyVO[] = await query(PolicyDependencyVO.API_TYPE_ID).select_vos<PolicyDependencyVO>();
+        for (const i in dependencies) {
+            const dependency: PolicyDependencyVO = dependencies[i];
 
             if (!AccessPolicyServerController.registered_dependencies[dependency.src_pol_id]) {
                 AccessPolicyServerController.registered_dependencies[dependency.src_pol_id] = [];
@@ -478,7 +478,7 @@ export default class AccessPolicyServerController {
         delete AccessPolicyServerController.registered_dependencies_for_loading_process[vo_update_holder.pre_update_vo.src_pol_id][vo_update_holder.pre_update_vo.depends_on_pol_id];
         AccessPolicyServerController.registered_dependencies_for_loading_process[vo_update_holder.post_update_vo.src_pol_id][vo_update_holder.post_update_vo.depends_on_pol_id] = vo_update_holder.post_update_vo;
 
-        for (let i in AccessPolicyServerController.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id]) {
+        for (const i in AccessPolicyServerController.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id]) {
             if (AccessPolicyServerController.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id][i].id == vo_update_holder.post_update_vo.id) {
                 AccessPolicyServerController.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id][i] = vo_update_holder.post_update_vo;
                 return true;
@@ -486,8 +486,8 @@ export default class AccessPolicyServerController {
         }
 
         // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.registered_dependencies) {
-            for (let i in AccessPolicyServerController.registered_dependencies[j]) {
+        for (const j in AccessPolicyServerController.registered_dependencies) {
+            for (const i in AccessPolicyServerController.registered_dependencies[j]) {
                 if (AccessPolicyServerController.registered_dependencies[j][i].id == vo_update_holder.post_update_vo.id) {
                     AccessPolicyServerController.registered_dependencies[j][i] = vo_update_holder.post_update_vo;
                     return true;
@@ -528,8 +528,8 @@ export default class AccessPolicyServerController {
         }
 
         // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
-        for (let j in AccessPolicyServerController.registered_roles_policies) {
-            for (let i in AccessPolicyServerController.registered_roles_policies[j]) {
+        for (const j in AccessPolicyServerController.registered_roles_policies) {
+            for (const i in AccessPolicyServerController.registered_roles_policies[j]) {
                 if (AccessPolicyServerController.registered_roles_policies[j][i].id == vo_update_holder.post_update_vo.id) {
                     AccessPolicyServerController.registered_roles_policies[j][i] = vo_update_holder.post_update_vo;
                     return true;
@@ -566,9 +566,9 @@ export default class AccessPolicyServerController {
             return true;
         }
 
-        let role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.role_id];
+        const role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo_update_holder.post_update_vo.role_id];
 
-        for (let i in AccessPolicyServerController.registered_users_roles[vo_update_holder.post_update_vo.user_id]) {
+        for (const i in AccessPolicyServerController.registered_users_roles[vo_update_holder.post_update_vo.user_id]) {
             if (AccessPolicyServerController.registered_users_roles[vo_update_holder.post_update_vo.user_id][i].id == role.id) {
                 AccessPolicyServerController.registered_users_roles[vo_update_holder.post_update_vo.user_id][i] = role;
                 return true;
@@ -576,8 +576,8 @@ export default class AccessPolicyServerController {
         }
 
         // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.registered_users_roles) {
-            for (let i in AccessPolicyServerController.registered_users_roles[j]) {
+        for (const j in AccessPolicyServerController.registered_users_roles) {
+            for (const i in AccessPolicyServerController.registered_users_roles[j]) {
                 if (AccessPolicyServerController.registered_users_roles[j][i].id == role.id) {
                     AccessPolicyServerController.registered_users_roles[j][i] = role;
                     return true;
@@ -607,9 +607,9 @@ export default class AccessPolicyServerController {
             return true;
         }
 
-        let role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo.role_id];
+        const role: RoleVO = AccessPolicyServerController.registered_roles_by_ids[vo.role_id];
 
-        for (let i in AccessPolicyServerController.registered_users_roles[vo.user_id]) {
+        for (const i in AccessPolicyServerController.registered_users_roles[vo.user_id]) {
             if (AccessPolicyServerController.registered_users_roles[vo.user_id][i].id == role.id) {
                 AccessPolicyServerController.registered_users_roles[vo.user_id].splice(parseInt(i), 1);
                 return true;
@@ -617,8 +617,8 @@ export default class AccessPolicyServerController {
         }
 
         // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.registered_users_roles) {
-            for (let i in AccessPolicyServerController.registered_users_roles[j]) {
+        for (const j in AccessPolicyServerController.registered_users_roles) {
+            for (const i in AccessPolicyServerController.registered_users_roles[j]) {
                 if (AccessPolicyServerController.registered_users_roles[j][i].id == role.id) {
                     AccessPolicyServerController.registered_users_roles[j].splice(parseInt(i), 1);
                     return true;
@@ -659,7 +659,7 @@ export default class AccessPolicyServerController {
 
         delete AccessPolicyServerController.registered_dependencies_for_loading_process[object.src_pol_id][object.depends_on_pol_id];
 
-        for (let i in AccessPolicyServerController.registered_dependencies[object.src_pol_id]) {
+        for (const i in AccessPolicyServerController.registered_dependencies[object.src_pol_id]) {
             if (AccessPolicyServerController.registered_dependencies[object.src_pol_id][i].id == object.id) {
                 AccessPolicyServerController.registered_dependencies[object.src_pol_id].splice(parseInt(i), 1);
                 return true;
@@ -667,8 +667,8 @@ export default class AccessPolicyServerController {
         }
 
         // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.registered_dependencies) {
-            for (let i in AccessPolicyServerController.registered_dependencies[j]) {
+        for (const j in AccessPolicyServerController.registered_dependencies) {
+            for (const i in AccessPolicyServerController.registered_dependencies[j]) {
                 if (AccessPolicyServerController.registered_dependencies[j][i].id == object.id) {
                     AccessPolicyServerController.registered_dependencies[j].splice(parseInt(i), 1);
                     return true;
@@ -691,8 +691,8 @@ export default class AccessPolicyServerController {
         }
 
         // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
-        for (let j in AccessPolicyServerController.registered_roles_policies) {
-            for (let i in AccessPolicyServerController.registered_roles_policies[j]) {
+        for (const j in AccessPolicyServerController.registered_roles_policies) {
+            for (const i in AccessPolicyServerController.registered_roles_policies[j]) {
                 if (AccessPolicyServerController.registered_roles_policies[j][i].id == object.id) {
                     delete AccessPolicyServerController.registered_roles_policies[j][i];
                     return true;
@@ -712,7 +712,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        let translatable_name: string = role.translatable_name.toLowerCase();
+        const translatable_name: string = role.translatable_name.toLowerCase();
 
         if (!AccessPolicyServerController.registered_roles) {
             AccessPolicyServerController.registered_roles = {};
@@ -755,7 +755,7 @@ export default class AccessPolicyServerController {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + RoleVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
-                let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
+                const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 roleFromBDD = null;
             } else {
@@ -769,7 +769,7 @@ export default class AccessPolicyServerController {
             return roleFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
@@ -791,7 +791,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        let translatable_name: string = group.translatable_name.toLowerCase();
+        const translatable_name: string = group.translatable_name.toLowerCase();
 
         if (!AccessPolicyServerController.registered_policy_groups) {
             AccessPolicyServerController.registered_policy_groups = {};
@@ -813,7 +813,7 @@ export default class AccessPolicyServerController {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + AccessPolicyGroupVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
-                let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
+                const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 groupFromBDD = null;
             } else {
@@ -825,7 +825,7 @@ export default class AccessPolicyServerController {
             return groupFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
@@ -846,9 +846,9 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        let moduleVoID = moduleVO ? moduleVO.id : null;
+        const moduleVoID = moduleVO ? moduleVO.id : null;
         policy.module_id = moduleVoID;
-        let translatable_name: string = policy.translatable_name.toLowerCase();
+        const translatable_name: string = policy.translatable_name.toLowerCase();
 
         if (!AccessPolicyServerController.registered_policies) {
             AccessPolicyServerController.registered_policies = {};
@@ -874,7 +874,7 @@ export default class AccessPolicyServerController {
             if (error.message == 'Multiple results on select_vo is not allowed :' + AccessPolicyVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
-                let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
+                const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
@@ -895,7 +895,7 @@ export default class AccessPolicyServerController {
                 policyFromBDD.module_id = moduleVoID;
                 policyFromBDD.default_behaviour = policy.default_behaviour;
                 policyFromBDD.group_id = policy.group_id;
-                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
+                const insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
                     ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
@@ -908,7 +908,7 @@ export default class AccessPolicyServerController {
             return policyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
@@ -950,7 +950,7 @@ export default class AccessPolicyServerController {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + PolicyDependencyVO.API_TYPE_ID) {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
-                let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
+                const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 dependencyFromBDD = null;
             } else {
@@ -963,7 +963,7 @@ export default class AccessPolicyServerController {
             return dependencyFromBDD;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;
@@ -989,7 +989,7 @@ export default class AccessPolicyServerController {
         uid: number,
         bdd_user_roles: RoleVO[] = AccessPolicyServerController.registered_users_roles[uid],
         all_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.registered_roles_by_ids): { [role_id: number]: RoleVO } {
-        let res: { [role_id: number]: RoleVO } = {};
+        const res: { [role_id: number]: RoleVO } = {};
 
         if ((!logged_in) || (!all_roles)) {
             return {
@@ -998,16 +998,16 @@ export default class AccessPolicyServerController {
         }
 
         // On ajoute le role connecté par défaut dans ce cas au cas où il serait pas en param
-        let user_roles: RoleVO[] = [];
+        const user_roles: RoleVO[] = [];
 
-        for (let i in bdd_user_roles) {
+        for (const i in bdd_user_roles) {
             if (bdd_user_roles[i]) {
                 user_roles.push(bdd_user_roles[i]);
             }
         }
         user_roles.push(AccessPolicyServerController.role_logged);
 
-        for (let i in user_roles) {
+        for (const i in user_roles) {
             let role: RoleVO = user_roles[i];
 
             while (role && role.translatable_name) {
@@ -1027,18 +1027,18 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        let res: { [policy_id: number]: { [role_id: number]: boolean } } = {};
+        const res: { [policy_id: number]: { [role_id: number]: boolean } } = {};
 
         // Pour toutes les policies et tous les rôles, on fait un checkaccess. C'est bourrin mais pas mieux en stock pour être sûr d'avoir le bon résultat
-        for (let i in AccessPolicyServerController.registered_policies) {
-            let policy: AccessPolicyVO = AccessPolicyServerController.registered_policies[i];
+        for (const i in AccessPolicyServerController.registered_policies) {
+            const policy: AccessPolicyVO = AccessPolicyServerController.registered_policies[i];
 
             if (!res[policy.id]) {
                 res[policy.id] = {};
             }
 
-            for (let j in AccessPolicyServerController.registered_roles) {
-                let role: RoleVO = AccessPolicyServerController.registered_roles[j];
+            for (const j in AccessPolicyServerController.registered_roles) {
+                const role: RoleVO = AccessPolicyServerController.registered_roles[j];
 
                 // On ignore l'admin qui a accès à tout
                 if (AccessPolicyServerController.role_admin && (role.id == AccessPolicyServerController.role_admin.id)) {
@@ -1126,11 +1126,11 @@ export default class AccessPolicyServerController {
          */
 
         // On identifie d'abord les rôles et rôles hérités
-        let user_roles_and_inherited: { [role_id: number]: RoleVO } = {};
-        for (let i in user_roles) {
+        const user_roles_and_inherited: { [role_id: number]: RoleVO } = {};
+        for (const i in user_roles) {
             let role: RoleVO = user_roles[i];
 
-            while (!!role) {
+            while (role) {
                 if (!user_roles_and_inherited[role.id]) {
                     user_roles_and_inherited[role.id] = role;
                 }
@@ -1139,8 +1139,8 @@ export default class AccessPolicyServerController {
             }
         }
 
-        for (let i in user_roles_and_inherited) {
-            let user_role: RoleVO = user_roles_and_inherited[i];
+        for (const i in user_roles_and_inherited) {
+            const user_role: RoleVO = user_roles_and_inherited[i];
 
 
             let is_ignored_role: boolean = false;
@@ -1194,8 +1194,8 @@ export default class AccessPolicyServerController {
             // Cas 3
             if (policies_dependencies && policies_dependencies[target_policy.id] && policies_dependencies[target_policy.id].length) {
 
-                for (let j in policies_dependencies[target_policy.id]) {
-                    let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
+                for (const j in policies_dependencies[target_policy.id]) {
+                    const dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
 
                     if (dependency.default_behaviour != PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED) {
                         continue;
@@ -1221,7 +1221,7 @@ export default class AccessPolicyServerController {
             );
 
             // On ajoute la session au bgthread d'invalidation si on a un sid
-            let session: IServerUserSession = StackContext.get('SESSION');
+            const session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
                 ForkedTasksController.exec_self_on_bgthread(
                     AccessPolicyDeleteSessionBGThread.getInstance().name,
@@ -1272,8 +1272,8 @@ export default class AccessPolicyServerController {
             return true;
         }
 
-        for (let j in policies_dependencies[target_policy.id]) {
-            let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
+        for (const j in policies_dependencies[target_policy.id]) {
+            const dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
 
             if ((dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED) && (!AccessPolicyServerController.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies, null, is_recur_test_call))) {
                 return false;

@@ -66,8 +66,8 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
     private find_page_by_id(find_page_id: number): DashboardPageVO {
         /* Retourne la page correspondant à l'identifiant indiqué */
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
             if (page.id == find_page_id) {
                 return page;
             }
@@ -82,14 +82,14 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         */
 
         //Identification de la page vers laquelle copier
-        let current_page: DashboardPageVO = this.find_page_by_id(find_page_id);
-        let this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', current_page.id).select_vos<DashboardPageWidgetVO>();
+        const current_page: DashboardPageVO = this.find_page_by_id(find_page_id);
+        const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', current_page.id).select_vos<DashboardPageWidgetVO>();
 
         //Eviter ces i afin d'avoir des cellules qui ont un identifiant griditem différent
-        let i_to_avoid: number[] = [];
+        const i_to_avoid: number[] = [];
         let max_weight: number = 0;
-        for (let i in this_page_widgets) {
-            let widget = this_page_widgets[i];
+        for (const i in this_page_widgets) {
+            const widget = this_page_widgets[i];
             i_to_avoid.push(widget.i);
             if (widget.weight >= max_weight) {
                 max_weight = widget.weight + 1;
@@ -104,20 +104,20 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
     private async transfert_trad(page_widget_to_copy_id: number) {
         /* Permet de transférer ou copier les traductions d'un tableau (widget) vers un autre */
 
-        let page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
+        const page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
             DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + this.page_widget.id + '.',
             DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + this.page_widget.id + '.'
         ]).select_vos<TranslatableTextVO>();
 
-        let page_widget_to_copy_trads: TranslatableTextVO[] = cloneDeep(page_widget_trads); //Copie des traductions
+        const page_widget_to_copy_trads: TranslatableTextVO[] = cloneDeep(page_widget_trads); //Copie des traductions
 
 
-        for (let j in page_widget_to_copy_trads) {
-            let page_widget_trad: TranslatableTextVO = page_widget_to_copy_trads[j];
+        for (const j in page_widget_to_copy_trads) {
+            const page_widget_trad: TranslatableTextVO = page_widget_to_copy_trads[j];
             //Changement des identifiants widget de ces trads.
-            let code = page_widget_trad.code_text;
+            const code = page_widget_trad.code_text;
             // Text
-            let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+            const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<TranslationVO>().text_id, page_widget_trad.id)
                 .select_vos<TranslationVO>();
 
@@ -135,7 +135,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
                     code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget_to_copy_id).length, code.length);
             }
 
-            let insertOrDeleteQueryResulttt: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_trad); //Ajout en base.
+            const insertOrDeleteQueryResulttt: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_trad); //Ajout en base.
             page_widget_trad.id = insertOrDeleteQueryResulttt.id;
 
             page_widget_to_copy_trads[j] = page_widget_trad;
@@ -147,7 +147,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
                 menu_translation.lang_id = translations[0].lang_id;
                 menu_translation.text_id = page_widget_trad.id;
                 menu_translation.translated = translations[0].translated;
-                let resi = await ModuleDAO.getInstance().insertOrUpdateVO(menu_translation);
+                const resi = await ModuleDAO.getInstance().insertOrUpdateVO(menu_translation);
                 if (resi && resi.id) {
                     this.set_flat_locale_translation({
                         code_text: page_widget_trad.code_text,
@@ -173,12 +173,12 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
 
         //Déplacement
         delete page_widget_to_copy.id;
-        let to_which_page_id: number = this.page_to_copy_in_id;
+        const to_which_page_id: number = this.page_to_copy_in_id;
         page_widget_to_copy.page_id = to_which_page_id;
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_to_copy);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget_to_copy);
 
-        let page_widget_to_copy_id: number = insertOrDeleteQueryResult['id'];
+        const page_widget_to_copy_id: number = insertOrDeleteQueryResult['id'];
 
         // Transfert des traductions
         if (this.page_widget._type == 'dashboard_pwidget') {
@@ -223,8 +223,8 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
             //Default case
             let pagei = 0;
 
-            for (let i in this.pages) {
-                let page = this.pages[i];
+            for (const i in this.pages) {
+                const page = this.pages[i];
                 if (page.id == this.page_id) {
                     pagei = parseInt(i);
                 }
@@ -239,14 +239,14 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
     }
 
     get pages_name_code_text(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.pages) {
             return res;
         }
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
 
             res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
         }

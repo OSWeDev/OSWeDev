@@ -116,7 +116,7 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public static async getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
 
-        if (!!var_dag.nodes[var_data.index]) {
+        if (var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
         }
 
@@ -128,7 +128,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
-            let promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
+            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
@@ -142,7 +142,7 @@ export default class VarDAGNode extends DAGNodeBase {
     private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
 
     private static async load_from_db_if_exists(_type: string, index: string): Promise<VarDataBaseVO> {
-        let table = VOsTypesManager.moduleTables_by_voType[_type];
+        const table = ModuleTableController.module_tables_by_vo_type[_type];
 
         if (table.is_segmented) {
             throw new Error('VarDAGNode.load_from_db_if_exists :: table.is_segmented not implemented');
@@ -157,7 +157,7 @@ export default class VarDAGNode extends DAGNodeBase {
         // }
 
         const base_moduletable_fields = table.get_fields();
-        let parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
+        const parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
 
         let fields: string = 't.id';
         let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
@@ -189,7 +189,7 @@ export default class VarDAGNode extends DAGNodeBase {
         //     [index],
         //     parameterizedQueryWrapperFields
         // );
-        let res = await ThrottledQueryServerController.throttle_select_query(
+        const res = await ThrottledQueryServerController.throttle_select_query(
             'select ' + fields + ' from ' + table.full_name + ' t where _bdd_only_index = $1',
             [index],
             parameterizedQueryWrapperFields);
@@ -198,7 +198,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return null;
         }
 
-        let data = res[0];
+        const data = res[0];
         data._type = table.vo_type;
         return ModuleTableServerController.translate_vos_from_db(data);
     }
@@ -223,18 +223,18 @@ export default class VarDAGNode extends DAGNodeBase {
             throw new Error('VarDAGNode.getInstance_semaphored:!check_bases_not_max_ranges:' + var_data.index);
         }
 
-        if (!!var_dag.nodes[var_data.index]) {
+        if (var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
         }
 
         return new Promise(async (resolve, reject) => {
 
-            if (!!var_dag.nodes[var_data.index]) {
+            if (var_dag.nodes[var_data.index]) {
                 resolve(var_dag.nodes[var_data.index]);
                 return;
             }
 
-            let node = new VarDAGNode(var_dag, var_data);
+            const node = new VarDAGNode(var_dag, var_data);
 
             node.is_client_sub = !!VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
             node.is_server_sub = !!VarsServerCallBackSubsController.cb_subs[node.var_data.index];
@@ -242,9 +242,9 @@ export default class VarDAGNode extends DAGNodeBase {
             // On tente de chercher le cache complet dès l'insertion du noeud, si on a pas explicitement défini que le test a déjà été fait
             /* istanbul ignore next: impossible to test - await query */
             if ((!already_tried_load_cache_complet) && (!ConfigurationService.IS_UNIT_TEST_MODE)) {
-                let db_data: VarDataBaseVO = await VarDAGNode.load_from_db_if_exists(node.var_data._type, node.var_data.index); // Version optimisée de la ligne ci-dessous
+                const db_data: VarDataBaseVO = await VarDAGNode.load_from_db_if_exists(node.var_data._type, node.var_data.index); // Version optimisée de la ligne ci-dessous
                 // let db_data: VarDataBaseVO = await query(node.var_data._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, node.var_data.index).select_vo();
-                if (!!db_data) {
+                if (db_data) {
                     node.var_data = db_data;
                     already_tried_load_cache_complet = true;
                 }
@@ -428,7 +428,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         this.tags[tag] = true;
 
-        if (!!this.var_dag) {
+        if (this.var_dag) {
 
             if (!this.var_dag.tags[tag]) {
                 this.var_dag.tags[tag] = {};
@@ -483,7 +483,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
 
-        let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
+        const dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
 
         this.outgoing_deps[dep.dep_name] = dep;
 
@@ -499,11 +499,11 @@ export default class VarDAGNode extends DAGNodeBase {
                 ':outgoing_node:' + (dep.outgoing_node as VarDAGNode).var_data.index);
         }
 
-        if (!!this.var_dag.roots[dep.outgoing_node.var_data.index]) {
+        if (this.var_dag.roots[dep.outgoing_node.var_data.index]) {
             delete this.var_dag.roots[dep.outgoing_node.var_data.index];
         }
 
-        if (!!this.var_dag.leafs[this.var_data.index]) {
+        if (this.var_dag.leafs[this.var_data.index]) {
             delete this.var_dag.leafs[this.var_data.index];
         }
 
@@ -521,7 +521,7 @@ export default class VarDAGNode extends DAGNodeBase {
         if (!this.var_dag) {
             return true;
         }
-        let dag = this.var_dag;
+        const dag = this.var_dag;
 
         // dernier check. On ne doit pas avoir d'incoming_deps depuis la prise de décision de supprimer
         if (this.hasIncoming && (!force_delete)) {
@@ -548,23 +548,23 @@ export default class VarDAGNode extends DAGNodeBase {
         delete VarDAGNode.getInstance_semaphores[dag.uid][this.var_data.index];
         dag.nb_nodes--;
         if (this.current_step != null) {
-            let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
-            if (!!dag.current_step_tags[current_step_tag_name]) {
+            const current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
+            if (dag.current_step_tags[current_step_tag_name]) {
                 delete dag.current_step_tags[current_step_tag_name][this.var_data.index];
             }
         }
-        for (let i in dag.tags) {
-            if (!!dag.tags[i][this.var_data.index]) {
+        for (const i in dag.tags) {
+            if (dag.tags[i][this.var_data.index]) {
                 delete dag.tags[i][this.var_data.index];
             }
         }
 
         let keys = Object.keys(this.incoming_deps);
-        for (let i in keys) {
-            let deps = this.incoming_deps[keys[i]];
+        for (const i in keys) {
+            const deps = this.incoming_deps[keys[i]];
 
-            for (let j in deps) {
-                let incoming_dep = deps[j];
+            for (const j in deps) {
+                const incoming_dep = deps[j];
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
                     ConsoleHandler.log(
@@ -581,12 +581,12 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         keys = Object.keys(this.outgoing_deps);
-        for (let i in keys) {
-            let outgoing_dep = this.outgoing_deps[keys[i]];
+        for (const i in keys) {
+            const outgoing_dep = this.outgoing_deps[keys[i]];
 
-            let incoming_deps = outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
-            for (let j in incoming_deps) {
-                let incoming_dep = incoming_deps[j];
+            const incoming_deps = outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+            for (const j in incoming_deps) {
+                const incoming_dep = incoming_deps[j];
 
                 if (incoming_dep == outgoing_dep) {
 
@@ -613,10 +613,10 @@ export default class VarDAGNode extends DAGNodeBase {
         delete this.incoming_deps;
         delete this.outgoing_deps;
 
-        if (!!dag.leafs[this.var_data.index]) {
+        if (dag.leafs[this.var_data.index]) {
             delete dag.leafs[this.var_data.index];
         }
-        if (!!dag.roots[this.var_data.index]) {
+        if (dag.roots[this.var_data.index]) {
             delete dag.roots[this.var_data.index];
         }
 
@@ -628,7 +628,7 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public linkToDAG(): VarDAGNode {
 
-        if (!!this.var_dag.nodes[this.var_data.index]) {
+        if (this.var_dag.nodes[this.var_data.index]) {
             return this.var_dag.nodes[this.var_data.index];
         }
 
@@ -648,12 +648,12 @@ export default class VarDAGNode extends DAGNodeBase {
     public update_parent_is_computable_if_needed() {
 
         // On impacte le tag sur les parents si tous leurs enfants sont computed
-        for (let i in this.incoming_deps) {
-            let deps = this.incoming_deps[i];
+        for (const i in this.incoming_deps) {
+            const deps = this.incoming_deps[i];
 
-            for (let k in deps) {
-                let dep = deps[k];
-                let node = dep.incoming_node as VarDAGNode;
+            for (const k in deps) {
+                const dep = deps[k];
+                const node = dep.incoming_node as VarDAGNode;
                 UpdateIsComputableVarDAGNode.throttle_update_is_computable_var_dag_node({ [node.var_data.index]: node });
             }
         }
@@ -676,8 +676,8 @@ export default class VarDAGNode extends DAGNodeBase {
             return false;
         }
 
-        for (let i in this.outgoing_deps) {
-            let outgoing_dep = this.outgoing_deps[i];
+        for (const i in this.outgoing_deps) {
+            const outgoing_dep = this.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
                 return false;
@@ -689,10 +689,10 @@ export default class VarDAGNode extends DAGNodeBase {
     private update_current_step_tag() {
         let updated_current_step: number = null;
         let updated_current_step_tag_name: string = null;
-        let current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
+        const current_step_tag_name: string = VarDAGNode.ORDERED_STEP_TAGS_NAMES[this.current_step];
 
-        for (let i in VarDAGNode.ORDERED_STEP_TAGS_NAMES) {
-            let step_tag_name = VarDAGNode.ORDERED_STEP_TAGS_NAMES[i];
+        for (const i in VarDAGNode.ORDERED_STEP_TAGS_NAMES) {
+            const step_tag_name = VarDAGNode.ORDERED_STEP_TAGS_NAMES[i];
             if (this.tags[step_tag_name]) {
                 updated_current_step = VarDAGNode.STEP_TAGS_INDEXES[step_tag_name];
                 updated_current_step_tag_name = step_tag_name;
@@ -707,7 +707,7 @@ export default class VarDAGNode extends DAGNodeBase {
         if (this.var_dag) {
 
             if (this.current_step != null) {
-                if (!!this.var_dag.current_step_tags[current_step_tag_name]) {
+                if (this.var_dag.current_step_tags[current_step_tag_name]) {
                     delete this.var_dag.current_step_tags[current_step_tag_name][this.var_data.index];
                 }
             }

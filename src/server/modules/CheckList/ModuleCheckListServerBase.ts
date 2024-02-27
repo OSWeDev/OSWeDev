@@ -131,7 +131,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration de la CheckList - ' + this.checklist_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        const admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;

@@ -81,9 +81,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return this.vars_deps;
         }
 
-        let res: { [dep_name: string]: string } = {};
+        const res: { [dep_name: string]: string } = {};
         let i = 0;
-        for (let dep_name in this.vars_deps) {
+        for (const dep_name in this.vars_deps) {
             res[dep_name] = this.vars_deps[dep_name];
             i++;
             if (i >= 10) {
@@ -114,18 +114,18 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     private async var_datas_updater() {
 
-        let old_value_type = this.var_data ? this.var_data.value_type : null;
-        let old_value = this.var_data ? this.var_data.value : null;
+        const old_value_type = this.var_data ? this.var_data.value_type : null;
+        const old_value = this.var_data ? this.var_data.value : null;
         this.var_data = this.var_param ? VarsClientController.cached_var_datas[this.var_param.index] : null;
 
-        let var_datas: VarDataValueResVO[] = [];
-        for (let i in this.deps_params) {
-            let dep_param = this.deps_params[i];
+        const var_datas: VarDataValueResVO[] = [];
+        for (const i in this.deps_params) {
+            const dep_param = this.deps_params[i];
             var_datas.push(VarsClientController.cached_var_datas[dep_param.index]);
         }
         this.var_datas_deps = var_datas;
 
-        let promises = [];
+        const promises = [];
 
         // Si on a une nouvelle data on recharge les DS
         if (this.var_data && (!this.var_data.is_computing) && (old_value != null) && (old_value != this.var_data.value)) {
@@ -151,12 +151,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     get params_from_var_dep_id(): { [var_dep_id: string]: VarDataBaseVO[] } {
-        let res: { [var_dep_id: string]: VarDataBaseVO[] } = {};
+        const res: { [var_dep_id: string]: VarDataBaseVO[] } = {};
 
-        for (let var_dep_id in this.vars_deps) {
+        for (const var_dep_id in this.vars_deps) {
             res[var_dep_id] = [];
 
-            for (let param_dep_id in this.deps_params) {
+            for (const param_dep_id in this.deps_params) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
@@ -194,7 +194,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
         this.deps_loading = true;
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
         promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
@@ -225,8 +225,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.var_datas_deps) {
-            let dep_data = this.var_datas_deps[i];
+        for (const i in this.var_datas_deps) {
+            const dep_data = this.var_datas_deps[i];
 
             if ((!dep_data) || (typeof dep_data.value === 'undefined')) {
                 return false;
@@ -261,12 +261,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return null;
         }
 
-        let res = {
+        const res = {
             self: this.var_data.value
         };
-        let matroid_bases = MatroidController.getMatroidBases(this.var_param);
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
+        const matroid_bases = MatroidController.getMatroidBases(this.var_param);
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
 
             if (!this.var_param[matroid_base.field_id]) {
                 continue;
@@ -274,10 +274,10 @@ export default class VarDescExplainComponent extends VueComponentBase {
             res[VarsController.get_card_field_code(matroid_base.field_id)] =
                 RangeHandler.getCardinalFromArray(this.var_param[matroid_base.field_id] as IRange[]);
         }
-        for (let var_dep_id in this.vars_deps) {
+        for (const var_dep_id in this.vars_deps) {
 
-            let values: number[] = [];
-            for (let param_dep_id in this.deps_params) {
+            const values: number[] = [];
+            for (const param_dep_id in this.deps_params) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
@@ -457,17 +457,17 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         prompt += 'Le calcul est paramétré par les éléments/champs de segmentation suivants : \n';
 
-        let var_data_fields = MatroidController.getMatroidFields(this.var_param._type);
-        for (let i in var_data_fields) {
-            let field = var_data_fields[i];
+        const var_data_fields = MatroidController.getMatroidFields(this.var_param._type);
+        for (const i in var_data_fields) {
+            const field = var_data_fields[i];
 
-            prompt += " - Le champs '" + this.label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
+            prompt += " - Le champs '" + this.label('fields.labels.ref.' + ModuleTableController.module_tables_by_vo_type[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
                 ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
-            let ranges = this.var_param[field.field_id] as IRange[];
-            for (let j in ranges) {
-                let range = ranges[j];
-                let segmented_min = RangeHandler.getSegmentedMin(range);
-                let segmented_max = RangeHandler.getSegmentedMax(range);
+            const ranges = this.var_param[field.field_id] as IRange[];
+            for (const j in ranges) {
+                const range = ranges[j];
+                const segmented_min = RangeHandler.getSegmentedMin(range);
+                const segmented_max = RangeHandler.getSegmentedMax(range);
 
                 switch (field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
@@ -517,8 +517,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 // }
             }
 
-            for (let i in this.deps_params) {
-                let dep_param = this.deps_params[i];
+            for (const i in this.deps_params) {
+                const dep_param = this.deps_params[i];
 
                 // TODO
             }

@@ -120,7 +120,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     }
 
     get options() {
-        let self = this;
+        const self = this;
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -150,7 +150,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                             let params = [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]];
 
-                            if (!!self.var_filter_additional_params) {
+                            if (self.var_filter_additional_params) {
                                 params = params.concat(self.var_filter_additional_params);
                             }
 
@@ -201,7 +201,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
-                let colors = [];
+                const colors = [];
                 let base_color = null;
                 let is_rbga = false;
                 if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
@@ -216,8 +216,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     is_rbga = true;
                 }
 
-                for (let i in this.ordered_dimension) {
-                    let nb = parseInt(i);
+                for (const i in this.ordered_dimension) {
+                    const nb = parseInt(i);
                     let color = base_color;
                     if (is_rbga) {
                         color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
@@ -254,15 +254,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let res: VarDataBaseVO[] = [];
+        const res: VarDataBaseVO[] = [];
         if (this.widget_options.has_dimension) {
             if ((!this.var_params_by_dimension) || (!this.ordered_dimension) ||
                 (Object.keys(this.var_params_by_dimension).length != this.ordered_dimension.length)) {
                 return null;
             }
 
-            for (let i in this.ordered_dimension) {
-                let dimension = this.ordered_dimension[i];
+            for (const i in this.ordered_dimension) {
+                const dimension = this.ordered_dimension[i];
 
                 if (!this.var_params_by_dimension[dimension]) {
                     return null;
@@ -277,8 +277,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 return null;
             }
 
-            for (let i in this.ordered_dimension) {
-                let dimension = this.ordered_dimension[i];
+            for (const i in this.ordered_dimension) {
+                const dimension = this.ordered_dimension[i];
 
                 if (!this.var_params_1_et_2[dimension]) {
                     return null;
@@ -332,8 +332,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.all_page_widget) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (const i in this.all_page_widget) {
+            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;
@@ -363,12 +363,12 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
+        const var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
 
         /**
          * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
          */
-        let query_: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
+        const query_: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
             .set_limit(this.widget_options.max_dimension_values)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
@@ -384,21 +384,21 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             ));
         }
 
-        let dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
+        const dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
 
         if ((!dimensions) || (!dimensions.length)) {
             this.var_params_by_dimension = null;
             return;
         }
 
-        let promises = [];
-        let ordered_dimension: number[] = [];
-        let label_by_index: { [index: string]: string } = {};
-        let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
-            VOsTypesManager.moduleTables_by_voType[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
-        for (let i in dimensions) {
-            let dimension: any = dimensions[i];
-            let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+        const promises = [];
+        const ordered_dimension: number[] = [];
+        const label_by_index: { [index: string]: string } = {};
+        const dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
+            ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+        for (const i in dimensions) {
+            const dimension: any = dimensions[i];
+            const dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
 
             ordered_dimension.push(dimension_value);
 
@@ -459,7 +459,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
+        const var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
 
         /**
          * Sinon on se base sur la liste des valeurs possibles pour la dimension segmentée
@@ -478,8 +478,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
          * On checke qu'on a bien une dimension de la var dont la correspondance en filtrage spécifique est le filtre de dimension
          */
         let found: boolean = false;
-        for (let field_id in this.widget_options.filter_custom_field_filters_1) {
-            let custom_filter_1 = this.widget_options.filter_custom_field_filters_1[field_id];
+        for (const field_id in this.widget_options.filter_custom_field_filters_1) {
+            const custom_filter_1 = this.widget_options.filter_custom_field_filters_1[field_id];
 
             if (custom_filter_1 == this.widget_options.dimension_custom_filter_name) {
                 found = true;
@@ -498,7 +498,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
          *  puis on itère sur ces ranges en fonction de la segmentation sélectionnée
          *  en limitant au nombre max de valeurs de dimension
          */
-        let dimension_values: number[] = this.get_dimension_values();
+        const dimension_values: number[] = this.get_dimension_values();
 
         if ((!dimension_values) || (!dimension_values.length)) {
             this.var_params_by_dimension = null;
@@ -509,17 +509,17 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         this.ordered_dimension = dimension_values;
 
-        let promises = [];
-        let label_by_index: { [index: string]: string } = {};
-        for (let i in dimension_values) {
-            let dimension_value: number = dimension_values[i];
+        const promises = [];
+        const label_by_index: { [index: string]: string } = {};
+        for (const i in dimension_values) {
+            const dimension_value: number = dimension_values[i];
 
             promises.push((async () => {
 
                 /**
                  * Si on a pas de filtre actuellement on le crée, sinon on le remplace avec un filtre sur valeur exacte
                  */
-                let active_field_filters = cloneDeep(this.get_active_field_filters);
+                const active_field_filters = cloneDeep(this.get_active_field_filters);
                 active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
                     ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     this.widget_options.dimension_custom_filter_name
@@ -529,9 +529,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
                     this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
 
-                    for (let field_name in this.widget_options.filter_custom_field_filters_1) {
+                    for (const field_name in this.widget_options.filter_custom_field_filters_1) {
 
-                        let custom_filter_name = this.widget_options.filter_custom_field_filters_1[field_name];
+                        const custom_filter_name = this.widget_options.filter_custom_field_filters_1[field_name];
                         if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
                             if (!update_custom_filters_1) {
                                 update_custom_filters_1 = {};
@@ -584,14 +584,14 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
+        const ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
             root_context_filter,
             this.widget_options.dimension_custom_filter_segment_type,
             this.widget_options.max_dimension_values,
             this.widget_options.sort_dimension_by_asc
         );
 
-        let dimension_values: number[] = [];
+        const dimension_values: number[] = [];
         RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
             dimension_values.push(d);
         }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
@@ -647,7 +647,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
     private async do_update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -659,7 +659,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let custom_filters_1: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_1, this.get_active_field_filters);
+        const custom_filters_1: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_1, this.get_active_field_filters);
         if (this.widget_options.has_dimension) {
             await this.set_var_params_by_dimension(custom_filters_1, launch_cpt);
         } else {
@@ -676,7 +676,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
-        if (!!this.widget_options.dimension_is_vo_field_ref) {
+        if (this.widget_options.dimension_is_vo_field_ref) {
             var_params_by_dimension = await this.get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1);
         } else {
             var_params_by_dimension = await this.get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1);
@@ -706,9 +706,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             this.var_params_by_dimension = null;
         }
 
-        let custom_filters_2: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
+        const custom_filters_2: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters_2, this.get_active_field_filters);
 
-        let promises = [];
+        const promises = [];
         let var_1 = null;
         let var_2 = null;
         promises.push((async () => {
@@ -764,7 +764,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         let options: VarPieChartWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
                 options = options ? new VarPieChartWidgetOptions(
                     options.bg_color,

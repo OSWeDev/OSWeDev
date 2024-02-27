@@ -49,21 +49,21 @@ export default class ModuleFile extends Module {
     }
 
     public initializeFileVO() {
-        let label_field = ModuleTableFieldController.create_new(FileVO.API_TYPE_ID, field_names<FileVO>().path, ModuleTableFieldVO.FIELD_TYPE_file_field, 'Fichier', true).unique();
+        const label_field = ModuleTableFieldController.create_new(FileVO.API_TYPE_ID, field_names<FileVO>().path, ModuleTableFieldVO.FIELD_TYPE_file_field, 'Fichier', true).unique();
 
-        let datatable_fields = [
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(FileVO.API_TYPE_ID, field_names<FileVO>().is_secured, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Fichier sécurisé', true, true, false),
             ModuleTableFieldController.create_new(FileVO.API_TYPE_ID, field_names<FileVO>().file_access_policy_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
-        let datatable = new ModuleTableVO(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
+        const datatable = new ModuleTableVO(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
         this.datatables.push(datatable);
     }
 
     public initializeArchiveFilesConfVO() {
-        let label_field = ModuleTableFieldController.create_new("path_to_check", ModuleTableFieldVO.FIELD_TYPE_string, 'Répertoire', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new("path_to_check", ModuleTableFieldVO.FIELD_TYPE_string, 'Répertoire', true).unique();
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(ArchiveFilesConfVO.API_TYPE_ID, field_names<ArchiveFilesConfVO>().filter_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de filtre', true, true, ArchiveFilesConfVO.FILTER_TYPE_MONTH).setEnumValues(ArchiveFilesConfVO.FILTER_TYPE_LABELS),
             ModuleTableFieldController.create_new("target_achive_folder", ModuleTableFieldVO.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true),
@@ -71,7 +71,7 @@ export default class ModuleFile extends Module {
             ModuleTableFieldController.create_new("use_date_type", ModuleTableFieldVO.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true, true, ArchiveFilesConfVO.USE_DATE_TYPE_CREATION),
         ];
 
-        let datatable = new ModuleTableVO(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields, label_field, "Conf archivage des fichiers");
+        const datatable = new ModuleTableVO(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields, label_field, "Conf archivage des fichiers");
 
         this.datatables.push(datatable);
     }

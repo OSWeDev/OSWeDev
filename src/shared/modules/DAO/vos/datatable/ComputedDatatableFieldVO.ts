@@ -17,7 +17,7 @@ export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> ex
         compute_function_uid: string
     ): ComputedDatatableFieldVO<any, any, any> {
 
-        let res = new ComputedDatatableFieldVO();
+        const res = new ComputedDatatableFieldVO();
         res.init(ComputedDatatableFieldVO.API_TYPE_ID, DatatableField.COMPUTED_FIELD_TYPE, datatable_field_uid);
         res.compute_function_uid = compute_function_uid;
 

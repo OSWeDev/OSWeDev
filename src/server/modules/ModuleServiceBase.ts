@@ -131,6 +131,7 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 
 export default abstract class ModuleServiceBase {
 
@@ -195,7 +196,7 @@ export default abstract class ModuleServiceBase {
             return false;
         }
 
-        for (let i in this.registered_base_modules) {
+        for (const i in this.registered_base_modules) {
             if (this.registered_base_modules[i] == module) {
                 return true;
             }
@@ -207,7 +208,7 @@ export default abstract class ModuleServiceBase {
             return false;
         }
 
-        for (let i in this.login_base_modules) {
+        for (const i in this.login_base_modules) {
             if (this.login_base_modules[i] == module) {
                 return true;
             }
@@ -219,7 +220,7 @@ export default abstract class ModuleServiceBase {
             return false;
         }
 
-        for (let i in this.server_base_modules) {
+        for (const i in this.server_base_modules) {
             if (this.server_base_modules[i] == module) {
                 return true;
             }
@@ -261,8 +262,8 @@ export default abstract class ModuleServiceBase {
             if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
-            for (let i in this.registered_modules) {
-                let registered_module = this.registered_modules[i];
+            for (const i in this.registered_modules) {
+                const registered_module = this.registered_modules[i];
 
                 await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
             }
@@ -297,8 +298,8 @@ export default abstract class ModuleServiceBase {
 
         // } else {
 
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             if (!registered_module.actif) {
                 continue;
@@ -314,8 +315,8 @@ export default abstract class ModuleServiceBase {
         }
         // }
 
-        for (let i in this.post_modules_installation_hooks) {
-            let post_modules_installation_hook = this.post_modules_installation_hooks[i];
+        for (const i in this.post_modules_installation_hooks) {
+            const post_modules_installation_hook = this.post_modules_installation_hooks[i];
 
             // Appel async
             post_modules_installation_hook();
@@ -323,8 +324,8 @@ export default abstract class ModuleServiceBase {
     }
 
     public async configure_server_modules_apis() {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
@@ -335,14 +336,14 @@ export default abstract class ModuleServiceBase {
 
     public async preload_segmented_known_databases() {
 
-        for (let i in this.registered_modules) {
-            let module_: Module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const module_: Module = this.registered_modules[i];
 
             if (!module_.actif) {
                 continue;
             }
-            for (let j in module_.datatables) {
-                let t = module_.datatables[j];
+            for (const vo_type in ModuleTableController.vo_type_by_module_name[module_.name]) {
+                const t = ModuleTableController.module_tables_by_vo_type[vo_type];
 
                 if (!t.is_segmented) {
                     continue;
@@ -358,8 +359,8 @@ export default abstract class ModuleServiceBase {
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
     public async configure_server_modules(app: Express, is_generator: boolean = false) {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
             if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
@@ -399,8 +400,8 @@ export default abstract class ModuleServiceBase {
     }
 
     public async late_server_modules_configurations(is_generator: boolean) {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 await server_module.late_configuration(is_generator);
@@ -420,7 +421,7 @@ export default abstract class ModuleServiceBase {
         retry_hook_func: (...any) => Promise<any>,
         retry_hook_func_params: any[] = null) {
 
-        let res = null;
+        const res = null;
         let sleep_id = 'ModuleServiceBase.handle_errors.'; // + func_name;
         let compteur_id = null; // func_name;
         if (error &&
@@ -463,7 +464,7 @@ export default abstract class ModuleServiceBase {
                 }
 
                 try {
-                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    const res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
                     resolve(res_);
                 } catch (error2) {
                     ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
@@ -492,8 +493,8 @@ export default abstract class ModuleServiceBase {
     }
 
     private async install_modules() {
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             try {
                 await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
@@ -515,8 +516,8 @@ export default abstract class ModuleServiceBase {
     }
 
     private async configure_modules() {
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             try {
                 if (registered_module.actif) {
@@ -692,7 +693,7 @@ export default abstract class ModuleServiceBase {
 
     private async db_none(query: string, values?: []) {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
             await this.db_.none(query, values);
@@ -701,8 +702,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 
@@ -718,7 +719,7 @@ export default abstract class ModuleServiceBase {
     private async db_query(query: string, values?: []) {
 
         let res = null;
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -730,9 +731,9 @@ export default abstract class ModuleServiceBase {
             if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
 
                 // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                const fs = require('fs');
+                const path = require('path');
+                const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
 
@@ -742,9 +743,9 @@ export default abstract class ModuleServiceBase {
             if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
 
                 // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                const fs = require('fs');
+                const path = require('path');
+                const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
                 ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
 
@@ -757,8 +758,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 
@@ -774,7 +775,7 @@ export default abstract class ModuleServiceBase {
          * Handle query cache update
          */
         let res = null;
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
             res = await this.db_.oneOrNone(query, values);
@@ -782,8 +783,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 

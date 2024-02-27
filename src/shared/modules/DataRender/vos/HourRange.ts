@@ -24,12 +24,12 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let res: HourRange = new HourRange();
+        const res: HourRange = new HourRange();
 
         res.segment_type = segment_type;
 
         let end_range = HourRange.getSegmentedMax(min, min_inclusiv, max, max_inclusiv, segment_type);
-        let start_range = HourRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
+        const start_range = HourRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
 
         if ((start_range == null) || (end_range == null)) {
             return null;
@@ -59,13 +59,13 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let range_min_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(min, segment_type);
+        const range_min_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(min, segment_type);
 
         if (!min_inclusiv) {
             HourSegmentHandler.incHourSegment(range_min_ts);
         }
 
-        let range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
+        const range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
 
         if (Durations.as(range_min_ts.index, HourSegment.TYPE_SECOND) > Durations.as(range_max_ts.index, HourSegment.TYPE_SECOND)) {
             return null;
@@ -91,13 +91,13 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
+        const range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
 
         if ((!max_inclusiv) && HourSegmentHandler.isEltInSegment(max, range_max_ts)) {
             HourSegmentHandler.decHourSegment(range_max_ts);
         }
 
-        let range_max_end: number = HourSegmentHandler.getEndHourSegment(range_max_ts);
+        const range_max_end: number = HourSegmentHandler.getEndHourSegment(range_max_ts);
 
         if (Durations.as(range_max_end, HourSegment.TYPE_SECOND) < Durations.as(min, HourSegment.TYPE_SECOND)) {
             return null;
@@ -116,7 +116,7 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let res: HourRange = new HourRange();
+        const res: HourRange = new HourRange();
 
         res.max = from.max;
         res.max_inclusiv = from.max_inclusiv;

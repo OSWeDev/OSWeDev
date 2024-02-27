@@ -80,8 +80,8 @@ export default class ModulePushData extends Module {
     }
 
     private init_NotificationVO() {
-        let user_id = ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true, false);
-        let datatable_fields = [
+        const user_id = ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true, false);
+        const datatable_fields = [
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notification_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues(NotificationVO.TYPE_NAMES),
             user_id,
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().simple_notif_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Msg Type').setEnumValues({
@@ -114,17 +114,17 @@ export default class ModulePushData extends Module {
 
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().room_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Room ID', false),
         ];
-        let datatable = new ModuleTableVO(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
+        const datatable = new ModuleTableVO(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     private init_APIResultVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(APINotifTypeResultVO.API_TYPE_ID, field_names<APINotifTypeResultVO>().api_call_id, ModuleTableFieldVO.FIELD_TYPE_int, 'api_call_id', true),
             ModuleTableFieldController.create_new(APINotifTypeResultVO.API_TYPE_ID, field_names<APINotifTypeResultVO>().res, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'res', false)
         ];
-        let datatable = new ModuleTableVO(this, APINotifTypeResultVO.API_TYPE_ID, () => new APINotifTypeResultVO(), datatable_fields, null, "APIRes");
+        const datatable = new ModuleTableVO(this, APINotifTypeResultVO.API_TYPE_ID, () => new APINotifTypeResultVO(), datatable_fields, null, "APIRes");
         this.datatables.push(datatable);
     }
 }

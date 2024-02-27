@@ -54,7 +54,7 @@ export default class MonthFilterInputComponent extends VueComponentBase {
     private ytd_option_m_minus_x: number;
 
     private select_ytd() {
-        let selected_months: { [month: number]: boolean } = [];
+        const selected_months: { [month: number]: boolean } = [];
 
         for (let i = 1; i <= 12; i++) {
             selected_months[i] = (i <= ((Dates.month() + 1) - this.ytd_option_m_minus_x));
@@ -101,7 +101,7 @@ export default class MonthFilterInputComponent extends VueComponentBase {
      *  - Called when we click on toggle select all
      */
     private toggle_select_all() {
-        let is_all_months_selected = !this.is_all_months_selected;
+        const is_all_months_selected = !this.is_all_months_selected;
 
         if (is_all_months_selected) {
             // If is all months selected reset selected_months
@@ -116,7 +116,7 @@ export default class MonthFilterInputComponent extends VueComponentBase {
      * Handle Toggle Cumulative Months
      */
     private toggle_month_cumulated() {
-        let is_month_cumulated_selected = !this.is_month_cumulated_selected;
+        const is_month_cumulated_selected = !this.is_month_cumulated_selected;
 
         if (is_month_cumulated_selected) {
             this.set_is_all_months_selected(false);

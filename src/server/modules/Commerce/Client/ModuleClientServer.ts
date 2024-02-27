@@ -34,7 +34,7 @@ export default class ModuleClientServer extends ModuleServerBase {
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {
         return await ModuleDAOServer.getInstance().selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
-            ' JOIN ' + VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
+            ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
             ' WHERE c.user_id = $1', [num]
         );
     }
@@ -60,7 +60,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        let clients: ClientVO[] = await this.getClientsByUserId(uid);
+        const clients: ClientVO[] = await this.getClientsByUserId(uid);
 
         return (clients && clients.length > 0) ? clients[0] : null;
     }

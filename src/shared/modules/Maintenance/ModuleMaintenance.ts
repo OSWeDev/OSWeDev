@@ -85,9 +85,9 @@ export default class ModuleMaintenance extends Module {
     }
 
     private initializeMaintenanceVO() {
-        let author_id = ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
+        const author_id = ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().start_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().end_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Fin de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             ModuleTableFieldController.create_new(MaintenanceVO.API_TYPE_ID, field_names<MaintenanceVO>().broadcasted_msg1, ModuleTableFieldVO.FIELD_TYPE_boolean, 'MSG1 broadcasté', true, true, false),
@@ -100,7 +100,7 @@ export default class ModuleMaintenance extends Module {
 
         author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        let table = new ModuleTableVO(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
+        const table = new ModuleTableVO(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
         this.datatables.push(table);
     }
 }

@@ -30,7 +30,7 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
         }
 
         try {
-            let options = JSON.parse(this.actual_additional_options);
+            const options = JSON.parse(this.actual_additional_options);
 
             // fractional_digits: number = 0,
             // k: boolean = false,
@@ -48,7 +48,7 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
     }
 
     private onchange_inputs() {
-        let options = [
+        const options = [
             this.fractional_digits,
             false,
             this.only_positive,

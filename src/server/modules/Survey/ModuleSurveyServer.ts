@@ -156,12 +156,12 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
-            let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
                 return false;
             }
@@ -172,12 +172,12 @@ export default class ModuleSurveyServer extends ModuleServerBase {
 
             if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
-                let admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
+                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
 
             }
 
             // Puis créer le survey en base
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(survey);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(survey);
             if ((!res) || (!res.id)) {
                 throw new Error('Failed survey creation');
             }

@@ -7,7 +7,7 @@ export default class BulkActionVO {
         label: string,
         callback: (vo_ids: number[]) => Promise<void>,
     ): BulkActionVO {
-        let res = new BulkActionVO();
+        const res = new BulkActionVO();
 
         res.vo_type_id = vo_type_id;
         res.label = label;

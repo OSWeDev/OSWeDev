@@ -149,7 +149,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         let options: SupervisionTypeWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SupervisionTypeWidgetOptionsVO;
                 options = options ? new SupervisionTypeWidgetOptionsVO(
                     options.supervision_api_type_ids

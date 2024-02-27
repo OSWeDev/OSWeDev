@@ -6,7 +6,7 @@ export default class ColumnVO {
     public static TYPE_TEXT: string = 'text';
 
     public static GET_CLASSES(column: ColumnVO): string {
-        let classes: string[] = [];
+        const classes: string[] = [];
 
         if (!column) {
             return null;

@@ -25,10 +25,10 @@ export default class ModulesClientInitializationDatasGenerator {
 
             // On veut générer un fichier avec les imports des modules actifs uniquement, et sur ces modules on veut appeler le getInstance()
             //  et on veut aussi initialiser les params
-            let fileContent_admin = this.getFileContent('Admin');
-            let fileContent_client = this.getFileContent('Client');
-            let fileContent_login = this.getFileContent('Login');
-            let fileContent_test = this.getFileContent('Test');
+            const fileContent_admin = this.getFileContent('Admin');
+            const fileContent_client = this.getFileContent('Client');
+            const fileContent_login = this.getFileContent('Login');
+            const fileContent_test = this.getFileContent('Test');
 
             // 'export default ModulesClientInitializationDatas = ' + JSON.stringify(this.GM.get_modules_infos(req.params.env)) + ';';
             try {
@@ -76,17 +76,17 @@ export default class ModulesClientInitializationDatasGenerator {
         }
 
         // Initialiser directement l'env param
-        fileContent += "    EnvHandler.NODE_VERBOSE = " + ((!!ConfigurationService.node_configuration.NODE_VERBOSE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.IS_DEV = " + ((!!ConfigurationService.node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_VARS = " + ((!!ConfigurationService.node_configuration.DEBUG_VARS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_PROMISE_PIPELINE = " + ((!!ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.COMPRESS = " + ((!!ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.NODE_VERBOSE = " + ((ConfigurationService.node_configuration.NODE_VERBOSE) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.IS_DEV = " + ((ConfigurationService.node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.DEBUG_VARS = " + ((ConfigurationService.node_configuration.DEBUG_VARS) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.DEBUG_PROMISE_PIPELINE = " + ((ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.COMPRESS = " + ((ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.BASE_URL = '" + ConfigurationService.node_configuration.BASE_URL + "';\n";
         fileContent += "    EnvHandler.CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
         fileContent += "    EnvHandler.VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
-        fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((!!ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.MAX_POOL = " + ConfigurationService.node_configuration.MAX_POOL + ";\n";
-        fileContent += "    EnvHandler.ZOOM_AUTO = " + ((!!ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.ZOOM_AUTO = " + ((ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
@@ -123,8 +123,8 @@ export default class ModulesClientInitializationDatasGenerator {
                 modules = ModuleServiceBase.getInstance().sharedModules;
                 break;
         }
-        for (let i in modules) {
-            let module: Module = modules[i];
+        for (const i in modules) {
+            const module: Module = modules[i];
 
             if (module.actif || (target == 'Test')) {
                 fileContent += hook(module, target);

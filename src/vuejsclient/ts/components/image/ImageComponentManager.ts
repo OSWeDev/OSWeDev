@@ -16,9 +16,9 @@ export default class ImageComponentManager {
             if (!ImageComponentManager.hasFileInputData(selector)) {
                 return imagevo;
             }
-            let file: File = $(selector)[0]['files'][0];
+            const file: File = $(selector)[0]['files'][0];
 
-            let formData = new FormData();
+            const formData = new FormData();
             formData.append('file', file);
 
             imagevo = await AjaxCacheClientController.getInstance().post(

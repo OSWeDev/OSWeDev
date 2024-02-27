@@ -60,10 +60,10 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
 
-        let modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
-        let qr_db: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
+        const modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        const qr_db: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
 
-        for (let qr_data of qr_datas) {
+        for (const qr_data of qr_datas) {
 
             if (this.alreadyPresent(qr_data, qr_db, modules_db)) {
                 qr_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -71,7 +71,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
                 continue;
             }
 
-            let associated_module: AnimationModuleVO = modules_db.find((module) => module.id_import == qr_data.module_id_import);
+            const associated_module: AnimationModuleVO = modules_db.find((module) => module.id_import == qr_data.module_id_import);
 
             if (!associated_module) {
                 qr_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
@@ -108,18 +108,18 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
             return false;
         }
 
-        let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        const modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
-        let QRsInDB: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
-        let filesInDB: FileVO[] = await query(FileVO.API_TYPE_ID).select_vos<FileVO>();
+        const QRsInDB: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
+        const filesInDB: FileVO[] = await query(FileVO.API_TYPE_ID).select_vos<FileVO>();
 
         let succeeded = true;
-        for (let i in QRDatas) {
-            let QRData: AnimationImportQRVO = QRDatas[i];
+        for (const i in QRDatas) {
+            const QRData: AnimationImportQRVO = QRDatas[i];
 
             if (!this.alreadyPresent(QRData, QRsInDB, modules)) {
-                let QR = this.createQRBase(QRData, modules);
-                let queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(QR);
+                const QR = this.createQRBase(QRData, modules);
+                const queryRes = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(QR);
 
                 if (!queryRes) {
                     succeeded = false;
@@ -141,15 +141,15 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
      * @returns true if present in database
      */
     private alreadyPresent(QRData: AnimationImportQRVO, QRs: AnimationQRVO[], modules: AnimationModuleVO[]): boolean {
-        let QR_data_weight = this.restoreData(QRData.weight);
-        let QR_data_module_id_import = this.restoreData(QRData.module_id_import);
-        let QR_data_associated_module = modules.find((module) => module.id_import == QR_data_module_id_import);
+        const QR_data_weight = this.restoreData(QRData.weight);
+        const QR_data_module_id_import = this.restoreData(QRData.module_id_import);
+        const QR_data_associated_module = modules.find((module) => module.id_import == QR_data_module_id_import);
 
         if (QR_data_associated_module) {
-            let QR_data_associated_module_id = QR_data_associated_module.id;
+            const QR_data_associated_module_id = QR_data_associated_module.id;
 
             //if there is a Q&A that has same weight and module as the one imported
-            let alreadyPresentQR = QRs.find((QR: AnimationQRVO) => QR.weight == QR_data_weight && QR.module_id == QR_data_associated_module_id);
+            const alreadyPresentQR = QRs.find((QR: AnimationQRVO) => QR.weight == QR_data_weight && QR.module_id == QR_data_associated_module_id);
 
             if (alreadyPresentQR) {
                 return true;
@@ -160,7 +160,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     }
 
     private createQRBase(QRData: AnimationImportQRVO, modules: AnimationModuleVO[]): AnimationQRVO {
-        let QR: AnimationQRVO = new AnimationQRVO();
+        const QR: AnimationQRVO = new AnimationQRVO();
 
         QR.description = this.restoreData(QRData.description);
         QR.reponses = QRData.reponses;
@@ -169,8 +169,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         QR.name = this.restoreData(QRData.name);
         QR.weight = this.restoreData(QRData.weight);
 
-        let QR_module = this.restoreData(QRData.module_id_import);
-        let associated_module = modules.find((module) => module.id_import == QR_module);
+        const QR_module = this.restoreData(QRData.module_id_import);
+        const associated_module = modules.find((module) => module.id_import == QR_module);
         if (associated_module) {
             QR.module_id = associated_module.id;
         }

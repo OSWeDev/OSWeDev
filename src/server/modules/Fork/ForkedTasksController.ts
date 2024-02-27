@@ -62,7 +62,7 @@ export default class ForkedTasksController {
     public static async exec_self_on_main_process_and_return_value(thrower, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!ForkServerController.is_main_process()) {
 
-            let result_task_uid = ForkedTasksController.get_result_task_uid();
+            const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
                 thrower,
@@ -127,7 +127,7 @@ export default class ForkedTasksController {
     public static async exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
 
-            let result_task_uid = ForkedTasksController.get_result_task_uid();
+            const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
                 thrower,
@@ -147,7 +147,7 @@ export default class ForkedTasksController {
                     return false;
                 }
 
-                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                const fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
 
                 if (!ForkServerController.forks_alive[fork.uid]) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -222,15 +222,15 @@ export default class ForkedTasksController {
      */
     private static handle_fork_message_callback_timeout() {
 
-        let to_delete = [];
+        const to_delete = [];
 
         let nb_waiting = 0;
         let time_waiting = 0;
         let max_time_waiting = 0;
-        let now = Dates.now();
+        const now = Dates.now();
 
-        for (let i in ForkedTasksController.registered_task_result_wrappers) {
-            let wrapper = ForkedTasksController.registered_task_result_wrappers[i];
+        for (const i in ForkedTasksController.registered_task_result_wrappers) {
+            const wrapper = ForkedTasksController.registered_task_result_wrappers[i];
 
             if ((wrapper.creation_time + wrapper.timeout) < now) {
                 to_delete.push(i);
@@ -257,10 +257,10 @@ export default class ForkedTasksController {
             }
         }
 
-        for (let i in to_delete) {
-            let callback_id = to_delete[i];
-            let wrapper = ForkedTasksController.registered_task_result_wrappers[callback_id];
-            let thrower = wrapper.thrower;
+        for (const i in to_delete) {
+            const callback_id = to_delete[i];
+            const wrapper = ForkedTasksController.registered_task_result_wrappers[callback_id];
+            const thrower = wrapper.thrower;
             thrower('MSG has timedout:' + wrapper.timeout + ' secs');
             delete ForkedTasksController.registered_task_result_wrappers[callback_id];
         }

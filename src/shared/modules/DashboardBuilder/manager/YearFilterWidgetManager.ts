@@ -24,7 +24,7 @@ export default class YearFilterWidgetManager {
     public static create_context_filter_from_widget_options(
         widget_options: YearFilterWidgetOptionsVO
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO = new ContextFilterVO();
+        const context_filter: ContextFilterVO = new ContextFilterVO();
 
         const vo_field_ref = widget_options.vo_field_ref ?? null;
 
@@ -124,7 +124,7 @@ export default class YearFilterWidgetManager {
         // Depending on the mode, we will have to compute the min and max year
         if (widget_options.year_relative_mode) {
 
-            let current_year = Dates.year(Dates.now());
+            const current_year = Dates.year(Dates.now());
             for (let i = current_year + widget_options.min_year; i <= current_year + widget_options.max_year; i++) {
                 available_years.push(i.toString());
             }
@@ -213,8 +213,8 @@ export default class YearFilterWidgetManager {
     ): { [year: number]: boolean } {
         const selected_years: { [year: number]: boolean } = {};
 
-        for (let year in other_selected_years) {
-            let year_int = parseInt(year);
+        for (const year in other_selected_years) {
+            const year_int = parseInt(year);
 
             if (!other_selected_years[year]) {
                 continue;
@@ -248,7 +248,7 @@ export default class YearFilterWidgetManager {
 
         const selected_years: { [year: number]: boolean } = {};
 
-        for (let i in available_years) {
+        for (const i in available_years) {
             const year = available_years[i];
 
             selected_years[year] = false;

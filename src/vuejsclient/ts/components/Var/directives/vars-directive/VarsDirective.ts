@@ -36,15 +36,15 @@ export default class VarsDirective {
             return;
         }
 
-        let value = binding.value as IVarDirectiveParams;
-        let var_params: VarDataBaseVO[] = value.var_params;
+        const value = binding.value as IVarDirectiveParams;
+        const var_params: VarDataBaseVO[] = value.var_params;
 
         if ((!var_params) || (!var_params.length)) {
             return;
         }
 
-        for (let i in var_params) {
-            let var_param = var_params[i];
+        for (const i in var_params) {
+            const var_param = var_params[i];
 
             if (!var_param) {
                 continue;
@@ -62,15 +62,15 @@ export default class VarsDirective {
             return;
         }
 
-        let value = binding.value as IVarDirectiveParams;
-        let var_params: VarDataBaseVO[] = value.var_params;
+        const value = binding.value as IVarDirectiveParams;
+        const var_params: VarDataBaseVO[] = value.var_params;
 
         if ((!var_params) || (!var_params.length)) {
             return;
         }
 
-        for (let i in var_params) {
-            let var_param = var_params[i];
+        for (const i in var_params) {
+            const var_param = var_params[i];
 
             if (!var_param) {
                 continue;
@@ -84,20 +84,20 @@ export default class VarsDirective {
 
     private getVarUpdateCallbacks(el, binding, vnode): { [cb_uid: number]: VarUpdateCallback } {
 
-        let value = binding.value as IVarDirectiveParams;
-        let on_every_update: (varDatas: VarDataBaseVO[] | VarDataValueResVO[], el?, binding?, vnode?) => Promise<void> = value.on_every_update ? value.on_every_update : null;
-        let on_update_once: (varDatas: VarDataBaseVO[] | VarDataValueResVO[], el?, binding?, vnode?) => Promise<void> = value.on_update_once ? value.on_update_once : null;
+        const value = binding.value as IVarDirectiveParams;
+        const on_every_update: (varDatas: VarDataBaseVO[] | VarDataValueResVO[], el?, binding?, vnode?) => Promise<void> = value.on_every_update ? value.on_every_update : null;
+        const on_update_once: (varDatas: VarDataBaseVO[] | VarDataValueResVO[], el?, binding?, vnode?) => Promise<void> = value.on_update_once ? value.on_update_once : null;
 
-        let varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {};
+        const varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {};
 
-        if (!!on_every_update) {
-            let on_every_update_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
+        if (on_every_update) {
+            const on_every_update_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
 
-                let varDatas = [];
+                const varDatas = [];
                 let has_valid_value = true;
-                for (let i in value.var_params) {
-                    let var_param = value.var_params[i].index;
-                    let var_data = VarsClientController.cached_var_datas[var_param];
+                for (const i in value.var_params) {
+                    const var_param = value.var_params[i].index;
+                    const var_data = VarsClientController.cached_var_datas[var_param];
 
                     if ((!var_data) || (typeof var_data.value === 'undefined')) {
                         has_valid_value = false;
@@ -113,14 +113,14 @@ export default class VarsDirective {
             }, VarUpdateCallback.VALUE_TYPE_VALID);
             varUpdateCallbacks[VarsClientController.get_CB_UID()] = on_every_update_callback;
         }
-        if (!!on_update_once) {
-            let on_update_once_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
+        if (on_update_once) {
+            const on_update_once_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
 
-                let varDatas = [];
+                const varDatas = [];
                 let has_valid_value = true;
-                for (let i in value.var_params) {
-                    let var_param = value.var_params[i].index;
-                    let var_data = VarsClientController.cached_var_datas[var_param];
+                for (const i in value.var_params) {
+                    const var_param = value.var_params[i].index;
+                    const var_data = VarsClientController.cached_var_datas[var_param];
 
                     if ((!var_data) || (typeof var_data.value === 'undefined')) {
                         has_valid_value = false;

@@ -189,7 +189,7 @@ export default class VarConfVO implements INamedVO {
      * En cas d'opérateur de type vofieldref, contient la référence du champs ciblé
      */
     public auto_vofieldref_api_type_id: string;
-    public auto_vofieldref_field_id: string;
+    public auto_vofieldref_field_name: string;
     public auto_vofieldref_modifier: number;
 
     /**

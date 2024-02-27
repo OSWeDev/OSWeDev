@@ -41,9 +41,9 @@ export default class ModuleUserLogVars extends Module {
         this.initializeUserDataRangesVO();
     }
     private initializeUserDataRangesVO() {
-        let user_id_ranges = ModuleTableFieldController.create_new(UserDataRangesVO.API_TYPE_ID, field_names<UserDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        const user_id_ranges = ModuleTableFieldController.create_new(UserDataRangesVO.API_TYPE_ID, field_names<UserDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
-        let datatable_fields = [
+        const datatable_fields = [
             user_id_ranges,
         ];
 
@@ -52,9 +52,9 @@ export default class ModuleUserLogVars extends Module {
     }
 
     private initializeUserMinDataRangesVO() {
-        let user_id_ranges = ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        const user_id_ranges = ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
 
-        let datatable_fields = [
+        const datatable_fields = [
             user_id_ranges,
             ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
         ];

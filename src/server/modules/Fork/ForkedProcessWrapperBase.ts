@@ -77,11 +77,11 @@ export default abstract class ForkedProcessWrapperBase {
             this.UID = parseInt(process.argv[2]);
 
             for (let i = 3; i < process.argv.length; i++) {
-                let arg = process.argv[i];
+                const arg = process.argv[i];
 
-                let splitted = arg.split(':');
-                let type: string = splitted[0];
-                let name: string = splitted[1];
+                const splitted = arg.split(':');
+                const type: string = splitted[0];
+                const name: string = splitted[1];
 
                 switch (type) {
                     case BGThreadServerController.ForkedProcessType:
@@ -114,10 +114,10 @@ export default abstract class ForkedProcessWrapperBase {
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 
-        let connectionString = envParam.CONNECTION_STRING;
+        const connectionString = envParam.CONNECTION_STRING;
 
-        let pgp: pg_promise.IMain = pg_promise({});
-        let db: IDatabase<any> = pgp(connectionString);
+        const pgp: pg_promise.IMain = pg_promise({});
+        const db: IDatabase<any> = pgp(connectionString);
 
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
@@ -153,17 +153,17 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
-        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
-        let locales_corrected = {};
-        for (let lang in locales) {
+        const locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        const locales_corrected = {};
+        for (const lang in locales) {
             if (lang && lang.indexOf('-') >= 0) {
-                let lang_parts = lang.split('-');
+                const lang_parts = lang.split('-');
                 if (lang_parts.length == 2) {
                     locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
                 }
             }
         }
-        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        const i18nextInit = I18nextInit.getInstance(locales_corrected);
         LocaleManager.getInstance().i18n = i18nextInit.i18next;
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');

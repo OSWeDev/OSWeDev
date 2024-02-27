@@ -40,7 +40,7 @@ export default class SendInBlueMailCampaignServerController {
     }
 
     public async createAndSend(campaignName: string, subject: string, htmlContent: string, contacts: SendInBlueContactVO[], inlineImageActivation: boolean = false, testMail: boolean = false, contactsForTest: SendInBlueContactVO[] = null): Promise<boolean> {
-        let campaign: SendInBlueMailCampaignDetailVO = await this.create(campaignName, subject, htmlContent, contacts, inlineImageActivation);
+        const campaign: SendInBlueMailCampaignDetailVO = await this.create(campaignName, subject, htmlContent, contacts, inlineImageActivation);
 
         if (!campaign) {
             return false;
@@ -54,17 +54,17 @@ export default class SendInBlueMailCampaignServerController {
             return null;
         }
 
-        let list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+        const list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
         if (!list) {
             return null;
         }
 
-        let recipientsData: any = {
+        const recipientsData: any = {
             listIds: [list.id]
         };
 
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             {
@@ -86,7 +86,7 @@ export default class SendInBlueMailCampaignServerController {
     }
 
     public async createWithTemplateAndSend(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: any } = {}, inlineImageActivation: boolean = false, testMail: boolean = false, contactsForTest: SendInBlueContactVO[] = null): Promise<boolean> {
-        let campaign: SendInBlueMailCampaignDetailVO = await this.createWithTemplate(campaignName, subject, contacts, templateId, params, inlineImageActivation);
+        const campaign: SendInBlueMailCampaignDetailVO = await this.createWithTemplate(campaignName, subject, contacts, templateId, params, inlineImageActivation);
 
         if (!campaign) {
             return false;
@@ -100,9 +100,9 @@ export default class SendInBlueMailCampaignServerController {
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
-            let whitelisted_contacts: SendInBlueContactVO[] = [];
-            for (let i in contacts) {
-                let contact = contacts[i];
+            const whitelisted_contacts: SendInBlueContactVO[] = [];
+            for (const i in contacts) {
+                const contact = contacts[i];
                 if (!contact.email) {
                     continue;
                 }
@@ -125,17 +125,17 @@ export default class SendInBlueMailCampaignServerController {
             return null;
         }
 
-        let list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+        const list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
         if (!list) {
             return null;
         }
 
-        let recipientsData: any = {
+        const recipientsData: any = {
             listIds: [list.id]
         };
 
-        let postParams: any = {
+        const postParams: any = {
             sender: await SendInBlueServerController.getInstance().getSender(),
             name: campaignName,
             templateId: templateId,
@@ -149,7 +149,7 @@ export default class SendInBlueMailCampaignServerController {
             postParams.params = params;
         }
 
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             postParams
@@ -167,7 +167,7 @@ export default class SendInBlueMailCampaignServerController {
             return null;
         }
 
-        let postParams: any = {};
+        const postParams: any = {};
 
         let urlSend: string = SendInBlueMailCampaignServerController.PATH_CAMPAIGN + '/' + campaignId + '/';
 
@@ -183,7 +183,7 @@ export default class SendInBlueMailCampaignServerController {
             urlSend += SendInBlueMailCampaignServerController.PATH_CAMPAIGN_SEND_NOW;
         }
 
-        let res: { code: string, message: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
+        const res: { code: string, message: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
             ModuleRequest.METHOD_POST,
             urlSend,
             postParams

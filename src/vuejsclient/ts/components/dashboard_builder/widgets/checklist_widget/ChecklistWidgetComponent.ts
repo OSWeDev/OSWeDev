@@ -129,8 +129,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        for (let name in CheckListControllerBase.controller_by_name) {
-            let controller = CheckListControllerBase.controller_by_name[name];
+        for (const name in CheckListControllerBase.controller_by_name) {
+            const controller = CheckListControllerBase.controller_by_name[name];
 
             if (controller.checklist_shared_module.checklist_name == this.checklist.name) {
                 return controller;
@@ -145,8 +145,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        for (let name in CheckListControllerBase.controller_by_name) {
-            let controller = CheckListControllerBase.controller_by_name[name];
+        for (const name in CheckListControllerBase.controller_by_name) {
+            const controller = CheckListControllerBase.controller_by_name[name];
 
             if (controller.checklist_shared_module.checklist_name == this.checklist.name) {
                 return controller.checklist_shared_module;
@@ -235,8 +235,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (this.filter_text) {
 
             res = res.filter((e: ICheckListItem) => {
-                for (let i in e) {
-                    let field = e[i];
+                for (const i in e) {
+                    const field = e[i];
 
                     if (typeof field !== 'string') {
                         continue;
@@ -247,9 +247,9 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     }
                 }
 
-                let infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
-                for (let i in infos_cols_content) {
-                    let field = infos_cols_content[i];
+                const infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
+                for (const i in infos_cols_content) {
+                    const field = infos_cols_content[i];
 
                     if (typeof field !== 'string') {
                         continue;
@@ -297,8 +297,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let e = await this.checklist_controller.getCheckListItemNewInstance();
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
+        const e = await this.checklist_controller.getCheckListItemNewInstance();
+        const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
 
         if ((!res) || !res.id) {
             ConsoleHandler.error('CheckListComponent:createNew:failed');
@@ -312,7 +312,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
-        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
+        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
 
         if ((!res) || (!res.length) || (!res[0]) || (!res[0].id)) {
             this.snotify.error(this.label('CheckListComponent.deleteSelectedItem.failed'));
@@ -402,7 +402,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -432,8 +432,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let self = this;
-        let promises = [];
+        const self = this;
+        const promises = [];
 
         let checklist_items_by_id: { [id: number]: ICheckListItem } = {};
         let field_filters = cloneDeep(this.get_active_field_filters);
@@ -472,14 +472,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                 );
 
             // context_query to select checklist items
-            let context_query: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
+            const context_query: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
                 .set_limit(this.pagination_pagesize, this.pagination_offset)
                 .using(this.get_dashboard_api_type_ids)
                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters))
                 .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
             FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
-            let items: ICheckListItem[] = await context_query.select_vos<ICheckListItem>();
+            const items: ICheckListItem[] = await context_query.select_vos<ICheckListItem>();
 
             // Si je ne suis pas sur la dernière demande, je me casse
             if (this.last_calculation_cpt != launch_cpt) {
@@ -523,7 +523,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
-        let query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
+        const query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(field_filters));
         FieldValueFilterWidgetManager.add_discarded_field_paths(query_count, this.get_discarded_field_paths);
@@ -547,7 +547,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -572,7 +572,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         let options: ChecklistWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
                 options = options ? new ChecklistWidgetOptions(
                     options.limit, options.checklist_id,
@@ -586,7 +586,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async confirm_delete_all() {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression

@@ -59,13 +59,13 @@ export default class ModuleParamsServer extends ModuleServerBase {
             { 'fr-fr': 'Paramètres' },
             'menu.menuelements.admin.ParamsAdminVueModule.___LABEL___'));
 
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostCreateParam);
 
-        let postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostUpdateParam);
 
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         postDeleteTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostDeleteParam);
     }
 
@@ -116,7 +116,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
         let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
 
-        if (!!param) {
+        if (param) {
             return;
         }
 
@@ -250,7 +250,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
             } catch (error) {
                 ConsoleHandler.error('getParamValue:' + text + ':' + error);
             }
-            let res = param ? transformer(param.value) : default_if_undefined;
+            const res = param ? transformer(param.value) : default_if_undefined;
 
             this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
             this.throttled_param_cache_value[text] = res;

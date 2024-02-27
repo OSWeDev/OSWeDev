@@ -6,9 +6,9 @@ import { test, expect } from "playwright-test-coverage";
 import WeightHandler from '../../../src/shared/tools/WeightHandler';
 
 test('WeightHandler : test: sortByWeight', () => {
-    let a = { weight: 1 };
-    let b = { weight: 2 };
-    let c = { weight: 3 };
+    const a = { weight: 1 };
+    const b = { weight: 2 };
+    const c = { weight: 3 };
 
     let arrayTest = [a, b, c];
     WeightHandler.getInstance().sortByWeight(arrayTest);
@@ -33,9 +33,9 @@ test('WeightHandler : test: sortByWeight', () => {
 });
 
 test('WeightHandler : test: findNextHeavierItemByWeight', () => {
-    let a = { weight: 1 };
-    let b = { weight: 2 };
-    let c = { weight: 3 };
+    const a = { weight: 1 };
+    const b = { weight: 2 };
+    const c = { weight: 3 };
     expect(WeightHandler.getInstance().findNextHeavierItemByWeight(null, null)).toStrictEqual(null);
     expect(WeightHandler.getInstance().findNextHeavierItemByWeight([a, b, c], null)).toStrictEqual(null);
     expect(WeightHandler.getInstance().findNextHeavierItemByWeight(null, 1)).toStrictEqual(null);

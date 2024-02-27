@@ -71,8 +71,8 @@ export default class ModuleCron extends Module {
     }
 
     public initialize() {
-        let label_field = ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'planification_uid', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'planification_uid', true).unique();
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'worker_uid', true),
             ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().date_heure_planifiee, ModuleTableFieldVO.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),

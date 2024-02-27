@@ -55,9 +55,9 @@ export default class ModuleActionURL extends Module {
     }
 
     private initializeActionURLCRVO() {
-        let action_url_id = ModuleTableFieldController.create_new(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().action_url_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Action URL', true);
+        const action_url_id = ModuleTableFieldController.create_new(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().action_url_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Action URL', true);
 
-        let fields = [
+        const fields = [
             action_url_id,
 
             ModuleTableFieldController.create_new(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().translatable_cr_title, ModuleTableFieldVO.FIELD_TYPE_html, 'Titre du CR', true, true, ''),
@@ -70,16 +70,16 @@ export default class ModuleActionURL extends Module {
             ModuleTableFieldController.create_new(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().cr_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, ActionURLCRVO.CR_TYPE_INFO).setEnumValues(ActionURLCRVO.CR_TYPE_LABELS),
         ];
 
-        let table = new ModuleTableVO(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');
+        const table = new ModuleTableVO(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');
         this.datatables.push(table);
 
         action_url_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);
     }
 
     private initializeActionURL() {
-        let label = ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label = ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().valid_ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Période de validité', true),
             ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().action_code, ModuleTableFieldVO.FIELD_TYPE_string, 'Code', true),
             label,
@@ -94,20 +94,20 @@ export default class ModuleActionURL extends Module {
             ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_bootstrap_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de bouton', true, true, ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY).setEnumValues(ActionURLVO.BOOTSTRAP_BUTTON_TYPE_LABELS),
         ];
 
-        let table = new ModuleTableVO(this, ActionURLVO.API_TYPE_ID, () => new ActionURLVO(), fields, label, 'URLs d\'action');
+        const table = new ModuleTableVO(this, ActionURLVO.API_TYPE_ID, () => new ActionURLVO(), fields, label, 'URLs d\'action');
         this.datatables.push(table);
     }
 
     private initializeActionURLUserVO() {
-        let action_id = ModuleTableFieldController.create_new(ActionURLUserVO.API_TYPE_ID, field_names<ActionURLUserVO>().action_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Action', true);
-        let user_id = ModuleTableFieldController.create_new(ActionURLUserVO.API_TYPE_ID, field_names<ActionURLUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const action_id = ModuleTableFieldController.create_new(ActionURLUserVO.API_TYPE_ID, field_names<ActionURLUserVO>().action_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Action', true);
+        const user_id = ModuleTableFieldController.create_new(ActionURLUserVO.API_TYPE_ID, field_names<ActionURLUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
-        let fields = [
+        const fields = [
             action_id,
             user_id,
         ];
 
-        let table = new ModuleTableVO(this, ActionURLUserVO.API_TYPE_ID, () => new ActionURLUserVO(), fields, null, 'Droits usage URL d\'action');
+        const table = new ModuleTableVO(this, ActionURLUserVO.API_TYPE_ID, () => new ActionURLUserVO(), fields, null, 'Droits usage URL d\'action');
         this.datatables.push(table);
 
         action_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);

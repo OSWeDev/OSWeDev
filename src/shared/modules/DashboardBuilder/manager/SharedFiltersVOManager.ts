@@ -269,13 +269,13 @@ export default class SharedFiltersVOManager {
         );
 
 
-        let field_filters_to_share = {};
+        const field_filters_to_share = {};
 
-        for (let i in shared_filters.field_filters_to_share) {
-            let field_filter = shared_filters.field_filters_to_share[i];
+        for (const i in shared_filters.field_filters_to_share) {
+            const field_filter = shared_filters.field_filters_to_share[i];
 
-            let field_filter_to_share = {};
-            for (let j in field_filter) {
+            const field_filter_to_share = {};
+            for (const j in field_filter) {
                 if (field_filter[j]) {
                     field_filter_to_share[j] = true;
                 }
@@ -286,12 +286,12 @@ export default class SharedFiltersVOManager {
             }
         }
 
-        let selected_field_filters_to_share = {};
-        for (let i in selectionnable_field_filters.field_filters) {
-            let field_filter = selectionnable_field_filters.field_filters[i];
+        const selected_field_filters_to_share = {};
+        for (const i in selectionnable_field_filters.field_filters) {
+            const field_filter = selectionnable_field_filters.field_filters[i];
 
-            let field_filter_to_share = {};
-            for (let j in field_filter) {
+            const field_filter_to_share = {};
+            for (const j in field_filter) {
                 if ((typeof field_filter[j] !== 'undefined') && field_filters_to_share[i] && field_filters_to_share[i][j]) {
                     field_filter_to_share[j] = true;
                 }

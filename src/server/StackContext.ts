@@ -22,15 +22,15 @@ export default class StackContext {
 
         let result = null;
 
-        let old_context_values = {};
+        const old_context_values = {};
 
         await StackContext.ns.runPromise(async () => {
 
-            for (let field_id in scope_overloads) {
-                let field_value = scope_overloads[field_id];
+            for (const field_name in scope_overloads) {
+                const field_value = scope_overloads[field_name];
 
-                old_context_values[field_id] = StackContext.get(field_id);
-                StackContext.set(field_id, field_value);
+                old_context_values[field_name] = StackContext.get(field_name);
+                StackContext.set(field_name, field_value);
             }
 
             try {
@@ -39,8 +39,8 @@ export default class StackContext {
 
             }
 
-            for (let field_id in scope_overloads) {
-                StackContext.set(field_id, old_context_values[field_id]);
+            for (const field_name in scope_overloads) {
+                StackContext.set(field_name, old_context_values[field_name]);
             }
         });
 

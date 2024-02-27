@@ -40,7 +40,7 @@ export default class VueFilteredInputComponent extends VueComponentBase {
     }
 
     private mounted() {
-        var self = this;
+        const self = this;
         this.$nextTick(function () {
             self.formatValue();
         });
@@ -63,7 +63,7 @@ export default class VueFilteredInputComponent extends VueComponentBase {
 
     private formatValue() {
 
-        var value = this.value;
+        let value = this.value;
 
         if (this.filters) {
             value = this.filters.applyRead(value);

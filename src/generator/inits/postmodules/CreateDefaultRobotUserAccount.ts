@@ -41,11 +41,11 @@ export default class CreateDefaultRobotUserAccount implements IGeneratorWorker {
     private async createuser(user_name: string, email: string): Promise<UserVO> {
         let user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, user_name);
 
-        if (!!user) {
+        if (user) {
             return user;
         }
 
-        let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', 'fr-fr').select_one();
+        const lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', 'fr-fr').select_one();
 
         user = new UserVO();
 
@@ -55,7 +55,7 @@ export default class CreateDefaultRobotUserAccount implements IGeneratorWorker {
         user.password = user_name + '$';
         user.email = email;
 
-        let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+        const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
         if ((!res) || (!res.id)) {
             throw new Error('Echec de création du compte robot par défaut');
         }

@@ -51,11 +51,11 @@ export default class DailyReportCronWorker implements ICronWorker {
          *  suivant les paramètres de l'application
          */
         // On commence par récupérer toutes les sondes et catégories
-        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.vosArray_to_vosByIds(
+        const category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>()
         );
-        let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);
-        let ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = this.get_ordered_supervised_items_by_state(supervised_items_by_names);
+        const supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);
+        const ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = this.get_ordered_supervised_items_by_state(supervised_items_by_names);
 
         // En suite on décide d'envoyer là où on a une conf valide
         await this.send_teams(ordered_supervised_items_by_state);
@@ -67,14 +67,14 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     // istanbul ignore next: nothing to test : send_teams
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
+        const TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
         if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
-        if (!!TEAMS_WEBHOOK_PARAM_NAME) {
-            let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        if (TEAMS_WEBHOOK_PARAM_NAME) {
+            const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
             message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision";
             message.summary = "Bilan quotidien de supervision de l'application";
@@ -86,8 +86,8 @@ export default class DailyReportCronWorker implements ICronWorker {
                 (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0)
                 + " non lues</blockquote>"));
 
-            let log_errors: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_ERROR]);
-            if (!!log_errors) {
+            const log_errors: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_ERROR]);
+            if (log_errors) {
                 message.sections.push(new TeamsWebhookContentSectionVO().set_text(log_errors));
             }
 
@@ -98,8 +98,8 @@ export default class DailyReportCronWorker implements ICronWorker {
                 (ordered_supervised_items_by_state[SupervisionController.STATE_WARN] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN].length : 0)
                 + " non lus</blockquote>"));
 
-            let log_warnings: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_WARN]);
-            if (!!log_warnings) {
+            const log_warnings: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_WARN]);
+            if (log_warnings) {
                 message.sections.push(new TeamsWebhookContentSectionVO().set_text(log_warnings));
             }
 
@@ -119,11 +119,11 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private get_log_for_teams(ordered_supervised_items: ISupervisedItem[]): string {
         let log_errors: string = null;
-        let log_errors_max = 10;
+        const log_errors_max = 10;
         let log_errors_remaining = log_errors_max;
 
-        for (let i in ordered_supervised_items) {
-            let supervised_item = ordered_supervised_items[i];
+        for (const i in ordered_supervised_items) {
+            const supervised_item = ordered_supervised_items[i];
 
             if (!log_errors) {
                 log_errors = '<ul>';
@@ -137,7 +137,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             }
         }
 
-        if (!!log_errors) {
+        if (log_errors) {
             log_errors += '</ul>';
         }
         return log_errors;
@@ -149,11 +149,11 @@ export default class DailyReportCronWorker implements ICronWorker {
             return;
         }
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
-        let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-        let SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
-        let SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
+        const SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
+        const SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
 
         if ((!!SEND_IN_BLUE_TEMPLATE_ID) && (!!SEND_IN_BLUE_TOMAIL) && (!!SEND_IN_BLUE_TONAME)) {
 
@@ -192,23 +192,23 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private async load_supervised_items(category_by_ids: { [id: number]: SupervisedCategoryVO }): Promise<{ [name: string]: ISupervisedItem }> {
 
-        let supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
-        let promises = [];
+        const supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
+        const promises = [];
 
-        let registered_api_types = SupervisionController.getInstance().registered_controllers;
+        const registered_api_types = SupervisionController.getInstance().registered_controllers;
 
-        for (let api_type_id in registered_api_types) {
-            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
+        for (const api_type_id in registered_api_types) {
+            const registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
 
             if (!registered_api_type.is_actif()) {
                 continue;
             }
 
             promises.push((async () => {
-                let items = await query(api_type_id).select_vos<ISupervisedItem>();
+                const items = await query(api_type_id).select_vos<ISupervisedItem>();
 
-                for (let i in items) {
-                    let item = items[i];
+                for (const i in items) {
+                    const item = items[i];
 
                     // Si on a une catégorie sans notif, on passe au suivant
                     if (item.category_id && category_by_ids[item.category_id] && !category_by_ids[item.category_id].notify) {
@@ -227,9 +227,9 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private get_ordered_supervised_items_by_state(supervised_items_by_names: { [name: string]: ISupervisedItem }): { [state: number]: ISupervisedItem[] } {
 
-        let ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = {};
-        for (let i in supervised_items_by_names) {
-            let supervised_item = supervised_items_by_names[i];
+        const ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = {};
+        for (const i in supervised_items_by_names) {
+            const supervised_item = supervised_items_by_names[i];
 
             if (!ordered_supervised_items_by_state[supervised_item.state]) {
                 ordered_supervised_items_by_state[supervised_item.state] = [];
@@ -237,8 +237,8 @@ export default class DailyReportCronWorker implements ICronWorker {
             ordered_supervised_items_by_state[supervised_item.state].push(supervised_item);
         }
 
-        for (let i in ordered_supervised_items_by_state) {
-            let ordered_supervised_items = ordered_supervised_items_by_state[i];
+        for (const i in ordered_supervised_items_by_state) {
+            const ordered_supervised_items = ordered_supervised_items_by_state[i];
 
             ordered_supervised_items.sort((a: ISupervisedItem, b: ISupervisedItem) => {
                 if (a.name < b.name) {

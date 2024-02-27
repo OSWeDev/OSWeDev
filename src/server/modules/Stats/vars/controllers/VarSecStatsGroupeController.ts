@@ -52,10 +52,10 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
      * @param c_or_d_vos
      */
     public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: StatVO[]): Promise<StatsGroupSecDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } } = {};
+        const groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } } = {};
 
-        for (let i in c_or_d_vos) {
-            let c_or_d_vo = c_or_d_vos[i];
+        for (const i in c_or_d_vos) {
+            const c_or_d_vo = c_or_d_vos[i];
 
             if (!groupe_date_to_u_vo_holders[c_or_d_vo.stat_group_id]) {
                 groupe_date_to_u_vo_holders[c_or_d_vo.stat_group_id] = {};
@@ -74,13 +74,13 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
      * @param u_vo_holders
      */
     public async get_invalid_params_intersectors_on_POST_U_group(u_vo_holders: Array<DAOUpdateVOHolder<IDistantVOBase>>): Promise<StatsGroupSecDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } } = {};
-        let u_vo_holders_typed: Array<DAOUpdateVOHolder<StatVO>> = u_vo_holders as Array<DAOUpdateVOHolder<StatVO>>;
+        const groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } } = {};
+        const u_vo_holders_typed: Array<DAOUpdateVOHolder<StatVO>> = u_vo_holders as Array<DAOUpdateVOHolder<StatVO>>;
 
-        for (let i in u_vo_holders_typed) {
-            let u_vo_holder = u_vo_holders_typed[i];
+        for (const i in u_vo_holders_typed) {
+            const u_vo_holder = u_vo_holders_typed[i];
 
-            if (!!u_vo_holder.pre_update_vo) {
+            if (u_vo_holder.pre_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.stat_group_id]) {
                     groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.stat_group_id] = {};
                 }
@@ -89,7 +89,7 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
                     groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.stat_group_id][u_vo_holder.pre_update_vo.timestamp_s] = true;
                 }
             }
-            if (!!u_vo_holder.post_update_vo) {
+            if (u_vo_holder.post_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.stat_group_id]) {
                     groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.stat_group_id] = {};
                 }
@@ -112,19 +112,19 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let stats: StatVO[] = varDAGNode.datasources[StatDatasourceController.getInstance().name];
-        let groupes: StatsGroupVO[] = varDAGNode.datasources[StatsGroupeDatasourceController.getInstance().name];
-        let groupes_by_id: { [id: number]: StatsGroupVO } = VOsTypesManager.vosArray_to_vosByIds(groupes);
+        const groupes: StatsGroupVO[] = varDAGNode.datasources[StatsGroupeDatasourceController.getInstance().name];
+        const groupes_by_id: { [id: number]: StatsGroupVO } = VOsTypesManager.vosArray_to_vosByIds(groupes);
 
-        let stats_by_groupe: { [stat_group_id: number]: StatVO[] } = {};
+        const stats_by_groupe: { [stat_group_id: number]: StatVO[] } = {};
         let stats_aggregator: number = null;
-        for (let i in stats) {
-            let stat = stats[i];
+        for (const i in stats) {
+            const stat = stats[i];
             if (!stats_by_groupe[stat.stat_group_id]) {
                 stats_by_groupe[stat.stat_group_id] = [];
             }
             stats_by_groupe[stat.stat_group_id].push(stat);
 
-            let groupe = groupes_by_id[stat.stat_group_id];
+            const groupe = groupes_by_id[stat.stat_group_id];
             if (stats_aggregator == null) {
                 stats_aggregator = groupe.stats_aggregator;
             } else {
@@ -136,9 +136,9 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
 
         let res = null;
         let nb_stats_for_mean = 0;
-        for (let group_id_str in stats_by_groupe) {
-            let group_id = parseInt(group_id_str);
-            let groupe = groupes_by_id[group_id];
+        for (const group_id_str in stats_by_groupe) {
+            const group_id = parseInt(group_id_str);
+            const groupe = groupes_by_id[group_id];
             stats = stats_by_groupe[group_id];
 
             switch (groupe.stats_aggregator) {
@@ -175,14 +175,14 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
     }
 
     private get_intersecteurs(groupe_date_to_u_vo_holders: { [stat_group_id: number]: { [timestamp_s: number]: true } }): StatsGroupSecDataRangesVO[] {
-        let res: StatsGroupSecDataRangesVO[] = [];
+        const res: StatsGroupSecDataRangesVO[] = [];
 
-        for (let stat_group_id_s in groupe_date_to_u_vo_holders) {
-            let stat_group_id = parseInt(stat_group_id_s);
-            let holders = groupe_date_to_u_vo_holders[stat_group_id_s];
+        for (const stat_group_id_s in groupe_date_to_u_vo_holders) {
+            const stat_group_id = parseInt(stat_group_id_s);
+            const holders = groupe_date_to_u_vo_holders[stat_group_id_s];
 
-            for (let timestamp_s_s in holders) {
-                let timestamp_s = parseInt(timestamp_s_s);
+            for (const timestamp_s_s in holders) {
+                const timestamp_s = parseInt(timestamp_s_s);
                 res.push(StatsGroupSecDataRangesVO.createNew<StatsGroupSecDataRangesVO>(
                     this.varConf.name,
                     false,

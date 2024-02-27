@@ -154,7 +154,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             return;
         }
 
-        const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[item._type];
         const field = moduletable.getFieldFromId(field_names<ISupervisedItem>().last_update);
 
         this.formatted_date = item.last_update ? Dates.format_segment(item.last_update, field.segmentation_type) : "-";

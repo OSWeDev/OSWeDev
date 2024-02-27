@@ -114,9 +114,9 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
             "check_is_anonymise.failed" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION
         ));
 
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         postCreateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postUpdateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postDeleteTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
@@ -130,8 +130,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     }
 
     public async late_configuration(is_generator: boolean): Promise<void> {
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduletable = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const moduletable = ModuleTableController.module_tables_by_vo_type[i];
 
             // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait

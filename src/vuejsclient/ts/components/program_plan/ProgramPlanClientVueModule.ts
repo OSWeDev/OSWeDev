@@ -42,7 +42,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     this.program_plan_shared_module.POLICY_FO_ACCESS,
@@ -67,7 +67,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
                 program_plan_client_module: this
             })
         });
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             this.program_plan_shared_module.POLICY_FO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

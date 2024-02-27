@@ -71,7 +71,7 @@ export default class SurveyComponent extends VueComponentBase {
                 if (this.need_a_survey) {
                     //L'utilisateur a-t-il déjà complété ce survey ?
                     this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
-                    let user_id = this.user.id;
+                    const user_id = this.user.id;
                     this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyVO>();
                 }
 
@@ -153,7 +153,7 @@ export default class SurveyComponent extends VueComponentBase {
         }
 
 
-        let survey: SurveyVO = new SurveyVO();
+        const survey: SurveyVO = new SurveyVO();
 
 
         survey.route_name = this.$route.name;

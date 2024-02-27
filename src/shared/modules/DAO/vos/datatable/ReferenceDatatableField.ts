@@ -18,7 +18,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
     }
 
     get targetModuleTable(): ModuleTableVO<Target> {
-        return this.target_module_table_type_id ? VOsTypesManager.moduleTables_by_voType[this.target_module_table_type_id] : null;
+        return this.target_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.target_module_table_type_id] : null;
     }
 
     public voIdToHumanReadable: (id: number) => string = (id: number) => {
@@ -28,9 +28,9 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return '';
         }
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
-        let data: Target = vos[this.targetModuleTable.vo_type] ? vos[this.targetModuleTable.vo_type][id] : null;
+        const data: Target = vos[this.targetModuleTable.vo_type] ? vos[this.targetModuleTable.vo_type][id] : null;
         res = this.dataToHumanReadable(data);
         return res ? res : '';
     }
@@ -42,8 +42,8 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return '';
         }
 
-        for (let i in this.sortedTargetFields) {
-            let sortedTargetField = this.sortedTargetFields[i];
+        for (const i in this.sortedTargetFields) {
+            const sortedTargetField = this.sortedTargetFields[i];
 
             let field_value: string = sortedTargetField.dataToHumanReadableField(e);
             field_value = field_value ? field_value : "";
@@ -63,7 +63,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         this.init(_type, type, datatable_field_uid);
 
         this.target_module_table_type_id = targetModuleTable.vo_type;
-        for (let i in sortedTargetFields) {
+        for (const i in sortedTargetFields) {
             sortedTargetFields[i].vo_type_full_name = targetModuleTable.full_name;
             sortedTargetFields[i].vo_type_id = targetModuleTable.vo_type;
         }
@@ -71,7 +71,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
 
         let has_weight: boolean = false;
 
-        for (let i in targetModuleTable.get_fields()) {
+        for (const i in targetModuleTable.get_fields()) {
             if (targetModuleTable.get_fields()[i].field_id == "weight") {
                 has_weight = true;
                 break;

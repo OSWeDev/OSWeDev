@@ -67,8 +67,8 @@ export default class BGThreadServerController {
             return;
         }
 
-        for (let i in bgthread_names) {
-            let bgthread_name = bgthread_names[i];
+        for (const i in bgthread_names) {
+            const bgthread_name = bgthread_names[i];
             this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name] = Dates.now();
         }
     }
@@ -80,7 +80,7 @@ export default class BGThreadServerController {
      *      sinon on envoie le message au process principal
      */
     public static async executeBGThread(bgthread_name: string) {
-        if (!!ForkedProcessWrapperBase.getInstance()) {
+        if (ForkedProcessWrapperBase.getInstance()) {
 
             if (BGThreadServerController.valid_bgthreads_names[bgthread_name]) {
 
@@ -97,7 +97,7 @@ export default class BGThreadServerController {
                 (!ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name])) {
                 return false;
             }
-            let forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
+            const forked = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
             await ForkMessageController.send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
         }
     }
@@ -107,15 +107,15 @@ export default class BGThreadServerController {
             return;
         }
 
-        let now = Dates.now();
+        const now = Dates.now();
 
-        let promises = [];
+        const promises = [];
 
-        for (let bgthread_name in this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name) {
+        for (const bgthread_name in this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name) {
 
             promises.push((async () => {
-                let last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
-                let timeout_s = await ModuleParams.getInstance().getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
+                const last_tick_s = this.MAIN_THREAD_BGTHREAD_LAST_ALIVE_tick_sec_by_bgthread_name[bgthread_name];
+                const timeout_s = await ModuleParams.getInstance().getParamValueAsInt(BGThreadServerController.PARAM_NAME_BGTHREAD_LAST_ALIVE_TIMEOUT_PREFIX_s + '.' + bgthread_name, null, 60 * 60 * 1000);
 
                 // Timeout == null || timeout == 0 => pas de timeout
                 if ((!timeout_s) || (!last_tick_s)) {

@@ -53,7 +53,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -64,18 +64,18 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            let session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
+            const session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
             this.session_to_delete_by_sids = {};
 
-            let api_reqs: string[] = cloneDeep(this.api_reqs);
+            const api_reqs: string[] = cloneDeep(this.api_reqs);
             this.api_reqs = [];
 
-            let to_invalidate: IServerUserSession[] = [];
+            const to_invalidate: IServerUserSession[] = [];
 
-            for (let sid in session_to_delete_by_sids_cp) {
-                let session_to_delete = session_to_delete_by_sids_cp[sid];
+            for (const sid in session_to_delete_by_sids_cp) {
+                const session_to_delete = session_to_delete_by_sids_cp[sid];
 
-                if (!!session_to_delete.id) {
+                if (session_to_delete.id) {
                     continue;
                 }
 
@@ -149,7 +149,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }

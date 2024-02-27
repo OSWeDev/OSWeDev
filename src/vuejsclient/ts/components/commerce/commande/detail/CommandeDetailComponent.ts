@@ -40,8 +40,8 @@ export default class CommandeDetailComponent extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.details) {
-            let details: LigneCommandeDetailsVO = this.details[i];
+        for (const i in this.details) {
+            const details: LigneCommandeDetailsVO = this.details[i];
 
             if (details.ligne && details.ligne.prix_unitaire && details.ligne.quantite) {
                 total += (details.ligne.prix_unitaire * details.ligne.quantite);

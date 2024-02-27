@@ -138,8 +138,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         /**
          * On check avant le commit si il y a une modification de la sélection
          */
-        let old_value = this.active_filter_options;
-        let new_value = this.tmp_active_filter_options;
+        const old_value = this.active_filter_options;
+        const new_value = this.tmp_active_filter_options;
 
         if (ArrayHandler.is_same(old_value, new_value)) {
             return;
@@ -169,10 +169,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         if (!isEqual(this.tmp_active_filter_options, this.active_filter_options)) {
 
             if (!(this.active_filter_options?.length > 0)) {
-                let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
+                const res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
 
                 if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
-                    let selected = res[ObjectHandler.getFirstAttributeName(res)];
+                    const selected = res[ObjectHandler.getFirstAttributeName(res)];
 
                     const option = new DataFilterOption(
                         DataFilterOption.STATE_SELECTABLE,
@@ -197,7 +197,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             return;
         }
 
-        let selectable_options_by_ids: {
+        const selectable_options_by_ids: {
             [id: number]: IDistantVOBase
         } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
 
@@ -225,11 +225,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
         if (!this.option_label_func) {
             // On utilise la fonction de label de la table
-            if (!!this.moduletable?.default_label_field) {
+            if (this.moduletable?.default_label_field) {
                 return vo[this.moduletable.default_label_field.field_id];
             }
 
-            if (!!this.moduletable?.table_label_function) {
+            if (this.moduletable?.table_label_function) {
                 return this.moduletable.table_label_function(vo);
             }
         } else {
@@ -256,10 +256,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     private async select_all() {
-        let res: DataFilterOption[] = [];
+        const res: DataFilterOption[] = [];
 
-        for (let i in this.selectable_options_by_ids) {
-            let vo: IDistantVOBase = this.selectable_options_by_ids[i];
+        for (const i in this.selectable_options_by_ids) {
+            const vo: IDistantVOBase = this.selectable_options_by_ids[i];
 
             const option = new DataFilterOption(
                 DataFilterOption.STATE_SELECTABLE,
@@ -280,10 +280,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
-        let id_marker: number[] = [];
+        const id_marker: number[] = [];
 
-        for (let i in this.active_filter_options) {
-            let filter_zone_active_option: DataFilterOption = this.active_filter_options[i];
+        for (const i in this.active_filter_options) {
+            const filter_zone_active_option: DataFilterOption = this.active_filter_options[i];
 
             const option = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
@@ -297,14 +297,14 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         }
 
         if (!this.have_options) {
-            for (let i in this.selectable_options_by_ids) {
-                let vo: IDistantVOBase = this.selectable_options_by_ids[i];
+            for (const i in this.selectable_options_by_ids) {
+                const vo: IDistantVOBase = this.selectable_options_by_ids[i];
 
                 if (id_marker.indexOf(vo.id) > -1) {
                     continue;
                 }
 
-                let label = this.get_label(vo);
+                const label = this.get_label(vo);
                 if (((!!this.actual_query) && (new RegExp('.*' + this.actual_query + '.*', 'i')).test(label)) || (!this.actual_query)) {
                     res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id));
                 }
@@ -335,7 +335,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     get selectable_options_by_ids(): { [id: number]: IDistantVOBase } {
-        let res: { [id: number]: IDistantVOBase } = {};
+        const res: { [id: number]: IDistantVOBase } = {};
 
         try {
 
@@ -343,8 +343,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 return res;
             }
 
-            for (let id in this.all_by_ids) {
-                let vo = this.all_by_ids[id];
+            for (const id in this.all_by_ids) {
+                const vo = this.all_by_ids[id];
 
                 let vo_res: boolean = true;
                 for (const j in this.depends_on_api_type_ids) {
@@ -354,8 +354,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                      * Si !depends_on_api_type_id_active_options => ! depends_on_mandatory[depends_on_api_type_id]
                      * Sinon depends_on_condition[depends_on_api_type_id](vo, depends_on_api_type_id_active_options)
                      */
-                    let depends_on_api_type_id_active_options: DataFilterOption[] = this.$store.state[this.store_module_uid]['filter_' + depends_on_api_type_id + '_active_options'];
-                    let depends_on_api_type_id_all_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['all_' + depends_on_api_type_id + '_by_ids'];
+                    const depends_on_api_type_id_active_options: DataFilterOption[] = this.$store.state[this.store_module_uid]['filter_' + depends_on_api_type_id + '_active_options'];
+                    const depends_on_api_type_id_all_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['all_' + depends_on_api_type_id + '_by_ids'];
 
                     if (!(depends_on_api_type_id_active_options?.length > 0)) {
                         if (this.depends_on_mandatory[depends_on_api_type_id]) {
@@ -390,7 +390,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     get all_by_ids(): { [id: number]: IDistantVOBase } {
         try {
 
-            let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
+            const res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
 
             if (this.preselect_first_if_one_element && ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
                 const selected = res[ObjectHandler.getFirstAttributeName(res)];
@@ -414,7 +414,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     get moduletable(): ModuleTableVO {
-        return VOsTypesManager.moduleTables_by_voType[this.api_type_id];
+        return ModuleTableController.module_tables_by_vo_type[this.api_type_id];
     }
 
     get internal_store_filter_state_uid(): string {

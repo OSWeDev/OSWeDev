@@ -32,7 +32,7 @@ export default class ThrottlePipelineHelper {
         max_stack_size: number
     ) {
 
-        let UID = ThrottlePipelineHelper.UID++;
+        const UID = ThrottlePipelineHelper.UID++;
         ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID] = pipeline_name;
         setTimeout(() => {
             ThrottlePipelineHelper.unstack_throttled_pipeline_process(UID, func, wait_ms, pipeline_size, max_stack_size);
@@ -45,7 +45,7 @@ export default class ThrottlePipelineHelper {
                 if (!ThrottlePipelineHelper.throttled_pipeline_call_ids[UID]) {
                     ThrottlePipelineHelper.throttled_pipeline_call_ids[UID] = 0;
                 }
-                let call_id = ThrottlePipelineHelper.throttled_pipeline_call_ids[UID]++;
+                const call_id = ThrottlePipelineHelper.throttled_pipeline_call_ids[UID]++;
 
                 if (!ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID]) {
                     ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID] = {};
@@ -112,7 +112,7 @@ export default class ThrottlePipelineHelper {
         max_stack_size: number
     ) {
 
-        let promise_pipeline = new PromisePipeline(pipeline_size, 'ThrottledPipeline.' + ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID]);
+        const promise_pipeline = new PromisePipeline(pipeline_size, 'ThrottledPipeline.' + ThrottlePipelineHelper.throttled_pipeline_names_by_UID[UID]);
 
         while (true) {
 
@@ -121,7 +121,7 @@ export default class ThrottlePipelineHelper {
                 continue;
             }
 
-            let params_by_call_id: { [call_id: number]: ParamType } = ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
+            const params_by_call_id: { [call_id: number]: ParamType } = ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
             delete ThrottlePipelineHelper.throttled_pipeline_stack_args[UID];
 
             // On fait des paquets de params en fonction du max_stack_size
@@ -129,8 +129,8 @@ export default class ThrottlePipelineHelper {
             let params_by_index: { [index: string | number]: ParamType } = {};
             let current_stack_param_by_call_id: { [call_id: number]: ParamType } = {};
 
-            for (let call_id in params_by_call_id) {
-                let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+            for (const call_id in params_by_call_id) {
+                const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
                 params_by_index[index] = params_by_call_id[call_id];
                 current_stack_param_by_call_id[call_id] = params_by_call_id[call_id];
 
@@ -143,7 +143,7 @@ export default class ThrottlePipelineHelper {
                 }
             }
 
-            if (!!current_stack_size) {
+            if (current_stack_size) {
                 await ThrottlePipelineHelper.handle_throttled_pipeline_call(UID, func, current_stack_param_by_call_id, promise_pipeline, params_by_index);
             }
         }
@@ -159,13 +159,13 @@ export default class ThrottlePipelineHelper {
         await promise_pipeline.push(async () => {
 
             try {
-                let func_result: { [index: string | number]: ResultType } = await func(params_by_index);
+                const func_result: { [index: string | number]: ResultType } = await func(params_by_index);
 
                 // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-                let promises = [];
-                for (let i in params_by_call_id) {
-                    let call_id = parseInt(i);
-                    let index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
+                const promises = [];
+                for (const i in params_by_call_id) {
+                    const call_id = parseInt(i);
+                    const index = ThrottlePipelineHelper.throttled_pipeline_index_by_call_id[UID][call_id];
 
                     promises.push(ThrottlePipelineHelper.throttled_pipeline_call_resolvers_by_call_id[UID][call_id](func_result ? func_result[index] : null));
 
@@ -179,9 +179,9 @@ export default class ThrottlePipelineHelper {
                 ConsoleHandler.error('ThrottlePipelineHelper.handle_throttled_pipeline_call:' + error);
 
                 // On repart des params, ce qui permet de ne pas avoir de résultat pour un index plutôt que d'envoyer null ou undefined
-                let promises = [];
-                for (let i in params_by_call_id) {
-                    let call_id = parseInt(i);
+                const promises = [];
+                for (const i in params_by_call_id) {
+                    const call_id = parseInt(i);
 
                     promises.push(ThrottlePipelineHelper.throttled_pipeline_call_rejecters_by_call_id[UID][call_id](error));
 

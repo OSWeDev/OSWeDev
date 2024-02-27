@@ -38,17 +38,17 @@ export default class LangSelectorComponent extends VueComponentBase {
             return;
         }
 
-        let langs_: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+        const langs_: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
 
         // Si on a qu'une langue, on ne choisit pas
         if ((!langs_) || (langs_.length <= 1)) {
             return;
         }
 
-        let self = this;
-        let promises = [];
-        for (let i in langs_) {
-            let lang: LangVO = langs_[i];
+        const self = this;
+        const promises = [];
+        for (const i in langs_) {
+            const lang: LangVO = langs_[i];
 
             promises.push((async () => {
                 if (ModuleAccessPolicy.getInstance().testAccess(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id))) {

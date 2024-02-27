@@ -107,8 +107,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private async switch_kanban_column() {
         if (!this.kanban_column) {
             // On doit vérifier et retirer le param des autres colonnes si une autre était déjà active
-            for (let i in this.widget_options.columns) {
-                let column: TableColumnDescVO = this.widget_options.columns[i];
+            for (const i in this.widget_options.columns) {
+                const column: TableColumnDescVO = this.widget_options.columns[i];
                 if (column.kanban_column) {
                     column.kanban_column = false;
                     this.$emit('update_column', column);
@@ -126,7 +126,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return false;
         }
 
-        let table = VOsTypesManager.moduleTables_by_voType[this.column.api_type_id];
+        const table = ModuleTableController.module_tables_by_vo_type[this.column.api_type_id];
         if (!table) {
             return false;
         }
@@ -139,31 +139,31 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     get show_if_any_active_filter_options(): number[] {
-        let self = this;
+        const self = this;
         return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
 
-            let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+            const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
 
             return options && options.vo_field_ref && options.vo_field_ref.api_type_id && options.vo_field_ref.field_id && (self.all_filter_widgets_ids.indexOf(page_widget.widget_id) > -1);
         }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
     }
 
     get do_not_user_filter_active_ids_options(): number[] {
-        let self = this;
+        const self = this;
         return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
 
-            let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+            const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
 
             return options && options.vo_field_ref && options.vo_field_ref.api_type_id && options.vo_field_ref.field_id && (self.all_filter_widgets_ids.indexOf(page_widget.widget_id) > -1);
         }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
     }
 
     private show_if_any_filter_active_label(page_widget_id: number): string {
-        let page_widget = this.page_widget_by_id[page_widget_id];
+        const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
         }
-        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
         if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
             return "[" + page_widget.id + "] " + "???";
         }
@@ -171,11 +171,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private hide_if_any_filter_active_label(page_widget_id: number): string {
-        let page_widget = this.page_widget_by_id[page_widget_id];
+        const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
         }
-        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
         if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
             return "[" + page_widget.id + "] " + "???";
         }
@@ -183,11 +183,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private do_not_user_filter_active_ids_label(page_widget_id: number): string {
-        let page_widget = this.page_widget_by_id[page_widget_id];
+        const page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
         }
-        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
         if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
             return "[" + page_widget.id + "] " + "???";
         }
@@ -222,13 +222,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     get fields_that_could_get_custom_filter(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.object_column || !this.object_column.var_id) {
             return null;
         }
 
-        let var_param_type = VarsController.var_conf_by_id[this.object_column.var_id].var_data_vo_type;
+        const var_param_type = VarsController.var_conf_by_id[this.object_column.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -237,9 +237,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             this.custom_filter_names = {};
         }
 
-        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
 
             if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
@@ -284,7 +284,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.column.api_type_id];
+        return ModuleTableController.module_tables_by_vo_type[this.column.api_type_id];
     }
 
     get field(): ModuleTableFieldVO {
@@ -304,7 +304,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let res: string[] = [
+        const res: string[] = [
             this.t(this.table.label.code_text),
             this.t(this.field.field_label.code_text)
         ];
@@ -329,15 +329,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private async mounted() {
-        let promises = [];
-        let self = this;
+        const promises = [];
+        const self = this;
 
         promises.push(((async () => {
-            let all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').set_query_distinct().filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
+            const all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').set_query_distinct().filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
             self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
         })()));
         promises.push(((async () => {
-            let policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
+            const policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
 
             self.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
         })()));
@@ -396,21 +396,21 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.default_sort_field = this.object_column ? this.object_column.default_sort_field : null;
 
         if (this.object_column && this.object_column.is_enum) {
-            let field = VOsTypesManager.moduleTables_by_voType[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
+            const field = ModuleTableController.module_tables_by_vo_type[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
             this.enum_options = field.enum_values;
             this.enum_bg_colors = Object.assign({}, this.object_column.enum_bg_colors);
             this.enum_fg_colors = Object.assign({}, this.object_column.enum_fg_colors);
 
             if ((!this.enum_bg_colors) || (Object.keys(this.enum_bg_colors).length != Object.keys(field.enum_values).length)) {
                 this.enum_bg_colors = Object.assign({}, field.enum_values);
-                for (let i in this.enum_bg_colors) {
+                for (const i in this.enum_bg_colors) {
                     this.enum_bg_colors[i] = '#555';
                 }
             }
 
             if ((!this.enum_fg_colors) || (Object.keys(this.enum_fg_colors).length != Object.keys(field.enum_values).length)) {
                 this.enum_fg_colors = Object.assign({}, field.enum_values);
-                for (let i in this.enum_fg_colors) {
+                for (const i in this.enum_fg_colors) {
                     this.enum_fg_colors[i] = '#FFF';
                 }
             }
@@ -483,14 +483,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
          * Si on a pas de différence entre les confs, on update rien
          */
         let has_diff = false;
-        for (let i in this.enum_bg_colors) {
+        for (const i in this.enum_bg_colors) {
             if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
                 continue;
             }
             has_diff = true;
             break;
         }
-        for (let i in this.enum_fg_colors) {
+        for (const i in this.enum_fg_colors) {
             if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
                 continue;
             }
@@ -614,7 +614,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return [];
         }
 
-        let res = TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        const res = TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }
@@ -626,7 +626,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         let options: TableWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
                 options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
@@ -655,7 +655,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_component;
         new_column.component_name = this.new_column_select_type_component;
         new_column.id = this.get_new_column_id();
@@ -688,7 +688,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_var_ref;
         new_column.var_id = VarsController.var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.var_unicity_id = Dates.now();
@@ -721,8 +721,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return false;
         }
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
         if ((!api_type_id) || (!field_id)) {
             return false;
         }
@@ -733,14 +733,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private drop(event) {
         event.preventDefault();
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
 
         if (this.object_column) {
             return;
         }
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_vo_field_ref;
         new_column.api_type_id = api_type_id;
         new_column.field_id = field_id;
@@ -769,7 +769,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.new_header_columns = event.target.previousElementSibling._value;
 
         for (const key in this.widget_options.columns) {
-            let col = this.widget_options.columns[key];
+            const col = this.widget_options.columns[key];
             if (col.type == TableColumnDescVO.TYPE_header) {
                 if (col.header_name === this.new_header_columns) {
                     this.error = true;
@@ -781,13 +781,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         if (!this.new_header_columns) {
             return;
         }
-        let header_name: string = this.new_header_columns;
+        const header_name: string = this.new_header_columns;
 
         if (this.object_column) {
             return;
         }
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_header;
         new_column.header_name = header_name;
         new_column.id = this.get_new_column_id();
@@ -1016,7 +1016,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return null;
                 }
 
-                let field = VOsTypesManager.moduleTables_by_voType[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
+                const field = ModuleTableController.module_tables_by_vo_type[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
 
                 if (!field) {
                     return this.object_column.field_id;

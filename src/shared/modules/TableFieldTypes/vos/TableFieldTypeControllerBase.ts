@@ -1,7 +1,6 @@
 import Datatable from '../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import ITableFieldTypeCreateUpdateComponent from '../interfaces/ITableFieldTypeCreateUpdateComponent';
 import ITableFieldTypeReadComponent from '../interfaces/ITableFieldTypeReadComponent';

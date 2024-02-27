@@ -5,7 +5,7 @@ export default class NumSegment implements ISegment {
     public static TYPE_INT: number = 0;
 
     public static fromNumAndType(num: number, type: number) {
-        let res = new NumSegment();
+        const res = new NumSegment();
 
         res.index = num;
         res.type = type;

@@ -18,7 +18,7 @@ export default class AzureMemoryCheckServerController {
         }
         AzureMemoryCheckServerController.memory_usage_datas.push(value);
 
-        let last_usage = AzureMemoryCheckServerController.memory_usage_datas[AzureMemoryCheckServerController.memory_usage_datas.length - 1];
+        const last_usage = AzureMemoryCheckServerController.memory_usage_datas[AzureMemoryCheckServerController.memory_usage_datas.length - 1];
 
         if (last_usage >= 90) {
             ConsoleHandler.error('Mémoire RAM AZURE proche saturation : ' + last_usage + ' % - on bloque les requêtes en attendant de retrouver de la mémoire');
@@ -28,7 +28,7 @@ export default class AzureMemoryCheckServerController {
             return;
         }
 
-        let augmentation = AzureMemoryCheckServerController.getMemoryUsageAugmentation();
+        const augmentation = AzureMemoryCheckServerController.getMemoryUsageAugmentation();
 
         if (augmentation == 0) {
             return;
@@ -109,13 +109,13 @@ export default class AzureMemoryCheckServerController {
         let acceleration = 0;
         let nb_elts = 0;
 
-        for (let istr in this.memory_usage_datas) {
-            let i = parseInt(istr);
+        for (const istr in this.memory_usage_datas) {
+            const i = parseInt(istr);
             if (!i) {
                 continue;
             }
-            let elt_m1 = this.memory_usage_datas[i - 1];
-            let elt = this.memory_usage_datas[i];
+            const elt_m1 = this.memory_usage_datas[i - 1];
+            const elt = this.memory_usage_datas[i];
 
             if ((!elt_m1) || (!elt)) {
                 continue;

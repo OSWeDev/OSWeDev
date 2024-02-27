@@ -65,26 +65,26 @@ export default class ModuleSupervision extends Module {
     }
 
     private initializeSupervisedCategoryVO() {
-        let name_field = ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
+        const name_field = ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
 
-        let fields = [
+        const fields = [
             name_field,
             ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
         ];
 
-        let datatable = new ModuleTableVO(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
+        const datatable = new ModuleTableVO(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
 
         this.datatables.push(datatable);
     }
 
     private initializeSupervisedCRONVO() {
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true),
             ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true),
         ];
 
-        let datatable = new ModuleTableVO(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
+        const datatable = new ModuleTableVO(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
         this.datatables.push(datatable);
         SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
     }

@@ -67,10 +67,10 @@ export default class ModuleMenu extends Module {
 
     private initializeMenuElementVO() {
 
-        let name = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
-        let menu_parent_id = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().menu_parent_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Lien parent', false);
+        const name = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const menu_parent_id = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().menu_parent_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Lien parent', false);
 
-        let fields = [
+        const fields = [
             name,
             menu_parent_id,
 
@@ -89,7 +89,7 @@ export default class ModuleMenu extends Module {
             ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().access_policy_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé du droit d\'accès', false, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
         ];
 
-        let table = new ModuleTableVO(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
+        const table = new ModuleTableVO(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
         this.datatables.push(table);
 
         menu_parent_id.set_many_to_one_target_moduletable_name(table.vo_type);

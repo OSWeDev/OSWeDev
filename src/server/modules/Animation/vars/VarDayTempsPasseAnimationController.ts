@@ -91,21 +91,21 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
-        let animation_params: AnimationParametersVO = varDAGNode.datasources[AnimationParamsRangesDatasourceController.getInstance().name];
+        const ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
+        const animation_params: AnimationParametersVO = varDAGNode.datasources[AnimationParamsRangesDatasourceController.getInstance().name];
 
         let cpt_ums: number = 0;
         let temps_total_passe: number = 0;
 
-        for (let module_id in ums_by_module_user) {
-            for (let user_id in ums_by_module_user[module_id]) {
-                let aum: AnimationUserModuleVO = ums_by_module_user[module_id][user_id];
+        for (const module_id in ums_by_module_user) {
+            for (const user_id in ums_by_module_user[module_id]) {
+                const aum: AnimationUserModuleVO = ums_by_module_user[module_id][user_id];
 
                 if (!aum.end_date || !aum.start_date) {
                     continue;
                 }
 
-                let temps_passe: number = Dates.diff(aum.end_date, aum.start_date, TimeSegment.TYPE_HOUR, true);
+                const temps_passe: number = Dates.diff(aum.end_date, aum.start_date, TimeSegment.TYPE_HOUR, true);
 
                 if (animation_params && animation_params.limite_temps_passe_module) {
                     if (temps_passe > animation_params.limite_temps_passe_module) {

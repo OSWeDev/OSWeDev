@@ -74,6 +74,9 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModulesManager from '../../../shared/modules/ModulesManager';
+import ModuleVO from '../../../shared/modules/ModuleVO';
+import Module from '../../../shared/modules/Module';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -192,12 +195,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On doit déclarer les access policies de tous les VO
         let lang: LangVO = is_generator ? await ModuleTranslation.getInstance().getLang(DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION) : null;
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable: = VOsTypesManager.moduleTables_by_voType[i];
+        for (let i in ModuleTableController.module_tables_by_vo_type) {
+            let moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[i];
             let vo_type: string = moduleTable.vo_type;
 
             // Uniquement si le module est actif, mais là encore est-ce une erreur ? ...
-            if (moduleTable.module && !moduleTable.module.actif) {
+            if (moduleTable.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(moduleTable.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 
@@ -206,7 +209,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // Par contre si on est pas sur le générateur, on refuse de faire la requête pour la trad
 
                 let vo_translation: string = vo_type;
-                let vo_type_translatable_code: string = VOsTypesManager.moduleTables_by_voType[vo_type].label ? VOsTypesManager.moduleTables_by_voType[vo_type].label.code_text : null;
+                let vo_type_translatable_code: string = ModuleTableController.module_tables_by_vo_type[vo_type].label ? ModuleTableController.module_tables_by_vo_type[vo_type].label.code_text : null;
                 let translation_from_bdd: TranslationVO = (is_generator && lang && vo_type_translatable_code) ? await query(TranslationVO.API_TYPE_ID)
                     .filter_by_id(lang.id, LangVO.API_TYPE_ID)
                     .filter_by_text_eq('code_text', vo_type_translatable_code, TranslatableTextVO.API_TYPE_ID)
@@ -238,7 +241,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 let group = moduleTable.isModuleParamTable ? group_modules_conf : group_datas;
-                let module_ = await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null);
+                let module_ = await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module_name);
 
                 // On déclare les 4 policies et leurs dépendances
 
@@ -356,7 +359,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: = ModuleTableController.module_tables_by_vo_type[vo._type];
 
         if (!moduleTable) {
             ConsoleHandler.error("Impossible de trouver le moduleTable de ce _type ! " + JSON.stringify(vo));
@@ -514,7 +517,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (is_segmented_type[vo._type] == null) {
-                is_segmented_type[vo._type] = VOsTypesManager.moduleTables_by_voType[vo._type].is_segmented;
+                is_segmented_type[vo._type] = ModuleTableController.module_tables_by_vo_type[vo._type].is_segmented;
             }
 
             if (!is_segmented_type[vo._type]) {
@@ -525,7 +528,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 segment_ok_by_type_and_segment_value[vo._type] = [];
             }
 
-            let moduletable = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let moduletable = ModuleTableController.module_tables_by_vo_type[vo._type];
             let segment_value = moduletable.get_segmented_field_value_from_vo(vo);
             let table_name = moduletable.get_segmented_name_from_vo(vo);
 
@@ -545,7 +548,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // ATTENTION : ne pas mettre en tableau de promises, et ne pas utiliser dans un promise pipeline par exemple. On ne doit pas paralléliser la création de tables segmentées
         for (let vo_type in tables_to_create_numranges) {
             let numranges = tables_to_create_numranges[vo_type];
-            let moduletable = VOsTypesManager.moduleTables_by_voType[vo_type];
+            let moduletable = ModuleTableController.module_tables_by_vo_type[vo_type];
 
             if (!numranges || (numranges.length == 0)) {
                 continue;
@@ -782,7 +785,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         if (!moduleTable) {
             return null;
@@ -922,7 +925,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos(api_type_id: string) {
 
-        let datatable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable = ModuleTableController.module_tables_by_vo_type[api_type_id];
         if (datatable.is_segmented) {
 
             let ranges = this.get_all_ranges_from_segmented_table(datatable);
@@ -970,8 +973,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         vos = vos.filter((vo) =>
-            (!!vo) && vo._type && VOsTypesManager.moduleTables_by_voType[vo._type] &&
-            (exec_as_server || DAOServerController.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
+            (!!vo) && vo._type && ModuleTableController.module_tables_by_vo_type[vo._type] &&
+            (exec_as_server || DAOServerController.checkAccessSync(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
 
         if ((!vos) || (!vos.length)) {
             return null;
@@ -982,7 +985,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let tmp_vos = [];
             for (let i in vos) {
                 let vo = vos[i];
-                let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+                let tmp_vo = await this.filterVOAccess(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
                 if (!!tmp_vo) {
                     tmp_vos.push(tmp_vo);
@@ -1010,7 +1013,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in vos) {
             let vo: IDistantVOBase = vos[i];
 
-            let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let moduleTable: = ModuleTableController.module_tables_by_vo_type[vo._type];
             let tablename: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name_from_vo(vo) : moduleTable.full_name;
 
             if (!vos_by_vo_tablename_and_ids[tablename]) {
@@ -1270,8 +1273,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         vos = vos.filter((vo) =>
-            (!!vo) && vo._type && VOsTypesManager.moduleTables_by_voType[vo._type] &&
-            (exec_as_server || DAOServerController.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
+            (!!vo) && vo._type && ModuleTableController.module_tables_by_vo_type[vo._type] &&
+            (exec_as_server || DAOServerController.checkAccessSync(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
 
         if ((!vos) || (!vos.length)) {
             return true;
@@ -1282,7 +1285,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let tmp_vos = [];
             for (let i in vos) {
                 let vo = vos[i];
-                let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+                let tmp_vo = await this.filterVOAccess(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
                 if (!!tmp_vo) {
                     tmp_vos.push(tmp_vo);
@@ -1310,7 +1313,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
                 //  *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
                 //  */
-                // if (VOsTypesManager.moduleTables_by_voType[vo._type].isMatroidTable) {
+                // if (ModuleTableController.module_tables_by_vo_type[vo._type].isMatroidTable) {
                 //     let conf = VarsController.var_conf_by_id[vo['var_id']];
                 //     if (conf && conf.pixel_activated && conf.pixel_never_delete) {
 
@@ -1362,7 +1365,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         vos = insert_vos;
 
-        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vos[0]._type];
+        let moduleTable: = ModuleTableController.module_tables_by_vo_type[vos[0]._type];
 
         if (moduleTable.is_segmented && !segmented_value) {
             throw new Error('Not implemented');
@@ -1660,7 +1663,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         if (!datatable) {
             ConsoleHandler.error("Impossible de trouver le datatable ! " + api_type_id);
@@ -1711,7 +1714,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
         distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
 
-        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
         if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
@@ -1818,7 +1821,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @deprecated use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();]
      */
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
-        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
         if (!DAOServerController.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
@@ -1936,7 +1939,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
      */
     public async selectOneUser(login: string, password: string, check_pwd: boolean = true): Promise<UserVO> {
-        // let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTableVO<UserVO> = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
 
         try {
 
@@ -1990,7 +1993,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @returns true if uniq
      */
     public async selectUsersForCheckUnicity(name: string, email: string, phone: string, user_id: number): Promise<boolean> {
-        // let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        // let datatable: ModuleTableVO<UserVO> = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
 
         try {
 
@@ -2050,7 +2053,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
      */
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
-        let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let datatable: ModuleTableVO<UserVO> = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
 
         try {
             let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(" + login.toLowerCase().trim();
@@ -2073,7 +2076,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
      */
     public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
-        let datatable: ModuleTableVO<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let datatable: ModuleTableVO<UserVO> = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
 
         let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = " + uid + " and blocked = false";
         let query_uid = LogDBPerfServerController.log_db_query_perf_start('selectOneUserForRecoveryUID', query_string);
@@ -2157,7 +2160,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'IN');
-        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: = ModuleTableController.module_tables_by_vo_type[vo._type];
 
         if (!moduleTable) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'USELESS');
@@ -2247,11 +2250,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On vérifie qu'on peut faire un delete
-        if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.moduleTables_by_voType[vos[0]._type])) {
+        if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!ModuleTableController.module_tables_by_vo_type[vos[0]._type])) {
             StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'invalid_vo');
             return null;
         }
-        if (!DAOServerController.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+        if (!DAOServerController.checkAccessSync(ModuleTableController.module_tables_by_vo_type[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
             StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'failed_checkAccessSync');
             return null;
         }
@@ -2260,7 +2263,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let tmp_vos = [];
         for (let i in vos) {
             let vo = vos[i];
-            let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+            let tmp_vo = await this.filterVOAccess(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
             if (!!tmp_vo) {
                 tmp_vos.push(tmp_vo);
@@ -2289,7 +2292,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let moduletable: = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduletable: = ModuleTableController.module_tables_by_vo_type[vo._type];
 
                 if (!moduletable) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'no_moduletable');
@@ -2416,7 +2419,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let tmp_vos = [];
         for (let i in vos) {
             let vo = vos[i];
-            let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+            let tmp_vo = await this.filterVOAccess(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
             if (!!tmp_vo) {
                 tmp_vos.push(tmp_vo);
@@ -2492,7 +2495,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return 0;
         }
 
-        let moduleTable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
         if (moduleTable.is_segmented) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'countVosByIdsRanges', 'segmented');
@@ -2518,7 +2521,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         if (!datatable) {
             return null;
@@ -2570,7 +2573,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTableVO<T> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: ModuleTableVO<T> = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         if (!datatable) {
             return null;
@@ -2659,8 +2662,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         vos = vos.filter((vo) =>
-            (!!vo) && (!vo.id) && vo._type && VOsTypesManager.moduleTables_by_voType[vo._type] &&
-            (exec_as_server || DAOServerController.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
+            (!!vo) && (!vo.id) && vo._type && ModuleTableController.module_tables_by_vo_type[vo._type] &&
+            (exec_as_server || DAOServerController.checkAccessSync(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)));
 
         if ((!vos) || (!vos.length)) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'NOTHING_TO_DO');
@@ -2676,7 +2679,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo = vos[i];
 
                 await promises_pipeline.push(async () => {
-                    let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+                    let tmp_vo = await this.filterVOAccess(ModuleTableController.module_tables_by_vo_type[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
                     if (!!tmp_vo) {
                         tmp_vos.push(tmp_vo);
@@ -2720,7 +2723,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
-                let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduleTable: = ModuleTableController.module_tables_by_vo_type[vo._type];
 
                 if (!moduleTable) {
                     return null;
@@ -2886,14 +2889,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     /**
                      * On doit traduire les valeurs des champs mais pas les field_ids au format api
                      */
-                    // let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+                    // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
                     // let fields = table.get_fields();
                     // for (let j in fields) {
                     //     let field = fields[j];
 
                     //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
                     // }
-                    vo = ModuleTableVO.default_get_api_version(vo, false);
+                    vo = ModuleTableController.translate_vos_to_api(vo, false);
 
                     let update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
                     if (update_res && update_res.length) {
@@ -2924,14 +2927,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             /**
              * On doit traduire les valeurs des champs mais pas les field_ids au format api
              */
-            // let table = VOsTypesManager.moduleTables_by_voType[vo._type];
+            // let table = ModuleTableController.module_tables_by_vo_type[vo._type];
             // let fields = table.get_fields();
             // for (let i in fields) {
             //     let field = fields[i];
 
             //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
             // }
-            vo = ModuleTableVO.default_get_api_version(vo, false);
+            vo = ModuleTableController.translate_vos_to_api(vo, false);
 
             let res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
             if (res && res.length) {

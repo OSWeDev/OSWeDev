@@ -36,11 +36,11 @@ export default class PushDataVueModule extends VueModuleBase {
     private static instance: PushDataVueModule = null;
 
     private static async joinAllRoomsAgain() {
-        for (let room_id in VOEventRegistrationsHandler.registered_vo_create_callbacks) {
-            let room_fields: string[] = [];
-            for (let i in VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id]) {
-                let room_vo = JSON.parse(room_id);
-                for (let j in room_vo) {
+        for (const room_id in VOEventRegistrationsHandler.registered_vo_create_callbacks) {
+            const room_fields: string[] = [];
+            for (const i in VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id]) {
+                const room_vo = JSON.parse(room_id);
+                for (const j in room_vo) {
                     room_fields.push(j);
                     room_fields.push(JSON.stringify(room_vo[j]));
                 }
@@ -48,11 +48,11 @@ export default class PushDataVueModule extends VueModuleBase {
             await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
-        for (let room_id in VOEventRegistrationsHandler.registered_vo_update_callbacks) {
-            let room_fields: string[] = [];
-            for (let i in VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id]) {
-                let room_vo = JSON.parse(room_id);
-                for (let j in room_vo) {
+        for (const room_id in VOEventRegistrationsHandler.registered_vo_update_callbacks) {
+            const room_fields: string[] = [];
+            for (const i in VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id]) {
+                const room_vo = JSON.parse(room_id);
+                for (const j in room_vo) {
                     room_fields.push(j);
                     room_fields.push(JSON.stringify(room_vo[j]));
                 }
@@ -60,11 +60,11 @@ export default class PushDataVueModule extends VueModuleBase {
             await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
-        for (let room_id in VOEventRegistrationsHandler.registered_vo_delete_callbacks) {
-            let room_fields: string[] = [];
-            for (let i in VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id]) {
-                let room_vo = JSON.parse(room_id);
-                for (let j in room_vo) {
+        for (const room_id in VOEventRegistrationsHandler.registered_vo_delete_callbacks) {
+            const room_fields: string[] = [];
+            for (const i in VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id]) {
+                const room_vo = JSON.parse(room_id);
+                for (const j in room_vo) {
                     room_fields.push(j);
                     room_fields.push(JSON.stringify(room_vo[j]));
                 }
@@ -83,7 +83,7 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     public initialize() {
-        let self = this;
+        const self = this;
         let first = true;
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
@@ -218,7 +218,7 @@ export default class PushDataVueModule extends VueModuleBase {
      * @returns Si on a pas la même version entre le front et le back, on recharge la page
      */
     private async check_version_app() {
-        let server_app_version: string = await ModulePushData.getInstance().get_app_version();
+        const server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
         if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
 
@@ -258,20 +258,20 @@ export default class PushDataVueModule extends VueModuleBase {
         /**
          * On regroupe par type pour gérer en bloc ensuite
          */
-        let TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
-        let TYPE_NOTIF_DAO: NotificationVO[] = [];
-        let TYPE_NOTIF_VARDATA: NotificationVO[] = [];
-        let TYPE_NOTIF_TECH: NotificationVO[] = [];
-        let TYPE_NOTIF_PROMPT: NotificationVO[] = [];
-        let TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
-        let TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
-        let TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
-        let TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
-        let TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
-        let TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
+        const TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
+        const TYPE_NOTIF_DAO: NotificationVO[] = [];
+        const TYPE_NOTIF_VARDATA: NotificationVO[] = [];
+        const TYPE_NOTIF_TECH: NotificationVO[] = [];
+        const TYPE_NOTIF_PROMPT: NotificationVO[] = [];
+        const TYPE_NOTIF_REDIRECT: NotificationVO[] = [];
+        const TYPE_NOTIF_APIRESULT: NotificationVO[] = [];
+        const TYPE_NOTIF_DOWNLOAD_FILE: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_CREATED: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_UPDATED: NotificationVO[] = [];
+        const TYPE_NOTIF_VO_DELETED: NotificationVO[] = [];
 
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
             switch (notification.notification_type) {
                 case NotificationVO.TYPE_NOTIF_SIMPLE:
@@ -356,12 +356,12 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_CREATED(notifications: NotificationVO[]) {
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            for (let j in VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id]) {
-                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
-                let vo = vos[0];
+            for (const j in VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id]) {
+                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+                const vo = vos[0];
 
                 VOEventRegistrationsHandler.registered_vo_create_callbacks[notification.room_id][j](vo);
             }
@@ -369,32 +369,32 @@ export default class PushDataVueModule extends VueModuleBase {
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_UPDATED(notifications: NotificationVO[]) {
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            for (let j in VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id]) {
-                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+            for (const j in VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id]) {
+                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 VOEventRegistrationsHandler.registered_vo_update_callbacks[notification.room_id][j](vos[0], vos[1]);
             }
         }
     }
 
     private async notifications_handler_TYPE_NOTIF_VO_DELETED(notifications: NotificationVO[]) {
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            for (let j in VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id]) {
-                let vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+            for (const j in VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id]) {
+                const vos: IDistantVOBase[] = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 VOEventRegistrationsHandler.registered_vo_delete_callbacks[notification.room_id][j](vos[0]);
             }
         }
     }
 
     private async notifications_handler_TYPE_NOTIF_APIRESULT(notifications: NotificationVO[]) {
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            let api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
+            const api_result: APINotifTypeResultVO = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos))[0];
 
             if (!api_result) {
                 ConsoleHandler.error("API result not found for notification:" + notification);
@@ -418,11 +418,11 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private async notifications_handler_TYPE_NOTIF_PROMPT(notifications: NotificationVO[]) {
 
-        let unreads: NotificationVO[] = [];
-        for (let i in notifications) {
-            let notification = notifications[i];
+        const unreads: NotificationVO[] = [];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            let content = notification.simple_notif_json_params ?
+            const content = notification.simple_notif_json_params ?
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             VueAppBase.instance_.vueInstance.snotify.prompt(content, {
@@ -454,11 +454,11 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private async notifications_handler_TYPE_NOTIF_SIMPLE(notifications: NotificationVO[]) {
 
-        let unreads: NotificationVO[] = [];
-        for (let i in notifications) {
-            let notification = notifications[i];
+        const unreads: NotificationVO[] = [];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            let content = notification.simple_notif_json_params ?
+            const content = notification.simple_notif_json_params ?
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
@@ -485,25 +485,25 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private async notifications_handler_TYPE_NOTIF_DOWNLOAD_FILE(notifications: NotificationVO[]) {
 
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
             if (!notification.simple_downloadable_link) {
                 continue;
             }
 
-            let iframe = $('<iframe style="display:none" src="' + notification.simple_downloadable_link + '"></iframe>');
+            const iframe = $('<iframe style="display:none" src="' + notification.simple_downloadable_link + '"></iframe>');
             $('body').append(iframe);
         }
     }
 
     private async notifications_handler_TYPE_NOTIF_REDIRECT(notifications: NotificationVO[]) {
 
-        let unreads: NotificationVO[] = [];
-        for (let i in notifications) {
-            let notification = notifications[i];
+        const unreads: NotificationVO[] = [];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            let content = notification.simple_notif_json_params ?
+            const content = notification.simple_notif_json_params ?
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) :
                 LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
@@ -532,19 +532,19 @@ export default class PushDataVueModule extends VueModuleBase {
      * TODO à optimiser
      */
     private async notifications_handler_TYPE_NOTIF_DAO(notifications: NotificationVO[]) {
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
             switch (notification.dao_notif_type) {
                 case NotificationVO.DAO_GET_VO_BY_ID:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                    let vo: IDistantVOBase = await query(notification.api_type_id).filter_by_id(notification.dao_notif_vo_id).select_vo();
+                    const vo: IDistantVOBase = await query(notification.api_type_id).filter_by_id(notification.dao_notif_vo_id).select_vo();
                     await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
                     console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
                     break;
                 case NotificationVO.DAO_GET_VOS:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                    let vos: IDistantVOBase[] = await query(notification.api_type_id).select_vos();
+                    const vos: IDistantVOBase[] = await query(notification.api_type_id).select_vos();
                     await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
                     console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
                     break;
@@ -567,19 +567,19 @@ export default class PushDataVueModule extends VueModuleBase {
      */
     private async notifications_handler_TYPE_NOTIF_VARDATA(notifications: NotificationVO[]) {
 
-        let var_by_indexes: { [index: string]: VarDataValueResVO } = {};
-        for (let i in notifications) {
-            let notification = notifications[i];
+        const var_by_indexes: { [index: string]: VarDataValueResVO } = {};
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            if (!!notification.vos) {
-                let tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+            if (notification.vos) {
+                const tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
-                    for (let j in tmp) {
-                        let e: VarDataValueResVO = tmp[j];
+                    for (const j in tmp) {
+                        const e: VarDataValueResVO = tmp[j];
 
 
                         // On log les notifications sur l'index sélectionné en description actuellement
-                        let selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
+                        const selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
                         if (selectedVarParam && selectedVarParam.index && (selectedVarParam.index == e.index)) {
                             ConsoleHandler.log('Notification pour var sélectionnée :' +
                                 'id:' + e.id + ':' +
@@ -618,26 +618,26 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (var_by_indexes && ObjectHandler.hasAtLeastOneAttribute(var_by_indexes)) {
 
-            let vos = Object.values(var_by_indexes);
+            const vos = Object.values(var_by_indexes);
 
-            let types: { [name: string]: boolean } = {};
+            const types: { [name: string]: boolean } = {};
 
             if (vos && vos.length) {
                 VarsClientController.getInstance().last_notif_received = Dates.now();
             }
 
-            for (let i in vos) {
-                let vo = vos[i];
+            for (const i in vos) {
+                const vo = vos[i];
 
                 // ConsoleHandler.log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
 
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
 
-                    let stored_var: VarDataValueResVO = VarsClientController.cached_var_datas[vo.index];
+                    const stored_var: VarDataValueResVO = VarsClientController.cached_var_datas[vo.index];
 
                     // Si on a encore rien reçu, l'info de calcul en cours est inutile
-                    if (!!stored_var) {
+                    if (stored_var) {
                         vo.value = stored_var.value;
                         vo.value_ts = stored_var.value_ts;
                         vo.value_type = stored_var.value_type;
@@ -660,19 +660,19 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private async notifications_handler_TYPE_NOTIF_TECH(notifications: NotificationVO[]) {
 
-        for (let i in notifications) {
-            let notification = notifications[i];
+        for (const i in notifications) {
+            const notification = notifications[i];
 
-            if (!!notification.vos) {
-                let tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
+            if (notification.vos) {
+                const tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
-                    for (let j in tmp) {
-                        let vo = tmp[j];
+                    for (const j in tmp) {
+                        const vo = tmp[j];
 
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
-                                let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+                                const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
                                 // let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
                                 // VueAppBase.instance_.vueInstance.snotify.warning(content, {
@@ -697,7 +697,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 break;
 
                             case NotificationVO.TECH_RELOAD:
-                                let content_reload = LocaleManager.getInstance().i18n.t('PushDataServerController.reload.___LABEL___');
+                                const content_reload = LocaleManager.getInstance().i18n.t('PushDataServerController.reload.___LABEL___');
                                 VueAppBase.instance_.vueInstance.snotify.warning(content_reload, {
                                     timeout: 3000
                                 });

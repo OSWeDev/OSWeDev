@@ -42,29 +42,29 @@ export default class VarsDatasProxy {
         found: { [index: string]: VarDataBaseVO },
         not_found_indexes: string[]) {
 
-        let res: T[] = [];
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
+        const res: T[] = [];
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
 
-        for (let api_type_id in var_datas_indexes_by_type) {
-            let var_data_indexes = var_datas_indexes_by_type[api_type_id];
+        for (const api_type_id in var_datas_indexes_by_type) {
+            const var_data_indexes = var_datas_indexes_by_type[api_type_id];
 
             await promises_pipeline.push((async () => {
 
-                let this_not_found_indexes: { [index: string]: boolean } = {};
-                for (let i in var_data_indexes) {
+                const this_not_found_indexes: { [index: string]: boolean } = {};
+                for (const i in var_data_indexes) {
                     this_not_found_indexes[var_data_indexes[i]] = true;
                 }
 
-                let bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
+                const bdd_res: T[] = await query(api_type_id).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, var_data_indexes).select_vos<T>();
 
-                for (let i in bdd_res) {
-                    let var_data = bdd_res[i];
+                for (const i in bdd_res) {
+                    const var_data = bdd_res[i];
 
                     found[var_data.index] = var_data;
                     delete this_not_found_indexes[var_data.index];
                 }
 
-                for (let i in this_not_found_indexes) {
+                for (const i in this_not_found_indexes) {
                     not_found_indexes.push(i);
                 }
             }));
@@ -92,16 +92,16 @@ export default class VarsDatasProxy {
             return null;
         }
 
-        let result = [];
-        let promises = [];
-        for (let i in params_indexes) {
-            let params_index = params_indexes[i];
+        const result = [];
+        const promises = [];
+        for (const i in params_indexes) {
+            const params_index = params_indexes[i];
 
             promises.push((async () => {
 
                 try {
 
-                    let var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
+                    const var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
 
                     if (var_data) {
                         result.push(var_data);
@@ -119,7 +119,7 @@ export default class VarsDatasProxy {
                             retries--;
 
                             try {
-                                let var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
+                                const var_data = await this.get_var_data_or_ask_to_bgthread<T>(params_index, params_index);
 
                                 if (var_data) {
                                     result.push(var_data);
@@ -165,12 +165,12 @@ export default class VarsDatasProxy {
             return null;
         }
 
-        let params_indexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
+        const params_indexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
 
-        for (let i in params_indexes) {
-            let params_index = params_indexes[i];
+        for (const i in params_indexes) {
+            const params_index = params_indexes[i];
 
-            let var_conf = VarsController.var_conf_by_id[MatroidIndexHandler.get_var_id_from_normalized_vardata(params_index)];
+            const var_conf = VarsController.var_conf_by_id[MatroidIndexHandler.get_var_id_from_normalized_vardata(params_index)];
 
             if (!params_indexes_by_api_type_id[var_conf.var_data_vo_type]) {
                 params_indexes_by_api_type_id[var_conf.var_data_vo_type] = [];
@@ -179,16 +179,16 @@ export default class VarsDatasProxy {
             params_indexes_by_api_type_id[var_conf.var_data_vo_type].push(params_index);
         }
 
-        let found: { [index: string]: T } = {};
-        let not_found_indexes: string[] = [];
+        const found: { [index: string]: T } = {};
+        const not_found_indexes: string[] = [];
         await VarsDatasProxy.get_exact_params_from_bdd(params_indexes_by_api_type_id, found, not_found_indexes);
 
-        let vars_to_notify: { [index: string]: T } = found;
+        const vars_to_notify: { [index: string]: T } = found;
         if (not_found_indexes.length) {
-            let vars_to_notify_from_tree: T[] = await VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification(not_found_indexes);
+            const vars_to_notify_from_tree: T[] = await VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification(not_found_indexes);
 
-            for (let i in vars_to_notify_from_tree) {
-                let var_data = vars_to_notify_from_tree[i];
+            for (const i in vars_to_notify_from_tree) {
+                const var_data = vars_to_notify_from_tree[i];
 
                 vars_to_notify[var_data.index] = var_data;
             }
@@ -203,7 +203,7 @@ export default class VarsDatasProxy {
      * @returns
      */
     private static async add_to_tree_and_return_datas_that_need_notification<T extends VarDataBaseVO>(indexs: string[]): Promise<T[]> {
-        let vars_to_notify: T[] = [];
+        const vars_to_notify: T[] = [];
 
         return new Promise(async (resolve, reject) => {
 
@@ -217,15 +217,15 @@ export default class VarsDatasProxy {
                 return null;
             }
 
-            let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
-            for (let i in indexs) {
-                let index = indexs[i];
+            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
+            for (const i in indexs) {
+                const index = indexs[i];
 
                 // On //ise et on indique qu'on doit refaire un check en base, pour être sûr de ne pas avoir de données en base qui ne sont pas dans l'arbre
                 //  En fait ya un vrai point de conf ici / perf : est-ce qu'on impose de toujours rechecker en base ou pas ? si non on risque de refaire des calculs parfois en double, qui sont couteux
                 //  si oui on charge la base pour rien souvent
                 await promise_pipeline.push((async () => {
-                    let node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
+                    const node: VarDAGNode = await VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false);
 
                     if ((!node) || (!node.var_data)) {
                         ConsoleHandler.error('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification: node ou node.var_data null pour index: ' + index);

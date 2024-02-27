@@ -5,7 +5,7 @@ export default class BlocTextWidgetOptionsVO extends AbstractVO {
     public static createNew(
         bloc_text: string
     ): BlocTextWidgetOptionsVO {
-        let res = new BlocTextWidgetOptionsVO();
+        const res = new BlocTextWidgetOptionsVO();
 
         res.bloc_text = bloc_text;
 

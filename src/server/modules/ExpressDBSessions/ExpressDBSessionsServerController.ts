@@ -11,6 +11,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -61,7 +62,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
         if (this_session && this_session.sess) {
             try {
-                let sess = ObjectHandler.try_get_json(this_session.sess);
+                const sess = ObjectHandler.try_get_json(this_session.sess);
                 return fn(null, sess);
             } catch {
                 return this.destroy(sid, fn);
@@ -86,11 +87,11 @@ export default class ExpressDBSessionsServerController extends Store {
         /**
          * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
          */
-        let cache_sess_obj = ExpressDBSessionsServerController.session_cache[sid] ?
+        const cache_sess_obj = ExpressDBSessionsServerController.session_cache[sid] ?
             ((typeof ExpressDBSessionsServerController.session_cache[sid].sess === 'string') ?
                 JSON.parse(ExpressDBSessionsServerController.session_cache[sid].sess) : ExpressDBSessionsServerController.session_cache[sid].sess) :
             null;
-        let sess_obj = ObjectHandler.try_get_json(sess);
+        const sess_obj = ObjectHandler.try_get_json(sess);
 
         let do_update = (!ExpressDBSessionsServerController.session_cache[sid]) ||
             (!ExpressDBSessionsServerController.session_cache[sid].expire) ||
@@ -99,7 +100,7 @@ export default class ExpressDBSessionsServerController extends Store {
             do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[sid].expire) > 7 * 24 * 60 * 60);
         }
 
-        let db_session_time_in = Dates.now_ms();
+        const db_session_time_in = Dates.now_ms();
 
         if (do_update) {
             let res = ExpressDBSessionsServerController.session_cache[sid];
@@ -119,7 +120,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
                 res.expire = expireTime;
                 await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
-                    ModuleTableVO.default_get_api_version(res, false)
+                    ModuleTableController.translate_vos_to_api(res, false)
                 );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
             }
@@ -131,7 +132,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 delete ExpressDBSessionsServerController.session_cache[sid];
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
                 try {
-                    let db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
+                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
 
                     if (db_sess) {
                         await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
@@ -182,7 +183,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'IN');
         try {
-            let db_session_time_in = Dates.now_ms();
+            const db_session_time_in = Dates.now_ms();
             await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(ExpressDBSessionsServerController.session_cache[sid].id).exec_as_server().delete_vos();
             StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'destroy', 'OUT', Dates.now_ms() - db_session_time_in);
             StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'OUT');
@@ -217,7 +218,7 @@ export default class ExpressDBSessionsServerController extends Store {
         }
 
         StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'IN');
-        let db_session_time_in = Dates.now_ms();
+        const db_session_time_in = Dates.now_ms();
 
         if (do_update) {
             let res = ExpressDBSessionsServerController.session_cache[sid];
@@ -236,7 +237,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'update');
                 res.expire = expireTime;
                 await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>(
-                    ModuleTableVO.default_get_api_version(res, false)
+                    ModuleTableController.translate_vos_to_api(res, false)
                 );
                 StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }
@@ -248,7 +249,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
                 delete ExpressDBSessionsServerController.session_cache[sid];
                 try {
-                    let db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
+                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
                     if (db_sess && db_sess.id) {
                         await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
                         ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this sid. deleting and replacing with new session:' + sid);

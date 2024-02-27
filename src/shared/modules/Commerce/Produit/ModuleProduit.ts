@@ -90,8 +90,8 @@ export default class ModuleProduit extends Module {
 
     private initializeCategorieProduit(): void {
         // Table CategorieProduit
-        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(CategorieProduitVO.API_TYPE_ID, field_names<CategorieProduitVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
-        let datatable_fields = [
+        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(CategorieProduitVO.API_TYPE_ID, field_names<CategorieProduitVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const datatable_fields = [
             default_label_field,
         ];
         this.datatables.push(new ModuleTableVO<CategorieProduitVO>(this, CategorieProduitVO.API_TYPE_ID, () => new CategorieProduitVO(), datatable_fields, default_label_field, 'CategorieProduit'));
@@ -99,26 +99,26 @@ export default class ModuleProduit extends Module {
 
     private initializeTypeProduit(): void {
         // Table TypeProduit
-        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(TypeProduitVO.API_TYPE_ID, field_names<TypeProduitVO>().vo_type_produit, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_produit', true);
-        let field_categorie_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(TypeProduitVO.API_TYPE_ID, field_names<TypeProduitVO>().categorie_produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Categorie produit', true);
+        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(TypeProduitVO.API_TYPE_ID, field_names<TypeProduitVO>().vo_type_produit, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_produit', true);
+        const field_categorie_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(TypeProduitVO.API_TYPE_ID, field_names<TypeProduitVO>().categorie_produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Categorie produit', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             default_label_field,
             ModuleTableFieldController.create_new(TypeProduitVO.API_TYPE_ID, field_names<TypeProduitVO>().vo_type_param, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_param', true),
             field_categorie_produit_id,
         ];
 
-        let dt = new ModuleTableVO<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, () => new TypeProduitVO(), datatable_fields, default_label_field, 'TypeProduit');
+        const dt = new ModuleTableVO<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, () => new TypeProduitVO(), datatable_fields, default_label_field, 'TypeProduit');
         field_categorie_produit_id.set_many_to_one_target_moduletable_name(CategorieProduitVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 
     private initializeProduit(): void {
         // Table Produit
-        let field_type_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().type_produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type produit', true);
-        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const field_type_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().type_produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type produit', true);
+        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             default_label_field,
             ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true),
             ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().prix, ModuleTableFieldVO.FIELD_TYPE_amount, 'Prix', true),
@@ -127,16 +127,16 @@ export default class ModuleProduit extends Module {
             ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().picto, ModuleTableFieldVO.FIELD_TYPE_string, 'Picto'),
             ModuleTableFieldController.create_new(ProduitVO.API_TYPE_ID, field_names<ProduitVO>().is_complementaire, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Complémentaire ?'),
         ];
-        let dt = new ModuleTableVO<ProduitVO>(this, ProduitVO.API_TYPE_ID, () => new ProduitVO(), datatable_fields, default_label_field, 'Produit');
+        const dt = new ModuleTableVO<ProduitVO>(this, ProduitVO.API_TYPE_ID, () => new ProduitVO(), datatable_fields, default_label_field, 'Produit');
         field_type_produit_id.set_many_to_one_target_moduletable_name(TypeProduitVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 
     private initializeFacturation(): void {
         // Table Produit
-        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(FacturationVO.API_TYPE_ID, field_names<FacturationVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(FacturationVO.API_TYPE_ID, field_names<FacturationVO>().titre, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             default_label_field,
             ModuleTableFieldController.create_new(FacturationVO.API_TYPE_ID, field_names<FacturationVO>().frequence, ModuleTableFieldVO.FIELD_TYPE_int, 'Frequence', true),
             ModuleTableFieldController.create_new(FacturationVO.API_TYPE_ID, field_names<FacturationVO>().texte_affichage, ModuleTableFieldVO.FIELD_TYPE_string, 'Texte Affichage', true),
@@ -146,15 +146,15 @@ export default class ModuleProduit extends Module {
 
     private initializeFacturationProduit(): void {
         // Table Produit
-        let field_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(FacturationProduitVO.API_TYPE_ID, field_names<FacturationProduitVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_facturation_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(FacturationProduitVO.API_TYPE_ID, field_names<FacturationProduitVO>().facturation_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Facturation', true);
+        const field_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(FacturationProduitVO.API_TYPE_ID, field_names<FacturationProduitVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
+        const field_facturation_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(FacturationProduitVO.API_TYPE_ID, field_names<FacturationProduitVO>().facturation_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Facturation', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             field_produit_id,
             field_facturation_id,
             ModuleTableFieldController.create_new(FacturationProduitVO.API_TYPE_ID, field_names<FacturationProduitVO>().par_defaut, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Par default'),
         ];
-        let dt = new ModuleTableVO<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, () => new FacturationProduitVO(), datatable_fields, null, 'Facturation Produit');
+        const dt = new ModuleTableVO<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, () => new FacturationProduitVO(), datatable_fields, null, 'Facturation Produit');
         field_produit_id.set_many_to_one_target_moduletable_name(ProduitVO.API_TYPE_ID);
         field_facturation_id.set_many_to_one_target_moduletable_name(FacturationVO.API_TYPE_ID);
         this.datatables.push(dt);

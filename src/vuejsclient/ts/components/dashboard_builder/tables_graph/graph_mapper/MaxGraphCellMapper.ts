@@ -31,7 +31,7 @@ export default class MaxGraphCellMapper {
 
     public static get_new_maxgraph_cell(maxgraph: Graph, parent: Cell, label: string, x: number, y: number, width: number, height: number): Cell {
 
-        let new_maxgraph_cell = new Cell(label, new Geometry(x, y, width, height));
+        const new_maxgraph_cell = new Cell(label, new Geometry(x, y, width, height));
 
         new_maxgraph_cell.setVertex(true);
         new_maxgraph_cell.setConnectable(false);
@@ -77,9 +77,9 @@ export default class MaxGraphCellMapper {
             return null;
         }
 
-        let parent = maxgraph.getDefaultParent();
+        const parent = maxgraph.getDefaultParent();
 
-        let newcell = MaxGraphCellMapper.get_new_maxgraph_cell(
+        const newcell = MaxGraphCellMapper.get_new_maxgraph_cell(
             maxgraph,
             parent,
             this.label,
@@ -94,11 +94,11 @@ export default class MaxGraphCellMapper {
 
     public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableFieldVO): MaxGraphEdgeMapper {
 
-        if (!!this.outgoing_edges[field.field_id]) {
+        if (this.outgoing_edges[field.field_id]) {
             return null;
         }
 
-        let new_edge: MaxGraphEdgeMapper = new MaxGraphEdgeMapper();
+        const new_edge: MaxGraphEdgeMapper = new MaxGraphEdgeMapper();
         new_edge.source_cell = this;
         new_edge.target_cell = target_cell;
         new_edge.api_type_id = this.api_type_id;
@@ -115,14 +115,14 @@ export default class MaxGraphCellMapper {
      *  et si on a pas explicitement demandé ce type via les graphvoref
      */
     get is_hidden_nn(): boolean {
-        if (!VOsTypesManager.isManyToManyModuleTable(VOsTypesManager.moduleTables_by_voType[this.api_type_id])) {
+        if (!VOsTypesManager.isManyToManyModuleTable(ModuleTableController.module_tables_by_vo_type[this.api_type_id])) {
             return false;
         }
         if (!this.outgoing_edges) {
             throw new Error('MaxGraphCellMapper.is_hidden_nn: outgoing_edges not set');
         }
 
-        if (!!this.graphvoref) {
+        if (this.graphvoref) {
             return false;
         }
 
@@ -130,7 +130,7 @@ export default class MaxGraphCellMapper {
             return false;
         }
 
-        for (let i in this.outgoing_edges) {
+        for (const i in this.outgoing_edges) {
             if (!this.outgoing_edges[i].is_accepted) {
                 return false;
             }

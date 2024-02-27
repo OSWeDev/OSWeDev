@@ -45,7 +45,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             try {
-                let fileContent = this.getFileContent();
+                const fileContent = this.getFileContent();
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
             } catch (error) {
@@ -69,8 +69,8 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
         let res = '';
 
-        for (let param_name of ModuleSASSSkinConfigurator.SASS_PARAMS_NAMES) {
-            let value: string = ModuleSASSSkinConfigurator['CACHE_' + param_name];
+        for (const param_name of ModuleSASSSkinConfigurator.SASS_PARAMS_NAMES) {
+            const value: string = ModuleSASSSkinConfigurator['CACHE_' + param_name];
 
             res = res + this.getSassVariableDefinition(param_name, value) + '\n';
         }

@@ -99,29 +99,29 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
-        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
+        const qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
+        const uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        const ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_ok: number = 0;
 
         // ballaie les themes
-        for (let theme_id in qrs_by_theme_module) {
+        for (const theme_id in qrs_by_theme_module) {
             // ballaie les modules du thème
-            for (let module_id in qrs_by_theme_module[theme_id]) {
+            for (const module_id in qrs_by_theme_module[theme_id]) {
                 let nb_user_has_finished: number = 0;
-                let user_id_check: { [user_id: number]: boolean } = {};
+                const user_id_check: { [user_id: number]: boolean } = {};
 
                 // ballaie les qrs du module
-                for (let qr_i in qrs_by_theme_module[theme_id][module_id]) {
-                    let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][qr_i];
+                for (const qr_i in qrs_by_theme_module[theme_id][module_id]) {
+                    const qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][qr_i];
 
                     // si on a des réponses
                     if (uqrs_by_theme_module_qr && uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id]) {
                         // ballaie les uqrs pour la qr
-                        for (let uqr_i in uqrs_by_theme_module_qr[theme_id][module_id][qr.id]) {
-                            let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id][uqr_i];
+                        for (const uqr_i in uqrs_by_theme_module_qr[theme_id][module_id][qr.id]) {
+                            const uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id][uqr_i];
 
                             // si l'utilisateur a bien finit le module on comptabilise
                             if (uqr && ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {

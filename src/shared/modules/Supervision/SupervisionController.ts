@@ -1,10 +1,10 @@
+import { cloneDeep } from 'lodash';
 import { field_names } from '../../tools/ObjectHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import IDistantVOBase from '../IDistantVOBase';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import ISupervisedItem from './interfaces/ISupervisedItem';
 import ISupervisedItemController from './interfaces/ISupervisedItemController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
@@ -85,68 +85,70 @@ export default class SupervisionController {
 
         this.registered_api_type_by_ids[moduleTable.vo_type] = controller;
 
-        let name = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
-        moduleTable.push_field(name.setModuleTable(moduleTable));
+        const name = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
-        let category_id_field = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
+        const category_id_field = ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie').set_many_to_one_target_moduletable_name(
             SupervisedCategoryVO.API_TYPE_ID
         );
 
         // rajoute les champs des sondes/controllers dans la moduletable
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_value, ModuleTableFieldVO.FIELD_TYPE_float, 'Dernière valeur', false).setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().first_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, SupervisionController.STATE_UNKOWN)
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().last_value, ModuleTableFieldVO.FIELD_TYPE_float, 'Dernière valeur', false);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().first_update, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, true, SupervisionController.STATE_UNKOWN)
             .setEnumValues(SupervisionController.STATE_LABELS)
-            .setEnumColorValues(SupervisionController.STATE_COLORS)
-            .setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().state_before_pause, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS).setModuleTable(moduleTable));
-        moduleTable.push_field(ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().invalid, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalide', false, true, false).setModuleTable(moduleTable));
-        moduleTable.push_field(category_id_field.setModuleTable(moduleTable));
+            .setEnumColorValues(SupervisionController.STATE_COLORS);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().state_before_pause, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<ISupervisedItem>().invalid, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalide', false, true, false);
+        category_id_field;
         moduleTable.default_label_field = name;
 
         // On copie les champs, pour la table à créer automatiquement :
         //  - La table historique des valeurs
-        let vo_types: string[] = [
+        const vo_types: string[] = [
             this.getSupHistVoType(moduleTable.vo_type),
         ];
 
-        let databases: string[] = [
+        const databases: string[] = [
             SupervisionController.SUP_HIST_SCHEMA,
         ];
 
-        for (let e in vo_types) {
-            let vo_type = vo_types[e];
-            let database = databases[e];
+        for (const e in vo_types) {
+            const vo_type = vo_types[e];
+            const database = databases[e];
 
-            let fields: ModuleTableFieldVO[] = [];
+            const fields: ModuleTableFieldVO[] = [];
+            const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+            for (const i in table_fields) {
+                const vofield = table_fields[i];
 
-            for (let i in moduleTable.get_fields()) {
-                let vofield = moduleTable.get_fields()[i];
-
-                let cloned_field = new ModuleTableFieldVO(vo_type, vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default_value?.value);
+                const cloned_field = ModuleTableFieldController.create_new(
+                    vo_type, vofield.field_name, vofield.field_type,
+                    (ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type] &&
+                        ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type][vofield.field_name]) ?
+                        cloneDeep(ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type][vofield.field_name]) : null,
+                    vofield.field_required, vofield.has_default, vofield.field_default_value?.value);
                 cloned_field.enum_values = vofield.enum_values;
                 cloned_field.is_inclusive_data = vofield.is_inclusive_data;
                 cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
                 fields.push(cloned_field);
             }
 
-            let newTable: ModuleTableVO = new ModuleTableVO(moduleTable.module, vo_type, moduleTable.voConstructor, fields, null, vo_type);
+            const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
+            const newTable_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
-            for (let i in moduleTable.get_fields()) {
-                let vofield = moduleTable.get_fields()[i];
+            for (const i in table_fields) {
+                const vofield = table_fields[i];
 
-                if (!vofield.has_relation) {
+                if (!vofield.many_to_one_target_moduletable_name) {
                     continue;
                 }
 
-                newTable.getFieldFromId(vofield.field_id).set_many_to_one_target_moduletable_name(vofield.manyToOne_target_moduletable.vo_type);
+                newTable_fields[vofield.field_name].set_many_to_one_target_moduletable_name(vofield.many_to_one_target_moduletable_name);
             }
-
-            moduleTable.module.datatables.push(newTable);
         }
     }
 }

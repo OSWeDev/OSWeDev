@@ -42,7 +42,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //             return e;
 //         }
 
-//         let moduleTable = VOsTypesManager.moduleTables_by_voType[e._type];
+//         let moduleTable = ModuleTableController.module_tables_by_vo_type[e._type];
 
 //         if (!moduleTable) {
 //             return e;
@@ -100,7 +100,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //             return null;
 //         }
 
-//         let table = VOsTypesManager.moduleTables_by_voType[e._type];
+//         let table = ModuleTableController.module_tables_by_vo_type[e._type];
 //         if ((!e._type) || !table) {
 //             return cloneDeep(e);
 //         }
@@ -158,7 +158,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //             return null;
 //         }
 
-//         let table = VOsTypesManager.moduleTables_by_voType[e._type];
+//         let table = ModuleTableController.module_tables_by_vo_type[e._type];
 //         if ((!e._type) || !table) {
 //             return cloneDeep(e);
 //         }
@@ -976,7 +976,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //                          */
 //                         let elt_type = trans_ ? trans_._type : null;
 
-//                         let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
+//                         let field_table = elt_type ? ModuleTableController.module_tables_by_vo_type[elt_type] : null;
 //                         if (!field_table) {
 //                             let new_obj = new Object();
 //                             for (let i in trans_) {
@@ -1170,7 +1170,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //                          */
 //                         let elt_type = trans_ ? trans_._type : null;
 
-//                         let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
+//                         let field_table = elt_type ? ModuleTableController.module_tables_by_vo_type[elt_type] : null;
 //                         if (!field_table) {
 //                             let new_obj = new Object();
 //                             for (let i in trans_) {
@@ -1315,7 +1315,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 //                 case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 //                     if (e[field.field_name] && e[field.field_name]._type) {
-//                         let field_table = VOsTypesManager.moduleTables_by_voType[e[field.field_name]._type];
+//                         let field_table = ModuleTableController.module_tables_by_vo_type[e[field.field_name]._type];
 
 //                         let trans_ = e[field.field_name] ? field_table.default_get_bdd_version(e[field.field_name], true) : null;
 //                         res[field.field_name] = trans_ ? JSON.stringify(trans_) : null;

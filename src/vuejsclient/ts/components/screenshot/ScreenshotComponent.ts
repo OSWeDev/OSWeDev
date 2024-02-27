@@ -39,12 +39,12 @@ export default class ScreenshotComponent extends VueComponentBase {
     }
 
     public async take_screenshot() {
-        let self = this;
+        const self = this;
         this.is_taking = true;
 
         try {
 
-            let { default: html2canvas } = await import('html2canvas');
+            const { default: html2canvas } = await import('html2canvas');
 
             await html2canvas(
                 document.getElementById("VueMain"),
@@ -59,12 +59,12 @@ export default class ScreenshotComponent extends VueComponentBase {
 
                         try {
 
-                            var height = canvas.height;
-                            var width = canvas.width;
+                            const height = canvas.height;
+                            const width = canvas.width;
 
-                            var coef_height = ((height > (210 - 20)) ? (210 - 20) / height : 1);
-                            var coef_width = ((width > (297 - 20)) ? (297 - 20) / width : 1);
-                            var coef = (coef_height < coef_width) ? coef_height : coef_width;
+                            const coef_height = ((height > (210 - 20)) ? (210 - 20) / height : 1);
+                            const coef_width = ((width > (297 - 20)) ? (297 - 20) / width : 1);
+                            const coef = (coef_height < coef_width) ? coef_height : coef_width;
                             canvas.toBlob(async (imgData: Blob) => {
 
                                 if (!imgData) {
@@ -74,10 +74,10 @@ export default class ScreenshotComponent extends VueComponentBase {
                                     return;
                                 }
 
-                                let formData = new FormData();
+                                const formData = new FormData();
                                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
 
-                                let res = await AjaxCacheClientController.getInstance().post(
+                                const res = await AjaxCacheClientController.getInstance().post(
                                     null,
                                     '/ModuleFileServer/upload',
                                     [FileVO.API_TYPE_ID],
@@ -87,7 +87,7 @@ export default class ScreenshotComponent extends VueComponentBase {
                                     false,
                                     30000);
 
-                                let newvo = JSON.parse(res);
+                                const newvo = JSON.parse(res);
 
                                 self.$emit('uploaded', newvo);
                                 self.is_taking = false;

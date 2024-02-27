@@ -16,7 +16,6 @@ import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/Dashboa
 import SharedFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
@@ -45,6 +44,8 @@ import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -158,7 +159,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private async paste_dashboard(import_on_vo: DashboardVO = null) {
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('paste_dashboard.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -169,13 +170,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                      *  si oui on insère tous les éléments et on garde la trace des liaisons
                      *  si on se retrouve dans une impasse on invalide tout l'import
                      */
-                    let text = await navigator.clipboard.readText();
+                    const text = await navigator.clipboard.readText();
                     if ((!text) || (!JSON.parse(text))) {
                         throw new Error('Invalid paste');
                     }
 
                     if ((!!import_on_vo) && (import_on_vo.id)) {
-                        let old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
+                        const old_pages = self.pages = await this.load_dashboard_pages_by_dashboard_id(
                             self.dashboard.id,
                             { refresh: true }
                         );
@@ -185,7 +186,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         );
                     }
 
-                    let imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+                    const imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
 
                     self.loading = true;
 
@@ -201,7 +202,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
                     if ((!import_on_vo) && imported_datas && imported_datas.length) {
                         // on récupère le nouveau db
-                        let new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
+                        const new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
                         self.dashboard = new_db ? new_db as DashboardVO : self.dashboard;
                     }
                     self.loading = false;
@@ -233,7 +234,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private async copy_dashboard() {
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('copy_dashboard.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -273,7 +274,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.pages[page_i] = this.pages[page_i - 1];
         this.pages[page_i - 1] = page;
 
-        for (let i in this.pages) {
+        for (const i in this.pages) {
             this.pages[i].weight = parseInt(i);
         }
 
@@ -288,7 +289,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.pages[page_i] = this.pages[page_i + 1];
         this.pages[page_i + 1] = page;
 
-        for (let i in this.pages) {
+        for (const i in this.pages) {
             this.pages[i].weight = parseInt(i);
         }
 
@@ -296,7 +297,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async save_page_move() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('move_page.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -348,40 +349,40 @@ export default class DashboardBuilderComponent extends VueComponentBase {
          *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
          */
         let export_vos: IDistantVOBase[] = [];
-        let db = this.dashboard;
-        export_vos.push(ModuleTableVO.default_get_api_version(db));
+        const db = this.dashboard;
+        export_vos.push(ModuleTableController.translate_vos_to_api(db));
 
-        let pages = await this.load_dashboard_pages_by_dashboard_id(
+        const pages = await this.load_dashboard_pages_by_dashboard_id(
             this.dashboard.id,
             { refresh: true }
         );
 
         if (pages && pages.length) {
-            export_vos = export_vos.concat(pages.map((p) => ModuleTableVO.default_get_api_version(p)));
+            export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
 
-        let graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
+        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         if (graphvorefs && graphvorefs.length) {
-            export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableVO.default_get_api_version(p)));
+            export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
 
         let page_widgets: DashboardPageWidgetVO[] = null;
-        for (let i in pages) {
-            let page = pages[i];
+        for (const i in pages) {
+            const page = pages[i];
 
-            let this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', page.id).select_vos<DashboardPageWidgetVO>();
+            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', page.id).select_vos<DashboardPageWidgetVO>();
             if (this_page_widgets && this_page_widgets.length) {
-                export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableVO.default_get_api_version(p)));
+                export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
             }
         }
 
-        let page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
-        for (let i in page_widgets) {
-            let page_widget = page_widgets[i];
+        const page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions } = {};
+        for (const i in page_widgets) {
+            const page_widget = page_widgets[i];
 
             if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
-                let options = Object.assign(
+                const options = Object.assign(
                     DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
                     ObjectHandler.try_get_json(page_widget.json_options)
                 );
@@ -391,8 +392,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             }
         }
 
-        let translation_codes: TranslatableTextVO[] = [];
-        let translations: TranslationVO[] = [];
+        const translation_codes: TranslatableTextVO[] = [];
+        const translations: TranslationVO[] = [];
         await this.get_exportable_translations(
             translation_codes,
             translations,
@@ -402,13 +403,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             page_widgets_options
         );
         if (translation_codes && translation_codes.length) {
-            export_vos = export_vos.concat(translation_codes.map((p) => ModuleTableVO.default_get_api_version(p)));
+            export_vos = export_vos.concat(translation_codes.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
         if (translations && translations.length) {
-            export_vos = export_vos.concat(translations.map((p) => ModuleTableVO.default_get_api_version(p)));
+            export_vos = export_vos.concat(translations.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
 
-        let text: string = JSON.stringify(export_vos);
+        const text: string = JSON.stringify(export_vos);
         await navigator.clipboard.writeText(text);
     }
 
@@ -420,9 +421,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         page_widgets: DashboardPageWidgetVO[],
         page_widgets_options: { [page_widget_id: number]: IExportableWidgetOptions }
     ) {
-        let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
+        const langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
 
-        let promises = [];
+        const promises = [];
 
         // trad du db
         if (db && db.translatable_name_code_text) {
@@ -435,8 +436,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         // trads des pages
-        for (let i in pages) {
-            let page = pages[i];
+        for (const i in pages) {
+            const page = pages[i];
 
             if (page && page.translatable_name_code_text) {
                 promises.push(this.get_exportable_translation(
@@ -449,8 +450,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         // widgets
-        for (let i in page_widgets) {
-            let page_widget = page_widgets[i];
+        for (const i in page_widgets) {
+            const page_widget = page_widgets[i];
 
             if (page_widget && page_widget.translatable_name_code_text) {
                 promises.push(this.get_exportable_translation(
@@ -462,9 +463,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             }
 
             if (page_widgets_options && page_widgets_options[page_widget.id]) {
-                let exportable_translations = await page_widgets_options[page_widget.id].get_all_exportable_name_code_and_translation(page_widget.page_id, page_widget.id);
-                for (let current_code_text in exportable_translations) {
-                    let exportable_code_text = exportable_translations[current_code_text];
+                const exportable_translations = await page_widgets_options[page_widget.id].get_all_exportable_name_code_and_translation(page_widget.page_id, page_widget.id);
+                for (const current_code_text in exportable_translations) {
+                    const exportable_code_text = exportable_translations[current_code_text];
                     promises.push(this.get_exportable_translation(
                         langs,
                         translation_codes,
@@ -477,13 +478,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             /**
              * TableColumnDescVO, VOFieldRefVO
              */
-            let page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
+            const page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
                 DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
                 DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.'
             ]).select_vos<TranslatableTextVO>();
 
-            for (let j in page_widget_trads) {
-                let page_widget_trad = page_widget_trads[j];
+            for (const j in page_widget_trads) {
+                const page_widget_trad = page_widget_trads[j];
 
                 let code = page_widget_trad.code_text;
                 if (code.indexOf(DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id) == 0) {
@@ -517,16 +518,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         initial_code: string,
         exportable_code: string
     ) {
-        let translatable_db = await ModuleTranslation.getInstance().getTranslatableText(initial_code);
-        if (!!translatable_db) {
+        const translatable_db = await ModuleTranslation.getInstance().getTranslatableText(initial_code);
+        if (translatable_db) {
             translatable_db.code_text = exportable_code;
             translation_codes.push(translatable_db);
 
-            for (let i in langs) {
-                let lang = langs[i];
+            for (const i in langs) {
+                const lang = langs[i];
 
-                let translation_db = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_db.id);
-                if (!!translation_db) {
+                const translation_db = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_db.id);
+                if (translation_db) {
                     translations.push(translation_db);
                 }
             }
@@ -541,8 +542,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
     }
 
@@ -684,12 +685,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.add_shared_filters_to_map(shared_filters);
 
         if (page_widgets?.length > 0) {
-            let custom_filters: { [name: string]: boolean } = {};
+            const custom_filters: { [name: string]: boolean } = {};
 
-            for (let i in page_widgets) {
-                let page_widget = page_widgets[i];
+            for (const i in page_widgets) {
+                const page_widget = page_widgets[i];
                 if (page_widget.json_options) {
-                    let options = JSON.parse(page_widget.json_options);
+                    const options = JSON.parse(page_widget.json_options);
                     if (options && options['custom_filter_name']) {
                         custom_filters[options['custom_filter_name']] = true;
                     }
@@ -767,10 +768,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        let page = new DashboardPageVO();
+        const page = new DashboardPageVO();
         page.dashboard_id = this.dashboard.id;
         page.weight = 0;
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
             this.dashboard = null;
@@ -851,7 +852,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboard = new DashboardVO();
         this.set_dashboard_api_type_ids([]);
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
             this.dashboard
         );
 
@@ -872,14 +873,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         // On crée la trad
-        let code_lang = LocaleManager.getInstance().getDefaultLocale();
-        let code_text = this.dashboard.translatable_name_code_text;
-        let translation = "Dashboard [" + this.dashboard.id + "]";
+        const code_lang = LocaleManager.getInstance().getDefaultLocale();
+        const code_text = this.dashboard.translatable_name_code_text;
+        const translation = "Dashboard [" + this.dashboard.id + "]";
         await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation);
 
         // On crée la première page du dashboard
         await this.create_dashboard_page();
-        let page = new DashboardPageVO();
+        const page = new DashboardPageVO();
         page.dashboard_id = this.dashboard.id;
 
         this.dashboards.push(this.dashboard);
@@ -909,14 +910,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     get pages_name_code_text(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.pages) {
             return res;
         }
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
 
             res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
         }
@@ -929,7 +930,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
         if (this.dashboards.length <= 1) {
             self.snotify.error(self.label('DashboardBuilderComponent.delete_dashboard.cannot_delete_master_dashboard'));
             return;
@@ -984,7 +985,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
         if (this.pages.length <= 1) {
             self.snotify.error(self.label('DashboardBuilderComponent.delete_page.cannot_delete_master_page'));
             return;
@@ -1081,7 +1082,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (this.get_dashboard_api_type_ids.indexOf(api_type_id) >= 0) {
             return;
         }
-        let tmp = Array.from(this.get_dashboard_api_type_ids);
+        const tmp = Array.from(this.get_dashboard_api_type_ids);
         tmp.push(api_type_id);
         this.set_dashboard_api_type_ids(tmp);
     }
@@ -1098,14 +1099,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        let self = this;
+        const self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
             if (result.state == "granted" || result.state == "prompt") {
                 self.can_use_clipboard = true;
             }
         });
 
-        let body = document.getElementById('page-top');
+        const body = document.getElementById('page-top');
 
         if (body) {
             body.classList.add("sidenav-toggled");
@@ -1113,7 +1114,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private beforeDestroy() {
-        let body = document.getElementById('page-top');
+        const body = document.getElementById('page-top');
 
         if (body) {
             body.classList.remove("sidenav-toggled");

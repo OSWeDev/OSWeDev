@@ -44,7 +44,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
     public async initializeAsync() {
 
 
-        let has_full_menu_access: boolean = this.policies_loaded[ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS];
+        const has_full_menu_access: boolean = this.policies_loaded[ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS];
 
         if (!this.policies_loaded[ModuleDataImport.POLICY_LOGS_ACCESS]) {
             return;
@@ -99,7 +99,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
             this.routes);
 
         // On adapte le CRUD des imports pour avoir un bouton de réimport et une colonne de visualisation graphique de l'état
-        let historic_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[DataImportHistoricVO.API_TYPE_ID];
+        const historic_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[DataImportHistoricVO.API_TYPE_ID];
 
         Vue.component('Reimportcomponent', async () => (await import('./reimport_component/reimport_component')));
         historic_crud.readDatatable.unshiftField(ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id'));
@@ -148,14 +148,14 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         //  - les logs détaillés => lien vers le crud global de ce type mais pré-filtré
         //  - la table intermédiaire d'importation
         //  - les formats d'import => liens vers le crud global pré-filtré
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const moduleTable = ModuleTableController.module_tables_by_vo_type[i];
 
             if (!moduleTable.importable) {
                 continue;
             }
 
-            let importmenuBranch: MenuElementVO =
+            const importmenuBranch: MenuElementVO =
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(
                         ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
@@ -169,7 +169,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                     )
                 );
 
-            let raw_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(moduleTable.vo_type);
+            const raw_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(moduleTable.vo_type);
 
             await CRUDComponentManager.getInstance().registerCRUD(
                 raw_api_type_id,

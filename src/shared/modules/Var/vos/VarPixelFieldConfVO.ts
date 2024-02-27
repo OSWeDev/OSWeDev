@@ -13,7 +13,7 @@ export default class VarPixelFieldConfVO implements IDistantVOBase {
      * Pour faire le lien avec le field sur lequel la pixellisation a lieu (approche contextFilters)
      */
     public pixel_vo_api_type_id: string;
-    public pixel_vo_field_id: string;
+    public pixel_vo_field_name: string;
 
     /**
      * Pour faire le lien avec le field_id du vardatabasevo (approche classique vardatabasevo)
@@ -31,13 +31,13 @@ export default class VarPixelFieldConfVO implements IDistantVOBase {
         return this;
     }
 
-    public set_vo_field_id(vo_field_id: string): VarPixelFieldConfVO {
-        this.pixel_vo_field_id = vo_field_id;
+    public set_vo_field_name(vo_field_id: string): VarPixelFieldConfVO {
+        this.pixel_vo_field_name = vo_field_id;
         return this;
     }
 
-    public set_param_field_id(param_field_id: string): VarPixelFieldConfVO {
-        this.pixel_param_field_name = param_field_id;
+    public set_param_field_name(param_field_name: string): VarPixelFieldConfVO {
+        this.pixel_param_field_name = param_field_name;
         return this;
     }
 

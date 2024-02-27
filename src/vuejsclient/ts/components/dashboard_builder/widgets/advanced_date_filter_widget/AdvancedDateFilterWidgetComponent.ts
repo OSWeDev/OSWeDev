@@ -68,7 +68,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -99,7 +99,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private onchange_selected_months() {
 
         // 1 on cherche le contextfilter correspondant à ce type de filtre
-        let root_context_filter: ContextFilterVO = this.vo_field_ref ?
+        const root_context_filter: ContextFilterVO = this.vo_field_ref ?
             (this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null) :
             (this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null);
 
@@ -107,7 +107,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
@@ -122,7 +122,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
                     let start_date: number = null;
                     let end_date: number = null;
-                    let now: number = Dates.now();
+                    const now: number = Dates.now();
 
                     if (this.tmp_filter_active_opt.value < 0) {
                         start_date = Dates.add(now, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
@@ -146,9 +146,9 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         break;
                     }
 
-                    let now_ytd: number = Dates.now();
-                    let end_ytd_date: number = Dates.add(now_ytd, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
-                    let start_ytd_date: number = Dates.startOf(end_ytd_date, TimeSegment.TYPE_YEAR);
+                    const now_ytd: number = Dates.now();
+                    const end_ytd_date: number = Dates.add(now_ytd, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
+                    const start_ytd_date: number = Dates.startOf(end_ytd_date, TimeSegment.TYPE_YEAR);
 
                     ts_range = RangeHandler.createNew(
                         TSRange.RANGE_TYPE,
@@ -191,7 +191,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -213,7 +213,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!ts_range)) {
-            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -234,11 +234,11 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         /**
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
-        if (!!context_filter) {
+        if (context_filter) {
             if (!RangeHandler.are_same(context_filter.param_tsranges, [ts_range])) {
                 context_filter.param_tsranges = [ts_range];
 
-                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+                const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
@@ -269,7 +269,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private async reset_visible_options() {
         // Reset des checkbox
         if (this.tmp_filter_active_opt) {
-            let old_id: number = this.tmp_filter_active_opt.id;
+            const old_id: number = this.tmp_filter_active_opt.id;
 
             // On simule le click pour décocher le input
             $('#' + this.base_filter + old_id.toString()).click();
@@ -303,7 +303,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         // On affecte en décochant l'autre
 
-        let old_id: number = this.tmp_filter_active_opt.id;
+        const old_id: number = this.tmp_filter_active_opt.id;
 
         this.tmp_filter_active_opt = opt;
 
@@ -338,7 +338,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         let options: AdvancedDateFilterWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
                     options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
@@ -360,7 +360,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref) || (!options.is_vo_field_ref)) {
             return null;
@@ -370,15 +370,15 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     get opts(): AdvancedDateFilterOptDescVO[] {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.opts) || (!options.opts.length)) {
             return null;
         }
 
-        let res: AdvancedDateFilterOptDescVO[] = [];
+        const res: AdvancedDateFilterOptDescVO[] = [];
 
-        for (let i in options.opts) {
+        for (const i in options.opts) {
             res.push(Object.assign(new AdvancedDateFilterOptDescVO(), options.opts[i]));
         }
 
@@ -396,19 +396,19 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     get is_checkbox(): boolean {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.is_checkbox;
     }
 
     get hide_opts(): boolean {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.hide_opts;
     }
 
     get default_value(): AdvancedDateFilterOptDescVO {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         return options.default_value;
     }
@@ -421,7 +421,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         if (!this.vo_field_ref) {
             return null;
         }
-        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id]);
     }
 
     get base_filter(): string {

@@ -26,7 +26,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         onclose_callback: () => Promise<void>,
         show_insert_or_update_target: boolean = true,
     ) {
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
         this.api_type_id = vo._type;
 
         this.show_insert_or_update_target = show_insert_or_update_target;
@@ -60,7 +60,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
     private async close_modal() {
         $('#crud_update_modal_' + this.api_type_id).modal('hide');
 
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
         if (crud) {
             crud.updateDatatable.refresh();
             (this.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).update_key();

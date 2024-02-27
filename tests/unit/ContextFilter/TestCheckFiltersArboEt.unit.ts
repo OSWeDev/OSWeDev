@@ -11,7 +11,7 @@ ConsoleHandler.init();
 
 test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILTER_AND', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_DATE_DOW;
@@ -24,12 +24,12 @@ test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILT
 test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
     instance = ContextQueryServerController;
 
-    let filters = [
+    const filters = [
         filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
             .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
     ];
 
-    let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
+    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
         .field('firstname').field('lastname')
         .add_filters(filters).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
@@ -40,7 +40,7 @@ test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
 
 test('check_filters_arbo_ET: should change the filters to an array when simple AND', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_FILTER_AND;
@@ -58,7 +58,7 @@ test('check_filters_arbo_ET: should change the filters to an array when simple A
 
 test('check_filters_arbo_ET: should do nnothing when an error is detected', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_FILTER_AND;

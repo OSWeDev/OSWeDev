@@ -140,13 +140,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             return;
         }
 
-        let i = this.editable_dashboard_page.layout.findIndex((w) => w['id'] == widget.id);
+        const i = this.editable_dashboard_page.layout.findIndex((w) => w['id'] == widget.id);
         if (i < 0) {
             await this.rebuild_page_layout();
             return;
         }
 
-        let has_diff_json_options: boolean = (this.editable_dashboard_page.layout[i]['json_options'] != widget.json_options) ? true : false;
+        const has_diff_json_options: boolean = (this.editable_dashboard_page.layout[i]['json_options'] != widget.json_options) ? true : false;
 
         this.editable_dashboard_page.layout[i] = widget;
 
@@ -214,7 +214,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
          * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
          */
         if (this.selected_widget && this.selected_widget.id) {
-            let page_widget = this.widgets.find(
+            const page_widget = this.widgets.find(
                 (w) => w.id == this.selected_widget.id
             );
 
@@ -247,7 +247,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
 
         return new Promise((resolvef, rejectf) => {
-            let self = this;
+            const self = this;
             self.snotify.async(
                 self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () =>
                 new Promise(async (resolve, reject) => {
@@ -279,14 +279,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
                     try {
                         if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]) {
-                            let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
+                            const options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget?.name]();
                             page_widget.json_options = JSON.stringify(options);
                         }
                     } catch (error) {
                         ConsoleHandler.error(error);
                     }
 
-                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         reject({
                             body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'),
@@ -332,7 +332,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         if (!this.widgets) {
             return;
         }
-        let widget = this.widgets.find((w) => w.i == i);
+        const widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
             ConsoleHandler.error("resizedEvent:on ne retrouve pas le widget");
@@ -356,7 +356,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         if (!this.widgets) {
             return;
         }
-        let widget = this.widgets.find((w) => w.i == i);
+        const widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
             ConsoleHandler.error("movedEvent:on ne retrouve pas le widget");
@@ -371,7 +371,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async delete_widget(page_widget: DashboardPageWidgetVO) {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression
@@ -394,7 +394,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                                     await ModuleDAO.getInstance().deleteVOs([page_widget]);
                                     let i = 0;
                                     for (; i < self.widgets.length; i++) {
-                                        let w = self.widgets[i];
+                                        const w = self.widgets[i];
 
                                         if (w.i == page_widget.i) {
                                             break;
@@ -453,7 +453,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async reload_widgets() {
-        let self = this;
+        const self = this;
 
         // On reload les widgets
         await self.throttled_rebuild_page_layout();
@@ -465,7 +465,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
 
         try {
-            let json_options: any = JSON.parse(item.json_options);
+            const json_options: any = JSON.parse(item.json_options);
 
             if (json_options && json_options.hide_filter) {
                 return true;

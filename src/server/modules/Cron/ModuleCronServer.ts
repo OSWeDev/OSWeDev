@@ -187,7 +187,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         }
 
         // Create or load cron worker
-        let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
+        const vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
             .filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid)
             .exec_as_server()
             .select_vo<CronWorkerPlanification>();
@@ -199,8 +199,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async run_manual_task(text: string) {
 
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[text]) {
             return null;
@@ -211,8 +211,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
@@ -226,14 +226,14 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkerManually(text: string) {
 
-        let worker_uid: string = text;
+        const worker_uid: string = text;
 
         if (!worker_uid) {
             return;
         }
 
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {
@@ -246,9 +246,9 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     private async get_manual_tasks(): Promise<string[]> {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let text in ManualTasksController.getInstance().registered_manual_tasks_by_name) {
+        for (const text in ManualTasksController.getInstance().registered_manual_tasks_by_name) {
             res.push(text);
         }
         return res;

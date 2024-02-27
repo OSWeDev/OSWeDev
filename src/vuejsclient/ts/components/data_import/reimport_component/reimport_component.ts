@@ -49,7 +49,7 @@ export default class ReimportComponent extends Vuecomponentbase {
         }
 
         let historic = this.bdd_vo;
-        while (!!historic.reimport_of_dih_id) {
+        while (historic.reimport_of_dih_id) {
             historic = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(historic.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
         }
 

@@ -11,13 +11,13 @@ import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment'
 
 test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidate', () => {
 
-    let reminder1_days: number = 20;
-    let reminder2_days: number = 5;
-    let invalid_days: number = 90;
+    const reminder1_days: number = 20;
+    const reminder2_days: number = 5;
+    const invalid_days: number = 90;
 
-    let creation_date = Dates.now();
+    const creation_date = Dates.now();
 
-    let user_toinvalidate: UserVO = {
+    const user_toinvalidate: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -46,7 +46,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_invalidated: UserVO = {
+    const user_invalidated: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -75,7 +75,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind1: UserVO = {
+    const user_toremind1: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -104,7 +104,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_reminded1: UserVO = {
+    const user_reminded1: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -133,7 +133,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind2: UserVO = {
+    const user_toremind2: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -162,7 +162,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind1_before_2: UserVO = {
+    const user_toremind1_before_2: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -191,7 +191,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_reminded2: UserVO = {
+    const user_reminded2: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -220,7 +220,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_nothingtodo: UserVO = {
+    const user_nothingtodo: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -251,7 +251,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
 
 
 
-    let user_toinvalidate_blocked: UserVO = {
+    const user_toinvalidate_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -280,7 +280,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_invalidated_blocked: UserVO = {
+    const user_invalidated_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -309,7 +309,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind1_blocked: UserVO = {
+    const user_toremind1_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -338,7 +338,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_reminded1_blocked: UserVO = {
+    const user_reminded1_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -367,7 +367,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind2_blocked: UserVO = {
+    const user_toremind2_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -396,7 +396,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_toremind1_before_2_blocked: UserVO = {
+    const user_toremind1_before_2_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -425,7 +425,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_reminded2_blocked: UserVO = {
+    const user_reminded2_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -454,7 +454,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         version_timestamp: null,
     };
 
-    let user_nothingtodo_blocked: UserVO = {
+    const user_nothingtodo_blocked: UserVO = {
         _type: UserVO.API_TYPE_ID,
         firstname: 'firstname',
         lastname: 'lastname',
@@ -485,7 +485,7 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
 
 
 
-    let users: UserVO[] = [
+    const users: UserVO[] = [
         user_invalidated,
         user_reminded1,
         user_reminded2,
@@ -505,9 +505,9 @@ test('TestPasswordInvalidationController. test get_users_to_remind_and_invalidat
         user_nothingtodo_blocked
     ];
 
-    let users_to_remind_1: UserVO[] = [];
-    let users_to_remind_2: UserVO[] = [];
-    let users_to_invalidate: UserVO[] = [];
+    const users_to_remind_1: UserVO[] = [];
+    const users_to_remind_2: UserVO[] = [];
+    const users_to_invalidate: UserVO[] = [];
 
     PasswordInvalidationController.getInstance().get_users_to_remind_and_invalidate(
         users,

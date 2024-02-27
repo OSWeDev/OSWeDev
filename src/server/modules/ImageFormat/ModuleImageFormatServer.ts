@@ -69,7 +69,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
@@ -82,14 +82,14 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).exec_as_server().select_vos<FormattedImageVO>();
+        const fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).exec_as_server().select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
         }
 
-        for (let i in fimgs) {
-            let fimg = fimgs[i];
+        for (const i in fimgs) {
+            const fimg = fimgs[i];
 
             fimg.formatted_src = vo_update_handler.post_update_vo.path;
         }
@@ -107,7 +107,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         }
 
         // Sinon je vais vider le répertoire pour que les images soient recréées
-        let rep: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + update.post_update_vo.name + "/";
+        const rep: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + update.post_update_vo.name + "/";
 
         try {
             if (fs.existsSync(rep)) {
@@ -138,22 +138,22 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let param_height = height ? parseInt(height.toString()) : 0;
             let param_width = width ? parseInt(width.toString()) : 0;
 
-            let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
+            const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
                 ConsoleHandler.error('Impossible de charger le format d\'image :' + format_name);
                 return null;
             }
 
-            param_height = !!format.height ? format.height : param_height;
-            param_width = !!format.width ? format.width : param_width;
+            param_height = format.height ? format.height : param_height;
+            param_width = format.width ? format.width : param_width;
 
             /**
              * On tente de trouver une image cohérente (même format et résolution proche)
              *  Si on trouve, on envoie l'image
              *  Si on trouve pas on génère la nouvelle image et on la renvoie
              */
-            let fis: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID)
+            const fis: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID)
                 .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID)
                 .filter_by_text_eq('image_src', src)
                 .select_vos<FormattedImageVO>();
@@ -163,11 +163,11 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             if (fis && (fis.length > 1)) {
 
-                let param_res = param_height * param_width;
-                for (let i in fis) {
-                    let fi = fis[i];
+                const param_res = param_height * param_width;
+                for (const i in fis) {
+                    const fi = fis[i];
 
-                    let fi_res = fi.image_height * fi.image_width;
+                    const fi_res = fi.image_height * fi.image_width;
 
                     /**
                      * Si l'image couvre pas, on ignore
@@ -194,7 +194,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                     /**
                      * Sinon, on voit si on fait mieux
                      */
-                    let res_diff = fi_res - param_res;
+                    const res_diff = fi_res - param_res;
                     if ((res_diff_min_value == null) || (res_diff < res_diff_min_value)) {
                         res_diff_min_value = res_diff;
                         res_diff_min_fi = fi;
@@ -209,7 +209,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             /**
              * Sinon il faut générer l'image
              */
-            let extname: string = path.extname(src);
+            const extname: string = path.extname(src);
             let new_src: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + format.name + "/" + src.replace(ModuleFile.FILES_ROOT, '').replace(extname, '');
 
             if (format.add_size_rename_name) {
@@ -229,8 +229,8 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             }
 
             if ((!format.remplir_haut) && (!format.remplir_larg)) {
-                let ratio_height: number = param_height ? (base_image_height / param_height) : 0;
-                let ratio_width: number = param_width ? (base_image_width / param_width) : 0;
+                const ratio_height: number = param_height ? (base_image_height / param_height) : 0;
+                const ratio_width: number = param_width ? (base_image_width / param_width) : 0;
 
                 if (ratio_height > ratio_width) {
                     // On veut remplir en hauteur uniquement : resize largeur fixée, hauteur auto
@@ -265,11 +265,11 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 new_img_file = new FileVO();
                 new_img_file.is_secured = false;
                 new_img_file.path = new_src;
-                let resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_file);
+                const resnew_img_file: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_file);
                 new_img_file.id = resnew_img_file.id;
             }
 
-            let src_dirname: string = path.dirname(new_img_file.path);
+            const src_dirname: string = path.dirname(new_img_file.path);
             if (!fs.existsSync(src_dirname)) {
                 fs.mkdirSync(src_dirname, { recursive: true });
             }
@@ -291,7 +291,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
                 const fontCanvas = await jimp.create(text_image_width, text_image_height);
 
-                let font = await jimp.loadFont(jimp['FONT_SANS_' + format.watermark_font + '_BLACK']);
+                const font = await jimp.loadFont(jimp['FONT_SANS_' + format.watermark_font + '_BLACK']);
 
                 fontCanvas.print(font, format.watermark_x, format.watermark_y, {
                     text: format.watermark_txt,
@@ -312,7 +312,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 await image.blit(fontCanvas, 0, 0).writeAsync(new_img_file.path);
             }
 
-            let new_img_formattee: FormattedImageVO = new FormattedImageVO();
+            const new_img_formattee: FormattedImageVO = new FormattedImageVO();
             new_img_formattee.align_haut = format.align_haut;
             new_img_formattee.align_larg = format.align_larg;
             new_img_formattee.file_id = new_img_file.id;
@@ -324,7 +324,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.remplir_haut = format.remplir_haut;
             new_img_formattee.remplir_larg = format.remplir_larg;
             new_img_formattee.formatted_src = new_img_file.path;
-            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_formattee);
+            const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_img_formattee);
             new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {

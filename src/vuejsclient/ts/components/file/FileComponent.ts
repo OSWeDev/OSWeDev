@@ -53,7 +53,7 @@ export default class FileComponent extends VueComponentBase {
             this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
         }
 
-        let dropzone = (this.$refs['filedropzone' + this.uid] as any);
+        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
 
         if (!dropzone) {
             return;
@@ -63,7 +63,7 @@ export default class FileComponent extends VueComponentBase {
             return;
         }
 
-        var mock = {
+        const mock = {
             accepted: true,
             name: this.filevo.path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
             url: this.filevo.path
@@ -87,12 +87,12 @@ export default class FileComponent extends VueComponentBase {
     }
 
     get dropzoneOptions() {
-        let self = this;
+        const self = this;
 
 
-        let onInit = (!!this.options) ? this.options.init : null;
-        let onSuccess = (!!this.options) ? this.options.success : null;
-        let dropoptions = {
+        const onInit = (this.options) ? this.options.init : null;
+        const onSuccess = (this.options) ? this.options.success : null;
+        const dropoptions = {
             url: '/ModuleFileServer/upload',
             headers: {
                 'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
@@ -122,7 +122,7 @@ export default class FileComponent extends VueComponentBase {
                 });
 
                 try {
-                    if (!!onInit) {
+                    if (onInit) {
                         onInit();
                     }
                 } catch (error) {
@@ -133,14 +133,14 @@ export default class FileComponent extends VueComponentBase {
             success: async (infos, res) => {
 
                 try {
-                    let newvo = JSON.parse(res);
+                    const newvo = JSON.parse(res);
 
-                    if (!!self.storeData) {
+                    if (self.storeData) {
                         self.storeData(newvo);
                     }
                     self.$emit('uploaded', newvo);
 
-                    if (!!onSuccess) {
+                    if (onSuccess) {
                         onSuccess(infos, res);
                     }
                     (self.$refs['filedropzone' + this.uid] as any).removeAllFiles();
@@ -161,8 +161,8 @@ export default class FileComponent extends VueComponentBase {
 
         // On remplace tous les caractères spéciaux, comme dièse, par leur code URI
         // On garde le slash pour les dossiers
-        let path = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(0, this.filevo.path.lastIndexOf('/') + 1) : '';
-        let filename = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(this.filevo.path.lastIndexOf('/') + 1) : this.filevo.path;
+        const path = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(0, this.filevo.path.lastIndexOf('/') + 1) : '';
+        const filename = this.filevo.path.lastIndexOf('/') > 0 ? this.filevo.path.substring(this.filevo.path.lastIndexOf('/') + 1) : this.filevo.path;
 
         return path + encodeURIComponent(filename);
     }

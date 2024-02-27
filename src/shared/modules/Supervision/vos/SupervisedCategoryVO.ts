@@ -9,7 +9,7 @@ export default class SupervisedCategoryVO implements IDistantVOBase, INamedVO {
         name: string,
         notify: boolean,
     ): SupervisedCategoryVO {
-        let res: SupervisedCategoryVO = new SupervisedCategoryVO();
+        const res: SupervisedCategoryVO = new SupervisedCategoryVO();
 
         res.name = name;
         res.notify = notify;

@@ -52,16 +52,16 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     public async add_label_to_card(card_id: string, label_id: string): Promise<void> {
 
-        let card = await this.get_card(card_id);
+        const card = await this.get_card(card_id);
 
         if (!card) {
             ConsoleHandler.error('No card found for id ' + card_id);
             return;
         }
 
-        let new_labels = [];
-        for (let i in card.labels) {
-            let card_label = card.labels[i];
+        const new_labels = [];
+        for (const i in card.labels) {
+            const card_label = card.labels[i];
 
             if (card_label.id != label_id) {
                 new_labels.push(card_label.id);
@@ -80,11 +80,11 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     public async update_card(card_id: string, updates: any): Promise<any> {
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+        const TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        const TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
 
         try {
-            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+            const response = await ModuleRequestServer.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_PUT,
                 'api.trello.com',
                 '/1/cards/' + card_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
@@ -103,11 +103,11 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     public async create_card(name: string, desc: string, list_id: string, labels: string[] = null, other_card_elts: any = null): Promise<any> {
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+        const TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        const TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
 
         try {
-            let post_params = {
+            const post_params = {
                 name: name,
                 desc: desc,
                 idLabels: labels
@@ -116,7 +116,7 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
                 Object.assign(post_params, other_card_elts);
             }
 
-            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+            const response = await ModuleRequestServer.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 'api.trello.com',
                 '/1/cards?idList=' + list_id + '&key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
@@ -135,12 +135,12 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     public async get_card(card_id: string): Promise<any> {
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+        const TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        const TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
 
         try {
 
-            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+            const response = await ModuleRequestServer.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 'api.trello.com',
                 '/1/cards/' + card_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,
@@ -158,12 +158,12 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     public async get_label(label_id: string): Promise<any> {
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
+        const TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME, null, 60000);
+        const TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME, null, 60000);
 
         try {
 
-            let response = await ModuleRequestServer.getInstance().sendRequestFromApp(
+            const response = await ModuleRequestServer.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 'api.trello.com',
                 '/1/labels/' + label_id + '?key=' + TRELLO_API_KEY + '&token=' + TRELLO_TOKEN,

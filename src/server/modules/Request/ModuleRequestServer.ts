@@ -104,7 +104,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
                         }
                     }
 
-                    if (!!result_headers) {
+                    if (result_headers) {
                         resolve({ datas: buffer, headers: result_headers });
                         return;
                     }
@@ -113,15 +113,15 @@ export default class ModuleRequestServer extends ModuleServerBase {
                 });
 
                 if ((!!result_headers) && (!!res.headers)) {
-                    for (let i in res.headers) {
-                        let header = res.headers[i];
+                    for (const i in res.headers) {
+                        const header = res.headers[i];
 
                         result_headers[i] = header;
                     }
                 }
             }
 
-            let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);
+            const request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);
             request.on('error', (e) => {
                 ConsoleHandler.error('Request failed with error ' + e.message);
                 reject(new Error('Network error: ' + e.message));

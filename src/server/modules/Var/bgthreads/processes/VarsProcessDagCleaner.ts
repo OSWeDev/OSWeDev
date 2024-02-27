@@ -25,10 +25,10 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
         // //FIXME DELETE
         // this.check_dag();
 
-        for (let i in nodes) {
-            let node = nodes[i];
+        for (const i in nodes) {
+            const node = nodes[i];
 
-            let outgoings = node.outgoing_deps;
+            const outgoings = node.outgoing_deps;
             if (!node.unlinkFromDAG()) {
                 continue;
             }
@@ -37,8 +37,8 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
             // this.check_dag();
 
             // On impacte le tag sur les old outgoings si ils sont deletable
-            for (let j in outgoings) {
-                let child_node: VarDAGNode = outgoings[j].outgoing_node as VarDAGNode;
+            for (const j in outgoings) {
+                const child_node: VarDAGNode = outgoings[j].outgoing_node as VarDAGNode;
 
                 if (child_node.current_step >= VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_7_IS_DELETABLE]) {
                     continue;

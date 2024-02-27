@@ -25,7 +25,7 @@ export default class ModuleTableCompositeUniqueKeyController {
             return;
         }
 
-        let composite_unique_key: ModuleTableCompositeUniqueKeyVO = new ModuleTableCompositeUniqueKeyVO();
+        const composite_unique_key: ModuleTableCompositeUniqueKeyVO = new ModuleTableCompositeUniqueKeyVO();
         composite_unique_key.vo_type = vo_type;
         composite_unique_key.field_names = fields.map((f) => f.field_name);
 
@@ -41,17 +41,17 @@ export default class ModuleTableCompositeUniqueKeyController {
      * On résoud les liens pour init les ids en rapport avec les names de la déclaration initiale
      */
     public static solve_linked_ids_composite_unique_keys() {
-        for (let vo_type in ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index) {
-            let composite_unique_key = ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[vo_type];
+        for (const vo_type in ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index) {
+            const composite_unique_key = ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[vo_type];
 
-            let table = VOsTypesManager.moduleTables_by_voType[vo_type];
+            const table = ModuleTableController.module_tables_by_vo_type[vo_type];
 
-            for (let i in composite_unique_key) {
-                let unique_field = composite_unique_key[i];
+            for (const i in composite_unique_key) {
+                const unique_field = composite_unique_key[i];
 
                 unique_field.table_id = table.id;
                 unique_field.field_id_num_ranges = RangeHandler.get_ids_ranges_from_list(unique_field.field_names.map((field_name) => {
-                    return VOsTypesManager.moduleTablesFields_by_voType_and_field_name[vo_type][field_name].id;
+                    return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name].id;
                 }));
             }
         }
@@ -64,14 +64,14 @@ export default class ModuleTableCompositeUniqueKeyController {
      * (cependant on n'a pas de clé primaire donc ça se résume à supprimer ce qui est en trop et ajouter ce qui manque)
      */
     public static async push_composite_unique_keys_to_db(is_generator: boolean = false) {
-        let to_deletes: ModuleTableCompositeUniqueKeyVO[] = [];
-        let to_inserts: ModuleTableCompositeUniqueKeyVO[] = [];
+        const to_deletes: ModuleTableCompositeUniqueKeyVO[] = [];
+        const to_inserts: ModuleTableCompositeUniqueKeyVO[] = [];
 
-        let db_composite_unique_keys_by_index: { [index: string]: ModuleTableCompositeUniqueKeyVO } = {};
+        const db_composite_unique_keys_by_index: { [index: string]: ModuleTableCompositeUniqueKeyVO } = {};
         let db_composite_unique_keys = await query(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID).select_vos<ModuleTableCompositeUniqueKeyVO>();
 
-        for (let i in db_composite_unique_keys) {
-            let db_composite_unique_key = db_composite_unique_keys[i];
+        for (const i in db_composite_unique_keys) {
+            const db_composite_unique_key = db_composite_unique_keys[i];
             db_composite_unique_keys_by_index[db_composite_unique_key.index] = db_composite_unique_key;
 
             if (!ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index[db_composite_unique_key.index]) {
@@ -97,8 +97,8 @@ export default class ModuleTableCompositeUniqueKeyController {
             return;
         }
 
-        for (let index in ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index) {
-            let composite_unique_key = ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index[index];
+        for (const index in ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index) {
+            const composite_unique_key = ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index[index];
 
             if (!db_composite_unique_keys_by_index[index]) {
                 if (!is_generator) {
@@ -120,8 +120,8 @@ export default class ModuleTableCompositeUniqueKeyController {
         /**
          * On recharge la DB pour init les ids des VOs après les différentes modifs
          */
-        for (let i in db_composite_unique_keys) {
-            let db_composite_unique_key = db_composite_unique_keys[i];
+        for (const i in db_composite_unique_keys) {
+            const db_composite_unique_key = db_composite_unique_keys[i];
             ModuleTableCompositeUniqueKeyController.composite_unique_key_by_index[db_composite_unique_key.index] = db_composite_unique_key;
 
             if (!ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[db_composite_unique_key.vo_type]) {

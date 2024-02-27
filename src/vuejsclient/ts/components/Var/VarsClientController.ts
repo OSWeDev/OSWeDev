@@ -81,10 +81,10 @@ export default class VarsClientController {
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null
     ) {
 
-        let needs_registration: { [index: string]: VarDataBaseVO } = {};
+        const needs_registration: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in var_params) {
-            let var_param = var_params[i];
+        for (const i in var_params) {
+            const var_param = var_params[i];
 
             if (!var_param) {
                 continue;
@@ -121,10 +121,10 @@ export default class VarsClientController {
      */
     public async registerAllParamsAgain() {
 
-        let needs_registration: { [index: string]: VarDataBaseVO } = {};
+        const needs_registration: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in VarsClientController.registered_var_params) {
-            let var_param_wrapper = VarsClientController.registered_var_params[i];
+        for (const i in VarsClientController.registered_var_params) {
+            const var_param_wrapper = VarsClientController.registered_var_params[i];
 
             if (!MatroidController.check_bases_not_max_ranges(var_param_wrapper.var_param)) {
                 ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
@@ -146,10 +146,10 @@ export default class VarsClientController {
      */
     public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<{ [index: string]: VarDataBaseVO }> {
 
-        let filtered_var_params: VarDataBaseVO[] = [];
+        const filtered_var_params: VarDataBaseVO[] = [];
 
-        for (let i in var_params) {
-            let var_param = var_params[i];
+        for (const i in var_params) {
+            const var_param = var_params[i];
 
             if (!var_param) {
                 continue;
@@ -168,11 +168,11 @@ export default class VarsClientController {
         }
 
         return new Promise(async (resolve, reject) => {
-            let callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
-            let res: { [index: string]: VarDataBaseVO } = {};
+            const callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
+            const res: { [index: string]: VarDataBaseVO } = {};
             let nb_waited_cbs: number = filtered_var_params.length;
 
-            let callback = VarUpdateCallback.newCallbackOnce(async (varData: VarDataBaseVO) => {
+            const callback = VarUpdateCallback.newCallbackOnce(async (varData: VarDataBaseVO) => {
                 res[varData.index] = varData;
                 nb_waited_cbs--;
                 if (nb_waited_cbs <= 0) {
@@ -194,7 +194,7 @@ export default class VarsClientController {
     public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<T> {
 
         return new Promise(async (resolve, reject) => {
-            let callback = VarUpdateCallback.newCallbackOnce(
+            const callback = VarUpdateCallback.newCallbackOnce(
                 async (varData: T) => { resolve(varData); },
                 value_type
             );
@@ -214,10 +214,10 @@ export default class VarsClientController {
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
 
-        let needs_unregistration: { [index: string]: VarDataBaseVO } = {};
+        const needs_unregistration: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in var_params) {
-            let var_param = var_params[i];
+        for (const i in var_params) {
+            const var_param = var_params[i];
 
             if (!VarsClientController.registered_var_params[var_param.index]) {
                 continue;
@@ -256,18 +256,18 @@ export default class VarsClientController {
      */
     public async notifyCallbacks(var_datas: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
 
-        let promises = [];
-        for (let i in var_datas) {
-            let var_data: VarDataValueResVO = var_datas[i];
-            let registered_var = VarsClientController.registered_var_params[var_data.index];
-            let uids_to_remove: number[] = [];
+        const promises = [];
+        for (const i in var_datas) {
+            const var_data: VarDataValueResVO = var_datas[i];
+            const registered_var = VarsClientController.registered_var_params[var_data.index];
+            const uids_to_remove: number[] = [];
 
             if (!registered_var) {
                 continue;
             }
 
-            for (let j in registered_var.callbacks) {
-                let callback = registered_var.callbacks[j];
+            for (const j in registered_var.callbacks) {
+                const callback = registered_var.callbacks[j];
 
                 // cas d'un callback en VALID uniquement
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_VALID) && (
@@ -278,7 +278,7 @@ export default class VarsClientController {
                     continue;
                 }
 
-                if (!!callback.callback) {
+                if (callback.callback) {
                     promises.push(callback.callback(var_data));
                 }
 
@@ -287,7 +287,7 @@ export default class VarsClientController {
                 }
             }
 
-            for (let j in uids_to_remove) {
+            for (const j in uids_to_remove) {
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
@@ -314,12 +314,12 @@ export default class VarsClientController {
              * On prend toutes les datas registered et si on en trouve auxquelles il manque des valeurs, on renvoie un register pour s'assurer qu'on
              *  est bien en attente d'un résultat de calcul
              */
-            let check_params: { [index: string]: VarDataBaseVO } = {};
+            const check_params: { [index: string]: VarDataBaseVO } = {};
 
-            for (let i in VarsClientController.registered_var_params) {
-                let registered_var_param: RegisteredVarDataWrapper = VarsClientController.registered_var_params[i];
+            for (const i in VarsClientController.registered_var_params) {
+                const registered_var_param: RegisteredVarDataWrapper = VarsClientController.registered_var_params[i];
 
-                let var_data: VarDataValueResVO = VarsClientController.cached_var_datas[registered_var_param.var_param.index];
+                const var_data: VarDataValueResVO = VarsClientController.cached_var_datas[registered_var_param.var_param.index];
 
                 if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
                     if (VarsClientController.getInstance().registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
@@ -346,7 +346,7 @@ export default class VarsClientController {
     }
 
     private prepare_next_check() {
-        let self = this;
+        const self = this;
 
         // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
         setTimeout(async () => {
@@ -355,7 +355,7 @@ export default class VarsClientController {
     }
 
     private async update_params_registration() {
-        let self = this;
+        const self = this;
 
         try {
             if (!VarsClientController.registered_var_params) {
@@ -363,7 +363,7 @@ export default class VarsClientController {
                 return;
             }
 
-            let vars = Object.values(VarsClientController.registered_var_params);
+            const vars = Object.values(VarsClientController.registered_var_params);
             if (!vars || !vars.length) {
                 setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
                 return;
@@ -383,15 +383,15 @@ export default class VarsClientController {
 
     private async do_server_unregistration(params: { [index: string]: VarDataBaseVO }) {
 
-        let filtered_unregistrations: { [index: string]: VarDataBaseVO } = {};
+        const filtered_unregistrations: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in params) {
+        for (const i in params) {
             if ((!VarsClientController.registered_var_params[i]) || (!VarsClientController.registered_var_params[i].nb_registrations)) {
                 filtered_unregistrations[i] = params[i];
             }
         }
 
-        let unregistrations = Object.values(filtered_unregistrations);
+        const unregistrations = Object.values(filtered_unregistrations);
         if (unregistrations && unregistrations.length) {
             await ModuleVar.getInstance().unregister_params(unregistrations);
         }

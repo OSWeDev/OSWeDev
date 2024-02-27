@@ -175,7 +175,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
+        return ModuleTableController.module_tables_by_vo_type[this.vo_type_id];
     }
 
     get moduleTableField(): ModuleTableFieldVO<T> {
@@ -470,7 +470,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
         this.select_options_enabled = !options ? [] : Array.from(options);
 
-        if (!!this.vue_component) {
+        if (this.vue_component) {
             // on informe
             this.vue_component.$data.select_options_enabled = Array.from(options);
             await this.vue_component.on_reload_field_value();

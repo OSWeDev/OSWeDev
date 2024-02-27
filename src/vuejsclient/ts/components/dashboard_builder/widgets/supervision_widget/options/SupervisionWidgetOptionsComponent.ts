@@ -120,13 +120,13 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
     private initialize() {
         if ((!this.page_widget) || (!this.widget_options)) {
-            if (!!this.supervision_api_type_ids) {
+            if (this.supervision_api_type_ids) {
                 this.supervision_api_type_ids = [];
             }
-            if (!!this.auto_refresh_seconds) {
+            if (this.auto_refresh_seconds) {
                 this.auto_refresh_seconds = 30;
             }
-            if (!!this.limit) {
+            if (this.limit) {
                 this.limit = 100;
             }
             if (!this.auto_refresh) {
@@ -181,8 +181,8 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -250,7 +250,7 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
 
         let options: SupervisionWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SupervisionWidgetOptions;
                 options = options ? new SupervisionWidgetOptions(
                     options.limit,

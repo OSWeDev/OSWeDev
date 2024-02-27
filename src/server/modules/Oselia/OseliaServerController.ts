@@ -21,7 +21,7 @@ export default class OseliaServerController {
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
-        let prompt = await query(OseliaPromptVO.API_TYPE_ID)
+        const prompt = await query(OseliaPromptVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<OseliaPromptVO>().name, prompt_name)
             .exec_as_server()
             .select_vo<OseliaPromptVO>();
@@ -46,8 +46,8 @@ export default class OseliaServerController {
 
             // le programme, c'est à partir de ce prompt et pour cet utilisateur, existe-t-il une version adaptée à cet utilisateur qui surcharge le comportement par défaut ?
             // si oui, on l'utilise
-            if (!!user_id) {
-                let user_prompt = await query(OseliaUserPromptVO.API_TYPE_ID)
+            if (user_id) {
+                const user_prompt = await query(OseliaUserPromptVO.API_TYPE_ID)
                     .filter_by_id(prompt.id, OseliaPromptVO.API_TYPE_ID)
                     .filter_by_id(user_id, UserVO.API_TYPE_ID)
                     .exec_as_server()
@@ -72,7 +72,7 @@ export default class OseliaServerController {
             }
 
             if (!thread) {
-                let new_thread: {
+                const new_thread: {
                     thread_gpt: Thread;
                     thread_vo: GPTAssistantAPIThreadVO;
                 } = await GPTAssistantAPIServerController.get_thread(user_id);
@@ -103,7 +103,7 @@ export default class OseliaServerController {
         prompt_parameters: { [param_name: string]: string }): string {
         let res = prompt_string_with_parameters;
 
-        for (let i in prompt_parameters) {
+        for (const i in prompt_parameters) {
             res = res.split('{' + i + '}').join(prompt_parameters[i]);
         }
 

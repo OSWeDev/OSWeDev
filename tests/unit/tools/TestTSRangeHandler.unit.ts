@@ -14,20 +14,20 @@ import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 import moment from 'moment';
 import Dates from '../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
 
-let zero: number = moment('2020-02-20').startOf('day').utc(true).unix();
-let zero_cinq: number = zero + 12 * 60 * 60;
-let moins_zero_cinq: number = zero - 12 * 60 * 60;
-let un: number = zero + 1 * 60 * 60 * 24;
-let deux: number = zero + 2 * 60 * 60 * 24;
-let moins_un: number = zero - 1 * 60 * 60 * 24;
-let moins_deux: number = zero - 2 * 60 * 60 * 24;
+const zero: number = moment('2020-02-20').startOf('day').utc(true).unix();
+const zero_cinq: number = zero + 12 * 60 * 60;
+const moins_zero_cinq: number = zero - 12 * 60 * 60;
+const un: number = zero + 1 * 60 * 60 * 24;
+const deux: number = zero + 2 * 60 * 60 * 24;
+const moins_un: number = zero - 1 * 60 * 60 * 24;
+const moins_deux: number = zero - 2 * 60 * 60 * 24;
 
-let zero_startofmonth: number = moment('2020-02-01').startOf('day').utc(true).unix();
-let zero_startofnextmonth: number = moment('2020-03-01').startOf('day').utc(true).unix();
+const zero_startofmonth: number = moment('2020-02-01').startOf('day').utc(true).unix();
+const zero_startofnextmonth: number = moment('2020-03-01').startOf('day').utc(true).unix();
 
-let zero_cinq_moins_un = zero + 11 * 60 * 60;
-let zero_cinq_plus_un = zero + 13 * 60 * 60;
-let bidon: number = zero + 10 * 60 * 60 * 24;
+const zero_cinq_moins_un = zero + 11 * 60 * 60;
+const zero_cinq_plus_un = zero + 13 * 60 * 60;
+const bidon: number = zero + 10 * 60 * 60 * 24;
 
 test('TSRangeHandler: is_max_range : test null', () => {
     expect(RangeHandler.is_one_max_range(null)).toStrictEqual(false);
@@ -286,7 +286,7 @@ test('TSRangeHandler: test get_ranges_according_to_segment_type', () => {
     ]);
 
     // Le assign est juste à cause d'un pb de momentjs....
-    let month_ranges = RangeHandler.get_ranges_according_to_segment_type([
+    const month_ranges = RangeHandler.get_ranges_according_to_segment_type([
         TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)
     ], TimeSegment.TYPE_MONTH);
     // month_ranges[0].max['_i'] = "2020-03-01";
@@ -339,9 +339,9 @@ test('TSRangeHandler: test isValid', () => {
 
 test('TSRangeHandler: test range_includes_ranges', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
     expect(RangeHandler.range_includes_ranges(null, null)).toStrictEqual(true);
     expect(RangeHandler.range_includes_ranges(numRange1, [numRange2, numRange3])).toStrictEqual(false);
     expect(RangeHandler.range_includes_ranges(numRange2, [numRange1, numRange3])).toStrictEqual(false);
@@ -351,9 +351,9 @@ test('TSRangeHandler: test range_includes_ranges', () => {
 
 test('TSRangeHandler: test range_includes_range', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
     expect(RangeHandler.range_includes_range(null, null)).toStrictEqual(false);
     expect(RangeHandler.range_includes_range(numRange1, numRange2)).toStrictEqual(true);
     expect(RangeHandler.range_includes_range(numRange1, numRange3)).toStrictEqual(false);
@@ -870,9 +870,9 @@ test('TSRangeHandler: test foreach_ranges', async () => {
 
 test('TSRangeHandler: test getCardinalFromArray', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.getCardinalFromArray(null)).toStrictEqual(null);
     expect(RangeHandler.getCardinalFromArray([numRange1, numRange3])).toStrictEqual(5);
@@ -2926,9 +2926,9 @@ test('TSRangeHandler: test isStartASameStartB', () => {
 
 test('TSRangeHandler: test create_single_elt_range', () => {
 
-    let numRange1 = NumRange.createNew(6, 7, true, false, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(6, 7, true, false, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT);
 
     expect(RangeHandler.create_single_elt_range(null, null, null)).toStrictEqual(null);
     expect(RangeHandler.create_single_elt_range(1, 6, 0)).toStrictEqual(numRange1);
@@ -3000,13 +3000,13 @@ test('TSRangeHandler: test is_elt_sup_max', () => {
 
 test('TSRangeHandler: test cloneArrayFrom', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
-    let numRange1Bis = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2Bis = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3Bis = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1Bis = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2Bis = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3Bis = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.cloneArrayFrom(null)).toStrictEqual(null);
     expect(RangeHandler.cloneArrayFrom([numRange1])).toStrictEqual([numRange1]);
@@ -3016,9 +3016,9 @@ test('TSRangeHandler: test cloneArrayFrom', () => {
 
 test('TSRangeHandler: test getIndex', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.getIndex(null)).toStrictEqual(null);
     expect(RangeHandler.getIndex(numRange1)).toStrictEqual("00&3");
@@ -3028,9 +3028,9 @@ test('TSRangeHandler: test getIndex', () => {
 
 test('TSRangeHandler: test humanize', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.humanize(null)).toStrictEqual(null);
     expect(RangeHandler.humanize(numRange1)).toStrictEqual('[0, 2]');
@@ -3040,9 +3040,9 @@ test('TSRangeHandler: test humanize', () => {
 
 test('TSRangeHandler: test getIndexRanges', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.getIndexRanges(null)).toStrictEqual(null);
     expect(RangeHandler.getIndexRanges([numRange1, numRange3])).toStrictEqual("00&4");
@@ -3052,9 +3052,9 @@ test('TSRangeHandler: test getIndexRanges', () => {
 
 test('TSRangeHandler: test humanizeRanges', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.humanizeRanges(null)).toStrictEqual(null);
     // TODO FIXME d'ailleurs c'est assez naz vu comme ça comme humanize, on peut faire beaucoup mieux...
@@ -3065,9 +3065,9 @@ test('TSRangeHandler: test humanizeRanges', () => {
 
 test('TSRangeHandler: test ranges_intersect_themselves', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.ranges_intersect_themselves(null)).toStrictEqual(false);
     expect(RangeHandler.ranges_intersect_themselves([numRange1, numRange3])).toStrictEqual(true);
@@ -3077,10 +3077,10 @@ test('TSRangeHandler: test ranges_intersect_themselves', () => {
 
 test('TSRangeHandler: test any_range_intersects_any_range', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
-    let numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
+    const numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.any_range_intersects_any_range(null, null)).toStrictEqual(false);
     expect(RangeHandler.any_range_intersects_any_range([numRange1, numRange2], [numRange3, numRange4])).toStrictEqual(true);
@@ -3090,10 +3090,10 @@ test('TSRangeHandler: test any_range_intersects_any_range', () => {
 
 test('TSRangeHandler: test get_ranges_any_range_intersects_any_range', () => {
 
-    let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
-    let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
-    let numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
-    let numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
+    const numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+    const numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+    const numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
+    const numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
 
     expect(RangeHandler.get_ranges_any_range_intersects_any_range(null, null)).toStrictEqual(null);
     expect(RangeHandler.get_ranges_any_range_intersects_any_range([numRange1, numRange2], [numRange3, numRange4])).toStrictEqual([numRange1, numRange2]);

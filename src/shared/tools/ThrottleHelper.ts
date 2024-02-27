@@ -7,7 +7,7 @@ export default class ThrottleHelper {
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.UID++;
         ThrottleHelper.throttles[UID] = throttle(async () => {
             ThrottleHelper.throttles_semaphore[UID] = false;
             await func();
@@ -22,10 +22,10 @@ export default class ThrottleHelper {
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.UID++;
         ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = ThrottleHelper.throttles_mappable_args[UID];
+            const params = ThrottleHelper.throttles_mappable_args[UID];
             ThrottleHelper.throttles_mappable_args[UID] = {};
             ThrottleHelper.throttles_semaphore[UID] = false;
             await func(params);
@@ -40,17 +40,17 @@ export default class ThrottleHelper {
         options?: ThrottleSettings
     ) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.UID++;
         ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = ThrottleHelper.throttles_stackable_args[UID];
+            const params = ThrottleHelper.throttles_stackable_args[UID];
             ThrottleHelper.throttles_stackable_args[UID] = [];
 
             await func(params);
         }, wait_ms, options);
 
         return (stackable_args?: any | any[]) => {
-            let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
+            const stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
             return ThrottleHelper.throttle_with_stackable_args(UID, stack);
         };
     }

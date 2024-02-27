@@ -13,7 +13,7 @@ export default class FakeTriangularValidDataHandler {
 
     public static initializeFakeDataVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
@@ -29,28 +29,28 @@ export default class FakeTriangularValidDataHandler {
      *                       E  F G  H
      */
     public static async get_fake_triangular_dag(): Promise<VarDAG> {
-        let dag: VarDAG = new VarDAG();
+        const dag: VarDAG = new VarDAG();
 
-        let var_data_A: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_A();
-        let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+        const var_data_A: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_A();
+        const dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
-        let var_data_B: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_B();
-        let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
+        const var_data_B: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_B();
+        const dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
-        let var_data_C: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_C();
-        let dagnodeC: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_C, true);
+        const var_data_C: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_C();
+        const dagnodeC: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_C, true);
 
-        let var_data_E: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_E();
-        let dagnodeE: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_E, true);
+        const var_data_E: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_E();
+        const dagnodeE: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_E, true);
 
-        let var_data_F: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_F();
-        let dagnodeF: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_F, true);
+        const var_data_F: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_F();
+        const dagnodeF: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_F, true);
 
-        let var_data_G: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_G();
-        let dagnodeG: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_G, true);
+        const var_data_G: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_G();
+        const dagnodeG: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_G, true);
 
-        let var_data_H: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_H();
-        let dagnodeH: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_H, true);
+        const var_data_H: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_H();
+        const dagnodeH: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_H, true);
 
         dagnodeA.addOutgoingDep("AB", dagnodeB);
         dagnodeA.addOutgoingDep("AC", dagnodeC);
@@ -65,12 +65,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_A(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_A_index() {
@@ -78,12 +78,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_B(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_B_index() {
@@ -91,12 +91,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_C(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_C_index() {
@@ -104,12 +104,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_E(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 5;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_E_index() {
@@ -117,12 +117,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_F(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 6;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_F_index() {
@@ -130,12 +130,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_G(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 7;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_G_index() {
@@ -143,12 +143,12 @@ export default class FakeTriangularValidDataHandler {
     }
 
     public static get_var_data_H(): FakeDataVO {
-        let var_data: FakeDataVO = new FakeDataVO();
+        const var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 8;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_H_index() {

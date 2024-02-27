@@ -455,7 +455,7 @@ test('DataRender: test DataRender: getCumul', () => {
 test('DataRender: test DataRender: getCumul_m_mm1_mm2', () => {
     expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(null, null, null, null, null)).toStrictEqual(null);
 
-    let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
+    const renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
         [moment('2018-01-01').startOf('day').utc(true).unix()]: {
             1: {
                 2: {
@@ -532,7 +532,7 @@ test('DataRender: test DataRender: getCumul_m_mm1_mm2', () => {
 test('DataRender: test DataRender: getValueFromRendererData', () => {
     expect(DataRenderController.getInstance().getValueFromRendererData(null, null, null, null, null)).toStrictEqual(null);
 
-    let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
+    const renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
         [moment('2018-01-01').startOf('day').utc(true).unix()]: {
             1: {
                 2: {

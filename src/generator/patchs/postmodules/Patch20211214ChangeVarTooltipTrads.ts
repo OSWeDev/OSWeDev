@@ -25,14 +25,14 @@ export default class Patch20211214ChangeVarTooltipTrads implements IGeneratorWor
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
-        let text = await ModuleTranslation.getInstance().getTranslatableText("VarDataRefComponent.var_data_value_import_tooltip.___LABEL___");
+        const lang = await ModuleTranslation.getInstance().getLang('fr-fr');
+        const text = await ModuleTranslation.getInstance().getTranslatableText("VarDataRefComponent.var_data_value_import_tooltip.___LABEL___");
 
         if ((!lang) || (!text)) {
             return;
         }
 
-        let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
+        const translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
 
         if (!translation) {
             return;

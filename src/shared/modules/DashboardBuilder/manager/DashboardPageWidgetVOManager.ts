@@ -69,8 +69,8 @@ export default class DashboardPageWidgetVOManager {
             [page_widget_id: number]: WidgetOptionsMetadataVO
         } = {};
 
-        let sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
-        let all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
+        const sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
+        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
 
         if (
             !(sorted_widgets_types?.length > 0) ||
@@ -135,8 +135,8 @@ export default class DashboardPageWidgetVOManager {
             [page_widget_id: number]: WidgetOptionsMetadataVO
         } = {};
 
-        let sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
-        let all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
+        const sorted_widgets_types: DashboardWidgetVO[] = options?.sorted_widgets_types ?? sorted_widgets;
+        const all_page_widgets: DashboardPageWidgetVO[] = options?.all_page_widgets ?? page_widgets;
 
         if (
             !(sorted_widgets_types?.length > 0) ||

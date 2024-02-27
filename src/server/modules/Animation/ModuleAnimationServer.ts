@@ -89,7 +89,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             'fr-fr': 'Animation'
         }));
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => {
             let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -165,10 +165,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         await this.configure_vars();
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreUpdateAnimationModuleVO);
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreAnimationModuleVO);
         await this.initializeTranslations();
     }
@@ -185,8 +185,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         vo.computed_name = vo.name;
 
         if (vo.role_id_ranges && vo.role_id_ranges.length) {
-            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).exec_as_server().select_vos<RoleVO>());
-            let role_names: string[] = [];
+            const role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).exec_as_server().select_vos<RoleVO>());
+            const role_names: string[] = [];
 
             RangeHandler.foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
                 if (!role_by_ids[role_id]) {
@@ -196,14 +196,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 role_names.push(role_by_ids[role_id].translatable_name);
             });
 
-            let langs: LangVO[] = await query(LangVO.API_TYPE_ID)
+            const langs: LangVO[] = await query(LangVO.API_TYPE_ID)
                 .filter_by_text_eq('code_lang', ConfigurationService.node_configuration.DEFAULT_LOCALE)
                 .exec_as_server()
                 .select_vos<LangVO>();
-            let lang: LangVO = langs ? langs[0] : null;
+            const lang: LangVO = langs ? langs[0] : null;
 
             if (lang) {
-                for (let i in role_names) {
+                for (const i in role_names) {
                     vo.computed_name += ' - ' + await ModuleTranslation.getInstance().label(role_names[i], lang.id);
                 }
             }
@@ -213,18 +213,18 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async getQRsByThemesAndModules(theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
-        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
+        const res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
 
-        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
+        const all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
 
-        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
+        const module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
-        for (let i in qrs) {
-            let qr: AnimationQRVO = qrs[i];
-            let module: AnimationModuleVO = module_by_ids[qr.module_id];
+        for (const i in qrs) {
+            const qr: AnimationQRVO = qrs[i];
+            const module: AnimationModuleVO = module_by_ids[qr.module_id];
 
             if (!module) {
                 continue;
@@ -252,36 +252,36 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      * @returns AnimationUserQRVO[] by qr_id by module_id by theme_id
      */
     private async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> {
-        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
+        const res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
-        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
-        let qr_by_ids: { [id: number]: AnimationQRVO } = {};
-        let qr_ids: number[] = [];
+        const all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
+        const qr_by_ids: { [id: number]: AnimationQRVO } = {};
+        const qr_ids: number[] = [];
 
-        for (let i in qrs) {
+        for (const i in qrs) {
             qr_by_ids[qrs[i].id] = qrs[i];
             qr_ids.push(qrs[i].id);
         }
 
-        let uqrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+        const uqrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
             .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, qr_ids)
             .filter_by_num_has(field_names<AnimationUserQRVO>().user_id, user_ids)
             .select_vos<AnimationUserQRVO>();
 
-        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
+        const module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
-        for (let i in uqrs) {
-            let uqr: AnimationUserQRVO = uqrs[i];
-            let qr: AnimationQRVO = qr_by_ids[uqr.qr_id];
+        for (const i in uqrs) {
+            const uqr: AnimationUserQRVO = uqrs[i];
+            const qr: AnimationQRVO = qr_by_ids[uqr.qr_id];
 
             if (!qr) {
                 continue;
             }
 
-            let module: AnimationModuleVO = module_by_ids[qr.module_id];
+            const module: AnimationModuleVO = module_by_ids[qr.module_id];
 
             if (!module) {
                 continue;
@@ -316,7 +316,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         if (module_ids && module_ids.length > 0) {
             res = module_ids;
         } else if (theme_ids && theme_ids.length > 0) {
-            let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).filter_by_num_has('theme_id', theme_ids).select_vos<AnimationModuleVO>();
+            const modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).filter_by_num_has('theme_id', theme_ids).select_vos<AnimationModuleVO>();
 
             if (modules && modules.length > 0) {
                 res = res.concat(modules.map((m) => m.id));
@@ -327,13 +327,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async startModule(user_id: number, module_id: number, support: number): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
+        const res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (res) {
             return res;
         }
 
-        let aum: AnimationUserModuleVO = new AnimationUserModuleVO();
+        const aum: AnimationUserModuleVO = new AnimationUserModuleVO();
         aum.start_date = Dates.now();
         aum.user_id = user_id;
         aum.module_id = module_id;
@@ -351,7 +351,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      * @returns Le {@link AnimationUserModuleVO} créé
      */
     private async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
+        const res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (!res) {
             return null;
@@ -359,11 +359,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (!res.end_date) {
 
-            let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+            const themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
-            let theme_id_ranges: NumRange[] = [];
+            const theme_id_ranges: NumRange[] = [];
 
-            for (let i in themes) {
+            for (const i in themes) {
                 theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
             }
 
@@ -400,12 +400,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         filter_module_termine_active_option: DataFilterOption,
         filter_module_valide_active_option: DataFilterOption,
     ): Promise<AnimationUserModuleVO[]> {
-        let res: AnimationUserModuleVO[] = [];
+        const res: AnimationUserModuleVO[] = [];
 
-        let theme_ids: number[] = filter_anim_theme_active_options ? filter_anim_theme_active_options.map((s) => s.id) : [];
-        let module_ids: number[] = filter_anim_module_active_options ? filter_anim_module_active_options.map((s) => s.id) : [];
-        let user_ids: number[] = filter_user_active_options ? filter_user_active_options.map((s) => s.id) : [];
-        let role_ids: number[] = filter_role_active_options ? filter_role_active_options.map((s) => s.id) : [];
+        const theme_ids: number[] = filter_anim_theme_active_options ? filter_anim_theme_active_options.map((s) => s.id) : [];
+        const module_ids: number[] = filter_anim_module_active_options ? filter_anim_module_active_options.map((s) => s.id) : [];
+        const user_ids: number[] = filter_user_active_options ? filter_user_active_options.map((s) => s.id) : [];
+        const role_ids: number[] = filter_role_active_options ? filter_role_active_options.map((s) => s.id) : [];
         let only_module_valide: boolean = null;
         let only_module_termine: boolean = null;
 
@@ -432,13 +432,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return res;
         }
 
-        let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(
+        const anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>()
         );
-        let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
+        const anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>()
         );
-        let anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();
+        const anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();
 
         if (!anim_param || !anim_theme_by_ids || !anim_module_by_ids) {
             return res;
@@ -452,8 +452,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             only_module_termine = filter_module_termine_active_option.id == AnimationController.OPTION_YES;
         }
 
-        for (let i in aums) {
-            let aum: AnimationUserModuleVO = aums[i];
+        for (const i in aums) {
+            const aum: AnimationUserModuleVO = aums[i];
 
             // Test User IDS
             if (user_ids.length > 0) {
@@ -475,7 +475,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             // Test module validé
             if (only_module_valide != null) {
-                let is_module_valid: boolean = aum.prct_reussite >= anim_param.seuil_validation_module_prct;
+                const is_module_valid: boolean = aum.prct_reussite >= anim_param.seuil_validation_module_prct;
                 if (only_module_valide) {
                     if (!is_module_valid) {
                         continue;
@@ -485,7 +485,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 }
             }
 
-            let module: AnimationModuleVO = anim_module_by_ids[aum.module_id];
+            const module: AnimationModuleVO = anim_module_by_ids[aum.module_id];
 
             if (!module) {
                 continue;
@@ -502,10 +502,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             // Test Roles IDS sur les USERS
             if (role_ids.length > 0) {
-                let roles: RoleVO[] = AccessPolicyServerController.get_registered_user_roles_by_uid(aum.user_id);
+                const roles: RoleVO[] = AccessPolicyServerController.get_registered_user_roles_by_uid(aum.user_id);
 
                 if (roles && roles.length > 0) {
-                    for (let j in roles) {
+                    for (const j in roles) {
                         if (role_ids.includes(roles[j].id)) {
                             has_role = true;
                             break;
@@ -520,7 +520,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 continue;
             }
 
-            let theme: AnimationThemeVO = anim_theme_by_ids[module.theme_id];
+            const theme: AnimationThemeVO = anim_theme_by_ids[module.theme_id];
 
             if (!theme) {
                 continue;
@@ -554,23 +554,23 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return null;
         }
 
-        let filter_roles: ContextFilterVO = new ContextFilterVO();
+        const filter_roles: ContextFilterVO = new ContextFilterVO();
         filter_roles.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
         filter_roles.field_id = 'role_id_ranges';
         filter_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
         filter_roles.param_numranges = RangeHandler.get_ids_ranges_from_vos(user_roles);
 
-        let filter_no_roles: ContextFilterVO = new ContextFilterVO();
+        const filter_no_roles: ContextFilterVO = new ContextFilterVO();
         filter_no_roles.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
         filter_no_roles.field_id = 'role_id_ranges';
         filter_no_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
 
-        let filter_or: ContextFilterVO = new ContextFilterVO();
+        const filter_or: ContextFilterVO = new ContextFilterVO();
         filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
         filter_or.left_hook = filter_no_roles;
         filter_or.right_hook = filter_roles;
 
-        let res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field('id', 'filter_animation_module_id').add_filters([filter_or]).exec_as_server();
+        const res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field('id', 'filter_animation_module_id').add_filters([filter_or]).exec_as_server();
 
         return res;
     }
@@ -583,10 +583,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return vos;
         }
 
-        let user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
-        let user_role_id_ranges: NumRange[] = [];
+        const user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
+        const user_role_id_ranges: NumRange[] = [];
 
-        for (let i in user_roles) {
+        for (const i in user_roles) {
             user_role_id_ranges.push(RangeHandler.create_single_elt_NumRange(user_roles[i].id, NumSegment.TYPE_INT));
 
             let parent_role_id: number = user_roles[i].parent_role_id;
@@ -594,16 +594,16 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             while (parent_role_id) {
                 user_role_id_ranges.push(RangeHandler.create_single_elt_NumRange(parent_role_id, NumSegment.TYPE_INT));
 
-                let parent_role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(parent_role_id);
+                const parent_role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(parent_role_id);
 
                 parent_role_id = (parent_role && parent_role.parent_role_id) ? parent_role.parent_role_id : null;
             }
         }
 
-        let res: AnimationModuleVO[] = [];
+        const res: AnimationModuleVO[] = [];
 
-        for (let i in vos) {
-            let vo: AnimationModuleVO = vos[i];
+        for (const i in vos) {
+            const vo: AnimationModuleVO = vos[i];
 
             if (!vo.role_id_ranges || !vo.role_id_ranges.length) {
                 res.push(vo);
@@ -624,15 +624,15 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
         }
 
-        let user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
+        const user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
 
-        for (let i in user_roles) {
+        for (const i in user_roles) {
             if (user_roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
                 return true;
             }

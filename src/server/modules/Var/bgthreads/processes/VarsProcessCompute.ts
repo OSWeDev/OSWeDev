@@ -29,7 +29,7 @@ export default class VarsProcessCompute extends VarsProcessBase {
 
     protected worker_sync(node: VarDAGNode): boolean {
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
         controller.computeValue(node);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {

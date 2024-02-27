@@ -87,6 +87,37 @@ TO :
 
 !!!! à refaire tant qu'il reste des résultats à la recherche
 
+=== Mot Entier
+FROM :
+'VOsTypesManager.moduleTables_by_voType'
+TO :
+'ModuleTableController.module_tables_by_vo_type'
+
+=== Mot Entier
+
+FROM :
+'VOsTypesManager.moduleTablesFields_by_vo_id_and_field_id'
+TO :
+'ModuleTableController.module_tables_by_vo_id'
+
+=== Mot Entier
+FROM :
+'VOsTypesManager.moduleTablesFields_by_voType_and_field_name'
+TO :
+'ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name'
+
+=== Mot Entier
+
+FROM :
+'VOsTypesManager.moduleTablesFields_by_vo_id_and_field_id'
+TO :
+'ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id'
+
+
+ModuleTableController.create_new(moduleTable.module_name, vo_type, moduleTable.voConstructor, fields, null, vo_type); => ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
+new ModuleTableVO(
+ModuleTableController.create_new(
+
 == Modifications restantes (principales)
 
 === XXXfieldXXX.field_id
@@ -98,3 +129,85 @@ Possibilité de faire un REPLACE ALL du coup avec '.field_name' mais vérifier d
 a été supprimé au profit de VOsTypesManager.moduleTablesFields_by_voType_and_field_name[XXXmoduletableXXX.vo_type];
 Pour identifier les occurrences facilement : '.get_fields()' en recherche [Mot entier] + [Respecter la casse]
 
+
+
+
+
+
+
+
+
+= Migrer de TSLint à ESLint
+
+CF discussion avec ChatGPT pour OSWEDEV :
+
+Pour passer de TSLint à ESLint dans votre projet, vous devez suivre plusieurs étapes, car TSLint a été déprécié au profit d'ESLint, qui est désormais l'outil recommandé pour l'analyse statique du code TypeScript. Voici un guide étape par étape pour effectuer la transition :
+
+1. Supprimer TSLint et ses configurations
+Tout d'abord, vous devez supprimer TSLint et toutes les configurations liées à TSLint de votre projet. Cela peut être fait en exécutant les commandes suivantes :
+
+bash
+Copy code
+npm uninstall tslint
+npm uninstall @types/tslint
+2. Installer ESLint et les plugins nécessaires
+Ensuite, installez ESLint ainsi que les plugins et configurations nécessaires pour le support de TypeScript et les règles que vous souhaitez appliquer. Utilisez les commandes suivantes pour installer ESLint et les dépendances couramment utilisées :
+
+bash
+Copy code
+npm install eslint --save-dev
+npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin --save-dev
+Si votre projet utilise Vue.js, vous pouvez également vouloir installer le plugin ESLint pour Vue :
+
+bash
+Copy code
+npm install eslint-plugin-vue --save-dev
+3. Configurer ESLint
+Après l'installation, vous devez créer un fichier de configuration ESLint. Vous pouvez générer un fichier de configuration de base en exécutant :
+
+bash
+Copy code
+npx eslint --init
+Suivez les instructions pour configurer ESLint selon vos besoins (par exemple, analyser du code TypeScript, utiliser des normes de codage populaires, etc.).
+
+Si vous avez besoin d'une configuration plus spécifique, créez ou modifiez manuellement le fichier .eslintrc.js (ou le format de fichier de configuration que vous avez choisi). Par exemple, pour un projet TypeScript avec Vue.js, votre configuration pourrait ressembler à ceci :
+
+javascript
+Copy code
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:vue/vue3-recommended'
+  ],
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module'
+  },
+  rules: {
+    // Personnalisez vos règles ici
+  }
+};
+4. Mettre à jour les scripts NPM
+Mettez à jour votre package.json pour utiliser ESLint à la place de TSLint. Par exemple, remplacez les scripts existants liés à TSLint par des scripts utilisant ESLint :
+
+json
+Copy code
+"scripts": {
+  "lint": "eslint . --ext .ts,.tsx,.vue",
+  "lint-fix": "eslint . --ext .ts,.tsx,.vue --fix"
+}
+5. Exécuter ESLint
+Enfin, exécutez ESLint pour vérifier votre projet et corriger les erreurs de lint :
+
+bash
+Copy code
+npm run lint
+Pour corriger automatiquement les problèmes lorsque cela est possible, utilisez :
+
+bash
+Copy code
+npm run lint-fix
+Conclusion
+En suivant ces étapes, vous aurez migré avec succès de TSLint à ESLint dans votre projet. Vous pouvez personnaliser davantage la configuration ESLint en fonction des besoins spécifiques de votre projet et des préférences de style de codage.

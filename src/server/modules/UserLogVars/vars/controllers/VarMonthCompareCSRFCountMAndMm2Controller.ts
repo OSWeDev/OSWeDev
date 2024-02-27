@@ -46,7 +46,7 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
     public getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: UserMinDataRangesVO } {
 
-        let DEP_CSRFCountMm2 = UserMinDataRangesVO.cloneFromVarName<UserMinDataRangesVO, UserMinDataRangesVO>(
+        const DEP_CSRFCountMm2 = UserMinDataRangesVO.cloneFromVarName<UserMinDataRangesVO, UserMinDataRangesVO>(
             varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance().varConf.name, true);
         DEP_CSRFCountMm2.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(
             DEP_CSRFCountMm2.ts_ranges, -2, TimeSegment.TYPE_MONTH);
@@ -66,7 +66,7 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
                 return UserMinDataRangesVO.cloneArrayFrom(intersectors as any as UserMinDataRangesVO[], this.varConf.name);
 
             case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2:
-                let DEP_VolumeRealiseAM1s = UserMinDataRangesVO.cloneArrayFrom<UserMinDataRangesVO, UserMinDataRangesVO>(
+                const DEP_VolumeRealiseAM1s = UserMinDataRangesVO.cloneArrayFrom<UserMinDataRangesVO, UserMinDataRangesVO>(
                     intersectors as any as UserMinDataRangesVO[], this.varConf.name, true);
                 DEP_VolumeRealiseAM1s.forEach((DEP_VolumeRealiseAM1) => {
                     DEP_VolumeRealiseAM1.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(DEP_VolumeRealiseAM1.ts_ranges, 2, TimeSegment.TYPE_MONTH);
@@ -81,8 +81,8 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let ratio: number = ((varDAGNode.outgoing_deps[VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount].outgoing_node as VarDAGNode).var_data as UserMinDataRangesVO).value;
-        let ratio_mm2: number = ((varDAGNode.outgoing_deps[VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2].outgoing_node as VarDAGNode).var_data as UserMinDataRangesVO).value;
+        const ratio: number = ((varDAGNode.outgoing_deps[VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount].outgoing_node as VarDAGNode).var_data as UserMinDataRangesVO).value;
+        const ratio_mm2: number = ((varDAGNode.outgoing_deps[VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2].outgoing_node as VarDAGNode).var_data as UserMinDataRangesVO).value;
 
         if ((!ratio_mm2) ||
             (ratio == null) || (typeof ratio === 'undefined')) {

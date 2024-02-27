@@ -65,8 +65,8 @@ export default class ImpersonateComponent extends VueComponentBase {
      */
     get userid_field_id() {
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
             if (column.api_type_id != UserVO.API_TYPE_ID) {
                 continue;
             }
@@ -85,7 +85,7 @@ export default class ImpersonateComponent extends VueComponentBase {
             return;
         }
 
-        let user_id: number = await ModuleAccessPolicy.getInstance().impersonate(this.uid);
+        const user_id: number = await ModuleAccessPolicy.getInstance().impersonate(this.uid);
 
         if (!user_id) {
             ConsoleHandler.error('Impossible d\'impersonner l\'utilisateur:' + this.uid);

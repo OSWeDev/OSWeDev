@@ -54,7 +54,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
 
         if (this.showProgramAdministration) {
 
-            if (!!this.programplan_shared_module.program_category_type_id) {
+            if (this.programplan_shared_module.program_category_type_id) {
                 await CRUDComponentManager.getInstance().registerCRUD(
                     this.programplan_shared_module.program_category_type_id,
                     null,
@@ -71,7 +71,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     this.routes);
             }
 
-            if (!!this.programplan_shared_module.program_type_id) {
+            if (this.programplan_shared_module.program_type_id) {
                 await CRUDComponentManager.getInstance().registerCRUD(
                     this.programplan_shared_module.program_type_id,
                     null,
@@ -89,7 +89,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             }
         }
 
-        if (!!this.programplan_shared_module.enseigne_type_id) {
+        if (this.programplan_shared_module.enseigne_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.enseigne_type_id,
                 null,
@@ -106,7 +106,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.target_group_type_id) {
+        if (this.programplan_shared_module.target_group_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_group_type_id,
                 null,
@@ -123,7 +123,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.target_zone_type_id) {
+        if (this.programplan_shared_module.target_zone_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_zone_type_id,
                 null,
@@ -141,7 +141,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
         }
 
 
-        if (!!this.programplan_shared_module.target_region_type_id) {
+        if (this.programplan_shared_module.target_region_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_region_type_id,
                 null,
@@ -158,7 +158,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.target_type_id) {
+        if (this.programplan_shared_module.target_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_type_id,
                 null,
@@ -175,7 +175,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.contact_type_type_id) {
+        if (this.programplan_shared_module.contact_type_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.contact_type_type_id,
                 null,
@@ -192,7 +192,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.contact_type_id) {
+        if (this.programplan_shared_module.contact_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.contact_type_id,
                 null,
@@ -209,7 +209,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.partner_type_id) {
+        if (this.programplan_shared_module.partner_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.partner_type_id,
                 null,
@@ -226,7 +226,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.manager_type_id) {
+        if (this.programplan_shared_module.manager_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.manager_type_id,
                 null,
@@ -243,7 +243,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.facilitator_region_type_id) {
+        if (this.programplan_shared_module.facilitator_region_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.facilitator_region_type_id,
                 null,
@@ -260,7 +260,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.facilitator_type_id) {
+        if (this.programplan_shared_module.facilitator_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.facilitator_type_id,
                 null,
@@ -277,7 +277,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.task_type_type_id) {
+        if (this.programplan_shared_module.task_type_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.task_type_type_id,
                 null,
@@ -295,7 +295,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             );
         }
 
-        if (!!this.programplan_shared_module.task_type_id) {
+        if (this.programplan_shared_module.task_type_id) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.task_type_id,
                 null,
@@ -312,19 +312,19 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.rdv_type_id) {
-            let rdv_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_type_id);
+        if (this.programplan_shared_module.rdv_type_id) {
+            const rdv_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_type_id);
 
             // On ajoute l'enseigne
-            if (!!this.programplan_shared_module.enseigne_type_id) {
+            if (this.programplan_shared_module.enseigne_type_id) {
                 rdv_crud.readDatatable.pushField(
                     ManyToOneReferenceDatatableFieldVO.createNew(
                         'target_id',
-                        VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                        ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.target_type_id],
                         [
                             ManyToOneReferenceDatatableFieldVO.createNew(
                                 'enseigne_id',
-                                VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.enseigne_type_id],
+                                ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.enseigne_type_id],
                                 [
                                     SimpleDatatableFieldVO.createNew('name')
                                 ])
@@ -352,8 +352,8 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             //     }
         }
 
-        if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let prep_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_prep_type_id);
+        if (this.programplan_shared_module.rdv_prep_type_id) {
+            const prep_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_prep_type_id);
 
             ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.rdv_date_compute_function_uid, (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT));
 
@@ -361,7 +361,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ComputedDatatableFieldVO.createNew(
                             'rdv_date',
@@ -374,11 +374,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ManyToOneReferenceDatatableFieldVO.createNew(
                             'target_id',
-                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.target_type_id],
                             [
                                 SimpleDatatableFieldVO.createNew('name')
                             ])
@@ -389,11 +389,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ManyToOneReferenceDatatableFieldVO.createNew(
                             'facilitator_id',
-                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.facilitator_type_id],
                             [
                                 ComputedDatatableFieldVO.createNew(
                                     'facilitator_name',
@@ -420,14 +420,14 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.programplan_shared_module.rdv_cr_type_id) {
-            let cr_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_cr_type_id);
+        if (this.programplan_shared_module.rdv_cr_type_id) {
+            const cr_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_cr_type_id);
 
             // On ajoute le RDV avec la date - cible - consultant
             cr_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ComputedDatatableFieldVO.createNew(
                             'rdv_date',
@@ -440,11 +440,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             cr_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ManyToOneReferenceDatatableFieldVO.createNew(
                             'target_id',
-                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.target_type_id],
                             [
                                 SimpleDatatableFieldVO.createNew('name')
                             ])
@@ -455,11 +455,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             cr_crud.readDatatable.pushField(
                 ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.rdv_type_id],
                     [
                         ManyToOneReferenceDatatableFieldVO.createNew(
                             'facilitator_id',
-                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            ModuleTableController.module_tables_by_vo_type[this.programplan_shared_module.facilitator_type_id],
                             [
                                 ComputedDatatableFieldVO.createNew(
                                     'facilitator_name',
@@ -486,7 +486,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.post_initialization_hook) {
+        if (this.post_initialization_hook) {
             await this.post_initialization_hook();
         }
     }

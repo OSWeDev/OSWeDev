@@ -65,8 +65,8 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_G = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_G, 0);
-        let DEP_H = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_H, 0);
+        const DEP_G = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_G, 0);
+        const DEP_H = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_H, 0);
 
         return DEP_G - DEP_H;
     }

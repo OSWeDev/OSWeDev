@@ -32,9 +32,9 @@ export default class UserLogVO {
         this.impersonated = false;
         let comment = '';
 
-        while (!!impersonated_from_session) {
+        while (impersonated_from_session) {
 
-            let imp_uid: number = impersonated_from_session.uid;
+            const imp_uid: number = impersonated_from_session.uid;
             this.impersonated = true;
             comment += ((comment == '') ? '' : ' <- ') + 'Impersonated from user_id [' + imp_uid + ']';
             impersonated_from_session = impersonated_from_session.impersonated_from;

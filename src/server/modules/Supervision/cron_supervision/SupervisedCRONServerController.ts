@@ -32,9 +32,9 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
         /**
          * On enregistre les triggers
          */
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preDeleteTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(CronWorkerPlanification.API_TYPE_ID, this, this.postCCreateSupervisedItem);
         preUpdateTrigger.registerHandler(CronWorkerPlanification.API_TYPE_ID, this, this.preUUpdateSupervisedItem);
@@ -56,7 +56,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
 
         supervised_pdv.invalid = false;
 
-        let planification: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
+        const planification: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
             .filter_by_text_eq(field_names<CronWorkerPlanification>().planification_uid, supervised_pdv.planification_uid)
             .filter_by_text_eq(field_names<CronWorkerPlanification>().worker_uid, supervised_pdv.worker_uid)
             .exec_as_server()
@@ -74,8 +74,8 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
          *  on est en erreur. Sinon on est en ok
          */
 
-        let now: number = Dates.now();
-        let next_planned_launch: number = planification.date_heure_planifiee;
+        const now: number = Dates.now();
+        const next_planned_launch: number = planification.date_heure_planifiee;
 
         if (!next_planned_launch) {
             supervised_pdv.state = SupervisionController.STATE_WARN;
@@ -83,8 +83,8 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
             return true;
         }
 
-        let time_waited: number = next_planned_launch - now;
-        let max_time_to_wait_sec: number = 60 * 60 * 2; // 2H
+        const time_waited: number = next_planned_launch - now;
+        const max_time_to_wait_sec: number = 60 * 60 * 2; // 2H
         supervised_pdv.last_value = time_waited / (60 * 60 * 24);
 
         if (time_waited < -max_time_to_wait_sec) {

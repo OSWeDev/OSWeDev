@@ -106,7 +106,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
             // Si on a des valeurs par défaut, on va faire l'init
 
             // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
-            let has_active_field_filter: boolean = !!(
+            const has_active_field_filter: boolean = !!(
                 this.get_active_field_filters &&
                 this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
                 this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
@@ -150,7 +150,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -195,7 +195,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -205,7 +205,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     get default_values(): number[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.default_boolean_values) || (!options.default_boolean_values.length)) {
             return null;
@@ -221,7 +221,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
         let options: FieldValueFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }
@@ -235,10 +235,10 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     private get_ContextFilterVO_from_boolean_filter_types(): ContextFilterVO {
         let filter = null;
 
-        for (let i in this.boolean_filter_types) {
-            let boolean_filter_type = this.boolean_filter_types[i];
+        for (const i in this.boolean_filter_types) {
+            const boolean_filter_type = this.boolean_filter_types[i];
 
-            let this_filter = new ContextFilterVO();
+            const this_filter = new ContextFilterVO();
             this_filter.field_id = this.vo_field_ref.field_id;
             this_filter.vo_type = this.vo_field_ref.api_type_id;
 
@@ -254,7 +254,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
             if (!filter) {
                 filter = this_filter;
             } else {
-                let or = new ContextFilterVO();
+                const or = new ContextFilterVO();
                 or.field_id = this.vo_field_ref.field_id;
                 or.vo_type = this.vo_field_ref.api_type_id;
                 or.filter_type = ContextFilterVO.TYPE_FILTER_OR;

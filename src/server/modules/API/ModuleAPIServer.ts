@@ -39,12 +39,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     public registerExpressApis(app: Express): void {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'IN');
 
         // On doit register toutes les APIs
-        for (let i in APIControllerWrapper.registered_apis) {
-            let api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[i];
+        for (const i in APIControllerWrapper.registered_apis) {
+            const api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[i];
 
             StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'API');
             switch (api.api_type) {
@@ -77,11 +77,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
     private createApiRequestHandler<T, U>(api: APIDefinition<T, U>): (req: Request, res: Response) => void {
         return async (req: Request, res: Response) => {
 
-            if (!!api.access_policy_name) {
+            if (api.access_policy_name) {
                 if (!await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => AccessPolicyServerController.checkAccessSync(api.access_policy_name))) {
-                    let session: IServerUserSession = (req as any).session;
+                    const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Access denied to API:' + api.api_name + ':sessionID:' + req.sessionID + ":uid:" + (session ? session.uid : "null") + ":user_vo:" + ((session && session.user_vo) ? JSON.stringify(session.user_vo) : null));
                     StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'access_denied_api', api.api_name);
                     this.respond_on_error(api, res);
@@ -105,7 +105,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
                         // Décompresse les données gzipées
                         try {
-                            let decoded = zlib.gunzipSync(Buffer.from(req_body));
+                            const decoded = zlib.gunzipSync(Buffer.from(req_body));
 
                             // Utilisez les données décompressées ici
                             // ConsoleHandler.log("gunzipSync :: " + decoded.toString());
@@ -134,12 +134,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
             }
 
-            let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
+            const params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;
 
-            let notif_result_uid: number = req.session.uid;
-            let notif_result_tab_id: string = req.headers.client_tab_id as string;
-            let do_notif_result: boolean = (
+            const notif_result_uid: number = req.session.uid;
+            const notif_result_tab_id: string = req.headers.client_tab_id as string;
+            const do_notif_result: boolean = (
                 (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) &&
                 (!!notif_result_uid) &&
                 (!!notif_result_tab_id));
@@ -147,12 +147,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             try {
                 StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name);
-                let date_in_ms = Dates.now_ms();
+                const date_in_ms = Dates.now_ms();
 
                 // Si on répond en notif, on commence par dire OK au client, avant de gérer vraiment la demande
                 if (do_notif_result) {
                     api_call_id = ++ModuleAPIServer.API_CALL_ID;
-                    let notif_result = APINotifTypeResultVO.createNew(
+                    const notif_result = APINotifTypeResultVO.createNew(
                         api_call_id,
                         null
                     );

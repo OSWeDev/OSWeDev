@@ -89,7 +89,7 @@ export default class VarsServerController {
     }
 
     public static delete_registered_varconf(id: number) {
-        let name = VarsController.var_conf_by_id[id].name;
+        const name = VarsController.var_conf_by_id[id].name;
         delete VarsController.var_conf_by_id[id];
         delete VarsController.var_conf_by_name[name];
 
@@ -109,14 +109,14 @@ export default class VarsServerController {
 
                 let did_something = false;
                 let last_not_full = null;
-                for (let i in VarsServerController.varcontrollers_dag.nodes) {
-                    let node: VarCtrlDAGNode = VarsServerController.varcontrollers_dag.nodes[i];
+                for (const i in VarsServerController.varcontrollers_dag.nodes) {
+                    const node: VarCtrlDAGNode = VarsServerController.varcontrollers_dag.nodes[i];
 
-                    if (!!VarsServerController.varcontrollers_dag_depths[node.var_controller.varConf.id]) {
+                    if (VarsServerController.varcontrollers_dag_depths[node.var_controller.varConf.id]) {
                         continue;
                     }
 
-                    let depth = VarsServerController.get_max_depth(node, false);
+                    const depth = VarsServerController.get_max_depth(node, false);
                     if (depth === null) {
                         last_not_full = node;
                         needs_again = true;
@@ -133,7 +133,7 @@ export default class VarsServerController {
                         throw new Error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                     }
 
-                    let depth = VarsServerController.get_max_depth(last_not_full, true);
+                    const depth = VarsServerController.get_max_depth(last_not_full, true);
                     if (depth === null) {
                         ConsoleHandler.error('depth===null on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('depth===null on !did_something in init_varcontrollers_dag_depths');
@@ -167,14 +167,14 @@ export default class VarsServerController {
      * Attention évidemment à ne pas supprimer les vars automatiques
      */
     public static async clean_varconfs_without_controller() {
-        let db_var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+        const db_var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
             .filter_is_false(field_names<VarConfVO>().is_auto)
             .exec_as_server()
             .select_vos<VarConfVO>();
 
-        let to_delete_ids: number[] = [];
-        for (let i in db_var_confs) {
-            let db_var_conf = db_var_confs[i];
+        const to_delete_ids: number[] = [];
+        for (const i in db_var_confs) {
+            const db_var_conf = db_var_confs[i];
 
             if (!VarsServerController.registered_vars_controller[db_var_conf.name]) {
                 to_delete_ids.push(db_var_conf.id);
@@ -189,19 +189,19 @@ export default class VarsServerController {
 
     public static init_varcontrollers_dag() {
 
-        let varcontrollers_dag: VarCtrlDAG = new VarCtrlDAG();
+        const varcontrollers_dag: VarCtrlDAG = new VarCtrlDAG();
 
-        for (let i in VarsServerController.registered_vars_controller) {
-            let var_controller: VarServerControllerBase<any> = VarsServerController.registered_vars_controller[i];
+        for (const i in VarsServerController.registered_vars_controller) {
+            const var_controller: VarServerControllerBase<any> = VarsServerController.registered_vars_controller[i];
 
-            let node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
+            const node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
 
-            let var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
+            const var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
 
-            for (let dep_name in var_dependencies) {
-                let var_dependency = var_dependencies[dep_name];
+            for (const dep_name in var_dependencies) {
+                const var_dependency = var_dependencies[dep_name];
 
-                let dependency = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_dependency);
+                const dependency = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_dependency);
 
                 node.addOutgoingDep(dep_name, dependency);
             }
@@ -216,11 +216,11 @@ export default class VarsServerController {
      */
     public static get_datasource_deps_and_predeps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
         let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
-        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+        datasource_deps = (datasource_deps) ? datasource_deps : [];
 
-        let datasource_predeps: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
-        for (let i in datasource_predeps) {
-            let ds = datasource_predeps[i];
+        const datasource_predeps: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+        for (const i in datasource_predeps) {
+            const ds = datasource_predeps[i];
 
             if (datasource_deps.indexOf(ds) == -1) {
                 datasource_deps.push(ds);
@@ -235,10 +235,10 @@ export default class VarsServerController {
      * @param controller
      */
     public static get_datasource_deps_and_predeps_names(controller: VarServerControllerBase<any>): string[] {
-        let datasource_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(controller);
-        let datasource_deps_names: string[] = [];
-        for (let i in datasource_deps) {
-            let ds = datasource_deps[i];
+        const datasource_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(controller);
+        const datasource_deps_names: string[] = [];
+        for (const i in datasource_deps) {
+            const ds = datasource_deps[i];
             datasource_deps_names.push(ds.name);
         }
         return datasource_deps_names;
@@ -402,12 +402,12 @@ export default class VarsServerController {
                     if (daoVarConf.pixel_fields.length == varConf.pixel_fields.length) {
 
                         let overwrite_dao = false;
-                        for (let i in daoVarConf.pixel_fields) {
-                            let pixel_field = daoVarConf.pixel_fields[i];
+                        for (const i in daoVarConf.pixel_fields) {
+                            const pixel_field = daoVarConf.pixel_fields[i];
 
                             if ((pixel_field.pixel_param_field_name == null) ||
                                 (pixel_field.pixel_vo_api_type_id == null) ||
-                                (pixel_field.pixel_vo_field_id == null) ||
+                                (pixel_field.pixel_vo_field_name == null) ||
                                 (pixel_field.pixel_range_type == null) ||
                                 (pixel_field.pixel_segmentation_type == null)) {
                                 overwrite_dao = true;
@@ -433,7 +433,7 @@ export default class VarsServerController {
             return daoVarConf;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(varConf);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(varConf);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return null;
         }
@@ -457,8 +457,8 @@ export default class VarsServerController {
             ConsoleHandler.log('get_outgoing_deps_sum:START:' + varDAGNode.var_data.index + ':' + dep_name_starts_with + ':' + start_value + ':');
         }
 
-        for (let i in varDAGNode.outgoing_deps) {
-            let outgoing = varDAGNode.outgoing_deps[i];
+        for (const i in varDAGNode.outgoing_deps) {
+            const outgoing = varDAGNode.outgoing_deps[i];
 
             if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
 
@@ -469,8 +469,8 @@ export default class VarsServerController {
                 continue;
             }
 
-            let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
-            let value = var_data ? var_data.value : null;
+            const var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
+            const value = var_data ? var_data.value : null;
             if ((!var_data) || (isNaN(value))) {
 
                 if (debug) {
@@ -536,8 +536,8 @@ export default class VarsServerController {
             return 0;
         }
 
-        for (let i in varDAGNode.outgoing_deps) {
-            let outgoing = varDAGNode.outgoing_deps[i];
+        for (const i in varDAGNode.outgoing_deps) {
+            const outgoing = varDAGNode.outgoing_deps[i];
 
             if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
 
@@ -548,8 +548,8 @@ export default class VarsServerController {
                 continue;
             }
 
-            let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
-            let value = var_data ? var_data.value : null;
+            const var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
+            const value = var_data ? var_data.value : null;
 
             if (do_not_consider_null_as_false && (value == null)) {
 
@@ -603,7 +603,7 @@ export default class VarsServerController {
         VarsController.var_conf_by_id[varConf.id] = varConf;
 
         let dss: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(controller);
-        dss = (!!dss) ? dss : [];
+        dss = (dss) ? dss : [];
         if (dss && dss.length) {
             dss.forEach((datasource_dep) => {
                 datasource_dep.registerDataSource();
@@ -611,16 +611,16 @@ export default class VarsServerController {
         }
 
         // On enregistre le lien entre DS et VAR
-        for (let i in dss) {
-            let ds = dss[i];
+        for (const i in dss) {
+            const ds = dss[i];
 
             if (!VarsServerController.registered_vars_by_datasource[ds.name]) {
                 VarsServerController.registered_vars_by_datasource[ds.name] = [];
             }
             VarsServerController.registered_vars_by_datasource[ds.name].push(controller);
 
-            for (let j in ds.vo_api_type_ids) {
-                let vo_api_type_id = ds.vo_api_type_ids[j];
+            for (const j in ds.vo_api_type_ids) {
+                const vo_api_type_id = ds.vo_api_type_ids[j];
 
                 if (!VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id]) {
                     VarsServerController.registered_vars_controller_by_api_type_id[vo_api_type_id] = [];
@@ -634,29 +634,29 @@ export default class VarsServerController {
     }
 
     private static register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
-        if (!!controller.var_name_default_translations) {
+        if (controller.var_name_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_name_default_translations,
                 VarsController.get_translatable_name_code(varConf_name)));
         }
 
-        if (!!controller.var_description_default_translations) {
+        if (controller.var_description_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_description_default_translations,
                 VarsController.get_translatable_description_code(varConf_name)));
         }
 
-        if (!!controller.var_explaination_default_translations) {
+        if (controller.var_explaination_default_translations) {
             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
                 controller.var_explaination_default_translations,
                 VarsController.get_translatable_explaination(varConf_name)));
         }
 
-        if (!!controller.var_deps_names_default_translations) {
+        if (controller.var_deps_names_default_translations) {
 
-            let deps: { [dep_name: string]: VarServerControllerBase<any> } = controller.getVarControllerDependencies();
-            for (let i in deps) {
-                let dep = deps[i];
+            const deps: { [dep_name: string]: VarServerControllerBase<any> } = controller.getVarControllerDependencies();
+            for (const i in deps) {
+                const dep = deps[i];
 
                 if (!controller.var_deps_names_default_translations[i]) {
                     continue;
@@ -672,8 +672,8 @@ export default class VarsServerController {
         let is_complete = true;
         let depth = 1;
 
-        for (let j in node.outgoing_deps) {
-            let dep = node.outgoing_deps[j];
+        for (const j in node.outgoing_deps) {
+            const dep = node.outgoing_deps[j];
 
             if ((dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id == node.var_controller.varConf.id) {
                 continue;

@@ -11,7 +11,7 @@ export default class AnimationMessageModuleVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_message_module';
 
     public static moduleTable(): ModuleTableVO {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().min, ModuleTableFieldVO.FIELD_TYPE_prct, "Min"),
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().max, ModuleTableFieldVO.FIELD_TYPE_prct, "Max"),
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().message, ModuleTableFieldVO.FIELD_TYPE_html, "Message"),
@@ -21,13 +21,13 @@ export default class AnimationMessageModuleVO implements IDistantVOBase {
     }
 
     public static fields(): Array<DatatableField<any, any>> {
-        let fields: Array<DatatableField<any, any>> = [];
-        let moduleTable: ModuleTableVO = AnimationMessageModuleVO.moduleTable();
-        let moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
+        const fields: Array<DatatableField<any, any>> = [];
+        const moduleTable: ModuleTableVO = AnimationMessageModuleVO.moduleTable();
+        const moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
 
         if (moduleTable_fields) {
-            for (let i in moduleTable_fields) {
-                let field: ModuleTableFieldVO = moduleTable_fields[i];
+            for (const i in moduleTable_fields) {
+                const field: ModuleTableFieldVO = moduleTable_fields[i];
                 fields.push(SimpleDatatableFieldVO.createNew(field.field_id).setModuleTable(moduleTable));
             }
         }

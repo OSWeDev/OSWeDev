@@ -24,7 +24,7 @@ export default class DashboardBuilderCronWorkersHandler {
     private constructor() {
         ModuleCronServer.getInstance().registerCronWorker(ExportFavoritesFiltersDatatableCronWorker.getInstance());
 
-        let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
+        const planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
         planCronWorker.date_heure_planifiee = null;
         planCronWorker.intervale_recurrence = 0;

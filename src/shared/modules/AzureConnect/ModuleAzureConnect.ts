@@ -66,9 +66,9 @@ export default class ModuleAzureConnect extends Module {
     }
 
     private initializeAzureConnectedUserVO() {
-        let user_id = ModuleTableFieldController.create_new(AzureConnectedUserVO.API_TYPE_ID, field_names<AzureConnectedUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        const user_id = ModuleTableFieldController.create_new(AzureConnectedUserVO.API_TYPE_ID, field_names<AzureConnectedUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
-        let fields = [
+        const fields = [
             user_id,
 
             ModuleTableFieldController.create_new(AzureConnectedUserVO.API_TYPE_ID, field_names<AzureConnectedUserVO>().access_token, ModuleTableFieldVO.FIELD_TYPE_string, "access_token"),
@@ -78,7 +78,7 @@ export default class ModuleAzureConnect extends Module {
             ModuleTableFieldController.create_new(AzureConnectedUserVO.API_TYPE_ID, field_names<AzureConnectedUserVO>().connect_callback_redirect_url, ModuleTableFieldVO.FIELD_TYPE_string, "connect_callback_redirect_url"),
         ];
 
-        let datatable = new ModuleTableVO(this, AzureConnectedUserVO.API_TYPE_ID, () => new AzureConnectedUserVO(), fields, null, "Lien compte Azure");
+        const datatable = new ModuleTableVO(this, AzureConnectedUserVO.API_TYPE_ID, () => new AzureConnectedUserVO(), fields, null, "Lien compte Azure");
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 

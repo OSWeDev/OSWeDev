@@ -109,7 +109,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public async connexion_to_api() {
-        let return_connect: any = await ModuleRequest.getInstance().sendRequestFromApp(
+        const return_connect: any = await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
             ModuleEvolizAPI.EvolizAPI_BaseURL,
             '/api/login',
@@ -140,14 +140,14 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             // let devis: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
 
             // return devis;
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
             let res: EvolizDevisVO[] = [];
             let has_more: boolean = true;
             let page: number = 1;
 
             while (has_more) {
-                let elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+                const elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
                     ModuleRequest.METHOD_GET,
                     ModuleEvolizAPI.EvolizAPI_BaseURL,
                     ('/api/v1/quotes') + ModuleRequest.getInstance().get_params_url({
@@ -180,9 +180,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public async get_devis(evoliz_id: string): Promise<EvolizDevisVO> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let devis: EvolizDevisVO = await ModuleRequest.getInstance().sendRequestFromApp(
+            const devis: EvolizDevisVO = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 ('/api/v1/quotes/' + evoliz_id),
@@ -205,7 +205,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // ARTICLES
     public async list_articles(): Promise<EvolizArticleVO[]> {
         try {
-            let articles: EvolizArticleVO[] = await this.get_all_pages('/api/v1/articles') as EvolizArticleVO[];
+            const articles: EvolizArticleVO[] = await this.get_all_pages('/api/v1/articles') as EvolizArticleVO[];
 
             return articles;
         } catch (error) {
@@ -215,9 +215,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public async create_article(article: EvolizArticleVO) {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_article = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_article = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/articles',
@@ -239,7 +239,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // FACTURES
     public async list_invoices(): Promise<EvolizInvoiceVO[]> {
         try {
-            let invoices: EvolizInvoiceVO[] = await this.get_all_pages('/api/v1/invoices') as EvolizInvoiceVO[];
+            const invoices: EvolizInvoiceVO[] = await this.get_all_pages('/api/v1/invoices') as EvolizInvoiceVO[];
 
             return invoices;
         } catch (error) {
@@ -249,9 +249,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public async create_invoice(invoice: EvolizInvoicePOSTVO) {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_invoice = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_invoice = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/invoices',
@@ -273,7 +273,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     ///// CLIENTS /////
     public async list_clients(): Promise<EvolizClientVO[]> {
         try {
-            let clients: EvolizClientVO[] = await this.get_all_pages('/api/v1/clients') as EvolizClientVO[];
+            const clients: EvolizClientVO[] = await this.get_all_pages('/api/v1/clients') as EvolizClientVO[];
 
             return clients;
         } catch (error) {
@@ -284,9 +284,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     public async create_client(client: EvolizClientVO) {
 
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_client = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_client = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/clients',
@@ -311,7 +311,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     ///// CONTACTS CLIENTS /////
     public async list_contact_clients(): Promise<EvolizContactClientVO[]> {
         try {
-            let contacts: EvolizContactClientVO[] = await this.get_all_pages('/api/v1/contacts-clients') as EvolizContactClientVO[];
+            const contacts: EvolizContactClientVO[] = await this.get_all_pages('/api/v1/contacts-clients') as EvolizContactClientVO[];
 
             return contacts;
         } catch (error) {
@@ -322,9 +322,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     public async create_contact_client(contact: EvolizContactClientVO) {
 
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_contact = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_contact = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/contacts-clients',
@@ -349,7 +349,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     ///// PROSPECTS /////
     public async list_prospects(): Promise<EvolizProspectVO[]> {
         try {
-            let prospects: EvolizProspectVO[] = await this.get_all_pages('/api/v1/prospects') as EvolizProspectVO[];
+            const prospects: EvolizProspectVO[] = await this.get_all_pages('/api/v1/prospects') as EvolizProspectVO[];
 
             return prospects;
         } catch (error) {
@@ -360,9 +360,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     public async create_prospect(prospect: EvolizProspectVO) {
 
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/prospects',
@@ -387,7 +387,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     ///// CONTACTS PROSPECTS /////
     public async list_contact_prospects(): Promise<EvolizContactProspectVO[]> {
         try {
-            let prospects: EvolizContactProspectVO[] = await this.get_all_pages('/api/v1/contacts-prospects') as EvolizContactProspectVO[];
+            const prospects: EvolizContactProspectVO[] = await this.get_all_pages('/api/v1/contacts-prospects') as EvolizContactProspectVO[];
 
             return prospects;
         } catch (error) {
@@ -398,9 +398,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     public async create_contact_prospect(contact: EvolizContactProspectVO) {
 
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
+            const create_prospect = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/contacts-prospects',
@@ -423,14 +423,14 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     private async get_all_pages(url: string) {
-        let token: EvolizAPIToken = await this.getToken();
+        const token: EvolizAPIToken = await this.getToken();
 
         let res: any[] = [];
         let has_more: boolean = true;
         let page: number = 1;
 
         while (has_more) {
-            let elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+            const elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({

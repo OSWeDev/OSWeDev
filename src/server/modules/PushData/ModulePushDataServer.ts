@@ -68,10 +68,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
     public async configure() {
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this, this.handleNotificationCreation);
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this, this.handleNotificationUpdate);
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -113,12 +113,12 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }, 'UserNotifsViewerComponent.footer_delete_all.___LABEL___'));
 
         // Déclaration de triggers sur tous les types de datas pour post C/U/D pour envoyer les notifs de mise à jour des données aux rooms IO
-        let post_create_trigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let post_update_trigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let post_delete_trigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const post_create_trigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const post_update_trigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const post_delete_trigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
-        for (let voType in VOsTypesManager.moduleTables_by_voType) {
-            let table = VOsTypesManager.moduleTables_by_voType[voType];
+        for (const voType in ModuleTableController.module_tables_by_vo_type) {
+            const table = ModuleTableController.module_tables_by_vo_type[voType];
 
             if (!table) {
                 continue;
@@ -142,10 +142,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async register_io_rooms(msg: RegisterIORoomsThreadMessage) {
-        let room_ids: string[] = msg.message_content;
+        const room_ids: string[] = msg.message_content;
         try {
-            for (let i in room_ids) {
-                let room_id = room_ids[i];
+            for (const i in room_ids) {
+                const room_id = room_ids[i];
                 this.registered_rooms[room_id] = JSON.parse(room_id);
             }
         } catch (error) {
@@ -155,15 +155,15 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async unregister_io_rooms(msg: UnRegisterIORoomsThreadMessage) {
-        let room_ids: string[] = msg.message_content;
-        for (let i in room_ids) {
-            let room_id = room_ids[i];
+        const room_ids: string[] = msg.message_content;
+        for (const i in room_ids) {
+            const room_id = room_ids[i];
             delete this.registered_rooms[room_id];
         }
     }
 
     private async broadcast_registered_rooms(rooms: { [room_id: string]: boolean }) {
-        let param = Object.keys(rooms);
+        const param = Object.keys(rooms);
         if ((!param) || (!param.length)) {
             return;
         }
@@ -171,7 +171,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async broadcast_unregistered_rooms(rooms: { [room_id: string]: boolean }) {
-        let param = Object.keys(rooms);
+        const param = Object.keys(rooms);
         if ((!param) || (!param.length)) {
             return;
         }
@@ -197,15 +197,15 @@ export default class ModulePushDataServer extends ModuleServerBase {
      * Et ensuite envoyer une demande au thread principal pour broadcaster dans la ou les rooms concernées
      */
     private async handlePostCreate_io_rooms(vo: IDistantVOBase) {
-        for (let room_id in this.registered_rooms) {
-            let vo_filter = this.registered_rooms[room_id];
+        for (const room_id in this.registered_rooms) {
+            const vo_filter = this.registered_rooms[room_id];
 
             if (!vo_filter) {
                 continue;
             }
 
             let ignore_vo = false;
-            for (let field_name in vo_filter) {
+            for (const field_name in vo_filter) {
                 if (vo_filter[field_name] != vo[field_name]) {
                     ignore_vo = true;
                     break;
@@ -220,15 +220,15 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
     private async handlePostUpdate_io_rooms(vo_updtae_wrapper: DAOUpdateVOHolder<IDistantVOBase>) {
-        for (let room_id in this.registered_rooms) {
-            let vo_filter = this.registered_rooms[room_id];
+        for (const room_id in this.registered_rooms) {
+            const vo_filter = this.registered_rooms[room_id];
 
             if (!vo_filter) {
                 continue;
             }
 
             let ignore_pre_vo = false;
-            for (let field_name in vo_filter) {
+            for (const field_name in vo_filter) {
                 if (vo_filter[field_name] != vo_updtae_wrapper.pre_update_vo[field_name]) {
                     ignore_pre_vo = true;
                     break;
@@ -241,7 +241,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             let ignore_post_vo = false;
-            for (let field_name in vo_filter) {
+            for (const field_name in vo_filter) {
                 if (vo_filter[field_name] != vo_updtae_wrapper.post_update_vo[field_name]) {
                     ignore_post_vo = true;
                     break;
@@ -255,15 +255,15 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }
     }
     private async handlePostDelete_io_rooms(vo: IDistantVOBase) {
-        for (let room_id in this.registered_rooms) {
-            let vo_filter = this.registered_rooms[room_id];
+        for (const room_id in this.registered_rooms) {
+            const vo_filter = this.registered_rooms[room_id];
 
             if (!vo_filter) {
                 continue;
             }
 
             let ignore_vo = false;
-            for (let field_name in vo_filter) {
+            for (const field_name in vo_filter) {
                 if (vo_filter[field_name] != vo[field_name]) {
                     ignore_vo = true;
                     break;
@@ -289,8 +289,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
-                let field_name = room_vo_fields[i];
-                let field_value = room_vo_fields[i + 1];
+                const field_name = room_vo_fields[i];
+                const field_value = room_vo_fields[i + 1];
 
                 if (i == 0) {
                     room = '{';
@@ -316,14 +316,14 @@ export default class ModulePushDataServer extends ModuleServerBase {
             this.registered_rooms[room] = room_vo;
         }
 
-        let uid = StackContext.get('UID');
-        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        let sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
+        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
 
         try {
 
-            for (let i in sockets) {
+            for (const i in sockets) {
                 sockets[i].socket.join(room);
             }
         } catch (error) {
@@ -342,8 +342,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let room_vo: any = null;
         try {
             for (let i = 0; i < room_vo_fields.length; i += 2) {
-                let field_name = room_vo_fields[i];
-                let field_value = room_vo_fields[i + 1];
+                const field_name = room_vo_fields[i];
+                const field_value = room_vo_fields[i + 1];
 
                 if (i == 0) {
                     room = '{';
@@ -364,14 +364,14 @@ export default class ModulePushDataServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.get('UID');
-        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        let sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
+        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(uid.toString()), client_tab_id);
 
         try {
 
-            for (let i in sockets) {
+            for (const i in sockets) {
                 sockets[i].socket.leave(room);
             }
         } catch (error) {
@@ -385,7 +385,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             return;
         }
 
-        let callback = PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid];
+        const callback = PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid];
         try {
             await callback(notification.prompt_result);
         } catch (error) {

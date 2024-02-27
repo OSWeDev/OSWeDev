@@ -84,10 +84,10 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des utilisateurs clockify d'un workspace donné
     public async get_all_clockify_users(): Promise<ClockifyUserVO[]> {
         try {
-            let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
-            let clockify_users: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/users');
-            let users: ClockifyUserVO[] = clockify_users.map((clockify_user) => {
+            const clockify_users: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/users');
+            const users: ClockifyUserVO[] = clockify_users.map((clockify_user) => {
                 return ClockifyUserVO.createNew(
                     clockify_user.id,
                     clockify_user.name,
@@ -104,10 +104,10 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des clients clockify d'un workspace donné
     public async get_all_clockify_clients(): Promise<ClockifyClientVO[]> {
         try {
-            let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
-            let clockify_clients: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/clients');
-            let clients: ClockifyClientVO[] = clockify_clients.map((clockify_client) => {
+            const clockify_clients: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/clients');
+            const clients: ClockifyClientVO[] = clockify_clients.map((clockify_client) => {
                 return ClockifyClientVO.createNew(
                     clockify_client.id,
                     clockify_client.name,
@@ -125,13 +125,13 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des projets clockify d'un workspace donné
     public async get_all_clockify_projects(): Promise<ClockifyProjetVO[]> {
         try {
-            let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
-            let clockify_projects: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/projects');
-            let projects: ClockifyProjetVO[] = [];
+            const clockify_projects: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/projects');
+            const projects: ClockifyProjetVO[] = [];
 
-            for (let i in clockify_projects) {
-                let clockify_project = clockify_projects[i];
+            for (const i in clockify_projects) {
+                const clockify_project = clockify_projects[i];
                 let clockify_client: ClockifyClientVO = null;
 
                 // Si le projet est relié à un client, on essaye de le récupérer pour l'y connecter
@@ -139,7 +139,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
                     clockify_client = await query(ClockifyClientVO.API_TYPE_ID).filter_by_text_eq('clockify_id', clockify_project.clientId).select_vo();
                 }
 
-                let new_projet = ClockifyProjetVO.createNew(
+                const new_projet = ClockifyProjetVO.createNew(
                     clockify_project.id,
                     clockify_client ? clockify_client.id : null,
                     clockify_project.name,
@@ -158,21 +158,21 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des tâches clockify d'un workspace donné
     public async get_all_clockify_tasks_by_project(): Promise<ClockifyTacheVO[]> {
         try {
-            let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             // On récupère tous les projets clockify que l'on a en base
-            let projets: ClockifyProjetVO[] = await query(ClockifyProjetVO.API_TYPE_ID).select_vos();
-            let taches: ClockifyTacheVO[] = [];
+            const projets: ClockifyProjetVO[] = await query(ClockifyProjetVO.API_TYPE_ID).select_vos();
+            const taches: ClockifyTacheVO[] = [];
 
-            for (let i in projets) {
-                let projet: ClockifyProjetVO = projets[i];
+            for (const i in projets) {
+                const projet: ClockifyProjetVO = projets[i];
                 // Pour chaque projet, on récupère toutes les tâches clockify associées (il n'y a pas d'api nous permettant de récupérer les tâches en masse autrement pour le moment (07/12/2023))
-                let clockify_tasks: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/projects/' + projet.clockify_id + '/tasks');
+                const clockify_tasks: any[] = await this.get_all_pages('api/v1/workspaces/' + workspace_id + '/projects/' + projet.clockify_id + '/tasks');
 
-                for (let j in clockify_tasks) {
-                    let clockify_task = clockify_tasks[j];
+                for (const j in clockify_tasks) {
+                    const clockify_task = clockify_tasks[j];
 
-                    let new_task = ClockifyTacheVO.createNew(
+                    const new_task = ClockifyTacheVO.createNew(
                         clockify_task.id,
                         projet.id,
                         clockify_task.name,
@@ -193,19 +193,19 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
     // Getter des entrées de temps clockify d'un workspace donné
     public async get_all_clockify_timentries_by_user(time_param: TimeParamClockifyTimeEntry): Promise<ClockifyTimeEntryVO[]> {
         try {
-            let workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
+            const workspace_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_WORKSPACE_ID_API_PARAM_NAME);
 
             // On récupère tous les utilisateurs clockify que l'on a en base
-            let users: ClockifyUserVO[] = await query(ClockifyUserVO.API_TYPE_ID).select_vos();
-            let entrees: ClockifyTimeEntryVO[] = [];
+            const users: ClockifyUserVO[] = await query(ClockifyUserVO.API_TYPE_ID).select_vos();
+            const entrees: ClockifyTimeEntryVO[] = [];
 
-            for (let i in users) {
-                let user: ClockifyUserVO = users[i];
+            for (const i in users) {
+                const user: ClockifyUserVO = users[i];
                 // Pour chaque utilisateur, on récupère toutes les entrées de temps clockify associées (il n'y a pas d'api nous permettant de récupérer les entrées de temps en masse autrement pour le moment (07/12/2023))
-                let clockify_timeentries: any[] = await this.get_all_time_entries('api/v1/workspaces/' + workspace_id + '/user/' + user.clockify_id + '/time-entries', time_param.start_time, time_param.end_time);
+                const clockify_timeentries: any[] = await this.get_all_time_entries('api/v1/workspaces/' + workspace_id + '/user/' + user.clockify_id + '/time-entries', time_param.start_time, time_param.end_time);
 
-                for (let j in clockify_timeentries) {
-                    let clockify_timeentry = clockify_timeentries[j];
+                for (const j in clockify_timeentries) {
+                    const clockify_timeentry = clockify_timeentries[j];
                     let projet: ClockifyProjetVO = null;
                     let tache: ClockifyTacheVO = null;
                     if (clockify_timeentry.projectId) {
@@ -215,7 +215,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
                         tache = await query(ClockifyTacheVO.API_TYPE_ID).filter_by_text_eq('clockify_id', clockify_timeentry.taskId).select_vo();
                     }
 
-                    let new_entry = ClockifyTimeEntryVO.createNew(
+                    const new_entry = ClockifyTimeEntryVO.createNew(
                         clockify_timeentry.id,
                         clockify_timeentry.description,
                         projet?.id,
@@ -241,10 +241,10 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
         let res: any[] = [];
         let has_more: boolean = true;
         let page: number = 1;
-        let api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
+        const api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
 
         while (has_more) {
-            let elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
+            const elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleClockifyAPI.ClockifyAPI_BaseURL,
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
@@ -274,10 +274,10 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
         let res: any[] = [];
         let has_more: boolean = true;
         let page: number = 1;
-        let api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
+        const api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
 
         while (has_more) {
-            let elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
+            const elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleClockifyAPI.ClockifyAPI_BaseURL,
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({

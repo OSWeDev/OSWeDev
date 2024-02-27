@@ -39,7 +39,7 @@ export default class ServerAnonymizationController {
             ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name] = {};
         }
 
-        let conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_name];
+        const conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_name];
         if (!ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type]) {
             ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[conf.vo_type] = {};
         }
@@ -51,10 +51,10 @@ export default class ServerAnonymizationController {
     }
 
     public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
-        let res: T[] = [];
+        const res: T[] = [];
 
-        for (let i in vos) {
-            let vo = vos[i];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type] &&
                 ServerAnonymizationController.registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
@@ -96,17 +96,17 @@ export default class ServerAnonymizationController {
     }
 
     public static anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): T[] {
-        let res: T[] = [];
+        const res: T[] = [];
 
-        for (let i in vos) {
-            let vo = vos[i];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo) {
                 continue;
             }
 
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
-                for (let field_id in ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
+                for (const field_id in ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
 
                     ServerAnonymizationController.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
                 }
@@ -119,8 +119,8 @@ export default class ServerAnonymizationController {
 
     public static anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): T[] {
 
-        for (let i in rows) {
-            let row = rows[i];
+        for (const i in rows) {
+            const row = rows[i];
 
             ServerAnonymizationController.anonymise_context_filtered_row(row, fields, uid);
         }
@@ -130,8 +130,8 @@ export default class ServerAnonymizationController {
 
     public static anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): T {
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (field.aggregator != VarConfVO.NO_AGGREGATOR) {
                 /**
@@ -141,8 +141,8 @@ export default class ServerAnonymizationController {
                 continue;
             }
 
-            let api_type_id = field.api_type_id;
-            let field_id = field.field_name;
+            const api_type_id = field.api_type_id;
+            const field_id = field.field_name;
 
             if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
                 ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
@@ -162,7 +162,7 @@ export default class ServerAnonymizationController {
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
             ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
 
-            let anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+            const anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
 
             if (!anonymization_field_conf) {
                 return row_field_value;
@@ -180,12 +180,12 @@ export default class ServerAnonymizationController {
              * on doit chercher sur le mainthread les known values
              *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
              */
-            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+            const known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
 
             if (known_values_by_id) {
 
-                for (let i in known_values_by_id) {
-                    let known_value = known_values_by_id[i];
+                for (const i in known_values_by_id) {
+                    const known_value = known_values_by_id[i];
 
                     if (known_value == row_field_value) {
                         return i;
@@ -200,7 +200,7 @@ export default class ServerAnonymizationController {
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
             ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
 
-            let anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+            const anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
 
             if ((!row[alias]) || (!anonymization_field_conf)) {
                 return row;
@@ -218,14 +218,14 @@ export default class ServerAnonymizationController {
              * on doit chercher sur le mainthread les known values
              *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
              */
-            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+            const known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.registered_anonymization_values[row_field_api_type_id][row_field_field_id];
 
             if (known_values_by_id && known_values_by_id[row[alias]]) {
                 row[alias] = known_values_by_id[row[alias]];
                 return row;
             }
 
-            let before_anonymization = row[alias];
+            const before_anonymization = row[alias];
             known_values_by_id[before_anonymization] = ServerAnonymizationController.anonymize(row, anonymization_field_conf);
             row[alias] = known_values_by_id[before_anonymization];
         }
@@ -241,15 +241,15 @@ export default class ServerAnonymizationController {
         ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id = {};
         ServerAnonymizationController.registered_anonymization_values = {};
 
-        let fields_confs: AnonymizationFieldConfVO[] = await query(AnonymizationFieldConfVO.API_TYPE_ID).select_vos<AnonymizationFieldConfVO>();
-        let users_confs: AnonymizationUserConfVO[] = await query(AnonymizationUserConfVO.API_TYPE_ID).select_vos<AnonymizationUserConfVO>();
+        const fields_confs: AnonymizationFieldConfVO[] = await query(AnonymizationFieldConfVO.API_TYPE_ID).select_vos<AnonymizationFieldConfVO>();
+        const users_confs: AnonymizationUserConfVO[] = await query(AnonymizationUserConfVO.API_TYPE_ID).select_vos<AnonymizationUserConfVO>();
 
         // On est déjà sur un broadcast on a pas besoin de broadcast le register
-        for (let i in fields_confs) {
+        for (const i in fields_confs) {
             ServerAnonymizationController.register_anonymization_field_conf(fields_confs[i]);
         }
 
-        for (let i in users_confs) {
+        for (const i in users_confs) {
             ServerAnonymizationController.register_anonymization_user_conf(users_confs[i]);
         }
     }
@@ -588,7 +588,7 @@ export default class ServerAnonymizationController {
     }
 
     private static get_new_TYPE_ANONYMIZER_FIRSTNAME(): string {
-        let firstnames = ["LUCIE",
+        const firstnames = ["LUCIE",
             "ALINA",
             "MILA",
             "LILY",
@@ -698,7 +698,7 @@ export default class ServerAnonymizationController {
     }
 
     private static get_new_TYPE_ANONYMIZER_LASTNAME(): string {
-        let names = [
+        const names = [
             "MARTIN",
             "BERNARD",
             "THOMAS",
@@ -806,7 +806,7 @@ export default class ServerAnonymizationController {
 
     private static get_new_TYPE_ANONYMIZER_PHONE(): string {
 
-        let numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         let res: string = "0";
         for (let i = 1; i < 10; i++) {
             res += numbers[Math.floor(Math.random() * 10)];
@@ -816,7 +816,7 @@ export default class ServerAnonymizationController {
     }
 
     private static get_new_TYPE_ANONYMIZER_POSTAL(): string {
-        let numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         let res: string = "";
         for (let i = 0; i < 4; i++) {
             res += numbers[Math.floor(Math.random() * 10)];

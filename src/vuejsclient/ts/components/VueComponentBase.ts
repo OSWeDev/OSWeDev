@@ -33,7 +33,7 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from "../../../shared/modules/ModuleTableFieldVO";
 
 // MONTHS MIXIN
-let months = [
+const months = [
     "label.month.janvier",
     "label.month.fevrier",
     "label.month.mars",
@@ -48,7 +48,7 @@ let months = [
     "label.month.decembre"
 ];
 
-let days = [
+const days = [
     "label.day.dimanche",
     "label.day.lundi",
     "label.day.mardi",
@@ -391,7 +391,7 @@ export default class VueComponentBase extends Vue
 
     // Permet de savoir si un module est actif ou pas
     protected moduleIsActive(nom_module) {
-        let module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
+        const module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
             nom_module,
             Module.SharedModuleRoleName
         ) as Module;
@@ -479,12 +479,12 @@ export default class VueComponentBase extends Vue
 
     // DATE MIXIN
     protected parseDateWithFormat(date, format = "d-m-y") {
-        var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
-        var month =
+        const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+        const month =
             date.getMonth() + 1 < 10
                 ? "0" + (date.getMonth() + 1)
                 : date.getMonth() + 1;
-        var year = date.getFullYear();
+        const year = date.getFullYear();
 
         return format
             .replace("d", day)
@@ -543,8 +543,8 @@ export default class VueComponentBase extends Vue
 
     // MOMENT MIXIN
     protected getNbWeekInMonth(month: number) {
-        let month_tmp = month;
-        let res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
+        const month_tmp = month;
+        const res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
         return Dates.diff(
             res,
             Dates.startOf(Dates.startOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK),
@@ -599,8 +599,8 @@ export default class VueComponentBase extends Vue
         }
 
         let res: number = null;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -623,8 +623,8 @@ export default class VueComponentBase extends Vue
 
         let res: number = null;
         let length: number = 0;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -675,8 +675,8 @@ export default class VueComponentBase extends Vue
         }
 
         let res: number = null;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -696,8 +696,8 @@ export default class VueComponentBase extends Vue
 
         try {
 
-            let a: number = datas[0].value;
-            let b: number = datas[1].value;
+            const a: number = datas[0].value;
+            const b: number = datas[1].value;
 
             return b ? (a - b) / b : null;
         } catch (error) {
@@ -713,8 +713,8 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.round(res) / decimals_coef;
         } catch (error) {
@@ -730,8 +730,8 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.floor(res) / decimals_coef;
         } catch (error) {
@@ -747,8 +747,8 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.ceil(res) / decimals_coef;
         } catch (error) {
@@ -762,14 +762,14 @@ export default class VueComponentBase extends Vue
             return;
         }
 
-        let classes = el.className.split(' ');
+        const classes = el.className.split(' ');
         if ((!classes) || (!classes.length)) {
             el.className = className;
             return;
         }
 
         let found = false;
-        for (let i in classes) {
+        for (const i in classes) {
             if (classes[i] == className) {
                 found = true;
                 return;
@@ -786,9 +786,9 @@ export default class VueComponentBase extends Vue
             return;
         }
 
-        let classes = el.className.split(' ');
+        const classes = el.className.split(' ');
         let res = null;
-        for (let i in classes) {
+        for (const i in classes) {
 
             if (classes[i] == className) {
                 continue;
@@ -800,36 +800,36 @@ export default class VueComponentBase extends Vue
     }
 
     protected on_every_update_green_if_supp_zero(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
-        let className = (simple_value >= 1) ? 'text-success' : '';
+        const className = (simple_value >= 1) ? 'text-success' : '';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value < 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
@@ -843,21 +843,21 @@ export default class VueComponentBase extends Vue
      * @param vnode
      */
     protected on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        let simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
         simple_value--;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
@@ -889,9 +889,9 @@ export default class VueComponentBase extends Vue
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
             // this.startLoading();
-            let param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
+            const param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
 
-            if (!!param) {
+            if (param) {
 
                 await ModuleDataExport.getInstance().exportDataToXLSX(
                     param.filename,
@@ -916,7 +916,7 @@ export default class VueComponentBase extends Vue
             return false;
         }
 
-        let resolved = this['$router'].resolve(url);
+        const resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {
             return true;
         }
@@ -924,9 +924,9 @@ export default class VueComponentBase extends Vue
     }
 
     protected async unregister_room_id_vo_event_callbacks(room_id: string) {
-        let promises = [];
-        for (let j in this.vo_events_registration_keys_by_room_id[room_id]) {
-            let vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
+        const promises = [];
+        for (const j in this.vo_events_registration_keys_by_room_id[room_id]) {
+            const vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
 
             promises.push(VOEventRegistrationsHandler.unregister_vo_event_callback(vo_event_registration_key));
         }
@@ -935,8 +935,8 @@ export default class VueComponentBase extends Vue
     }
 
     protected async unregister_all_vo_event_callbacks() {
-        let promises = [];
-        for (let i in this.vo_events_registration_keys_by_room_id) {
+        const promises = [];
+        for (const i in this.vo_events_registration_keys_by_room_id) {
             promises.push(this.unregister_room_id_vo_event_callbacks(i));
         }
         await all_promises(promises);
@@ -957,13 +957,13 @@ export default class VueComponentBase extends Vue
             }
         }
 
-        let list = map_name ? this[map_name][list_name] : this[list_name];
+        const list = map_name ? this[map_name][list_name] : this[list_name];
 
-        let index = list.findIndex((vo) => vo.id == created_vo.id);
+        const index = list.findIndex((vo) => vo.id == created_vo.id);
         if (index < 0) {
 
             let insert_index = 0;
-            for (let i in list) {
+            for (const i in list) {
                 if (sort_function(created_vo, list[i]) > 0) {
                     insert_index++;
                 } else {
@@ -1004,30 +1004,30 @@ export default class VueComponentBase extends Vue
         } else {
             Vue.set(this, list_name, []);
         }
-        let sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
+        const sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
 
-        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        let room_id = JSON.stringify(room_vo);
+        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        const room_id = JSON.stringify(room_vo);
 
         await this.unregister_room_id_vo_event_callbacks(room_id);
         this.vo_events_registration_keys_by_room_id[room_id] = [];
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => {
-            let vos = await query(API_TYPE_ID)
+            const vos = await query(API_TYPE_ID)
                 .add_filters(simple_filters_on_api_type_id)
                 .set_sorts(simple_sorts_by_on_api_type_id)
                 .select_vos();
 
-            for (let i in vos) {
-                let vo = vos[i];
+            for (const i in vos) {
+                const vo = vos[i];
                 this.handle_created_vo_event_callback(list_name, sort_function, vo, map_name);
             }
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
                 room_vo,
                 room_id,
                 (created_vo: IDistantVOBase) => {
@@ -1038,14 +1038,14 @@ export default class VueComponentBase extends Vue
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
                 room_vo,
                 room_id,
                 async (deleted_vo: IDistantVOBase) => {
 
-                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
-                    let index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
+                    const index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
                     if (index >= 0) {
                         list.splice(index, 1);
                     }
@@ -1055,13 +1055,13 @@ export default class VueComponentBase extends Vue
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
                 room_vo,
                 room_id,
                 async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
-                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
-                    let index = list.findIndex((vo) => vo.id == post_update_vo.id);
+                    const index = list.findIndex((vo) => vo.id == post_update_vo.id);
                     if (index >= 0) {
                         list.splice(index, 1, post_update_vo);
                     }
@@ -1097,20 +1097,20 @@ export default class VueComponentBase extends Vue
             this[field_name] = null;
         }
 
-        let simple_filters_on_api_type_id = [
+        const simple_filters_on_api_type_id = [
             filter(API_TYPE_ID).by_id(vo_id)
         ];
-        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        let room_id = JSON.stringify(room_vo);
+        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        const room_id = JSON.stringify(room_vo);
 
         await this.unregister_room_id_vo_event_callbacks(room_id);
         this.vo_events_registration_keys_by_room_id[room_id] = [];
 
-        let promises = [];
+        const promises = [];
 
         if (!vo_has_been_preloaded) {
             promises.push((async () => {
-                let vo = await query(API_TYPE_ID)
+                const vo = await query(API_TYPE_ID)
                     .add_filters(simple_filters_on_api_type_id)
                     .select_vo();
 
@@ -1119,7 +1119,7 @@ export default class VueComponentBase extends Vue
         }
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
                 room_vo,
                 room_id,
                 async (deleted_vo: IDistantVOBase) => {
@@ -1130,7 +1130,7 @@ export default class VueComponentBase extends Vue
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
                 room_vo,
                 room_id,
                 async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
@@ -1158,15 +1158,15 @@ export default class VueComponentBase extends Vue
             throw new Error('list_name is mandatory');
         }
 
-        for (let i in simple_filters_on_api_type_id) {
-            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+        for (const i in simple_filters_on_api_type_id) {
+            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
             if (simple_filter_on_api_type_id.vo_type != API_TYPE_ID) {
                 throw new Error('simple_filters_on_api_type_id must be on API_TYPE_ID');
             }
 
-            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
+            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
+            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_amount:
                 case ModuleTableFieldVO.FIELD_TYPE_float:
@@ -1216,7 +1216,7 @@ export default class VueComponentBase extends Vue
             }
         }
 
-        for (let i in simple_sorts_by_on_api_type_id) {
+        for (const i in simple_sorts_by_on_api_type_id) {
             if (simple_sorts_by_on_api_type_id[i].vo_type != API_TYPE_ID) {
                 throw new Error('simple_sorts_by_on_api_type_id must be on API_TYPE_ID');
             }
@@ -1243,19 +1243,19 @@ export default class VueComponentBase extends Vue
 
 
     private get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id: SortByVO[]): (a, b) => number {
-        let sort_function = (a, b) => {
+        const sort_function = (a, b) => {
             if ((!simple_sorts_by_on_api_type_id) || (!simple_sorts_by_on_api_type_id.length)) {
                 return a.id - b.id;
             }
 
-            for (let i in simple_sorts_by_on_api_type_id) {
-                let sort_by = simple_sorts_by_on_api_type_id[i];
+            for (const i in simple_sorts_by_on_api_type_id) {
+                const sort_by = simple_sorts_by_on_api_type_id[i];
 
                 let compare_a = a[sort_by.field_id];
                 let compare_b = b[sort_by.field_id];
 
                 if (!sort_by.sort_asc) {
-                    let tmp = compare_a;
+                    const tmp = compare_a;
                     compare_a = compare_b;
                     compare_b = tmp;
                 }
@@ -1278,14 +1278,14 @@ export default class VueComponentBase extends Vue
     }
 
     private get_room_vo_for_register_vo_updates(API_TYPE_ID: string, simple_filters_on_api_type_id: ContextFilterVO[] = []): any {
-        let room_vo = {
+        const room_vo = {
             _type: API_TYPE_ID
         };
-        for (let i in simple_filters_on_api_type_id) {
-            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+        for (const i in simple_filters_on_api_type_id) {
+            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
-            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
+            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
+            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_amount:
                 case ModuleTableFieldVO.FIELD_TYPE_float:

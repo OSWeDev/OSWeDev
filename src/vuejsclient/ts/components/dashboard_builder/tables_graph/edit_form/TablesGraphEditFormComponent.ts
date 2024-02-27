@@ -54,7 +54,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
             /**
              * Si le graphvoref existe pas on le crée - a priori ça ressemble à un N/N
              */
-            let graphVoRef = new DashboardGraphVORefVO();
+            const graphVoRef = new DashboardGraphVORefVO();
 
             graphVoRef.x = 800;
             graphVoRef.y = 80;
@@ -73,7 +73,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
         } else {
             edge.source_cell.graphvoref.values_to_exclude = edge.source_cell.graphvoref.values_to_exclude.filter((e) => e != edge.field.field_id);
         }
-        let update_res = await ModuleDAO.getInstance().insertOrUpdateVO(edge.source_cell.graphvoref);
+        const update_res = await ModuleDAO.getInstance().insertOrUpdateVO(edge.source_cell.graphvoref);
         if (!update_res || !update_res.id) {
             ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
             Vue.prototype.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
@@ -81,9 +81,9 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
         }
         this.$emit('remap');
 
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+        const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
 
-        let edges = await query(DashboardGraphVORefVO.API_TYPE_ID)
+        const edges = await query(DashboardGraphVORefVO.API_TYPE_ID)
             .filter_by_num_eq('dashboard_id', this.dashboard.id)
             .select_vos<DashboardGraphVORefVO>();
 
@@ -110,9 +110,9 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
 
     private async confirm_delete_cell() {
 
-        let self = this;
+        const self = this;
 
-        let cell_to_delete = this.current_cell_mapper as MaxGraphCellMapper;
+        const cell_to_delete = this.current_cell_mapper as MaxGraphCellMapper;
 
         if ((!cell_to_delete) || (cell_to_delete._type != 'cell')) {
             return;

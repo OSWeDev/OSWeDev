@@ -127,7 +127,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options(): void {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -195,7 +195,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.tmp_active_favorites_filters_option = null;
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -211,7 +211,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         whole_active_field_filters = this.get_active_field_filters ?? null;
 
         // Say if has active field filter
-        let has_active_field_filter: boolean = !!(whole_active_field_filters);
+        const has_active_field_filter: boolean = !!(whole_active_field_filters);
 
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display active favorites filter application fail alert
@@ -221,11 +221,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(whole_active_field_filters);
         }
 
-        let field_sort: VOFieldRefVO = this.vo_field_ref;
+        const field_sort: VOFieldRefVO = this.vo_field_ref;
 
         let tmp: FavoritesFiltersVO[] = [];
 
-        let query_api_type_id: string = this.vo_field_ref.api_type_id;
+        const query_api_type_id: string = this.vo_field_ref.api_type_id;
 
         tmp = await query(query_api_type_id)
             .filter_by_text_eq('page_id', this.dashboard_page.id.toString())
@@ -341,7 +341,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async reset_all_visible_active_field_filters() {
 
-        let promises = [];
+        const promises = [];
         for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
             const db_reseters = ResetFiltersWidgetController.getInstance().reseters[db_id];
 
@@ -501,7 +501,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_viewer.delete_favorites_filters.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -551,7 +551,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_viewer.save_favorites_filters.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -597,7 +597,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         let options: FavoritesFiltersWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }
@@ -634,12 +634,12 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return false;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
         if (!moduletable) {
             return false;
         }
 
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         if (!field) {
             return false;
         }

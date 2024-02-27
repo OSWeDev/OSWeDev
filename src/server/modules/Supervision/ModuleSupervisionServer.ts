@@ -159,10 +159,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         /**
          * On gère l'historique des valeurs
          */
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
-        for (let vo_type in SupervisionController.getInstance().registered_controllers) {
+        for (const vo_type in SupervisionController.getInstance().registered_controllers) {
             preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);
             preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
@@ -227,9 +227,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (has_new_value) {
-                let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
-                for (let i in moduletablefields) {
-                    let moduletablefield = moduletablefields[i];
+                const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+                for (const i in moduletablefields) {
+                    const moduletablefield = moduletablefields[i];
 
                     switch (moduletablefield.field_name) {
                         case "name":
@@ -272,11 +272,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             /**
              * On historise
              */
-            let historique: ISupervisedItem = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
+            const historique: ISupervisedItem = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
 
-            let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
-            for (let i in moduletablefields) {
-                let moduletablefield = moduletablefields[i];
+            const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
+            for (const i in moduletablefields) {
+                const moduletablefield = moduletablefields[i];
 
                 historique[moduletablefield.field_name] = vo_update_handler.pre_update_vo[moduletablefield.field_name];
             }
@@ -307,7 +307,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_new_unread_error(supervised_item: ISupervisedItem) {
-        let webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
+        const webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
 
         if (!webhook) {
             return;
@@ -319,14 +319,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
+            const category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;
             }
         }
 
-        let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
         message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
         message.sections.push(
@@ -334,15 +334,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                 .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "vuejsclient/public/img/error.png"));
 
         // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-        if (!!supervised_item.id) {
+        if (supervised_item.id) {
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
                     ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
         }
 
-        let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
-        for (let i in urls) {
-            let url = urls[i];
+        const urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
+        for (const i in urls) {
+            const url = urls[i];
 
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name(url.label).set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
@@ -352,7 +352,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
-        let webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
+        const webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
 
         if (!webhook) {
             return;
@@ -364,14 +364,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
+            const category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;
             }
         }
 
-        let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
         message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Retour a la normale';
         message.summary = 'OK : ' + supervised_item.name;
         message.sections.push(
@@ -381,9 +381,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
                 ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
 
-        let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
-        for (let i in urls) {
-            let url = urls[i];
+        const urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
+        for (const i in urls) {
+            const url = urls[i];
 
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name(url.label).set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));

@@ -107,7 +107,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -154,19 +154,19 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             return;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
-        for (let i in locale_tmp_active_filter_options) {
-            let active_option = locale_tmp_active_filter_options[i];
+        for (const i in locale_tmp_active_filter_options) {
+            const active_option = locale_tmp_active_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
@@ -188,7 +188,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
             cf_null_value.field_id = this.vo_field_ref.field_id;
             cf_null_value.vo_type = this.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
@@ -237,14 +237,14 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let context_filter: ContextFilterVO = null;
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let previous_filter: AdvancedNumberFilter = null;
 
-        for (let i in this.advanced_number_filters) {
-            let advanced_filter: AdvancedNumberFilter = this.advanced_number_filters[i];
+        for (const i in this.advanced_number_filters) {
+            const advanced_filter: AdvancedNumberFilter = this.advanced_number_filters[i];
 
-            let new_context_filter = this.get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter, field);
+            const new_context_filter = this.get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter, field);
 
             if (!new_context_filter) {
                 continue;
@@ -254,7 +254,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 context_filter = new_context_filter;
             } else {
 
-                let link_ = new ContextFilterVO();
+                const link_ = new ContextFilterVO();
                 link_.field_id = context_filter.field_id;
                 link_.vo_type = context_filter.vo_type;
 
@@ -301,7 +301,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             this.tmp_active_filter_options = null;
         }
 
-        if (!!this.vo_field_ref) {
+        if (this.vo_field_ref) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
         }
         this.advanced_number_filters = [new AdvancedNumberFilter()];
@@ -324,7 +324,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     private async update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -334,7 +334,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        let old_is_init: boolean = this.is_init;
+        const old_is_init: boolean = this.is_init;
 
         this.is_init = true;
 
@@ -343,7 +343,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (this.default_values && (this.default_values.length > 0)) {
 
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
-                let has_active_field_filter: boolean = !!(
+                const has_active_field_filter: boolean = !!(
                     this.get_active_field_filters &&
                     this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
                     this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
@@ -404,7 +404,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             let tmp: DataFilterOption[] = [];
 
-            let api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
+            const api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
                 this.other_ref_api_type_id :
                 this.vo_field_ref.api_type_id;
 
@@ -436,7 +436,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+            const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[query_.base_api_type_id];
 
             if (
                 base_table &&
@@ -453,7 +453,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
                 let has_filter: boolean = false;
 
-                for (let field_id in active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                for (const field_id in active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
                     if (active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
                         has_filter = true;
                         break;
@@ -525,7 +525,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 this.tmp_active_filter_options = null;
             }
 
-            let advanced_filters: AdvancedNumberFilter[] = [];
+            const advanced_filters: AdvancedNumberFilter[] = [];
             this.try_apply_advanced_filters(filter, advanced_filters);
             this.advanced_number_filters = advanced_filters;
         } else {
@@ -537,11 +537,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
 
-            let tmp_active_filter_options: DataFilterOption[] = [];
+            const tmp_active_filter_options: DataFilterOption[] = [];
 
-            for (let i in filter.param_textarray) {
-                let text = filter.param_textarray[i];
-                let datafilter = new DataFilterOption(
+            for (const i in filter.param_textarray) {
+                const text = filter.param_textarray[i];
+                const datafilter = new DataFilterOption(
                     DataFilterOption.STATE_SELECTED,
                     text,
                     parseInt(i.toString())
@@ -563,7 +563,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableFieldVO): ContextFilterVO {
-        let context_filter = new ContextFilterVO();
+        const context_filter = new ContextFilterVO();
 
         context_filter.field_id = this.vo_field_ref.field_id;
         context_filter.vo_type = this.vo_field_ref.api_type_id;
@@ -637,7 +637,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private try_apply_advanced_filters(filter: ContextFilterVO, advanced_filters: AdvancedNumberFilter[]) {
-        let advanced_filter = new AdvancedNumberFilter();
+        const advanced_filter = new AdvancedNumberFilter();
 
         switch (filter.filter_type) {
             case ContextFilterVO.TYPE_FILTER_AND:
@@ -708,8 +708,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             return false;
         }
 
-        for (let i in this.advanced_number_filters) {
-            let advanced_number_filter = this.advanced_number_filters[i];
+        for (const i in this.advanced_number_filters) {
+            const advanced_number_filter = this.advanced_number_filters[i];
 
             if (!this.has_content_filter_type[advanced_number_filter.filter_type]) {
                 continue;
@@ -724,7 +724,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     get has_content_filter_type(): { [filter_type: number]: boolean } {
-        let res: { [filter_type: number]: boolean } = {
+        const res: { [filter_type: number]: boolean } = {
             [AdvancedNumberFilter.FILTER_TYPE_INF]: true,
             [AdvancedNumberFilter.FILTER_TYPE_INFEQ]: true,
             [AdvancedNumberFilter.FILTER_TYPE_SUP]: true,
@@ -792,7 +792,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -802,15 +802,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     get default_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
             return null;
         }
 
-        let res: DataFilterOption[] = [];
+        const res: DataFilterOption[] = [];
 
-        for (let i in options.default_filter_opt_values) {
+        for (const i in options.default_filter_opt_values) {
             res.push(new DataFilterOption(
                 options.default_filter_opt_values[i].select_state,
                 options.default_filter_opt_values[i].label,
@@ -832,15 +832,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     get exclude_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
             return null;
         }
 
-        let res: DataFilterOption[] = [];
+        const res: DataFilterOption[] = [];
 
-        for (let i in options.exclude_filter_opt_values) {
+        for (const i in options.exclude_filter_opt_values) {
             res.push(new DataFilterOption(
                 options.exclude_filter_opt_values[i].select_state,
                 options.exclude_filter_opt_values[i].label,
@@ -868,7 +868,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let options: FieldValueFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 options = options ? new FieldValueFilterWidgetOptionsVO().from(options) : null;
             }

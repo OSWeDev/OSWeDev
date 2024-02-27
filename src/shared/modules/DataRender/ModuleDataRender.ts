@@ -216,11 +216,11 @@ export default class ModuleDataRender extends Module {
             label_field,
             ModuleTableFieldController.create_new(DataRendererVO.API_TYPE_ID, field_names<DataRendererVO>().render_handler_module, ModuleTableFieldVO.FIELD_TYPE_string, 'render_handler_module', false),
         ];
-        let datatable_renderer = new ModuleTableVO(this, DataRendererVO.API_TYPE_ID, () => new DataRendererVO(), datatable_fields, label_field, "Renderers");
+        const datatable_renderer = new ModuleTableVO(this, DataRendererVO.API_TYPE_ID, () => new DataRendererVO(), datatable_fields, label_field, "Renderers");
         this.datatables.push(datatable_renderer);
 
         label_field = ModuleTableFieldController.create_new(DataRenderingLogVO.API_TYPE_ID, field_names<DataRenderingLogVO>().date, ModuleTableFieldVO.FIELD_TYPE_string, 'date', false);
-        let rendered_api_type_id = ModuleTableFieldController.create_new(DataRenderingLogVO.API_TYPE_ID, field_names<DataRenderingLogVO>().rendered_api_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'rendered_api_type_id', false);
+        const rendered_api_type_id = ModuleTableFieldController.create_new(DataRenderingLogVO.API_TYPE_ID, field_names<DataRenderingLogVO>().rendered_api_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'rendered_api_type_id', false);
         datatable_fields = [
             rendered_api_type_id,
             ModuleTableFieldController.create_new(DataRenderingLogVO.API_TYPE_ID, field_names<DataRenderingLogVO>().data_time_segment_json, ModuleTableFieldVO.FIELD_TYPE_string, 'data_time_segment_json', false),
@@ -229,7 +229,7 @@ export default class ModuleDataRender extends Module {
             ModuleTableFieldController.create_new(DataRenderingLogVO.API_TYPE_ID, field_names<DataRenderingLogVO>().message, ModuleTableFieldVO.FIELD_TYPE_string, 'message', false),
         ];
 
-        let datatable_log = new ModuleTableVO(this, DataRenderingLogVO.API_TYPE_ID, () => new DataRenderingLogVO(), datatable_fields, label_field, "Logs de render");
+        const datatable_log = new ModuleTableVO(this, DataRenderingLogVO.API_TYPE_ID, () => new DataRenderingLogVO(), datatable_fields, label_field, "Logs de render");
         rendered_api_type_id.set_many_to_one_target_moduletable_name(datatable_renderer.vo_type);
         this.datatables.push(datatable_log);
     }

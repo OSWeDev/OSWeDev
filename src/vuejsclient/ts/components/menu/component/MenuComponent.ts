@@ -44,7 +44,7 @@ export default class MenuComponent extends VueComponentBase {
 
         //Removing duplicates :
         const result: MenuElementVO[] = [];
-        let menuElements_label: string[] = [];
+        const menuElements_label: string[] = [];
         for (const item of this.menuElements) {
             if (!menuElements_label.includes(this.t(item.translatable_title))) {
                 result.push(item);
@@ -72,8 +72,8 @@ export default class MenuComponent extends VueComponentBase {
 
         // On parcourt les enfants pour voir si on moins 1 est visible
         // Si ce n'est pas le cas, on masque le menu
-        for (let i in this.childrenElementsById[menuElement.id]) {
-            let child: MenuElementVO = this.childrenElementsById[menuElement.id][i];
+        for (const i in this.childrenElementsById[menuElement.id]) {
+            const child: MenuElementVO = this.childrenElementsById[menuElement.id][i];
 
             if (!child.hidden && (!child.access_policy_name || this.access_by_name[child.access_policy_name])) {
                 res = true;

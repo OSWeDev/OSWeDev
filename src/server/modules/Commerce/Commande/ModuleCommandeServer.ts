@@ -51,13 +51,13 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async creationPanier(): Promise<CommandeVO> {
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
-        let panier: CommandeVO = new CommandeVO();
+        const client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
+        const panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
         panier.date = Dates.now();
         panier.statut = CommandeVO.STATUT_PANIER;
 
-        let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
         panier.id = result.id;
 
         return panier;
@@ -69,7 +69,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     ): Promise<CommandeVO> {
 
         if (produitsParam) {
-            for (let i in produitsParam) {
+            for (const i in produitsParam) {
                 await this.ajouterLigneCommande(commande, produitsParam[i]);
             }
         }
@@ -89,15 +89,15 @@ export default class ModuleCommandeServer extends ModuleServerBase {
             return null;
         }
 
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
-        let ligne: LigneCommandeVO = new LigneCommandeVO();
+        const client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
+        const ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;
         ligne.prix_unitaire = await ModuleProduitServer.getInstance().getPrixProduit(produitParam.produit, produitParam.produit_custom, produitParam.ligneParam);
         ligne.produit_id = produitParam.produit.id;
         ligne.quantite = 1;
 
-        let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
         produitParam.ligneParam.ligne_commande_id = result.id;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(produitParam.ligneParam);

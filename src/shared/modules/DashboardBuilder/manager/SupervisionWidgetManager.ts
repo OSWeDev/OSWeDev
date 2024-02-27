@@ -142,7 +142,7 @@ export default class SupervisionWidgetManager {
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
     ): boolean {
-        let should_check = true;
+        const should_check = true;
 
         return should_check;
     }
@@ -189,7 +189,7 @@ export default class SupervisionWidgetManager {
         }
 
         const pipeline_limit = registered_api_type_ids.length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.filter_allowed_api_type_ids');
+        const promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.filter_allowed_api_type_ids');
 
         const allowed_api_type_ids: string[] = [];
 
@@ -244,7 +244,7 @@ export default class SupervisionWidgetManager {
         const limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
 
         const pipeline_limit = Object.keys(context_filters_by_api_type_id).length; // One query|request by api_type_id
-        let promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.select_supervision_probs_by_api_type_id');
+        const promise_pipeline = new PromisePipeline(pipeline_limit, 'SupervisionWidgetManager.select_supervision_probs_by_api_type_id');
 
         // ContextQuery as a query builder
         let context_query: ContextQueryVO = null;

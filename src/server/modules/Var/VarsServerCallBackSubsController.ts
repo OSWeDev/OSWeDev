@@ -45,7 +45,7 @@ export default class VarsServerCallBackSubsController {
 
         try {
 
-            let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+            const var_data = await this.get_var_data_indexed<T>(param_index, param_index);
 
             if (var_data) {
                 return var_data;
@@ -63,7 +63,7 @@ export default class VarsServerCallBackSubsController {
                     retries--;
 
                     try {
-                        let var_data = await this.get_var_data_indexed<T>(param_index, param_index);
+                        const var_data = await this.get_var_data_indexed<T>(param_index, param_index);
 
                         if (var_data) {
                             return var_data;
@@ -81,14 +81,14 @@ export default class VarsServerCallBackSubsController {
     }
 
     public static async get_vars_datas<T extends VarDataBaseVO>(params_indexes: string[]): Promise<{ [index: string]: T }> {
-        let res: { [index: string]: T } = {};
+        const res: { [index: string]: T } = {};
 
-        let promises = [];
-        for (let i in params_indexes) {
-            let params_index = params_indexes[i];
+        const promises = [];
+        for (const i in params_indexes) {
+            const params_index = params_indexes[i];
 
             promises.push((async () => {
-                let var_data = await this.get_var_data(params_index) as T;
+                const var_data = await this.get_var_data(params_index) as T;
 
                 if (var_data) {
                     res[var_data.index] = var_data;
@@ -127,11 +127,11 @@ export default class VarsServerCallBackSubsController {
             ConsoleHandler.log("notify_vardatas_throttled:VarsBGThread process:" + var_datas.length);
         }
 
-        let promises = [];
-        for (let i in var_datas) {
-            let var_data = var_datas[i];
+        const promises = [];
+        for (const i in var_datas) {
+            const var_data = var_datas[i];
 
-            let save_array_cbs = VarsServerCallBackSubsController.cb_subs[var_data.index];
+            const save_array_cbs = VarsServerCallBackSubsController.cb_subs[var_data.index];
             delete VarsServerCallBackSubsController.cb_subs[var_data.index];
 
             if ((!save_array_cbs) || (!save_array_cbs.length)) {
@@ -146,8 +146,8 @@ export default class VarsServerCallBackSubsController {
                 ConsoleHandler.log("notify_vardatas_throttled:save_array_cbs length " + save_array_cbs.length + ":" + var_datas.length + ":" + var_data.index);
             }
 
-            for (let j in save_array_cbs) {
-                let cb = save_array_cbs[j];
+            for (const j in save_array_cbs) {
+                const cb = save_array_cbs[j];
 
                 promises.push(cb(var_data));
             }
@@ -164,16 +164,16 @@ export default class VarsServerCallBackSubsController {
 
 
     private static async _get_vars_datas(params_indexes: { [index: string]: string }): Promise<{ [index: string]: VarDataBaseVO }> {
-        let res: { [index: string]: VarDataBaseVO } = {};
+        const res: { [index: string]: VarDataBaseVO } = {};
 
         let notifyable_vars: VarDataBaseVO[] = [];
-        let params_list = params_indexes ? Object.keys(params_indexes) : null;
-        let nb_params = params_list ? params_list.length : 0;
+        const params_list = params_indexes ? Object.keys(params_indexes) : null;
+        const nb_params = params_list ? params_list.length : 0;
         if (!nb_params) {
             return null;
         }
 
-        let self = this;
+        const self = this;
 
         return new Promise(async (resolve, reject) => {
 
@@ -199,7 +199,7 @@ export default class VarsServerCallBackSubsController {
                 ConsoleHandler.log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
             }
 
-            let cb = (data: VarDataBaseVO) => {
+            const cb = (data: VarDataBaseVO) => {
                 res[data.index] = data;
                 waiting_nb--;
 
@@ -216,8 +216,8 @@ export default class VarsServerCallBackSubsController {
                 }
             };
 
-            for (let i in params_indexes) {
-                let param_index = params_indexes[i];
+            for (const i in params_indexes) {
+                const param_index = params_indexes[i];
 
                 if (!self.cb_subs[param_index]) {
                     self.cb_subs[param_index] = [];

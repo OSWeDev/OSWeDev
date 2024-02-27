@@ -432,9 +432,9 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': 'Langue' }), true, true, 1);
-        let label_field = (ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Login' }), true)).unique();
-        let datatable_fields = [
+        const field_lang_id = ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': 'Langue' }), true, true, 1);
+        const label_field = (ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Login' }), true)).unique();
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().firstname, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Prénom' }), false),
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), false),
@@ -453,7 +453,7 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
@@ -461,48 +461,48 @@ export default class ModuleAccessPolicy extends Module {
 
         this.datatables.push(datatable);
 
-        VersionedVOController.getInstance().registerModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID]);
     }
 
     private initializeUserSession() {
-        let label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique(true);
+        const label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique(true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sess, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Information session' })),
             ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
         datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     private initializeRole() {
-        let label_field = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
-        let parent_role_id = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().parent_role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle parent');
+        const label_field = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
+        const parent_role_id = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().parent_role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle parent');
 
-        let datatable_fields = [
+        const datatable_fields = [
             label_field,
             parent_role_id,
             ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
         parent_role_id.donotCascadeOnDelete();
         parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type.vo_type);
         this.datatables.push(datatable);
     }
 
     private initializeUserRoles() {
-        let field_user_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true, true, 0);
-        let field_role_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
-        let datatable_fields = [
+        const field_user_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        const field_role_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
+        const datatable_fields = [
             field_user_id,
             field_role_id,
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
@@ -512,22 +512,22 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeModuleAccessPolicyGroup() {
 
-        let label_field = ModuleTableFieldController.create_new(AccessPolicyGroupVO.API_TYPE_ID, field_names<AccessPolicyGroupVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(AccessPolicyGroupVO.API_TYPE_ID, field_names<AccessPolicyGroupVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(AccessPolicyGroupVO.API_TYPE_ID, field_names<AccessPolicyGroupVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
 
         this.datatables.push(datatable);
     }
 
     private initializeModuleAccessPolicy() {
-        let label_field = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
-        let field_accpolgroup_id = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Group', false);
-        let field_module_id = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Module', false);
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
+        const field_accpolgroup_id = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Group', false);
+        const field_module_id = ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Module', false);
+        const datatable_fields = [
             label_field,
             field_accpolgroup_id,
             field_module_id,
@@ -539,7 +539,7 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
 
         field_accpolgroup_id.set_many_to_one_target_moduletable_name(AccessPolicyGroupVO.API_TYPE_ID);
         field_module_id.set_many_to_one_target_moduletable_name(ModuleVO.API_TYPE_ID);
@@ -548,9 +548,9 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeModulePolicyDependency() {
-        let src_pol_id = ModuleTableFieldController.create_new(PolicyDependencyVO.API_TYPE_ID, field_names<PolicyDependencyVO>().src_pol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit source', true);
-        let depends_on_pol_id = ModuleTableFieldController.create_new(PolicyDependencyVO.API_TYPE_ID, field_names<PolicyDependencyVO>().depends_on_pol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit cible', false);
-        let datatable_fields = [
+        const src_pol_id = ModuleTableFieldController.create_new(PolicyDependencyVO.API_TYPE_ID, field_names<PolicyDependencyVO>().src_pol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit source', true);
+        const depends_on_pol_id = ModuleTableFieldController.create_new(PolicyDependencyVO.API_TYPE_ID, field_names<PolicyDependencyVO>().depends_on_pol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit cible', false);
+        const datatable_fields = [
             src_pol_id,
             depends_on_pol_id,
             ModuleTableFieldController.create_new(PolicyDependencyVO.API_TYPE_ID, field_names<PolicyDependencyVO>().default_behaviour, ModuleTableFieldVO.FIELD_TYPE_enum, 'Comportement par défaut', true, true, PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED).setEnumValues({
@@ -559,7 +559,7 @@ export default class ModuleAccessPolicy extends Module {
             })
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
 
         src_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
         depends_on_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
@@ -571,9 +571,9 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeUserLogVO() {
 
-        let field_user_id = ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
+        const field_user_id = ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             field_user_id,
             ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().log_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, UserLogVO.LOG_TYPE_LOGIN).setEnumValues(UserLogVO.LOG_TYPE_LABELS),
             ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().log_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
@@ -583,7 +583,7 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().data, ModuleTableFieldVO.FIELD_TYPE_string, 'JSON', false),
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
+        const datatable: ModuleTableVO = new ModuleTableVO(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
@@ -591,15 +591,15 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRolesPolicies() {
-        let field_accpol_id = ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().accpol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);
-        let field_role_id = ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
-        let datatable_fields = [
+        const field_accpol_id = ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().accpol_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);
+        const field_role_id = ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
+        const datatable_fields = [
             field_role_id,
             field_accpol_id,
             ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().granted, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
-        let datatable: ModuleTableVO = new ModuleTableVO(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
+        const datatable: ModuleTableVO = new ModuleTableVO(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
 
         field_accpol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);

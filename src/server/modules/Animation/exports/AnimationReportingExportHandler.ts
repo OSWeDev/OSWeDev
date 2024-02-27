@@ -45,7 +45,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         ConsoleHandler.log('AnimationReportingExportHandler:en_cours');
 
-        let datas: IExportableDatas = {
+        const datas: IExportableDatas = {
             api_type_id: ModuleAnimation.EXPORT_API_TYPE_ID,
             column_labels: await this.get_column_labels(exhi),
             datas: await this.get_datas(exhi),
@@ -59,25 +59,25 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
     }
 
     private async get_datas(exhi: ExportHistoricVO): Promise<ExportAnimationReportingLine[]> {
-        let res: ExportAnimationReportingLine[] = [];
+        const res: ExportAnimationReportingLine[] = [];
 
         if ((!exhi.export_to_uid) || (!exhi.export_params_stringified)) {
             return null;
         }
 
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
-        let import_params: AnimationReportingParamVO = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
+        const import_params: AnimationReportingParamVO = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
-        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
-        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
+        const all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
+        const all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
         let all_role_by_ids: { [id: number]: RoleVO } = {};
         let all_user_by_ids: { [id: number]: UserVO } = {};
-        let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
+        const all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
 
-        let user_ids: number[] = [];
+        const user_ids: number[] = [];
         let role_ids: number[] = [];
 
-        let aums: AnimationUserModuleVO[] = await ModuleAnimation.getInstance().getAumsFiltered(
+        const aums: AnimationUserModuleVO[] = await ModuleAnimation.getInstance().getAumsFiltered(
             import_params.filter_anim_theme_active_options,
             import_params.filter_anim_module_active_options,
             import_params.filter_role_active_options,
@@ -86,24 +86,24 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             import_params.filter_module_valide_active_option,
         );
 
-        let theme_id_ranges: NumRange[] = [];
-        let module_id_ranges: NumRange[] = [];
-        let user_id_ranges: NumRange[] = [];
-        let user_id_add: { [id: number]: boolean } = {};
+        const theme_id_ranges: NumRange[] = [];
+        const module_id_ranges: NumRange[] = [];
+        const user_id_ranges: NumRange[] = [];
+        const user_id_add: { [id: number]: boolean } = {};
         let percent_module_finished: number = 0;
         let nb_module_finished: number = 0;
         let nb_module_total: number = 0;
 
-        for (let i in aums) {
-            let aum: AnimationUserModuleVO = aums[i];
+        for (const i in aums) {
+            const aum: AnimationUserModuleVO = aums[i];
 
-            let module: AnimationModuleVO = all_anim_module_by_ids[aum.module_id];
+            const module: AnimationModuleVO = all_anim_module_by_ids[aum.module_id];
 
             if (!module) {
                 continue;
             }
 
-            let theme: AnimationThemeVO = all_anim_theme_by_ids[module.theme_id];
+            const theme: AnimationThemeVO = all_anim_theme_by_ids[module.theme_id];
 
             if (!theme) {
                 continue;
@@ -169,10 +169,10 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         ConsoleHandler.log('AnimationReportingExportHandler:export_all_aum');
 
-        for (let anim_theme_id in all_aum_by_theme_module_user) {
-            for (let anim_module_id in all_aum_by_theme_module_user[anim_theme_id]) {
-                for (let user_id in all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
-                    let aum: AnimationUserModuleVO = all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
+        for (const anim_theme_id in all_aum_by_theme_module_user) {
+            for (const anim_module_id in all_aum_by_theme_module_user[anim_theme_id]) {
+                for (const user_id in all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
+                    const aum: AnimationUserModuleVO = all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
 
                     res.push(await this.get_new_elem(
                         user,
@@ -196,7 +196,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         user_id_ranges: NumRange[],
         percent_module_finished: number,
     ): Promise<ExportAnimationReportingLine> {
-        let res: ExportAnimationReportingLine = new ExportAnimationReportingLine();
+        const res: ExportAnimationReportingLine = new ExportAnimationReportingLine();
 
         res.theme = await ModuleTranslation.getInstance().label('animation.reporting.total', user.lang_id) + '(' + theme_id_ranges.length.toString() + ')';
         res.module = module_id_ranges ? module_id_ranges.length.toString() : null;
@@ -237,16 +237,16 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         all_role_by_ids: { [id: number]: RoleVO },
         all_user_by_ids: { [id: number]: UserVO },
     ): Promise<ExportAnimationReportingLine> {
-        let res: ExportAnimationReportingLine = new ExportAnimationReportingLine();
+        const res: ExportAnimationReportingLine = new ExportAnimationReportingLine();
 
         res.theme = theme ? theme.name : null;
         res.module = module ? module.name : null;
 
-        let roles: string[] = [];
+        const roles: string[] = [];
 
         if (module && module.role_id_ranges && module.role_id_ranges.length > 0) {
             await RangeHandler.foreach_ranges(module.role_id_ranges, async (role_id: number) => {
-                let role: RoleVO = all_role_by_ids[role_id];
+                const role: RoleVO = all_role_by_ids[role_id];
 
                 if (!role) {
                     return;
@@ -256,8 +256,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             });
         }
 
-        let module_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
-        let user_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
+        const module_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
+        const user_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
 
         res.roles = (roles.length > 0) ? roles.join(' - ') : null;
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;
@@ -320,7 +320,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
     }
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
 
         if (!user) {
             return null;

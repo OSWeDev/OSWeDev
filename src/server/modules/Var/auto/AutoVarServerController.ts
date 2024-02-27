@@ -48,10 +48,10 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
-        let res: { [dep_name: string]: VarServerControllerBase<any> } = {};
+        const res: { [dep_name: string]: VarServerControllerBase<any> } = {};
 
-        for (let i in this.varConf.auto_deps) {
-            let dep = this.varConf.auto_deps[i];
+        for (const i in this.varConf.auto_deps) {
+            const dep = this.varConf.auto_deps[i];
 
             if (dep.type !== VarConfAutoDepVO.DEP_TYPE_VAR) {
                 continue;
@@ -64,17 +64,17 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
     public getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: VarDataBaseVO } {
 
-        let res: { [dep_id: string]: VarDataBaseVO } = {};
+        const res: { [dep_id: string]: VarDataBaseVO } = {};
 
-        for (let i in this.varConf.auto_deps) {
-            let dep = this.varConf.auto_deps[i];
+        for (const i in this.varConf.auto_deps) {
+            const dep = this.varConf.auto_deps[i];
 
             if (dep.type !== VarConfAutoDepVO.DEP_TYPE_VAR) {
                 continue;
             }
 
-            let this_dep_params = this.get_params_for_dep(varDAGNode, dep);
-            for (let j in this_dep_params) {
+            const this_dep_params = this.get_params_for_dep(varDAGNode, dep);
+            for (const j in this_dep_params) {
                 res[AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i + AutoVarServerController.DEP_SEPARATOR + j] = this_dep_params[j];
             }
         }
@@ -107,14 +107,14 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
     }
 
     protected getValue(varDAGNode: VarDAGNode): number {
-        let deps_values: number[] = [];
+        const deps_values: number[] = [];
 
-        for (let i in this.varConf.auto_deps) {
-            let dep = this.varConf.auto_deps[i];
+        for (const i in this.varConf.auto_deps) {
+            const dep = this.varConf.auto_deps[i];
 
             switch (dep.type) {
                 case VarConfAutoDepVO.DEP_TYPE_VAR:
-                    let dep_value = VarsServerController.get_outgoing_deps_sum(
+                    const dep_value = VarsServerController.get_outgoing_deps_sum(
                         varDAGNode, AutoVarServerController.DEP_PREFIX + AutoVarServerController.DEP_SEPARATOR + i + AutoVarServerController.DEP_SEPARATOR);
                     deps_values.push(dep_value);
                     break;
@@ -210,33 +210,33 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         if ((!this.varConf) || (!this.varConf.auto_deps) || (!dep_id)) {
             return null;
         }
-        let depid_parts = dep_id.split(AutoVarServerController.DEP_SEPARATOR);
+        const depid_parts = dep_id.split(AutoVarServerController.DEP_SEPARATOR);
         if (depid_parts.length < 2) {
             return null;
         }
-        let dep = this.varConf.auto_deps[depid_parts[1]];
+        const dep = this.varConf.auto_deps[depid_parts[1]];
 
         if (!dep) {
             return null;
         }
 
-        let res: VarDataBaseVO[] = VarDataBaseVO.cloneArrayFrom<VarDataBaseVO, VarDataBaseVO>(
+        const res: VarDataBaseVO[] = VarDataBaseVO.cloneArrayFrom<VarDataBaseVO, VarDataBaseVO>(
             intersectors as any as VarDataBaseVO[], this.varConf.name);
 
-        for (let param_field_id in dep.params_transform_strategies) {
-            let field_transform_strategies = dep.params_transform_strategies[param_field_id];
+        for (const param_field_id in dep.params_transform_strategies) {
+            const field_transform_strategies = dep.params_transform_strategies[param_field_id];
 
             if ((!field_transform_strategies) || (!field_transform_strategies.length) ||
                 ((field_transform_strategies.length == 1) && (field_transform_strategies[0].type == VarParamFieldTransformStrategyVO.TYPE_COPY))) {
                 continue;
             }
 
-            for (let i in res) {
-                let param = res[i];
+            for (const i in res) {
+                const param = res[i];
 
                 let field_value = param[param_field_id];
-                for (let j in field_transform_strategies) {
-                    let transform_strategy = field_transform_strategies[j];
+                for (const j in field_transform_strategies) {
+                    const transform_strategy = field_transform_strategies[j];
 
                     switch (transform_strategy.type) {
                         case VarParamFieldTransformStrategyVO.TYPE_COPY:
@@ -261,15 +261,15 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
     }
 
     private get_params_for_dep(varDAGNode: VarDAGNode, dep: VarConfAutoDepVO): VarDataBaseVO[] {
-        let target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
+        const target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
 
-        let res: VarDataBaseVO[] = [];
-        let cloned = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(
+        const res: VarDataBaseVO[] = [];
+        const cloned = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(
             varDAGNode.var_data as VarDataBaseVO, target_varconf.name, true);
         res.push(cloned);
 
-        for (let param_field_id in dep.params_transform_strategies) {
-            let field_transform_strategies = dep.params_transform_strategies[param_field_id];
+        for (const param_field_id in dep.params_transform_strategies) {
+            const field_transform_strategies = dep.params_transform_strategies[param_field_id];
 
             if ((!field_transform_strategies) || (!field_transform_strategies.length) ||
                 ((field_transform_strategies.length == 1) && (field_transform_strategies[0].type == VarParamFieldTransformStrategyVO.TYPE_COPY))) {
@@ -277,8 +277,8 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             }
 
             let field_value = cloned[param_field_id];
-            for (let j in field_transform_strategies) {
-                let transform_strategy = field_transform_strategies[j];
+            for (const j in field_transform_strategies) {
+                const transform_strategy = field_transform_strategies[j];
 
                 switch (transform_strategy.type) {
                     case VarParamFieldTransformStrategyVO.TYPE_COPY:
@@ -328,16 +328,16 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             return false;
         }
 
-        return u_vo_holder.post_update_vo[this.varConf.auto_vofieldref_field_id] != u_vo_holder.pre_update_vo[this.varConf.auto_vofieldref_field_id];
+        return u_vo_holder.post_update_vo[this.varConf.auto_vofieldref_field_name] != u_vo_holder.pre_update_vo[this.varConf.auto_vofieldref_field_name];
     }
 
     private async get_invalid_params_intersectors_from_vo(vo: IDistantVOBase): Promise<VarDataBaseVO> {
 
-        let active_field_filters: FieldFiltersVO = {
+        const active_field_filters: FieldFiltersVO = {
             [vo._type]: { id: filter(vo._type).by_id(vo.id) }
         };
 
-        let var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
+        const var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             this.varConf.name,
             active_field_filters,
             null,

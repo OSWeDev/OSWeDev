@@ -30,9 +30,9 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
     public static CHECKBOX_COLUMNS_12: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: FieldValueFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
+        const options: FieldValueFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if ((!options) || (!options.vo_field_ref)) {
             return res;
         }
@@ -72,8 +72,8 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         }
 
         if (options.vo_field_ref_multiple && (options.vo_field_ref_multiple.length > 0)) {
-            for (let i in options.vo_field_ref_multiple) {
-                let field_ref: VOFieldRefVO = options.vo_field_ref_multiple[i];
+            for (const i in options.vo_field_ref_multiple) {
+                const field_ref: VOFieldRefVO = options.vo_field_ref_multiple[i];
 
                 if (field_ref.api_type_id && field_ref.field_id) {
                     if (!res[field_ref.api_type_id]) {
@@ -161,9 +161,9 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
@@ -172,7 +172,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
                 '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
         }
 
-        let advanced_mode_placeholder_code_text: string = this.get_advanced_mode_placeholder_code_text(page_widget_id);
+        const advanced_mode_placeholder_code_text: string = this.get_advanced_mode_placeholder_code_text(page_widget_id);
         if (advanced_mode_placeholder_code_text) {
 
             res[advanced_mode_placeholder_code_text] =

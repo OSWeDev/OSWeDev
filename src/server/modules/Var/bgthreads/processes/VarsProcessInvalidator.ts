@@ -67,7 +67,7 @@ export default class VarsProcessInvalidator {
             //  et on les applique
 
             // On déploie les intersecteurs pour les demandes liées à des vars invalidées
-            let invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
+            const invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
             VarsDatasVoUpdateHandler.invalidators = [];
 
             let has_first_invalidator = false;
@@ -80,7 +80,7 @@ export default class VarsProcessInvalidator {
                 }
             }
 
-            let ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>> = VarsDatasVoUpdateHandler.ordered_vos_cud;
+            const ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>> = VarsDatasVoUpdateHandler.ordered_vos_cud;
             VarsDatasVoUpdateHandler.ordered_vos_cud = [];
 
             /**
@@ -89,7 +89,7 @@ export default class VarsProcessInvalidator {
             this.invalidate_datasources_cache(ordered_vos_cud);
 
             // On récupère les invalidateurs qui sont liées à des demandes de suppressions/modif/créa de VO
-            let leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer(ordered_vos_cud);
+            const leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer(ordered_vos_cud);
             if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
                 invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
 
@@ -104,14 +104,14 @@ export default class VarsProcessInvalidator {
                 }
             }
 
-            let deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);
+            const deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.deploy_invalidators(invalidators);
 
             /**
              * Si on invalide, on veut d'une part supprimer en bdd tout ce qui intersecte les invalidators
              * et faire de même dans l'arbre actuel.
              * Ensuite, on reprend tous les subs (clients et serveurs) et on les rajoute dans l'arbre.
              */
-            if (!!deployed_invalidators) {
+            if (deployed_invalidators) {
                 await VarsDatasVoUpdateHandler.handle_invalidators(deployed_invalidators);
             }
 
@@ -140,10 +140,10 @@ export default class VarsProcessInvalidator {
             return;
         }
 
-        let vos_types: { [vo_type: string]: boolean } = {};
+        const vos_types: { [vo_type: string]: boolean } = {};
 
-        for (let i in ordered_vos_cud) {
-            let vo = ordered_vos_cud[i];
+        for (const i in ordered_vos_cud) {
+            const vo = ordered_vos_cud[i];
 
             if (vo instanceof DAOUpdateVOHolder) {
                 vos_types[vo.pre_update_vo._type] = true;
@@ -153,15 +153,15 @@ export default class VarsProcessInvalidator {
             }
         }
 
-        for (let vo_type in vos_types) {
-            let datasources_dependencies = DataSourcesController.registeredDataSourcesControllerByVoTypeDep[vo_type];
+        for (const vo_type in vos_types) {
+            const datasources_dependencies = DataSourcesController.registeredDataSourcesControllerByVoTypeDep[vo_type];
 
             if (!datasources_dependencies) {
                 continue;
             }
 
-            for (let i in datasources_dependencies) {
-                let ds = datasources_dependencies[i];
+            for (const i in datasources_dependencies) {
+                const ds = datasources_dependencies[i];
 
                 delete CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name];
             }

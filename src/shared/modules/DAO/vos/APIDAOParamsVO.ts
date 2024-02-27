@@ -12,8 +12,8 @@ export default class APIDAOParamsVO implements IAPIParamTranslator<APIDAOParamsV
         if (!(req && req.params)) {
             return null;
         }
-        let ids = req.params.ids.split('_');
-        for (let i in ids) {
+        const ids = req.params.ids.split('_');
+        for (const i in ids) {
             ids[i] = parseInt(ids[i]);
         }
         return new APIDAOParamsVO(req.params.api_type_id, ids);

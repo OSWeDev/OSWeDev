@@ -174,7 +174,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_count_valid_segmentations,
             (params: CountValidSegmentationsParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {
+                const res: { [api_type_id: string]: boolean } = {
                     [params.api_type_id]: true
                 };
                 this.define_used_api_type_ids_from_query(params.context_query, res);
@@ -187,7 +187,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_select,
             (params: SelectVosParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -198,7 +198,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_select_filter_visible_options,
             (params: SelectFilterVisibleOptionsParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -209,7 +209,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_select_datatable_rows,
             (params: SelectDatatableRowsParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -220,7 +220,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_select_count,
             (params: SelectCountParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -240,7 +240,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_build_select_query,
             (params: BuildSelectQueryParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -250,7 +250,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_build_select_query_str,
             (params: BuildSelectQueryParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -261,7 +261,7 @@ export default class ModuleContextFilter extends Module {
             null,
             ModuleContextFilter.APINAME_select_vos,
             (params: SelectVosParamVO) => {
-                let res: { [api_type_id: string]: boolean } = {};
+                const res: { [api_type_id: string]: boolean } = {};
                 this.define_used_api_type_ids_from_query(params.context_query, res);
                 return Object.keys(res);
             },
@@ -291,25 +291,25 @@ export default class ModuleContextFilter extends Module {
         res[query_.base_api_type_id] = true;
 
         if (query_.fields) {
-            for (let i in query_.fields) {
+            for (const i in query_.fields) {
                 res[query_.fields[i].api_type_id] = true;
             }
         }
 
         if (query_.filters) {
-            for (let i in query_.filters) {
+            for (const i in query_.filters) {
                 this.define_used_api_type_ids_from_filter(query_.filters[i], res);
             }
         }
 
         if (query_.union_queries) {
-            for (let i in query_.union_queries) {
+            for (const i in query_.union_queries) {
                 this.define_used_api_type_ids_from_query(query_.union_queries[i], res);
             }
         }
 
         if (query_.joined_context_queries) {
-            for (let i in query_.joined_context_queries) {
+            for (const i in query_.joined_context_queries) {
                 this.define_used_api_type_ids_from_query(query_.joined_context_queries[i].joined_context_query, res);
             }
         }
@@ -333,7 +333,7 @@ export default class ModuleContextFilter extends Module {
 
     private init_SortByVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias'),
             ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID'),
             ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FIELD ID'),
@@ -341,12 +341,12 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
         ];
 
-        let datatable = new ModuleTableVO(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
+        const datatable = new ModuleTableVO(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
         this.datatables.push(datatable);
     }
 
     private init_ContextFilterVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID', true),
             ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FIELD ID', true),
             ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().filter_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
@@ -368,39 +368,39 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().sub_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
-        let datatable = new ModuleTableVO(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
+        const datatable = new ModuleTableVO(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryJoinOnFieldVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().joined_table_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_alias', true),
             ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().joined_table_field_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_field_alias', true),
             ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().initial_context_query_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'initial_context_query_api_type_id', true),
             ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().initial_context_query_field_name_or_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'initial_context_query_field_name_or_alias', true),
         ];
 
-        let datatable = new ModuleTableVO(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
+        const datatable = new ModuleTableVO(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryJoinVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().joined_context_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'joined_context_query', true),
             ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().joined_table_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'joined_table_alias', true),
             ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().join_on_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'join_on_fields', true),
             ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().join_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
         ];
 
-        let datatable = new ModuleTableVO(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
+        const datatable = new ModuleTableVO(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryFieldVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', true),
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', true),
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false),
@@ -408,13 +408,13 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false),
         ];
-        let datatable = new ModuleTableVO(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
+        const datatable = new ModuleTableVO(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
         this.datatables.push(datatable);
     }
 
     private init_ContextQueryVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().base_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'base_api_type_id', true),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'fields', false),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().filters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'filters', false),
@@ -435,7 +435,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().throttle_query_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
         ];
 
-        let datatable = new ModuleTableVO(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
+        const datatable = new ModuleTableVO(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
         this.datatables.push(datatable);
     }
 }

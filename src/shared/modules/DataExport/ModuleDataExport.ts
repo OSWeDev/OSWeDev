@@ -160,10 +160,10 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportHistoricVO(): void {
-        let export_to_uid = ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_to_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Destinataire - Utilisateur" }), false);
-        let exported_file_id = ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().exported_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
+        const export_to_uid = ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_to_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Destinataire - Utilisateur" }), false);
+        const exported_file_id = ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().exported_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_type_id, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Type d'export" }), true),
             ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_is_secured, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': "Fichier sécurisé" }), true, true, false),
             ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_file_access_policy_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Droit d\'accès au fichier" }), false),
@@ -178,7 +178,7 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        let moduleTable: ModuleTableVO<ExportHistoricVO> = new ModuleTableVO<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
+        const moduleTable: ModuleTableVO<ExportHistoricVO> = new ModuleTableVO<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
 
         export_to_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         exported_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
@@ -187,15 +187,15 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportVarcolumnConfVO() {
-        let var_id = ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Var" }), true);
+        const var_id = ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Var" }), true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             var_id,
             ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().custom_field_filters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Filtres" }), false),
             ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().filter_type, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Type de filtre" }), false),
             ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().filter_additional_params, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Paramètres additionnels" }), false),
         ];
-        let moduleTable: ModuleTableVO<ExportVarcolumnConfVO> = new ModuleTableVO<ExportVarcolumnConfVO>(this, ExportVarcolumnConfVO.API_TYPE_ID, () => new ExportVarcolumnConfVO(), datatable_fields, null, 'Conf des vars pour export');
+        const moduleTable: ModuleTableVO<ExportVarcolumnConfVO> = new ModuleTableVO<ExportVarcolumnConfVO>(this, ExportVarcolumnConfVO.API_TYPE_ID, () => new ExportVarcolumnConfVO(), datatable_fields, null, 'Conf des vars pour export');
 
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
 
@@ -203,21 +203,21 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportVarIndicatorVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ExportVarIndicatorVO.API_TYPE_ID, field_names<ExportVarIndicatorVO>().ordered_column_list, ModuleTableFieldVO.FIELD_TYPE_string_array, DefaultTranslationVO.create_new({ 'fr-fr': "Colonnes" }), true),
             ModuleTableFieldController.create_new(ExportVarIndicatorVO.API_TYPE_ID, field_names<ExportVarIndicatorVO>().column_labels, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Libellés colonnes" }), true),
             ModuleTableFieldController.create_new(ExportVarIndicatorVO.API_TYPE_ID, field_names<ExportVarIndicatorVO>().varcolumn_conf, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Conf des variables" }), true),
         ];
-        let moduleTable: ModuleTableVO<ExportVarIndicatorVO> = new ModuleTableVO<ExportVarIndicatorVO>(this, ExportVarIndicatorVO.API_TYPE_ID, () => new ExportVarIndicatorVO(), datatable_fields, null, 'Conf export des KPIs');
+        const moduleTable: ModuleTableVO<ExportVarIndicatorVO> = new ModuleTableVO<ExportVarIndicatorVO>(this, ExportVarIndicatorVO.API_TYPE_ID, () => new ExportVarIndicatorVO(), datatable_fields, null, 'Conf export des KPIs');
 
         this.datatables.push(moduleTable);
     }
 
     private initializeExportContextQueryToXLSXQueryVO() {
-        let filename = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom du fichier" }), true);
-        let target_user_id = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().target_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur" }), true);
+        const filename = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom du fichier" }), true);
+        const target_user_id = ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().target_user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur" }), true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             filename,
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().state, ModuleTableFieldVO.FIELD_TYPE_email, DefaultTranslationVO.create_new({ 'fr-fr': "Status" }), true, true, ExportContextQueryToXLSXQueryVO.STATE_TODO).setEnumValues(ExportContextQueryToXLSXQueryVO.STATE_LABELS),
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().context_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Requête" }), true),
@@ -243,7 +243,7 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().vars_indicator, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "KPIs" }), false),
         ];
 
-        let moduleTable: ModuleTableVO<ExportContextQueryToXLSXQueryVO> = new ModuleTableVO<ExportContextQueryToXLSXQueryVO>(this, ExportContextQueryToXLSXQueryVO.API_TYPE_ID, () => new ExportContextQueryToXLSXQueryVO(), datatable_fields, filename, 'Exports de ContextQuery en XLSX');
+        const moduleTable: ModuleTableVO<ExportContextQueryToXLSXQueryVO> = new ModuleTableVO<ExportContextQueryToXLSXQueryVO>(this, ExportContextQueryToXLSXQueryVO.API_TYPE_ID, () => new ExportContextQueryToXLSXQueryVO(), datatable_fields, filename, 'Exports de ContextQuery en XLSX');
 
         target_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
@@ -251,16 +251,16 @@ export default class ModuleDataExport extends Module {
     }
 
     private initializeExportLogVO(): void {
-        let field_name = ModuleTableFieldController.create_new(ExportLogVO.API_TYPE_ID, field_names<ExportLogVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de l'export" }), true);
-        let field_user_id = ModuleTableFieldController.create_new(ExportLogVO.API_TYPE_ID, field_names<ExportLogVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur" }), true);
+        const field_name = ModuleTableFieldController.create_new(ExportLogVO.API_TYPE_ID, field_names<ExportLogVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Nom de l'export" }), true);
+        const field_user_id = ModuleTableFieldController.create_new(ExportLogVO.API_TYPE_ID, field_names<ExportLogVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateur" }), true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             field_name,
             ModuleTableFieldController.create_new(ExportLogVO.API_TYPE_ID, field_names<ExportLogVO>().log_time, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date de l'export" })).set_segmentation_type(TimeSegment.TYPE_SECOND),
             field_user_id
         ];
 
-        let moduleTable: ModuleTableVO<ExportLogVO> = new ModuleTableVO<ExportLogVO>(this, ExportLogVO.API_TYPE_ID, () => new ExportLogVO(), datatable_fields, field_name);
+        const moduleTable: ModuleTableVO<ExportLogVO> = new ModuleTableVO<ExportLogVO>(this, ExportLogVO.API_TYPE_ID, () => new ExportLogVO(), datatable_fields, field_name);
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 

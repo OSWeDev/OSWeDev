@@ -101,7 +101,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let params: { [socket_id: string]: VarDataValueResVO[] } = {};
+        const params: { [socket_id: string]: VarDataValueResVO[] } = {};
         stackable_args.forEach((stackable_arg: { socket_id: string, vos: VarDataValueResVO[] }) => {
 
             if ((!stackable_arg.socket_id) || (!stackable_arg.vos) || (!stackable_arg.vos.length)) {
@@ -115,8 +115,8 @@ export default class PushDataServerController {
             params[stackable_arg.socket_id] = params[stackable_arg.socket_id].concat(stackable_arg.vos);
         });
 
-        let promises = [];
-        for (let socket_id in params) {
+        const promises = [];
+        for (const socket_id in params) {
             promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
         await all_promises(promises);
@@ -197,9 +197,9 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.assert_is_main_process();
-        let session_uid = ((session.uid == null) ? 0 : session.uid);
+        const session_uid = ((session.uid == null) ? 0 : session.uid);
 
-        let wrapper = new SocketWrapper(session_uid, session.id, socket.id, socket);
+        const wrapper = new SocketWrapper(session_uid, session.id, socket.id, socket);
 
         // save in the socket in the session
         if (!this.registeredSockets_by_sessionid[session.id]) {
@@ -209,7 +209,7 @@ export default class PushDataServerController {
         this.registeredSockets_by_id[socket.id] = wrapper;
 
         // No user or session, don't save this socket in registeredSockets
-        let client_tab_id: string = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] as string : null;
+        const client_tab_id: string = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] as string : null;
         if ((!session) || (!session.id) || (!client_tab_id)) {
             return;
         }
@@ -248,7 +248,7 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.assert_is_main_process();
-        let session_uid = ((session.uid == null) ? 0 : session.uid);
+        const session_uid = ((session.uid == null) ? 0 : session.uid);
 
         try {
 
@@ -256,22 +256,22 @@ export default class PushDataServerController {
             delete this.registeredSockets_by_id[socket.id];
             delete this.registereduid_by_socketid[socket.id];
             delete this.registeredclient_tab_id_by_socketid[socket.id];
-            let client_tab_id_ = StackContext.get('client_tab_id') ? StackContext.get('client_tab_id') : null;
+            const client_tab_id_ = StackContext.get('client_tab_id') ? StackContext.get('client_tab_id') : null;
 
             // No user or session, need to search for the socket by id
             if ((!session) || (!session.id) || (!client_tab_id_)) {
 
-                let found: boolean = false;
-                for (let uid in this.registeredSockets) {
-                    let registeredSockets__ = this.registeredSockets[uid];
+                const found: boolean = false;
+                for (const uid in this.registeredSockets) {
+                    const registeredSockets__ = this.registeredSockets[uid];
 
-                    for (let client_tab_id in registeredSockets__) {
-                        let registeredSockets_ = registeredSockets__[client_tab_id];
+                    for (const client_tab_id in registeredSockets__) {
+                        const registeredSockets_ = registeredSockets__[client_tab_id];
 
-                        for (let sid in registeredSockets_) {
-                            let registeredSockets = registeredSockets_[sid];
+                        for (const sid in registeredSockets_) {
+                            const registeredSockets = registeredSockets_[sid];
 
-                            for (let socket_id in registeredSockets) {
+                            for (const socket_id in registeredSockets) {
                                 if (socket_id == socket.id) {
                                     delete this.registeredSockets[uid][client_tab_id][sid][socket_id];
                                     return;
@@ -300,7 +300,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let uid = ((session.uid == null) ? 0 : session.uid);
+        const uid = ((session.uid == null) ? 0 : session.uid);
 
         ForkedTasksController.assert_is_main_process();
 
@@ -323,7 +323,7 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.assert_is_main_process();
-        let uid = ((session.uid == null) ? 0 : session.uid);
+        const uid = ((session.uid == null) ? 0 : session.uid);
 
         await this.notifyRedirectHomeAndDisconnect(session);
 
@@ -354,7 +354,7 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.assert_is_main_process();
-        let uid = ((session.uid == null) ? 0 : session.uid);
+        const uid = ((session.uid == null) ? 0 : session.uid);
 
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await this.notifyRedirectHomeAndDisconnect();
@@ -375,7 +375,7 @@ export default class PushDataServerController {
 
         if (!client_tab_id) {
             let res: SocketWrapper[] = [];
-            for (let i in this.registeredSockets[userId]) {
+            for (const i in this.registeredSockets[userId]) {
                 res = res.concat(this.getUserSockets_client_tab_id(userId, i));
             }
             return res;
@@ -404,7 +404,7 @@ export default class PushDataServerController {
 
         let res: SocketWrapper[] = [];
 
-        for (let userId in this.registeredSockets) {
+        for (const userId in this.registeredSockets) {
             res = res.concat(this.getUserSockets(parseInt(userId.toString())));
         }
         return res;
@@ -422,7 +422,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let create_vo_notif: NotificationVO = new NotificationVO();
+        const create_vo_notif: NotificationVO = new NotificationVO();
         create_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
         create_vo_notif.room_id = room_id;
         create_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
@@ -433,8 +433,8 @@ export default class PushDataServerController {
             ConsoleHandler.log('notify_vo_creation:' + room_id + ':' + vo._type + ':' + vo.id);
         }
 
-        let notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
-        let notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
+        const notification_type = NotificationVO.TYPE_NAMES[create_vo_notif.notification_type];
+        const notification = APIControllerWrapper.try_translate_vo_to_api(create_vo_notif);
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -452,7 +452,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let update_vo_notif: NotificationVO = new NotificationVO();
+        const update_vo_notif: NotificationVO = new NotificationVO();
         update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_UPDATED;
         update_vo_notif.room_id = room_id;
         update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
@@ -464,8 +464,8 @@ export default class PushDataServerController {
             ConsoleHandler.log('notify_vo_update:' + room_id + ':' + pre_update_vo._type + ':' + pre_update_vo.id);
         }
 
-        let notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
-        let notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
+        const notification_type = NotificationVO.TYPE_NAMES[update_vo_notif.notification_type];
+        const notification = APIControllerWrapper.try_translate_vo_to_api(update_vo_notif);
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -483,7 +483,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let delete_vo_notif: NotificationVO = new NotificationVO();
+        const delete_vo_notif: NotificationVO = new NotificationVO();
         delete_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_DELETED;
         delete_vo_notif.room_id = room_id;
         delete_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
@@ -494,8 +494,8 @@ export default class PushDataServerController {
             ConsoleHandler.log('notify_vo_deletion:' + room_id + ':' + vo._type + ':' + vo.id);
         }
 
-        let notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
-        let notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
+        const notification_type = NotificationVO.TYPE_NAMES[delete_vo_notif.notification_type];
+        const notification = APIControllerWrapper.try_translate_vo_to_api(delete_vo_notif);
 
         await ServerBase.getInstance().io.to(room_id).emit(notification_type, notification);
     }
@@ -514,7 +514,7 @@ export default class PushDataServerController {
         }
 
         user_id = ((user_id == null) ? 0 : user_id);
-        let notification: NotificationVO = this.getAPIResultNotif(user_id, client_tab_id, null, api_call_id, res);
+        const notification: NotificationVO = this.getAPIResultNotif(user_id, client_tab_id, null, api_call_id, res);
         if (!notification) {
             ConsoleHandler.error('notifyAPIResult: no notification');
             return;
@@ -538,7 +538,7 @@ export default class PushDataServerController {
         }
 
         user_id = ((user_id == null) ? 0 : user_id);
-        let notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vo ? [vo] : null);
+        const notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vo ? [vo] : null);
         if (!notification) {
             return;
         }
@@ -592,7 +592,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            let session: IServerUserSession = StackContext.get('SESSION');
+            const session: IServerUserSession = StackContext.get('SESSION');
 
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 notification = this.getTechNotif(
@@ -705,7 +705,7 @@ export default class PushDataServerController {
         }
 
         user_id = ((user_id == null) ? 0 : user_id);
-        let notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vos);
+        const notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vos);
         if (!notification) {
             return;
         }
@@ -725,7 +725,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = this.getVarDataNotif(this.registereduid_by_socketid[socket_id], this.registeredclient_tab_id_by_socketid[socket_id], socket_id, vos);
+        const notification: NotificationVO = this.getVarDataNotif(this.registereduid_by_socketid[socket_id], this.registeredclient_tab_id_by_socketid[socket_id], socket_id, vos);
         if (!notification) {
             return;
         }
@@ -744,7 +744,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = api_type_id;
         notification.dao_notif_type = NotificationVO.DAO_GET_VO_BY_ID;
@@ -768,7 +768,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = api_type_id;
         notification.dao_notif_type = NotificationVO.DAO_REMOVE_ID;
@@ -792,7 +792,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = api_type_id;
         notification.dao_notif_type = NotificationVO.DAO_GET_VOS;
@@ -811,11 +811,11 @@ export default class PushDataServerController {
             return;
         }
 
-        let promises = [];
+        const promises = [];
 
-        let ids: number[] = [];
-        for (let userId_ in this.registeredSockets) {
-            let userId = parseInt(userId_.toString());
+        const ids: number[] = [];
+        for (const userId_ in this.registeredSockets) {
+            const userId = parseInt(userId_.toString());
 
             if (ids.indexOf(userId) < 0) {
                 ids.push(userId);
@@ -836,10 +836,10 @@ export default class PushDataServerController {
             return;
         }
 
-        let promises = [];
-        let users = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
-        for (let i in users) {
-            let user = users[i];
+        const promises = [];
+        const users = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
+        for (const i in users) {
+            const user = users[i];
 
             promises.push((async () => {
                 await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
@@ -854,35 +854,35 @@ export default class PushDataServerController {
             return;
         }
 
-        let promises = [];
+        const promises = [];
 
         try {
-            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
+            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
             if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
-            let user_ids: number[] = [];
-            for (let i in usersRoles) {
+            const user_ids: number[] = [];
+            for (const i in usersRoles) {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
+            const users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
             if (!users) {
                 ConsoleHandler.error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
-            for (let i in users) {
-                let user = users[i];
+            for (const i in users) {
+                const user = users[i];
 
                 promises.push((async () => {
                     await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
@@ -909,35 +909,35 @@ export default class PushDataServerController {
             return;
         }
 
-        let promises = [];
+        const promises = [];
 
         try {
-            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
+            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
             if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
-            let user_ids: number[] = [];
-            for (let i in usersRoles) {
+            const user_ids: number[] = [];
+            for (const i in usersRoles) {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
+            const users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
 
             if (!users) {
                 ConsoleHandler.error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
-            for (let i in users) {
-                let user = users[i];
+            for (const i in users) {
+                const user = users[i];
 
                 promises.push((async () => {
                     await this.notifyRedirect(null, user.id, null, msg_type, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
@@ -957,7 +957,7 @@ export default class PushDataServerController {
         }
 
         try {
-            let session: IServerUserSession = StackContext.get('SESSION');
+            const session: IServerUserSession = StackContext.get('SESSION');
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);
@@ -1024,7 +1024,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.notification_type = NotificationVO.TYPE_NOTIF_DOWNLOAD_FILE;
         notification.read = false;
@@ -1044,11 +1044,11 @@ export default class PushDataServerController {
             return null;
         }
 
-        let self = this;
+        const self = this;
 
         // On met aussi un time out à 2 minutes sinon on reste bloqués à vie potentiellement
         return new Promise(async (resolve, reject) => {
-            let notification: NotificationVO = new NotificationVO();
+            const notification: NotificationVO = new NotificationVO();
             let still_waiting: boolean = true;
 
             notification.simple_notif_label = code_text;
@@ -1105,7 +1105,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.simple_notif_label = code_text;
         notification.notif_route = redirect_route;
@@ -1132,7 +1132,7 @@ export default class PushDataServerController {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.simple_notif_label = code_text;
         notification.simple_notif_json_params = simple_notif_json_params;
@@ -1193,11 +1193,11 @@ export default class PushDataServerController {
 
             if (socketWrappers && socketWrappers.length) {
 
-                let notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
+                const notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
                 notification = APIControllerWrapper.try_translate_vo_to_api(notification);
 
-                for (let i in socketWrappers) {
-                    let socketWrapper: SocketWrapper = socketWrappers[i];
+                for (const i in socketWrappers) {
+                    const socketWrapper: SocketWrapper = socketWrappers[i];
 
                     if (!socketWrapper) {
                         continue;
@@ -1213,7 +1213,7 @@ export default class PushDataServerController {
 
     private getAPIResultNotif(user_id: number, client_tab_id: string, socket_id: string, api_call_id: number, res: any): NotificationVO {
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_APIRESULT;
@@ -1237,7 +1237,7 @@ export default class PushDataServerController {
             return null;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
@@ -1252,7 +1252,7 @@ export default class PushDataServerController {
 
     private getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string): NotificationVO {
 
-        let notification: NotificationVO = new NotificationVO();
+        const notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_TECH;
@@ -1272,7 +1272,7 @@ export default class PushDataServerController {
         ForkedTasksController.assert_is_main_process();
 
         if (!client_tab_id) {
-            for (let i in this.registeredSockets[userId]) {
+            for (const i in this.registeredSockets[userId]) {
                 this.clearClosedSockets_client_tab_id(userId, i);
             }
         } else {
@@ -1284,24 +1284,24 @@ export default class PushDataServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        let toclose_tabs: string[] = [];
+        const toclose_tabs: string[] = [];
 
         if (!this.registeredSockets[userId]) {
             return;
         }
 
-        for (let i in this.registeredSockets[userId][client_tab_id]) {
+        for (const i in this.registeredSockets[userId][client_tab_id]) {
 
-            let sessionSockets = this.registeredSockets[userId][client_tab_id][i];
-            let toclose: string[] = [];
-            for (let socketId in sessionSockets) {
+            const sessionSockets = this.registeredSockets[userId][client_tab_id][i];
+            const toclose: string[] = [];
+            for (const socketId in sessionSockets) {
 
                 if ((!sessionSockets[socketId]) || (!sessionSockets[socketId].socket.connected)) {
                     toclose.push(socketId);
                 }
             }
 
-            for (let j in toclose) {
+            for (const j in toclose) {
                 delete sessionSockets[toclose[j]];
             }
 
@@ -1310,7 +1310,7 @@ export default class PushDataServerController {
             }
         }
 
-        for (let j in toclose_tabs) {
+        for (const j in toclose_tabs) {
             if (this.registeredSockets[userId] && this.registeredSockets[userId][toclose_tabs[j]]) {
                 delete this.registeredSockets[userId][toclose_tabs[j]];
             }
@@ -1327,9 +1327,9 @@ export default class PushDataServerController {
             return [];
         }
 
-        let res: SocketWrapper[] = [];
-        for (let sessId in this.registeredSockets[userId][client_tab_id]) {
-            for (let socketId in this.registeredSockets[userId][client_tab_id][sessId]) {
+        const res: SocketWrapper[] = [];
+        for (const sessId in this.registeredSockets[userId][client_tab_id]) {
+            for (const socketId in this.registeredSockets[userId][client_tab_id][sessId]) {
                 res.push(this.registeredSockets[userId][client_tab_id][sessId][socketId]);
             }
         }

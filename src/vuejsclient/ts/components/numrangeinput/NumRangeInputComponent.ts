@@ -75,7 +75,7 @@ export default class NumRangeInputComponent extends VueComponentBase {
         if (!this.is_single && !!this.numrange_start && !!this.numrange_start.length && !!this.numrange_end && !!this.numrange_end.length) {
             new_value = RangeHandler.createNew(NumRange.RANGE_TYPE, Number.parseInt(this.numrange_start), Number.parseInt(this.numrange_end), true, true, NumSegment.TYPE_INT);
         } else if (this.is_single && (!!this.numrange_start && !!this.numrange_start.length && (!this.numrange_end || !this.numrange_end.length))) {
-            let num: number = Number.parseInt(this.numrange_start);
+            const num: number = Number.parseInt(this.numrange_start);
             new_value = RangeHandler.create_single_elt_NumRange(num, NumSegment.TYPE_INT);
         } else {
             new_value = null;
@@ -84,7 +84,7 @@ export default class NumRangeInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.is_same(old_value, new_value))) {
             return;

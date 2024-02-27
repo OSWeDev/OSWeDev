@@ -34,8 +34,8 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
             }, null).set_pixel_activated(true).set_pixel_never_delete(true).set_pixel_fields([
                 (new VarPixelFieldConfVO())
                     .set_vo_api_type_id(UserVO.API_TYPE_ID)
-                    .set_vo_field_id('id')
-                    .set_param_field_id('user_id_ranges')
+                    .set_vo_field_name('id')
+                    .set_param_field_name('user_id_ranges')
                     .set_range_type(NumRange.RANGE_TYPE)
                     .set_segmentation_type(NumSegment.TYPE_INT)
             ]),
@@ -58,10 +58,10 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
      * @param c_or_d_vos
      */
     public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: UserLogVO[]): Promise<UserMinDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
+        const groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
 
-        for (let i in c_or_d_vos) {
-            let c_or_d_vo = c_or_d_vos[i];
+        for (const i in c_or_d_vos) {
+            const c_or_d_vo = c_or_d_vos[i];
 
             if (!groupe_date_to_u_vo_holders[c_or_d_vo.user_id]) {
                 groupe_date_to_u_vo_holders[c_or_d_vo.user_id] = {};
@@ -80,13 +80,13 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
      * @param u_vo_holders
      */
     public async get_invalid_params_intersectors_on_POST_U_group(u_vo_holders: Array<DAOUpdateVOHolder<IDistantVOBase>>): Promise<UserMinDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
-        let u_vo_holders_typed: Array<DAOUpdateVOHolder<UserLogVO>> = u_vo_holders as Array<DAOUpdateVOHolder<UserLogVO>>;
+        const groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
+        const u_vo_holders_typed: Array<DAOUpdateVOHolder<UserLogVO>> = u_vo_holders as Array<DAOUpdateVOHolder<UserLogVO>>;
 
-        for (let i in u_vo_holders_typed) {
-            let u_vo_holder = u_vo_holders_typed[i];
+        for (const i in u_vo_holders_typed) {
+            const u_vo_holder = u_vo_holders_typed[i];
 
-            if (!!u_vo_holder.pre_update_vo) {
+            if (u_vo_holder.pre_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id]) {
                     groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id] = {};
                 }
@@ -95,7 +95,7 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
                     groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id][u_vo_holder.pre_update_vo.log_time] = true;
                 }
             }
-            if (!!u_vo_holder.post_update_vo) {
+            if (u_vo_holder.post_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id]) {
                     groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id] = {};
                 }
@@ -111,7 +111,7 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let res = varDAGNode.datasources[CountUserLogCSRFDatasourceController.getInstance().name];
+        const res = varDAGNode.datasources[CountUserLogCSRFDatasourceController.getInstance().name];
 
         if (res == null) {
             return null;
@@ -121,14 +121,14 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
     }
 
     private get_intersecteurs(groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } }): UserMinDataRangesVO[] {
-        let res: UserMinDataRangesVO[] = [];
+        const res: UserMinDataRangesVO[] = [];
 
-        for (let user_id_s in groupe_date_to_u_vo_holders) {
-            let user_id = parseInt(user_id_s);
-            let holders = groupe_date_to_u_vo_holders[user_id_s];
+        for (const user_id_s in groupe_date_to_u_vo_holders) {
+            const user_id = parseInt(user_id_s);
+            const holders = groupe_date_to_u_vo_holders[user_id_s];
 
-            for (let log_time_s in holders) {
-                let log_time = parseInt(log_time_s);
+            for (const log_time_s in holders) {
+                const log_time = parseInt(log_time_s);
                 res.push(UserMinDataRangesVO.createNew<UserMinDataRangesVO>(
                     this.varConf.name,
                     false,

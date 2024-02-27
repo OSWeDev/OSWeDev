@@ -41,7 +41,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -50,7 +50,7 @@ export default class MaintenanceBGThread implements IBGThread {
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
             //  et on informe si c'est pas fait les utilisateurs
-            let maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
+            const maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
 
             if ((MaintenanceServerController.getInstance().planned_maintenance != maintenance) ||
                 (MaintenanceServerController.getInstance().planned_maintenance && (
@@ -67,9 +67,9 @@ export default class MaintenanceBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
-            let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
-            let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
+            const timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
+            const timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
+            const timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
 
             let changed: boolean = false;
 
@@ -120,7 +120,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('MaintenanceBGThread', 'work', activity + '_OUT', time_out - time_in);
     }

@@ -80,11 +80,11 @@ export default class ModuleCMSServer extends ModuleServerBase {
     private async getPageComponents(num: number): Promise<IInstantiatedPageComponent[]> {
         let res: IInstantiatedPageComponent[] = [];
 
-        for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
+        for (const i in ModuleCMS.getInstance().registered_template_components_by_type) {
 
-            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+            const registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
-            let type_page_components: IInstantiatedPageComponent[] = await query(registered_template_component.type_id).filter_by_num_eq('page_id', num).select_vos<IInstantiatedPageComponent>();
+            const type_page_components: IInstantiatedPageComponent[] = await query(registered_template_component.type_id).filter_by_num_eq('page_id', num).select_vos<IInstantiatedPageComponent>();
 
             res = res.concat(type_page_components);
         }

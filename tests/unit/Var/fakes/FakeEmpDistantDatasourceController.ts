@@ -26,10 +26,10 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
     }
 
     public async get_data(param: FakeEmpDayDataVO): Promise<FakeEmpDistantVO[]> {
-        let res: FakeEmpDistantVO[] = [];
+        const res: FakeEmpDistantVO[] = [];
 
-        for (let i in FakeEmpDistantDatasourceController.fake_distant_datas) {
-            let fake_distant_data = FakeEmpDistantDatasourceController.fake_distant_datas[i];
+        for (const i in FakeEmpDistantDatasourceController.fake_distant_datas) {
+            const fake_distant_data = FakeEmpDistantDatasourceController.fake_distant_datas[i];
 
             if (RangeHandler.elt_intersects_any_range(fake_distant_data.date, param.ts_ranges) &&
                 RangeHandler.elt_intersects_any_range(fake_distant_data.employee_id, param.employee_id_ranges)) {

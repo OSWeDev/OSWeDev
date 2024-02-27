@@ -96,7 +96,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         }
 
         let dows_ranges: NumRange[] = [];
-        for (let i in this.selected_dows) {
+        for (const i in this.selected_dows) {
             if (!this.selected_dows[i]) {
                 continue;
             }
@@ -108,7 +108,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
         }
 
@@ -135,7 +135,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOManager.add_context_filter_to_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOManager.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -157,7 +157,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && ((!dows_ranges) || (!dows_ranges.length))) {
-            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -178,7 +178,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
-        if (!!context_filter) {
+        if (context_filter) {
             if (!RangeHandler.are_same(context_filter.param_numranges, dows_ranges)) {
                 context_filter.param_numranges = dows_ranges;
             }
@@ -207,14 +207,14 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
         }
 
         // si ya pas de root ou de context_filter, on a pas de filtre en cours
         if (!context_filter) {
-            for (let i in this.selected_dows) {
-                if (!!this.selected_dows[i]) {
+            for (const i in this.selected_dows) {
+                if (this.selected_dows[i]) {
                     this.selected_dows[i] = false;
                 }
             }
@@ -222,7 +222,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         }
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let need_switch: { [dow: number]: boolean } = Object.assign({}, this.selected_dows);
+        const need_switch: { [dow: number]: boolean } = Object.assign({}, this.selected_dows);
         RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (isodow: number) => {
 
             if (!need_switch[isodow - 1]) {
@@ -252,7 +252,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: DOWFilterWidgetOptions = this.widget_options;
+        const options: DOWFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -268,7 +268,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
 
         let options: DOWFilterWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
                 options = options ? new DOWFilterWidgetOptions(
                     options.is_vo_field_ref, options.vo_field_ref,

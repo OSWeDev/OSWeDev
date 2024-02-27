@@ -18,7 +18,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         sortedTargetFields: Array<DatatableField<any, any>>
     ): RefRangesReferenceDatatableFieldVO<any> {
 
-        let res = new RefRangesReferenceDatatableFieldVO();
+        const res = new RefRangesReferenceDatatableFieldVO();
 
         res.init_ref_dtf(
             RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
@@ -78,7 +78,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        let e = this.targetModuleTable.label.code_text;
+        const e = this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
@@ -93,23 +93,23 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        let destvos = vos[this.targetModuleTable.vo_type];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return res;
         }
         RangeHandler.foreach_ranges_sync(e[this.datatable_field_uid], (id: number) => {
-            let thisvalue: string = this.dataToHumanReadable(destvos[id]);
+            const thisvalue: string = this.dataToHumanReadable(destvos[id]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         });
         return res;
     }
 
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
-        let dest_ids: number[] = [];
+        const dest_ids: number[] = [];
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        let destvos = vos[this.targetModuleTable.vo_type];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const destvos = vos[this.targetModuleTable.vo_type];
 
         if (!destvos) {
             return dest_ids;

@@ -79,7 +79,7 @@ export default class ModuleSendInBlue extends Module {
     }
 
     public initializeSendInBlueVO(): void {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'apiKey' }), true),
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().host, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'host' }), true),
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().sender_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Sender name' }), true),
@@ -89,7 +89,7 @@ export default class ModuleSendInBlue extends Module {
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().sender_sms_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Sender SMS name (only alphanumeric characters)' }), true),
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().default_folder_list, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Default Folder List' }), true),
         ];
-        let datatable = new ModuleTableVO(this, SendInBlueVO.API_TYPE_ID, () => new SendInBlueVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': 'Parametres SendInBlue' }));
+        const datatable = new ModuleTableVO(this, SendInBlueVO.API_TYPE_ID, () => new SendInBlueVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': 'Parametres SendInBlue' }));
         this.datatables.push(datatable);
     }
 }

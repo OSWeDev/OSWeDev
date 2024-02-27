@@ -33,7 +33,7 @@ export default class ModuleAnimationImportModule extends Module {
     }
 
     private intializeImport() {
-        let datatable_fields = [
+        const datatable_fields = [
 
             ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'description', false),
             ModuleTableFieldController.create_new(AnimationImportModuleVO.API_TYPE_ID, field_names<AnimationImportModuleVO>().messages, ModuleTableFieldVO.FIELD_TYPE_string, 'messages', false),
@@ -50,7 +50,7 @@ export default class ModuleAnimationImportModule extends Module {
         ];
 
 
-        let datatable = new ModuleTableVO(this, AnimationImportModuleVO.API_TYPE_ID, () => new AnimationImportModuleVO(), datatable_fields, null, "Import des traductions");
+        const datatable = new ModuleTableVO(this, AnimationImportModuleVO.API_TYPE_ID, () => new AnimationImportModuleVO(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }

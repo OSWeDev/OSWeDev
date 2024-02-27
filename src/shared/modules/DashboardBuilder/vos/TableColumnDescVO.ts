@@ -1,10 +1,7 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../ModuleTableFieldVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class TableColumnDescVO extends AbstractVO implements IDistantVOBase, IWeightedItem {
@@ -184,7 +181,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             return false;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[this.api_type_id].getFieldFromId(this.field_id);
         if (!field) {
             return false;
         }
@@ -201,7 +198,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             return false;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[this.api_type_id].getFieldFromId(this.field_id);
 
         if (!field) {
             return false;

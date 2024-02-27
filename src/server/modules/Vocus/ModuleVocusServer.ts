@@ -21,6 +21,8 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModulesManager from '../../../shared/modules/ModulesManager';
+import Module from '../../../shared/modules/Module';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
@@ -109,19 +111,19 @@ export default class ModuleVocusServer extends ModuleServerBase {
         limit_to_cascading_refs: boolean = false
     ): Promise<VocusInfoVO[]> {
 
-        let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
+        const res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
         }
 
-        let refFields: ModuleTableFieldVO[] = [];
+        const refFields: ModuleTableFieldVO[] = [];
 
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let table = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const table = ModuleTableController.module_tables_by_vo_type[i];
 
             if (table.vo_type == moduleTable.vo_type) {
                 continue;
@@ -130,7 +132,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             /**
              * On ignore les modules inactifs
              */
-            if (table.module && !table.module.actif) {
+            if (table.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(table.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 
@@ -141,9 +143,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
             //     continue;
             // }
 
-            let fields = table.get_fields();
-            for (let j in fields) {
-                let field = fields[j];
+            const fields = table.get_fields();
+            for (const j in fields) {
+                const field = fields[j];
 
                 if (!field.has_relation) {
                     continue;
@@ -161,28 +163,28 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
-        let promises = [];
-        for (let i in refFields) {
-            let refField = refFields[i];
+        const promises = [];
+        for (const i in refFields) {
+            const refField = refFields[i];
 
             promises.push((async () => {
-                let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                const refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
                     .filter_by_num_x_ranges(refField.field_id, [RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
                     .select_vos<IDistantVOBase>();
 
-                for (let j in refvos) {
-                    let refvo: IDistantVOBase = refvos[j];
+                for (const j in refvos) {
+                    const refvo: IDistantVOBase = refvos[j];
 
                     if (!res_map[refvo._type]) {
                         res_map[refvo._type] = {};
                     }
 
-                    let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
+                    const tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
                     tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
                     tmp.linked_id = refvo.id;
                     tmp.linked_type = refvo._type;
 
-                    let table = refField.module_table;
+                    const table = refField.module_table;
                     if (table && table.default_label_field) {
                         tmp.linked_label = refvo[table.default_label_field.field_id];
                     } else if (table && table.table_label_function) {
@@ -191,7 +193,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
                     res_map[refvo._type][refvo.id] = tmp;
 
-                    if (!!limit) {
+                    if (limit) {
                         limit--;
                         if (limit <= 0) {
                             break;
@@ -204,9 +206,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
-        let res: VocusInfoVO[] = [];
-        for (let i in res_map) {
-            for (let j in res_map[i]) {
+        const res: VocusInfoVO[] = [];
+        for (const i in res_map) {
+            for (const j in res_map[i]) {
 
                 res.push(res_map[i][j]);
             }

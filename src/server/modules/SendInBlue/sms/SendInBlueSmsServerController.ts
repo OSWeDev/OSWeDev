@@ -38,7 +38,7 @@ export default class SendInBlueSmsServerController {
             return null;
         }
 
-        let postParams: any = {
+        const postParams: any = {
             sender: await SendInBlueServerController.getInstance().getSenderNameSMS(),
             recipient: SendInBlueSmsFormatVO.formate(recipient.tel, recipient.code_pays),
             content: content,

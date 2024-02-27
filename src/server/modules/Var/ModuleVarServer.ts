@@ -128,18 +128,18 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsInitController.activate_pre_registered_var_data_api_type_id_modules_list();
 
-        let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
 
         /**
          * On ajoute les trigger preC et preU pour mettre à jour l'index bdd avant insert
          * api_type_id => les vos des vars datas
          */
-        for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+        for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
             preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
             preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
@@ -157,9 +157,9 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         if (is_generator) {
             let has_errors = false;
-            for (let var_id_str in VarsController.var_conf_by_id) {
-                let var_id = parseInt(var_id_str);
-                let varconf = VarsController.var_conf_by_id[var_id];
+            for (const var_id_str in VarsController.var_conf_by_id) {
+                const var_id = parseInt(var_id_str);
+                const varconf = VarsController.var_conf_by_id[var_id];
 
                 if (!varconf) {
                     has_errors = true;
@@ -175,8 +175,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                         continue;
                     }
 
-                    for (let i in varconf.pixel_fields) {
-                        let pixel_field = varconf.pixel_fields[i];
+                    for (const i in varconf.pixel_fields) {
+                        const pixel_field = varconf.pixel_fields[i];
 
                         if (!pixel_field.pixel_param_field_name) {
                             ConsoleHandler.error('Pixel varconf but no pixel_param_field_name for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
@@ -229,9 +229,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
-        let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
 
@@ -493,7 +493,7 @@ export default class ModuleVarServer extends ModuleServerBase {
              *  - on part de la liste des vars qui ont un cache et des datasources
              * api_type_id => les vos des datasources
              */
-            for (let api_type_id in VarsServerController.registered_vars_controller_by_api_type_id) {
+            for (const api_type_id in VarsServerController.registered_vars_controller_by_api_type_id) {
 
 
                 /**
@@ -660,9 +660,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let invalidators = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        const invalidators = [];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
@@ -671,7 +671,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // cas particulier de l'invalidation exacte où on accepte de supprimer un import ou un denied puisqu'on demande expressément de supprimer cette var
 
-            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED, vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
+            const invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED, vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
             invalidators.push(invalidator);
         }
 
@@ -684,16 +684,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let invalidators = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        const invalidators = [];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
-            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, true, false, false);
+            const invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, true, false, false);
             invalidators.push(invalidator);
         }
 
@@ -706,16 +706,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let invalidators = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        const invalidators = [];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
-            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+            const invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
             invalidators.push(invalidator);
         }
 
@@ -730,7 +730,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         throw new Error('Not implemented');
         // // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
         // for (let api_type_id in VarsServerController.varcacheconf_by_api_type_ids) {
-        //     let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        //     let moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
         // }
@@ -742,16 +742,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let invalidators = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        const invalidators = [];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
-            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, false);
+            const invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, false);
             invalidators.push(invalidator);
         }
 
@@ -764,16 +764,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let invalidators = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        const invalidators = [];
+        for (const i in vos) {
+            const vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
-            let invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, true);
+            const invalidator = VarDataInvalidatorVO.create_new(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, true);
             invalidators.push(invalidator);
         }
 
@@ -930,10 +930,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
-            let promises = [];
-            for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+            const promises = [];
+            for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
-                let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
                 promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
             }
             await all_promises(promises);
@@ -959,7 +959,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         if (vo_update_handler && vo_update_handler.pre_update_vo && vo_update_handler.post_update_vo &&
             ((!vo_update_handler.pre_update_vo.pixel_activated) && vo_update_handler.post_update_vo.pixel_activated)) {
-            let delete_cache_query = query(vo_update_handler.pre_update_vo.var_data_vo_type)
+            const delete_cache_query = query(vo_update_handler.pre_update_vo.var_data_vo_type)
                 .filter_by_num_eq('var_id', vo_update_handler.pre_update_vo.id)
                 .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_COMPUTED);
 
@@ -968,8 +968,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
-        for (let i in vcs) {
-            let vc = vcs[i];
+        for (const i in vcs) {
+            const vc = vcs[i];
             VarsServerController.update_registered_varconf(vc.id, vc);
         }
     }
@@ -987,12 +987,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async get_var_id_by_names(): Promise<VarConfIds> {
-        let res: VarConfIds = new VarConfIds();
-        let var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
+        const res: VarConfIds = new VarConfIds();
+        const var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
         res.var_id_by_names = {};
 
-        for (let i in var_confs) {
-            let var_conf = var_confs[i];
+        for (const i in var_confs) {
+            const var_conf = var_confs[i];
 
             res.var_id_by_names[var_conf.name] = var_conf.id;
         }
@@ -1014,14 +1014,14 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         params = this.filter_null_fields_params(params);
 
-        let uid = StackContext.get('UID');
-        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
         VarsTabsSubsController.register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            for (let i in params) {
-                let param = params[i];
+            for (const i in params) {
+                const param = params[i];
 
                 ConsoleHandler.log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
@@ -1041,7 +1041,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'IN');
         StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', params.length);
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         /**
          * On commence par refuser les params mal construits (champs null)
@@ -1069,16 +1069,16 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', params.length);
 
-        let uid = StackContext.get('UID');
-        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
-        let params_indexes = params ? params.map((param) => param.index) : [];
+        const params_indexes = params ? params.map((param) => param.index) : [];
 
         VarsTabsSubsController.register_sub(uid, client_tab_id, params_indexes);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            for (let i in params) {
-                let param = params[i];
+            for (const i in params) {
+                const param = params[i];
 
                 ConsoleHandler.log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
@@ -1092,7 +1092,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread(params_indexes);
 
         if (notifyable_vars && notifyable_vars.length) {
-            let vars_to_notif: VarDataValueResVO[] = [];
+            const vars_to_notif: VarDataValueResVO[] = [];
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
@@ -1108,29 +1108,29 @@ export default class ModuleVarServer extends ModuleServerBase {
             // }
         }
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'OUT');
         StatsController.register_stat_DUREE('ModuleVarServer', 'register_params', 'OUT', time_out - time_in);
     }
 
     private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {
-        let res: VarDataBaseVO[] = [];
+        const res: VarDataBaseVO[] = [];
 
-        for (let i in params) {
-            let param = params[i];
+        for (const i in params) {
+            const param = params[i];
 
             if (!param) {
                 continue;
             }
 
-            let matroid_fields = MatroidController.getMatroidFields(param._type);
+            const matroid_fields = MatroidController.getMatroidFields(param._type);
             if (!matroid_fields) {
                 continue;
             }
 
             let filter_ = false;
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
+            for (const j in matroid_fields) {
+                const matroid_field = matroid_fields[j];
 
                 if ((!param[matroid_field.field_name]) || (!(param[matroid_field.field_name] as IRange[]).length) ||
                     ((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0)) {
@@ -1161,13 +1161,13 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.get('UID');
-        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
+        const uid = StackContext.get('UID');
+        const client_tab_id = StackContext.get('CLIENT_TAB_ID');
         VarsTabsSubsController.unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
         if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            for (let i in params) {
-                let param = params[i];
+            for (const i in params) {
+                const param = params[i];
 
                 ConsoleHandler.log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
@@ -1179,7 +1179,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_controller = VarsServerController.registered_vars_controller[text];
+        const var_controller = VarsServerController.registered_vars_controller[text];
 
         return VarsServerController.get_datasource_deps_and_predeps_names(var_controller);
     }
@@ -1190,12 +1190,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_controller = VarsServerController.registered_vars_controller[text];
+        const var_controller = VarsServerController.registered_vars_controller[text];
 
-        let res: { [dep_name: string]: string } = {};
-        let deps: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
+        const res: { [dep_name: string]: string } = {};
+        const deps: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
 
-        for (let i in deps) {
+        for (const i in deps) {
             res[i] = deps[i].varConf.name;
         }
         return res;
@@ -1211,20 +1211,20 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {
             return null;
         }
 
-        let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+        const dag: VarDAG = new VarDAG();
+        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
 
         if (!varDAGNode) {
             return null;
         }
 
-        let predeps = var_controller.getDataSourcesPredepsDependencies();
+        const predeps = var_controller.getDataSourcesPredepsDependencies();
         if (predeps && predeps.length) {
             await DataSourcesController.load_node_datas(predeps, varDAGNode);
         }
@@ -1242,13 +1242,13 @@ export default class ModuleVarServer extends ModuleServerBase {
      * @returns
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        let var_dag: VarDAG = new VarDAG();
-        let deployed_vars_datas: { [index: string]: boolean } = {};
-        let vars_datas: { [index: string]: VarDataBaseVO } = {
+        const var_dag: VarDAG = new VarDAG();
+        const deployed_vars_datas: { [index: string]: boolean } = {};
+        const vars_datas: { [index: string]: VarDataBaseVO } = {
             [param.index]: param
         };
 
-        let node = await VarDAGNode.getInstance(var_dag, param, false);
+        const node = await VarDAGNode.getInstance(var_dag, param, false);
 
         if (!node) {
             return null;
@@ -1269,11 +1269,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
          */
-        let varconf = VarsController.var_conf_by_id[param.var_id];
+        const varconf = VarsController.var_conf_by_id[param.var_id];
         if (varconf.pixel_activated) {
             let is_pixel = true;
-            for (let i in varconf.pixel_fields) {
-                let pixel_field = varconf.pixel_fields[i];
+            for (const i in varconf.pixel_fields) {
+                const pixel_field = varconf.pixel_fields[i];
 
                 if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
                     is_pixel = false;
@@ -1291,35 +1291,35 @@ export default class ModuleVarServer extends ModuleServerBase {
          * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
          *  a filtré et garder un json valide
          */
-        let value_size_limit: number = 10000;
+        const value_size_limit: number = 10000;
 
         if (!param.check_param_is_valid(param._type)) {
             ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
             return null;
         }
 
-        let var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {
             return null;
         }
 
-        let datasources_values: { [ds_name: string]: any; } = {};
-        let datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
+        const datasources_values: { [ds_name: string]: any; } = {};
+        const datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+        const dag: VarDAG = new VarDAG();
+        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
 
         if (!varDAGNode) {
             return null;
         }
 
-        for (let i in datasources_deps) {
-            let datasource_dep = datasources_deps[i];
+        for (const i in datasources_deps) {
+            const datasource_dep = datasources_deps[i];
 
             await datasource_dep.load_node_data(varDAGNode);
-            let data = varDAGNode.datasources[datasource_dep.name];
+            const data = varDAGNode.datasources[datasource_dep.name];
 
             let data_jsoned: string = null;
             try {
@@ -1368,15 +1368,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_conf = VarsController.var_conf_by_name[var_name];
+        const var_conf = VarsController.var_conf_by_name[var_name];
         if (!var_conf) {
             return null;
         }
 
-        let uid = StackContext.get('UID');
+        const uid = StackContext.get('UID');
 
         return new Promise(async (resolve, reject) => {
-            let param = new GetVarParamFromContextFiltersParam(
+            const param = new GetVarParamFromContextFiltersParam(
                 var_name,
                 get_active_field_filters,
                 custom_filters,
@@ -1393,15 +1393,15 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
-        let max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
+        const max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
 
         /**
          * On fait un cache local pour les requêtes de cet appel
          */
-        let cache_local: { [full_request: string]: Promise<any> } = {};
+        const cache_local: { [full_request: string]: Promise<any> } = {};
 
-        let promise_pipeline = new PromisePipeline(max_concurrent_promises, 'ModuleVarServer.throttled_getVarParamsFromContextFilters');
-        for (let i in params) {
+        const promise_pipeline = new PromisePipeline(max_concurrent_promises, 'ModuleVarServer.throttled_getVarParamsFromContextFilters');
+        for (const i in params) {
 
             await promise_pipeline.push(async () => {
                 await this.throttled_getVarParamFromContextFilters(params[i], cache_local);
@@ -1413,25 +1413,25 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam, cache_local: { [full_request: string]: Promise<any> }) {
 
-        let var_name = param.var_name;
-        let get_active_field_filters = param.get_active_field_filters;
-        let custom_filters = param.custom_filters;
-        let active_api_type_ids = param.active_api_type_ids;
-        let discarded_field_paths = param.discarded_field_paths;
-        let accept_max_ranges = param.accept_max_ranges;
-        let var_conf = VarsController.var_conf_by_name[var_name];
-        let resolve = param.resolve;
+        const var_name = param.var_name;
+        const get_active_field_filters = param.get_active_field_filters;
+        const custom_filters = param.custom_filters;
+        const active_api_type_ids = param.active_api_type_ids;
+        const discarded_field_paths = param.discarded_field_paths;
+        const accept_max_ranges = param.accept_max_ranges;
+        const var_conf = VarsController.var_conf_by_name[var_name];
+        const resolve = param.resolve;
 
-        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
+        const var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
 
-        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
-        let field_promises: Array<Promise<any>> = [];
+        const matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        const field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(get_active_field_filters);
+        const cleaned_active_field_filters = FieldFiltersVOManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
-        for (let i in matroid_fields) {
-            let matroid_field_ = matroid_fields[i];
+        for (const i in matroid_fields) {
+            const matroid_field_ = matroid_fields[i];
 
             field_promises.push((async (matroid_field) => {
                 // TODO FIXME les tsranges pour le moment on max_range il faut réfléchir à la meilleure solution pour gérer ces filtrages de dates
@@ -1440,8 +1440,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         if (matroid_field.has_relation) {
 
-                            let alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
-                            let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
+                            const alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
+                            const context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
                                 .using(active_api_type_ids)
                                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
@@ -1463,7 +1463,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                  */
                                 await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
 
-                                    let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
+                                    const query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
                                     if (!cache_local[query_wrapper.query]) {
                                         cache_local[query_wrapper.query] = ContextQueryServerController.select_vos(context_query, query_wrapper);
                                     }
@@ -1495,7 +1495,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 break;
                             }
 
-                            let ids: number[] = [];
+                            const ids: number[] = [];
                             ids_db.forEach((id_db) => id_db[alias] ? ids.push(parseInt(id_db[alias])) : {});
 
                             var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
@@ -1524,11 +1524,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                         }
                         break;
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                        if (!!custom_filters[matroid_field.field_name]) {
+                        if (custom_filters[matroid_field.field_name]) {
                             // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                             // on compte en nombre de range et non en cardinal
                             // et on limite à la limite configurée dans l'application
-                            let limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
+                            const limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
 
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
@@ -1595,12 +1595,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         // lang_id: number = null
     ): Promise<string> {
 
-        let var_param = VarDataBaseVO.from_index(var_data_index);
+        const var_param = VarDataBaseVO.from_index(var_data_index);
         if (!var_param) {
             return null;
         }
 
-        let var_data = await this.get_var_data(var_data_index);
+        const var_data = await this.get_var_data(var_data_index);
 
         if (!var_data) {
             return null;
@@ -1616,32 +1616,32 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         if ((!lang_id) && (!!user_id)) {
-            let user: UserVO = await ModuleAccessPolicy.getInstance().getSelfUser();
+            const user: UserVO = await ModuleAccessPolicy.getInstance().getSelfUser();
             lang_id = user ? user.lang_id : lang_id;
         }
 
         // let filtered_value = this.get_filtered_value(var_data);
-        let controller = VarsServerController.registered_vars_controller_by_var_id[var_data.var_id];
+        const controller = VarsServerController.registered_vars_controller_by_var_id[var_data.var_id];
 
-        let public_explaination_code_text: string = VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id);
-        let explaination_code_text: string = VarsController.get_translatable_explaination_by_var_id(var_data.var_id);
+        const public_explaination_code_text: string = VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id);
+        const explaination_code_text: string = VarsController.get_translatable_explaination_by_var_id(var_data.var_id);
 
-        let var_dep_names: { [dep_name: string]: string } = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[var_data.var_id].name);
-        let var_dep_values: { [dep_id: string]: VarDataBaseVO } = await ModuleVar.getInstance().getParamDependencies(var_data);
+        const var_dep_names: { [dep_name: string]: string } = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[var_data.var_id].name);
+        const var_dep_values: { [dep_id: string]: VarDataBaseVO } = await ModuleVar.getInstance().getParamDependencies(var_data);
 
-        let has_deps_params = ObjectHandler.hasAtLeastOneAttribute(var_dep_values);
+        const has_deps_params = ObjectHandler.hasAtLeastOneAttribute(var_dep_values);
 
         // TODO FIXME la trad côté serveur est pas compatible avec les paramètres a priori ....
         // let explaination_sample_param = VarsController.get_explaination_sample_param(var_data, var_dep_names, var_dep_values);
-        let explaination: string = explaination_code_text ? await ModuleTranslation.getInstance().t(explaination_code_text, lang_id) : null;
+        const explaination: string = explaination_code_text ? await ModuleTranslation.getInstance().t(explaination_code_text, lang_id) : null;
 
-        let public_explaination: string = public_explaination_code_text ? await ModuleTranslation.getInstance().t(public_explaination_code_text, lang_id) : null;
+        const public_explaination: string = public_explaination_code_text ? await ModuleTranslation.getInstance().t(public_explaination_code_text, lang_id) : null;
 
-        let has_public_explaination: boolean = (VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id) != public_explaination);
-        let has_explaination: boolean = (VarsController.get_translatable_explaination_by_var_id(var_data.var_id) != explaination);
+        const has_public_explaination: boolean = (VarsController.get_translatable_public_explaination_by_var_id(var_data.var_id) != public_explaination);
+        const has_explaination: boolean = (VarsController.get_translatable_explaination_by_var_id(var_data.var_id) != explaination);
 
-        let aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(var_data);
-        let is_aggregator: boolean = ObjectHandler.hasAtLeastOneAttribute(aggregated_var_datas);
+        const aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(var_data);
+        const is_aggregator: boolean = ObjectHandler.hasAtLeastOneAttribute(aggregated_var_datas);
 
         /**
          * Objectif : fournir un prompt pour GPT qui contienne un maximum d'informations sur la variable, ses deps, le param, les datasources.
@@ -1662,17 +1662,17 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         prompt += 'Le calcul est paramétré par les éléments/champs de segmentation suivants : \n';
 
-        let var_data_fields = MatroidController.getMatroidFields(var_data._type);
-        for (let i in var_data_fields) {
-            let field = var_data_fields[i];
+        const var_data_fields = MatroidController.getMatroidFields(var_data._type);
+        for (const i in var_data_fields) {
+            const field = var_data_fields[i];
 
-            prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[var_data._type].name + '.' + field.field_name, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
+            prompt += " - Le champs '" + await ModuleTranslation.getInstance().label('fields.labels.ref.' + ModuleTableController.module_tables_by_vo_type[var_data._type].name + '.' + field.field_name, lang_id) + "' qui filtre sur un ou plusieurs intervales de " +
                 ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
-            let ranges = var_data[field.field_name] as IRange[];
-            for (let j in ranges) {
-                let range = ranges[j];
-                let segmented_min = RangeHandler.getSegmentedMin(range);
-                let segmented_max = RangeHandler.getSegmentedMax(range);
+            const ranges = var_data[field.field_name] as IRange[];
+            for (const j in ranges) {
+                const range = ranges[j];
+                const segmented_min = RangeHandler.getSegmentedMin(range);
+                const segmented_max = RangeHandler.getSegmentedMax(range);
 
                 switch (field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
@@ -1723,8 +1723,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 // }
             }
 
-            for (let i in var_dep_values) {
-                let var_dep_value = var_dep_values[i];
+            for (const i in var_dep_values) {
+                const var_dep_value = var_dep_values[i];
 
                 // TODO
             }
@@ -1734,7 +1734,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
         ConsoleHandler.log('prompt:' + prompt);
 
-        let gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
+        const gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
 
         return gpt_msg?.content;
     }

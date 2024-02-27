@@ -44,10 +44,10 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
-        let messages: AnimationMessageModuleVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
+        const messages: AnimationMessageModuleVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
 
-        for (let i in messages) {
-            let message: AnimationMessageModuleVO = messages[0];
+        for (const i in messages) {
+            const message: AnimationMessageModuleVO = messages[0];
 
             if (!message) {
                 continue;

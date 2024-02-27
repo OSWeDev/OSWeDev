@@ -56,8 +56,8 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
-        let default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, 'Email');
-        let datatable_fields = [
+        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, 'Email');
+        const datatable_fields = [
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom'),
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().prenom, ModuleTableFieldVO.FIELD_TYPE_string, 'Prenom'),
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().telephone, ModuleTableFieldVO.FIELD_TYPE_string, 'Telephone'),
@@ -73,14 +73,14 @@ export default class ModuleClient extends Module {
 
     public initializeClient(): void {
         // Création de la table Client
-        let field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
-        let field_user_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
+        const field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
+        const field_user_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             field_user_id,
             field_informations_id
         ];
-        let dt = new ModuleTableVO<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
+        const dt = new ModuleTableVO<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
         this.datatables.push(dt);

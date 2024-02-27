@@ -29,7 +29,7 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
 
     public async work(db: IDatabase<any>) {
 
-        let filter = new ContextFilterVO();
+        const filter = new ContextFilterVO();
         filter.field_id = 'code_text';
         filter.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
         filter.vo_type = TranslatableTextVO.API_TYPE_ID;
@@ -38,10 +38,10 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
             DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX
         ];
 
-        let _query: ContextQueryVO = query(TranslatableTextVO.API_TYPE_ID);
+        const _query: ContextQueryVO = query(TranslatableTextVO.API_TYPE_ID);
         _query.add_filters([filter]);
 
-        let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(_query);
+        const page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(_query);
 
         await ModuleDAO.getInstance().deleteVOs(page_widget_trads);
 

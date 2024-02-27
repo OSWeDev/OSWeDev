@@ -82,10 +82,10 @@ export default class ModuleSharepointServer extends ModuleServerBase {
     public async save_to_sharepoint(coreOptions: ICoreOptions, fileOptions: FileOptions) {
         return new Promise(async (resolve, reject) => {
 
-            let clientId = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
-            let clientSecret = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
+            const clientId = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
+            const clientSecret = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
             // realm == tenant
-            let realm = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
+            const realm = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
 
             if ((!clientId) || (!clientSecret)) {
                 /**
@@ -103,7 +103,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
                 return null;
             }
 
-            let creds: IAuthOptions = {
+            const creds: IAuthOptions = {
                 clientId,
                 clientSecret
             };
@@ -129,7 +129,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         filename: string = null,
         file_access_policy_name: string = null) {
 
-        let file: FileVO = await ModuleDataExportServer.getInstance().exportModuletableDataToXLSXFile(
+        const file: FileVO = await ModuleDataExportServer.getInstance().exportModuletableDataToXLSXFile(
             api_type_id,
             lang_id,
             filename,

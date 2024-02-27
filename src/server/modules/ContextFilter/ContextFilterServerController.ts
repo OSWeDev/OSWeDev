@@ -6,12 +6,12 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -42,14 +42,14 @@ export default class ContextFilterServerController {
     ) {
 
         ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_filter.vo_type);
-        ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.field_id);
+        ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.field_name);
 
         if (context_filter.param_alias) {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_filter.param_alias);
         }
 
-        let field_name = context_filter.field_id ?
-            tables_aliases_by_type[context_filter.vo_type] + '.' + context_filter.field_id :
+        const field_name = context_filter.field_name ?
+            tables_aliases_by_type[context_filter.vo_type] + '.' + context_filter.field_name :
             null;
 
         /**
@@ -62,31 +62,31 @@ export default class ContextFilterServerController {
             return;
         }
 
-        let field = context_filter.vo_type ?
-            VOsTypesManager.moduleTables_by_voType[context_filter.vo_type].get_field_by_id(context_filter.field_id) :
+        const field = context_filter.vo_type ?
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[context_filter.vo_type][context_filter.field_name] :
             null;
 
         /**
          * Cas spécifique de l'id qu'on doit gérer comme un field de type int
          *  et des or / xor / ... qui n'ont pas de filed_id et pas de vo_type
          */
-        let field_type = field_name ? (field ? field.field_type : ModuleTableFieldVO.FIELD_TYPE_int) : null;
+        const field_type = field_name ? (field ? field.field_type : ModuleTableFieldVO.FIELD_TYPE_int) : null;
 
         // On tente de déanonymiser avant de construire la requête
-        let uid = await StackContext.get('UID');
+        const uid = await StackContext.get('UID');
         if (context_filter.param_text) {
             context_filter.param_text = await ServerAnonymizationController.get_unanonymised_row_field_value(
                 context_filter.param_text,
                 context_filter.vo_type,
-                context_filter.field_id,
+                context_filter.field_name,
                 uid
             );
         }
         if (context_filter.param_textarray) {
-            for (let i in context_filter.param_textarray) {
-                let param_text = context_filter.param_textarray[i];
+            for (const i in context_filter.param_textarray) {
+                const param_text = context_filter.param_textarray[i];
 
-                context_filter.param_textarray[i] = await ServerAnonymizationController.get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_id, uid);
+                context_filter.param_textarray[i] = await ServerAnonymizationController.get_unanonymised_row_field_value(param_text, context_filter.vo_type, context_filter.field_name, uid);
             }
         }
 
@@ -132,7 +132,7 @@ export default class ContextFilterServerController {
                     // sub_query.filters = filters;
                     // sub_query.fields = [];
                     // sub_query.field(
-                    //     context_filter.field_id, null, context_filter.vo_type,
+                    //     context_filter.field_name, null, context_filter.vo_type,
                     //     VarConfVO.ARRAY_AGG_AGGREGATOR,
                     //     context_filter.text_ignore_case ? ContextQueryFieldVO.FIELD_MODIFIER_LOWER : ContextQueryFieldVO.FIELD_MODIFIER_NONE);
                     // let sub_query_str = await ContextQueryServerController.build_select_query(sub_query);
@@ -241,7 +241,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " ILIKE " + pgPromise.as.format('$1', ["%" + text + "%"]));
@@ -254,9 +254,9 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -280,14 +280,14 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
 
                                 where_conditions.push(
                                     'EXISTS ( ' +
                                     '  select 1' +
-                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
                                     '  where a ILIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
                                     '  )');
                             } else {
@@ -295,14 +295,14 @@ export default class ContextFilterServerController {
                                 where_conditions.push(
                                     'EXISTS ( ' +
                                     '  select 1' +
-                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                    '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
                                     '  where a LIKE ' + pgPromise.as.format('$1', ["%" + text + "%"]) +
                                     '  )');
                             }
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -312,7 +312,7 @@ export default class ContextFilterServerController {
                                     where_conditions.push(
                                         'EXISTS ( ' +
                                         '  select 1' +
-                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
                                         '  where a ILIKE ANY(ARRAY[' + like_array.join(',') + '])' +
                                         '  )');
                                 } else {
@@ -320,7 +320,7 @@ export default class ContextFilterServerController {
                                     where_conditions.push(
                                         'EXISTS ( ' +
                                         '  select 1' +
-                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ') as a' +
+                                        '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
                                         '  where a LIKE ANY(ARRAY[' + like_array.join(',') + '])' +
                                         '  )');
                                 }
@@ -356,7 +356,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_alias != null) {
                             /**
-                             * Check injection ok : field_id check ok et param_alias checké aussi
+                             * Check injection ok : field_name check ok et param_alias checké aussi
                              */
                             where_conditions.push(field_name + " = " + context_filter.param_alias);
                             break;
@@ -384,7 +384,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -437,7 +437,7 @@ export default class ContextFilterServerController {
                              */
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(context_filter.param_tsranges) + "'";
-                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+                            where_conditions.push(ranges_clause + " = " + field.field_name + '_ndx');
 
                             break;
                         } else {
@@ -478,7 +478,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let param_text = parseFloat(context_filter.param_text);
+                            const param_text = parseFloat(context_filter.param_text);
                             ContextQueryInjectionCheckHandler.assert_numeric(param_text);
                             where_conditions.push(field_name + " = " + param_text);
                             break;
@@ -512,13 +512,13 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
                             where_conditions.push(field_name + " = crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
                                 if (!text) {
                                     continue;
                                 }
@@ -551,13 +551,13 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " = " + pgPromise.as.format('$1', [text]));
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
                                 if (!text) {
                                     continue;
                                 }
@@ -583,16 +583,16 @@ export default class ContextFilterServerController {
                          */
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
                             where_conditions.push(pgPromise.as.format('$1', [text]) + " = ALL(" + field_name + ")");
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
                                 // let param_text = context_filter.param_textarray[i];
                                 // let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
-                                let text = context_filter.param_textarray[i];
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -604,8 +604,8 @@ export default class ContextFilterServerController {
                             }
                             where_conditions.push("['" + like_array.join("','") + "'] <@ " + field_name +
                                 " AND ['" + like_array.join("','") + "'] @> " + field_name);
-                            // where_conditions.push("['" + like_array.join("','") + "'] <@ " + (context_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (context_filter.text_ignore_case ? ')' : '') +
-                            //     " AND ['" + like_array.join("','") + "'] @> " + (context_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (context_filter.text_ignore_case ? ')' : ''));
+                            // where_conditions.push("['" + like_array.join("','") + "'] <@ " + (context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') +
+                            //     " AND ['" + like_array.join("','") + "'] @> " + (context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : ''));
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -644,7 +644,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let param_text = parseFloat(context_filter.param_text);
+                            const param_text = parseFloat(context_filter.param_text);
                             ContextQueryInjectionCheckHandler.assert_numeric(param_text);
                             where_conditions.push(field_name + " = " + param_text);
                             break;
@@ -678,7 +678,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
 
                             where_conditions.push(field_name + " = crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
                         } else if (context_filter.param_textarray != null) {
@@ -688,10 +688,10 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
                                 if (!text) {
                                     continue;
                                 }
@@ -723,7 +723,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
 
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " = " + pgPromise.as.format('$1', [text]));
                         } else if (context_filter.param_textarray != null) {
@@ -733,10 +733,10 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
                                 if (!text) {
                                     continue;
                                 }
@@ -760,15 +760,15 @@ export default class ContextFilterServerController {
                          */
 
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
                             where_conditions.push(pgPromise.as.format('$1', [text]) + " = ANY(" + field_name + ")");
 
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
                                 // let param_text = context_filter.param_textarray[i];
                                 // let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
-                                let text = context_filter.param_textarray[i];
+                                const text = context_filter.param_textarray[i];
 
                                 if (!text) {
                                     continue;
@@ -807,7 +807,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
-                            let text = context_filter.param_numeric.toString();
+                            const text = context_filter.param_numeric.toString();
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -815,7 +815,7 @@ export default class ContextFilterServerController {
                                 where_conditions.push(field_name + "::text LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -862,7 +862,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -875,9 +875,9 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -903,7 +903,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " ILIKE ANY(" + field_name + ')');
                             } else {
@@ -912,10 +912,10 @@ export default class ContextFilterServerController {
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
 
-                                let text = context_filter.param_textarray[i];
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -956,7 +956,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
-                            let text = context_filter.param_numeric.toString();
+                            const text = context_filter.param_numeric.toString();
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text ILIKE " + pgPromise.as.format('$1', ['%' + text]));
@@ -964,7 +964,7 @@ export default class ContextFilterServerController {
                                 where_conditions.push(field_name + "::text LIKE " + pgPromise.as.format('$1', ['%' + text]));
                             }
                         } else if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text ILIKE " + pgPromise.as.format('$1', ['%' + text]));
@@ -1012,7 +1012,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " ILIKE " + pgPromise.as.format('$1', ['%' + text]));
                             } else {
@@ -1025,9 +1025,9 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1053,7 +1053,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " ILIKE ANY(" + field_name + ')');
@@ -1062,9 +1062,9 @@ export default class ContextFilterServerController {
                             }
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1117,7 +1117,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let param_text = parseFloat(context_filter.param_text);
+                            const param_text = parseFloat(context_filter.param_text);
                             ContextQueryInjectionCheckHandler.assert_numeric(param_text);
                             where_conditions.push(field_name + " != " + param_text);
                             break;
@@ -1143,16 +1143,16 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_password:
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
 
                             where_conditions.push(field_name + " != crypt(" + pgPromise.as.format('$1', [text]) + ", " + field_name + ")");
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
 
                                 if (!text) {
                                     continue;
@@ -1177,16 +1177,16 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_email:
 
                         if (context_filter.param_text != null) {
-                            let text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
+                            const text = (context_filter.param_text && context_filter.text_ignore_case) ? context_filter.param_text.toLowerCase() : context_filter.param_text;
 
                             where_conditions.push((context_filter.text_ignore_case ? 'LOWER(' : '') + field_name + (context_filter.text_ignore_case ? ')' : '') + " != " + pgPromise.as.format('$1', [text]));
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let param_text = context_filter.param_textarray[i];
-                                let text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const param_text = context_filter.param_textarray[i];
+                                const text = (param_text && context_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
 
                                 if (!text) {
                                     continue;
@@ -1212,13 +1212,13 @@ export default class ContextFilterServerController {
                          */
 
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             where_conditions.push(pgPromise.as.format('$1', [text]) + " != ALL(" + field_name + ")");
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
 
                                 if (!text) {
                                     continue;
@@ -1268,7 +1268,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_text != null) {
-                            let param_text = parseFloat(context_filter.param_text);
+                            const param_text = parseFloat(context_filter.param_text);
                             ContextQueryInjectionCheckHandler.assert_numeric(param_text);
                             where_conditions.push(field_name + " != " + param_text);
                             break;
@@ -1304,7 +1304,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
-                            let text = context_filter.param_numeric.toString();
+                            const text = context_filter.param_numeric.toString();
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
@@ -1312,7 +1312,7 @@ export default class ContextFilterServerController {
                                 where_conditions.push(field_name + "::text NOT LIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                         } else if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
@@ -1349,16 +1349,16 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             } else {
                                 where_conditions.push(field_name + " NOT LIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1382,7 +1382,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT ILIKE ALL(" + field_name + ')');
@@ -1390,9 +1390,9 @@ export default class ContextFilterServerController {
                                 where_conditions.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT LIKE ALL(" + field_name + ')');
                             }
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1433,7 +1433,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
                         if (context_filter.param_numeric != null) {
-                            let text = context_filter.param_numeric.toString();
+                            const text = context_filter.param_numeric.toString();
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -1441,7 +1441,7 @@ export default class ContextFilterServerController {
                                 where_conditions.push(field_name + "::text NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -1478,7 +1478,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -1486,9 +1486,9 @@ export default class ContextFilterServerController {
                                 where_conditions.push(field_name + " NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (context_filter.param_textarray != null) {
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1514,7 +1514,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " NOT ILIKE ALL(" + field_name + ')');
@@ -1524,9 +1524,9 @@ export default class ContextFilterServerController {
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1569,7 +1569,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numeric != null) {
 
-                            let text = context_filter.param_numeric.toString();
+                            const text = context_filter.param_numeric.toString();
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -1579,7 +1579,7 @@ export default class ContextFilterServerController {
 
                         } else if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
@@ -1618,7 +1618,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(field_name + " NOT ILIKE " + pgPromise.as.format('$1', ['%' + text]));
@@ -1628,9 +1628,9 @@ export default class ContextFilterServerController {
 
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1656,7 +1656,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_text != null) {
 
-                            let text = context_filter.param_text;
+                            const text = context_filter.param_text;
 
                             if (context_filter.text_ignore_case) {
                                 where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " NOT ILIKE ALL(" + field_name + ')');
@@ -1665,9 +1665,9 @@ export default class ContextFilterServerController {
                             }
                         } else if (context_filter.param_textarray != null) {
 
-                            let like_array = [];
-                            for (let i in context_filter.param_textarray) {
-                                let text = context_filter.param_textarray[i];
+                            const like_array = [];
+                            for (const i in context_filter.param_textarray) {
+                                const text = context_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -1715,7 +1715,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -1777,7 +1777,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -1839,7 +1839,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -1901,7 +1901,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -1963,7 +1963,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2025,7 +2025,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2087,7 +2087,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2149,7 +2149,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2217,7 +2217,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2309,7 +2309,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2342,7 +2342,7 @@ export default class ContextFilterServerController {
 
                         // if (context_filter.param_alias != null) {
                         // TODO FIXME il y a une ambiguité sur le tpye array ou pas du field alias... il faut séparer les cas, ou préciser par ailleurs, ....
-                        // where_conditions.push(context_filter.param_alias + " = ANY(" + field_id + ")");
+                        // where_conditions.push(context_filter.param_alias + " = ANY(" + field_name + ")");
                         // break;
                         // }
 
@@ -2366,7 +2366,7 @@ export default class ContextFilterServerController {
                             if ((field_type == ModuleTableFieldVO.FIELD_TYPE_int_array) || (field_type == ModuleTableFieldVO.FIELD_TYPE_tstz_array)) {
                                 force_cast = '::bigint[]';
                             }
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2393,7 +2393,7 @@ export default class ContextFilterServerController {
 
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(context_filter.param_numranges) + "'";
-                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+                            where_conditions.push(ranges_clause + " = " + field.field_name + '_ndx');
 
                             break;
                         } else {
@@ -2442,7 +2442,7 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in context_filter.param_numeric_array) {
+                            for (const i in context_filter.param_numeric_array) {
                                 const value = context_filter.param_numeric_array[i];
 
                                 if (value === null || value === undefined) {
@@ -2486,19 +2486,19 @@ export default class ContextFilterServerController {
 
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(context_filter.param_numranges) + "'";
-                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+                            where_conditions.push(ranges_clause + " = " + field.field_name + '_ndx');
 
                             break;
                         } else if (context_filter.param_numeric != null) {
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([context_filter.param_numeric])) + "'";
-                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+                            where_conditions.push(ranges_clause + " = " + field.field_name + '_ndx');
 
                             break;
                         } else if (context_filter.param_numeric_array && context_filter.param_numeric_array.length) {
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(context_filter.param_numeric_array)) + "'";
-                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+                            where_conditions.push(ranges_clause + " = " + field.field_name + '_ndx');
 
                             break;
                         } else {
@@ -2539,8 +2539,8 @@ export default class ContextFilterServerController {
 
                         let where_clause: string = '';
 
-                        for (let j in context_filter.param_numranges) {
-                            let field_range: NumRange = context_filter.param_numranges[j];
+                        for (const j in context_filter.param_numranges) {
+                            const field_range: NumRange = context_filter.param_numranges[j];
 
                             where_clause += (where_clause == '') ? "(" : ") OR (";
 
@@ -2588,17 +2588,17 @@ export default class ContextFilterServerController {
 
 
             case ContextFilterVO.TYPE_FILTER_OR:
-                let conditions_OR_left: string[] = [];
+                const conditions_OR_left: string[] = [];
                 await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_left, context_filter.left_hook, tables_aliases_by_type);
-                let conditions_OR_right: string[] = [];
+                const conditions_OR_right: string[] = [];
                 await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_OR_right, context_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_OR_left[0] + ') OR (' + conditions_OR_right[0] + ')) ');
                 break;
 
             case ContextFilterVO.TYPE_FILTER_AND:
-                let conditions_AND_left: string[] = [];
+                const conditions_AND_left: string[] = [];
                 await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_left, context_filter.left_hook, tables_aliases_by_type);
-                let conditions_AND_right: string[] = [];
+                const conditions_AND_right: string[] = [];
                 await ContextFilterServerController.update_where_conditions(context_query, query_result, conditions_AND_right, context_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_AND_left[0] + ') AND (' + conditions_AND_right[0] + ')) ');
                 break;
@@ -2691,7 +2691,7 @@ export default class ContextFilterServerController {
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-                            let dows: number[] = [];
+                            const dows: number[] = [];
 
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (dow) => {
                                 dows.push(dow);
@@ -2717,7 +2717,7 @@ export default class ContextFilterServerController {
                         let where_clause_tstzrange_array: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-                            let years: number[] = [];
+                            const years: number[] = [];
 
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year) => {
                                 years.push(year);
@@ -2727,10 +2727,10 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in years) {
-                                let year: number = years[i];
-                                let year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
-                                let year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
+                            for (const i in years) {
+                                const year: number = years[i];
+                                const year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
+                                const year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
 
                                 if (where_clause_tstzrange_array !== '') {
                                     where_clause_tstzrange_array += ' OR ';
@@ -2745,7 +2745,7 @@ export default class ContextFilterServerController {
                         let where_clause_tsrange: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-                            let years: number[] = [];
+                            const years: number[] = [];
 
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year) => {
                                 years.push(year);
@@ -2755,10 +2755,10 @@ export default class ContextFilterServerController {
                                 break;
                             }
 
-                            for (let i in years) {
-                                let year: number = years[i];
-                                let year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
-                                let year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
+                            for (const i in years) {
+                                const year: number = years[i];
+                                const year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
+                                const year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
 
                                 if (where_clause_tsrange !== '') {
                                     where_clause_tsrange += ' OR ';
@@ -2773,7 +2773,7 @@ export default class ContextFilterServerController {
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-                            let years: number[] = [];
+                            const years: number[] = [];
 
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year) => {
                                 years.push(year);
@@ -2805,7 +2805,7 @@ export default class ContextFilterServerController {
                         let where_clause: string = '';
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-                            let months: number[] = [];
+                            const months: number[] = [];
 
                             RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (month) => {
                                 months.push(month);
@@ -2833,7 +2833,7 @@ export default class ContextFilterServerController {
                 let where_clause_date_intersects = null;
                 context_filter.param_tsranges.forEach((tsrange) => {
                     if (!tsrange) {
-                        ConsoleHandler.error('ERROR : tsrange null on field_id ' + field_name
+                        ConsoleHandler.error('ERROR : tsrange null on field_name ' + field_name
                             + ' :: param_tsranges : ' + JSON.stringify(context_filter.param_tsranges)
                             + ' : contextQuery : ' + JSON.stringify(context_query));
                     }
@@ -2875,7 +2875,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
+                const qr_TYPE_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_IN:INFOS context_query:' + (qr_TYPE_IN ? (qr_TYPE_IN.query ? qr_TYPE_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2943,7 +2943,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_NOT_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
+                const qr_TYPE_NOT_IN = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_IN:INFOS context_query:' + (qr_TYPE_NOT_IN ? (qr_TYPE_NOT_IN.query ? qr_TYPE_NOT_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2969,7 +2969,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
+                const qr_TYPE_NOT_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_NOT_EXISTS:INFOS context_query:' + (qr_TYPE_NOT_EXISTS ? (qr_TYPE_NOT_EXISTS.query ? qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -2995,7 +2995,7 @@ export default class ContextFilterServerController {
                     throw new Error('Not Implemented');
                 }
 
-                let qr_TYPE_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
+                const qr_TYPE_EXISTS = await ContextQueryServerController.build_select_query(context_filter.sub_query);
 
                 if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:TYPE_EXISTS:INFOS context_query:' + (qr_TYPE_EXISTS ? (qr_TYPE_EXISTS.query ? qr_TYPE_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -3113,7 +3113,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3121,25 +3121,25 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
-                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ',1) ');
+                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ',1) ');
                             break;
                         }
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3147,19 +3147,19 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
-                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ',1) ');
+                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ',1) ');
                             break;
                         }
 
@@ -3196,7 +3196,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3204,17 +3204,17 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_numranges).length;
+                            const nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_numranges).length;
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
@@ -3224,7 +3224,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3232,17 +3232,17 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_tsranges).length;
+                            const nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_tsranges).length;
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
@@ -3283,7 +3283,7 @@ export default class ContextFilterServerController {
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_numranges, field, field.field_type
                             );
 
@@ -3291,25 +3291,25 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
-                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ',1) ');
+                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ',1) ');
                             break;
                         }
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
+                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
                                 context_filter.param_tsranges, field, field.field_type
                             );
 
@@ -3317,19 +3317,19 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
+                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                            const table_name = table.full_name.split('.')[1];
+                            const ranges_query = 'ANY(' + range_to_db + ')';
 
                             where_conditions.push(
                                 '(' +
                                 '  select count(1)' +
                                 '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '   select unnest(tempo2.' + field.field_name + ') a' +
                                 '  from ' + table.full_name + ' tempo2' +
                                 '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
-                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_id + ',1) ');
+                                '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ',1) ');
                             break;
                         }
 
@@ -3395,11 +3395,11 @@ export default class ContextFilterServerController {
      *      Si on est sur un manytoone
      *          Si path_i.field.target_moduletable pas encore aliasé (et donc pas joined)
      *              Ajouter un alias sur le path_i.field.target_moduletable => m
-     *              On doit faire un join path_i.field.target_moduletable m on m.id = alias[path_i.field.moduletable].[path_i.field.field_id]
+     *              On doit faire un join path_i.field.target_moduletable m on m.id = alias[path_i.field.moduletable].[path_i.field.field_name]
      *      Sinon (donc onetomany)
      *          Si path_i.field.moduletable pas encore aliasé (et donc pas joined)
      *              Ajouter un alias sur le path_i.field.moduletable => m
-     *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_id] = alias[path_i.field.target_moduletable].id
+     *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_name] = alias[path_i.field.target_moduletable].id
      *
      * Par ailleurs tout dépend du type de champs qui fait la jointure. sur un ref_ranges il faut utiliser id::numeric <@ ANY(ref_ranges_field)
      *
@@ -3420,25 +3420,25 @@ export default class ContextFilterServerController {
             return aliases_n;
         }
 
-        for (let i in path) {
-            let path_i = path[i];
+        for (const i in path) {
+            const path_i = path[i];
 
             if (path_i.is_manytoone) {
 
                 if (!tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type]) {
 
-                    let api_type_id = path_i.field.manyToOne_target_moduletable.vo_type;
+                    const api_type_id = path_i.field.manyToOne_target_moduletable.vo_type;
                     tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
                     joined_tables_by_vo_type[api_type_id] = path_i.field.manyToOne_target_moduletable;
                     let jointure_table_ref: string = null;
-                    let table = joined_tables_by_vo_type[api_type_id];
+                    const table = joined_tables_by_vo_type[api_type_id];
 
                     if (table.is_segmented) {
 
-                        let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
+                        const ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                         if ((!ids) || (!ids.length)) {
                             // Pour le coup sur une table segmentée qu'on essaie de join, si on a pas de données, c'est un gros problème.
@@ -3447,10 +3447,10 @@ export default class ContextFilterServerController {
                             return aliases_n;
                         }
 
-                        let tables: string[] = [];
-                        for (let j in ids) {
-                            let id = ids[j];
-                            let full_name = table.get_segmented_full_name(id);
+                        const tables: string[] = [];
+                        for (const j in ids) {
+                            const id = ids[j];
+                            const full_name = table.get_segmented_full_name(id);
 
                             /**
                              * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
@@ -3474,7 +3474,7 @@ export default class ContextFilterServerController {
                             let fields: string = 'id';
 
                             // Add all fields by default
-                            let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
+                            const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
@@ -3485,7 +3485,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                        const full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3501,7 +3501,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[api_type_id] + '.id = ' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_name
                             );
                             break;
                         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
@@ -3510,7 +3510,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[api_type_id] + '.id::numeric <@ ANY(' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ')'
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_name + ')'
                             );
                             break;
                         default:
@@ -3520,27 +3520,27 @@ export default class ContextFilterServerController {
             } else {
                 if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
 
-                    let api_type_id = path_i.field.module_table.vo_type;
+                    const api_type_id = path_i.field.module_table.vo_type;
                     tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
                     joined_tables_by_vo_type[api_type_id] = path_i.field.module_table;
                     let jointure_table_ref: string = null;
-                    let table = joined_tables_by_vo_type[api_type_id];
+                    const table = joined_tables_by_vo_type[api_type_id];
 
                     if (table.is_segmented) {
 
-                        let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
+                        const ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                         if ((!ids) || (!ids.length)) {
                             return aliases_n;
                         }
 
-                        let tables: string[] = [];
-                        for (let j in ids) {
-                            let id = ids[j];
-                            let full_name = table.get_segmented_full_name(id);
+                        const tables: string[] = [];
+                        for (const j in ids) {
+                            const id = ids[j];
+                            const full_name = table.get_segmented_full_name(id);
 
                             /**
                              * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
@@ -3564,7 +3564,7 @@ export default class ContextFilterServerController {
                             let fields: string = 'id';
 
                             // Add all fields by default
-                            let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
+                            const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
@@ -3575,7 +3575,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                        const full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3590,7 +3590,7 @@ export default class ContextFilterServerController {
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
-                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_id + ' = ' +
+                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_name + ' = ' +
                                 tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
                             );
                             break;
@@ -3600,7 +3600,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
-                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_id + ')'
+                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_name + ')'
                             );
                             break;
                         default:
@@ -3634,23 +3634,23 @@ export default class ContextFilterServerController {
                 (query_tables_prefix + '_t' + (aliases_n++)) :
                 ('t' + (aliases_n++))
             );
-            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            joined_tables_by_vo_type[api_type_id] = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
             let cross_jointure_table_ref: string = null;
-            let table = joined_tables_by_vo_type[api_type_id];
+            const table = joined_tables_by_vo_type[api_type_id];
 
             if (table.is_segmented) {
 
-                let ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
+                const ids: number[] = await ContextQueryServerController.get_valid_segmentations(table, context_query);
 
                 if ((!ids) || (!ids.length)) {
                     return aliases_n;
                 }
 
-                let tables: string[] = [];
-                for (let i in ids) {
-                    let id = ids[i];
-                    let full_name = table.get_segmented_full_name(id);
+                const tables: string[] = [];
+                for (const i in ids) {
+                    const id = ids[i];
+                    const full_name = table.get_segmented_full_name(id);
 
                     /**
                      * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
@@ -3674,7 +3674,7 @@ export default class ContextFilterServerController {
                     let fields: string = 'id';
 
                     // Add all fields by default
-                    let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
+                    const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[table.vo_type];
                     for (const j in table_fields) {
                         const field = table_fields[j];
 
@@ -3685,7 +3685,7 @@ export default class ContextFilterServerController {
                 }
             } else {
 
-                let full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
+                const full_name = await ContextFilterServerController.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                 if (!full_name) {
                     throw new Error('Table not found');
                 }
@@ -3729,8 +3729,8 @@ export default class ContextFilterServerController {
 
             // Cas champ segmenté exacte - on filtre directement sur l'id du champs de segmentation, par exemple sur pdv_id
             //  de la facture (vo_type c'est la ligne de facturation et donc on veut le filtre exacte sur le champs pdv_id)
-            let simple_filter = ContextFilterVOHandler.get_simple_filter_by_vo_type_and_field_id(
-                filters, moduletable.vo_type, moduletable.table_segmented_field.field_id);
+            const simple_filter = ContextFilterVOHandler.get_simple_filter_by_vo_type_and_field_name(
+                filters, moduletable.vo_type, moduletable.table_segmented_field.field_name);
             if (simple_filter) {
 
                 if ((simple_filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
@@ -3754,26 +3754,26 @@ export default class ContextFilterServerController {
              *  donc on prend tous les filtres simple liés au type de segmentation (pdv dans l'exemple des lignes de factu)
              *  et on requête les pdvs qui réponde à ça. on pourrait commencer par requêter le count d'ailleurs mais ça fait 2 requêtes...
              */
-            if ((!is_implemented) && moduletable.table_segmented_field.manyToOne_target_moduletable) {
-                let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
+            if ((!is_implemented) && !!moduletable.table_segmented_field.many_to_one_target_moduletable_name) {
+                const linked_segment_table = ModuleTableController.module_tables_by_vo_type[moduletable.table_segmented_field.many_to_one_target_moduletable_name];
 
-                let simple_filters = ContextFilterVOHandler.get_simple_filters_by_vo_type(
+                const simple_filters = ContextFilterVOHandler.get_simple_filters_by_vo_type(
                     filters, linked_segment_table.vo_type);
 
                 if (simple_filters && simple_filters.length) {
 
-                    let linked_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
+                    const linked_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
 
                     // Si le context_query est admin, on doit faire la requete en admin
                     if (context_query.is_server) {
                         linked_query.exec_as_server();
                     }
 
-                    let query_res: any[] = await ContextQueryServerController.select_vos(linked_query);
+                    const query_res: any[] = await ContextQueryServerController.select_vos(linked_query);
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = context_query.is_server ? query_res : await DAOServerController.filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
+                        const unique_segment_vos = context_query.is_server ? query_res : await DAOServerController.filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

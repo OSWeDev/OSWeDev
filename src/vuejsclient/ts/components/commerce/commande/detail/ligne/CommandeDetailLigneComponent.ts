@@ -24,7 +24,7 @@ export default class CommandeDetailLigneComponent extends VueComponentBase {
 
         if (this.detail && this.detail.ligneParam) {
             returnValue = "<ul>";
-            let disableAttr: string[] = [
+            const disableAttr: string[] = [
                 '_type',
                 'id',
                 'service_id'

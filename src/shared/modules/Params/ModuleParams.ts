@@ -125,8 +125,8 @@ export default class ModuleParams extends Module {
     }
 
     public initialize() {
-        let label_field = ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', false),
             ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière mise à jour', false)

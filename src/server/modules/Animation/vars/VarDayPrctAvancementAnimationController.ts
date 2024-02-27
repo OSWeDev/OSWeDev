@@ -94,22 +94,22 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        const qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
+        const uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_uqrs: number = 0;
 
         // le nombre de questions
-        for (let theme_id in qrs_by_theme_module) {
-            for (let module_id in qrs_by_theme_module[theme_id]) {
+        for (const theme_id in qrs_by_theme_module) {
+            for (const module_id in qrs_by_theme_module[theme_id]) {
                 cpt_qrs += (qrs_by_theme_module[theme_id][module_id] ? Object.values(qrs_by_theme_module[theme_id][module_id]).length : 0);
             }
         }
 
         // le nombre de réponses
-        for (let theme_id in uqrs_by_theme_module) {
-            for (let module_id in uqrs_by_theme_module[theme_id]) {
+        for (const theme_id in uqrs_by_theme_module) {
+            for (const module_id in uqrs_by_theme_module[theme_id]) {
                 cpt_uqrs += (uqrs_by_theme_module[theme_id][module_id] ? Object.values(uqrs_by_theme_module[theme_id][module_id]).length : 0);
             }
         }

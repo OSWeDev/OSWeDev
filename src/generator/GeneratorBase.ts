@@ -203,14 +203,14 @@ export default abstract class GeneratorBase {
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 
-        let connectionString = envParam.CONNECTION_STRING;
+        const connectionString = envParam.CONNECTION_STRING;
 
-        let pgp: pg_promise.IMain = pg_promise({});
-        let db: IDatabase<any> = pgp(connectionString);
+        const pgp: pg_promise.IMain = pg_promise({});
+        const db: IDatabase<any> = pgp(connectionString);
 
         if (envParam.LAUNCH_INIT) {
             console.log("INIT pre modules initialization workers...");
-            if (!!this.init_pre_modules_workers) {
+            if (this.init_pre_modules_workers) {
                 if (!await this.execute_workers(this.init_pre_modules_workers, db)) {
                     process.exit(0);
                     return;
@@ -220,7 +220,7 @@ export default abstract class GeneratorBase {
         }
 
         console.log("pre modules initialization workers...");
-        if (!!this.pre_modules_workers) {
+        if (this.pre_modules_workers) {
             if (!await this.execute_workers(this.pre_modules_workers, db)) {
                 process.exit(0);
                 return;
@@ -248,7 +248,7 @@ export default abstract class GeneratorBase {
 
         if (envParam.LAUNCH_INIT) {
             console.log("INIT post modules initialization workers...");
-            if (!!this.init_post_modules_workers) {
+            if (this.init_post_modules_workers) {
                 if (!await this.execute_workers(this.init_post_modules_workers, db)) {
                     process.exit(0);
                     return;
@@ -258,7 +258,7 @@ export default abstract class GeneratorBase {
         }
 
         console.log("post modules initialization workers...");
-        if (!!this.post_modules_workers) {
+        if (this.post_modules_workers) {
             if (!await this.execute_workers(this.post_modules_workers, db)) {
                 process.exit(0);
                 return;
@@ -291,10 +291,10 @@ export default abstract class GeneratorBase {
 
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
 
-        let workers_to_execute: { [id: number]: IGeneratorWorker } = {};
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'GeneratorBase.execute_workers');
-        for (let i in workers) {
-            let worker = workers[i];
+        const workers_to_execute: { [id: number]: IGeneratorWorker } = {};
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'GeneratorBase.execute_workers');
+        for (const i in workers) {
+            const worker = workers[i];
 
             await promises_pipeline.push(async () => {
                 // On check que le patch a pas encore été lancé
@@ -315,8 +315,8 @@ export default abstract class GeneratorBase {
         await promises_pipeline.end();
 
         // Pour garder l'ordre initial, on itère sur les workers qui sont ordonnés et on check si il est dans workers_to_execute
-        for (let i in workers) {
-            let worker = workers_to_execute[i];
+        for (const i in workers) {
+            const worker = workers_to_execute[i];
             if (!worker) {
                 continue;
             }

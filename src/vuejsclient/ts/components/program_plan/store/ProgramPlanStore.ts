@@ -278,10 +278,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
             get_targets_facilitators_by_facilitator_ids: (state: IProgramPlanState): { [facilitator_id: number]: IPlanTargetFacilitator[] } => {
-                let res: { [facilitator_id: number]: IPlanTargetFacilitator[] } = {};
+                const res: { [facilitator_id: number]: IPlanTargetFacilitator[] } = {};
 
-                for (let i in state.targets_facilitators_by_ids) {
-                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+                for (const i in state.targets_facilitators_by_ids) {
+                    const target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
 
                     if (!res[target_facilitator.facilitator_id]) {
                         res[target_facilitator.facilitator_id] = [];
@@ -292,10 +292,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                 return res;
             },
             get_targets_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanTargetFacilitator[] } => {
-                let res: { [target_id: number]: IPlanTargetFacilitator[] } = {};
+                const res: { [target_id: number]: IPlanTargetFacilitator[] } = {};
 
-                for (let i in state.targets_facilitators_by_ids) {
-                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+                for (const i in state.targets_facilitators_by_ids) {
+                    const target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
 
                     if (!res[target_facilitator.target_id]) {
                         res[target_facilitator.target_id] = [];
@@ -306,10 +306,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                 return res;
             },
             get_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanFacilitator[] } => {
-                let res: { [target_id: number]: IPlanFacilitator[] } = {};
+                const res: { [target_id: number]: IPlanFacilitator[] } = {};
 
-                for (let i in state.targets_facilitators_by_ids) {
-                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+                for (const i in state.targets_facilitators_by_ids) {
+                    const target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
 
                     if (!res[target_facilitator.target_id]) {
                         res[target_facilitator.target_id] = [];
@@ -328,10 +328,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                     return [];
                 }
 
-                let res: IPlanRDV[] = [];
+                const res: IPlanRDV[] = [];
 
-                for (let i in state.rdvs_by_ids) {
-                    let rdv = state.rdvs_by_ids[i];
+                for (const i in state.rdvs_by_ids) {
+                    const rdv = state.rdvs_by_ids[i];
 
                     if (rdv.target_id != state.selected_rdv.target_id) {
                         continue;
@@ -423,8 +423,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             addRdvsByIds: (context: ProgramPlanContext, rdvs_by_ids: { [id: number]: IPlanRDV }) => {
 
-                for (let i in rdvs_by_ids) {
-                    let rdv = rdvs_by_ids[i];
+                for (const i in rdvs_by_ids) {
+                    const rdv = rdvs_by_ids[i];
 
                     context.commit(store_mutations_names(this).setRdvById, rdv);
                 }
@@ -432,8 +432,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             addCrsByIds: (context: ProgramPlanContext, crs_by_ids: { [id: number]: IPlanRDVCR }) => {
 
-                for (let i in crs_by_ids) {
-                    let cr = crs_by_ids[i];
+                for (const i in crs_by_ids) {
+                    const cr = crs_by_ids[i];
 
                     context.commit(store_mutations_names(this).setCrById, cr);
                 }
@@ -441,8 +441,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             addPrepsByIds: (context: ProgramPlanContext, preps_by_ids: { [id: number]: IPlanRDVPrep }) => {
 
-                for (let i in preps_by_ids) {
-                    let prep = preps_by_ids[i];
+                for (const i in preps_by_ids) {
+                    const prep = preps_by_ids[i];
 
                     context.commit(store_mutations_names(this).setPrepById, prep);
                 }

@@ -110,7 +110,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             return null;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[api_type_id].getFieldFromId(unique_field_id);
         let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {
@@ -121,16 +121,16 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 throw new Error('Not Implemented');
         }
 
-        let context_query: ContextQueryVO = query(api_type_id).add_filters([filter_]).set_limit(1);
+        const context_query: ContextQueryVO = query(api_type_id).add_filters([filter_]).set_limit(1);
 
-        let res = await this.select_vos<T>(context_query);
+        const res = await this.select_vos<T>(context_query);
         return (res && res.length) ? res[0] : null;
     }
 
     public async build_select_query_str(
         context_query: ContextQueryVO
     ): Promise<string> {
-        let q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
+        const q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
         return q ? q.query : null;
     }
 

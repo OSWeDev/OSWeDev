@@ -62,33 +62,33 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     private async mounted() {
 
         VarsDatasExplorerFiltersComponent.instance = this;
-        let vars_confs = Object.values(VarsController.var_conf_by_id);
+        const vars_confs = Object.values(VarsController.var_conf_by_id);
 
         // On en profite pour mettre à jour le fields_filters_is_valid
         // si on a 1 label_handler sur une var on considère que c'est un enum partout
-        let fields_filters_is_enum: { [field_id: string]: boolean } = {};
-        let fields_filters_is_valid_by_vo_type: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-        let filtered_vo_types: { [vo_type: string]: boolean } = {};
-        let fields_filters_is_valid: { [field_id: string]: boolean } = {};
-        let valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
-        let fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
-        let empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
+        const fields_filters_is_enum: { [field_id: string]: boolean } = {};
+        const fields_filters_is_valid_by_vo_type: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+        const filtered_vo_types: { [vo_type: string]: boolean } = {};
+        const fields_filters_is_valid: { [field_id: string]: boolean } = {};
+        const valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
+        const fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
+        const empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
-        let enum_initial_options_promises: { [field_id: string]: Promise<void> } = {};
-        let self = this;
+        const enum_initial_options_promises: { [field_id: string]: Promise<void> } = {};
+        const self = this;
 
-        for (let i in vars_confs) {
-            let var_conf = vars_confs[i];
+        for (const i in vars_confs) {
+            const var_conf = vars_confs[i];
 
             if (!fields_filters_is_valid_by_vo_type[var_conf.var_data_vo_type]) {
                 fields_filters_is_valid_by_vo_type[var_conf.var_data_vo_type] = {};
             }
             filtered_vo_types[var_conf.var_data_vo_type] = true;
 
-            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+            const matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
+            for (const j in matroid_fields) {
+                const matroid_field = matroid_fields[j];
 
                 if (!valid_vars_ids_by_field_id[matroid_field.field_id]) {
                     valid_vars_ids_by_field_id[matroid_field.field_id] = {};
@@ -98,7 +98,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 fields[matroid_field.field_id] = matroid_field;
                 empty_fields_filters_list[matroid_field.field_id] = [];
 
-                let enum_handler = NumRangeComponentController.getInstance().get_enum_handler(var_conf.var_data_vo_type, matroid_field.field_id);
+                const enum_handler = NumRangeComponentController.getInstance().get_enum_handler(var_conf.var_data_vo_type, matroid_field.field_id);
                 if (enum_handler) {
 
                     if (enum_handler.enum_initial_options_handler) {
@@ -137,16 +137,16 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return false;
         }
 
-        for (let i in this.fields_filters_range) {
-            let field_filter_range = this.fields_filters_range[i];
+        for (const i in this.fields_filters_range) {
+            const field_filter_range = this.fields_filters_range[i];
 
             if (RangeHandler.getCardinal(field_filter_range)) {
                 return false;
             }
         }
 
-        for (let i in this.fields_filters_list) {
-            let field_filter_list = this.fields_filters_list[i];
+        for (const i in this.fields_filters_list) {
+            const field_filter_list = this.fields_filters_list[i];
 
             if (field_filter_list && field_filter_list.length && (field_filter_list.length != this.enum_initial_options[i].length)) {
                 return false;
@@ -184,22 +184,22 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         /**
          * On passe en revue les champs pour lesquels on a un filtrage et si il y a un filtrage on doit filtrer les vo_types compatibles
          */
-        let self = this;
+        const self = this;
         filterable_vars_confs = filterable_vars_confs.filter((var_conf: VarConfVO) => {
-            for (let field_id in self.fields_filters_range) {
+            for (const field_id in self.fields_filters_range) {
 
-                let range = self.fields_filters_range[field_id];
-                let is_filtering = range && RangeHandler.getCardinal(range);
+                const range = self.fields_filters_range[field_id];
+                const is_filtering = range && RangeHandler.getCardinal(range);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }
 
-            for (let field_id in self.fields_filters_list) {
+            for (const field_id in self.fields_filters_list) {
 
-                let filter = self.fields_filters_list[field_id];
-                let is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
+                const filter = self.fields_filters_list[field_id];
+                const is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
@@ -304,22 +304,22 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         /**
          * On passe en revue les champs pour lesquels on a un filtrage et si il y a un filtrage on doit filtrer les vo_types compatibles
          */
-        let self = this;
+        const self = this;
         filtered_vars_confs = filtered_vars_confs.filter((var_conf: VarConfVO) => {
-            for (let field_id in self.fields_filters_range) {
+            for (const field_id in self.fields_filters_range) {
 
-                let range = self.fields_filters_range[field_id];
-                let is_filtering = range && RangeHandler.getCardinal(range);
+                const range = self.fields_filters_range[field_id];
+                const is_filtering = range && RangeHandler.getCardinal(range);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }
 
-            for (let field_id in self.fields_filters_list) {
+            for (const field_id in self.fields_filters_list) {
 
-                let filter = self.fields_filters_list[field_id];
-                let is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
+                const filter = self.fields_filters_list[field_id];
+                const is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
@@ -343,11 +343,11 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
 
         // On met à jours les champs valides
         // on doit déduire les vo_types valides et on en déduit ensuite les fields valides
-        let fields_filters_is_valid: { [field_id: string]: boolean } = {};
-        let filtered_vo_types: { [vo_type: string]: boolean } = {};
+        const fields_filters_is_valid: { [field_id: string]: boolean } = {};
+        const filtered_vo_types: { [vo_type: string]: boolean } = {};
 
-        for (let i in this.real_filtered_vars_confs) {
-            let fitered_var_conf = this.real_filtered_vars_confs[i];
+        for (const i in this.real_filtered_vars_confs) {
+            const fitered_var_conf = this.real_filtered_vars_confs[i];
             filtered_vo_types[fitered_var_conf.var_data_vo_type] = true;
         }
 
@@ -355,17 +355,17 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
          * On remplit les champs avec le premier type, on supprime les champs absents des suivants
          */
         let first: boolean = true;
-        for (let vo_type in filtered_vo_types) {
-            let matroid_fields = MatroidController.getMatroidFields(vo_type);
+        for (const vo_type in filtered_vo_types) {
+            const matroid_fields = MatroidController.getMatroidFields(vo_type);
 
             if (first) {
-                for (let j in matroid_fields) {
-                    let matroid_field = matroid_fields[j];
+                for (const j in matroid_fields) {
+                    const matroid_field = matroid_fields[j];
 
                     fields_filters_is_valid[matroid_field.field_id] = true;
                 }
             } else {
-                for (let field_id in fields_filters_is_valid) {
+                for (const field_id in fields_filters_is_valid) {
                     if (!matroid_fields || !matroid_fields.length || matroid_fields.find((matroid_field) => matroid_field.field_id == field_id)) {
                         fields_filters_is_valid[field_id] = false;
                     }
@@ -419,19 +419,19 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     }
 
     private set_params() {
-        let res: VarDataBaseVO[] = [];
+        const res: VarDataBaseVO[] = [];
 
         /**
          * On crée un param par var et on utilise les filtrages
          */
-        for (let i in this.real_filtered_vars_confs) {
-            let var_conf = this.real_filtered_vars_confs[i];
+        for (const i in this.real_filtered_vars_confs) {
+            const var_conf = this.real_filtered_vars_confs[i];
 
-            let param = VarDataBaseVO.createNew(var_conf.name);
-            let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+            const param = VarDataBaseVO.createNew(var_conf.name);
+            const matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
 
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
+            for (const j in matroid_fields) {
+                const matroid_field = matroid_fields[j];
 
                 if (this.fields_filters_is_enum[matroid_field.field_id]) {
 
@@ -442,7 +442,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                     }
                 } else {
 
-                    if (!!this.fields_filters_range[matroid_field.field_id]) {
+                    if (this.fields_filters_range[matroid_field.field_id]) {
                         param[matroid_field.field_id] = [this.fields_filters_range[matroid_field.field_id]];
                     } else {
                         param[matroid_field.field_id] = [RangeHandler.getMaxRange(matroid_field)];

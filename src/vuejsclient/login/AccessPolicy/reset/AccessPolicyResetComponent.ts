@@ -123,7 +123,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
             this.status = true;
         } else {
             this.snotify.error(this.label('reset.failed'));
-            if (!!this.is_simplified) {
+            if (this.is_simplified) {
                 this.message = this.label('login.reset.answer_ko_simplified');
             } else {
                 this.message = this.label('login.reset.answer_ko');
@@ -133,7 +133,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     }
 
     private async recover() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('recover.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -177,7 +177,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     }
 
     private async recoversms() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('recover.start'), () =>
             new Promise(async (resolve, reject) => {
 

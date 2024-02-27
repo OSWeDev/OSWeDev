@@ -11,7 +11,7 @@ export default class FakeEmpDistantHandler {
 
     public static initializeFakeEmpDistantVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new('date', ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date'),
             ModuleTableFieldController.create_new('employee_id', ModuleTableFieldVO.FIELD_TYPE_int, 'Employee'),
             ModuleTableFieldController.create_new('value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
@@ -21,7 +21,7 @@ export default class FakeEmpDistantHandler {
     }
 
     public static get_distant_A(): FakeEmpDistantVO {
-        let var_data: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data.id = 2;
         var_data.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data.value = 1;
@@ -30,13 +30,13 @@ export default class FakeEmpDistantHandler {
     }
 
     public static get_distant_A_Update(): DAOUpdateVOHolder<FakeEmpDistantVO> {
-        let var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_pre.id = 1;
         var_data_pre.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_pre.employee_id = 1;
         var_data_pre.value = 1;
 
-        let var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_post.id = 1;
         var_data_post.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_post.employee_id = 2;
@@ -46,13 +46,13 @@ export default class FakeEmpDistantHandler {
     }
 
     public static get_distant_A_empty_update(): DAOUpdateVOHolder<FakeEmpDistantVO> {
-        let var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_pre.id = 1;
         var_data_pre.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_pre.value = 1;
         var_data_pre.employee_id = 1;
 
-        let var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_post.id = 1;
         var_data_post.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_post.value = 1;

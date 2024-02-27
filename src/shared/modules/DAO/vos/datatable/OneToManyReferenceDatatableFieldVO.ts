@@ -20,7 +20,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         destField: ModuleTableFieldVO,
         sortedTargetFields: Array<DatatableField<any, any>>): OneToManyReferenceDatatableFieldVO<any> {
 
-        let res = new OneToManyReferenceDatatableFieldVO();
+        const res = new OneToManyReferenceDatatableFieldVO();
         res.init_ref_dtf(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.ONE_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
         res.dest_field_id = destField.field_id;
         return res;
@@ -55,7 +55,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.target_module_table_type_id].getFieldFromId(this.dest_field_id);
+        return ModuleTableController.module_tables_by_vo_type[this.target_module_table_type_id].getFieldFromId(this.dest_field_id);
     }
 
     public setFilterOptionsForUpdateOrCreateOnOneToMany(filterOptionsForUpdateOrCreateOnOneToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): OneToManyReferenceDatatableFieldVO<Target> {
@@ -72,7 +72,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        let e = this.destField.field_id ? this.targetModuleTable.label.code_text + '_' + this.destField.field_id : this.targetModuleTable.label.code_text;
+        const e = this.destField.field_id ? this.targetModuleTable.label.code_text + '_' + this.destField.field_id : this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
@@ -82,16 +82,16 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
 
-        let res: number[] = [];
+        const res: number[] = [];
 
         if (!vo.id) {
             return res;
         }
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
-        for (let oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
-            let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
+        for (const oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
+            const targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];
 
             // Cas particulier du refranges où on cherche l'intersection
             if (this.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
@@ -100,7 +100,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
                     continue;
                 }
 
-                let targetVoRanges: NumRange[] = targetVo[this.destField.field_id];
+                const targetVoRanges: NumRange[] = targetVo[this.destField.field_id];
                 if (RangeHandler.elt_intersects_any_range(vo.id, targetVoRanges)) {
                     res.push(parseInt(oneToManyTargetId.toString()));
                 }

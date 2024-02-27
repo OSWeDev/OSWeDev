@@ -32,12 +32,12 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
 
-        let notifVardatasParams: NotifVardatasParam[] = [];
-        let vardatas: VarDataBaseVO[] = [];
-        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+        const notifVardatasParams: NotifVardatasParam[] = [];
+        const vardatas: VarDataBaseVO[] = [];
+        const DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-        for (let i in nodes) {
-            let node = nodes[i];
+        for (const i in nodes) {
+            const node = nodes[i];
 
             notifVardatasParams.push(new NotifVardatasParam([node.var_data]));
             vardatas.push(node.var_data);

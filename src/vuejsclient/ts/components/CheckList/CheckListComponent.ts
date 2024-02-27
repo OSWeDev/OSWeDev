@@ -103,7 +103,7 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private mounted() {
-        let self = this;
+        const self = this;
         this.stopLoading();
         this.debounced_loading();
 
@@ -124,8 +124,8 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async loading() {
-        let self = this;
-        let promises = [];
+        const self = this;
+        const promises = [];
         this.is_load = false;
 
         let checklist: ICheckList = null;
@@ -144,7 +144,7 @@ export default class CheckListComponent extends VueComponentBase {
             /**
              * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
              */
-            let items: ICheckListItem[] = await query(self.checklist_shared_module.checklistitem_type_id)
+            const items: ICheckListItem[] = await query(self.checklist_shared_module.checklistitem_type_id)
                 .filter_by_num_eq(field_names<ICheckListItem>().checklist_id, self.list_id)
                 .set_limit(checklist.limit_affichage ? checklist.limit_affichage : 0, 0)
                 .filter_is_false(field_names<ICheckListItem>().archived)
@@ -205,7 +205,7 @@ export default class CheckListComponent extends VueComponentBase {
         let timeout: number = 20;
         async function tryOpenModal() {
 
-            if (!!self.selected_checklist_item) {
+            if (self.selected_checklist_item) {
 
                 await self.handle_modal_show_hide();
                 return;
@@ -225,7 +225,7 @@ export default class CheckListComponent extends VueComponentBase {
             setTimeout(tryOpenModal, 100);
         }
 
-        if (!!self.item_id) {
+        if (self.item_id) {
             self.$nextTick(tryOpenModal);
         } else {
             if ($('#checklist_item_modal')) {
@@ -251,7 +251,7 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+        const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
             await this.checklist_controller.getCheckListItemNewInstance()
         );
         if ((!res) || !res.id) {
@@ -265,7 +265,7 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
-        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
+        const res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
         if ((!res) || (!res.length) || (!res[0]) || (!res[0].id)) {
             this.snotify.error(this.label('CheckListComponent.deleteSelectedItem.failed'));
             return;
@@ -330,8 +330,8 @@ export default class CheckListComponent extends VueComponentBase {
 
             // let desc_checks: ICheckListItem[] = [];
             res = res.filter((e: ICheckListItem) => {
-                for (let i in e) {
-                    let field = e[i];
+                for (const i in e) {
+                    const field = e[i];
 
                     if (typeof field !== 'string') {
                         continue;
@@ -342,9 +342,9 @@ export default class CheckListComponent extends VueComponentBase {
                     }
                 }
 
-                let infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
-                for (let i in infos_cols_content) {
-                    let field = infos_cols_content[i];
+                const infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
+                for (const i in infos_cols_content) {
+                    const field = infos_cols_content[i];
 
                     if (typeof field !== 'string') {
                         continue;

@@ -38,18 +38,18 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
 
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-        let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
+        const users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
         if ((users != null) && (users.length > 0)) {
             return;
         }
 
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos();
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos();
         if ((!roles) || (!roles.length)) {
             throw new Error('Impossible de trouver le rôle nécessaire pour créer le compte admin');
         }
 
         let role: RoleVO = null;
-        for (let i in roles) {
+        for (const i in roles) {
             if (roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
                 role = roles[i];
                 break;
@@ -60,18 +60,18 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
             throw new Error('Impossible de trouver le rôle nécessaire pour créer le compte admin');
         }
 
-        let admin: UserVO = await this.createuser('admin', 'contact@wedev.fr');
+        const admin: UserVO = await this.createuser('admin', 'contact@wedev.fr');
         await this.addRole(admin, role);
     }
 
     private async createuser(user_name: string, email: string): Promise<UserVO> {
         let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().name, user_name).select_vo<UserVO>();
 
-        if (!!user) {
+        if (user) {
             return user;
         }
 
-        let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').exec_as_server().select_one();
+        const lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').exec_as_server().select_one();
 
         user = new UserVO();
 
@@ -81,7 +81,7 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
         user.password = user_name + '$';
         user.email = email;
 
-        let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
+        const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
         if ((!res) || (!res.id)) {
             throw new Error('Echec de création du compte admin par défaut');
         }
@@ -93,13 +93,13 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
 
     private async addRole(user: UserVO, role: RoleVO): Promise<void> {
 
-        let userroles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', role.id).select_vos();
+        const userroles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', role.id).select_vos();
 
         if ((!!userroles) && (!!userroles.length)) {
             return;
         }
 
-        let userrole: UserRoleVO = new UserRoleVO();
+        const userrole: UserRoleVO = new UserRoleVO();
 
         userrole.role_id = role.id;
         userrole.user_id = user.id;

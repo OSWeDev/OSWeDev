@@ -80,16 +80,16 @@ export default class TablesGraphComponent extends VueComponentBase {
         if (!this.maxgraph) {
 
             //
-            let codecCustomUserObject = new ObjectCodec(new window['CustomUserObject']());
+            const codecCustomUserObject = new ObjectCodec(new window['CustomUserObject']());
             codecCustomUserObject.encode = function (enc, obj) {
-                let node = enc.document.createElement('CustomUserObject');
+                const node = enc.document.createElement('CustomUserObject');
                 node.textContent = JSON.stringify(obj);
 
                 return node;
             };
             codecCustomUserObject.decode = function (dec, node) {
                 let obj = JSON.parse(node.textContent);
-                let beatyObj = new window['CustomUserObject']();
+                const beatyObj = new window['CustomUserObject']();
                 obj = Object.assign(beatyObj, obj);
                 return obj;
             };
@@ -145,7 +145,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private async selectionChanged() {
 
-        let selected_cell = this.maxgraph.getSelectionCell();
+        const selected_cell = this.maxgraph.getSelectionCell();
         if (!selected_cell) {
             this.current_cell_mapper = null;
             return;
@@ -158,7 +158,7 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private add_droppable_config(graph_) {
-        let funct = (api_type_id: string) => async (graph, evt) => {
+        const funct = (api_type_id: string) => async (graph, evt) => {
 
             if (this.graph_mapper.cells[api_type_id]) {
                 return;
@@ -166,9 +166,9 @@ export default class TablesGraphComponent extends VueComponentBase {
 
             graph.stopEditing(false);
 
-            let pt = graph.getPointForEvent(evt);
+            const pt = graph.getPointForEvent(evt);
 
-            let graphvoref = new DashboardGraphVORefVO();
+            const graphvoref = new DashboardGraphVORefVO();
             graphvoref.x = pt.x;
             graphvoref.y = pt.y;
             graphvoref.width = MaxGraphMapper.default_width;
@@ -185,11 +185,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             // graph.setSelectionCell(v1);
         };
 
-        let droppables = document.querySelectorAll('.droppable_vos .droppable_vos_wrapper .api_type_ids .api_type_id');
+        const droppables = document.querySelectorAll('.droppable_vos .droppable_vos_wrapper .api_type_ids .api_type_id');
         droppables.forEach((droppable) => {
             // Creates the image which is used as the drag icon (preview)
-            let api_type_id = droppable.getAttribute('api_type_id');
-            let dragImage = droppable.cloneNode(true) as Element;
+            const api_type_id = droppable.getAttribute('api_type_id');
+            const dragImage = droppable.cloneNode(true) as Element;
             gestureUtils.makeDraggable(droppable, graph_, funct(api_type_id), dragImage);
         });
     }

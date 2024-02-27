@@ -35,7 +35,7 @@ export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> 
     public namespaced: boolean = true;
 
     protected constructor() {
-        let self = this;
+        const self = this;
         this.module_name = "CRUDStore";
 
 

@@ -37,8 +37,8 @@ export default class MaxGraphEdgeMapper {
             return null;
         }
 
-        let parent = maxgraph.getDefaultParent();
-        let label = this.label;
+        const parent = maxgraph.getDefaultParent();
+        const label = this.label;
         const new_edge = maxgraph.insertEdge(parent, null, label, this.source_cell.maxgraph_cell, this.target_cell.maxgraph_cell, this.is_accepted ? {
             strokeColor: 'green',
         } : {

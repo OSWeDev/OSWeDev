@@ -67,7 +67,7 @@ export default class ModuleImageFormat extends Module {
 
     private initializeImageFormatVO() {
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(ImageFormatVO.API_TYPE_ID, field_names<ImageFormatVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
             ModuleTableFieldController.create_new(ImageFormatVO.API_TYPE_ID, field_names<ImageFormatVO>().remplir_larg, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Remplir la largeur', true, true, true),
             ModuleTableFieldController.create_new(ImageFormatVO.API_TYPE_ID, field_names<ImageFormatVO>().remplir_haut, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Remplir la hauteur', true, true, true),
@@ -86,17 +86,17 @@ export default class ModuleImageFormat extends Module {
             ModuleTableFieldController.create_new(ImageFormatVO.API_TYPE_ID, field_names<ImageFormatVO>().watermark_rotate, ModuleTableFieldVO.FIELD_TYPE_int, 'Watermark Rotation'),
         ];
 
-        let table = new ModuleTableVO(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');
+        const table = new ModuleTableVO(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');
         this.datatables.push(table);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeFormattedImageVO() {
-        let file_id = ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true).not_add_to_crud();
-        let image_format_id = ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().image_format_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Format d\'image', true);
+        const file_id = ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true).not_add_to_crud();
+        const image_format_id = ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().image_format_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Format d\'image', true);
 
-        let fields = [
+        const fields = [
             file_id,
             image_format_id,
 
@@ -111,7 +111,7 @@ export default class ModuleImageFormat extends Module {
             ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().quality, ModuleTableFieldVO.FIELD_TYPE_prct, 'Qualité', true, true, 0.9),
         ];
 
-        let table = new ModuleTableVO(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
+        const table = new ModuleTableVO(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
         this.datatables.push(table);
 
         file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);

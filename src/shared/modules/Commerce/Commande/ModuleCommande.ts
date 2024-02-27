@@ -92,8 +92,8 @@ export default class ModuleCommande extends Module {
 
     public initializeCommande(): void {
         // Table Commande
-        let field_client_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().client_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Client', true);
-        let datatable_fields = [
+        const field_client_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().client_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Client', true);
+        const datatable_fields = [
             ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().identifiant, ModuleTableFieldVO.FIELD_TYPE_string, 'Identifiant', true),
             ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
             ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().statut, ModuleTableFieldVO.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
@@ -108,25 +108,25 @@ export default class ModuleCommande extends Module {
             }),
             field_client_id
         ];
-        let dt = new ModuleTableVO<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
+        const dt = new ModuleTableVO<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
         field_client_id.set_many_to_one_target_moduletable_name(ClientVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 
     public initializeLigneCommande(): void {
         // Table Ligne De Commande
-        let field_commande_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().commande_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Commande', true);
-        let field_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
+        const field_commande_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().commande_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Commande', true);
+        const field_produit_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
+        const field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().prix_unitaire, ModuleTableFieldVO.FIELD_TYPE_amount, 'Prix unitaire', true),
             ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().quantite, ModuleTableFieldVO.FIELD_TYPE_float, 'Quantite', true),
             field_commande_id,
             field_produit_id,
             field_informations_id
         ];
-        let dt = new ModuleTableVO<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
+        const dt = new ModuleTableVO<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
         field_commande_id.set_many_to_one_target_moduletable_name(CommandeVO.API_TYPE_ID);
         field_produit_id.set_many_to_one_target_moduletable_name(ProduitVO.API_TYPE_ID);
         field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
@@ -138,17 +138,17 @@ export default class ModuleCommande extends Module {
     }
 
     public async getDetailsLignesCommandeByCommandeId(commandeId: number): Promise<LigneCommandeDetailsVO[]> {
-        let detailLigneCommande: LigneCommandeDetailsVO[] = [];
+        const detailLigneCommande: LigneCommandeDetailsVO[] = [];
 
-        let lignes: LigneCommandeVO[] = await this.getLignesCommandeByCommandeId(commandeId);
+        const lignes: LigneCommandeVO[] = await this.getLignesCommandeByCommandeId(commandeId);
 
         if (lignes) {
-            for (let i in lignes) {
-                let ligne: LigneCommandeVO = lignes[i];
-                let produit: ProduitVO = await ModuleProduit.getInstance().getProduitById(ligne.produit_id);
-                let informations: InformationsVO = await ModuleClient.getInstance().getInformationsById(ligne.informations_id);
-                let typeProduit: TypeProduitVO = (produit) ? await query(TypeProduitVO.API_TYPE_ID).filter_by_id(produit.type_produit_id).select_vo<TypeProduitVO>() : null;
-                let ligneParam: ParamLigneCommandeVO = (typeProduit) ? await this.getParamLigneCommandeById(ligne.id, typeProduit.vo_type_param) : null;
+            for (const i in lignes) {
+                const ligne: LigneCommandeVO = lignes[i];
+                const produit: ProduitVO = await ModuleProduit.getInstance().getProduitById(ligne.produit_id);
+                const informations: InformationsVO = await ModuleClient.getInstance().getInformationsById(ligne.informations_id);
+                const typeProduit: TypeProduitVO = (produit) ? await query(TypeProduitVO.API_TYPE_ID).filter_by_id(produit.type_produit_id).select_vo<TypeProduitVO>() : null;
+                const ligneParam: ParamLigneCommandeVO = (typeProduit) ? await this.getParamLigneCommandeById(ligne.id, typeProduit.vo_type_param) : null;
 
                 detailLigneCommande.push(
                     new LigneCommandeDetailsVO(

@@ -118,19 +118,19 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })
     private onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {
-            if (!!this.crud_api_type_id_selected) {
+            if (this.crud_api_type_id_selected) {
                 this.crud_api_type_id_selected = null;
             }
-            if (!!this.cb_bulk_actions) {
+            if (this.cb_bulk_actions) {
                 this.cb_bulk_actions = null;
             }
-            if (!!this.vocus_button) {
+            if (this.vocus_button) {
                 this.vocus_button = false;
             }
             if (!this.delete_button) {
@@ -139,7 +139,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (this.archive_button) {
                 this.archive_button = false;
             }
-            if (!!this.delete_all_button) {
+            if (this.delete_all_button) {
                 this.delete_all_button = false;
             }
             if (!this.update_button) {
@@ -157,7 +157,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.tmp_has_export_maintenance_alert) {
                 this.tmp_has_export_maintenance_alert = false;
             }
-            if (!!this.tmp_default_export_option) {
+            if (this.tmp_default_export_option) {
                 this.tmp_default_export_option = null;
             }
             if (!this.refresh_button) {
@@ -299,7 +299,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
-        let nbpages_pagination_list = (this.tmp_nbpages_pagination_list == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.tmp_nbpages_pagination_list;
+        const nbpages_pagination_list = (this.tmp_nbpages_pagination_list == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : this.tmp_nbpages_pagination_list;
         if (this.widget_options.nbpages_pagination_list != nbpages_pagination_list) {
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.nbpages_pagination_list = nbpages_pagination_list;
@@ -314,7 +314,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
-        let limit = (this.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : parseInt(this.limit);
+        const limit = (this.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : parseInt(this.limit);
         if (this.widget_options.limit != limit) {
             this.next_update_options = cloneDeep(this.widget_options);
             this.next_update_options.limit = limit;
@@ -368,9 +368,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return 0;
         }
 
-        let ids = this.widget_options.columns.map((c) => c.id ? c.id : 0);
+        const ids = this.widget_options.columns.map((c) => c.id ? c.id : 0);
         let max = -1;
-        for (let i in ids) {
+        for (const i in ids) {
             if (max < ids[i]) {
                 max = ids[i];
             }
@@ -395,7 +395,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
              */
 
             if ((!!this.crud_api_type_id_selected) && ((!this.next_update_options.columns) || (!this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions)))) {
-                let crud_actions_column = new TableColumnDescVO();
+                const crud_actions_column = new TableColumnDescVO();
                 crud_actions_column.api_type_id = this.crud_api_type_id_selected;
                 crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
                 crud_actions_column.weight = -1;
@@ -414,9 +414,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.kanban_column = false;
                 await this.add_column(crud_actions_column);
                 return;
-            } else if (!!this.crud_api_type_id_selected) {
+            } else if (this.crud_api_type_id_selected) {
                 // On check qu'on a le bon type
-                let existing_column = this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions);
+                const existing_column = this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions);
                 if (existing_column.api_type_id != this.crud_api_type_id_selected) {
                     existing_column.api_type_id = this.crud_api_type_id_selected;
                 }
@@ -445,12 +445,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         /**
          * On applique les nouveaux poids
          */
-        for (let i in this.editable_columns) {
-            let column = this.editable_columns[i];
+        for (const i in this.editable_columns) {
+            const column = this.editable_columns[i];
 
             if (column.type == TableColumnDescVO.TYPE_header) {
-                for (let j in column.children) {
-                    let child = column.children[j];
+                for (const j in column.children) {
+                    const child = column.children[j];
 
                     child.weight = parseInt(j);
                 }
@@ -486,7 +486,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let old_column: TableColumnDescVO = null;
 
         let k: number;
-        let i = this.next_update_options.columns.findIndex((column) => {
+        const i = this.next_update_options.columns.findIndex((column) => {
 
             if (column.id == update_column.id) {
                 old_column = column;
@@ -494,8 +494,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
 
             if (column.type == TableColumnDescVO.TYPE_header) {
-                for (let u in column.children) {
-                    let child = column.children[u];
+                for (const u in column.children) {
+                    const child = column.children[u];
                     if (child.id == update_column.id) {
                         old_column = child;
                         k = parseInt(u);
@@ -513,7 +513,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         // Si on essaye de mettre à jour le tri par defaut, on réinitialise tous les autres pour en avoir qu'un seul actif
         if (old_column.default_sort_field != update_column.default_sort_field) {
-            for (let i_col in this.next_update_options.columns) {
+            for (const i_col in this.next_update_options.columns) {
                 if (this.next_update_options.columns[i_col].id == old_column.id) {
                     continue;
                 }
@@ -544,14 +544,14 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
 
         let k: number;
-        let i = this.next_update_options.columns.findIndex((column) => {
+        const i = this.next_update_options.columns.findIndex((column) => {
 
             if (column.id == del_column.id) {
                 return column.id == del_column.id;
             }
             if (column.type == TableColumnDescVO.TYPE_header) {
-                for (let u in column.children) {
-                    let child = column.children[u];
+                for (const u in column.children) {
+                    const child = column.children[u];
                     if (child.id == del_column.id) {
                         k = parseInt(u);
                         return child.id == del_column.id;
@@ -641,17 +641,17 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     get columns(): TableColumnDescVO[] {
-        let options: TableWidgetOptionsVO = this.widget_options;
+        const options: TableWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.columns)) {
             this.editable_columns = null;
             return null;
         }
 
-        let res: TableColumnDescVO[] = [];
-        for (let i in options.columns) {
+        const res: TableColumnDescVO[] = [];
+        for (const i in options.columns) {
 
-            let column = options.columns[i];
+            const column = options.columns[i];
             if (column.readonly == null) {
                 column.readonly = true;
             }
@@ -719,8 +719,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -750,7 +750,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let options: TableWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
                 options = options ? new TableWidgetOptionsVO().from(options) : null;
             }
@@ -1120,7 +1120,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return false;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[this.widget_options.crud_api_type_id].is_archived;
+        return ModuleTableController.module_tables_by_vo_type[this.widget_options.crud_api_type_id].is_archived;
     }
 
     private async switch_show_bulk_edit() {
@@ -1170,7 +1170,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return [];
         }
 
-        let res = TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        const res = TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }

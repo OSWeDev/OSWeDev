@@ -14,17 +14,17 @@ import FakeVarsInit from './fakes/FakeVarsInit';
 test('VarsDatasVoUpdateHandler: test filter_var_datas_by_indexes', async () => {
     await FakeVarsInit.initAll();
 
-    let vo_types: string[] = [];
-    let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
-    let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
-    let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-    let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
-    let markers: { [var_id: number]: number } = {};
+    const vo_types: string[] = [];
+    const vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
+    const vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
+    const intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+    const ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
+    const markers: { [var_id: number]: number } = {};
 
-    let var_datas: VarDataBaseVO[] = [];
-    let prepend: boolean = true;
-    let donot_insert_if_absent: boolean = true;
-    let just_been_loaded_from_db: boolean = true;
+    const var_datas: VarDataBaseVO[] = [];
+    const prepend: boolean = true;
+    const donot_insert_if_absent: boolean = true;
+    const just_been_loaded_from_db: boolean = true;
 
     await VarsDatasProxy['filter_var_datas_by_indexes'](var_datas, null, null, true, 'test filter_var_datas_by_indexes', donot_insert_if_absent, just_been_loaded_from_db);
 });

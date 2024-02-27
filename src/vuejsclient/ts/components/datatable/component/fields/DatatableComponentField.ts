@@ -155,7 +155,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
             route_name += DashboardBuilderController.ROUTE_NAME_CRUD + DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
 
-            let route_params = cloneDeep(this.$route.params);
+            const route_params = cloneDeep(this.$route.params);
 
             if (vo_id) {
                 route_params.dashboard_vo_action = DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT;
@@ -188,7 +188,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
         let params = [val];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -321,7 +321,7 @@ export default class DatatableComponentField extends VueComponentBase {
 
                 if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
 
-                    if (!!this.field.moduleTableField.translatable_params_field_name) {
+                    if (this.field.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
                             params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name]);
@@ -338,11 +338,11 @@ export default class DatatableComponentField extends VueComponentBase {
                     return null;
                 }
 
-                let res = [];
-                for (let i in this.vo[this.field.datatable_field_uid + '__raw']) {
-                    let translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
+                const res = [];
+                for (const i in this.vo[this.field.datatable_field_uid + '__raw']) {
+                    const translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
 
-                    if (!!this.field.moduleTableField.translatable_params_field_name) {
+                    if (this.field.moduleTableField.translatable_params_field_name) {
                         let params = null;
                         try {
                             params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name][i]);

@@ -96,7 +96,7 @@ export default abstract class VueAppBase {
 
         DatatableField.VueAppBase = this;
 
-        let self = this;
+        const self = this;
         let promises = [];
 
         Vue.config.devtools = false;
@@ -118,7 +118,7 @@ export default abstract class VueAppBase {
         /**
          * On ajoute tous les types aux DBB
          */
-        let types = Object.keys(VOsTypesManager.moduleTables_by_voType);
+        const types = Object.keys(ModuleTableController.module_tables_by_vo_type);
         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
         types.forEach((type) =>
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
@@ -128,8 +128,8 @@ export default abstract class VueAppBase {
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];
-        for (let module_name in modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+        for (const module_name in modules_by_name) {
+            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName
             ) as VueModuleBase;
@@ -140,7 +140,7 @@ export default abstract class VueAppBase {
             if (module_?.policies_needed?.length > 0) {
                 promises.push((async () => {
 
-                    let local_promises = [];
+                    const local_promises = [];
 
                     for (const j in module_.policies_needed) {
                         const policy_name = module_.policies_needed[j];
@@ -157,8 +157,8 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         // On lance les initializeAsync des modules Vue
-        for (let module_name in modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+        for (const module_name in modules_by_name) {
+            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
                 VueModuleBase.IVueModuleRoleName
             ) as VueModuleBase;
@@ -174,7 +174,7 @@ export default abstract class VueAppBase {
 
         ConsoleLogLogger.getInstance().prepare_console_logger();
 
-        let default_locale = LocaleManager.getInstance().getDefaultLocale();
+        const default_locale = LocaleManager.getInstance().getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
 
@@ -246,7 +246,7 @@ export default abstract class VueAppBase {
                     return value;
                 }
 
-                var hourSplit = value.toString().split(".");
+                const hourSplit = value.toString().split(".");
 
                 if (hourSplit[1] != null) {
                     hourSplit[1] = Math.round((value - parseInt(hourSplit[0])) * 60);
@@ -261,7 +261,7 @@ export default abstract class VueAppBase {
             }
         } as any);
 
-        var routerOptions: RouterOptions = {
+        const routerOptions: RouterOptions = {
             linkActiveClass: "active"
         };
 
@@ -272,12 +272,12 @@ export default abstract class VueAppBase {
         //}
 
         let routerRoutes: RouteConfig[] = [];
-        let moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
+        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
 
-        for (let i in moduleWrappersByName) {
-            let moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
-            let module: Module = moduleWrapper.getModuleComponentByRole(Module.SharedModuleRoleName) as Module;
-            let vueModule: IVueModule = moduleWrapper.getModuleComponentByRole(VueModuleBase.IVueModuleRoleName) as IVueModule;
+        for (const i in moduleWrappersByName) {
+            const moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
+            const module: Module = moduleWrapper.getModuleComponentByRole(Module.SharedModuleRoleName) as Module;
+            const vueModule: IVueModule = moduleWrapper.getModuleComponentByRole(VueModuleBase.IVueModuleRoleName) as IVueModule;
 
             if (module && module.actif && vueModule && vueModule.routes && (vueModule.routes.length > 0)) {
                 routerRoutes = routerRoutes.concat(vueModule.routes);
@@ -287,8 +287,8 @@ export default abstract class VueAppBase {
         routerOptions.routes = routerRoutes;
 
         let hasHome: boolean = false;
-        for (let i in routerOptions.routes) {
-            let route = routerOptions.routes[i];
+        for (const i in routerOptions.routes) {
+            const route = routerOptions.routes[i];
             if (route.path == "/") {
                 hasHome = true;
             }
@@ -328,10 +328,10 @@ export default abstract class VueAppBase {
         let time_in_router: number = 0;
 
         function afterEachTransitionHandler(transition) {
-            let app: Vue = self.vueRouter.app;
+            const app: Vue = self.vueRouter.app;
 
-            if (!!time_in_router) {
-                let time = Dates.now_ms() - time_in_router;
+            if (time_in_router) {
+                const time = Dates.now_ms() - time_in_router;
                 time_in_router = 0;
                 StatsController.register_stat_DUREE('Vue_router', 'afterEachTransitionHandler', transition.name, time);
             }
@@ -345,7 +345,7 @@ export default abstract class VueAppBase {
                 return;
             }
 
-            var params = transition ? (transition.params || {}) : {};
+            const params = transition ? (transition.params || {}) : {};
 
             if (app['setPerimeter']) {
                 app['setPerimeter'](params.store_id, params.goal_id);
@@ -355,7 +355,7 @@ export default abstract class VueAppBase {
             }
         }
 
-        let code_google_analytics: string = EnvHandler.CODE_GOOGLE_ANALYTICS;
+        const code_google_analytics: string = EnvHandler.CODE_GOOGLE_ANALYTICS;
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
@@ -378,7 +378,7 @@ export default abstract class VueAppBase {
             }
             VueAppController.getInstance().routes_log.push(route);
 
-            let app: VueComponentBase = self.vueRouter.app as VueComponentBase;
+            const app: VueComponentBase = self.vueRouter.app as VueComponentBase;
 
             // Desactivation du bouton print
             AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_DISABLE');
@@ -477,7 +477,7 @@ export default abstract class VueAppBase {
 
         await this.postMountHook();
 
-        let app_name: "client" | "admin" | "login" = this.appController.app_name;
+        const app_name: "client" | "admin" | "login" = this.appController.app_name;
 
         if (EnvHandler.ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
@@ -493,11 +493,11 @@ export default abstract class VueAppBase {
 
             // ConsoleHandler.log('onbeforeunload');
 
-            var needsSaving = false;
+            let needsSaving = false;
 
             if (self.vueRouter && self.vueRouter.app && self.vueRouter.app.$children) {
-                for (var i in self.vueRouter.app.$children) {
-                    var component = self.vueRouter.app.$children[i];
+                for (const i in self.vueRouter.app.$children) {
+                    const component = self.vueRouter.app.$children[i];
                     if (component && component['needSaving']) {
                         needsSaving = true;
                     }
@@ -505,7 +505,7 @@ export default abstract class VueAppBase {
             }
 
             if (needsSaving) {
-                var message = "Editing is not saved";
+                const message = "Editing is not saved";
                 // For IE and Firefox
                 if (e) {
                     e.returnValue = message;
@@ -527,9 +527,9 @@ export default abstract class VueAppBase {
 
     protected async unregisterVarsBeforeUnload() {
         if (VarsClientController.registered_var_params) {
-            let params: VarDataBaseVO[] = [];
-            for (let i in VarsClientController.registered_var_params) {
-                let wrapper = VarsClientController.registered_var_params[i];
+            const params: VarDataBaseVO[] = [];
+            for (const i in VarsClientController.registered_var_params) {
+                const wrapper = VarsClientController.registered_var_params[i];
                 params.push(wrapper.var_param);
             }
             if (params.length) {

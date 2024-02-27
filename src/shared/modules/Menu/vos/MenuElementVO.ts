@@ -19,7 +19,7 @@ export default class MenuElementVO implements IDistantVOBase {
         target_blank: boolean = false,
     ): MenuElementVO {
 
-        let res = new MenuElementVO();
+        const res = new MenuElementVO();
 
         res.access_policy_name = access_policy_name;
         res.app_name = app_name;

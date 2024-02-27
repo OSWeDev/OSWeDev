@@ -11,9 +11,9 @@ export default class YearFilterWidgetOptionsVO {
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "YearFilterWidgetOptions.vo_field_ref.placeholder.";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: YearFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
+        const options: YearFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if ((!options) || (!options.vo_field_ref)) {
             return res;
         }
@@ -86,9 +86,9 @@ export default class YearFilterWidgetOptionsVO {
             return null;
         }
 
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =

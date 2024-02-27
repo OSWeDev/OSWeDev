@@ -91,13 +91,13 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
     }
 
     get fields_that_could_get_custom_filter(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.dataset_options || !this.dataset_options.var_id) {
             return null;
         }
 
-        let var_param_type = VarsController.var_conf_by_id[this.dataset_options.var_id].var_data_vo_type;
+        const var_param_type = VarsController.var_conf_by_id[this.dataset_options.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -106,9 +106,9 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
             this.custom_filter_names = {};
         }
 
-        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
 
             if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
@@ -148,16 +148,16 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
 
     get var_names(): string[] {
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in VarsController.var_conf_by_name) {
-            let var_conf = VarsController.var_conf_by_name[i];
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
             res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
-            let a_ = a.split(' | ')[1];
-            let b_ = b.split(' | ')[1];
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
 
             if (a_ < b_) {
                 return -1;
@@ -224,7 +224,7 @@ export default class VarBarLineDatasetChartWidgetOptionsComponent extends VueCom
 
         try {
 
-            let selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
+            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
 
             if (this.dataset_options.var_id != selected_var_id) {
 

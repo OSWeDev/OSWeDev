@@ -180,7 +180,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
     private async update_visible_options(): Promise<void> {
 
         // Last time this method has been launched
-        let launch_cpt: number = (this.last_launch_cpt + 1);
+        const launch_cpt: number = (this.last_launch_cpt + 1);
 
         this.last_launch_cpt = launch_cpt;
 
@@ -189,9 +189,9 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             return;
         }
 
-        let field_sort: VOFieldRefVO = this.vo_field_ref;
+        const field_sort: VOFieldRefVO = this.vo_field_ref;
 
-        let tmp: FavoritesFiltersVO[] = await query(this.vo_field_ref.api_type_id)
+        const tmp: FavoritesFiltersVO[] = await query(this.vo_field_ref.api_type_id)
             .set_limit(this.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .select_vos<FavoritesFiltersVO>();
@@ -227,8 +227,8 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
 
         this.throttled_update_visible_options();
@@ -270,7 +270,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
             });
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
@@ -291,7 +291,7 @@ export default class FavoritesFiltersWidgetOptionsComponent extends VueComponent
 
         let options: FavoritesFiltersWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }

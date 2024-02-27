@@ -10,12 +10,12 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
     public static getInstance(varconf: VarConfVO): AutoVarDatasourceController {
         if (!AutoVarDatasourceController.instances[varconf.id]) {
 
-            let api_type_ids: { [type: string]: boolean } = {};
+            const api_type_ids: { [type: string]: boolean } = {};
             api_type_ids[varconf.auto_vofieldref_api_type_id] = true;
 
-            for (let i in varconf.auto_param_context_api_type_ids) {
-                let api_type_id = varconf.auto_param_context_api_type_ids[i];
-                let path = ContextFieldPathServerController.get_path_between_types(
+            for (const i in varconf.auto_param_context_api_type_ids) {
+                const api_type_id = varconf.auto_param_context_api_type_ids[i];
+                const path = ContextFieldPathServerController.get_path_between_types(
                     varconf.auto_param_context_discarded_field_paths,
                     varconf.auto_param_context_use_technical_field_versioning,
                     varconf.auto_param_context_api_type_ids,
@@ -29,8 +29,8 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
                     continue;
                 }
 
-                for (let j in path) {
-                    let path_elt = path[j];
+                for (const j in path) {
+                    const path_elt = path[j];
                     api_type_ids[path_elt.field.module_table.vo_type] = true;
                     if (path_elt.field.manyToOne_target_moduletable) {
                         api_type_ids[path_elt.field.manyToOne_target_moduletable.vo_type] = true;
@@ -57,10 +57,10 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
     public async get_data(param: VarDataBaseVO): Promise<number> {
 
-        let varconf: VarConfVO = VarsServerController.getVarConfById(param.var_id);
+        const varconf: VarConfVO = VarsServerController.getVarConfById(param.var_id);
 
-        let query_res = await query(varconf.auto_vofieldref_api_type_id)
-            .field(varconf.auto_vofieldref_field_id, 'ds_result', varconf.auto_vofieldref_api_type_id, varconf.aggregator, varconf.auto_vofieldref_modifier)
+        const query_res = await query(varconf.auto_vofieldref_api_type_id)
+            .field(varconf.auto_vofieldref_field_name, 'ds_result', varconf.auto_vofieldref_api_type_id, varconf.aggregator, varconf.auto_vofieldref_modifier)
             .select_one();
         if ((!query_res) || (!query_res.ds_result)) {
             return null;

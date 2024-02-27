@@ -65,13 +65,13 @@ export default abstract class PlayWrightServerController {
 
     public async after_each(test_title: string): Promise<void> {
         test_title = PlayWrightServerController.test_title_to_method_name(test_title);
-        if (!!this['after_each_' + test_title]) {
+        if (this['after_each_' + test_title]) {
             return await this['after_each_' + test_title]();
         }
     }
     public async before_each(test_title: string): Promise<void> {
         test_title = PlayWrightServerController.test_title_to_method_name(test_title);
-        if (!!this['before_each_' + test_title]) {
+        if (this['before_each_' + test_title]) {
             return await this['before_each_' + test_title]();
         }
     }
@@ -94,7 +94,7 @@ export default abstract class PlayWrightServerController {
         let test_user_email: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL);
         let test_user_firstname: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME);
         let test_user_lastname: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME);
-        let test_user_password: string = MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000));
+        const test_user_password: string = MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000)) + MatroidIndexHandler.base_10_num_to_base_76_txt(10000 + Math.round(Math.random() * 100000000000));
         let test_user_phone: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE);
 
         if (!test_user_email) {
@@ -102,12 +102,12 @@ export default abstract class PlayWrightServerController {
             test_user_email = 'playwright_test_user_email' + Math.round(Math.random() * 1000000) + '@wedev.fr';
 
             test_user_name = 'playwright_test_user_name' + Math.round(Math.random() * 1000000);
-            let test_user_name_param = new ParamVO();
+            const test_user_name_param = new ParamVO();
             test_user_name_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_NAME;
             test_user_name_param.value = test_user_name;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_name_param);
 
-            let test_user_email_param = new ParamVO();
+            const test_user_email_param = new ParamVO();
             test_user_email_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL;
             test_user_email_param.value = test_user_email;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_email_param);
@@ -117,17 +117,17 @@ export default abstract class PlayWrightServerController {
             test_user_lastname = 'playwright_test_user_lastname' + Math.round(Math.random() * 1000000);
             test_user_phone = 'playwright_test_user_phone' + Math.round(Math.random() * 1000000);
 
-            let test_user_firstname_param = new ParamVO();
+            const test_user_firstname_param = new ParamVO();
             test_user_firstname_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME;
             test_user_firstname_param.value = test_user_firstname;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_firstname_param);
 
-            let test_user_lastname_param = new ParamVO();
+            const test_user_lastname_param = new ParamVO();
             test_user_lastname_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_LASTNAME;
             test_user_lastname_param.value = test_user_lastname;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_lastname_param);
 
-            let test_user_phone_param = new ParamVO();
+            const test_user_phone_param = new ParamVO();
             test_user_phone_param.name = PlayWrightServerController.PARAM_NAME_TEST_USER_PHONE;
             test_user_phone_param.value = test_user_phone;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user_phone_param);
@@ -152,7 +152,7 @@ export default abstract class PlayWrightServerController {
             test_user.password = test_user_password;
             test_user.password_change_date = Dates.add(Dates.now(), 100, TimeSegment.TYPE_YEAR);
 
-            let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').exec_as_server().select_one();
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').exec_as_server().select_one();
 
             test_user.invalidated = false;
             test_user.lang_id = lang.id;
@@ -160,7 +160,7 @@ export default abstract class PlayWrightServerController {
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(test_user);
 
             // On ajoute le rôle admin
-            let rôle_admin = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN).exec_as_server().select_vo<RoleVO>();
+            const rôle_admin = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN).exec_as_server().select_vo<RoleVO>();
             if (!rôle_admin || !rôle_admin.id) {
                 throw new Error('PlayWrightServerController: rôle admin should exist');
             }

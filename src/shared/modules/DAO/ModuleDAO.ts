@@ -95,9 +95,9 @@ export default class ModuleDAO extends Module {
         ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
         null,
         (API_TYPE_ID: string, ids: number[]) => {
-            let nettoyage_ids: number[] = [];
-            for (let i in ids) {
-                if (!!ids[i]) {
+            const nettoyage_ids: number[] = [];
+            for (const i in ids) {
+                if (ids[i]) {
                     nettoyage_ids.push(ids[i]);
                 }
             }
@@ -177,10 +177,10 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
-                let res: { [type: string]: boolean } = {};
+                const res: { [type: string]: boolean } = {};
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     res[param._type] = true;
                 }
@@ -192,10 +192,10 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
-                let res: { [type: string]: boolean } = {};
+                const res: { [type: string]: boolean } = {};
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     res[param._type] = true;
                 }
@@ -214,10 +214,10 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_INSERT_VOS,
             (params: IDistantVOBase[]) => {
-                let res: { [type: string]: boolean } = {};
+                const res: { [type: string]: boolean } = {};
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     res[param._type] = true;
                 }
@@ -230,10 +230,10 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
-                let res: { [type: string]: boolean } = {};
+                const res: { [type: string]: boolean } = {};
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     res[param._type] = true;
                 }
@@ -321,8 +321,8 @@ export default class ModuleDAO extends Module {
 
     public async late_configuration(is_generator: boolean) {
 
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[i];
             if (!moduleTable) {
                 continue;
             }
@@ -342,25 +342,25 @@ export default class ModuleDAO extends Module {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        let isModulesParams: boolean = VOsTypesManager.moduleTables_by_voType[vo_type].isModuleParamTable;
+        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 
     private init_CRUDFieldRemoverConfVO(): ModuleTableVO {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Vo Type', true, false),
             ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Types', false),
             ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
         ];
 
-        let res = new ModuleTableVO(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
+        const res = new ModuleTableVO(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
         this.datatables.push(res);
         return res;
     }
 
     private init_ModuleTableCompositeUniqueKeyVO(): ModuleTableVO {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_names, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Champs - Noms', true),
             ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_id_num_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Champs - Liens', true)
                 .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID),
@@ -370,7 +370,7 @@ export default class ModuleDAO extends Module {
             ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
         ];
 
-        let res = new ModuleTableVO(this, ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, () => new ModuleTableCompositeUniqueKeyVO(), datatable_fields, null, "Clés uniques composites");
+        const res = new ModuleTableVO(this, ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, () => new ModuleTableCompositeUniqueKeyVO(), datatable_fields, null, "Clés uniques composites");
         this.datatables.push(res);
         return res;
     }

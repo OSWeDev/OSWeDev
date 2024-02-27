@@ -64,11 +64,11 @@ export default class OnPageTranslation extends VueComponentBase {
     public async mounted() {
         this.startLoading();
 
-        let self = this;
-        let promises: Array<Promise<any>> = [];
+        const self = this;
+        const promises: Array<Promise<any>> = [];
 
         promises.push((async () => {
-            let vos: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+            const vos: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             self.storeDatas({
                 API_TYPE_ID: LangVO.API_TYPE_ID,
                 vos: vos
@@ -77,8 +77,8 @@ export default class OnPageTranslation extends VueComponentBase {
 
         await all_promises(promises);
 
-        for (let i in this.getStoredDatas[LangVO.API_TYPE_ID]) {
-            let lang: LangVO = this.getStoredDatas[LangVO.API_TYPE_ID][i] as LangVO;
+        for (const i in this.getStoredDatas[LangVO.API_TYPE_ID]) {
+            const lang: LangVO = this.getStoredDatas[LangVO.API_TYPE_ID][i] as LangVO;
 
             if (lang.code_lang == LocaleManager.getInstance().getDefaultLocale()) {
                 this.lang_id = lang.id;
@@ -99,7 +99,7 @@ export default class OnPageTranslation extends VueComponentBase {
     private set_missingTranslationsNumber() {
         let res: number = 0;
 
-        for (let i in this.editable_translations) {
+        for (const i in this.editable_translations) {
             if (!this.editable_translations[i].translation || this.editable_translations[i].missing) {
                 res++;
             }
@@ -181,7 +181,7 @@ export default class OnPageTranslation extends VueComponentBase {
                 this.storeData(translatable);
             }
 
-            let translation: TranslationVO = new TranslationVO();
+            const translation: TranslationVO = new TranslationVO();
             translation.lang_id = this.lang_id;
             translation.text_id = translatable.id;
             translation.translated = editable_translation.editable_translation;
@@ -217,9 +217,9 @@ export default class OnPageTranslation extends VueComponentBase {
 
             if (!this.other_langs) {
                 this.other_langs = [];
-                let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+                const langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
 
-                for (let i in langs) {
+                for (const i in langs) {
                     if (langs[i].id == this.lang_id) {
                         continue;
                     }
@@ -232,8 +232,8 @@ export default class OnPageTranslation extends VueComponentBase {
                 return;
             }
 
-            for (let l in this.other_langs) {
-                let other_lang: LangVO = this.other_langs[l];
+            for (const l in this.other_langs) {
+                const other_lang: LangVO = this.other_langs[l];
 
                 if (!this.translations[other_lang.code_lang]) {
                     Vue.set(this.translations, other_lang.code_lang, {});
@@ -244,7 +244,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
                     Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
 
-                    let translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                    const translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
                         .filter_by_text_eq('code_text', editable_translation.translation_code, TranslatableTextVO.API_TYPE_ID)
                         .filter_by_id(other_lang.id, LangVO.API_TYPE_ID)
                         .select_vo<TranslationVO>();
@@ -265,24 +265,24 @@ export default class OnPageTranslation extends VueComponentBase {
                 return;
             }
 
-            let object = JSON.parse(this.imported_translations);
+            const object = JSON.parse(this.imported_translations);
 
             if (!object) {
                 return;
             }
 
             // On essaie de faire chaque trad
-            for (let i in this.editable_translations) {
-                let editable_translation = this.editable_translations[i];
+            for (const i in this.editable_translations) {
+                const editable_translation = this.editable_translations[i];
 
-                if (!!editable_translation.translation) {
+                if (editable_translation.translation) {
                     continue;
                 }
 
-                let parts: string[] = editable_translation.translation_code.split('.');
+                const parts: string[] = editable_translation.translation_code.split('.');
                 let obj = object;
                 let failed: boolean = false;
-                for (let j in parts) {
+                for (const j in parts) {
                     obj = obj[parts[j]];
 
                     if (!obj) {
@@ -295,7 +295,7 @@ export default class OnPageTranslation extends VueComponentBase {
                     continue;
                 }
 
-                if (!!obj) {
+                if (obj) {
                     editable_translation.editable_translation = obj;
                     await this.save_translation(editable_translation);
                 }
@@ -314,12 +314,12 @@ export default class OnPageTranslation extends VueComponentBase {
             return;
         }
 
-        let texts = Object.keys(this.getPageTranslations);
+        const texts = Object.keys(this.getPageTranslations);
         if ((!texts) || (!texts.length)) {
             return;
         }
 
-        let translation_by_code_text: {
+        const translation_by_code_text: {
             [code_text: string]: {
                 code_text: string,
                 translated: string,
@@ -341,11 +341,11 @@ export default class OnPageTranslation extends VueComponentBase {
             'code_text'
         );
 
-        let new_editable_translations: EditablePageTranslationItem[] = [];
-        for (let i in texts) {
+        const new_editable_translations: EditablePageTranslationItem[] = [];
+        for (const i in texts) {
             let translation = null;
-            let code_text: string = texts[i];
-            let t = translation_by_code_text[code_text];
+            const code_text: string = texts[i];
+            const t = translation_by_code_text[code_text];
 
             if (t) {
                 translation = new TranslationVO();
@@ -357,7 +357,7 @@ export default class OnPageTranslation extends VueComponentBase {
             }
 
             this.translations_by_code[code_text] = translation;
-            let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(code_text, this.translations_by_code[code_text]);
+            const editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(code_text, this.translations_by_code[code_text]);
 
             if (!editable_translation.translation) {
                 editable_translation.missing = true;
@@ -384,10 +384,10 @@ export default class OnPageTranslation extends VueComponentBase {
             return 0;
         });
 
-        for (let i in this.editable_translations) {
-            let editable_translation: EditablePageTranslationItem = this.editable_translations[i];
+        for (const i in this.editable_translations) {
+            const editable_translation: EditablePageTranslationItem = this.editable_translations[i];
             if (this.updated_translation(editable_translation)) {
-                for (let j in new_editable_translations) {
+                for (const j in new_editable_translations) {
                     if (new_editable_translations[j].translation_code == editable_translation.translation_code) {
                         new_editable_translations[j].editable_translation = editable_translation.editable_translation;
                     }
@@ -412,7 +412,7 @@ export default class OnPageTranslation extends VueComponentBase {
          *  et la trad de ce code dans les autres langues, si on a l'info, et enfin on fourni aussi les autres codes de la page actuelle
          */
 
-        let langs_by_id: { [id: number]: LangVO } = this.getStoredDatas[LangVO.API_TYPE_ID] as { [id: number]: LangVO };
+        const langs_by_id: { [id: number]: LangVO } = this.getStoredDatas[LangVO.API_TYPE_ID] as { [id: number]: LangVO };
 
         let max_tokens = 8192;
 
@@ -427,24 +427,24 @@ export default class OnPageTranslation extends VueComponentBase {
             prompt += "La traduction actuelle est \"" + editable_translation.translation.translated + "\".\n";
         }
 
-        for (let i in this.other_langs) {
-            let other_lang: LangVO = this.other_langs[i];
+        for (const i in this.other_langs) {
+            const other_lang: LangVO = this.other_langs[i];
             if (this.translations[other_lang.code_lang] && this.translations[other_lang.code_lang][editable_translation.translation_code]) {
                 prompt += "La traduction en \"" + other_lang.code_lang + "\" est \"" + this.translations[other_lang.code_lang][editable_translation.translation_code].translated + "\".\n";
             }
         }
 
         prompt += "Les autres codes de la page et leurs traductions en \"" + langs_by_id[this.lang_id].code_lang + "\" sont :\n";
-        let last_sentence = "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
+        const last_sentence = "Ta réponse doit se limiter à la traduction du code, sans rappeler le code, sans guillemets et sans retour à la ligne. Uniquement la traduction brute.\n";
         max_tokens -= (prompt.split(' ').length * 2) + (last_sentence.split(' ').length * 2);
 
-        for (let i in this.editable_translations) {
-            let e: EditablePageTranslationItem = this.editable_translations[i];
+        for (const i in this.editable_translations) {
+            const e: EditablePageTranslationItem = this.editable_translations[i];
 
             if (e.translation_code == editable_translation.translation_code) {
                 continue;
             }
-            let this_prompt = " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
+            const this_prompt = " - \"" + e.translation_code + "\" : \"" + (e.translation ? e.translation.translated : '') + "\"\n";
             max_tokens -= (prompt.split(' ').length * 2);
             if (max_tokens < 0) {
                 break;
@@ -457,13 +457,13 @@ export default class OnPageTranslation extends VueComponentBase {
 
         ConsoleHandler.log(prompt);
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('get_gpt_translation.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
 
-                    let gpt_response: GPTCompletionAPIMessageVO = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
+                    const gpt_response: GPTCompletionAPIMessageVO = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, VueAppController.getInstance().data_user.id, prompt));
 
                     if (!gpt_response) {
                         reject({

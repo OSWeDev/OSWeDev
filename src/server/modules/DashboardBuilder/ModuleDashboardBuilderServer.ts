@@ -2695,7 +2695,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'hour_filter_options.rounded.___LABEL___'
         ));
 
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }
@@ -2767,7 +2767,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + VOsTypesManager.moduleTables_by_voType[DashboardVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardVO.API_TYPE_ID].full_name);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -2794,7 +2794,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + VOsTypesManager.moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(weight) as max_weight from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
         let max_weight = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_weight'] != 'undefined') && (query_res[0]['max_weight'] !== null)) ? query_res[0]['max_weight'] : null;
         max_weight = max_weight ? parseInt(max_weight.toString()) : null;
         if (!max_weight) {
@@ -2810,7 +2810,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT max(i) as max_i from ' + VOsTypesManager.moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        const query_res = await ModuleDAOServer.getInstance().query('SELECT max(i) as max_i from ' + ModuleTableController.module_tables_by_vo_type[DashboardPageWidgetVO.API_TYPE_ID].full_name);
         let max_i = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_i'] != 'undefined') && (query_res[0]['max_i'] !== null)) ? query_res[0]['max_i'] : null;
         max_i = max_i ? parseInt(max_i.toString()) : null;
         if (!max_i) {

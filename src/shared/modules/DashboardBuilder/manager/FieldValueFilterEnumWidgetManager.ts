@@ -111,10 +111,10 @@ export default class FieldValueFilterEnumWidgetManager {
 
         widget_options = cloneDeep(widget_options);
 
-        let added_data_filter: { [numeric_value: number]: boolean } = {};
+        const added_data_filter: { [numeric_value: number]: boolean } = {};
         let enum_data_filters: DataFilterOption[] = [];
 
-        let actual_query: string = null;
+        const actual_query: string = null;
 
         // TODO: May be had class-validator to check if widget_options is a FieldValueFilterWidgetOptionsVO
         // https://github.com/typestack/class-validator
@@ -224,7 +224,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
+            const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -241,7 +241,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
                 let has_filter: boolean = false;
 
-                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                for (const field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
                     if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
                         has_filter = true;
                         break;
@@ -253,7 +253,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
 
                 // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
 
                 if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
@@ -291,7 +291,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         promise_pipeline.push(async () => {
 
-            let data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            const data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 context_query,
                 actual_query
             );

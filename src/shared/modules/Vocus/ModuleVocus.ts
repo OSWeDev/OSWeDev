@@ -43,7 +43,7 @@ export default class ModuleVocus extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOParamVO, VocusInfoVO[]>(
             ModuleVocus.POLICY_BO_ACCESS,
             ModuleVocus.APINAME_getVosRefsById,
-            Object.keys(VOsTypesManager.moduleTables_by_voType),
+            Object.keys(ModuleTableController.module_tables_by_vo_type),
             APIDAOParamVOStatic
         ));
     }

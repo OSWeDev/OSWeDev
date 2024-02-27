@@ -42,7 +42,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let page_widget_options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
+        const page_widget_options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
 
         if (!page_widget_options) {
             return null;
@@ -54,13 +54,13 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         if (page_widget_options.use_kanban_by_default_if_exists) {
 
-            let columns = page_widget_options.columns;
+            const columns = page_widget_options.columns;
 
             if (!columns) {
                 return null;
             }
 
-            let kanban_column = columns.find((column) => {
+            const kanban_column = columns.find((column) => {
                 return column.kanban_column;
             });
 
@@ -78,18 +78,18 @@ export default class TableWidgetComponent extends VueComponentBase {
 
                 if (page_widget_options.crud_api_type_id != kanban_column.api_type_id) {
 
-                    let kanban_column_field = VOsTypesManager.moduleTables_by_voType[kanban_column.api_type_id].get_field_by_id(kanban_column.field_id);
+                    const kanban_column_field = ModuleTableController.module_tables_by_vo_type[kanban_column.api_type_id].get_field_by_id(kanban_column.field_id);
                     if (!kanban_column_field.is_unique) {
                         ConsoleHandler.warn('Le champ ' + kanban_column.field_id + ' de l\'API_TYPE_ID ' + kanban_column.api_type_id + ' n\'est pas unique et pas le type du CRUD utilisé sur ce tableau, on ne peut donc pas utiliser le kanban');
                         return null;
                     }
 
-                    let crud_table = VOsTypesManager.moduleTables_by_voType[page_widget_options.crud_api_type_id];
-                    let fields = crud_table.get_fields();
+                    const crud_table = ModuleTableController.module_tables_by_vo_type[page_widget_options.crud_api_type_id];
+                    const fields = crud_table.get_fields();
 
                     let found = 0;
-                    for (let i in fields) {
-                        let field = fields[i];
+                    for (const i in fields) {
+                        const field = fields[i];
 
                         if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == kanban_column.api_type_id)) {
                             found++;

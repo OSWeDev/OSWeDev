@@ -84,7 +84,7 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async list_customers(firm_id: number, params: FactuProCustomersLISTParams) {
 
-        let customers: FactuProCustomerVO[] = await this.get_all_pages(
+        const customers: FactuProCustomerVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/customers.json",
             params as any as { [i: string]: string },
         ) as FactuProCustomerVO[];
@@ -93,7 +93,7 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async list_products(firm_id: number, params: FactuProProductsLISTParams) {
 
-        let products: FactuProProductVO[] = await this.get_all_pages(
+        const products: FactuProProductVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/products.json",
             params as any as { [i: string]: string },
         ) as FactuProProductVO[];
@@ -102,7 +102,7 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async list_invoices(firm_id: number, params: FactuProInvoicesLISTParams) {
 
-        let invoices: FactuProInvoiceVO[] = await this.get_all_pages(
+        const invoices: FactuProInvoiceVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/invoices.json",
             params as any as { [i: string]: string },
         ) as FactuProInvoiceVO[];
@@ -111,7 +111,7 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async list_categories(firm_id: number, params: FactuProCategoriesLISTParams) {
 
-        let categories: FactuProCategoryVO[] = await this.get_all_pages(
+        const categories: FactuProCategoryVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/categories.json",
             params as any as { [i: string]: string },
         ) as FactuProCategoryVO[];
@@ -120,7 +120,7 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async list_devis(firm_id: number, params: FactuProDevisLISTParams) {
 
-        let devis: FactuProDevisVO[] = await this.get_all_pages(
+        const devis: FactuProDevisVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/quotes.json",
             params as any as { [i: string]: string },
         ) as FactuProDevisVO[];
@@ -129,11 +129,11 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async getHeadersRequest(): Promise<any> {
 
-        let auth = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
-        let cle = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
-        let login = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
+        const auth = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
+        const cle = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
+        const login = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
 
-        let authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
+        const authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
 
         return {
             'Accept': 'application/json',
@@ -150,8 +150,8 @@ export default class ModuleFacturationProAPI extends Module {
 
         while (has_more) {
             has_more = false;
-            let result_headers = {};
-            let elts: { datas: IDistantVOBase[], headers: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+            const result_headers = {};
+            const elts: { datas: IDistantVOBase[], headers: any } = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 "www.facturation.pro",
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url(
@@ -168,7 +168,7 @@ export default class ModuleFacturationProAPI extends Module {
             res = res.concat(elts.datas);
             page++;
 
-            let pagination = (elts.headers && elts.headers['x-pagination']) ? ObjectHandler.try_get_json(elts.headers['x-pagination']) : null;
+            const pagination = (elts.headers && elts.headers['x-pagination']) ? ObjectHandler.try_get_json(elts.headers['x-pagination']) : null;
             has_more = pagination && pagination['total_pages'] && pagination['current_page'] &&
                 (pagination['current_page'] < pagination['total_pages']);
         }

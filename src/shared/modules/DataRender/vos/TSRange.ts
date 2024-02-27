@@ -29,12 +29,12 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        let res: TSRange = new TSRange();
+        const res: TSRange = new TSRange();
 
         res.segment_type = segment_type;
 
         let end_range = TSRange.getSegmentedMax(min, min_inclusiv, max, max_inclusiv, segment_type);
-        let start_range = TSRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
+        const start_range = TSRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
 
         if ((start_range == null) || (end_range == null)) {
             return null;
@@ -68,13 +68,13 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        let range_min_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(min, segment_type);
+        const range_min_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(min, segment_type);
 
         if (!min_inclusiv) {
             TimeSegmentHandler.incTimeSegment(range_min_ts);
         }
 
-        let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
+        const range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
 
         if (range_min_ts.index > range_max_ts.index) {
             return null;
@@ -100,13 +100,13 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
+        const range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
 
         if ((!max_inclusiv) && TimeSegmentHandler.isEltInSegment(max, range_max_ts)) {
             TimeSegmentHandler.decTimeSegment(range_max_ts);
         }
 
-        let range_max_end: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
+        const range_max_end: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
 
         if (range_max_end < min) {
             return null;
@@ -120,7 +120,7 @@ export default class TSRange implements IRange {
     }
 
     public static cloneFrom(from: TSRange): TSRange {
-        let res: TSRange = new TSRange();
+        const res: TSRange = new TSRange();
 
         res.max = from.max;
         res.max_inclusiv = from.max_inclusiv;

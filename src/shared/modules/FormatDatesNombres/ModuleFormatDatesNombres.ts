@@ -123,7 +123,7 @@ export default class ModuleFormatDatesNombres extends Module {
     public formatYYYYMMDD_HHmmss_to_Moment(date: string): moment.Moment {
 
         try {
-            let res: moment.Moment = moment(date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm:ss").utc(true);
+            const res: moment.Moment = moment(date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm:ss").utc(true);
 
             if (res.isValid()) {
                 return res;
@@ -202,7 +202,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        let momentToFormat = this.getMomentFromDate(dateToFormat);
+        const momentToFormat = this.getMomentFromDate(dateToFormat);
 
         return momentToFormat.format(ModuleFormatDatesNombres.CACHE_date_format_month_date);
     }
@@ -214,7 +214,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        let momentToFormat = this.getMomentFromDate(dateToFormat);
+        const momentToFormat = this.getMomentFromDate(dateToFormat);
 
         return momentToFormat.format(ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date);
     }
@@ -226,9 +226,9 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        let momentToFormat = this.getMomentFromDate(dateToFormat);
+        const momentToFormat = this.getMomentFromDate(dateToFormat);
 
-        let format: string = ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date;
+        const format: string = ModuleFormatDatesNombres.CACHE_date_format_fullyear_month_date;
         if (format.match(/.*YYYY.*/i)) {
             return momentToFormat.format(format.replace(/YYYY/i, 'YY'));
         } else {
@@ -243,7 +243,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        let momentToFormat = this.getMomentFromDate(dateToFormat);
+        const momentToFormat = this.getMomentFromDate(dateToFormat);
         return momentToFormat.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
     }
 
@@ -309,8 +309,8 @@ export default class ModuleFormatDatesNombres extends Module {
             // On sépare les milliers
             while (TypesHandler.getInstance().isNumber(number) && (number >= 1000)) {
 
-                let thispart = (number % 1000);
-                let thisparttxt = ((thispart < 100) ? "0" + ((thispart < 10) ? "0" + thispart : thispart) : "" + thispart);
+                const thispart = (number % 1000);
+                const thisparttxt = ((thispart < 100) ? "0" + ((thispart < 10) ? "0" + thispart : thispart) : "" + thispart);
 
                 res = ModuleFormatDatesNombres.CACHE_nombre_separateur_1000 + thisparttxt + res;
                 number = Math.floor(number / 1000);
@@ -348,7 +348,7 @@ export default class ModuleFormatDatesNombres extends Module {
             // On sépare les décimals du reste
             let entier = Math.floor(number);
             let decimals = number - entier;
-            let tenth = Math.pow(10, n_decimals);
+            const tenth = Math.pow(10, n_decimals);
             decimals = Math.round(decimals * tenth);
             if (decimals >= tenth) {
                 decimals -= tenth;
@@ -405,10 +405,10 @@ export default class ModuleFormatDatesNombres extends Module {
                 break;
         }
 
-        let entier = numberRound > 0 ? Math.floor(numberRound) : Math.ceil(numberRound);
-        let decimale = numberRound - entier;
+        const entier = numberRound > 0 ? Math.floor(numberRound) : Math.ceil(numberRound);
+        const decimale = numberRound - entier;
 
-        let res = entier + decimale;
+        const res = entier + decimale;
         return '' + res;
     }
 

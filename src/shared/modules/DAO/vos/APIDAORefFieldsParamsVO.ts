@@ -30,29 +30,29 @@ export default class APIDAORefFieldsParamsVO implements IAPIParamTranslator<APID
             return null;
         }
 
-        let field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
+        const field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
         let ids1 = null;
         if (field_name1) {
             ids1 = req.params.ids1.split('_');
-            for (let i in ids1) {
+            for (const i in ids1) {
                 ids1[i] = parseInt(ids1[i]);
             }
         }
 
-        let field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '') && (req.params.field_name2 != '_')) ? req.params.field_name2 : null;
+        const field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '') && (req.params.field_name2 != '_')) ? req.params.field_name2 : null;
         let ids2 = null;
         if (field_name2) {
             ids2 = req.params.ids2.split('_');
-            for (let i in ids2) {
+            for (const i in ids2) {
                 ids2[i] = parseInt(ids2[i]);
             }
         }
 
-        let field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '') && (req.params.field_name3 != '_')) ? req.params.field_name3 : null;
+        const field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '') && (req.params.field_name3 != '_')) ? req.params.field_name3 : null;
         let ids3 = null;
         if (field_name3) {
             ids3 = req.params.ids3.split('_');
-            for (let i in ids3) {
+            for (const i in ids3) {
                 ids3[i] = parseInt(ids3[i]);
             }
         }

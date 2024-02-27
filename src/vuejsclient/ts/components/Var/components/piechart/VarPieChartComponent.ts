@@ -119,7 +119,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         return new Promise((resolve) => {
-            let interval = setInterval(() => {
+            const interval = setInterval(() => {
                 if (this.all_data_loaded) {
                     clearInterval(interval);
                     resolve('wait_for_datas');
@@ -134,10 +134,10 @@ export default class VarPieChartComponent extends VueComponentBase {
             this.var_datas = null;
             return;
         }
-        let res: { [index: string]: VarDataValueResVO } = {};
+        const res: { [index: string]: VarDataValueResVO } = {};
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
 
             res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
         }
@@ -162,8 +162,8 @@ export default class VarPieChartComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
 
             if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
                 return false;
@@ -189,7 +189,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         let params = [var_data.value];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -256,7 +256,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     get chart_options() {
-        let self = this;
+        const self = this;
         return Object.assign(
             {
                 options: {
@@ -286,18 +286,18 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get datasets(): any[] {
 
-        let res: any[] = [];
+        const res: any[] = [];
 
         if (!this.all_data_loaded) {
             return null;
         }
 
-        let dataset_datas: number[] = [];
-        let backgrounds: string[] = [];
-        let bordercolors: string[] = [];
-        let borderwidths: number[] = [];
-        for (let j in this.var_params) {
-            let var_param: VarDataBaseVO = this.var_params[j];
+        const dataset_datas: number[] = [];
+        const backgrounds: string[] = [];
+        const bordercolors: string[] = [];
+        const borderwidths: number[] = [];
+        for (const j in this.var_params) {
+            const var_param: VarDataBaseVO = this.var_params[j];
 
             // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
             dataset_datas.push(this.var_datas[var_param.index].value);
@@ -326,8 +326,8 @@ export default class VarPieChartComponent extends VueComponentBase {
             }
         }
 
-        let dataset = {
-            label: (!!this.var_dataset_descriptor.label_translatable_code) ?
+        const dataset = {
+            label: (this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
                 this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
             data: dataset_datas,
@@ -347,7 +347,7 @@ export default class VarPieChartComponent extends VueComponentBase {
             return;
         }
 
-        if (!!this.rendered) {
+        if (this.rendered) {
             ConsoleHandler.error('PB:render Pie Chart déjà rendu');
             return;
         }
@@ -379,7 +379,7 @@ export default class VarPieChartComponent extends VueComponentBase {
             return;
         }
 
-        if (!!this.rendered) {
+        if (this.rendered) {
             // Issu de Bar
             this.$data._chart.update();
         }
@@ -391,9 +391,9 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     get labels(): string[] {
-        let res = [];
+        const res = [];
 
-        for (let i in this.var_params) {
+        for (const i in this.var_params) {
             res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 

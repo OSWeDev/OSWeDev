@@ -170,7 +170,7 @@ export default abstract class ServerBase {
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
-        let pgp: pg_promise.IMain = pg_promise({
+        const pgp: pg_promise.IMain = pg_promise({
             async connect(e: { client: IClient, dc: any, useCount: number }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
             },
@@ -196,7 +196,7 @@ export default abstract class ServerBase {
         this.db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
-        let GM = this.modulesService;
+        const GM = this.modulesService;
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
@@ -236,7 +236,7 @@ export default abstract class ServerBase {
         });
 
         // Correction timezone
-        let types = pg.types;
+        const types = pg.types;
         types.setTypeParser(1114, (stringValue) => {
             return stringValue;
         });
@@ -246,14 +246,14 @@ export default abstract class ServerBase {
         }
         this.app = express();
 
-        let responseTime = require('response-time');
+        const responseTime = require('response-time');
 
         this.app.use(responseTime(async (req, res, time) => {
-            let url = req.originalUrl;
-            let method = req.method;
-            let status = res.statusCode;
+            const url = req.originalUrl;
+            const method = req.method;
+            const status = res.statusCode;
 
-            let log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
+            const log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
 
             // let cleaned_url = req.url.toLowerCase()
             //     .replace(/[:.]/g, '')
@@ -274,7 +274,7 @@ export default abstract class ServerBase {
                  *  - par status
                  *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
                  */
-                let slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
+                const slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
@@ -332,7 +332,7 @@ export default abstract class ServerBase {
         // this.app.use(csrfMiddleware);
 
         if (this.envParam.COMPRESS) {
-            let shouldCompress = function (req, res) {
+            const shouldCompress = function (req, res) {
                 if (req.headers['x-no-compression']) {
                     // don't compress responses with this request header
                     return false;
@@ -363,7 +363,7 @@ export default abstract class ServerBase {
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
          */
         this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
-            var sessionid = req.query.sessionid;
+            const sessionid = req.query.sessionid;
             if (!sessionid) {
                 next();
                 return;
@@ -377,11 +377,11 @@ export default abstract class ServerBase {
             }
 
             if (req.rawHeaders) {
-                for (let i in req.rawHeaders) {
-                    let rawHeader = req.rawHeaders[i];
+                for (const i in req.rawHeaders) {
+                    const rawHeader = req.rawHeaders[i];
                     if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
 
-                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        const groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
                         req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
                     }
                 }
@@ -389,7 +389,7 @@ export default abstract class ServerBase {
 
             if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
 
-                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                const groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
                 req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
             } else {
                 if (!req.headers) {
@@ -425,9 +425,9 @@ export default abstract class ServerBase {
         this.app.use(
             async (req, res, next) => {
 
-                if (!!req.headers.version) {
-                    let client_version = req.headers.version;
-                    let server_version = this.getVersion();
+                if (req.headers.version) {
+                    const client_version = req.headers.version;
+                    const server_version = this.getVersion();
 
                     if (client_version != server_version) {
 
@@ -522,8 +522,8 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = path.normalize(decodeURIComponent(req.path));
-            let normalized = path.resolve('./dist' + url);
+            const url = path.normalize(decodeURIComponent(req.path));
+            const normalized = path.resolve('./dist' + url);
 
             if (!this.ROOT_FOLDER) {
                 this.ROOT_FOLDER = path.resolve('./');
@@ -580,9 +580,9 @@ export default abstract class ServerBase {
         this.app.use(function (req, res, next) {
             // TODO JNE - A DISCUTER
             try {
-                let sid = res.req.cookies['sid'];
+                const sid = res.req.cookies['sid'];
 
-                if (!!sid) {
+                if (sid) {
                     req.session.sid = sid;
                 }
             } catch (error) {
@@ -687,7 +687,7 @@ export default abstract class ServerBase {
 
                     session.last_check_blocked_or_expired = Dates.now();
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                    const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
 
                     if ((!user) || user.blocked || user.invalidated) {
 
@@ -715,19 +715,19 @@ export default abstract class ServerBase {
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
-                if (!!EnvHandler.NODE_VERBOSE) {
+                if (EnvHandler.NODE_VERBOSE) {
                     ConsoleHandler.log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             }
 
             // On log les requêtes pour ensuite pouvoir les utiliser dans le delete session en log
-            let api_req: string[] = [];
-            let uid: number = (session) ? session.uid : null;
-            let sid: string = (session) ? session.sid : null;
-            let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", true);
+            const api_req: string[] = [];
+            const uid: number = (session) ? session.uid : null;
+            const sid: string = (session) ? session.sid : null;
+            const date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", true);
 
             if (req.url == "/api_handler/requests_wrapper") {
-                for (let i in req.body) {
+                for (const i in req.body) {
                     api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.body[i].url);
                 }
             } else {
@@ -742,21 +742,21 @@ export default abstract class ServerBase {
 
             // Génération à la volée des images en fonction du format demandé
             if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
-                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([^/]+)/(.*)');
+                const matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([^/]+)/(.*)');
 
                 if (!matches || !matches.length) {
                     return res.status(404).send('Not matches');
                 }
 
-                let format_name: string = matches[2];
-                let file_path: string = decodeURI(matches[3]);
+                const format_name: string = matches[2];
+                const file_path: string = decodeURI(matches[3]);
 
                 if (fs.existsSync(decodeURI(req.url)) || !format_name || !file_path) {
                     // Le fichier existe, on le renvoie directement
                     return res.sendFile(path.resolve(decodeURI(req.url)));
                 }
 
-                let base_filepath: string = ModuleFile.FILES_ROOT + file_path;
+                const base_filepath: string = ModuleFile.FILES_ROOT + file_path;
 
                 // On vérifie que le fichier de base existe pour appliquer le format dessus
                 if (!fs.existsSync(base_filepath)) {
@@ -764,7 +764,7 @@ export default abstract class ServerBase {
                     return res.status(404).send('Not found : ' + base_filepath);
                 }
 
-                let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
+                const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
                     .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true)
                     .select_vo<ImageFormatVO>();
 
@@ -773,7 +773,7 @@ export default abstract class ServerBase {
                     return res.status(404).send('Pas de format : ' + format_name);
                 }
 
-                let formatted_image: FormattedImageVO = await ModuleImageFormat.getInstance().get_formatted_image(
+                const formatted_image: FormattedImageVO = await ModuleImageFormat.getInstance().get_formatted_image(
                     base_filepath,
                     format_name,
                     format.width,
@@ -795,7 +795,7 @@ export default abstract class ServerBase {
          */
         this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name', async (req: Request, res: Response, next: NextFunction) => {
 
-            let folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+            const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
                 req.params.folder2 ? req.params.folder2 + '/' + (
                     req.params.folder3 ? req.params.folder3 + '/' + (
                         req.params.folder4 ? req.params.folder4 + '/' + (
@@ -804,7 +804,7 @@ export default abstract class ServerBase {
                     ) : ''
                 ) : ''
             ) : '');
-            let file_name = req.params.file_name;
+            const file_name = req.params.file_name;
 
             if (file_name.indexOf(';') >= 0) {
                 next();
@@ -821,7 +821,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
             let file: FileVO = null;
             let has_access: boolean = false;
 
@@ -879,17 +879,17 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
-        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
-        let locales_corrected = {};
-        for (let lang in locales) {
+        const locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        const locales_corrected = {};
+        for (const lang in locales) {
             if (lang && lang.indexOf('-') >= 0) {
-                let lang_parts = lang.split('-');
+                const lang_parts = lang.split('-');
                 if (lang_parts.length == 2) {
                     locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
                 }
             }
         }
-        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        const i18nextInit = I18nextInit.getInstance(locales_corrected);
         LocaleManager.getInstance().i18n = i18nextInit.i18next;
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
@@ -900,7 +900,7 @@ export default abstract class ServerBase {
 
         this.app.get('/', async (req: Request, res: Response) => {
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
 
             // On va regarder si la personne essaye d'y accéder en direct
             // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
@@ -910,7 +910,7 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            let has_access: boolean = await StackContext.runPromise(
+            const has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
@@ -924,7 +924,7 @@ export default abstract class ServerBase {
 
         this.app.get('/admin', async (req: Request, res) => {
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
 
             // On va regarder si la personne essaye d'y accéder en direct
             // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
@@ -934,7 +934,7 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            let has_access: boolean = await StackContext.runPromise(
+            const has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
@@ -949,9 +949,9 @@ export default abstract class ServerBase {
         // Accès aux logs iisnode
         this.app.get('/iisnode/:file_name', async (req: Request, res) => {
 
-            let file_name = req.params.file_name;
+            const file_name = req.params.file_name;
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
             let has_access: boolean = false;
 
             if (file_name) {
@@ -986,10 +986,10 @@ export default abstract class ServerBase {
             }
 
             if (session && session.uid) {
-                let uid: number = session.uid;
+                const uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -1009,7 +1009,7 @@ export default abstract class ServerBase {
                 PushDataServerController.getInstance().registerSession(session);
 
                 // On stocke le log de connexion en base
-                let user_log: UserLogVO = new UserLogVO();
+                const user_log: UserLogVO = new UserLogVO();
                 user_log.user_id = uid;
                 user_log.log_time = Dates.now();
                 user_log.impersonated = false;
@@ -1033,7 +1033,7 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            let err = await StackContext.runPromise(
+            const err = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
@@ -1041,7 +1041,7 @@ export default abstract class ServerBase {
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
 
-            let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+            const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
             res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
 
@@ -1060,7 +1060,7 @@ export default abstract class ServerBase {
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            let user: UserVO = await StackContext.runPromise(
+            const user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getSelfUser());
 
@@ -1078,7 +1078,7 @@ export default abstract class ServerBase {
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            let user: UserVO = await StackContext.runPromise(
+            const user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getSelfUser());
 
@@ -1154,7 +1154,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        if (!!ConfigurationService.node_configuration.ACTIVATE_LONG_JOHN) {
+        if (ConfigurationService.node_configuration.ACTIVATE_LONG_JOHN) {
             require('longjohn');
         }
 
@@ -1166,11 +1166,11 @@ export default abstract class ServerBase {
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
 
-        let on_connection = async () => {
+        const on_connection = async () => {
             ConsoleHandler.log('connection to db successful');
 
-            let server = require('http').Server(ServerBase.getInstance().app);
-            let io = require('socket.io')(server);
+            const server = require('http').Server(ServerBase.getInstance().app);
+            const io = require('socket.io')(server);
             ServerBase.getInstance().io = io;
             io.use(sharedsession(ServerBase.getInstance().session));
 
@@ -1232,7 +1232,7 @@ export default abstract class ServerBase {
             // define interactions with client
 
             io.on('connection', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
                 if (!session) {
                     ConsoleHandler.error('Impossible de charger la session dans SocketIO');
@@ -1243,7 +1243,7 @@ export default abstract class ServerBase {
             }.bind(ServerBase.getInstance()));
 
             io.on('disconnect', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
                 PushDataServerController.getInstance().unregisterSocket(session, socket);
             });
@@ -1300,7 +1300,7 @@ export default abstract class ServerBase {
 
     /* istanbul ignore next: nothing to test here */
     protected async hook_pwa_init() {
-        let version = this.getVersion();
+        const version = this.getVersion();
 
         // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
         //     res.header('Service-Worker-Allowed', '/public/');
@@ -1356,7 +1356,7 @@ export default abstract class ServerBase {
 
     protected redirect_login_or_home(req: Request, res: Response, url: string = null) {
         if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
-            let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+            const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
             return;
         }

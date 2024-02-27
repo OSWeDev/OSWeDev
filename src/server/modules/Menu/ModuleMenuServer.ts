@@ -143,7 +143,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
     }
 
     private async add_menu(app_name: string): Promise<void> {
-        let new_menu = new MenuElementVO();
+        const new_menu = new MenuElementVO();
         new_menu.access_policy_name = null;
         new_menu.app_name = app_name;
         new_menu.fa_class = null;
@@ -161,7 +161,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         }
         new_menu.id = res.id;
 
-        let code = new TranslatableTextVO();
+        const code = new TranslatableTextVO();
         code.code_text = new_menu.translatable_title;
         res = await ModuleDAO.getInstance().insertOrUpdateVO(code);
         if ((!res) || (!res.id)) {
@@ -170,8 +170,8 @@ export default class ModuleMenuServer extends ModuleServerBase {
         }
         code.id = res.id;
 
-        let user = await ModuleAccessPolicyServer.getSelfUser();
-        let lang = (user && user.lang_id) ?
+        const user = await ModuleAccessPolicyServer.getSelfUser();
+        const lang = (user && user.lang_id) ?
             await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>() :
             await ModuleTranslation.getInstance().getLang(ConfigurationService.node_configuration.DEFAULT_LOCALE);
         if (!lang) {
@@ -179,15 +179,15 @@ export default class ModuleMenuServer extends ModuleServerBase {
             return;
         }
 
-        let translation = new TranslationVO();
+        const translation = new TranslationVO();
         translation.lang_id = lang.id;
         translation.text_id = code.id;
-        let default_translatable = await ModuleTranslation.getInstance().getTranslatableText('menu_organizer.new' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
+        const default_translatable = await ModuleTranslation.getInstance().getTranslatableText('menu_organizer.new' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
         if (!default_translatable) {
             ConsoleHandler.error('add_menu:Failed get default_translatable');
             return;
         }
-        let default_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, default_translatable.id);
+        const default_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, default_translatable.id);
         if (!default_translation) {
             ConsoleHandler.error('add_menu:Failed get default_translation');
             return;
@@ -198,13 +198,13 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
     private async get_menu(app_name: string): Promise<MenuElementVO[]> {
 
-        let res: MenuElementVO[] = [];
+        const res: MenuElementVO[] = [];
 
-        let all = await query(MenuElementVO.API_TYPE_ID)
+        const all = await query(MenuElementVO.API_TYPE_ID)
             .filter_by_text_eq('app_name', app_name)
             .select_vos<MenuElementVO>();
-        for (let i in all) {
-            let elt = all[i];
+        for (const i in all) {
+            const elt = all[i];
 
             if (!elt.access_policy_name) {
                 res.push(elt);

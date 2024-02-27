@@ -11,7 +11,7 @@ export default class AnimationReponseVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_reponse';
 
     public static moduleTable(): ModuleTableVO {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Poids"),
             ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Réponse"),
             ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().valid, ModuleTableFieldVO.FIELD_TYPE_boolean, "Valide"),
@@ -21,13 +21,13 @@ export default class AnimationReponseVO implements IDistantVOBase {
     }
 
     public static fields(): Array<DatatableField<any, any>> {
-        let fields: Array<DatatableField<any, any>> = [];
-        let moduleTable: ModuleTableVO = AnimationReponseVO.moduleTable();
-        let moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
+        const fields: Array<DatatableField<any, any>> = [];
+        const moduleTable: ModuleTableVO = AnimationReponseVO.moduleTable();
+        const moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
 
         if (moduleTable_fields) {
-            for (let i in moduleTable_fields) {
-                let field: ModuleTableFieldVO = moduleTable_fields[i];
+            for (const i in moduleTable_fields) {
+                const field: ModuleTableFieldVO = moduleTable_fields[i];
                 fields.push(SimpleDatatableFieldVO.createNew(field.field_id).setModuleTable(moduleTable));
             }
         }

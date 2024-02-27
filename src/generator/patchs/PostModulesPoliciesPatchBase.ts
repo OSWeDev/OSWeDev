@@ -21,8 +21,8 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
 
         this.access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
 
-        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
-        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+        const roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        const policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
         await this.do_policies_activations(roles_ids_by_name, policies_ids_by_name);
     }
@@ -33,11 +33,11 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
     );
 
     protected async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
-        let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
+        const roles_ids_by_name: { [role_name: string]: number } = {};
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
-        for (let i in roles) {
-            let role = roles[i];
+        for (const i in roles) {
+            const role = roles[i];
 
             roles_ids_by_name[role.translatable_name] = role.id;
         }
@@ -46,11 +46,11 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
     }
 
     protected async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
-        let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
+        const policies_ids_by_name: { [role_name: string]: number } = {};
+        const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
-        for (let i in policies) {
-            let policy = policies[i];
+        for (const i in policies) {
+            const policy = policies[i];
 
             policies_ids_by_name[policy.translatable_name] = policy.id;
         }
@@ -69,7 +69,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         policy_id: number,
         roles_ids: number[]) {
 
-        for (let i in roles_ids) {
+        for (const i in roles_ids) {
             await this.activate_policy(policy_id, roles_ids[i]);
         }
     }
@@ -85,7 +85,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         policy_id: number,
         roles_ids: number[]) {
 
-        for (let i in roles_ids) {
+        for (const i in roles_ids) {
             await this.revoke_policy(policy_id, roles_ids[i]);
         }
     }
@@ -114,16 +114,16 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         /**
          * Charger les droits du role_source
          */
-        let rights_role_source: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).filter_by_num_eq('role_id', role_source.id).select_vos<RolePolicyVO>();
+        const rights_role_source: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).filter_by_num_eq('role_id', role_source.id).select_vos<RolePolicyVO>();
 
         /**
          * Dupliquer pour le role_destination
          */
         rights_role_destination = [];
-        for (let i in rights_role_source) {
-            let right_role_source = rights_role_source[i];
+        for (const i in rights_role_source) {
+            const right_role_source = rights_role_source[i];
 
-            let right_role_destination = new RolePolicyVO();
+            const right_role_destination = new RolePolicyVO();
             right_role_destination.accpol_id = right_role_source.accpol_id;
             right_role_destination.granted = right_role_source.granted;
             right_role_destination.role_id = role_destination.id;

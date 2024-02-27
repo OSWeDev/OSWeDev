@@ -20,7 +20,7 @@ export default class LocaleManager {
     }
 
     public label(txt: string, params = {}): string {
-        let res = this.t(
+        const res = this.t(
             txt + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION,
             params
         );

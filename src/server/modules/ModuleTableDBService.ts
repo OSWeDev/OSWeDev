@@ -1,9 +1,10 @@
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
-import ModuleTableFieldVO from '../../shared/modules/ModuleTableFieldVO';
-import ModuleTableVO from '../../shared/modules/ModuleTableVO';
 import StatsController from '../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
@@ -53,16 +54,16 @@ export default class ModuleTableDBService {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-');
 
-        let database_name = moduleTable.database;
-        let tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + database_name + "';");
+        const database_name = moduleTable.database;
+        const tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + database_name + "';");
 
-        let segments_by_segmented_value: { [segmented_value: number]: string } = {};
+        const segments_by_segmented_value: { [segmented_value: number]: string } = {};
 
-        for (let i in tables) {
-            let table = tables[i];
+        for (const i in tables) {
+            const table = tables[i];
 
-            let splits = table.tablename.split('_');
-            let segmented = parseInt(splits[splits.length - 1]);
+            const splits = table.tablename.split('_');
+            const segmented = parseInt(splits[splits.length - 1]);
 
             if (!segments_by_segmented_value[segmented]) {
                 segments_by_segmented_value[segmented] = table.tablename;
@@ -76,10 +77,10 @@ export default class ModuleTableDBService {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
-        let self = this;
+        const self = this;
 
         // On va commencer par créer le schema si il existe pas
-        if (!!moduleTable.database) {
+        if (moduleTable.database) {
             await this.db.none('CREATE SCHEMA IF NOT EXISTS ' + moduleTable.database + ';');
         }
 
@@ -105,16 +106,16 @@ export default class ModuleTableDBService {
 
                     try {
                         // On check d'abored l'existence de la table de référence
-                        let db_table_test: IDistantVOBase[] = await this.db.query("SELECT FROM pg_catalog.pg_tables WHERE schemaname = 'ref' AND tablename = '" + moduleTable.name + "';");
+                        const db_table_test: IDistantVOBase[] = await this.db.query("SELECT FROM pg_catalog.pg_tables WHERE schemaname = 'ref' AND tablename = '" + moduleTable.name + "';");
                         if ((!db_table_test) || (!db_table_test.length)) {
                             ConsoleHandler.log('create_or_update_datatable: no ref table:' + moduleTable.name + ': not a problem, it\'s just a test in case of migration to a segmented table.');
                             return;
                         }
 
                         // FIXME : WARN select * does not garanty the order of the fields, we should use a select with the fields in the right order
-                        let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
-                        for (let i in datas) {
-                            let data = datas[i];
+                        const datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
+                        for (const i in datas) {
+                            const data = datas[i];
                             data._type = moduleTable.vo_type;
                         }
                         segmentation_bdd_values = ModuleTableServerController.translate_vos_from_db(datas);
@@ -128,10 +129,10 @@ export default class ModuleTableDBService {
                     // TODO FIXME on migre pour le moment que sur un segment de NumRange
                     segments_by_segmented_value = {};
 
-                    for (let i in segmentation_bdd_values) {
-                        let segmentation_bdd_value = segmentation_bdd_values[i];
+                    for (const i in segmentation_bdd_values) {
+                        const segmentation_bdd_value = segmentation_bdd_values[i];
 
-                        let segmented = moduleTable.get_segmented_field_value_from_vo(segmentation_bdd_value);
+                        const segmented = moduleTable.get_segmented_field_value_from_vo(segmentation_bdd_value);
 
                         if (!segments_by_segmented_value[segmented]) {
                             segments_by_segmented_value[segmented] = "ok";
@@ -142,11 +143,11 @@ export default class ModuleTableDBService {
                     migration_todo = true;
                 } else {
 
-                    for (let i in segments_by_segmented_value) {
-                        let table_name = segments_by_segmented_value[i];
+                    for (const i in segments_by_segmented_value) {
+                        const table_name = segments_by_segmented_value[i];
 
-                        let splits = table_name.split('_');
-                        let segmented = parseInt(splits[splits.length - 1]);
+                        const splits = table_name.split('_');
+                        const segmented = parseInt(splits[splits.length - 1]);
 
                         segments.push(RangeHandler.create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
                     }
@@ -154,17 +155,17 @@ export default class ModuleTableDBService {
             }
 
             // On check que les segments sont bien des numranges
-            for (let i in segments) {
-                let segment = segments[i];
+            for (const i in segments) {
+                const segment = segments[i];
 
                 if ((!segment) || (segment.range_type != NumRange.RANGE_TYPE)) {
                     throw new Error('create_or_update_datatable: segment is not a NumRange:' + JSON.stringify(segment) + ':' + JSON.stringify(segments));
                 }
             }
 
-            let database_name = moduleTable.database;
+            const database_name = moduleTable.database;
 
-            let common_id_seq_name = this.get_segmented_table_common_limited_seq_label(moduleTable);
+            const common_id_seq_name = this.get_segmented_table_common_limited_seq_label(moduleTable);
             let max_id = 0;
 
             /**
@@ -194,29 +195,29 @@ export default class ModuleTableDBService {
 
             if (migration_todo) {
 
-                let column_names_list = [];
+                const column_names_list = [];
 
                 column_names_list.push('id');
-                let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
-                for (let i in fields) {
-                    column_names_list.push(fields[i].field_id);
+                const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+                for (const i in fields) {
+                    column_names_list.push(fields[i].field_name);
                 }
 
-                let column_names = column_names_list.join(',');
+                const column_names = column_names_list.join(',');
 
                 // Si on est en création => on migre les datas et on compte les datas migrées
                 await RangeHandler.foreach_ranges(segments, async (segmented_value) => {
 
-                    let table_name = moduleTable.get_segmented_name(segmented_value);
+                    const table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
-                    let field_where_clause = DAOServerController.getClauseWhereRangeIntersectsField(
-                        moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
+                    const field_where_clause = DAOServerController.getClauseWhereRangeIntersectsField(
+                        moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_name,
                         RangeHandler.create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 
                     await this.db.query('INSERT INTO ' + database_name + '.' + table_name + ' (' + column_names + ') SELECT ' + column_names + ' FROM ref.' + database_name + ' WHERE ' + field_where_clause + ';');
 
-                    let migrated_datas: any[] = await this.db.query('SELECT max(id) m FROM ' + database_name + '.' + table_name + ';');
+                    const migrated_datas: any[] = await this.db.query('SELECT max(id) m FROM ' + database_name + '.' + table_name + ';');
 
                     max_id = Math.max(max_id, ((!!migrated_datas) && migrated_datas.length) ? migrated_datas[0]['m'] : 0);
                 }, moduleTable.table_segmented_field_segment_type);
@@ -233,7 +234,7 @@ export default class ModuleTableDBService {
                 // Si on est en création => on change la séquence des tables créées
                 await RangeHandler.foreach_ranges(segments, async (segmented_value) => {
 
-                    let table_name = moduleTable.get_segmented_name(segmented_value);
+                    const table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // La table est créée on doit modifier le calcul de la clé primaire (la contrainte est ok, la séquence créée auto est inutile, on la supprime pas pour autant)
                     await this.db.query("ALTER TABLE " + database_name + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
@@ -242,7 +243,7 @@ export default class ModuleTableDBService {
         } else {
 
             // On doit entre autre ajouter la table en base qui gère les fields
-            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
             if ((!fields) || (!fields.length)) {
                 ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
             } else {
@@ -258,7 +259,7 @@ export default class ModuleTableDBService {
 
         let res: boolean = false;
 
-        let table_name = moduleTable.get_segmented_name(segmented_value);
+        const table_name = moduleTable.get_segmented_name(segmented_value);
         res = await this.do_check_or_update_moduletable(moduleTable, moduleTable.database, table_name, segmented_value);
 
         if (!migration_todo) {
@@ -291,9 +292,9 @@ export default class ModuleTableDBService {
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
 
-        let table_cols_sql: string = 'select column_name, column_default, is_nullable, data_type from INFORMATION_SCHEMA.COLUMNS ' +
+        const table_cols_sql: string = 'select column_name, column_default, is_nullable, data_type from INFORMATION_SCHEMA.COLUMNS ' +
             'where table_schema = \'' + database_name + '\' and table_name = \'' + table_name + '\';';
-        let table_cols: TableColumnDescriptor[] = await this.db.query(table_cols_sql);
+        const table_cols: TableColumnDescriptor[] = await this.db.query(table_cols_sql);
         let res: boolean = false;
 
         if ((!table_cols) || (!table_cols.length)) {
@@ -321,11 +322,11 @@ export default class ModuleTableDBService {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
-        let fields_by_field_name: { [field_name: string]: ModuleTableFieldVO } = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+        const fields_by_field_name: { [field_name: string]: ModuleTableFieldVO } = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
-        let table_cols_by_name: { [col_name: string]: TableColumnDescriptor } = {};
-        for (let i in table_cols) {
-            let table_col = table_cols[i];
+        const table_cols_by_name: { [col_name: string]: TableColumnDescriptor } = {};
+        for (const i in table_cols) {
+            const table_col = table_cols[i];
             table_cols_by_name[table_col.column_name] = table_col;
         }
 
@@ -354,24 +355,24 @@ export default class ModuleTableDBService {
     // istanbul ignore next: cannot test checkConstraintsOnForeignKey
     private async checkConstraintsOnForeignKey(
         moduleTable: ModuleTableVO,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
+        fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkConstraintsOnForeignKey', '-');
 
-        let full_name = database_name + '.' + table_name;
+        const full_name = database_name + '.' + table_name;
         let res: boolean = false;
 
-        for (let i in fields_by_field_id) {
-            let field = fields_by_field_id[i];
+        for (const i in fields_by_field_id) {
+            const field = fields_by_field_id[i];
 
             if (!field.has_single_relation) {
                 continue;
             }
 
-            let constraint = field.getPGSqlFieldConstraint();
+            const constraint = field.getPGSqlFieldConstraint();
 
             let actual_constraint_name_res = null;
             try {
@@ -384,16 +385,16 @@ export default class ModuleTableDBService {
                     '    and kcu.constraint_name = tco.constraint_name ' +
                     '    and kcu.table_name = tco.table_name ' +
                     '    and kcu.table_schema = tco.table_schema ' +
-                    '  where tco.constraint_type = \'FOREIGN KEY\' and kcu.column_name = \'' + field.field_id + '\' and kcu.table_name = \'' + table_name + '\' and kcu.table_schema = \'' + database_name + '\';');
+                    '  where tco.constraint_type = \'FOREIGN KEY\' and kcu.column_name = \'' + field.field_name + '\' and kcu.table_name = \'' + table_name + '\' and kcu.table_schema = \'' + database_name + '\';');
             } catch (error) {
             }
-            let actual_constraint_names: Array<{ constraint_name: string }> = (actual_constraint_name_res && actual_constraint_name_res.length > 0) ? actual_constraint_name_res : null;
+            const actual_constraint_names: Array<{ constraint_name: string }> = (actual_constraint_name_res && actual_constraint_name_res.length > 0) ? actual_constraint_name_res : null;
 
             if (!constraint) {
 
-                if (!!actual_constraint_names) {
-                    for (let actual_constraint_names_i in actual_constraint_names) {
-                        let actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
+                if (actual_constraint_names) {
+                    for (const actual_constraint_names_i in actual_constraint_names) {
+                        const actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
 
                         if (!actual_constraint_name) {
                             continue;
@@ -411,9 +412,9 @@ export default class ModuleTableDBService {
             }
 
             // ATTENTION sur certaines modifs subtiles on peut avoir besoin de forcer l'update complet des tables segmentées, car on supprime toujours les contraintes avant de recréer donc c'est pas un motif de modif fiable...
-            if (!!actual_constraint_names) {
-                for (let actual_constraint_names_i in actual_constraint_names) {
-                    let actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
+            if (actual_constraint_names) {
+                for (const actual_constraint_names_i in actual_constraint_names) {
+                    const actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
 
                     if (!actual_constraint_name) {
                         continue;
@@ -445,19 +446,19 @@ export default class ModuleTableDBService {
     // istanbul ignore next: cannot test checkMissingInTS
     private async checkMissingInTS(
         moduleTable: ModuleTableVO,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
+        fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInTS', '-');
 
-        let full_name = database_name + '.' + table_name;
+        const full_name = database_name + '.' + table_name;
         let res: boolean = false;
 
-        for (let i in table_cols_by_name) {
+        for (const i in table_cols_by_name) {
 
-            let index = i.toLowerCase();
+            const index = i.toLowerCase();
             // On ignore les ids qui sont jamais dans nos descripteurs logiciel
             if (index == 'id') {
                 continue;
@@ -467,8 +468,8 @@ export default class ModuleTableDBService {
 
                 // Cas des ranges : champs _ndx en base, on retrouve pas le field à ce niveau
                 if (index.endsWith('_ndx')) {
-                    let test_index = index.substr(0, index.length - 4);
-                    if (!!fields_by_field_id[test_index]) {
+                    const test_index = index.substr(0, index.length - 4);
+                    if (fields_by_field_id[test_index]) {
                         continue;
                     }
                 }
@@ -478,7 +479,7 @@ export default class ModuleTableDBService {
                 console.error('ACTION: Suppression automatique...');
 
                 try {
-                    let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
+                    const pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
                     await this.db.none(pgSQL);
                     res = true;
                     console.error('ACTION: OK');
@@ -501,18 +502,18 @@ export default class ModuleTableDBService {
     // istanbul ignore next: cannot test checkMissingInDB
     private async checkMissingInDB(
         moduleTable: ModuleTableVO,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
+        fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInDB', '-');
 
-        let full_name = database_name + '.' + table_name;
+        const full_name = database_name + '.' + table_name;
         let res: boolean = false;
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (!table_cols_by_name[field.field_name.toLowerCase()]) {
                 console.error('-');
@@ -520,7 +521,7 @@ export default class ModuleTableDBService {
                 console.error('ACTION: Création automatique...');
 
                 try {
-                    let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
+                    const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
                     await this.db.none(pgSQL);
                     res = true;
                     console.error('ACTION: OK');
@@ -542,14 +543,14 @@ export default class ModuleTableDBService {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                let index = field.field_name.toLowerCase() + '_ndx';
+                const index = field.field_name.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
                     console.error('-');
                     console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
                     console.error('ACTION: Création automatique...');
 
                     try {
-                        let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
+                        const pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
                         await this.db.none(pgSQL);
                         res = true;
                         console.error('ACTION: OK');
@@ -573,25 +574,25 @@ export default class ModuleTableDBService {
     // istanbul ignore next: cannot test checkColumnsStrutInDB
     private async checkColumnsStrutInDB(
         moduleTable: ModuleTableVO,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
+        fields_by_field_id: { [field_name: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkColumnsStrutInDB', '-');
 
-        let full_name = database_name + '.' + table_name;
+        const full_name = database_name + '.' + table_name;
         let res: boolean = false;
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (!table_cols_by_name[field.field_name]) {
                 continue;
             }
 
-            let table_col = table_cols_by_name[field.field_name];
+            const table_col = table_cols_by_name[field.field_name];
 
             // // On check les infos récupérées de la base : column_default, is_nullable, data_type
             // if (field.field_required == (table_col.is_nullable != TableColumnDescriptor.IS_NOT_NULLABLE_VALUE)) {
@@ -635,12 +636,12 @@ export default class ModuleTableDBService {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                let index = field.field_name.toLowerCase() + '_ndx';
+                const index = field.field_name.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
                     continue;
                 }
 
-                let table_col_ndx = table_cols_by_name[index];
+                const table_col_ndx = table_cols_by_name[index];
 
                 if (table_col_ndx.data_type != 'text') {
                     console.error('-');
@@ -662,17 +663,17 @@ export default class ModuleTableDBService {
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
 
         let res_: boolean = false;
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
-            let index_str = field.getPGSqlFieldIndex(database_name, table_name);
+            const index_str = field.getPGSqlFieldIndex(database_name, table_name);
             if (!index_str) {
                 continue;
             }
 
-            let res: any[] = await this.db.query("SELECT * FROM pg_indexes WHERE tablename = '" + table_name + "' and schemaname = '" + database_name + "' and indexname = '" + field.get_index_name(table_name) + "';");
+            const res: any[] = await this.db.query("SELECT * FROM pg_indexes WHERE tablename = '" + table_name + "' and schemaname = '" + database_name + "' and indexname = '" + field.get_index_name(table_name) + "';");
             if ((!!res) && (!!res.length)) {
                 continue;
             }
@@ -690,14 +691,14 @@ export default class ModuleTableDBService {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
-        let full_name = database_name + '.' + table_name;
+        const full_name = database_name + '.' + table_name;
 
         let pgSQL: string = 'CREATE TABLE IF NOT EXISTS ' + full_name + ' (';
         pgSQL += 'id bigserial NOT NULL';
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             pgSQL += ', ' + field.getPGSqlFieldDescription();
 
@@ -715,14 +716,14 @@ export default class ModuleTableDBService {
         }
 
         pgSQL += ', CONSTRAINT ' + table_name + '_pkey PRIMARY KEY (id)';
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
                 continue;
             }
             if (field.has_single_relation) {
-                let pgSqlFieldConstraint: string = field.getPGSqlFieldConstraint();
+                const pgSqlFieldConstraint: string = field.getPGSqlFieldConstraint();
                 if (pgSqlFieldConstraint) {
                     pgSQL += ', ' + pgSqlFieldConstraint;
                 }
@@ -733,12 +734,12 @@ export default class ModuleTableDBService {
          * Ajout des clés d'unicité
          */
         let uniq_constraints = '';
-        let uniq_indexes: ModuleTableFieldVO[][] = ModuleTableController.unique_fields_by_vo_type[moduleTable.vo_type];
+        const uniq_indexes: ModuleTableFieldVO[][] = ModuleTableController.unique_fields_by_vo_type[moduleTable.vo_type];
         if (uniq_indexes && uniq_indexes.length) {
-            for (let i in uniq_indexes) {
-                let uniq_index = uniq_indexes[i];
+            for (const i in uniq_indexes) {
+                const uniq_index = uniq_indexes[i];
 
-                uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_id).join(', ') + ')';
+                uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_name).join(', ') + ')';
             }
         }
         pgSQL += uniq_constraints + ');';
@@ -748,7 +749,7 @@ export default class ModuleTableDBService {
 
     // istanbul ignore next: nothing to test
     private get_limited_seq_label(seq_label: string): string {
-        let seq_label_63: string = seq_label.substring(0, 63 - "_id_seq".length);
+        const seq_label_63: string = seq_label.substring(0, 63 - "_id_seq".length);
         return seq_label_63 + "_id_seq";
     }
 

@@ -68,11 +68,11 @@ export default class DBDisconnectionServerHandler implements IDBDisconnectionHan
         this.db_is_disconnected = false;
 
         // On peut faire un bilan sur la déconnexion, qu'on peut cette fois-ci envoyer par Teams
-        let disconnection_duration = Dates.now() - this.db_is_disconnected_since;
+        const disconnection_duration = Dates.now() - this.db_is_disconnected_since;
         this.db_is_disconnected_since = null;
 
         ConsoleHandler.warn('DB Disconnection duration: ' + disconnection_duration + 'secs');
-        let msg = '<p class="alert">Le serveur d\'application a été déconnecté de la base de données pendant <strong>' + disconnection_duration + ' secondes</strong>.</p>' +
+        const msg = '<p class="alert">Le serveur d\'application a été déconnecté de la base de données pendant <strong>' + disconnection_duration + ' secondes</strong>.</p>' +
             '<p>Il est possible que des données aient été :</p>' +
             '<ul>' +
             '<li>Perdues</li>' +

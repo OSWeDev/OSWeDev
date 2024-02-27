@@ -107,8 +107,8 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             'file.trash.___LABEL___'
         ));
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf);
         preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf_update);
     }
@@ -131,12 +131,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     }
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {
 
-            if (!!uid) {
+            if (uid) {
                 await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
             }
             return false;
@@ -148,14 +148,14 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
              */
 
             if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
-                if (!!uid) {
+                if (uid) {
                     await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
 
-            let new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
-            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
+            const new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
+            const new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
             await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
             await ModuleFileServer.getInstance().moveFile(f.path, new_folder);
@@ -169,14 +169,14 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
              */
 
             if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
-                if (!!uid) {
+                if (uid) {
                     await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
 
-            let new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
-            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
+            const new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
+            const new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
             await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
             await ModuleFileServer.getInstance().moveFile(f.path, new_folder);

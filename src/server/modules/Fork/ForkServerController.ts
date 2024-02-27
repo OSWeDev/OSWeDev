@@ -59,7 +59,7 @@ export default class ForkServerController {
         //  On a pas ce problème sur les bgthreads, ils tournent ou pas
 
         // On ajoute le default_fork
-        let default_fork: IFork = {
+        const default_fork: IFork = {
             processes: {},
             uid: this.UID++,
             child_process: null
@@ -82,8 +82,8 @@ export default class ForkServerController {
     public static async reload_unavailable_threads() {
 
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
-        for (let i in ForkServerController.forks) {
-            let forked: IFork = ForkServerController.forks[i];
+        for (const i in ForkServerController.forks) {
+            const forked: IFork = ForkServerController.forks[i];
 
             if (ForkServerController.forks_availability[i]) {
                 continue;
@@ -104,8 +104,8 @@ export default class ForkServerController {
             }
 
             if (ForkMessageController.stacked_msg_waiting && ForkMessageController.stacked_msg_waiting.length) {
-                for (let j in ForkMessageController.stacked_msg_waiting) {
-                    let stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
+                for (const j in ForkMessageController.stacked_msg_waiting) {
+                    const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting[j];
 
                     if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
                         stacked_msg_waiting.sendHandle = forked.child_process;
@@ -143,9 +143,9 @@ export default class ForkServerController {
         /**
          * On attend le alive des forks avant de continuer
          */
-        let promises_pipeline = new PromisePipeline(100, 'ForkServerController.reload_unavailable_threads');
-        for (let i in ForkServerController.forks) {
-            let forked: IFork = ForkServerController.forks[i];
+        const promises_pipeline = new PromisePipeline(100, 'ForkServerController.reload_unavailable_threads');
+        for (const i in ForkServerController.forks) {
+            const forked: IFork = ForkServerController.forks[i];
 
             if (ForkServerController.forks_availability[i]) {
                 continue;
@@ -175,10 +175,10 @@ export default class ForkServerController {
     }
 
     private static get_argv(forked: IFork): string[] {
-        let res: string[] = [forked.uid.toString()];
+        const res: string[] = [forked.uid.toString()];
 
-        for (let i in forked.processes) {
-            let proc = forked.processes[i];
+        for (const i in forked.processes) {
+            const proc = forked.processes[i];
 
             res.push(proc.type + ':' + proc.name);
         }
@@ -187,10 +187,10 @@ export default class ForkServerController {
     }
 
     private static prepare_forked_bgtreads(default_fork: IFork) {
-        for (let i in BGThreadServerController.registered_BGThreads) {
-            let bgthread: IBGThread = BGThreadServerController.registered_BGThreads[i];
+        for (const i in BGThreadServerController.registered_BGThreads) {
+            const bgthread: IBGThread = BGThreadServerController.registered_BGThreads[i];
 
-            let forked_bgthread: IForkProcess = {
+            const forked_bgthread: IForkProcess = {
                 name: bgthread.name,
                 type: BGThreadServerController.ForkedProcessType
             };
@@ -199,7 +199,7 @@ export default class ForkServerController {
                 this.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] = {};
             }
 
-            if (!!bgthread.exec_in_dedicated_thread) {
+            if (bgthread.exec_in_dedicated_thread) {
                 this.forks[this.UID] = {
                     processes: {
                         [bgthread.name]: forked_bgthread
@@ -217,10 +217,10 @@ export default class ForkServerController {
     }
 
     private static prepare_forked_crons(default_fork: IFork) {
-        for (let i in CronServerController.getInstance().registered_cronWorkers) {
-            let cron: ICronWorker = CronServerController.getInstance().registered_cronWorkers[i];
+        for (const i in CronServerController.getInstance().registered_cronWorkers) {
+            const cron: ICronWorker = CronServerController.getInstance().registered_cronWorkers[i];
 
-            let forked_cron: IForkProcess = {
+            const forked_cron: IForkProcess = {
                 name: cron.worker_uid,
                 type: CronServerController.ForkedProcessType
             };
@@ -229,7 +229,7 @@ export default class ForkServerController {
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType] = {};
             }
 
-            if (!!cron.exec_in_dedicated_thread) {
+            if (cron.exec_in_dedicated_thread) {
                 this.forks[this.UID] = {
                     processes: {
                         [cron.worker_uid]: forked_cron
@@ -251,8 +251,8 @@ export default class ForkServerController {
 
         ThreadHandler.set_interval(async () => {
 
-            for (let i in this.forks) {
-                let forked: IFork = this.forks[i];
+            for (const i in this.forks) {
+                const forked: IFork = this.forks[i];
 
                 if (!this.forks_availability[i]) {
                     continue;

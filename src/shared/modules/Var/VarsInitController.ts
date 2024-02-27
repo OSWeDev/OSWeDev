@@ -27,12 +27,12 @@ export default class VarsInitController {
 
         this.registered_vars_datas_api_type_ids = [];
 
-        for (let api_type_id in VarsInitController.pre_registered_var_data_api_type_id_modules_list) {
-            let modules_list = VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id];
+        for (const api_type_id in VarsInitController.pre_registered_var_data_api_type_id_modules_list) {
+            const modules_list = VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id];
 
-            for (let i in modules_list) {
-                let module_name = modules_list[i];
-                if (ModulesManager.getInstance().modules_by_name[module_name].getModuleComponentByRole(Module.SharedModuleRoleName).actif) {
+            for (const i in modules_list) {
+                const module_name = modules_list[i];
+                if (ModulesManager.getInstance().getModuleByNameAndRole(module_name, Module.SharedModuleRoleName).actif) {
                     this.registered_vars_datas_api_type_ids.push(api_type_id);
                     break;
                 }
@@ -58,7 +58,7 @@ export default class VarsInitController {
         var_fields: ModuleTableFieldVO[],
         module: Module = null,
         is_test: boolean = false): ModuleTableVO {
-        let var_id = ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
+        const var_id = ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
 
         if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
             VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
@@ -74,8 +74,8 @@ export default class VarsInitController {
         /**
          * On ajoute un index automatiquement sur tous les champs ranges des vars
          */
-        for (let i in var_fields) {
-            let var_field = var_fields[i];
+        for (const i in var_fields) {
+            const var_field = var_fields[i];
 
             switch (var_field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
@@ -95,11 +95,11 @@ export default class VarsInitController {
             ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
         ]);
 
-        let datatable = new ModuleTableVO(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
+        const datatable = new ModuleTableVO(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
         if (!is_test) {
             var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         }
-        if (!!module) {
+        if (module) {
             module.datatables.push(datatable);
         }
         return datatable;

@@ -159,9 +159,9 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             'document_handler_component.no_document.___LABEL___')
         );
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file);
         preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file_update);
 
@@ -196,14 +196,14 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return true;
         }
 
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(d.file_id).select_vo<FileVO>();
+        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(d.file_id).select_vo<FileVO>();
 
         if (!file) {
             return false;
         }
 
-        let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
-        let url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
+        const BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+        const url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
 
         d.document_url = url;
         return true;
@@ -211,22 +211,22 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private async force_document_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>): Promise<void> {
 
-        let f: FileVO = vo_update_handler.post_update_vo;
+        const f: FileVO = vo_update_handler.post_update_vo;
 
         if (!f) {
             return;
         }
 
-        let docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq('file_id', f.id).select_vos<DocumentVO>();
+        const docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq('file_id', f.id).select_vos<DocumentVO>();
         if ((!docs) || (!docs.length)) {
             return;
         }
 
-        let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
-        let url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
+        const BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+        const url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
 
-        for (let i in docs) {
-            let doc = docs[i];
+        for (const i in docs) {
+            const doc = docs[i];
 
             if (doc.document_url != url) {
                 // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
@@ -239,8 +239,8 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        let main_query = query(DocumentVO.API_TYPE_ID);
-        let user = await ModuleAccessPolicyServer.getSelfUser();
+        const main_query = query(DocumentVO.API_TYPE_ID);
+        const user = await ModuleAccessPolicyServer.getSelfUser();
         return await main_query
             .filter_by_num_eq('lang_id', user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
@@ -253,12 +253,12 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let user = await ModuleAccessPolicyServer.getSelfUser();
+        const user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let user = await ModuleAccessPolicyServer.getSelfUser();
+        const user = await ModuleAccessPolicyServer.getSelfUser();
         return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }

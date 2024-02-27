@@ -116,7 +116,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }, 'menu.menuelements.admin.module_maintenance.___LABEL___'));
 
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this, this.handleTriggerPreC_MaintenanceVO);
 
         // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
@@ -149,13 +149,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let session = StackContext.get('SESSION');
+        const session = StackContext.get('SESSION');
 
         if (session && !session.uid) {
             return;
         }
 
-        let maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).exec_as_server().select_vo<MaintenanceVO>();
+        const maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).exec_as_server().select_vo<MaintenanceVO>();
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = Dates.now();
@@ -173,13 +173,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let planned_maintenance: MaintenanceVO = await this.get_planned_maintenance();
+        const planned_maintenance: MaintenanceVO = await this.get_planned_maintenance();
 
         if (!planned_maintenance) {
             return;
         }
 
-        let session = StackContext.get('SESSION');
+        const session = StackContext.get('SESSION');
 
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = Dates.now();
@@ -205,9 +205,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let maintenance: MaintenanceVO = new MaintenanceVO();
+        const maintenance: MaintenanceVO = new MaintenanceVO();
 
-        let session = StackContext.get('SESSION');
+        const session = StackContext.get('SESSION');
 
         if (session && !!session.uid) {
             maintenance.author_id = session.uid;
@@ -226,13 +226,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         ConsoleHandler.error('Maintenance programmée dans 10 minutes');
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
 
-        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
+        const readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
         await ThreadHandler.sleep(readonly_maintenance_deadline, 'ModuleMaintenanceServer.start_maintenance');
         await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
-        let maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
+        const maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
             .filter_is_false('maintenance_over')
             .exec_as_server()
             .select_vos<MaintenanceVO>();
@@ -246,11 +246,11 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
 
         // Si une maintenance est déjà en cours, on doit pas pouvoir en rajouter
-        if (!!(await ModuleMaintenanceServer.getInstance().get_planned_maintenance())) {
+        if (await ModuleMaintenanceServer.getInstance().get_planned_maintenance()) {
             return false;
         }
 
-        let session = StackContext.get('SESSION');
+        const session = StackContext.get('SESSION');
 
         maintenance.creation_date = Dates.now();
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);

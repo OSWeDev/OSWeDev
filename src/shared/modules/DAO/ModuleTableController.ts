@@ -1,30 +1,137 @@
 import { cloneDeep } from "lodash";
+import MatroidIndexHandler from "../../tools/MatroidIndexHandler";
+import { reflect } from "../../tools/ObjectHandler";
 import { query } from "../ContextFilter/vos/ContextQueryVO";
 import IDistantVOBase from "../IDistantVOBase";
+import IIsServerField from "../IIsServerField";
+import MatroidController from "../Matroid/MatroidController";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import VOsTypesManager from "../VO/manager/VOsTypesManager";
+import VarDataBaseVO from "../Var/vos/VarDataBaseVO";
 import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqueKeyController";
+import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
+import ConsoleHandler from "../../tools/ConsoleHandler";
 
 export default class ModuleTableController {
 
     // Caches pour optis
 
+    /**
+     * Les tables par vo_type
+     */
+    public static module_tables_by_vo_type: { [voType: string]: ModuleTableVO } = {};
+    /**
+     * Les tables par module_table_vo_id
+     */
+    public static module_tables_by_vo_id: { [vo_id: number]: ModuleTableVO } = {};
+
+    /**
+     * Les champs uniques par vo_type
+     */
     public static unique_fields_by_vo_type: { [vo_type: string]: ModuleTableFieldVO[][] } = {};
+    /**
+     * Les champs traduits en api_field
+     */
     public static field_name_to_api_map: { [vo_type: string]: { [field_name: string]: string } } = {};
+    /**
+     * Les champs readonly par vo_type
+     */
     public static readonly_fields_by_ids: { [vo_type: string]: { [field_name: string]: boolean } } = {};
 
-    public static create_new(
-        tmp_module: Module,
-        tmp_vo_type: string,
-        voConstructor: () => T,
-        tmp_fields: ModuleTableFieldVO[],
-        default_label_field: ModuleTableFieldVO,
-        label: string | DefaultTranslationVO = null
-    ) {
+    /**
+     * Les fonctions de traduction des labels des tables
+     * par défaut, on utilise le label_field
+     * mais on peut aussi utiliser une fonction
+     */
+    public static table_label_function_by_vo_type: { [vo_type: string]: <T extends IDistantVOBase>(vo: T) => string } = {};
+    /**
+     * Les champs dont dépend la fonction de traduction des labels des tables
+     */
+    public static table_label_function_field_ids_deps_by_vo_type: { [vo_type: string]: string[] } = {};
 
-        let res: ModuleTableVO = new ModuleTableVO();
+    /**
+     * Les constructeurs des vos par vo_type
+     */
+    public static vo_constructor_by_vo_type: { [vo_type: string]: { new <T extends IDistantVOBase>(): T } } = {};
+    /**
+     * Les vo_types déclarés par module
+     */
+    public static vo_type_by_module_name: { [module_name: string]: { [vo_type: string]: boolean } } = {};
+
+    /**
+     * 
+     * @param module_name Le nom du module qui initialise cette table
+     * @param vo_type l'API_TYPE_ID de la table
+     * @param voConstructor 
+     * @param label_field Le nom du champ qui sert de label pour la table. Inutile et à proscrire si on utilise une fonction pour le label
+     * @param table_label La trad par défaut pour cette table
+     * @returns une nouvelle instance de ModuleTableVO
+     */
+    public static create_new(
+        module_name: string,
+        vo_constructor: { new <T extends IDistantVOBase>(): T },
+        label_field: ModuleTableFieldVO = null,
+        label: string | DefaultTranslationVO = null
+    ): ModuleTableVO {
+
+        const res: ModuleTableVO = new ModuleTableVO();
+        const vo_type: string = new vo_constructor()._type;
+
+        ModuleTableController.vo_constructor_by_vo_type[vo_type] = vo_constructor;
+
+        res.default_label_field = label_field;
+
+        res.vo_type = vo_type;
+        res.module_name = module_name;
+        if (!ModuleTableController.vo_type_by_module_name[module_name]) {
+            ModuleTableController.vo_type_by_module_name[module_name] = {};
+        }
+        ModuleTableController.vo_type_by_module_name[module_name][vo_type] = true;
+
+        if (res.module_name) {
+            res.set_bdd_suffix_prefix_table_name(res.module_name, res.vo_type, "module");
+        }
+
+        if (!label) {
+            label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: res.name });
+        }
+        if (typeof label === "string") {
+            label = DefaultTranslationVO.create_new({ [DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
+        } else {
+            if ((!label.default_translations) || (!label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                label.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] = res.name;
+            }
+        }
+        res.label = label;
+
+        res.check_unicity_field_names(tmp_fields);
+
+        if (res.module_name) {
+            res.set_bdd_ref("ref", res.module_name, res.vo_type, "module");
+        }
+
+        if (res.vo_type) {
+            VOsTypesManager.registerModuleTable(res);
+        }
+
+        return res;
+    }
+
+    public static set_label_function(
+        vo_type: string,
+        table_label_function: (vo: IDistantVOBase) => string,
+        table_label_function_field_ids_deps: string[]) {
+
+        // Petit check de cohérence, avec la nouvelle version, si on a un default_label_field, on ne devrait pas avoir de table_label_function
+        if (ModuleTableController.module_tables_by_vo_type[vo_type].default_label_field && table_label_function) {
+            ConsoleHandler.error('set_label_function: Incohérence entre default_label_field et table_label_function, on ne doit pas avoir les 2 en même temps');
+            return;
+        }
+
+        ModuleTableController.table_label_function_by_vo_type[vo_type] = table_label_function;
+        ModuleTableController.table_label_function_field_ids_deps_by_vo_type[vo_type] = table_label_function_field_ids_deps;
     }
 
     /**
@@ -34,55 +141,57 @@ export default class ModuleTableController {
      * @param translate_field_id Si on veut traduire les field_id en api_field_id (false pour l'usage du update_vos que la context query)
      * @param translate_plain_obj_inside_fields_ids Si on veut traduire les plain obj à l'intérieur des fields (a priori true tout le temps, même dans le cas des context query)
      */
-    public static default_get_api_version<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true, translate_plain_obj_inside_fields_ids: boolean = true): any {
+    public static translate_vos_to_api<T extends IDistantVOBase>(e: T, translate_field_id: boolean = true, translate_plain_obj_inside_fields_ids: boolean = true): { [e in keyof T]: T[e] } {
         if (!e) {
             return null;
         }
 
-        let table = VOsTypesManager.moduleTables_by_voType[e._type];
+        const table = ModuleTableController.module_tables_by_vo_type[e._type];
         if ((!e._type) || !table) {
             return cloneDeep(e);
         }
 
-        let res = {};
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
         if (!fields) {
             return cloneDeep(e);
         }
 
-        res['_type'] = e._type;
-        res['id'] = e.id;
+        const res: T = {
+            _type: e._type,
+            id: e.id
+        } as T;
 
         // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
-        let fieldIdToAPIMap: { [field_id: string]: string } = table.getFieldIdToAPIMap();
+        const fieldIdToAPIMap: { [field_id: string]: string } = ModuleTableController.field_name_to_api_map[e._type];
 
         /**
          * Cas des matroids, on ignore les champs du matroid dans ce cas, on recréera le matroid de l'autre côté via l'index
          *  et par contre on crée un field fictif _api_only_index avec l'index dedans
          */
-        let ignore_fields: { [field_id: string]: boolean } = {};
+        const ignore_fields: { [field_id: string]: boolean } = {};
         if (table.isMatroidTable) {
-            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
-            for (let i in ignore_fields_) {
-                let ignore_field_ = ignore_fields_[i];
-                ignore_fields[ignore_field_.field_id] = true;
+            const ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
+            for (const i in ignore_fields_) {
+                const ignore_field_ = ignore_fields_[i];
+                ignore_fields[ignore_field_.field_name] = true;
             }
-            res['_api_only_index'] = (e as any as VarDataBaseVO).index;
+            res['_api_only_index'] = (e as unknown as VarDataBaseVO).index;
         }
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (field.is_readonly) {
                 continue;
             }
 
-            if (ignore_fields[field.field_id]) {
+            if (ignore_fields[field.field_name]) {
                 continue;
             }
 
-            let new_id = translate_field_id ? fieldIdToAPIMap[field.field_id] : field.field_id;
-            res[new_id] = table.default_get_field_api_version(e[field.field_id], field, translate_plain_obj_inside_fields_ids);
+            const new_id = translate_field_id ? fieldIdToAPIMap[field.field_name] : field.field_name;
+            res[new_id] = ModuleTableFieldController.translate_field_to_api(e[field.field_name], field, translate_plain_obj_inside_fields_ids);
         }
 
         return res;
@@ -92,18 +201,18 @@ export default class ModuleTableController {
      * On obtient enfin un vo instancié correctement depuis la classe cible. Donc on pourra théoriquement utiliser
      * des méthodes sur les vos et de l'héritage de vo normalement ... théoriquement
      */
-    public static default_from_api_version<T extends IDistantVOBase>(e: any): T {
+    public static translate_vos_from_api<T extends IDistantVOBase>(e: { [f in keyof T]: T[f] }): T {
         if (e == null) {
             return null;
         }
 
-        let table = VOsTypesManager.moduleTables_by_voType[e._type];
+        const table = ModuleTableController.module_tables_by_vo_type[e._type];
         if ((!e._type) || !table) {
             return cloneDeep(e);
         }
 
         let res: T = table.getNewVO();
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[e._type];
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
 
         if ((!fields) || (!res)) {
             return cloneDeep(e);
@@ -114,41 +223,41 @@ export default class ModuleTableController {
 
         // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
-        let fieldIdToAPIMap: { [field_id: string]: string } = table.getFieldIdToAPIMap();
+        const fieldIdToAPIMap: { [field_name: string]: string } = ModuleTableController.field_name_to_api_map[e._type];
 
         /**
          * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
          */
-        let ignore_fields: { [field_id: string]: boolean } = {};
+        const ignore_fields: { [field_name: string]: boolean } = {};
         if (table.isMatroidTable && !!e['_api_only_index']) {
-            let a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as any as T;
+            const a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as unknown as T;
             a._type = res._type;
             a.id = res.id;
             res = a;
-            let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
-            for (let i in ignore_fields_) {
-                let ignore_field_ = ignore_fields_[i];
-                ignore_fields[ignore_field_.field_id] = true;
+            const ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
+            for (const i in ignore_fields_) {
+                const ignore_field_ = ignore_fields_[i];
+                ignore_fields[ignore_field_.field_name] = true;
             }
         }
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             if (field.is_readonly) {
                 continue;
             }
 
-            if (ignore_fields[field.field_id]) {
+            if (ignore_fields[field.field_name]) {
                 continue;
             }
 
-            let old_id = fieldIdToAPIMap[field.field_id];
-            res[field.field_id] = table.default_field_from_api_version(e[old_id], field);
+            const old_id = fieldIdToAPIMap[field.field_name];
+            res[field.field_name] = ModuleTableFieldController.translate_field_from_api(e[old_id], field);
         }
 
         /// Dans TOUS les cas, le field is_server est forcé à FALSE quand on vient du client
-        if (!!res[reflect<IIsServerField>().is_server]) {
+        if (res[reflect<IIsServerField>().is_server]) {
             res[reflect<IIsServerField>().is_server] = false;
         }
 
@@ -163,19 +272,19 @@ export default class ModuleTableController {
 
         ModuleTableController.unique_fields_by_vo_type = {};
 
-        for (let vo_type in VOsTypesManager.moduleTables_by_voType) {
-            let table = VOsTypesManager.moduleTables_by_voType[vo_type];
+        for (const vo_type in ModuleTableController.module_tables_by_vo_type) {
+            const table = ModuleTableController.module_tables_by_vo_type[vo_type];
             if (!table) {
                 continue;
             }
 
-            let table_fields_by_name = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[vo_type];
+            const table_fields_by_name = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
             // On commence par les clés uniques composites
             if (ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[vo_type]) {
-                let composite_unique_keys = ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[vo_type];
-                for (let index in composite_unique_keys) {
-                    let unique_field = composite_unique_keys[index];
+                const composite_unique_keys = ModuleTableCompositeUniqueKeyController.composite_unique_keys_by_vo_type_and_index[vo_type];
+                for (const index in composite_unique_keys) {
+                    const unique_field = composite_unique_keys[index];
                     if (!ModuleTableController.unique_fields_by_vo_type[vo_type]) {
                         ModuleTableController.unique_fields_by_vo_type[vo_type] = [];
                     }
@@ -187,8 +296,8 @@ export default class ModuleTableController {
             }
 
             // Puis les clés uniques simples
-            for (let i in table_fields_by_name) {
-                let field = table_fields_by_name[i];
+            for (const i in table_fields_by_name) {
+                const field = table_fields_by_name[i];
                 if (field.is_unique) {
 
                     if (!ModuleTableController.unique_fields_by_vo_type[vo_type]) {
@@ -206,11 +315,11 @@ export default class ModuleTableController {
      */
     public static async load_ModuleTableVOs_from_db() {
 
-        let db_tables = await query(ModuleTableVO.API_TYPE_ID).select_vos<ModuleTableVO>();
+        const db_tables = await query(ModuleTableVO.API_TYPE_ID).select_vos<ModuleTableVO>();
 
-        for (let i in db_tables) {
-            let db_table = db_tables[i];
-            VOsTypesManager.moduleTables_by_voType[db_table.vo_type] = db_table;
+        for (const i in db_tables) {
+            const db_table = db_tables[i];
+            ModuleTableController.module_tables_by_vo_type[db_table.vo_type] = db_table;
         }
     }
 
@@ -218,11 +327,11 @@ export default class ModuleTableController {
 
         ModuleTableController.field_name_to_api_map = {};
 
-        for (let vo_type in VOsTypesManager.moduleTablesFields_by_voType_and_field_name) {
-            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[vo_type];
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
-            let n = 0;
-            let sortedFields = Object.values(fields).sort((a, b) => a.id - b.id);
+            const n = 0;
+            const sortedFields = Object.values(fields).sort((a, b) => a.id - b.id);
 
             if ((!sortedFields) || (!sortedFields.length)) {
                 continue;
@@ -230,8 +339,8 @@ export default class ModuleTableController {
 
             ModuleTableController.field_name_to_api_map[vo_type] = {};
 
-            for (let field_name in sortedFields) {
-                let field = sortedFields[field_name];
+            for (const field_name in sortedFields) {
+                const field = sortedFields[field_name];
 
                 ModuleTableController.field_name_to_api_map[vo_type][field.field_name] = ModuleTableController.OFFUSC_IDs[n];
             }
@@ -242,15 +351,15 @@ export default class ModuleTableController {
 
         ModuleTableController.readonly_fields_by_ids = {};
 
-        for (let vo_type in VOsTypesManager.moduleTablesFields_by_voType_and_field_name) {
-            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[vo_type];
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
             if (!fields) {
                 continue;
             }
 
-            for (let i in fields) {
-                let field = fields[i];
+            for (const i in fields) {
+                const field = fields[i];
 
                 if (field.is_readonly) {
 

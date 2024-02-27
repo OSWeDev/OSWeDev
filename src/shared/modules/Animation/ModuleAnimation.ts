@@ -128,7 +128,7 @@ export default class ModuleAnimation extends Module {
     }
 
     public async getUserModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
-        let ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
+        const ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
             .filter_by_num_eq('module_id', module_id)
             .filter_by_num_eq('user_id', user_id)
             .select_vos<AnimationUserModuleVO>();
@@ -142,17 +142,17 @@ export default class ModuleAnimation extends Module {
 
     //- ModuleTables
     private initializeAnimationParametersVO() {
-        let image_home_id = ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().image_home_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Image page d'accueil");
-        let document_id_ranges = ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().document_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Documents');
+        const image_home_id = ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().image_home_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Image page d'accueil");
+        const document_id_ranges = ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().document_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Documents');
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().seuil_validation_module_prct, ModuleTableFieldVO.FIELD_TYPE_prct, "Seuil validation module"),
             ModuleTableFieldController.create_new(AnimationParametersVO.API_TYPE_ID, field_names<AnimationParametersVO>().limite_temps_passe_module, ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes, "Limite temps passé par module"),
             image_home_id,
             document_id_ranges,
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationParametersVO.API_TYPE_ID, () => new AnimationParametersVO(), fields, null, "Animation - Params");
+        const datatable = new ModuleTableVO(this, AnimationParametersVO.API_TYPE_ID, () => new AnimationParametersVO(), fields, null, "Animation - Params");
 
         image_home_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         document_id_ranges.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
@@ -161,30 +161,30 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationThemeVO() {
-        let name_field = ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du thème", true);
-        let id_import = ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, "id for import");
+        const name_field = ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du thème", true);
+        const id_import = ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, "id for import");
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Ordre d'affichage"),
             name_field,
             ModuleTableFieldController.create_new(AnimationThemeVO.API_TYPE_ID, field_names<AnimationThemeVO>().description, ModuleTableFieldVO.FIELD_TYPE_html, "Description"),
             id_import,
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationThemeVO.API_TYPE_ID, () => new AnimationThemeVO(), fields, name_field, "Animation - Thème");
+        const datatable = new ModuleTableVO(this, AnimationThemeVO.API_TYPE_ID, () => new AnimationThemeVO(), fields, name_field, "Animation - Thème");
 
         this.datatables.push(datatable);
     }
 
     private initializeAnimationModuleVO() {
-        let name_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du module", true);
-        let computed_name_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().computed_name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du module computed").hide_from_datatable();
-        let theme_id_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().theme_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Thème", true);
-        let document_id_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().document_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Document explicatif");
-        let role_id_ranges = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
-        let id_import = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, "id for import");
+        const name_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du module", true);
+        const computed_name_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().computed_name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom du module computed").hide_from_datatable();
+        const theme_id_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().theme_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Thème", true);
+        const document_id_field = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().document_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Document explicatif");
+        const role_id_ranges = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().role_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
+        const id_import = ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, "id for import");
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationModuleVO.API_TYPE_ID, field_names<AnimationModuleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Ordre d'affichage"),
             theme_id_field,
             role_id_ranges,
@@ -196,7 +196,7 @@ export default class ModuleAnimation extends Module {
             id_import,
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, computed_name_field, "Animation - Module");
+        const datatable = new ModuleTableVO(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, computed_name_field, "Animation - Module");
 
         theme_id_field.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
         document_id_field.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
@@ -208,12 +208,12 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationQRVO() {
-        let name_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Type de question", true);
-        let module_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Module", true);
-        let question_file_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().question_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
-        let reponse_file_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().reponse_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
+        const name_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Type de question", true);
+        const module_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Module", true);
+        const question_file_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().question_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
+        const reponse_file_id_field = ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().reponse_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationQRVO.API_TYPE_ID, field_names<AnimationQRVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Ordre d'affichage"),
             module_id_field,
             name_field,
@@ -225,7 +225,7 @@ export default class ModuleAnimation extends Module {
             reponse_file_id_field,
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");
+        const datatable = new ModuleTableVO(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");
 
         module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
         question_file_id_field.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
@@ -237,10 +237,10 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationUserModuleVO() {
-        let module_id_field = ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Module", true);
-        let user_id_field = ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        const module_id_field = ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Module", true);
+        const user_id_field = ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
             ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
             ModuleTableFieldController.create_new(AnimationUserModuleVO.API_TYPE_ID, field_names<AnimationUserModuleVO>().like_vote, ModuleTableFieldVO.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
@@ -251,7 +251,7 @@ export default class ModuleAnimation extends Module {
             user_id_field,
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationUserModuleVO.API_TYPE_ID, () => new AnimationUserModuleVO(), fields, null, "Animation - Info module utilisateur");
+        const datatable = new ModuleTableVO(this, AnimationUserModuleVO.API_TYPE_ID, () => new AnimationUserModuleVO(), fields, null, "Animation - Info module utilisateur");
 
         module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
         user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
@@ -260,17 +260,17 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationUserQRVO() {
-        let qr_id_field = ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().qr_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Question/Réponses", true);
-        let user_id_field = ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
+        const qr_id_field = ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().qr_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Question/Réponses", true);
+        const user_id_field = ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().reponses, ModuleTableFieldVO.FIELD_TYPE_int_array, "Réponses"),
             qr_id_field,
             user_id_field,
             ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date").set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationUserQRVO.API_TYPE_ID, () => new AnimationUserQRVO(), fields, null, "Animation - Info réponses utilisateur");
+        const datatable = new ModuleTableVO(this, AnimationUserQRVO.API_TYPE_ID, () => new AnimationUserQRVO(), fields, null, "Animation - Info réponses utilisateur");
 
         qr_id_field.set_many_to_one_target_moduletable_name(AnimationQRVO.API_TYPE_ID);
         user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
@@ -279,11 +279,11 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeThemeModuleDataRangesVO() {
-        let theme_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().theme_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Themes', true);
-        let module_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().module_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Modules', true);
-        let user_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Users', true);
+        const theme_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().theme_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Themes', true);
+        const module_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().module_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Modules', true);
+        const user_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Users', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             theme_id_ranges,
             module_id_ranges,
             user_id_ranges

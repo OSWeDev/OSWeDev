@@ -37,13 +37,13 @@ export default class ModuleTranslationsImport extends Module {
     private intializeImport() {
 
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(ImportTranslation.API_TYPE_ID, field_names<ImportTranslation>().code_lang, ModuleTableFieldVO.FIELD_TYPE_string, 'code_lang', false),
             ModuleTableFieldController.create_new(ImportTranslation.API_TYPE_ID, field_names<ImportTranslation>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'code_text', false),
             ModuleTableFieldController.create_new(ImportTranslation.API_TYPE_ID, field_names<ImportTranslation>().translated, ModuleTableFieldVO.FIELD_TYPE_string, 'translated', false)
         ];
 
-        let datatable = new ModuleTableVO(this, ImportTranslation.API_TYPE_ID, () => new ImportTranslation(), datatable_fields, null, "Import des traductions");
+        const datatable = new ModuleTableVO(this, ImportTranslation.API_TYPE_ID, () => new ImportTranslation(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }

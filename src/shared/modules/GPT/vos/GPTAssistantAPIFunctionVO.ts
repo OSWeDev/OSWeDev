@@ -21,15 +21,15 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
 
     public to_GPT_FunctionDefinition(params: GPTAssistantAPIFunctionParamVO[]): FunctionDefinition {
 
-        let gpt_params: { [param_name: string]: FunctionParameters } = {};
+        const gpt_params: { [param_name: string]: FunctionParameters } = {};
 
-        for (let i in params) {
-            let param: GPTAssistantAPIFunctionParamVO = params[i];
+        for (const i in params) {
+            const param: GPTAssistantAPIFunctionParamVO = params[i];
 
             gpt_params[param.gpt_funcparam_name] = param.to_GPT_FunctionParameters();
         }
 
-        let ret: FunctionDefinition = {
+        const ret: FunctionDefinition = {
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
@@ -41,10 +41,10 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
 
     public ordered_function_params_from_GPT_arguments(function_vo: GPTAssistantAPIFunctionVO, thread_vo: GPTAssistantAPIThreadVO, args: { [param_name: string]: any }, params: GPTAssistantAPIFunctionParamVO[]): any[] {
 
-        let ret: any[] = [];
+        const ret: any[] = [];
 
-        for (let i in params) {
-            let param: GPTAssistantAPIFunctionParamVO = params[i];
+        for (const i in params) {
+            const param: GPTAssistantAPIFunctionParamVO = params[i];
             ret.push(args[param.gpt_funcparam_name]);
         }
 

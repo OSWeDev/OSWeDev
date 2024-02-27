@@ -35,7 +35,7 @@ export default class FieldValueFilterWidgetManager {
     ): ContextFilterVO {
         let context_filter: ContextFilterVO = null;
 
-        let vo_field_ref = widget_options?.vo_field_ref;
+        const vo_field_ref = widget_options?.vo_field_ref;
 
         if (VOFieldRefVOHandler.is_type_boolean(vo_field_ref)) {
             const default_filters_options = widget_options?.default_boolean_values;
@@ -46,8 +46,8 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_date(vo_field_ref)) {
-            let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-            let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+            const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+            const field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
             const default_filters_options = widget_options?.default_ts_range_values;
 
@@ -60,9 +60,9 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_enum(vo_field_ref)) {
-            let default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOption[] = [];
 
-            for (let i in widget_options?.default_filter_opt_values) {
+            for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
                 const data_filter_option = new DataFilterOption().from(props);
                 default_filters_options.push(data_filter_option);
@@ -75,9 +75,9 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_number(vo_field_ref)) {
-            let default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOption[] = [];
 
-            for (let i in widget_options?.default_filter_opt_values) {
+            for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
                 const data_filter_option = new DataFilterOption().from(props);
                 default_filters_options.push(data_filter_option);
@@ -90,9 +90,9 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (VOFieldRefVOHandler.is_type_string(vo_field_ref)) {
-            let default_filters_options: DataFilterOption[] = [];
+            const default_filters_options: DataFilterOption[] = [];
 
-            for (let i in widget_options?.default_filter_opt_values) {
+            for (const i in widget_options?.default_filter_opt_values) {
                 const props = widget_options.default_filter_opt_values[i];
                 const data_filter_option = new DataFilterOption().from(props);
                 default_filters_options.push(data_filter_option);
@@ -122,10 +122,10 @@ export default class FieldValueFilterWidgetManager {
     ): ContextFilterVO {
         let filter = null;
 
-        for (let i in boolean_filter_options) {
-            let boolean_filter_type = boolean_filter_options[i];
+        for (const i in boolean_filter_options) {
+            const boolean_filter_type = boolean_filter_options[i];
 
-            let this_filter = new ContextFilterVO();
+            const this_filter = new ContextFilterVO();
             this_filter.field_id = vo_field_ref.field_id;
             this_filter.vo_type = vo_field_ref.api_type_id;
 
@@ -142,7 +142,7 @@ export default class FieldValueFilterWidgetManager {
             if (!filter) {
                 filter = this_filter;
             } else {
-                let or = new ContextFilterVO();
+                const or = new ContextFilterVO();
                 or.field_id = vo_field_ref.field_id;
                 or.vo_type = vo_field_ref.api_type_id;
                 or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
@@ -180,19 +180,19 @@ export default class FieldValueFilterWidgetManager {
             }
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
-        for (let i in locale_enum_filter_options) {
-            let active_option: DataFilterOption = locale_enum_filter_options[i];
+        for (const i in locale_enum_filter_options) {
+            const active_option: DataFilterOption = locale_enum_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
@@ -214,7 +214,7 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
             cf_null_value.field_id = vo_field_ref.field_id;
             cf_null_value.vo_type = vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
@@ -253,19 +253,19 @@ export default class FieldValueFilterWidgetManager {
             }
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
-        for (let i in locale_number_filter_options) {
-            let active_option = locale_number_filter_options[i];
+        for (const i in locale_number_filter_options) {
+            const active_option = locale_number_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 field,
@@ -287,7 +287,7 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
             cf_null_value.field_id = vo_field_ref.field_id;
             cf_null_value.vo_type = vo_field_ref.api_type_id;
@@ -321,7 +321,7 @@ export default class FieldValueFilterWidgetManager {
             vo_field_ref?: VOFieldRefVO,
         }
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO[] = [];
+        const context_filter: ContextFilterVO[] = [];
 
         let locale_ref_field_filter_options: DataFilterOption[] = null;
 
@@ -333,26 +333,26 @@ export default class FieldValueFilterWidgetManager {
             }
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         if (options?.vo_field_ref_multiple?.length > 0) {
-            for (let i in options.vo_field_ref_multiple) {
-                let moduletable_multiple = VOsTypesManager.moduleTables_by_voType[options.vo_field_ref_multiple[i].api_type_id];
-                let field_multiple = moduletable_multiple.get_field_by_id(options.vo_field_ref_multiple[i].field_id);
+            for (const i in options.vo_field_ref_multiple) {
+                const moduletable_multiple = ModuleTableController.module_tables_by_vo_type[options.vo_field_ref_multiple[i].api_type_id];
+                const field_multiple = moduletable_multiple.get_field_by_id(options.vo_field_ref_multiple[i].field_id);
                 let context_filter_multiple: ContextFilterVO = null;
 
                 let has_null_value_multiple: boolean = false;
 
-                for (let j in locale_ref_field_filter_options) {
-                    let active_option = locale_ref_field_filter_options[j];
+                for (const j in locale_ref_field_filter_options) {
+                    const active_option = locale_ref_field_filter_options[j];
 
                     if (active_option.id == RangeHandler.MIN_INT) {
                         has_null_value_multiple = true;
                         continue;
                     }
 
-                    let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+                    const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                         active_option,
                         null,
                         field_multiple,
@@ -374,7 +374,7 @@ export default class FieldValueFilterWidgetManager {
                 }
 
                 if (has_null_value_multiple) {
-                    let cf_null_value: ContextFilterVO = new ContextFilterVO();
+                    const cf_null_value: ContextFilterVO = new ContextFilterVO();
                     cf_null_value.field_id = options.vo_field_ref_multiple[i].field_id;
                     cf_null_value.vo_type = options.vo_field_ref_multiple[i].api_type_id;
                     cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
@@ -395,15 +395,15 @@ export default class FieldValueFilterWidgetManager {
         let context_filter_simple: ContextFilterVO = null;
         let has_null_value: boolean = false;
 
-        for (let i in locale_ref_field_filter_options) {
-            let active_option = locale_ref_field_filter_options[i];
+        for (const i in locale_ref_field_filter_options) {
+            const active_option = locale_ref_field_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -417,7 +417,7 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
             cf_null_value.field_id = options.vo_field_ref.field_id;
             cf_null_value.vo_type = options.vo_field_ref.api_type_id;
@@ -455,7 +455,7 @@ export default class FieldValueFilterWidgetManager {
             vo_field_ref?: VOFieldRefVO,
         }
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO[] = [];
+        const context_filter: ContextFilterVO[] = [];
 
         let locale_string_filter_options: DataFilterOption[] = null;
 
@@ -467,26 +467,26 @@ export default class FieldValueFilterWidgetManager {
             }
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         if (options?.vo_field_ref_multiple?.length > 0) {
-            for (let i in options.vo_field_ref_multiple) {
-                let moduletable_multiple = VOsTypesManager.moduleTables_by_voType[options.vo_field_ref_multiple[i].api_type_id];
-                let field_multiple = moduletable_multiple.get_field_by_id(options.vo_field_ref_multiple[i].field_id);
+            for (const i in options.vo_field_ref_multiple) {
+                const moduletable_multiple = ModuleTableController.module_tables_by_vo_type[options.vo_field_ref_multiple[i].api_type_id];
+                const field_multiple = moduletable_multiple.get_field_by_id(options.vo_field_ref_multiple[i].field_id);
                 let context_filter_multiple: ContextFilterVO = null;
 
                 let has_null_value_multiple: boolean = false;
 
-                for (let j in locale_string_filter_options) {
-                    let active_option = locale_string_filter_options[j];
+                for (const j in locale_string_filter_options) {
+                    const active_option = locale_string_filter_options[j];
 
                     if (active_option.id == RangeHandler.MIN_INT) {
                         has_null_value_multiple = true;
                         continue;
                     }
 
-                    let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+                    const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                         active_option,
                         null,
                         field_multiple,
@@ -508,7 +508,7 @@ export default class FieldValueFilterWidgetManager {
                 }
 
                 if (has_null_value_multiple) {
-                    let cf_null_value: ContextFilterVO = new ContextFilterVO();
+                    const cf_null_value: ContextFilterVO = new ContextFilterVO();
                     cf_null_value.field_id = options.vo_field_ref_multiple[i].field_id;
                     cf_null_value.vo_type = options.vo_field_ref_multiple[i].api_type_id;
                     cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
@@ -529,15 +529,15 @@ export default class FieldValueFilterWidgetManager {
         let context_filter_simple: ContextFilterVO = null;
         let has_null_value: boolean = false;
 
-        for (let i in locale_string_filter_options) {
-            let active_option = locale_string_filter_options[i];
+        for (const i in locale_string_filter_options) {
+            const active_option = locale_string_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -551,7 +551,7 @@ export default class FieldValueFilterWidgetManager {
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
             cf_null_value.field_id = options.vo_field_ref.field_id;
             cf_null_value.vo_type = options.vo_field_ref.api_type_id;
@@ -657,9 +657,9 @@ export default class FieldValueFilterWidgetManager {
         let has_segmented: boolean = false;
         let overflowing_api_type_id: string = null;
 
-        for (let i in api_type_ids) {
-            let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        for (const i in api_type_ids) {
+            const api_type_id: string = api_type_ids[i];
+            const module_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -670,7 +670,7 @@ export default class FieldValueFilterWidgetManager {
 
                 has_segmented = true;
 
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(
+                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(
                     api_type_id,
                     context_query_with_discarded_field_paths,
                     ignore_self_filter
@@ -693,9 +693,9 @@ export default class FieldValueFilterWidgetManager {
     ) {
 
         if (api_type_id?.length > 0) {
-            let new_filters = [];
+            const new_filters = [];
 
-            for (let i in context_query.filters) {
+            for (const i in context_query.filters) {
                 const context_filter: ContextFilterVO = context_query.filters[i];
 
                 if (context_filter.vo_type == api_type_id) {
@@ -716,11 +716,11 @@ export default class FieldValueFilterWidgetManager {
                 discarded_field_paths
             );
 
-            let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
-            let fields = segmented_moduletable.get_fields();
+            const segmented_moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
+            const fields = segmented_moduletable.get_fields();
 
-            for (let i in fields) {
-                let field: ModuleTableFieldVO = fields[i];
+            for (const i in fields) {
+                const field: ModuleTableFieldVO = fields[i];
 
                 if (!field.manyToOne_target_moduletable) {
                     continue;

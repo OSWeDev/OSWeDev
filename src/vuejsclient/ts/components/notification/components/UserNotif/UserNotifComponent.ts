@@ -31,17 +31,17 @@ export default class UserNotifComponent extends VueComponentBase {
         if (!this.notification || !this.notification.notif_route) {
             return null;
         }
-        let location: RawLocation = { name: this.notification.notif_route };
+        const location: RawLocation = { name: this.notification.notif_route };
         if (!!this.notification.notif_route_params_name
             && !!this.notification.notif_route_params_name.length
             && !!this.notification.notif_route_params_values
             && !!this.notification.notif_route_params_values.length
             && this.notification.notif_route_params_name.length == this.notification.notif_route_params_values.length
         ) {
-            let location_params: Dictionary<string> = {};
-            for (let n_index in this.notification.notif_route_params_name) {
-                let key = this.notification.notif_route_params_name[n_index];
-                let value = this.notification.notif_route_params_values[n_index];
+            const location_params: Dictionary<string> = {};
+            for (const n_index in this.notification.notif_route_params_name) {
+                const key = this.notification.notif_route_params_name[n_index];
+                const value = this.notification.notif_route_params_values[n_index];
 
                 location_params[key] = value;
             }

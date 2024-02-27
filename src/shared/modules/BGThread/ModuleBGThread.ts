@@ -31,8 +31,8 @@ export default class ModuleBGThread extends Module {
     }
 
     public initialize() {
-        let label_field = ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const datatable_fields = [
             label_field,
             ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
         ];

@@ -79,8 +79,8 @@ export default class ModuleRequest extends Module {
             return "";
         }
 
-        for (let i in params) {
-            let param = params[i];
+        for (const i in params) {
+            const param = params[i];
 
             res = (res ? res + "&" : "?") + i + "=" + param;
         }

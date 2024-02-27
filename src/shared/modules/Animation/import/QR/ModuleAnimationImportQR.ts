@@ -35,7 +35,7 @@ export default class ModuleAnimationImportQR extends Module {
     private intializeImport() {
 
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'description', false),
             ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().reponses, ModuleTableFieldVO.FIELD_TYPE_string, 'reponses', false),
             ModuleTableFieldController.create_new(AnimationImportQRVO.API_TYPE_ID, field_names<AnimationImportQRVO>().explicatif, ModuleTableFieldVO.FIELD_TYPE_string, 'explicatif', false),
@@ -50,7 +50,7 @@ export default class ModuleAnimationImportQR extends Module {
         ];
 
 
-        let datatable = new ModuleTableVO(this, AnimationImportQRVO.API_TYPE_ID, () => new AnimationImportQRVO(), datatable_fields, null, "Import des traductions");
+        const datatable = new ModuleTableVO(this, AnimationImportQRVO.API_TYPE_ID, () => new AnimationImportQRVO(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }

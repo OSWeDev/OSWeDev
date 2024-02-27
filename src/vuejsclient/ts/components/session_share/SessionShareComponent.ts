@@ -3,7 +3,7 @@ import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAc
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import VueComponentBase from "../VueComponentBase";
 import './SessionShareComponent.scss';
-let QRCode = require('qrcode');
+const QRCode = require('qrcode');
 
 @Component({
     template: require('./SessionShareComponent.pug')
@@ -28,7 +28,7 @@ export default class SessionShareComponent extends VueComponentBase {
             return;
         }
 
-        let sessionid = await ModuleAccessPolicy.getInstance().get_my_sid();
+        const sessionid = await ModuleAccessPolicy.getInstance().get_my_sid();
         if (!sessionid) {
             return;
         }
@@ -36,7 +36,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
         this.can_copy = document.queryCommandSupported('copy');
         this.can_use_navigator_share = !!navigator['share'];
-        let user = await ModuleAccessPolicy.getInstance().getSelfUser();
+        const user = await ModuleAccessPolicy.getInstance().getSelfUser();
         if (user) {
             this.email = user.email;
             this.phone = user.phone;
@@ -67,8 +67,8 @@ export default class SessionShareComponent extends VueComponentBase {
     }
 
     private open_show() {
-        let canvas = document.getElementById('session_share_qr_code');
-        let self = this;
+        const canvas = document.getElementById('session_share_qr_code');
+        const self = this;
 
         QRCode.toCanvas(canvas, this.session_share_url, function (error) {
             if (error) {
@@ -97,16 +97,16 @@ export default class SessionShareComponent extends VueComponentBase {
 
     private docopy() {
 
-        var range = document.createRange();
-        var fromElement = document.querySelector("#session_share_url");
-        var selection = window.getSelection();
+        const range = document.createRange();
+        const fromElement = document.querySelector("#session_share_url");
+        let selection = window.getSelection();
 
         range.selectNode(fromElement);
         selection.removeAllRanges();
         selection.addRange(range);
 
         try {
-            var result = document.execCommand('copy');
+            const result = document.execCommand('copy');
             if (result) {
                 // La copie a réussi
                 this.snotify.success(this.label('session_share.docopy.success'));

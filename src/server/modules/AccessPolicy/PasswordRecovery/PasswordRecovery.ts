@@ -44,14 +44,14 @@ export default class PasswordRecovery {
 
     public async beginRecovery(email: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         return await this.beginRecovery_user(user);
     }
 
     public async beginRecovery_uid(uid: number): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecovery_user(user);
     }
@@ -68,10 +68,10 @@ export default class PasswordRecovery {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
 
         // Send mail
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+        if (SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
             await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -87,7 +87,7 @@ export default class PasswordRecovery {
         } else {
 
             // Send mail
-            let translated_mail_subject: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+            const translated_mail_subject: TranslationVO = await query(TranslationVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordRecovery.CODE_TEXT_MAIL_SUBJECT_RECOVERY, TranslatableTextVO.API_TYPE_ID)
                 .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
 
@@ -109,7 +109,7 @@ export default class PasswordRecovery {
             return;
         }
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         return await this.beginRecoverySMS_user(user);
     }
@@ -120,7 +120,7 @@ export default class PasswordRecovery {
             return;
         }
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         return await this.beginRecoverySMS_user(user);
     }
@@ -143,13 +143,13 @@ export default class PasswordRecovery {
 
         phone = phone.replace(' ', '');
 
-        let lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-        let translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+        const lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        const translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordRecovery.CODE_TEXT_SMS_RECOVERY, TranslatableTextVO.API_TYPE_ID)
             .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
 
-        let session = StackContext.get('SESSION');
-        let sid = session.sid;
+        const session = StackContext.get('SESSION');
+        const sid = session.sid;
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

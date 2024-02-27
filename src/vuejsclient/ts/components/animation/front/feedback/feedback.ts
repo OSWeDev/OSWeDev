@@ -101,7 +101,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
     }
 
     get commentaire_editable_field() {
-        return SimpleDatatableFieldVO.createNew('commentaire').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationUserModuleVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('commentaire').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationUserModuleVO.API_TYPE_ID]);
     }
 
     get module_id(): number {

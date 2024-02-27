@@ -28,7 +28,7 @@ export default class SendInBlueServerController {
 
     public async loadParam(): Promise<void> {
         if (!this.param) {
-            let params: SendInBlueVO[] = await query(SendInBlueVO.API_TYPE_ID).select_vos<SendInBlueVO>();
+            const params: SendInBlueVO[] = await query(SendInBlueVO.API_TYPE_ID).select_vos<SendInBlueVO>();
 
             this.param = (params) ? params[0] : null;
         }
@@ -65,7 +65,7 @@ export default class SendInBlueServerController {
     }
 
     public async getReplyToEmail(): Promise<string> {
-        let reply_to: SendInBlueMailVO = await this.getReplyTo();
+        const reply_to: SendInBlueMailVO = await this.getReplyTo();
         return reply_to ? reply_to.email : null;
     }
 
@@ -83,7 +83,7 @@ export default class SendInBlueServerController {
     }
 
     public async getSenderName(): Promise<string> {
-        let sender: SendInBlueMailVO = await this.getSender();
+        const sender: SendInBlueMailVO = await this.getSender();
         return sender ? sender.name : null;
     }
 

@@ -31,9 +31,9 @@ export default class FavoritesFiltersWidgetOptionsVO extends AbstractVO {
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =

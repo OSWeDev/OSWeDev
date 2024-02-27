@@ -22,7 +22,7 @@ export default class ArchiveFilesWorkersHandler {
 
         ModuleCronServer.getInstance().registerCronWorker(ArchiveFilesCronWorker.getInstance());
 
-        let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
+        const planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
         planCronWorker.date_heure_planifiee = Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY), 1, TimeSegment.TYPE_HOUR);
         planCronWorker.intervale_recurrence = 1;

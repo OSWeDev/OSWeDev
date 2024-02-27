@@ -29,7 +29,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         this.api_type_id = api_type_id;
         this.show_insert_or_update_target = show_insert_or_update_target;
 
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
 
         if (crud) {
             crud.createDatatable.refresh();
@@ -60,7 +60,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
     private async close_modal() {
         $('#crud_create_modal_' + this.api_type_id).modal('hide');
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
         if (crud) {
             crud.createDatatable.refresh();
             await (this.$refs['Crudcreateformcomponent'] as CRUDCreateFormComponent).update_key(true);

@@ -11,3 +11,25 @@ ModuleTableController.init_field_name_to_api_map()
 ModuleTableController.load_ModuleTableVOs_from_db()
 ModuleTableController.init_unique_fields_by_voType()
 ModuleTableController.init_readonly_fields_by_ids()
+
+
+default_get_bdd_version => ModuleTableController. translate_vos_to_db
+default_force_numeric && default_force_numerics => ModuleTableController. translate_vos_from_db
+
+translate_field_from_db
+
+
+
+define_default_label_function => ModuleTableController.set_label_function
+
+delete public table_label_function: (vo: T) => string = null;
+delete public table_label_function_field_ids_deps: string[] = null;
+
+
+Séparer la déclaration des moduletablevo et moduletablefieldvo dans initialize_moduletablevos sur chaque module pour permettre de gérer facilement les problèmes de dépendances circulaires
+
+
+Utilité de datatables dans les modules  ???
+
+supprimé table.getFieldFromId
+supprimé table.has_field_id

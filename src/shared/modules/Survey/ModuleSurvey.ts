@@ -59,9 +59,9 @@ export default class ModuleSurvey extends Module {
     }
 
     private initializeSurveyVO() {
-        let user_id = ModuleTableFieldController.create_new(SurveyVO.API_TYPE_ID, field_names<SurveyVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const user_id = ModuleTableFieldController.create_new(SurveyVO.API_TYPE_ID, field_names<SurveyVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
 
-        let fields = [
+        const fields = [
             user_id,
 
             ModuleTableFieldController.create_new(SurveyVO.API_TYPE_ID, field_names<SurveyVO>().message, ModuleTableFieldVO.FIELD_TYPE_string, 'Message', false).hide_from_datatable(),
@@ -69,7 +69,7 @@ export default class ModuleSurvey extends Module {
             ModuleTableFieldController.create_new(SurveyVO.API_TYPE_ID, field_names<SurveyVO>().route_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
         ];
 
-        let table = new ModuleTableVO(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
+        const table = new ModuleTableVO(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
         this.datatables.push(table);
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
@@ -79,14 +79,14 @@ export default class ModuleSurvey extends Module {
 
     private initializeParamSurveyVO() {
 
-        let fields = [
+        const fields = [
             ModuleTableFieldController.create_new(SurveyParamVO.API_TYPE_ID, field_names<SurveyParamVO>().route_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true),
             ModuleTableFieldController.create_new(SurveyParamVO.API_TYPE_ID, field_names<SurveyParamVO>().pop_up, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', false),
             ModuleTableFieldController.create_new(SurveyParamVO.API_TYPE_ID, field_names<SurveyParamVO>().time_before_pop_up, ModuleTableFieldVO.FIELD_TYPE_float, 'Temps avant affichage', true),
             ModuleTableFieldController.create_new(SurveyParamVO.API_TYPE_ID, field_names<SurveyParamVO>().content, ModuleTableFieldVO.FIELD_TYPE_html, 'Contenu'),
         ];
 
-        let table = new ModuleTableVO(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');
+        const table = new ModuleTableVO(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');
         this.datatables.push(table);
 
 

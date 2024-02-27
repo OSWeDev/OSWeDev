@@ -36,7 +36,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 throw new Error('Pas de datas à exporter pour l\'export :' + exhi.id + ':' + exhi.export_type_id + ':');
             }
 
-            let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(
+            const file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(
                 datas.filename, datas.datas, datas.ordered_column_list, datas.column_labels, datas.api_type_id,
                 exhi.export_is_secured, exhi.export_file_access_policy_name
             );
@@ -62,9 +62,9 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 return false;
             }
 
-            let envParam: EnvParam = ConfigurationService.node_configuration;
+            const envParam: EnvParam = ConfigurationService.node_configuration;
 
-            let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+            const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
             let user: UserVO = null;
             if (user_id == exhi.export_to_uid) {
                 user = await ModuleAccessPolicyServer.getSelfUser();
@@ -80,8 +80,8 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             let content: string;
             let mail_param: {} = {};
 
-            if (!!exhi.exported_file_id) {
-                let exported_file: FileVO = !!exhi.exported_file_id ? await query(FileVO.API_TYPE_ID).filter_by_id(exhi.exported_file_id).select_vo<FileVO>() : null;
+            if (exhi.exported_file_id) {
+                const exported_file: FileVO = exhi.exported_file_id ? await query(FileVO.API_TYPE_ID).filter_by_id(exhi.exported_file_id).select_vo<FileVO>() : null;
                 subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
                 content = default_mail_html_template;
 
@@ -99,10 +99,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 };
             }
 
-            let translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
+            const translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
                 (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated, user.lang_id, mail_param);
 
-            let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, mail_param);
+            const prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, mail_param);
 
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
@@ -110,7 +110,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 html: prepared_html
             });
 
-            for (let i in exhi.export_to_mails) {
+            for (const i in exhi.export_to_mails) {
                 await ModuleMailerServer.getInstance().sendMail({
                     to: exhi.export_to_mails[i],
                     subject: translated_mail_subject,

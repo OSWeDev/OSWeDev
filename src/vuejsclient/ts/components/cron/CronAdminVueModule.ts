@@ -33,7 +33,7 @@ export default class CronAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let importsMenuBranch: MenuElementVO =
+        const importsMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleCron.POLICY_BO_ACCESS,
@@ -60,15 +60,15 @@ export default class CronAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        let url: string = "/cron/run";
-        let main_route_name: string = 'CronRun';
+        const url: string = "/cron/run";
+        const main_route_name: string = 'CronRun';
 
         this.routes.push({
             path: url,
             name: main_route_name,
             component: () => import('./CronComponent')
         });
-        let menuelt = MenuElementVO.create_new(
+        const menuelt = MenuElementVO.create_new(
             ModuleCron.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             'CronRun',

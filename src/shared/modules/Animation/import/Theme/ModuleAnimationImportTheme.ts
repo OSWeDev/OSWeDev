@@ -35,7 +35,7 @@ export default class ModuleAnimationImportTheme extends Module {
     private intializeImport() {
 
 
-        let datatable_fields = [
+        const datatable_fields = [
 
             ModuleTableFieldController.create_new(AnimationImportThemeVO.API_TYPE_ID, field_names<AnimationImportThemeVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'description', false),
             ModuleTableFieldController.create_new(AnimationImportThemeVO.API_TYPE_ID, field_names<AnimationImportThemeVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'name', false),
@@ -43,7 +43,7 @@ export default class ModuleAnimationImportTheme extends Module {
             ModuleTableFieldController.create_new(AnimationImportThemeVO.API_TYPE_ID, field_names<AnimationImportThemeVO>().id_import, ModuleTableFieldVO.FIELD_TYPE_string, 'id_import', false),
         ];
 
-        let datatable = new ModuleTableVO(this, AnimationImportThemeVO.API_TYPE_ID, () => new AnimationImportThemeVO(), datatable_fields, null, "Import des themes");
+        const datatable = new ModuleTableVO(this, AnimationImportThemeVO.API_TYPE_ID, () => new AnimationImportThemeVO(), datatable_fields, null, "Import des themes");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
 

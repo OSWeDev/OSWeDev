@@ -33,8 +33,8 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
     // istanbul ignore next: nothing to test : work
     public async work() {
 
-        var filterFileVOS: ArchiveFilesConfVO[] = await query(ArchiveFilesConfVO.API_TYPE_ID).select_vos<ArchiveFilesConfVO>();
-        for (let i in filterFileVOS) {
+        const filterFileVOS: ArchiveFilesConfVO[] = await query(ArchiveFilesConfVO.API_TYPE_ID).select_vos<ArchiveFilesConfVO>();
+        for (const i in filterFileVOS) {
             const filterFileVO = filterFileVOS[i];
             // on parcourt le dossier
             fs.readdir(filterFileVO.path_to_check, async (err, files) => {
@@ -43,9 +43,9 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                     return;
                 }
                 //on boucle sur le resultat du readdir
-                for (let j in files) {
+                for (const j in files) {
                     const file = files[j];
-                    var file_vos: FileVO[] = await query(FileVO.API_TYPE_ID)
+                    const file_vos: FileVO[] = await query(FileVO.API_TYPE_ID)
                         .filter_by_text_eq('path', filterFileVO.path_to_check + "/" + file)
                         .select_vos<FileVO>();
 
@@ -110,8 +110,8 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                                     throw new Error('NOT IMPLEMENTED');
                             }
                             //non met a jour le chemin du fichier en bdd si il existe deja
-                            if (!!target_folder) {
-                                var file_vo_updated: string = await FileServerController.getInstance().moveFile(filterFileVO.path_to_check + "/" + file, target_folder);
+                            if (target_folder) {
+                                const file_vo_updated: string = await FileServerController.getInstance().moveFile(filterFileVO.path_to_check + "/" + file, target_folder);
                                 if (file_vo != null) {
                                     file_vo.path = file_vo_updated;
                                 }

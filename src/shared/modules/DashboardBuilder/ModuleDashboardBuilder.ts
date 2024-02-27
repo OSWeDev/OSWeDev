@@ -74,15 +74,15 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     public initialize() {
-        let db_table = this.init_DashboardVO();
+        const db_table = this.init_DashboardVO();
 
-        let db_page = this.init_DashboardPageVO(db_table);
+        const db_page = this.init_DashboardPageVO(db_table);
         this.init_shared_filters_vo();
 
         this.init_FavoritesFiltersVO(db_page);
 
         this.init_DashboardGraphVORefVO(db_table);
-        let db_widget = this.init_DashboardWidgetVO();
+        const db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
         this.init_VOFieldRefVO();
         this.init_TableColumnDescVO();
@@ -104,11 +104,11 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardVO(): ModuleTableVO {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let res = new ModuleTableVO(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
+        const res = new ModuleTableVO(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
         this.datatables.push(res);
         return res;
     }
@@ -116,9 +116,9 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardGraphVORefVO(db_table: ModuleTableVO): ModuleTableVO {
 
-        let dashboard_id = ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
+        const dashboard_id = ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             dashboard_id,
             ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true),
             ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true),
@@ -128,7 +128,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().values_to_exclude, ModuleTableFieldVO.FIELD_TYPE_string_array, 'field_id des liens à exclure'),
         ];
 
-        let res = new ModuleTableVO(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
+        const res = new ModuleTableVO(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
         this.datatables.push(res);
         dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
@@ -136,16 +136,16 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardPageVO(db_table: ModuleTableVO): ModuleTableVO {
 
-        let dashboard_id = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
+        const dashboard_id = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             dashboard_id,
             ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
             ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().hide_navigation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false),
             ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false),
         ];
 
-        let res = new ModuleTableVO(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
+        const res = new ModuleTableVO(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
         this.datatables.push(res);
         dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
@@ -153,9 +153,9 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardWidgetVO(): ModuleTableVO {
 
-        let name = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        const name = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
-        let datatable_fields = [
+        const datatable_fields = [
             name,
             ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
             ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().widget_component, ModuleTableFieldVO.FIELD_TYPE_string, 'Composant - Widget', true),
@@ -168,7 +168,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false),
         ];
 
-        let res = new ModuleTableVO(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
+        const res = new ModuleTableVO(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
 
         this.datatables.push(res);
 
@@ -177,10 +177,10 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardPageWidgetVO(db_page: ModuleTableVO, db_widget: ModuleTableVO) {
 
-        let widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
-        let page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
+        const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             widget_id,
             page_id,
             ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().isDraggable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'isDraggable', true, true, true),
@@ -229,9 +229,9 @@ export default class ModuleDashboardBuilder extends Module {
      */
     private init_FavoritesFiltersVO(db_page: ModuleTableVO) {
 
-        let page_id = ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        const page_id = ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             page_id,
 
             ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().owner_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Owner Id', true),
@@ -262,7 +262,7 @@ export default class ModuleDashboardBuilder extends Module {
      *  - May be useful when switching between dashboard
      */
     private init_shared_filters_vo() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(SharedFiltersVO.API_TYPE_ID, field_names<SharedFiltersVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom des filtres', true),
             ModuleTableFieldController.create_new(SharedFiltersVO.API_TYPE_ID, field_names<SharedFiltersVO>().field_filters_to_share, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Field Filters To Share', false),
             ModuleTableFieldController.create_new(SharedFiltersVO.API_TYPE_ID, field_names<SharedFiltersVO>().shared_from_dashboard_ids, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Filtre partagé par les dashboards', false),
@@ -283,7 +283,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_VOFieldRefVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'VO Type', true),
             ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Champs', true),
             ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
@@ -294,9 +294,9 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_TableColumnDescVO() {
 
-        let var_id = ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var', false);
+        const var_id = ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var', false);
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de colonne', true).setEnumValues(TableColumnDescVO.TYPE_LABELS),
 
             ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'VO Type', false),
@@ -353,7 +353,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_AdvancedDateFilterOptDescVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(AdvancedDateFilterOptDescVO.API_TYPE_ID, field_names<AdvancedDateFilterOptDescVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false),
             ModuleTableFieldController.create_new(AdvancedDateFilterOptDescVO.API_TYPE_ID, field_names<AdvancedDateFilterOptDescVO>().value, ModuleTableFieldVO.FIELD_TYPE_int, 'Valeur', false),
             ModuleTableFieldController.create_new(AdvancedDateFilterOptDescVO.API_TYPE_ID, field_names<AdvancedDateFilterOptDescVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Date', false).set_segmentation_type(TimeSegment.TYPE_DAY),
@@ -367,7 +367,7 @@ export default class ModuleDashboardBuilder extends Module {
 
 
     private initialize_ComponentDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -392,7 +392,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_ComputedDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -416,7 +416,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_CRUDActionsDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -438,7 +438,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_FileDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -462,7 +462,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_InputDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -486,7 +486,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_ManyToManyReferenceDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -524,7 +524,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_ManyToOneReferenceDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -551,7 +551,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_OneToManyReferenceDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -587,7 +587,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_RefRangesReferenceDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -623,7 +623,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_SelectBoxDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
@@ -645,7 +645,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_SimpleDatatableFieldVO() {
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'field_type'),
@@ -675,10 +675,10 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     private initialize_VarDatatableFieldVO() {
-        let var_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Variable");
-        let dashboard_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard");
+        const var_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Variable");
+        const dashboard_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard");
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
             ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
             ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),

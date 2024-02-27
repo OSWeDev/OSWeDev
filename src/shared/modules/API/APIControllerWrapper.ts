@@ -11,6 +11,7 @@ import IDateAPI from './interfaces/IDateAPI';
 import IDurationAPI from './interfaces/IDurationAPI';
 import IMomentAPI from './interfaces/IMomentAPI';
 import APIDefinition from './vos/APIDefinition';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class APIControllerWrapper {
 
@@ -118,14 +119,14 @@ export default class APIControllerWrapper {
      * @param apiUrl
      */
     public static getFakeRequestParamsFromUrl(requestUrl: string, apiUrl: string): any {
-        var pattern = apiUrl.replace(/:[^:\/?]+([/]|$)/ig, '([^/]*)$1');
+        let pattern = apiUrl.replace(/:[^:\/?]+([/]|$)/ig, '([^/]*)$1');
         // Gestion des paramètres optionnels
         pattern = pattern.replace(/[/]:[^:\/?]+[?]/ig, '/?([^/]*)?');
 
         // let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '([^/]*)');
 
-        let urlMembers: string[] = Array.from(new RegExp(pattern, "ig").exec(requestUrl));
-        let res = { params: {} };
+        const urlMembers: string[] = Array.from(new RegExp(pattern, "ig").exec(requestUrl));
+        const res = { params: {} };
 
         if ((!urlMembers) || (urlMembers.length <= 1)) {
             return res;
@@ -133,7 +134,7 @@ export default class APIControllerWrapper {
         urlMembers.shift();
 
         let i = 0;
-        let apiRegExp = /:([^:\/]+)/ig;
+        const apiRegExp = /:([^:\/]+)/ig;
         let apiMember = apiRegExp.exec(apiUrl);
 
         while (apiMember) {
@@ -161,7 +162,7 @@ export default class APIControllerWrapper {
             return APIControllerWrapper.try_translate_vos_from_api(e);
         }
 
-        let elt = (e as IDistantVOBase);
+        const elt = (e as IDistantVOBase);
         if (!elt._type) {
 
             if (APIControllerWrapper.is_range(e as IRange)) {
@@ -181,8 +182,8 @@ export default class APIControllerWrapper {
             }
 
             if (typeof e === 'object') {
-                let res = Object.assign({}, e);
-                for (let i in res) {
+                const res = Object.assign({}, e);
+                for (const i in res) {
 
                     res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
                 }
@@ -192,7 +193,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        return ModuleTableVO.default_from_api_version(elt);
+        return ModuleTableController.translate_vos_from_api(elt);
     }
 
     public static try_translate_vo_to_api(e: any, nb_calls: number = 0): any {
@@ -211,7 +212,7 @@ export default class APIControllerWrapper {
             throw new Error('try_translate_vo_to_api:TOO MANY CALLS TO TRANSLATE VO TO API - PROBABLY RECURSIVE:_type:' + e._type);
         }
 
-        let elt = (e as IDistantVOBase);
+        const elt = (e as IDistantVOBase);
         if (!elt._type) {
 
             if (APIControllerWrapper.is_range(e as IRange)) {
@@ -233,9 +234,9 @@ export default class APIControllerWrapper {
             if (typeof e === 'object') {
 
                 // Ignorer les méthodes
-                let res = Object.assign({}, e);
+                const res = Object.assign({}, e);
 
-                for (let i in res) {
+                for (const i in res) {
 
                     if (e[i] == e) {
                         ConsoleHandler.error('try_translate_vo_to_api:RECURSIVE OBJECT CANNOT BE TRANSLATED TO API:_type:' + e._type);
@@ -249,7 +250,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        return ModuleTableVO.default_get_api_version(elt);
+        return ModuleTableController.translate_vos_to_api(elt);
     }
 
     public static try_translate_vos_from_api(e: any): any {
@@ -262,10 +263,10 @@ export default class APIControllerWrapper {
             return APIControllerWrapper.try_translate_vo_from_api(e);
         }
 
-        let res = [];
+        const res = [];
 
-        for (let i in e) {
-            let elt = e[i];
+        for (const i in e) {
+            const elt = e[i];
 
             res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
         }
@@ -283,10 +284,10 @@ export default class APIControllerWrapper {
             return APIControllerWrapper.try_translate_vo_to_api(e);
         }
 
-        let res = [];
+        const res = [];
 
-        for (let i in e) {
-            let elt = e[i];
+        for (const i in e) {
+            const elt = e[i];
 
             res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
         }

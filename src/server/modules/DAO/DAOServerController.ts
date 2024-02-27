@@ -111,28 +111,28 @@ export default class DAOServerController {
     public static async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, access_type: string, vos: T[]): Promise<T[]> {
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
+        const hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
         if (!StackContext.get('IS_CLIENT')) {
             // Server
             return vos;
         }
 
-        for (let i in hooks) {
-            let hook = hooks[i];
+        for (const i in hooks) {
+            const hook = hooks[i];
 
-            let uid: number = StackContext.get('UID');
+            const uid: number = StackContext.get('UID');
             vos = await hook(datatable, vos, uid, null) as T[];
         }
 
         if (vos && vos.length && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
-            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[datatable.vo_type];
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[datatable.vo_type];
 
-            for (let j in vos) {
-                let vo: IDistantVOBase = vos[j];
+            for (const j in vos) {
+                const vo: IDistantVOBase = vos[j];
 
-                for (let i in fields) {
-                    let field: ModuleTableFieldVO = fields[i];
+                for (const i in fields) {
+                    const field: ModuleTableFieldVO = fields[i];
 
                     if (datatable.default_label_field &&
                         (field.field_id == datatable.default_label_field.field_id)) {
@@ -258,8 +258,8 @@ export default class DAOServerController {
 
         let first_range: boolean = true;
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (!first_range) {
                 ranges_query += ',';
@@ -372,7 +372,7 @@ export default class DAOServerController {
     }
 
     public static get_dao_policy(translatable_name: string, group: AccessPolicyGroupVO, isAccessConfVoType: boolean, accessConfVoType_DEFAULT_BEHAVIOUR: number): AccessPolicyVO {
-        let vo_read: AccessPolicyVO = new AccessPolicyVO();
+        const vo_read: AccessPolicyVO = new AccessPolicyVO();
         vo_read.group_id = group.id;
         vo_read.default_behaviour = isAccessConfVoType ? accessConfVoType_DEFAULT_BEHAVIOUR : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         vo_read.translatable_name = translatable_name;
@@ -384,7 +384,7 @@ export default class DAOServerController {
             return null;
         }
 
-        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        const dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
         dependency.src_pol_id = from.id;
         dependency.depends_on_pol_id = to.id;
@@ -400,7 +400,7 @@ export default class DAOServerController {
             return null;
         }
 
-        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        const dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = from.id;
         dependency.depends_on_pol_id = to.id;

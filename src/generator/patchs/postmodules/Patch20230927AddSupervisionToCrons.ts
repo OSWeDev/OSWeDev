@@ -30,10 +30,10 @@ export default class Patch20230927AddSupervisionToCrons implements IGeneratorWor
 
     public async work(db: IDatabase<any>) {
 
-        let crons: CronWorkerPlanification[] = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
+        const crons: CronWorkerPlanification[] = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
 
-        for (let i in crons) {
-            let cron: CronWorkerPlanification = crons[i];
+        for (const i in crons) {
+            const cron: CronWorkerPlanification = crons[i];
 
             let supervised_cron: SupervisedCRONVO = await query(SupervisedCRONVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<SupervisedCRONVO>().planification_uid, cron.planification_uid)

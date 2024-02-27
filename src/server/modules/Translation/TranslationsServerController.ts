@@ -25,10 +25,10 @@ export default class TranslationsServerController {
             translated = "";
         }
 
-        let tmp_code_text_segs: string[] = code_text.split('.');
-        let code_text_segs: string[] = [];
+        const tmp_code_text_segs: string[] = code_text.split('.');
+        const code_text_segs: string[] = [];
 
-        for (let i in tmp_code_text_segs) {
+        for (const i in tmp_code_text_segs) {
             if (tmp_code_text_segs[i] && (tmp_code_text_segs[i] != "")) {
                 code_text_segs.push(tmp_code_text_segs[i]);
             }
@@ -39,8 +39,8 @@ export default class TranslationsServerController {
         }
 
         let locale_pointer = ALL_LOCALES[code_lang];
-        for (let i in code_text_segs) {
-            let code_text_seg = code_text_segs[i];
+        for (const i in code_text_segs) {
+            const code_text_seg = code_text_segs[i];
 
             if (parseInt(i.toString()) == (code_text_segs.length - 1)) {
 

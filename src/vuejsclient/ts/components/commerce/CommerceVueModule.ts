@@ -25,7 +25,7 @@ export default class CommerceVueModule extends VueModuleBase {
     }
 
     public getRoutesMenu(): Array<{ route: RouteConfig, icon: string, text: string }> {
-        let routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
+        const routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
 
         routes.push({
             route: this.getRouteCommandes(),

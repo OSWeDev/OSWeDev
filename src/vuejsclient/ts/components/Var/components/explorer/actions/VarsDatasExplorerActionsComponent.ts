@@ -38,19 +38,19 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
             return false;
         }
 
-        let filter_param = this.get_filter_params[0];
+        const filter_param = this.get_filter_params[0];
 
         if (!filter_param.var_id) {
             return false;
         }
 
         // Pour des raisons de sécurité pour le moment on empeche de faire les demandes avec des maxranges
-        let matroid_bases = MatroidController.getMatroidBases(filter_param);
-        let moduleTable = VOsTypesManager.moduleTables_by_voType[filter_param._type];
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
+        const matroid_bases = MatroidController.getMatroidBases(filter_param);
+        const moduleTable = ModuleTableController.module_tables_by_vo_type[filter_param._type];
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
 
-            let max_range = RangeHandler.getMaxRange(moduleTable.get_field_by_id(matroid_base.field_id));
+            const max_range = RangeHandler.getMaxRange(moduleTable.get_field_by_id(matroid_base.field_id));
 
             if ((RangeHandler.getSegmentedMax_from_ranges(matroid_base.ranges) == RangeHandler.getSegmentedMax(max_range)) ||
                 (RangeHandler.getSegmentedMin_from_ranges(matroid_base.ranges) == RangeHandler.getSegmentedMin(max_range))) {
@@ -66,7 +66,7 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
             return;
         }
 
-        let filter_param = this.get_filter_params[0];
+        const filter_param = this.get_filter_params[0];
 
         this.set_filtered_datas({
             [filter_param.index]: filter_param
@@ -80,11 +80,11 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
 
         this.busy = true;
 
-        let res: { [index: string]: VarDataBaseVO } = {};
-        for (let i in this.get_filter_params) {
-            let filter_param = this.get_filter_params[i];
+        const res: { [index: string]: VarDataBaseVO } = {};
+        for (const i in this.get_filter_params) {
+            const filter_param = this.get_filter_params[i];
 
-            let data: VarDataBaseVO = await query(filter_param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, filter_param.index).select_vo<VarDataBaseVO>();
+            const data: VarDataBaseVO = await query(filter_param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, filter_param.index).select_vo<VarDataBaseVO>();
             res[data.index] = data;
         }
 
@@ -100,16 +100,16 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
 
         this.busy = true;
 
-        let res: { [index: string]: VarDataBaseVO } = {};
-        for (let i in this.get_filter_params) {
-            let filter_param = this.get_filter_params[i];
+        const res: { [index: string]: VarDataBaseVO } = {};
+        for (const i in this.get_filter_params) {
+            const filter_param = this.get_filter_params[i];
 
-            let datas: VarDataBaseVO[] = await query(filter_param._type)
+            const datas: VarDataBaseVO[] = await query(filter_param._type)
                 .filter_by_matroids_intersection([filter_param])
                 .select_vos<VarDataBaseVO>();
 
-            for (let j in datas) {
-                let data = datas[j];
+            for (const j in datas) {
+                const data = datas[j];
                 res[data.index] = data;
             }
         }
@@ -126,16 +126,16 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
 
         this.busy = true;
 
-        let res: { [index: string]: VarDataBaseVO } = {};
-        for (let i in this.get_filter_params) {
-            let filter_param = this.get_filter_params[i];
+        const res: { [index: string]: VarDataBaseVO } = {};
+        for (const i in this.get_filter_params) {
+            const filter_param = this.get_filter_params[i];
 
-            let datas: VarDataBaseVO[] = await query(filter_param._type)
+            const datas: VarDataBaseVO[] = await query(filter_param._type)
                 .filter_by_matroids_inclusion([filter_param])
                 .select_vos<VarDataBaseVO>();
 
-            for (let j in datas) {
-                let data = datas[j];
+            for (const j in datas) {
+                const data = datas[j];
                 res[data.index] = data;
             }
         }
@@ -143,8 +143,8 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         /**
          * on veut retirer les valeurs strictement égales
          */
-        for (let i in this.get_filter_params) {
-            let filter_param = this.get_filter_params[i];
+        for (const i in this.get_filter_params) {
+            const filter_param = this.get_filter_params[i];
 
             if (res[filter_param.index]) {
                 delete res[filter_param.index];
@@ -197,7 +197,7 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
             return;
         }
 
-        let self = this;
+        const self = this;
         self.snotify.confirm(self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.body'), self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.title'), {
             timeout: 10000,
             showProgressBar: true,

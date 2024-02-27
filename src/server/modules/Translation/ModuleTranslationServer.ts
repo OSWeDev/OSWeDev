@@ -68,14 +68,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
         postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
@@ -651,7 +651,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
         // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
-        let promises = [];
+        const promises = [];
         promises.push((async () => {
             let bo_others_access: AccessPolicyVO = new AccessPolicyVO();
             bo_others_access.group_id = group.id;
@@ -750,7 +750,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async trigger_ondelete_lang(lang: LangVO): Promise<boolean> {
-        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
+        const LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
             return false;
         }
@@ -765,16 +765,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             return this.flat_translations[code_lang];
         }
 
-        let time_in_ms = Dates.now_ms();
+        const time_in_ms = Dates.now_ms();
         StatsController.register_stat_COMPTEUR("ModuleTranslationServer", "getALL_FLAT_LOCALE_TRANSLATIONS", "BUILDING");
         ConsoleHandler.log('getALL_FLAT_LOCALE_TRANSLATIONS:BUILDING...');
 
-        let res: { [code_text: string]: string } = {};
+        const res: { [code_text: string]: string } = {};
 
         /**
          * On intègre en premier lieu la langue demandée, puis on intègre la langue par défaut pour combler les trous
          */
-        let promises = [];
+        const promises = [];
         let lang_translations: TranslationVO[] = null;
         let default_translations: TranslationVO[] = null;
         let translatableTexts: TranslatableTextVO[] = null;
@@ -813,11 +813,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async get_translations(code_lang: string): Promise<TranslationVO[]> {
 
-        let lang = await this.getLang(code_lang);
+        const lang = await this.getLang(code_lang);
         if (!lang) {
             return null;
         }
-        let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('lang_id', lang.id).select_vos<TranslationVO>();
+        const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('lang_id', lang.id).select_vos<TranslationVO>();
 
         return translations;
     }
@@ -831,8 +831,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             return res;
         }
 
-        for (let i in translations) {
-            let translation = translations[i];
+        for (const i in translations) {
+            const translation = translations[i];
 
             if (!res[translatableTexts_by_id[translation.text_id].code_text]) {
                 res[translatableTexts_by_id[translation.text_id].code_text] = translation.translated;
@@ -843,11 +843,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
-        let promises = [];
+        const promises = [];
         let langs: LangVO[] = null;
         let translatableTexts: TranslatableTextVO[] = null;
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
-        let translations_per_lang_id: { [lang_id: number]: TranslationVO[] } = {};
+        const translations_per_lang_id: { [lang_id: number]: TranslationVO[] } = {};
 
         promises.push((async () => {
             langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
@@ -857,9 +857,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
         promises.push((async () => {
-            let translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
-            for (let i in translations) {
-                let translation = translations[i];
+            const translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
+            for (const i in translations) {
+                const translation = translations[i];
                 if (!translations_per_lang_id[translation.lang_id]) {
                     translations_per_lang_id[translation.lang_id] = [];
                 }
@@ -871,13 +871,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let res: { [code_lang: string]: any } = {};
 
-        for (let i in langs) {
-            let lang: LangVO = langs[i];
+        for (const i in langs) {
+            const lang: LangVO = langs[i];
 
-            let translations: TranslationVO[] = translations_per_lang_id[lang.id];
+            const translations: TranslationVO[] = translations_per_lang_id[lang.id];
 
-            for (let j in translations) {
-                let translation: TranslationVO = translations[j];
+            for (const j in translations) {
+                const translation: TranslationVO = translations[j];
 
                 if (!translation.text_id) {
                     continue;
@@ -891,7 +891,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async t(code_text: string, lang_id: number): Promise<string> {
-        let translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq('code_text', code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+        const translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq('code_text', code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
         if (!translation) {
             return null;
         }
@@ -922,7 +922,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     private async isCodeOk(code_text: string, self_id: number = null): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
-        let something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+        const something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
             .filter_by_text_starting_with('code_text', code_text + '.')
             .select_vos<TranslatableTextVO>();
 
@@ -936,18 +936,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             return false;
         }
 
-        let segments: string[] = code_text.split('.');
+        const segments: string[] = code_text.split('.');
 
         let res = true;
 
-        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();
 
             await promises_pipeline.push(async () => {
-                let shorter_code: string = segments.join('.');
-                let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+                const shorter_code: string = segments.join('.');
+                const something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, shorter_code)
                     .filter_by_num_not_eq(field_names<TranslatableTextVO>().id, self_id)
                     .select_vos<TranslatableTextVO>();

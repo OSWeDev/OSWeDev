@@ -43,13 +43,13 @@ export default class VarsImportsHandler {
         node: VarDAGNode,
         FOR_TU_imports: VarDataBaseVO[] = null) {
 
-        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
+        const imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : (ConfigurationService.IS_UNIT_TEST_MODE ? [] : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null));
 
         if ((!imports) || (!imports.length)) {
             return;
         }
 
-        let var_conf = VarsController.var_conf_by_id[node.var_data.var_id];
+        const var_conf = VarsController.var_conf_by_id[node.var_data.var_id];
         await this.split_nodes(node, imports, var_conf.optimization__has_only_atomic_imports);
     }
 
@@ -84,16 +84,16 @@ export default class VarsImportsHandler {
         }
 
         // on cut par les imports, et pour chaque résultat on crée un noeud fils du noeud actuel, et le noeud actuel devient un aggrégateur
-        let cut_result: VarDataBaseVO[] = MatroidController.matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+        const cut_result: VarDataBaseVO[] = MatroidController.matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
 
         // Attention le cut_result est mis dans le aggregated_datas, qui est considéré comme déjà testé de load depuis la DB...
         //  donc là faut check le cut_result.
-        let params_indexes_by_api_type_id: { [api_type_id: number]: string[] } = {};
+        const params_indexes_by_api_type_id: { [api_type_id: number]: string[] } = {};
 
-        for (let i in cut_result) {
-            let param = cut_result[i];
+        for (const i in cut_result) {
+            const param = cut_result[i];
 
-            let var_conf = VarsController.var_conf_by_id[param.var_id];
+            const var_conf = VarsController.var_conf_by_id[param.var_id];
             if (!var_conf) {
                 ConsoleHandler.error('VarsImportsHandler:split_nodes:var_conf not found for param:' + param.index);
                 continue;
@@ -106,12 +106,12 @@ export default class VarsImportsHandler {
             params_indexes_by_api_type_id[var_conf.var_data_vo_type].push(param.index);
         }
 
-        let found: { [index: string]: VarDataBaseVO } = {};
-        let not_found_indexes: string[] = [];
+        const found: { [index: string]: VarDataBaseVO } = {};
+        const not_found_indexes: string[] = [];
         await VarsDatasProxy.get_exact_params_from_bdd(params_indexes_by_api_type_id, found, not_found_indexes);
 
-        for (let i in cut_result) {
-            let param = cut_result[i];
+        for (const i in cut_result) {
+            const param = cut_result[i];
 
             if (!param) {
                 continue;
@@ -138,7 +138,7 @@ export default class VarsImportsHandler {
         }
 
         let cardinal_max = MatroidController.get_cardinal(var_data);
-        let imports_valides: VarDataBaseVO[] = [];
+        const imports_valides: VarDataBaseVO[] = [];
 
         let i = 0;
 
@@ -150,12 +150,12 @@ export default class VarsImportsHandler {
          * On prend tous les imports, qui intersecte pas ceux qu'on a déjà sélectionnés, et dont le cardinal est <= cardinal_max
          */
         let start_time = Dates.now();
-        let real_start_time = start_time;
+        const real_start_time = start_time;
 
         i++;
         while ((cardinal_max > 0) && (i < ordered_imports.length)) {
 
-            let actual_time = Dates.now();
+            const actual_time = Dates.now();
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
@@ -167,7 +167,7 @@ export default class VarsImportsHandler {
                 throw new Error('VarsImportsHandler:get_selection_imports:Import var_id different from var_data.var_id:' + tested_import.var_id + ':' + var_data.var_id);
             }
 
-            let tested_cardinal = MatroidController.get_cardinal(tested_import);
+            const tested_cardinal = MatroidController.get_cardinal(tested_import);
 
             if ((tested_cardinal <= cardinal_max) && (!MatroidController.matroid_intersects_any_matroid(tested_import, imports_valides))) {
                 cardinal_max -= MatroidController.get_cardinal(tested_import);
@@ -193,18 +193,18 @@ export default class VarsImportsHandler {
             return;
         }
 
-        let aggregated_datas: {
+        const aggregated_datas: {
             [var_data_index: string]: VarDataBaseVO;
         } = {};
 
-        for (let i in imported_datas) {
-            let imported_data = imported_datas[i];
+        for (const i in imported_datas) {
+            const imported_data = imported_datas[i];
 
             aggregated_datas[imported_data.index] = imported_data;
         }
 
-        for (let i in remaining_computations) {
-            let remaining_computation = remaining_computations[i];
+        for (const i in remaining_computations) {
+            const remaining_computation = remaining_computations[i];
 
             aggregated_datas[remaining_computation.index] = remaining_computation;
         }
@@ -219,8 +219,8 @@ export default class VarsImportsHandler {
      * @param b
      */
     private sort_matroids_per_cardinal_desc(a: VarDataBaseVO, b: VarDataBaseVO): number {
-        let card_a = MatroidController.get_cardinal(a);
-        let card_b = MatroidController.get_cardinal(b);
+        const card_a = MatroidController.get_cardinal(a);
+        const card_b = MatroidController.get_cardinal(b);
 
         return card_b - card_a;
     }

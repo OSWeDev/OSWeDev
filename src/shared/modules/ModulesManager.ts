@@ -39,12 +39,12 @@ export default class ModulesManager {
     private constructor() {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
-        let label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true);
-        let fields = [
+        const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true);
+        const fields = [
             label_field,
             ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true),
         ];
-        let moduleTable: ModuleTableVO<ModuleVO> = new ModuleTableVO<ModuleVO>(
+        const moduleTable: ModuleTableVO<ModuleVO> = new ModuleTableVO<ModuleVO>(
             null, ModuleVO.API_TYPE_ID, () => new ModuleVO(), fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }));
         moduleTable.set_bdd_ref('admin', 'modules');
     }
@@ -63,7 +63,7 @@ export default class ModulesManager {
         // Et il faut register une moduleTable pour les parametres du module si on est sur un SharedModule
         if (role == Module.SharedModuleRoleName) {
             if ((moduleObj as Module).fields) {
-                let moduleParamsTable: ModuleTableVO<IDistantVOBase> = new ModuleTableVO<IDistantVOBase>(
+                const moduleParamsTable: ModuleTableVO<IDistantVOBase> = new ModuleTableVO<IDistantVOBase>(
                     moduleObj as Module,
                     ModulesManager.MODULE_PARAM_TABLE_PREFIX + moduleObj.name,
                     () => ({} as any),

@@ -7,7 +7,7 @@ export default class CRUDActionsDatatableFieldVO<T, U> extends DatatableField<T,
 
     public static createNew(): CRUDActionsDatatableFieldVO<any, any> {
 
-        let res = new CRUDActionsDatatableFieldVO();
+        const res = new CRUDActionsDatatableFieldVO();
         res.init(CRUDActionsDatatableFieldVO.API_TYPE_ID, DatatableField.CRUD_ACTIONS_FIELD_TYPE, 'id');
         res.datatable_field_uid = '__crud_actions';
         return res;

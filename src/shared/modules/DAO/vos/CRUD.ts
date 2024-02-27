@@ -16,17 +16,19 @@ import OneToManyReferenceDatatableFieldVO from './datatable/OneToManyReferenceDa
 import ReferenceDatatableField from './datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableFieldVO from './datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from './datatable/SimpleDatatableFieldVO';
+import ModulesManager from '../../ModulesManager';
+import Module from '../../Module';
 
 
 export default class CRUD<T extends IDistantVOBase> {
 
     public static copy_datatable<T extends IDistantVOBase>(datatable: Datatable<T>): Datatable<T> {
-        let res: Datatable<T> = new Datatable(datatable.API_TYPE_ID);
+        const res: Datatable<T> = new Datatable(datatable.API_TYPE_ID);
 
         Object.assign(res, datatable, { sortedFields: [] });
 
-        for (let i in datatable.fields) {
-            let field: DatatableField<any, any> = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field: DatatableField<any, any> = datatable.fields[i];
 
             res.pushField(field);
         }
@@ -34,8 +36,8 @@ export default class CRUD<T extends IDistantVOBase> {
     }
 
     public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
-        let moduleTable: ModuleTableVO<V> = VOsTypesManager.moduleTables_by_voType[api_type_id];
-        let crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
+        const moduleTable: ModuleTableVO<V> = ModuleTableController.module_tables_by_vo_type[api_type_id];
+        const crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
 
@@ -59,13 +61,13 @@ export default class CRUD<T extends IDistantVOBase> {
      */
     public static getNewCRUD<T extends IDistantVOBase>(API_TYPE_ID: string): CRUD<T> {
 
-        let readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
-        let crud: CRUD<T> = new CRUD(readDatatable);
-        let moduleTable = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
-        let fields = moduleTable.get_fields();
+        const readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
+        const crud: CRUD<T> = new CRUD(readDatatable);
+        const moduleTable = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
+        const fields = moduleTable.get_fields();
 
-        for (let i in fields) {
-            let field: ModuleTableFieldVO = fields[i];
+        for (const i in fields) {
+            const field: ModuleTableFieldVO = fields[i];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {
@@ -91,13 +93,13 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            let dt_field: DatatableField<any, any> = this.get_dt_field(field);
+            const dt_field: DatatableField<any, any> = this.get_dt_field(field);
 
             if ((!!dt_field) && field.hidden_print) {
                 dt_field.hide_print();
             }
 
-            if (!!dt_field) {
+            if (dt_field) {
                 crud.readDatatable.pushField(dt_field);
             }
         }
@@ -131,7 +133,7 @@ export default class CRUD<T extends IDistantVOBase> {
             if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                 dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                     field.field_id,
-                    VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                    ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
                     dt_fields
                 );
 
@@ -163,7 +165,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 } else {
                     dt_field = ManyToOneReferenceDatatableFieldVO.createNew(
                         field.field_id,
-                        VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
                         dt_fields
                     ).setModuleTable(field.module_table);
                 }
@@ -187,7 +189,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
                     dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                         field.field_id,
-                        VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
                         dt_fields
                     );
                     break;
@@ -207,11 +209,11 @@ export default class CRUD<T extends IDistantVOBase> {
         except_table_names: string[] = null) {
 
         //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
-        let manyToManyModuleTables: ModuleTableVO[] = VOsTypesManager.get_manyToManyModuleTables();
-        for (let i in manyToManyModuleTables) {
-            let otherModuleTable: ModuleTableVO = manyToManyModuleTables[i];
+        const manyToManyModuleTables: ModuleTableVO[] = VOsTypesManager.get_manyToManyModuleTables();
+        for (const i in manyToManyModuleTables) {
+            const otherModuleTable: ModuleTableVO = manyToManyModuleTables[i];
 
-            if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 
@@ -223,8 +225,8 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (let j in otherModuleTable.get_fields()) {
-                let field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
+            for (const j in otherModuleTable.get_fields()) {
+                const field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;
@@ -250,7 +252,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
+                const otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
 
                 if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
                     continue;
@@ -291,10 +293,10 @@ export default class CRUD<T extends IDistantVOBase> {
         except_table_names: string[] = null) {
 
         //  On fait le tour des autres tables existantes pour identifier les manyToOne qui font référence à cette table (hors manytomany)
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let otherModuleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const otherModuleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[i];
 
-            if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
+            if ((!otherModuleTable.module_name) || (!ModulesManager.getInstance().getModuleByNameAndRole(otherModuleTable.module_name, Module.SharedModuleRoleName).actif)) {
                 continue;
             }
 
@@ -310,8 +312,8 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (let j in otherModuleTable.get_fields()) {
-                let field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
+            for (const j in otherModuleTable.get_fields()) {
+                const field: ModuleTableFieldVO = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;

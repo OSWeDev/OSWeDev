@@ -26,11 +26,11 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             return null;
         }
 
-        let table = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        const table = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
         if (!table) {
             return null;
         }
-        let field = table.get_field_by_id(this.vo_field_ref.field_id);
+        const field = table.get_field_by_id(this.vo_field_ref.field_id);
 
         return this.t(table.label.code_text) +
             ' > ' +
@@ -54,7 +54,7 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             return null;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         return field ? this.t(field.field_label.code_text) : this.vo_field_ref.field_id;
     }

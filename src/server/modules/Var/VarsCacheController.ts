@@ -13,19 +13,19 @@ import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 export default class VarsCacheController {
 
     public static async get_deps_intersectors(intersector: VarDataBaseVO): Promise<{ [index: string]: VarDataBaseVO }> {
-        let res: { [index: string]: VarDataBaseVO } = {};
+        const res: { [index: string]: VarDataBaseVO } = {};
 
-        let node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
+        const node = VarsServerController.varcontrollers_dag.nodes[intersector.var_id];
 
-        for (let j in node.incoming_deps) {
-            let deps = node.incoming_deps[j];
+        for (const j in node.incoming_deps) {
+            const deps = node.incoming_deps[j];
 
-            for (let i in deps) {
-                let dep = deps[i];
+            for (const i in deps) {
+                const dep = deps[i];
 
-                let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
+                const controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
 
-                let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
+                const tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
                 if (tmp && tmp.length) {
                     tmp.forEach((e) => res[e.index] = e);
                 }
@@ -54,11 +54,11 @@ export default class VarsCacheController {
          * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
          *  un cache de var_data pas invalidé, et puisque pas invalidé, on y touche pas
          */
-        if (!!node.var_data.id) {
+        if (node.var_data.id) {
             return false;
         }
 
-        let controller = VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id];
+        const controller = VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id];
 
         if (!controller) {
             throw new Error('Pas de controller pour la var_id ' + node.var_data.var_id);

@@ -41,7 +41,7 @@ export default class ModuleDAGBuilder extends Module {
 
     private init_DAGBuilderNodeVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new(DAGBuilderNodeVO.API_TYPE_ID, field_names<DAGBuilderNodeVO>().x, ModuleTableFieldVO.FIELD_TYPE_float, 'x', true),
             ModuleTableFieldController.create_new(DAGBuilderNodeVO.API_TYPE_ID, field_names<DAGBuilderNodeVO>().y, ModuleTableFieldVO.FIELD_TYPE_float, 'y', true),
             ModuleTableFieldController.create_new(DAGBuilderNodeVO.API_TYPE_ID, field_names<DAGBuilderNodeVO>().component, ModuleTableFieldVO.FIELD_TYPE_string, 'component', false),
@@ -49,14 +49,14 @@ export default class ModuleDAGBuilder extends Module {
             ModuleTableFieldController.create_new(DAGBuilderNodeVO.API_TYPE_ID, field_names<DAGBuilderNodeVO>().props_json, ModuleTableFieldVO.FIELD_TYPE_string, 'props_json', false)
         ];
 
-        let datatable = new ModuleTableVO(this, DAGBuilderNodeVO.API_TYPE_ID, () => new DAGBuilderNodeVO(), datatable_fields, null, "DAGBuilder Node");
+        const datatable = new ModuleTableVO(this, DAGBuilderNodeVO.API_TYPE_ID, () => new DAGBuilderNodeVO(), datatable_fields, null, "DAGBuilder Node");
     }
 
     private init_DAGBuilderEdgeVO() {
-        let from = ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().from, ModuleTableFieldVO.FIELD_TYPE_string, 'from', true);
-        let to = ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().to, ModuleTableFieldVO.FIELD_TYPE_string, 'to', true);
+        const from = ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().from, ModuleTableFieldVO.FIELD_TYPE_string, 'from', true);
+        const to = ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().to, ModuleTableFieldVO.FIELD_TYPE_string, 'to', true);
 
-        let datatable_fields = [
+        const datatable_fields = [
             from,
             to,
             ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().fromLink, ModuleTableFieldVO.FIELD_TYPE_string, 'fromLink', false),
@@ -65,7 +65,7 @@ export default class ModuleDAGBuilder extends Module {
             ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().arrowColor, ModuleTableFieldVO.FIELD_TYPE_string, 'arrowColor', false),
         ];
 
-        let datatable = new ModuleTableVO(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
+        const datatable = new ModuleTableVO(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
         from.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
         to.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
     }

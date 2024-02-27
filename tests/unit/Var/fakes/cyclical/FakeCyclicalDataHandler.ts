@@ -25,7 +25,7 @@ export default class FakeCyclicalDataHandler {
 
     public static initializeFakeEmpDayDataVO() {
 
-        let datatable_fields = [
+        const datatable_fields = [
             ModuleTableFieldController.create_new('employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employes').set_segmentation_type(NumSegment.TYPE_INT),
             ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
@@ -34,7 +34,7 @@ export default class FakeCyclicalDataHandler {
     }
 
     public static matroid_1_2_moins1_zero(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -44,12 +44,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_zero(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -59,34 +59,34 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static get_data_A(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static get_data_A_Var3(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 11;
         var_data.ts_ranges = [
             RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_moins1(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -96,12 +96,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_moins2excl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -111,12 +111,12 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_moins1excl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -126,12 +126,12 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_zeroexcl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -141,13 +141,13 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
 
     public static matroid_2_zero(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -157,12 +157,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_moins1(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -172,12 +172,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_zeroexcl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -187,12 +187,12 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_unexcl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -202,12 +202,12 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_moins2excl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -217,12 +217,12 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_moins1excl(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -232,13 +232,13 @@ export default class FakeCyclicalDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
 
     public static real_1_cutter(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -247,12 +247,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static real_2_to_cut(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -262,12 +262,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static real_1_cutter_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -277,12 +277,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_2_moins1_zero_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -292,12 +292,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_zero_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -307,12 +307,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_moins1_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -322,12 +322,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_zero_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -337,12 +337,12 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_2_moins1_(): FakeEmpDayDataVO {
-        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 10;
         var_data.ts_ranges = [
             RangeHandler.createNew(
@@ -352,13 +352,13 @@ export default class FakeCyclicalDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
-        let a = var_data.index;
+        const a = var_data.index;
         return var_data;
     }
 
     public static matroid_1_2_moins1_zero__moins__matroid_1_zero(): MatroidCutResult<FakeEmpDayDataVO> {
 
-        let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 10;
         a.ts_ranges = [
             RangeHandler.createNew(
@@ -369,7 +369,7 @@ export default class FakeCyclicalDataHandler {
         ];
         a.employee_id_ranges = [NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT)];
 
-        let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 10;
         b.ts_ranges = [
             RangeHandler.createNew(
@@ -380,7 +380,7 @@ export default class FakeCyclicalDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
 
-        let f = new MatroidCutResult<FakeEmpDayDataVO>(
+        const f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_1_zero_()],
             [a, b]);
         f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
@@ -390,7 +390,7 @@ export default class FakeCyclicalDataHandler {
 
     public static matroid_1_2_moins1_zero__moins__matroid_1_moins1(): MatroidCutResult<FakeEmpDayDataVO> {
 
-        let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 10;
         a.ts_ranges = [
             RangeHandler.createNew(
@@ -401,7 +401,7 @@ export default class FakeCyclicalDataHandler {
         ];
         a.employee_id_ranges = [NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT)];
 
-        let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 10;
         b.ts_ranges = [
             RangeHandler.createNew(
@@ -412,7 +412,7 @@ export default class FakeCyclicalDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
 
-        let f = new MatroidCutResult<FakeEmpDayDataVO>(
+        const f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_1_moins1_()],
             [a, b]);
         f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
@@ -422,7 +422,7 @@ export default class FakeCyclicalDataHandler {
 
     public static matroid_1_2_moins1_zero__moins__matroid_2_moins1(): MatroidCutResult<FakeEmpDayDataVO> {
 
-        let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 10;
         a.ts_ranges = [
             RangeHandler.createNew(
@@ -433,7 +433,7 @@ export default class FakeCyclicalDataHandler {
         ];
         a.employee_id_ranges = [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)];
 
-        let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 10;
         b.ts_ranges = [
             RangeHandler.createNew(
@@ -444,7 +444,7 @@ export default class FakeCyclicalDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
 
-        let f = new MatroidCutResult<FakeEmpDayDataVO>(
+        const f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_2_moins1_()],
             [a, b]);
         f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
@@ -454,7 +454,7 @@ export default class FakeCyclicalDataHandler {
 
     public static matroid_1_2_moins1_zero__moins__matroid_2_zero(): MatroidCutResult<FakeEmpDayDataVO> {
 
-        let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 10;
         a.ts_ranges = [
             RangeHandler.createNew(
@@ -465,7 +465,7 @@ export default class FakeCyclicalDataHandler {
         ];
         a.employee_id_ranges = [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)];
 
-        let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        const b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 10;
         b.ts_ranges = [
             RangeHandler.createNew(
@@ -476,7 +476,7 @@ export default class FakeCyclicalDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
 
-        let f = new MatroidCutResult<FakeEmpDayDataVO>(
+        const f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_2_zero_()],
             [a, b]);
         f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));

@@ -33,7 +33,7 @@ export default class VocusComponent extends VueComponentBase {
     private debounced_load_vocus = debounce(this.load_vocus, 2000);
 
     get vo_types(): string[] {
-        return Object.keys(VOsTypesManager.moduleTables_by_voType);
+        return Object.keys(ModuleTableController.module_tables_by_vo_type);
     }
 
     get vo_label() {
@@ -41,7 +41,7 @@ export default class VocusComponent extends VueComponentBase {
             return null;
         }
 
-        let table = VOsTypesManager.moduleTables_by_voType[this.vo._type];
+        const table = ModuleTableController.module_tables_by_vo_type[this.vo._type];
         if (table && table.default_label_field) {
             return this.vo[table.default_label_field.field_id];
         } else if (table && table.table_label_function) {
@@ -66,9 +66,9 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
+        const route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
 
-        if (!!route) {
+        if (route) {
             this.$router.push(route);
         }
     }
@@ -90,9 +90,9 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
+        const route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
 
-        if (!!route) {
+        if (route) {
             this.$router.push(route);
         }
     }

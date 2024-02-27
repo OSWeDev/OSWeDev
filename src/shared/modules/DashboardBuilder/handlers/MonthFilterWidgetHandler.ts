@@ -32,7 +32,7 @@ export default class MonthFilterWidgetHandler {
             available_months
         );
 
-        for (let month in selected_months) {
+        for (const month in selected_months) {
             if (selected_months[month] != selected_months_from_context_filter[month]) {
                 has_changed = true;
                 break;

@@ -37,8 +37,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return false;
         }
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
 
         if ((!api_type_id) || (!field_id)) {
             return false;
@@ -64,8 +64,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return;
         }
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
 
         this.$emit('add_field_ref', api_type_id, field_id);
     }
@@ -76,8 +76,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return false;
         }
 
-        let vo_field_ref_field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
-        let new_field = VOsTypesManager.moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
+        const vo_field_ref_field = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        const new_field = ModuleTableController.module_tables_by_vo_type[api_type_id].get_field_by_id(field_id);
 
         if (this.is_type_boolean(vo_field_ref_field)) {
             return this.is_type_boolean(new_field);

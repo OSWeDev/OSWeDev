@@ -35,7 +35,7 @@ export default class VarsTabsSubsController {
 
     public static async get_subs_indexs(force_update: boolean = false): Promise<string[]> {
 
-        let self = this;
+        const self = this;
 
         return new Promise(async (resolve, reject) => {
 
@@ -66,8 +66,8 @@ export default class VarsTabsSubsController {
 
         user_id = ((user_id == null) ? 0 : user_id);
 
-        for (let i in param_indexs) {
-            let param_index = param_indexs[i];
+        for (const i in param_indexs) {
+            const param_index = param_indexs[i];
 
             if (!param_index) {
                 continue;
@@ -108,8 +108,8 @@ export default class VarsTabsSubsController {
 
         user_id = ((user_id == null) ? 0 : user_id);
 
-        for (let i in param_indexs) {
-            let param_index = param_indexs[i];
+        for (const i in param_indexs) {
+            const param_index = param_indexs[i];
 
             if ((!param_index) || (!this._tabs_subs[param_index]) || (!this._tabs_subs[param_index][user_id]) || (!this._tabs_subs[param_index][user_id][client_tab_id])) {
                 continue;
@@ -118,18 +118,18 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[param_index][user_id][client_tab_id];
         }
 
-        let param_index_to_delete: string[] = [];
-        for (let param_index in this._tabs_subs) {
-            let _tabs_subs_index = this._tabs_subs[param_index];
+        const param_index_to_delete: string[] = [];
+        for (const param_index in this._tabs_subs) {
+            const _tabs_subs_index = this._tabs_subs[param_index];
 
             if ((!_tabs_subs_index) || (!Object.keys(_tabs_subs_index).length)) {
                 param_index_to_delete.push(param_index);
                 continue;
             }
 
-            let user_id_to_delete: string[] = [];
-            for (let _user_id in _tabs_subs_index) {
-                let _tabs_subs_index_user_id = _tabs_subs_index[_user_id];
+            const user_id_to_delete: string[] = [];
+            for (const _user_id in _tabs_subs_index) {
+                const _tabs_subs_index_user_id = _tabs_subs_index[_user_id];
 
                 if ((!_tabs_subs_index_user_id) || (!Object.keys(_tabs_subs_index_user_id).length)) {
                     user_id_to_delete.push(_user_id);
@@ -137,7 +137,7 @@ export default class VarsTabsSubsController {
                 }
             }
 
-            for (let i in user_id_to_delete) {
+            for (const i in user_id_to_delete) {
                 delete _tabs_subs_index[user_id_to_delete[i]];
             }
 
@@ -145,8 +145,8 @@ export default class VarsTabsSubsController {
                 param_index_to_delete.push(param_index);
             }
         }
-        for (let i in param_index_to_delete) {
-            let param_index = param_index_to_delete[i];
+        for (const i in param_index_to_delete) {
+            const param_index = param_index_to_delete[i];
             delete this._tabs_subs[param_index];
 
             // On supprime un nouvel index, on prévient le thread des vars immédiatement
@@ -171,23 +171,23 @@ export default class VarsTabsSubsController {
 
         await this.clean_old_subs();
 
-        let datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
-        for (let parami in params) {
-            let param = params[parami];
+        const datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
+        for (const parami in params) {
+            const param = params[parami];
 
-            for (let i in param.var_datas) {
-                let var_data = param.var_datas[i];
-                let users_tabs_subs = this._tabs_subs[var_data.index];
+            for (const i in param.var_datas) {
+                const var_data = param.var_datas[i];
+                const users_tabs_subs = this._tabs_subs[var_data.index];
                 // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
 
-                for (let user_id in users_tabs_subs) {
-                    let tabs_subs = users_tabs_subs[user_id];
+                for (const user_id in users_tabs_subs) {
+                    const tabs_subs = users_tabs_subs[user_id];
 
                     /**
                      * On doit demander tous les sockets actifs pour une tab
                      */
-                    for (let client_tab_id in tabs_subs) {
-                        let sub = tabs_subs[client_tab_id];
+                    for (const client_tab_id in tabs_subs) {
+                        const sub = tabs_subs[client_tab_id];
 
                         if (!sub) {
                             continue;
@@ -200,10 +200,10 @@ export default class VarsTabsSubsController {
 
                         sub.last_notif_value_ts = var_data.value_ts;
 
-                        let sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(user_id.toString()), client_tab_id);
+                        const sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(user_id.toString()), client_tab_id);
 
-                        for (let j in sockets) {
-                            let socket: SocketWrapper = sockets[j];
+                        for (const j in sockets) {
+                            const socket: SocketWrapper = sockets[j];
 
                             if (!datas_by_socketid_for_notif[socket.socketId]) {
                                 datas_by_socketid_for_notif[socket.socketId] = [];
@@ -215,7 +215,7 @@ export default class VarsTabsSubsController {
             }
         }
 
-        for (let socketid in datas_by_socketid_for_notif) {
+        for (const socketid in datas_by_socketid_for_notif) {
 
             // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
             await PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
@@ -302,9 +302,9 @@ export default class VarsTabsSubsController {
      */
     private static async clean_old_subs(force_update: boolean = false) {
 
-        let now = Dates.now();
-        let SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
-        let SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
+        const now = Dates.now();
+        const SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
+        const SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
         if ((!force_update) && (now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;
@@ -315,33 +315,33 @@ export default class VarsTabsSubsController {
             ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
         }
 
-        let indexs_to_delete = [];
-        for (let index in this._tabs_subs) {
-            let subs = this._tabs_subs[index];
+        const indexs_to_delete = [];
+        for (const index in this._tabs_subs) {
+            const subs = this._tabs_subs[index];
 
             if (!Object.keys(subs).length) {
                 indexs_to_delete.push(index);
                 continue;
             }
 
-            let user_ids_to_delete = [];
-            for (let user_id in subs) {
-                let subs_by_user = subs[user_id];
+            const user_ids_to_delete = [];
+            for (const user_id in subs) {
+                const subs_by_user = subs[user_id];
 
                 if (!Object.keys(subs_by_user).length) {
                     user_ids_to_delete.push(user_id);
                     continue;
                 }
 
-                let client_tab_ids_to_delete = [];
-                for (let client_tab_id in subs_by_user) {
-                    let sub = subs_by_user[client_tab_id];
+                const client_tab_ids_to_delete = [];
+                for (const client_tab_id in subs_by_user) {
+                    const sub = subs_by_user[client_tab_id];
 
                     if ((now - sub.last_registration_ts) > SUBS_CLEAN_DELAY) {
                         client_tab_ids_to_delete.push(client_tab_id);
                     }
                 }
-                for (let i in client_tab_ids_to_delete) {
+                for (const i in client_tab_ids_to_delete) {
                     delete subs_by_user[client_tab_ids_to_delete[i]];
                 }
 
@@ -350,7 +350,7 @@ export default class VarsTabsSubsController {
                 }
             }
 
-            for (let i in user_ids_to_delete) {
+            for (const i in user_ids_to_delete) {
                 delete subs[user_ids_to_delete[i]];
             }
 
@@ -360,7 +360,7 @@ export default class VarsTabsSubsController {
             }
         }
 
-        for (let i in indexs_to_delete) {
+        for (const i in indexs_to_delete) {
             delete this._tabs_subs[indexs_to_delete[i]];
         }
 

@@ -59,7 +59,7 @@ export default class ConsoleHandler {
 
     public static init() {
 
-        if (!!ConsoleHandler.old_console_log) {
+        if (ConsoleHandler.old_console_log) {
             return;
         }
 
@@ -85,9 +85,9 @@ export default class ConsoleHandler {
 
     public static error(error: string | Error, ...params): void {
 
-        let msg = ConsoleHandler.get_text_msg(error);
+        const msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!ConsoleHandler.logger_handler) {
+        if (ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log("ERROR -- " + msg, ...params);
             // On ERROR we flush immediately
             ConsoleHandler.logger_handler.force_flush();
@@ -98,9 +98,9 @@ export default class ConsoleHandler {
     }
 
     public static warn(error: string | Error, ...params): void {
-        let msg = ConsoleHandler.get_text_msg(error);
+        const msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!ConsoleHandler.logger_handler) {
+        if (ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log("WARN  -- " + msg, ...params);
         }
         ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'warn' });
@@ -108,9 +108,9 @@ export default class ConsoleHandler {
     }
 
     public static log(error: string | Error, ...params): void {
-        let msg = ConsoleHandler.get_text_msg(error);
+        const msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!ConsoleHandler.logger_handler) {
+        if (ConsoleHandler.logger_handler) {
             ConsoleHandler.logger_handler.log("DEBUG -- " + msg, ...params);
         }
         ConsoleHandler.log_to_console_cache.push({ msg: msg, params: params, log_type: 'log' });
@@ -136,23 +136,23 @@ export default class ConsoleHandler {
 
     // On throttle pour laisser du temps de calcul, et on indique l'heure d'exécution du throttle pour bien identifier le décalage de temps lié au throttle et la durée de loggage sur la console pour le pack.
     private static log_to_console() {
-        let log_to_console = ConsoleHandler.log_to_console_cache;
+        const log_to_console = ConsoleHandler.log_to_console_cache;
         ConsoleHandler.log_to_console_cache = [];
 
-        for (let i in log_to_console) {
-            let log = log_to_console[i];
+        for (const i in log_to_console) {
+            const log = log_to_console[i];
 
             ConsoleHandler['old_console_' + log.log_type]('[LT ' + this.get_timestamp() + '] ' + log.msg, ...log.params);
         }
 
         // On ajoute aussi les logs throttled
-        let throttled_logs_counter = this.throttled_logs_counter;
+        const throttled_logs_counter = this.throttled_logs_counter;
         this.throttled_logs_counter = {};
-        for (let log in throttled_logs_counter) {
-            let msg = ConsoleHandler.get_text_msg(log);
+        for (const log in throttled_logs_counter) {
+            const msg = ConsoleHandler.get_text_msg(log);
             ConsoleHandler.old_console_log('[LT ' + this.get_timestamp() + '] ' + msg + ' (' + throttled_logs_counter[log] + 'x)');
 
-            if (!!ConsoleHandler.logger_handler) {
+            if (ConsoleHandler.logger_handler) {
                 ConsoleHandler.logger_handler.log("DEBUG -- " + msg + ' (' + throttled_logs_counter[log] + 'x)');
             }
         }
@@ -164,7 +164,7 @@ export default class ConsoleHandler {
 
     private static get_timestamp(): string {
         let ms = Math.floor(Dates.now_ms());
-        let seconds = Math.floor(ms / 1000);
+        const seconds = Math.floor(ms / 1000);
         ms = ms % 1000;
         return Dates.format(seconds, 'YYYY-MM-DD HH:mm:ss.' + String(ms).padStart(3, '0'), true);
     }

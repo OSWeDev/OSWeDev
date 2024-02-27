@@ -105,21 +105,21 @@ export default class ModuleNFCConnect extends Module {
 
     public initialize() {
 
-        let label = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Numéro de série', true);
-        let datatable_fields = [
+        const label = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Numéro de série', true);
+        const datatable_fields = [
             label,
             ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true),
         ];
-        let datatable = new ModuleTableVO(this, NFCTagVO.API_TYPE_ID, () => new NFCTagVO(), datatable_fields, label, "NFC Tags");
+        const datatable = new ModuleTableVO(this, NFCTagVO.API_TYPE_ID, () => new NFCTagVO(), datatable_fields, label, "NFC Tags");
         this.datatables.push(datatable);
 
-        let nfc_tag_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().nfc_tag_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'NFC Tag', true);
-        let user_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let datatable_fields_line = [
+        const nfc_tag_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().nfc_tag_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'NFC Tag', true);
+        const user_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const datatable_fields_line = [
             nfc_tag_id,
             user_id
         ];
-        let datatable_user = new ModuleTableVO(this, NFCTagUserVO.API_TYPE_ID, () => new NFCTagUserVO(), datatable_fields_line, null, "NFC Tag User");
+        const datatable_user = new ModuleTableVO(this, NFCTagUserVO.API_TYPE_ID, () => new NFCTagUserVO(), datatable_fields_line, null, "NFC Tag User");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         nfc_tag_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
         this.datatables.push(datatable_user);

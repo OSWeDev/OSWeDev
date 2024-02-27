@@ -40,7 +40,7 @@ export default class DashboardBuilderController {
     }
 
     public addRouteForDashboard(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
-        let routes = [{
+        const routes = [{
             path: path,
             name: name,
             component: component,
@@ -83,8 +83,8 @@ export default class DashboardBuilderController {
             context = {};
         }
 
-        for (let i in columns) {
-            let column = columns[i];
+        for (const i in columns) {
+            const column = columns[i];
 
             if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
                 continue;
@@ -101,14 +101,14 @@ export default class DashboardBuilderController {
                 context[column.api_type_id] = {};
             }
 
-            let field_filter = this.get_ContextFilterVO_add_Column_context(column, row_value);
+            const field_filter = this.get_ContextFilterVO_add_Column_context(column, row_value);
 
             if (!context[column.api_type_id][column.field_id]) {
                 context[column.api_type_id][column.field_id] = field_filter;
             } else {
 
-                let existing_filter = context[column.api_type_id][column.field_id];
-                let and_filter = new ContextFilterVO();
+                const existing_filter = context[column.api_type_id][column.field_id];
+                const and_filter = new ContextFilterVO();
                 and_filter.field_id = column.field_id;
                 and_filter.vo_type = column.api_type_id;
                 and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
@@ -125,8 +125,8 @@ export default class DashboardBuilderController {
         column: TableColumnDescVO, row_value: any): ContextFilterVO {
         let translated_active_options = null;
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
-        let field = moduletable.get_field_by_id(column.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
+        const field = moduletable.get_field_by_id(column.field_id);
 
         if (row_value[column.datatable_field_uid + '__raw'] == null) {
             translated_active_options = filter(column.api_type_id, column.field_id).is_null();
@@ -186,7 +186,7 @@ export default class DashboardBuilderController {
                     throw new Error('Not Implemented');
 
                 case ModuleTableFieldVO.FIELD_TYPE_boolean:
-                    if (!!row_value[column.datatable_field_uid + '__raw']) {
+                    if (row_value[column.datatable_field_uid + '__raw']) {
                         translated_active_options = filter(column.api_type_id, column.field_id).is_true();
                     } else {
                         translated_active_options = filter(column.api_type_id, column.field_id).is_false();

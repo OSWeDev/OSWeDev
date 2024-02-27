@@ -1,6 +1,6 @@
+import ModuleTableController from './DAO/ModuleTableController';
+import ModuleTableVO from './DAO/vos/ModuleTableVO';
 import IModuleBase from './IModuleBase';
-import ModuleParamChange from './ModuleParamChange';
-import ModuleTableVO from './ModuleTableVO';
 import ModulesManager from './ModulesManager';
 
 export default abstract class Module implements IModuleBase {
@@ -13,7 +13,6 @@ export default abstract class Module implements IModuleBase {
 
     public actif: boolean = false;
 
-    public datatables: ModuleTableVO[] = [];
     public name: string;
     public reflexiveClassName: string;
     public specificImportPath: string;
@@ -35,9 +34,7 @@ export default abstract class Module implements IModuleBase {
         ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);
     }
 
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
-
-    public async hook_module_install(): Promise<any> { }
+    public async hook_module_install(): Promise<void> { }
     public async hook_module_configure(): Promise<boolean> {
         return true;
     }
@@ -46,35 +43,21 @@ export default abstract class Module implements IModuleBase {
     public initialize(): void { }
 
     // Pour le chargement de données nécessaires à l'application ou la mise en place de caches de données.
-    public async hook_module_async_client_admin_initialization(): Promise<any> { }
-    public async hook_module_async_client_initialization(): Promise<any> { }
-    public async hook_module_async_admin_initialization(): Promise<any> { }
-    public async hook_module_async_login_initialization(): Promise<any> { }
-    public async hook_module_async_test_initialization(): Promise<any> { }
+    public async hook_module_async_client_admin_initialization(): Promise<void> { }
+    public async hook_module_async_client_initialization(): Promise<void> { }
+    public async hook_module_async_admin_initialization(): Promise<void> { }
+    public async hook_module_async_login_initialization(): Promise<void> { }
+    public async hook_module_async_test_initialization(): Promise<void> { }
 
     public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTableVO {
-        if (this.datatables) {
-            for (var i = 0; i < this.datatables.length; i++) {
-                var datatable = this.datatables[i];
+        for (const vo_type in ModuleTableController.vo_type_by_module_name[this.name]) {
+            const datatable = ModuleTableController.module_tables_by_vo_type[vo_type];
 
-                if ((datatable.database == database) && (datatable.suffix == suffix) && (datatable.prefix == prefix)) {
-                    return datatable;
-                }
+            if ((datatable.database == database) && (datatable.suffix == suffix) && (datatable.prefix == prefix)) {
+                return datatable;
             }
         }
         return null;
-    }
-
-    public add_datatable(datatable: ModuleTableVO) {
-
-        if (!this.datatables) {
-            this.datatables = [];
-        }
-        this.datatables.push(datatable);
-    }
-
-    public get_nga_filters(nga) {
-        return [];
     }
 
     protected forceActivationOnInstallation(): void {

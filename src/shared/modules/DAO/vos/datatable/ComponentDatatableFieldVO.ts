@@ -11,7 +11,7 @@ export default class ComponentDatatableFieldVO<T, U> extends DatatableField<T, U
         component_name: string,
         parameter_datatable_field_uid: string): ComponentDatatableFieldVO<any, any> {
 
-        let res = new ComponentDatatableFieldVO();
+        const res = new ComponentDatatableFieldVO();
         res.init(ComponentDatatableFieldVO.API_TYPE_ID, DatatableField.COMPONENT_FIELD_TYPE, datatable_field_uid);
         res.component_name = component_name;
         res.parameter_datatable_field_uid = parameter_datatable_field_uid;

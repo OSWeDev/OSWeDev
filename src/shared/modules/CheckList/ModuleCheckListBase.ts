@@ -50,11 +50,11 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]) {
+        if (ModuleTableController.module_tables_by_vo_type[this.checklist_type_id]) {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(ICheckList.API_TYPE_ID, field_names<ICheckList>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(ICheckList.API_TYPE_ID, field_names<ICheckList>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field,
@@ -64,7 +64,7 @@ export default abstract class ModuleCheckListBase extends Module {
             ModuleTableFieldController.create_new(ICheckList.API_TYPE_ID, field_names<ICheckList>().show_finalized_btn, ModuleTableFieldVO.FIELD_TYPE_boolean, "Afficher le bouton de finalisation", false, true, false),
         );
 
-        let datatable = new ModuleTableVO(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");
+        const datatable = new ModuleTableVO(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");
         this.datatables.push(datatable);
     }
 
@@ -74,12 +74,12 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.moduleTables_by_voType[this.checklistitem_type_id]) {
+        if (ModuleTableController.module_tables_by_vo_type[this.checklistitem_type_id]) {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(ICheckListItem.API_TYPE_ID, field_names<ICheckListItem>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
-        let checklist_id = ModuleTableFieldController.create_new(ICheckListItem.API_TYPE_ID, field_names<ICheckListItem>().checklist_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckList', true);
+        const label_field = ModuleTableFieldController.create_new(ICheckListItem.API_TYPE_ID, field_names<ICheckListItem>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
+        const checklist_id = ModuleTableFieldController.create_new(ICheckListItem.API_TYPE_ID, field_names<ICheckListItem>().checklist_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckList', true);
 
         additional_fields.unshift(
             label_field,
@@ -89,7 +89,7 @@ export default abstract class ModuleCheckListBase extends Module {
             ModuleTableFieldController.create_new(ICheckListItem.API_TYPE_ID, field_names<ICheckListItem>().finalized, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Checklist finalisé', false, true, false)
         );
 
-        let datatable = new ModuleTableVO(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
+        const datatable = new ModuleTableVO(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
         checklist_id.set_many_to_one_target_moduletable_name(this.checklist_type_id);
         VersionedVOController.getInstance().registerModuleTable(datatable);
         this.datatables.push(datatable);
@@ -101,19 +101,19 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.moduleTables_by_voType[this.checklistitemcheckpoints_type_id]) {
+        if (ModuleTableController.module_tables_by_vo_type[this.checklistitemcheckpoints_type_id]) {
             return;
         }
 
-        let checklistitem_id = ModuleTableFieldController.create_new(ICheckListItemCheckPoints.API_TYPE_ID, field_names<ICheckListItemCheckPoints>().checklistitem_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Item', true);
-        let checkpoint_id = ModuleTableFieldController.create_new(ICheckListItemCheckPoints.API_TYPE_ID, field_names<ICheckListItemCheckPoints>().checkpoint_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckPoint', true);
+        const checklistitem_id = ModuleTableFieldController.create_new(ICheckListItemCheckPoints.API_TYPE_ID, field_names<ICheckListItemCheckPoints>().checklistitem_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Item', true);
+        const checkpoint_id = ModuleTableFieldController.create_new(ICheckListItemCheckPoints.API_TYPE_ID, field_names<ICheckListItemCheckPoints>().checkpoint_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckPoint', true);
 
         additional_fields.unshift(
             checklistitem_id,
             checkpoint_id
         );
 
-        let datatable = new ModuleTableVO(this, this.checklistitemcheckpoints_type_id, constructor, additional_fields, null, "CheckListItemCheckPoints");
+        const datatable = new ModuleTableVO(this, this.checklistitemcheckpoints_type_id, constructor, additional_fields, null, "CheckListItemCheckPoints");
         checklistitem_id.set_many_to_one_target_moduletable_name(this.checklistitem_type_id);
         checkpoint_id.set_many_to_one_target_moduletable_name(this.checkpoint_type_id);
         this.datatables.push(datatable);
@@ -125,12 +125,12 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]) {
+        if (ModuleTableController.module_tables_by_vo_type[this.checkpoint_type_id]) {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(ICheckPoint.API_TYPE_ID, field_names<ICheckPoint>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let checklist_id = ModuleTableFieldController.create_new(ICheckPoint.API_TYPE_ID, field_names<ICheckPoint>().checklist_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckList', true);
+        const label_field = ModuleTableFieldController.create_new(ICheckPoint.API_TYPE_ID, field_names<ICheckPoint>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const checklist_id = ModuleTableFieldController.create_new(ICheckPoint.API_TYPE_ID, field_names<ICheckPoint>().checklist_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'CheckList', true);
 
         additional_fields.unshift(
             label_field,
@@ -141,7 +141,7 @@ export default abstract class ModuleCheckListBase extends Module {
             ModuleTableFieldController.create_new(ICheckPoint.API_TYPE_ID, field_names<ICheckPoint>().item_fields_tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'item_fields_tooltip', false),
         );
 
-        let datatable = new ModuleTableVO(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");
+        const datatable = new ModuleTableVO(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");
         checklist_id.set_many_to_one_target_moduletable_name(this.checklist_type_id);
         this.datatables.push(datatable);
     }

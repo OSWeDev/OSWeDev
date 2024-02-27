@@ -252,7 +252,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             'survey.btn.title.___LABEL___')
         );
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 
@@ -268,7 +268,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         if (!feedback.state_id) {
-            let default_state = await query(FeedbackStateVO.API_TYPE_ID).filter_is_true('is_default_state').select_vo<FeedbackStateVO>();
+            const default_state = await query(FeedbackStateVO.API_TYPE_ID).filter_is_true('is_default_state').select_vo<FeedbackStateVO>();
             if (!default_state) {
                 ConsoleHandler.error('pre_create_feedback_assigne_default_state:Aucun état par défaut n\'est défini pour les retours d\'expérience');
                 return true;
@@ -289,31 +289,31 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return null;
         }
 
-        let time_in: number = Dates.now_ms();
+        const time_in: number = Dates.now_ms();
         StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
 
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
-            let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
                 return null;
             }
 
-            let FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
             if (!FEEDBACK_TRELLO_LIST_ID) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
             }
 
-            let FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
@@ -327,7 +327,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             feedback.is_impersonated = false;
             if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
-                let admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
+                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
                 feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;
                 feedback.impersonated_from_user_id = admin_user_session.uid;
                 feedback.impersonated_from_user_login_date = admin_user_session.creation_date_unix;
@@ -335,7 +335,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Puis créer le feedback en base
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
@@ -344,22 +344,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // Créer le Trello associé
             let response;
-            let idLabels: string[] = [];
+            const idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
-            let user_infos = await this.user_infos_to_string(feedback);
+            const user_infos = await this.user_infos_to_string(feedback);
             trello_message += user_infos;
-            let feedback_infos = await this.feedback_infos_to_string(feedback);
+            const feedback_infos = await this.feedback_infos_to_string(feedback);
             trello_message += feedback_infos;
 
-            let screen_captures = await this.screen_captures_to_string(feedback);
+            const screen_captures = await this.screen_captures_to_string(feedback);
             trello_message += screen_captures;
-            let attachments = await this.attachments_to_string(feedback);
+            const attachments = await this.attachments_to_string(feedback);
             trello_message += attachments;
 
-            let routes = await this.routes_to_string(feedback);
+            const routes = await this.routes_to_string(feedback);
             trello_message += routes;
-            let console_logs_errors = await this.console_logs_to_string(feedback);
+            const console_logs_errors = await this.console_logs_to_string(feedback);
             trello_message += console_logs_errors;
 
             // let api_logs = await this.api_logs_to_string(feedback);
@@ -391,12 +391,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
             // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
 
-            let feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
+            const feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
             await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 
-            let envParam: EnvParam = ConfigurationService.node_configuration;
-            let file_url = envParam.BASE_URL + feedback_file_patch;
+            const envParam: EnvParam = ConfigurationService.node_configuration;
+            const file_url = envParam.BASE_URL + feedback_file_patch;
 
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
@@ -427,7 +427,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
             }
 
-            let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
                 throw new Error('Failed feedback creation');
@@ -440,7 +440,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
-            let mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
             feedback.confirmation_mail_id = mail ? mail.id : null;
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
@@ -460,7 +460,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
         // , api_logs: string
     ) {
-        let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+        const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
             // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
@@ -480,7 +480,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // };
 
 
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+            const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
                 GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                 uid,
                 'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
@@ -495,9 +495,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 ' - console_logs_errors : ' + console_logs_errors
                 // ' - api_logs : ' + api_logs
             ));
-            let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+            const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
-                let teamsWebhookContent = new TeamsWebhookContentVO();
+                const teamsWebhookContent = new TeamsWebhookContentVO();
                 teamsWebhookContent.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
                 teamsWebhookContent.summary = gtp_4_brief.content;
 
@@ -526,7 +526,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                         '<p>' + gtp_4_brief.content + '</p>'));
 
                 // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-                let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+                const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
                 if ((!!feedback.id) && !!dashboard_feedback_id) {
                     teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                         new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
@@ -539,22 +539,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
-        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
     }
 
     private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
-        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
@@ -607,8 +607,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
-        let CONSOLE_LOG_LIMIT: number = FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT.toString()) : 100;
+        const FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
+        const CONSOLE_LOG_LIMIT: number = FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT.toString()) : 100;
         let limited: boolean = false;
 
         if (feedback.console_logs && (feedback.console_logs.length > CONSOLE_LOG_LIMIT)) {
@@ -616,7 +616,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             limited = true;
         }
 
-        let console_logs_message: string = (feedback.console_logs && feedback.console_logs.length) ?
+        const console_logs_message: string = (feedback.console_logs && feedback.console_logs.length) ?
             ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ' + feedback.console_logs.join(ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ') :
             '';
 
@@ -628,16 +628,16 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async routes_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
+        const FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
         let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let routes_message: string = '';
         ROUTE_LIMIT = ROUTE_LIMIT - feedback.routes_fullpaths.length;
-        let limited: boolean = ROUTE_LIMIT < 0;
+        const limited: boolean = ROUTE_LIMIT < 0;
 
-        for (let i in feedback.routes_fullpaths) {
-            let route: string = feedback.routes_fullpaths[i];
+        for (const i in feedback.routes_fullpaths) {
+            const route: string = feedback.routes_fullpaths[i];
 
             ROUTE_LIMIT++;
             if (ROUTE_LIMIT <= 0) {
@@ -657,7 +657,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async user_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -689,7 +689,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async feedback_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##FEEDBACK INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -710,10 +710,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 break;
         }
 
-        let start_url = envParam.BASE_URL + '#' + feedback.feedback_start_url;
+        const start_url = envParam.BASE_URL + '#' + feedback.feedback_start_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start URL : [' + start_url + '](' + start_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start date : ' + Dates.format(feedback.feedback_start_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-        let end_url = envParam.BASE_URL + '#' + feedback.feedback_end_url;
+        const end_url = envParam.BASE_URL + '#' + feedback.feedback_end_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission URL : [' + end_url + '](' + end_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission date : ' + Dates.format(feedback.feedback_end_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission type : ' + type;
@@ -721,7 +721,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.file_attachment_1_id) {
             return '';
@@ -761,7 +761,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async screen_captures_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.screen_capture_1_id) {
             return '';

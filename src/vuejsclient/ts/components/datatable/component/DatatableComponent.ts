@@ -121,13 +121,13 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get isModuleParamTable() {
-        return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
-            VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
+        return ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID] ?
+            ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
     get is_archived_api_type_id() {
-        return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
-            VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].is_archived : false;
+        return ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID] ?
+            ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID].is_archived : false;
     }
 
     public async mounted() {
@@ -137,7 +137,7 @@ export default class DatatableComponent extends VueComponentBase {
         $('[data-toggle="tooltip"]').tooltip();
 
         // Select/Deselect checkboxes
-        var checkbox = $('table tbody input[type="checkbox"]');
+        const checkbox = $('table tbody input[type="checkbox"]');
         $("#selectAll").click(() => {
             if (this['checked']) {
                 checkbox.each(() => {
@@ -165,8 +165,8 @@ export default class DatatableComponent extends VueComponentBase {
         //  on l'utilise comme valeur par défaut pour le filtre correspondant
         // this.$route.query
         // this.preloadFilter = {};
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
 
             if ((field.type != DatatableField.SIMPLE_FIELD_TYPE) &&
                 (field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
@@ -176,9 +176,9 @@ export default class DatatableComponent extends VueComponentBase {
                 continue;
             }
 
-            for (let j in this.$route.query) {
+            for (const j in this.$route.query) {
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                    let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
+                    const simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.field_type) {
                         case ModuleTableFieldVO.FIELD_TYPE_boolean:
@@ -265,7 +265,7 @@ export default class DatatableComponent extends VueComponentBase {
                     this.preload_custom_filters.push(field.datatable_field_uid);
 
                     if ((!!this.custom_filters_options) && (!!this.custom_filters_options[field.datatable_field_uid])) {
-                        for (let k in this.custom_filters_options[field.datatable_field_uid]) {
+                        for (const k in this.custom_filters_options[field.datatable_field_uid]) {
                             let option_value = this.custom_filters_options[field.datatable_field_uid][k].value;
 
                             if (typeof option_value == 'string') {
@@ -285,7 +285,7 @@ export default class DatatableComponent extends VueComponentBase {
             // at the moment the "embed" CRUD doesn't handle all types of fields filtering
             if (!!this.embed_filter && !!this.embed_filter[field.datatable_field_uid]) {
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                    let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
+                    const simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.field_type) {
                         case ModuleTableFieldVO.FIELD_TYPE_date:
@@ -295,7 +295,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableFieldVO.FIELD_TYPE_month:
                         case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                         case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                            if (!!this.embed_filter[field.datatable_field_uid].start) {
+                            if (this.embed_filter[field.datatable_field_uid].start) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
 
@@ -304,7 +304,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 }
                                 this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start).utc(true).unix());
                             }
-                            if (!!this.embed_filter[field.datatable_field_uid].end) {
+                            if (this.embed_filter[field.datatable_field_uid].end) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
 
@@ -339,7 +339,7 @@ export default class DatatableComponent extends VueComponentBase {
             }
         }
 
-        for (let i in this.date_filtered_fields) {
+        for (const i in this.date_filtered_fields) {
             if (this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid]) {
                 continue;
             }
@@ -370,13 +370,13 @@ export default class DatatableComponent extends VueComponentBase {
     private set_exportable_datatable_data(): any[] {
         this.exportable_datatable_data = [];
 
-        for (let i in (this.$refs.vclienttable as any).allFilteredData) {
+        for (const i in (this.$refs.vclienttable as any).allFilteredData) {
 
-            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data((this.$refs.vclienttable as any).allFilteredData[i], this.datatable, this.exportable_datatable_columns);
-            if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+            const cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data((this.$refs.vclienttable as any).allFilteredData[i], this.datatable, this.exportable_datatable_columns);
+            if (cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
                 delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
             }
-            if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+            if (cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
                 delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
             }
 
@@ -396,10 +396,10 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get exportable_datatable_columns(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
 
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
@@ -417,13 +417,13 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get date_filtered_fields(): Array<DatatableField<any, any>> {
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
+                const simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.field_type) {
 
@@ -453,13 +453,13 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get number_filtered_fields(): Array<DatatableField<any, any>> {
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
+                const simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.field_type) {
 
@@ -489,13 +489,13 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get text_filtered_fields(): Array<DatatableField<any, any>> {
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField = (field as SimpleDatatableFieldVO<any, any>);
+                const simpleField = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
@@ -546,14 +546,14 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get multiselect_filtered_fields(): Array<DatatableField<any, any>> {
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
 
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField = (field as SimpleDatatableFieldVO<any, any>);
+                    const simpleField = (field as SimpleDatatableFieldVO<any, any>);
                     if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum) {
                         res.push(field);
                     }
@@ -572,10 +572,10 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get boolean_filtered_fields(): Array<DatatableField<any, any>> {
-        let res: Array<DatatableField<any, any>> = [];
+        const res: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
 
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 ((field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
@@ -600,24 +600,24 @@ export default class DatatableComponent extends VueComponentBase {
 
     private getMultiSelectFilterOptions(datatable_field: DatatableField<any, any>): CustomFilterItem[] {
 
-        let res: CustomFilterItem[] = [];
+        const res: CustomFilterItem[] = [];
 
         // console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
 
-        let field_values: { [id: number]: any } = {};
+        const field_values: { [id: number]: any } = {};
 
-        for (let i in this.datatable_data) {
-            let data = this.datatable_data[i];
-            let field_value = data[datatable_field.datatable_field_uid];
-            let field_value_id = data[datatable_field.datatable_field_uid + '___id___'];
+        for (const i in this.datatable_data) {
+            const data = this.datatable_data[i];
+            const field_value = data[datatable_field.datatable_field_uid];
+            const field_value_id = data[datatable_field.datatable_field_uid + '___id___'];
 
             switch (datatable_field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField = (datatable_field as SimpleDatatableFieldVO<any, any>);
+                    const simpleField = (datatable_field as SimpleDatatableFieldVO<any, any>);
                     if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum) {
 
-                        for (let j in simpleField.enum_values) {
-                            let enum_value = simpleField.enum_values[j];
+                        for (const j in simpleField.enum_values) {
+                            const enum_value = simpleField.enum_values[j];
 
                             res.push(new CustomFilterItem(
                                 this.t(enum_value),
@@ -640,8 +640,8 @@ export default class DatatableComponent extends VueComponentBase {
                         break;
                     }
 
-                    for (let j in field_value) {
-                        let field_value_vo: IDistantVOBase = field_value[j];
+                    for (const j in field_value) {
+                        const field_value_vo: IDistantVOBase = field_value[j];
 
                         if (!field_values[field_value_vo.id]) {
                             field_values[field_value_vo.id] = field_value_vo;
@@ -663,8 +663,8 @@ export default class DatatableComponent extends VueComponentBase {
             }
         }
 
-        for (let id in field_values) {
-            let field_value = field_values[id];
+        for (const id in field_values) {
+            const field_value = field_values[id];
 
             switch (datatable_field.type) {
                 case ManyToOneReferenceDatatableFieldVO.REF_RANGES_FIELD_TYPE:
@@ -728,10 +728,10 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Watch('custom_filters_values', { deep: true })
     private onChangeFilterValue() {
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field = this.datatable.fields[i];
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
+                const simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                 switch (simpleField.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_boolean:
@@ -757,7 +757,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private setWatcher(api_type_involved: string) {
-        let watcher: DaoStoreTypeWatcherDefinition = new DaoStoreTypeWatcherDefinition();
+        const watcher: DaoStoreTypeWatcherDefinition = new DaoStoreTypeWatcherDefinition();
         watcher.UID = this.api_type_id + "___datatable___" + api_type_involved;
         watcher.API_TYPE_ID = api_type_involved;
         watcher.handler = this.debounced_update_datatable_data;
@@ -775,7 +775,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         this.update_datatable_data();
 
-        for (let i in this.api_types_involved) {
+        for (const i in this.api_types_involved) {
             this.setWatcher(this.api_types_involved[i]);
         }
     }
@@ -785,10 +785,10 @@ export default class DatatableComponent extends VueComponentBase {
      */
     private prepare_ref_fields_data_for_update(): { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } {
 
-        let res: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = {};
+        const res: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = {};
 
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
 
             switch (field.type) {
 
@@ -804,14 +804,14 @@ export default class DatatableComponent extends VueComponentBase {
                     break;
 
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                    let oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
+                    const oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
 
-                    for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
-                        let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
+                    for (const oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
+                        const targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
 
                         if ((!!targetVo) && (!!targetVo[oneToManyField.destField.field_id])) {
 
-                            let baseData_id = targetVo[oneToManyField.destField.field_id];
+                            const baseData_id = targetVo[oneToManyField.destField.field_id];
 
                             if (!res[field.datatable_field_uid]) {
                                 res[field.datatable_field_uid] = {};
@@ -827,18 +827,18 @@ export default class DatatableComponent extends VueComponentBase {
                     break;
 
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                    let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
+                    const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
-                    let dest_ids: number[] = [];
-                    let interTargetRefField = manyToManyField.interTargetRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interTargetRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                    let interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
+                    const dest_ids: number[] = [];
+                    const interTargetRefField = manyToManyField.interTargetRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interTargetRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                    const interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
 
-                    for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
-                        let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
+                    for (const interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
+                        const intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
 
                         if ((!!intervo) && (!!intervo[interSrcRefField.field_id]) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
 
-                            let baseData_id = intervo[interSrcRefField.field_id];
+                            const baseData_id = intervo[interSrcRefField.field_id];
 
                             if (!res[field.datatable_field_uid]) {
                                 res[field.datatable_field_uid] = {};
@@ -901,21 +901,21 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On commence par charger la liste des données concernées
         // Un getter du store qui renvoie les datas de base, version distant vo et on va chercher ensuite tous les fields utiles, et les refs
-        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID];
+        const baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID];
         let baseDatas: IDistantVOBase[] = [];
 
-        if (!!this.datatable.data_set_hook) {
+        if (this.datatable.data_set_hook) {
             baseDatas = this.datatable.data_set_hook(baseDatas_byid);
         }
 
-        let datatable_data = [];
+        const datatable_data = [];
 
-        let prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = this.prepare_ref_fields_data_for_update();
+        const prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = this.prepare_ref_fields_data_for_update();
 
-        for (let j in baseDatas) {
-            let baseData: IDistantVOBase = baseDatas[j];
+        for (const j in baseDatas) {
+            const baseData: IDistantVOBase = baseDatas[j];
 
-            let resData: IDistantVOBase = DatatableRowController.getInstance().get_datatable_row_data(baseData, this.datatable, this.getStoredDatas, prepared_ref_fields_data_for_update);
+            const resData: IDistantVOBase = DatatableRowController.getInstance().get_datatable_row_data(baseData, this.datatable, this.getStoredDatas, prepared_ref_fields_data_for_update);
 
             // Les colonnes de contrôle
             if (this.multiselectable) {
@@ -943,10 +943,10 @@ export default class DatatableComponent extends VueComponentBase {
     private initializeFilters() {
 
         // On initialize les options des filtres
-        for (let i in this.boolean_filtered_fields) {
+        for (const i in this.boolean_filtered_fields) {
             this.setBooleanFilterOptions(this.boolean_filtered_fields[i].datatable_field_uid);
         }
-        for (let i in this.multiselect_filtered_fields) {
+        for (const i in this.multiselect_filtered_fields) {
             this.setMultiSelectFilterOptions(this.multiselect_filtered_fields[i]);
         }
 
@@ -956,10 +956,10 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get datatable_columns_labels(): any {
-        let res: any = {};
+        const res: any = {};
 
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
             res[field.datatable_field_uid] = this.t(field.translatable_title);
         }
 
@@ -976,7 +976,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get datatable_columns(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         // On ajoute les colonnes de contrôle
         if (this.multiselectable && !this.isModuleParamTable) {
@@ -986,8 +986,8 @@ export default class DatatableComponent extends VueComponentBase {
             res.push(DatatableRowController.ACTIONS_COLUMN_ID);
         }
 
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
 
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
@@ -1011,15 +1011,15 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get customFilters(): any[] {
-        let customFilters: any[] = [];
-        let self = this;
+        const customFilters: any[] = [];
+        const self = this;
 
         if (this.isModuleParamTable) {
             return customFilters;
         }
 
-        for (let j in this.datatable.fields) {
-            let field = this.datatable.fields[j];
+        for (const j in this.datatable.fields) {
+            const field = this.datatable.fields[j];
 
             if (field.type == DatatableField.COMPONENT_FIELD_TYPE) {
                 continue;
@@ -1034,7 +1034,7 @@ export default class DatatableComponent extends VueComponentBase {
                 callback: function (row, query_cf) {
                     switch (field.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:
-                            let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
+                            const simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                             switch (simpleField.field_type) {
                                 case ModuleTableFieldVO.FIELD_TYPE_boolean:
@@ -1043,9 +1043,9 @@ export default class DatatableComponent extends VueComponentBase {
                                         return true;
                                     }
 
-                                    let istrue: boolean = (query_cf == 'VRAI');
+                                    const istrue: boolean = (query_cf == 'VRAI');
 
-                                    let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (TypesHandler.getInstance().isBoolean(row[field.datatable_field_uid])));
+                                    const data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (TypesHandler.getInstance().isBoolean(row[field.datatable_field_uid])));
                                     return (data_is_true && istrue) || ((!data_is_true) && !istrue);
 
                                 case ModuleTableFieldVO.FIELD_TYPE_daterange:
@@ -1061,10 +1061,10 @@ export default class DatatableComponent extends VueComponentBase {
                                         daterange_array = row[field.datatable_field_uid].split(', ');
                                     }
 
-                                    for (let i in daterange_array) {
-                                        let daterange = daterange_array[i];
+                                    for (const i in daterange_array) {
+                                        const daterange = daterange_array[i];
 
-                                        let parts: string[] = daterange.split('-');
+                                        const parts: string[] = daterange.split('-');
                                         if ((!parts) || (parts.length <= 0)) {
                                             continue;
                                         }
@@ -1078,8 +1078,8 @@ export default class DatatableComponent extends VueComponentBase {
                                             dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
                                         }
 
-                                        let queryStart = moment(query_cf.start).utc(true);
-                                        let queryEnd = moment(query_cf.end).utc(true);
+                                        const queryStart = moment(query_cf.start).utc(true);
+                                        const queryEnd = moment(query_cf.end).utc(true);
                                         if (((!query_cf.start) || (!dateEnd) || (!dateEnd.isBefore(queryStart))) && ((!query_cf.end) || (!dateStart) || (!dateStart.isAfter(queryEnd)))) {
                                             return true;
                                         }
@@ -1098,10 +1098,10 @@ export default class DatatableComponent extends VueComponentBase {
                                     if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
-                                    let date_tstz: number = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
+                                    const date_tstz: number = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
 
-                                    let queryStart_tstz: Moment = moment(query_cf.start).utc(true);
-                                    let queryEnd_tstz: Moment = moment(query_cf.end).utc(true);
+                                    const queryStart_tstz: Moment = moment(query_cf.start).utc(true);
+                                    const queryEnd_tstz: Moment = moment(query_cf.end).utc(true);
 
                                     if (((queryStart_tstz && queryStart_tstz.isValid()) || (queryEnd_tstz && queryEnd_tstz.isValid())) && (date_tstz == null)) {
                                         return false;
@@ -1122,8 +1122,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
 
-                                    let queryStart_date = moment(query_cf.start).utc(true);
-                                    let queryEnd_date = moment(query_cf.end).utc(true);
+                                    const queryStart_date = moment(query_cf.start).utc(true);
+                                    const queryEnd_date = moment(query_cf.end).utc(true);
 
                                     if (((queryStart_date && queryStart_date.isValid()) || (queryEnd_date && queryEnd_date.isValid())) && ((!date) || (!date.isValid()))) {
                                         return false;
@@ -1143,12 +1143,12 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
 
                                     date = moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true);
-                                    let queryStart_month = moment(query_cf.start).utc(true);
+                                    const queryStart_month = moment(query_cf.start).utc(true);
                                     if (query_cf.start && date.isBefore(queryStart_month)) {
                                         return false;
                                     }
 
-                                    let queryEnd_month = moment(query_cf.end).utc(true);
+                                    const queryEnd_month = moment(query_cf.end).utc(true);
                                     if (query_cf.end && date.isAfter(queryEnd_month)) {
                                         return false;
                                     }
@@ -1160,7 +1160,7 @@ export default class DatatableComponent extends VueComponentBase {
                                         return true;
                                     }
 
-                                    let tsrange: TSRange = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
+                                    const tsrange: TSRange = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
 
                                     if (!tsrange) {
                                         return false;
@@ -1168,10 +1168,10 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let is_ok: boolean = false;
 
-                                    let has_start: boolean = query_cf.start && (query_cf.start.length > 0);
-                                    let has_end: boolean = query_cf.end && (query_cf.end.length > 0);
+                                    const has_start: boolean = query_cf.start && (query_cf.start.length > 0);
+                                    const has_end: boolean = query_cf.end && (query_cf.end.length > 0);
 
-                                    let filter_tsrange: TSRange = TSRange.createNew(
+                                    const filter_tsrange: TSRange = TSRange.createNew(
                                         has_start ? moment(query_cf.start).utc(true).unix() : RangeHandler.MIN_TS,
                                         has_end ? moment(query_cf.end).utc(true).unix() : RangeHandler.MAX_TS,
                                         true,
@@ -1179,7 +1179,7 @@ export default class DatatableComponent extends VueComponentBase {
                                         tsrange.segment_type
                                     );
 
-                                    if (!!filter_tsrange) {
+                                    if (filter_tsrange) {
                                         if (RangeHandler.range_intersects_range(filter_tsrange, tsrange)) {
                                             is_ok = true;
                                         }
@@ -1204,7 +1204,7 @@ export default class DatatableComponent extends VueComponentBase {
                                         return true;
                                     }
 
-                                    for (let i in query_cf) {
+                                    for (const i in query_cf) {
                                         if (query_cf[i].value == row[field.datatable_field_uid]) {
                                             return true;
                                         }
@@ -1229,7 +1229,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 return true;
                             }
 
-                            for (let i in query_cf) {
+                            for (const i in query_cf) {
                                 if (query_cf[i].value == row[field.datatable_field_uid]) {
                                     return true;
                                 }
@@ -1247,9 +1247,9 @@ export default class DatatableComponent extends VueComponentBase {
                                 return false;
                             }
 
-                            for (let i in query_cf) {
+                            for (const i in query_cf) {
 
-                                for (let k in row[field.datatable_field_uid]) {
+                                for (const k in row[field.datatable_field_uid]) {
                                     if (row[field.datatable_field_uid][k].id == query_cf[i].value) {
                                         return true;
                                     }
@@ -1283,12 +1283,12 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get columnsClasses(): { [field_id: string]: string } {
-        let res: { [field_id: string]: string } = {};
+        const res: { [field_id: string]: string } = {};
 
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
+        for (const i in this.datatable.fields) {
+            const field: DatatableField<any, any> = this.datatable.fields[i];
 
-            let class_name: string[] = ['field_' + field.datatable_field_uid];
+            const class_name: string[] = ['field_' + field.datatable_field_uid];
 
             if (field.hidden_print) {
                 class_name.push('hidden-print');
@@ -1309,7 +1309,7 @@ export default class DatatableComponent extends VueComponentBase {
             columnsClasses: this.columnsClasses,
             filterByColumn: true,
             filterable: [],
-            perPage: (!!this.perpage) ? this.perpage : 15,
+            perPage: (this.perpage) ? this.perpage : 15,
             perPageValues: [],
             // initFilters: this.preloadFilter,
             customFilters: this.customFilters,
@@ -1343,16 +1343,16 @@ export default class DatatableComponent extends VueComponentBase {
      * CustomSorting pour les champs de type date et number ...
      */
     get customSorting(): {} {
-        let res = {};
+        const res = {};
 
-        for (let i in this.date_filtered_fields) {
-            let date_field = this.date_filtered_fields[i];
+        for (const i in this.date_filtered_fields) {
+            const date_field = this.date_filtered_fields[i];
 
             res[date_field.datatable_field_uid] = this.getCustomSortingDateColumn(date_field);
         }
 
-        for (let i in this.number_filtered_fields) {
-            let number_filtered_field = this.number_filtered_fields[i];
+        for (const i in this.number_filtered_fields) {
+            const number_filtered_field = this.number_filtered_fields[i];
 
             res[number_filtered_field.datatable_field_uid] = this.getCustomSortingNumberColumn(number_filtered_field);
         }
@@ -1361,7 +1361,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private getCustomSortingNumberColumn(number_field: DatatableField<any, any>) {
-        let self = this;
+        const self = this;
         return function (ascending) {
             return function (a, b) {
                 // let dataA: number = (a[number_field.datatable_field_uid] != null) ? parseFloat(a[number_field.datatable_field_uid]) : null;
@@ -1369,11 +1369,11 @@ export default class DatatableComponent extends VueComponentBase {
                 let dataA: number = null;
                 let dataB: number = null;
 
-                if (!!self.getStoredDatas[self.datatable.API_TYPE_ID]) {
-                    dataA = !!self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
+                if (self.getStoredDatas[self.datatable.API_TYPE_ID]) {
+                    dataA = self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
                         self.getStoredDatas[self.datatable.API_TYPE_ID][a.id][number_field.module_table_field_id] : null;
 
-                    dataB = !!self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
+                    dataB = self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
                         self.getStoredDatas[self.datatable.API_TYPE_ID][b.id][number_field.module_table_field_id] : null;
                 }
                 return self.sortingNumber(ascending, dataA, dataB);
@@ -1401,22 +1401,22 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private getCustomSortingDateColumn(date_field: DatatableField<any, any>) {
-        let self = this;
+        const self = this;
         return function (ascending) {
             return function (a, b) {
                 let raw_data_a = null;
                 let raw_data_b = null;
 
-                if (!!self.getStoredDatas[self.datatable.API_TYPE_ID]) {
-                    raw_data_a = !!self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
+                if (self.getStoredDatas[self.datatable.API_TYPE_ID]) {
+                    raw_data_a = self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
                         self.getStoredDatas[self.datatable.API_TYPE_ID][a.id][date_field.module_table_field_id] : null;
 
-                    raw_data_b = !!self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
+                    raw_data_b = self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
                         self.getStoredDatas[self.datatable.API_TYPE_ID][b.id][date_field.module_table_field_id] : null;
                 }
 
-                let data_a: number = self.convertRawDateToTs(raw_data_a);
-                let data_b: number = self.convertRawDateToTs(raw_data_b);
+                const data_a: number = self.convertRawDateToTs(raw_data_a);
+                const data_b: number = self.convertRawDateToTs(raw_data_b);
 
                 return self.sortingNumber(ascending, data_a, data_b);
                 // let dateA: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(a[date_field.datatable_field_uid]);
@@ -1442,8 +1442,8 @@ export default class DatatableComponent extends VueComponentBase {
             if (!raw_data[0].min) {
                 // si le premier item n'a pas de min c'est un tableau de date alors on parse les dates et on get la plus petite
                 let res: number = null;
-                for (let item of raw_data) {
-                    let current = Dates.parse(item);
+                for (const item of raw_data) {
+                    const current = Dates.parse(item);
                     if ((current !== null) && (res === null) || (current < res)) {
                         res = current;
                     }
@@ -1460,7 +1460,7 @@ export default class DatatableComponent extends VueComponentBase {
             return null;
         }
 
-        if (!!raw_data.min) {
+        if (raw_data.min) {
             if (typeof raw_data.min === 'number') {
                 return raw_data.min;
             } else {
@@ -1479,7 +1479,7 @@ export default class DatatableComponent extends VueComponentBase {
     private onSelectData() {
         this.allselected_chck = true;
 
-        for (let i in this.datatable_data) {
+        for (const i in this.datatable_data) {
             if (!this.selected_datas[this.datatable_data[i].id]) {
                 this.allselected_chck = false;
             }
@@ -1489,11 +1489,11 @@ export default class DatatableComponent extends VueComponentBase {
     private selectAll() {
 
         if (!this.allselected_chck) {
-            for (let i in this.datatable_data) {
+            for (const i in this.datatable_data) {
                 this.selected_datas[this.datatable_data[i].id] = this.datatable_data[i];
             }
         } else {
-            for (let i in this.datatable_data) {
+            for (const i in this.datatable_data) {
                 delete this.selected_datas[this.datatable_data[i].id];
             }
         }
@@ -1508,11 +1508,11 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private updateMultiSelectFilterOptions(query_cf, datatable_field) {
-        let options = this.getMultiSelectFilterOptions(datatable_field);
-        let res: CustomFilterItem[] = [];
+        const options = this.getMultiSelectFilterOptions(datatable_field);
+        const res: CustomFilterItem[] = [];
 
-        for (let i in options) {
-            let option = options[i];
+        for (const i in options) {
+            const option = options[i];
 
             if ((new RegExp('.*' + query_cf + '.*', 'i')).test(option.label)) {
                 res.push(option);
@@ -1523,7 +1523,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private async confirm_archive(api_type_id: string, id: number) {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression
@@ -1539,7 +1539,7 @@ export default class DatatableComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.async(self.label('DatatableComponent.confirm_archive.start'), () =>
                             new Promise(async (resolve, reject) => {
-                                let vo: IArchivedVOBase = await query(api_type_id).filter_by_id(id).select_vo();
+                                const vo: IArchivedVOBase = await query(api_type_id).filter_by_id(id).select_vo();
                                 let res: InsertOrDeleteQueryResult = null;
 
                                 if (vo) {

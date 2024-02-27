@@ -42,7 +42,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let translationMenuBranch: MenuElementVO =
+        const translationMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
@@ -105,32 +105,32 @@ export default class TranslationAdminVueModule extends VueModuleBase {
     }
 
     protected getTranslationCRUD(): CRUD<TranslationVO> {
-        let crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
+        const crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
-            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID],
+            ModuleTableController.module_tables_by_vo_type[LangVO.API_TYPE_ID],
             [
                 SimpleDatatableFieldVO.createNew("code_lang")
             ]
         ));
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "text_id",
-            VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
+            ModuleTableController.module_tables_by_vo_type[TranslatableTextVO.API_TYPE_ID],
             [
                 SimpleDatatableFieldVO.createNew("code_text")
             ]
         ));
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("translated"));
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, ModuleTableController.module_tables_by_vo_type[TranslationVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, ModuleTableController.module_tables_by_vo_type[TranslationVO.API_TYPE_ID]);
 
         return crud;
     }
 
     protected getLangCRUD(): CRUD<LangVO> {
-        let crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
+        const crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_lang"));
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_flag"));

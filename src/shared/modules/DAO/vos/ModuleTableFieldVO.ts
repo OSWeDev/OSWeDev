@@ -303,7 +303,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     public getValidationTextCodeBase(): string {
-        return "validation.ko." + VOsTypesManager.moduleTables_by_voType[this.module_table_name].full_name + "." + this.field_name + ".";
+        return "validation.ko." + ModuleTableController.module_tables_by_vo_type[this.module_table_name].full_name + "." + this.field_name + ".";
     }
 
     /**
@@ -389,7 +389,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             return null;
         }
 
-        let target_table = VOsTypesManager.moduleTables_by_vo_id[this.many_to_one_target_moduletable_id];
+        const target_table = VOsTypesManager.moduleTables_by_vo_id[this.many_to_one_target_moduletable_id];
 
         if (!target_table || !target_table.full_name) {
             return null;
@@ -518,8 +518,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                 return db_type == 'text';
 
             default:
-                for (let i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
+                for (const i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
 
                     if (this.field_type == tableFieldTypeController.name) {
                         return tableFieldTypeController.isAcceptableCurrentDBType(db_type);
@@ -622,8 +622,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                 return 'text';
 
             default:
-                for (let i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
+                for (const i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
 
                     if (this.field_type == tableFieldTypeController.name) {
                         return tableFieldTypeController.getPGSqlFieldType();

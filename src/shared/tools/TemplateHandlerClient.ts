@@ -33,15 +33,15 @@ export default class TemplateHandlerClient {
      * Test booleen sur le param, incluant son existence et sa non nullité
      */
     public resolveVarConditions(template: string, vars: { [name: string]: string }): string {
-        let regExp = new RegExp('§§IFVAR_([^§ ]+)§§([^§]*)§§([^§]*)§§', 'i');
+        const regExp = new RegExp('§§IFVAR_([^§ ]+)§§([^§]*)§§([^§]*)§§', 'i');
         while (regExp.test(template)) {
-            let regexpres: string[] = regExp.exec(template);
-            let varname: string = regexpres[1];
-            let then_: string = regexpres[2];
-            let else_: string = regexpres[3];
+            const regexpres: string[] = regExp.exec(template);
+            const varname: string = regexpres[1];
+            const then_: string = regexpres[2];
+            const else_: string = regexpres[3];
 
             if (varname) {
-                template = template.replace(regExp, (!!(vars && vars[varname]) ? then_ : else_));
+                template = template.replace(regExp, (vars && vars[varname] ? then_ : else_));
             } else {
                 template = template.replace(regExp, '');
             }
@@ -52,11 +52,11 @@ export default class TemplateHandlerClient {
 
     public replaceTrads(template: string, t: (code: string) => string): string {
 
-        let regExp = new RegExp('%%TRAD%%([^% ]+)%%', 'i');
+        const regExp = new RegExp('%%TRAD%%([^% ]+)%%', 'i');
 
         while (regExp.test(template)) {
-            let regexpres: string[] = regExp.exec(template);
-            let tradname: string = regexpres[1];
+            const regexpres: string[] = regExp.exec(template);
+            const tradname: string = regexpres[1];
 
             if (!tradname) {
                 template = template.replace(regExp, '');
@@ -71,10 +71,10 @@ export default class TemplateHandlerClient {
 
     public replaceEnvParams(template: string, env: { [name: string]: any }): string {
 
-        let regExp = new RegExp('%%ENV%%([^% ]+)%%', 'i');
+        const regExp = new RegExp('%%ENV%%([^% ]+)%%', 'i');
         while (regExp.test(template)) {
-            let regexpres: string[] = regExp.exec(template);
-            let varname: string = regexpres[1];
+            const regexpres: string[] = regExp.exec(template);
+            const varname: string = regexpres[1];
 
             if (varname && env[varname]) {
                 template = template.replace(regExp, env[varname]);
@@ -88,10 +88,10 @@ export default class TemplateHandlerClient {
 
     public replaceVars(template: string, vars: { [name: string]: string }): string {
 
-        let regExp = new RegExp('%%VAR%%([^% ]+)%%', 'i');
+        const regExp = new RegExp('%%VAR%%([^% ]+)%%', 'i');
         while (regExp.test(template)) {
-            let regexpres: string[] = regExp.exec(template);
-            let varname: string = regexpres[1];
+            const regexpres: string[] = regExp.exec(template);
+            const varname: string = regexpres[1];
 
             if (varname && vars[varname]) {
                 template = template.replace(regExp, vars[varname]);

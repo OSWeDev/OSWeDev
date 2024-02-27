@@ -33,10 +33,10 @@ export default class ModulesManagerServer {
         }
         this.preloaded = true;
 
-        let modules = await query(ModuleVO.API_TYPE_ID).select_vos<ModuleVO>();
+        const modules = await query(ModuleVO.API_TYPE_ID).select_vos<ModuleVO>();
 
-        for (let i in modules) {
-            let module_ = modules[i];
+        for (const i in modules) {
+            const module_ = modules[i];
             this.modulesVoByName[module_.name] = module_;
             this.modulesVoById[module_.id] = module_;
         }

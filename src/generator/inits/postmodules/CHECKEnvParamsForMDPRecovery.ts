@@ -28,7 +28,7 @@ export default class CHECKEnvParamsForMDPRecovery implements IGeneratorWorker {
      */
     public async work(db: IDatabase<any>) {
 
-        let param: EnvParam = ConfigurationService.node_configuration;
+        const param: EnvParam = ConfigurationService.node_configuration;
 
         if (param.URL_RECOVERY.indexOf('://') > 0) {
             throw new Error('La configuration de URL_RECOVERY est invalide, elle ne doit contenir que l\'adresse après ' + param.BASE_URL + '. Très probablement "login#/recover".');

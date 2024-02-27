@@ -18,7 +18,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
-            let options = JSON.parse(page_widget.json_options) as VarPieChartWidgetOptions;
+            const options = JSON.parse(page_widget.json_options) as VarPieChartWidgetOptions;
 
             if (options && options.has_dimension && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
@@ -120,9 +120,9 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
@@ -133,7 +133,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
 
         if (this.var_id_1) {
 
-            let placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, this.var_id_1);
+            const placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, this.var_id_1);
             if (placeholder_name_code_text_var_id_1) {
 
                 res[placeholder_name_code_text_var_id_1] =
@@ -147,7 +147,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
 
         if (this.var_id_2) {
 
-            let placeholder_name_code_text_var_id_2: string = this.get_var_name_code_text(page_widget_id, this.var_id_2);
+            const placeholder_name_code_text_var_id_2: string = this.get_var_name_code_text(page_widget_id, this.var_id_2);
             if (placeholder_name_code_text_var_id_2) {
 
                 res[placeholder_name_code_text_var_id_2] =

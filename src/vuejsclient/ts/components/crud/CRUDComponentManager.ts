@@ -45,7 +45,7 @@ export default class CRUDComponentManager {
             return;
         }
 
-        for (let i in API_TYPE_IDs) {
+        for (const i in API_TYPE_IDs) {
             await this.registerCRUD(API_TYPE_IDs[i], null, menuElts[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
         }
     }
@@ -67,8 +67,8 @@ export default class CRUDComponentManager {
         sort_id_descending: boolean = true,
     ) {
 
-        let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
-        let route_name: string = 'Manage ' + API_TYPE_ID;
+        const url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
+        const route_name: string = 'Manage ' + API_TYPE_ID;
 
         if (!crud) {
             crud = CRUD.getNewCRUD(API_TYPE_ID);
@@ -76,7 +76,7 @@ export default class CRUDComponentManager {
 
         CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID] = crud;
 
-        if (!!routes) {
+        if (routes) {
 
             routes.push({
                 path: url,
@@ -105,7 +105,7 @@ export default class CRUDComponentManager {
                 meta: routes_meta ? routes_meta : undefined
             });
 
-            if (!VOsTypesManager.moduleTables_by_voType[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
+            if (!ModuleTableController.module_tables_by_vo_type[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
                 routes.push({
                     path: url + "/create",
                     name: route_name + " --CREATE",
@@ -135,7 +135,7 @@ export default class CRUDComponentManager {
             }
         }
 
-        if (!!menuElement) {
+        if (menuElement) {
             menuElement.target = route_name;
             menuElement.target_is_routename = true;
             await MenuController.getInstance().declare_menu_element(menuElement);
@@ -149,8 +149,8 @@ export default class CRUDComponentManager {
         read_query: any = null,
         sort_id_descending: boolean = true,
     ) {
-        let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
-        let route_name: string = menuelt.name;
+        const url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
+        const route_name: string = menuelt.name;
 
         routes.push({
             path: url,
@@ -171,7 +171,7 @@ export default class CRUDComponentManager {
 
     public getCallbackRoute(shift: boolean = true): string {
         if (CRUDComponentManager.getInstance().callback_routes && CRUDComponentManager.getInstance().callback_routes.length > 0) {
-            let callback: string = CRUDComponentManager.getInstance().callback_routes[0];
+            const callback: string = CRUDComponentManager.getInstance().callback_routes[0];
 
             if (shift) {
                 CRUDComponentManager.getInstance().callback_routes.shift();
@@ -185,7 +185,7 @@ export default class CRUDComponentManager {
 
     public getIDistantVOInit(shift: boolean = true): IDistantVOBase {
         if (CRUDComponentManager.getInstance().idistantvo_init && CRUDComponentManager.getInstance().idistantvo_init.length > 0) {
-            let vo: IDistantVOBase = CRUDComponentManager.getInstance().idistantvo_init[0];
+            const vo: IDistantVOBase = CRUDComponentManager.getInstance().idistantvo_init[0];
 
             if (shift) {
                 CRUDComponentManager.getInstance().idistantvo_init.shift();

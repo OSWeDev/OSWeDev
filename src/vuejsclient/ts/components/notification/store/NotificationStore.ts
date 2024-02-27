@@ -41,8 +41,8 @@ export default class NotificationStore implements IStoreModule<INotificationStat
         add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
         add_notifications(state: INotificationState, notifications: NotificationVO[]) {
 
-            for (let i in notifications) {
-                let notification = notifications[i];
+            for (const i in notifications) {
+                const notification = notifications[i];
                 Vue.set(state.notifications_by_ids as any, notification.id, notification);
             }
         },
@@ -85,7 +85,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
                     return 0;
                 }
 
-                for (let i in state.notifications_by_ids) {
+                for (const i in state.notifications_by_ids) {
                     if (!state.notifications_by_ids[i].read) {
                         res++;
                     }

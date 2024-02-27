@@ -67,7 +67,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
             ConsoleHandler.error("!add_widget_to_page_handler");
             return;
         }
-        let page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
+        const page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
         this.$emit('added_widget_to_page', page_widget);
     }
 
@@ -76,10 +76,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     }
 
     get widgets_name(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.widgets) {
-            let widget = this.widgets[i];
+        for (const i in this.widgets) {
+            const widget = this.widgets[i];
 
             res.push(this.t(widget.translatable_name_code_text ?? null));
         }

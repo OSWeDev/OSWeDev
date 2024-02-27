@@ -4,7 +4,7 @@ export default class SendInBlueAttachmentVO {
         name: string,
         url: string
     ): SendInBlueAttachmentVO {
-        let res: SendInBlueAttachmentVO = new SendInBlueAttachmentVO();
+        const res: SendInBlueAttachmentVO = new SendInBlueAttachmentVO();
 
         res.name = name;
         res.url = url;

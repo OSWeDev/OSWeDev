@@ -75,11 +75,11 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
     }
 
     public async get_env_params(): Promise<EnvParamsVO> {
-        let res: EnvParamsVO = new EnvParamsVO();
+        const res: EnvParamsVO = new EnvParamsVO();
 
-        let fields = VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID].get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = ModuleTableController.module_tables_by_vo_type[EnvParamsVO.API_TYPE_ID].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
             res[field.field_id] = ConfigurationService.node_configuration[field.field_id];
         }
         return res;

@@ -61,14 +61,14 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
     public async requests_wrapper(requests: LightWeightSendableRequestVO[], response: Response, req: Request): Promise<RequestsWrapperResult> {
 
-        let res: RequestsWrapperResult = new RequestsWrapperResult();
+        const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
+        const limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        const promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
 
-        for (let i in requests) {
-            let wrapped_request: LightWeightSendableRequestVO = requests[i];
+        for (const i in requests) {
+            const wrapped_request: LightWeightSendableRequestVO = requests[i];
 
             if (!wrapped_request) {
                 continue;
@@ -78,9 +78,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
-                for (let j in APIControllerWrapper.registered_apis) {
+                for (const j in APIControllerWrapper.registered_apis) {
                     // Find the registered API
-                    let registered_api = APIControllerWrapper.registered_apis[j];
+                    const registered_api = APIControllerWrapper.registered_apis[j];
                     if (APIControllerWrapper.requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;
@@ -93,9 +93,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     return null;
                 }
 
-                if (!!apiDefinition.access_policy_name) {
+                if (apiDefinition.access_policy_name) {
                     if (!AccessPolicyServerController.checkAccessSync(apiDefinition.access_policy_name)) {
-                        let session: IServerUserSession = (req as any).session;
+                        const session: IServerUserSession = (req as any).session;
                         ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         res.requests_results[wrapped_request.index] = null;
                         return null;
@@ -126,12 +126,12 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         }
                 }
 
-                let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
+                const params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
                 try {
-                    let api_res = await apiDefinition.SERVER_HANDLER(...params);
+                    const api_res = await apiDefinition.SERVER_HANDLER(...params);
                     res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
                 } catch (error) {
-                    let session: IServerUserSession = (req as any).session;
+                    const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
                     res.requests_results[wrapped_request.index] = null;
                 }

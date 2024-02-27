@@ -22,7 +22,7 @@ export default class PopupComponent extends VueComponentBase {
     private popups: PopupVO[] = null;
 
     private async mounted() {
-        let roles: RoleVO[] = await ModuleAccessPolicy.getInstance().getMyRoles();
+        const roles: RoleVO[] = await ModuleAccessPolicy.getInstance().getMyRoles();
 
         this.popups = await query(PopupVO.API_TYPE_ID)
             .filter_by_date_x_ranges('activated_ts_range', [
@@ -59,7 +59,7 @@ export default class PopupComponent extends VueComponentBase {
     private set_popup() {
         this.popup = null;
 
-        for (let i in this.popups) {
+        for (const i in this.popups) {
             if (!this.$cookies.get(this.popups[i].cookie_name)) {
                 this.popup = this.popups[i];
                 break;

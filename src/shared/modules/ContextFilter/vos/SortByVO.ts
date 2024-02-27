@@ -19,7 +19,7 @@ export default class SortByVO extends AbstractVO implements IDistantVOBase {
     public alias: string;
 
     public vo_type: string;
-    public field_id: string;
+    public field_name: string;
 
     public sort_asc: boolean;
 
@@ -27,14 +27,14 @@ export default class SortByVO extends AbstractVO implements IDistantVOBase {
 
     public constructor(
         vo_type: string = null,
-        field_id: string = null,
+        field_name: string = null,
         sort_asc: boolean = true,
         alias: string = null,
     ) {
         super();
 
         this.vo_type = vo_type;
-        this.field_id = field_id;
+        this.field_name = field_name;
         this.sort_asc = sort_asc;
         this.alias = alias;
         this.modifier = SortByVO.MODIFIER_NONE;

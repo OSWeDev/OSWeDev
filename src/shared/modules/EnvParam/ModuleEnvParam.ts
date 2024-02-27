@@ -82,7 +82,7 @@ export default class ModuleEnvParam extends Module {
 
     private initializeEnvParamsVO() {
 
-        let fields = [
+        const fields = [
             // APP_TITLE: string;
             ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().APP_TITLE, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre de l\'application', true),
             // CONNECTION_STRING: string;
@@ -246,7 +246,7 @@ export default class ModuleEnvParam extends Module {
             ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().BLOCK_TEAMS_MESSAGES, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true),
         ];
 
-        let table = new ModuleTableVO(this, EnvParamsVO.API_TYPE_ID, () => new EnvParamsVO(), fields, null, 'Static Env Params');
+        const table = new ModuleTableVO(this, EnvParamsVO.API_TYPE_ID, () => new EnvParamsVO(), fields, null, 'Static Env Params');
         this.datatables.push(table);
     }
 }

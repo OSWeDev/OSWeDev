@@ -15,7 +15,7 @@ export default class WeightHandler {
     }
 
     public getSortedListFromWeightedVosByIds<T extends IWeightedItem>(vos_by_id: { [id: number]: T }): T[] {
-        let vos_list: T[] = Object.values(vos_by_id);
+        const vos_list: T[] = Object.values(vos_by_id);
         WeightHandler.getInstance().sortByWeight(vos_list);
         return vos_list;
     }
@@ -47,7 +47,7 @@ export default class WeightHandler {
             return null;
         }
 
-        for (let i in sortedItemsByWeight) {
+        for (const i in sortedItemsByWeight) {
             if (sortedItemsByWeight[i].weight > weight) {
                 return sortedItemsByWeight[i];
             }

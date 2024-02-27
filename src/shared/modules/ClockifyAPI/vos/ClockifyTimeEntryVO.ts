@@ -11,7 +11,7 @@ export default class ClockifyTimeEntryVO {
         start_time: number,
         end_time: number
     ): ClockifyTimeEntryVO {
-        let time_entry: ClockifyTimeEntryVO = new ClockifyTimeEntryVO();
+        const time_entry: ClockifyTimeEntryVO = new ClockifyTimeEntryVO();
 
         time_entry.clockify_id = clockify_id;
         time_entry.description = description;

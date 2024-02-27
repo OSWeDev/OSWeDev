@@ -8,7 +8,7 @@ export default class DataImportErrorLogVO implements IDistantVOBase {
         msg_import: string,
         dih_id: number,
     ): DataImportErrorLogVO {
-        let logs: DataImportErrorLogVO = new DataImportErrorLogVO();
+        const logs: DataImportErrorLogVO = new DataImportErrorLogVO();
         logs.msg_import = msg_import;
         logs.dih_id = dih_id;
         return logs;

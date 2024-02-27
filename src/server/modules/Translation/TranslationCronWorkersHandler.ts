@@ -18,7 +18,7 @@ export default class TranslationCronWorkersHandler {
     private constructor() {
         ModuleCronServer.getInstance().registerCronWorker(InstallTranslationsCronWorker.getInstance());
 
-        let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
+        const planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
         planCronWorker.date_heure_planifiee = null;
         planCronWorker.intervale_recurrence = 0;

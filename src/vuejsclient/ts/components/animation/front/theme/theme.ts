@@ -56,23 +56,23 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     private async mounted() {
         this.is_ready = false;
 
-        let promises = [];
+        const promises = [];
 
-        for (let i in this.modules) {
+        for (const i in this.modules) {
             this.module_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.modules[i].id, NumSegment.TYPE_INT));
         }
 
-        for (let i in this.themes) {
+        for (const i in this.themes) {
             this.theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
         }
 
-        for (let i in this.modules) {
-            let anim_module: AnimationModuleVO = this.modules[i];
+        for (const i in this.modules) {
+            const anim_module: AnimationModuleVO = this.modules[i];
 
             /** récupération de prct_atteinte_seuil_module_param */
             promises.push((async () => {
-                let prct_atteinte_seuil_module_param = this.get_prct_atteinte_seuil_module_param(anim_module.id);
-                let theme_module_dataRange: ThemeModuleDataRangesVO = await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(prct_atteinte_seuil_module_param);
+                const prct_atteinte_seuil_module_param = this.get_prct_atteinte_seuil_module_param(anim_module.id);
+                const theme_module_dataRange: ThemeModuleDataRangesVO = await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(prct_atteinte_seuil_module_param);
 
                 this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getValueOrDefault(theme_module_dataRange, 0);
             })());
@@ -89,7 +89,7 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         // trie les mosule en fonction de l'tat d'avancement (ceux réussis en dernier)
         if (this.modules) {
             this.ordered_modules = cloneDeep(this.modules).sort((a, b) => {
-                let res = this.prct_atteinte_seuil_module[a.id] - this.prct_atteinte_seuil_module[b.id];
+                const res = this.prct_atteinte_seuil_module[a.id] - this.prct_atteinte_seuil_module[b.id];
 
                 if (!res) {
                     return a.weight - b.weight;

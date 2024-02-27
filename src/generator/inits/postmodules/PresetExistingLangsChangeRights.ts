@@ -36,10 +36,10 @@ export default class PresetExistingLangsChangeRights implements IGeneratorWorker
     public async work(db: IDatabase<any>) {
 
         try {
-            let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos();
+            const langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos();
 
-            for (let i in langs) {
-                let lang = langs[i];
+            for (const i in langs) {
+                const lang = langs[i];
 
                 let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = new AccessPolicyVO();
                 LANG_SELECTOR_PER_LANG_ACCESS.group_id = ModuleTranslationServer.getInstance().policy_group.id;

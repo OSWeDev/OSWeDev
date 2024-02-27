@@ -19,7 +19,7 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
-            let options = JSON.parse(page_widget.json_options) as VarBarLineChartWidgetOptions;
+            const options = JSON.parse(page_widget.json_options) as VarBarLineChartWidgetOptions;
 
             if (options && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
@@ -108,9 +108,9 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
@@ -121,10 +121,10 @@ export default class VarBarLineChartWidgetOptions implements IExportableWidgetOp
 
         if (this.datasets && this.datasets.length) {
 
-            for (let i in this.datasets) {
-                let dataset = this.datasets[i];
+            for (const i in this.datasets) {
+                const dataset = this.datasets[i];
 
-                let placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, dataset.var_id);
+                const placeholder_name_code_text_var_id_1: string = this.get_var_name_code_text(page_widget_id, dataset.var_id);
                 if (placeholder_name_code_text_var_id_1) {
 
                     res[placeholder_name_code_text_var_id_1] =

@@ -66,21 +66,21 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     }
 
     private var_datas_updater() {
-        let res: { [index: string]: VarDataValueResVO } = {};
+        const res: { [index: string]: VarDataValueResVO } = {};
 
         if ((!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
             this.var_datas = null;
             return;
         }
 
-        for (let j in this.var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
+        for (const j in this.var_dataset_descriptors) {
+            const var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
 
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+            for (const label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                const var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
 
-                for (let i in var_params) {
-                    let var_param = var_params[i];
+                for (const i in var_params) {
+                    const var_param = var_params[i];
                     res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
                 }
             }
@@ -97,7 +97,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     private async beforeDestroy() {
         await VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
-        if (!!this.rendered) {
+        if (this.rendered) {
             // // Issu de Bar
             // this.$data._chart.destroy();
         }
@@ -109,14 +109,14 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             return false;
         }
 
-        for (let j in this.var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
+        for (const j in this.var_dataset_descriptors) {
+            const var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
 
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+            for (const label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                const var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
 
-                for (let i in var_params) {
-                    let var_param = var_params[i];
+                for (const i in var_params) {
+                    const var_param = var_params[i];
 
                     if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
                         return false;
@@ -130,20 +130,20 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     private get_all_datas(var_dataset_descriptors: VarsBarDataSetDescriptor[]): VarDataBaseVO[] {
 
-        let res: { [index: string]: VarDataBaseVO } = {};
+        const res: { [index: string]: VarDataBaseVO } = {};
 
         if ((!var_dataset_descriptors) || (!var_dataset_descriptors.length)) {
             return null;
         }
 
-        for (let j in var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = var_dataset_descriptors[j];
+        for (const j in var_dataset_descriptors) {
+            const var_dataset_descriptor: VarsBarDataSetDescriptor = var_dataset_descriptors[j];
 
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+            for (const label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                const var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
 
-                for (let i in var_params) {
-                    let var_param = var_params[i];
+                for (const i in var_params) {
+                    const var_param = var_params[i];
 
                     res[var_param.index] = var_param;
                 }
@@ -170,7 +170,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
         let params = [var_data.value];
 
-        if (!!var_dataset_descriptor.filter_additional_params) {
+        if (var_dataset_descriptor.filter_additional_params) {
             params = params.concat(var_dataset_descriptor.filter_additional_params);
         }
 
@@ -180,8 +180,8 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     @Watch('var_dataset_descriptors', { immediate: true, deep: true })
     private async onChange_var_dataset_descriptor(new_datasets: VarsBarDataSetDescriptor[], old_datasets: VarsBarDataSetDescriptor[]) {
 
-        let new_var_params = this.get_all_datas(new_datasets);
-        let old_var_params = this.get_all_datas(old_datasets);
+        const new_var_params = this.get_all_datas(new_datasets);
+        const old_var_params = this.get_all_datas(old_datasets);
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.isSameParamArray(new_var_params, old_var_params)) {
@@ -227,7 +227,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     }
 
     get chart_options() {
-        let self = this;
+        const self = this;
         return Object.assign(
             {
                 // responsive: true,
@@ -257,23 +257,23 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     get datasets(): any[] {
 
-        let res: any[] = [];
+        const res: any[] = [];
 
         if (!this.all_data_loaded) {
             return null;
         }
 
-        for (let i in this.var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[i];
+        for (const i in this.var_dataset_descriptors) {
+            const var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[i];
 
-            let dataset_datas: number[] = [];
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+            const dataset_datas: number[] = [];
+            for (const label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                const var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
 
-                let label_values: number[] = [];
-                for (let j in var_params) {
-                    let var_param: VarDataBaseVO = var_params[j];
-                    let var_data_value: number = this.var_datas[var_param.index].value;
+                const label_values: number[] = [];
+                for (const j in var_params) {
+                    const var_param: VarDataBaseVO = var_params[j];
+                    const var_data_value: number = this.var_datas[var_param.index].value;
 
                     if ((!!var_dataset_descriptor.var_value_filter) && !var_dataset_descriptor.var_value_filter(var_param, var_data_value)) {
                         label_values.push(null);
@@ -298,29 +298,29 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 var_name: var_dataset_descriptor.var_name
             };
 
-            if (!!var_dataset_descriptor.label_translatable_code) {
+            if (var_dataset_descriptor.label_translatable_code) {
                 dataset['label'] = this.t(var_dataset_descriptor.label_translatable_code);
             } else {
                 dataset['label'] = this.t(VarsController.get_translatable_name_code(var_dataset_descriptor.var_name));
             }
 
-            if (!!var_dataset_descriptor.bg_color) {
+            if (var_dataset_descriptor.bg_color) {
                 dataset['backgroundColor'] = var_dataset_descriptor.bg_color;
             }
 
-            if (!!var_dataset_descriptor.border_color) {
+            if (var_dataset_descriptor.border_color) {
                 dataset['borderColor'] = var_dataset_descriptor.border_color;
             }
 
-            if (!!var_dataset_descriptor.type) {
+            if (var_dataset_descriptor.type) {
                 dataset['type'] = var_dataset_descriptor.type;
             }
 
-            if (!!var_dataset_descriptor.stack) {
+            if (var_dataset_descriptor.stack) {
                 dataset['stack'] = var_dataset_descriptor.stack;
             }
 
-            if (!!var_dataset_descriptor.dataset_options_overrides) {
+            if (var_dataset_descriptor.dataset_options_overrides) {
                 dataset = Object.assign(dataset, var_dataset_descriptor.dataset_options_overrides);
             }
 

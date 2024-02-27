@@ -63,7 +63,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
 
         if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
@@ -185,8 +185,8 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            let responseText = result.choices.shift().message.content;
-            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            const responseText = result.choices.shift().message.content;
+            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;

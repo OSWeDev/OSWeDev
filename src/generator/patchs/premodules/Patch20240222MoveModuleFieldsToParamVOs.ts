@@ -50,9 +50,9 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_SUBJECT_PREFIX = 'ModuleMailer.subject_prefix';
              *     public static PARAM_NAME_SUBJECT_SUFFIX = 'ModuleMailer.subject_suffix';
              */
-            let conf_module_mailer_lines = await db.oneOrNone("SELECT * FROM admin.module_mailer;");
-            let conf_module_mailer_line = conf_module_mailer_lines ? conf_module_mailer_lines[0] : null;
-            if (!!conf_module_mailer_line) {
+            const conf_module_mailer_lines = await db.oneOrNone("SELECT * FROM admin.module_mailer;");
+            const conf_module_mailer_line = conf_module_mailer_lines ? conf_module_mailer_lines[0] : null;
+            if (conf_module_mailer_line) {
                 ConsoleHandler.log('Migration des champs de ModuleMailer vers ParamVOs');
                 await this.add_param_if_not_exists(db, 'ModuleMailer.host', conf_module_mailer_line.host);
                 await this.add_param_if_not_exists(db, 'ModuleMailer.port', conf_module_mailer_line.port ? conf_module_mailer_line.port.toString() : null);
@@ -83,9 +83,9 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_nombre_separateur_1000 = 'ModuleFormatDatesNombres.nombre_separateur_1000';
              *     public static PARAM_NAME_nombre_separateur_decimal = 'ModuleFormatDatesNombres.nombre_separateur_decimal';
              */
-            let conf_module_format_dates_nombres_lines = await db.oneOrNone("SELECT * FROM admin.module_format_dates_nombres;");
-            let conf_module_format_dates_nombres_line = conf_module_format_dates_nombres_lines ? conf_module_format_dates_nombres_lines[0] : null;
-            if (!!conf_module_format_dates_nombres_line) {
+            const conf_module_format_dates_nombres_lines = await db.oneOrNone("SELECT * FROM admin.module_format_dates_nombres;");
+            const conf_module_format_dates_nombres_line = conf_module_format_dates_nombres_lines ? conf_module_format_dates_nombres_lines[0] : null;
+            if (conf_module_format_dates_nombres_line) {
                 ConsoleHandler.log('Migration des champs de ModuleFormatDatesNombres vers ParamVOs');
                 await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_month_date', conf_module_format_dates_nombres_line.date_format_month_date);
                 await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear_month_date', conf_module_format_dates_nombres_line.date_format_fullyear_month_date);
@@ -218,9 +218,9 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_animation_vert: string = 'sass_skin_generator.animation_vert';
              *     public static PARAM_NAME_header_text_color_mid_opacity: string = 'sass_skin_generator.header_text_color_mid_opacity';
              */
-            let conf_module_sass_skin_configurator_lines = await db.oneOrNone("SELECT * FROM admin.module_sass_resource_planning_skin_configurator;");
-            let conf_module_sass_skin_configurator_line = conf_module_sass_skin_configurator_lines ? conf_module_sass_skin_configurator_lines[0] : null;
-            if (!!conf_module_sass_skin_configurator_line) {
+            const conf_module_sass_skin_configurator_lines = await db.oneOrNone("SELECT * FROM admin.module_sass_resource_planning_skin_configurator;");
+            const conf_module_sass_skin_configurator_line = conf_module_sass_skin_configurator_lines ? conf_module_sass_skin_configurator_lines[0] : null;
+            if (conf_module_sass_skin_configurator_line) {
                 ConsoleHandler.log('Migration des champs de ModuleSASSSkinConfigurator vers ParamVOs');
                 await this.add_param_if_not_exists(db, 'sass_skin_generator.danger_color', conf_module_sass_skin_configurator_line.danger_color);
                 await this.add_param_if_not_exists(db, 'sass_skin_generator.success_color', conf_module_sass_skin_configurator_line.success_color);
@@ -288,9 +288,9 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              * ModuleAccessPolicy
              * A priori on a toujours la table mais on s'en sert plus, on la supprime dans ce cas
              */
-            let conf_module_access_policy_lines = await db.oneOrNone("SELECT * FROM admin.module_access_policy;");
-            let conf_module_access_policy_line = conf_module_access_policy_lines ? conf_module_access_policy_lines[0] : null;
-            if (!!conf_module_access_policy_line) {
+            const conf_module_access_policy_lines = await db.oneOrNone("SELECT * FROM admin.module_access_policy;");
+            const conf_module_access_policy_line = conf_module_access_policy_lines ? conf_module_access_policy_lines[0] : null;
+            if (conf_module_access_policy_line) {
                 await db.none("DROP TABLE admin.module_access_policy;");
             }
 
@@ -298,9 +298,9 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              * ModuleMaintenance
              * Idem
              */
-            let conf_module_maintenance_lines = await db.oneOrNone("SELECT * FROM admin.module_maintenance;");
-            let conf_module_maintenance_line = conf_module_maintenance_lines ? conf_module_maintenance_lines[0] : null;
-            if (!!conf_module_maintenance_line) {
+            const conf_module_maintenance_lines = await db.oneOrNone("SELECT * FROM admin.module_maintenance;");
+            const conf_module_maintenance_line = conf_module_maintenance_lines ? conf_module_maintenance_lines[0] : null;
+            if (conf_module_maintenance_line) {
                 await db.none("DROP TABLE admin.module_maintenance;");
             }
 
@@ -309,7 +309,7 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *  tout en bloquant aussi la compilation pour assurer une prise en compte et un correctif immédiat
              */
             // Il existe la table "admin.modules" normalement qu'il est normal d'avoir et qu'on veut pas prendre en compte du coup
-            let remaining_tables = await db.manyOrNone("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
+            const remaining_tables = await db.manyOrNone("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
             if (remaining_tables && (remaining_tables.length > 0)) {
                 ConsoleHandler.error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
                 throw new Error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
@@ -322,7 +322,7 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
     }
 
     private async add_param_if_not_exists(db: IDatabase<any>, name: string, value: string) {
-        let param = await db.oneOrNone("SELECT * FROM ref.module_params_param WHERE name=$1;", [name]);
+        const param = await db.oneOrNone("SELECT * FROM ref.module_params_param WHERE name=$1;", [name]);
         if (!param) {
             await db.none("INSERT INTO ref.module_params_param (name, value, last_up_date) VALUES ($1, $2, $3);", [name, value, Dates.now()]);
         }

@@ -44,10 +44,10 @@ export default class SaveFavoritesFiltersWidgetController {
 
     private async throttled_call_updaters(params: SaveFavoritesFiltersCallUpdaters[]) {
 
-        for (let i in params) {
+        for (const i in params) {
 
-            let dashboard_id = params[i].dashboard_id;
-            let page_id = params[i].page_id;
+            const dashboard_id = params[i].dashboard_id;
+            const page_id = params[i].page_id;
 
             let updaters_by_page_widget_id: { [page_widget_id: number]: Array<() => Promise<void>> } = {};
 
@@ -58,12 +58,12 @@ export default class SaveFavoritesFiltersWidgetController {
                 updaters_by_page_widget_id = SaveFavoritesFiltersWidgetController.getInstance().updaters[dashboard_id][page_id];
             }
 
-            let promises = [];
+            const promises = [];
 
-            for (let page_widget_id in updaters_by_page_widget_id) {
-                let updaters = updaters_by_page_widget_id[page_widget_id];
+            for (const page_widget_id in updaters_by_page_widget_id) {
+                const updaters = updaters_by_page_widget_id[page_widget_id];
 
-                for (let j in updaters) {
+                for (const j in updaters) {
                     promises.push(updaters[j]());
                 }
             }

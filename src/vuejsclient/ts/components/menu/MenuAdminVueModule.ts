@@ -32,7 +32,7 @@ export default class MenuAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleMenu.POLICY_BO_ACCESS,
@@ -44,8 +44,8 @@ export default class MenuAdminVueModule extends VueModuleBase {
                 )
             );
 
-        let url: string = '/menu/organizer';
-        let main_route_name: string = 'menu_organizer';
+        const url: string = '/menu/organizer';
+        const main_route_name: string = 'menu_organizer';
 
         this.routes.push({
             path: url,
@@ -56,7 +56,7 @@ export default class MenuAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             ModuleMenu.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

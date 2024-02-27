@@ -87,8 +87,8 @@ export default class ModulePowershellServer extends ModuleServerBase {
 
         try {
 
-            let uid: number = StackContext.get('UID');
-            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+            const uid: number = StackContext.get('UID');
+            const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
             if ((!uid) || (!CLIENT_TAB_ID)) {
                 //on doit venir d'un onglet précis
@@ -117,7 +117,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
     }
 
     public async execute_ps_command_and_get_output(command: string): Promise<string> {
-        let self = this;
+        const self = this;
 
         return new Promise((resolve, reject) => {
             try {

@@ -7,7 +7,7 @@ export default class SelectBoxDatatableFieldVO<T, U> extends DatatableField<T, U
 
     public static createNew(): SelectBoxDatatableFieldVO<any, any> {
 
-        let res = new SelectBoxDatatableFieldVO();
+        const res = new SelectBoxDatatableFieldVO();
         res.init(SelectBoxDatatableFieldVO.API_TYPE_ID, DatatableField.SELECT_BOX_FIELD_TYPE, 'id');
         res.datatable_field_uid = '__select_box';
         return res;

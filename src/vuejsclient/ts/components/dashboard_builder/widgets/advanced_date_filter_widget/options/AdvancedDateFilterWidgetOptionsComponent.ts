@@ -150,8 +150,8 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -182,7 +182,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             this.next_update_options = this.get_default_options();
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
@@ -198,7 +198,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             return false;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[api_type_id].get_field_by_id(field_id);
 
         if (!field) {
             return false;
@@ -221,8 +221,8 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         /**
          * On applique les nouveaux poids
          */
-        for (let i in this.editable_opts) {
-            let opt = this.editable_opts[i];
+        for (const i in this.editable_opts) {
+            const opt = this.editable_opts[i];
 
             this.opts.find((c) => c.id == opt.id).weight = parseInt(i.toString());
         }
@@ -284,7 +284,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         let old_opt: AdvancedDateFilterOptDescVO = null;
 
-        let i = this.next_update_options.opts.findIndex((opt) => {
+        const i = this.next_update_options.opts.findIndex((opt) => {
             if (opt.id == update_opt.id) {
                 old_opt = opt;
                 return true;
@@ -314,7 +314,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             return null;
         }
 
-        let i = this.next_update_options.opts.findIndex((opt) => {
+        const i = this.next_update_options.opts.findIndex((opt) => {
             return opt.id == del_opt.id;
         });
 
@@ -338,9 +338,9 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             return 0;
         }
 
-        let ids = this.widget_options.opts.map((c) => c.id ? c.id : 0);
+        const ids = this.widget_options.opts.map((c) => c.id ? c.id : 0);
         let max = -1;
-        for (let i in ids) {
+        for (const i in ids) {
             if (max < ids[i]) {
                 max = ids[i];
             }
@@ -426,10 +426,10 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.get_custom_filters) {
-            let get_custom_filter = this.get_custom_filters[i];
+        for (const i in this.get_custom_filters) {
+            const get_custom_filter = this.get_custom_filters[i];
 
             if (get_custom_filter == this.custom_filter_name) {
                 continue;
@@ -444,7 +444,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     private change_custom_filter(custom_filter: string) {
         this.custom_filter_name = custom_filter;
         if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
-            let custom_filters = Array.from(this.get_custom_filters);
+            const custom_filters = Array.from(this.get_custom_filters);
             custom_filters.push(custom_filter);
             this.set_custom_filters(custom_filters);
         }
@@ -457,7 +457,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         let options: AdvancedDateFilterWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
                     options.is_vo_field_ref == null ? true : options.is_vo_field_ref,
@@ -479,7 +479,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -489,15 +489,15 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
     }
 
     get opts(): AdvancedDateFilterOptDescVO[] {
-        let options: AdvancedDateFilterWidgetOptions = this.widget_options;
+        const options: AdvancedDateFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.opts) || (!options.opts.length)) {
             return null;
         }
 
-        let res: AdvancedDateFilterOptDescVO[] = [];
+        const res: AdvancedDateFilterOptDescVO[] = [];
 
-        for (let i in options.opts) {
+        for (const i in options.opts) {
             res.push(Object.assign(new AdvancedDateFilterOptDescVO(), options.opts[i]));
         }
 

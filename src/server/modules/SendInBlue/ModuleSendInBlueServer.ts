@@ -91,16 +91,16 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
+        const mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
 
         if ((!mail) || (!mail.message_id)) {
             ConsoleHandler.error('sendinblue_refresh_mail_events:mail not found or !message_id:' + mail_id);
             return;
         }
 
-        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
 
-        let api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
+        const api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
             SendInBlueMailServerController.PATH_STATS_EVENTS + '?messageId=' + encodeURIComponent(mail.message_id) + '&email=' + mail.email + '&sort=desc');
 
@@ -114,7 +114,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             }
         });
 
-        for (let i in api_res.events) {
+        for (const i in api_res.events) {
             await this.update_mail_event(mail, api_res.events[i], bdd_events);
         }
     }
@@ -132,7 +132,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
         // Contexte serveur pour la suite
 
-        let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
+        const mails: MailVO[] = await query(MailVO.API_TYPE_ID)
             .filter_by_text_eq('message_id', event.messageId)
             .filter_by_text_eq('email', event.email)
             .exec_as_server()
@@ -145,20 +145,20 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let mail = mails[0];
+        const mail = mails[0];
 
         if (!mail) {
             ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
             return;
         }
 
-        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
 
         await this.update_mail_event(mail, event, bdd_events);
     }
 
     private async update_mail_event(mail: MailVO, event: SendInBlueMailEventVO, bdd_events: MailEventVO[]) {
-        let new_event = new MailEventVO();
+        const new_event = new MailEventVO();
 
         switch (event.event) {
             case 'request':
@@ -220,8 +220,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
          */
         let found = false;
 
-        for (let i in bdd_events) {
-            let bdd_event = bdd_events[i];
+        for (const i in bdd_events) {
+            const bdd_event = bdd_events[i];
 
             if ((bdd_event.event == new_event.event) &&
                 (bdd_event.event_date == new_event.event_date) &&

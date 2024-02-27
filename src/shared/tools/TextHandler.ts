@@ -66,12 +66,12 @@ export default class TextHandler {
         }
 
         let sanitized_res: string = '';
-        let length: number = src.length;
+        const length: number = src.length;
 
         for (let i = 0; i < length; i++) {
-            let c = src[i];
+            const c = src[i];
 
-            if (!!TextHandler.accents_replacements[c]) {
+            if (TextHandler.accents_replacements[c]) {
                 sanitized_res += TextHandler.accents_replacements[c];
                 continue;
             }
@@ -92,12 +92,12 @@ export default class TextHandler {
         }
 
         let sanitized_res: string = '';
-        let length: number = src.length;
+        const length: number = src.length;
 
         for (let i = 0; i < length; i++) {
-            let c = src[i];
+            const c = src[i];
 
-            if (!!TextHandler.html_accents_replacements[c]) {
+            if (TextHandler.html_accents_replacements[c]) {
                 sanitized_res += TextHandler.html_accents_replacements[c];
                 continue;
             }
@@ -113,8 +113,8 @@ export default class TextHandler {
      * @param object
      */
     public sanityze_object(object: any) {
-        for (let field_id in object) {
-            let field = object[field_id];
+        for (const field_id in object) {
+            const field = object[field_id];
 
             if (TypesHandler.getInstance().isString(field)) {
                 object[field_id] = this.sanityze(field);
@@ -133,8 +133,8 @@ export default class TextHandler {
      * @param object
      */
     public encode_object(object: any) {
-        for (let field_id in object) {
-            let field = object[field_id];
+        for (const field_id in object) {
+            const field = object[field_id];
 
             if (TypesHandler.getInstance().isString(field)) {
                 object[field_id] = this.encode_accents(field);
@@ -154,14 +154,14 @@ export default class TextHandler {
             return null;
         }
 
-        let res: string = src.trim().toLowerCase();
+        const res: string = src.trim().toLowerCase();
         let standardized_res: string = '';
-        let length: number = res.length;
+        const length: number = res.length;
 
         for (let i = 0; i < length; i++) {
-            let c = res[i];
+            const c = res[i];
 
-            if (!!TextHandler.accents_replacements[c]) {
+            if (TextHandler.accents_replacements[c]) {
                 standardized_res += TextHandler.accents_replacements[c];
                 continue;
             }

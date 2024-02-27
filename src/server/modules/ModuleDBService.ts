@@ -1,5 +1,5 @@
+import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import Module from '../../shared/modules/Module';
-import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableDBService from './ModuleTableDBService';
 
 export default class ModuleDBService {
@@ -15,10 +15,6 @@ export default class ModuleDBService {
     /**
      * Local thread cache -----
      */
-    public hook_after_registered_all_modules: (modules: Module[]) => {};
-
-    private bdd_owner: string;
-
     private has_preloaded_modules_is_actif: boolean = false;
     private preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
     /**
@@ -27,7 +23,6 @@ export default class ModuleDBService {
 
     private constructor(private db) {
         ModuleDBService.instance = this;
-        this.bdd_owner = ConfigurationService.node_configuration.BDD_OWNER;
     }
 
     public async preload_modules_is_actif() {
@@ -36,9 +31,9 @@ export default class ModuleDBService {
         }
         this.has_preloaded_modules_is_actif = true;
 
-        let rows = await this.db.query('SELECT "name", "actif" FROM admin.modules;');
-        for (let i in rows) {
-            let row = rows[i];
+        const rows = await this.db.query('SELECT "name", "actif" FROM admin.modules;');
+        for (const i in rows) {
+            const row = rows[i];
 
             this.preloaded_modules_is_actif[row.name] = row.actif;
         }
@@ -50,7 +45,7 @@ export default class ModuleDBService {
             await this.preload_modules_is_actif();
         }
 
-        let is_actif = this.preloaded_modules_is_actif[module.name];
+        const is_actif = this.preloaded_modules_is_actif[module.name];
         if (typeof is_actif === "undefined") {
             // La ligne n'existe pas, on l'ajoute
             module.actif = module.activate_on_installation;
@@ -65,8 +60,8 @@ export default class ModuleDBService {
         // Cette fonction a pour vocation de configurer le module pour ce lancement (chargement d'infos depuis la BDD, ...)
 
         // On lance aussi la configuration des tables
-        for (let i in module.datatables) {
-            await ModuleTableDBService.getInstance(this.db).datatable_configure(module.datatables[i]);
+        for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
+            await ModuleTableDBService.getInstance(this.db).datatable_configure(ModuleTableController.module_tables_by_vo_type[vo_type]);
         }
 
         // On appelle le hook
@@ -117,8 +112,8 @@ export default class ModuleDBService {
          */
         // let promises = [];
         // let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        for (let i in module.datatables) {
-            let datatable = module.datatables[i];
+        for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
+            const datatable = ModuleTableController.module_tables_by_vo_type[vo_type];
 
             // if (promises && (promises.length >= max)) {
             //     await all_promises(promises);
@@ -133,8 +128,8 @@ export default class ModuleDBService {
         // }
 
         // On appelle le hook de fin d'installation
-        for (let i in module.datatables) {
-            let datatable = module.datatables[i];
+        for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
+            const datatable = ModuleTableController.module_tables_by_vo_type[vo_type];
 
             if (datatable.hook_datatable_install) {
 

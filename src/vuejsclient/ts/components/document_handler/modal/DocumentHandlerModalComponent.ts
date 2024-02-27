@@ -63,12 +63,12 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
     @Watch('get_hidden')
     public async onchange_hidden() {
 
-        let self = this;
+        const self = this;
 
         if (!this.get_hidden) {
 
             if (!this.loaded) {
-                let datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
+                const datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
 
                 this.all_d_by_ids = datas.all_d_by_ids;
                 this.all_dt_by_ids = datas.all_dt_by_ids;
@@ -95,7 +95,7 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        let self = this;
+        const self = this;
 
         this.$nextTick(async () => {
             $("#document_handler_modal").on("hidden.bs.modal", function () {
@@ -105,7 +105,7 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
     }
 
     private reload_list() {
-        let datas_list: DocumentHandlerReloadListVO = DocumentHandlerController.getInstance().reload_list(
+        const datas_list: DocumentHandlerReloadListVO = DocumentHandlerController.getInstance().reload_list(
             this.d_dts,
             this.all_d_by_ids,
             this.get_only_routename,
@@ -126,7 +126,7 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
     }
 
     get options() {
-        let self = this;
+        const self = this;
         return {
             itemSelector: '.grid-item',
             layoutMode: 'masonry',

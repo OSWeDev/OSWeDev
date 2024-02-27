@@ -25,7 +25,7 @@ export default class GPTCompletionAPIMessageVO implements IDistantVOBase {
         user_id: number,
         content: string): GPTCompletionAPIMessageVO {
 
-        let res: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+        const res: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
 
         res.role_type = role_type;
         res.user_id = user_id;
@@ -49,7 +49,7 @@ export default class GPTCompletionAPIMessageVO implements IDistantVOBase {
 
     public to_GPT_ChatCompletionMessageParam(): ChatCompletionMessageParam {
 
-        let res: ChatCompletionMessageParam = {
+        const res: ChatCompletionMessageParam = {
             content: this.content,
             role: GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_LABELS[this.role_type] as ChatCompletionRole,
         } as ChatCompletionMessageParam;

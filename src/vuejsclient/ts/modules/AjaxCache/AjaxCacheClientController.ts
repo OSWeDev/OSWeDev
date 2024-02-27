@@ -82,9 +82,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
-        let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+        const res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
         if (!res) {
             StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'FAILED');
             StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'FAILED', Dates.now_ms() - time_in);
@@ -117,29 +117,29 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number = null,
         post_for_get: boolean = false) {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
-        let self = this;
+        const self = this;
 
         return new Promise((resolve, reject) => {
 
-            let resolve_stats_wrapper = (res) => {
+            const resolve_stats_wrapper = (res) => {
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'OK');
                 StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'OK', Dates.now_ms() - time_in);
                 resolve(res);
             };
 
-            let reject_stats_wrapper = (err) => {
+            const reject_stats_wrapper = (err) => {
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'FAILED');
                 StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'FAILED', Dates.now_ms() - time_in);
                 reject(err);
             };
 
             // If in cache
-            let UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
+            const UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
             if (self.cache.requestResponseCaches[UIDindex]) {
 
-                let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
+                const cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
                 // Un contrôle de cohérence possible : le api_types_involved doit contenir l'union de toutes les fois où on utilise ce cache
 
                 // If resolved / rejected
@@ -165,7 +165,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     self.addToWaitingRequestsStack(cache);
                 }
             } else {
-                let cache = self.addCache(
+                const cache = self.addCache(
                     apiDefinition,
                     url,
                     postdatas,
@@ -200,13 +200,13 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
         is_wrapper: boolean = false): Promise<any> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
 
-        let self = this;
+        const self = this;
 
         if (!is_wrapper) {
-            let light_weight = new LightWeightSendableRequestVO(null);
+            const light_weight = new LightWeightSendableRequestVO(null);
             light_weight.url = url;
             light_weight.contentType = contentType;
             light_weight.postdatas = postdatas;
@@ -219,22 +219,22 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             // this.api_logs.push(light_weight);
         }
 
-        let res = new Promise(async (resolve, reject) => {
+        const res = new Promise(async (resolve, reject) => {
 
-            let resolve_stats_wrapper = (datas) => {
+            const resolve_stats_wrapper = (datas) => {
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'OK');
                 StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'OK', Dates.now_ms() - time_in);
                 resolve(datas);
             };
 
-            let reject_stats_wrapper = (err) => {
+            const reject_stats_wrapper = (err) => {
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'FAILED');
                 StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'FAILED', Dates.now_ms() - time_in);
                 reject(err);
             };
 
             // On ajoute le système de catch code retour pour les POST aussi
-            let cache = self.addCache(
+            const cache = self.addCache(
                 apiDefinition,
                 url,
                 postdatas,
@@ -254,7 +254,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.invalidateCachesFromApiTypesInvolved(api_types_involved);
             }
 
-            let options: any = {
+            const options: any = {
                 type: "POST",
                 url: url
             };
@@ -287,11 +287,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             } else {
                 options.timeout = 120000;
             }
-            if (!!self.csrf_token) {
+            if (self.csrf_token) {
                 options.headers['X-CSRF-Token'] = self.csrf_token;
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
             }
-            if (!!EnvHandler.VERSION) {
+            if (EnvHandler.VERSION) {
                 options.headers['version'] = EnvHandler.VERSION;
             }
             self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
@@ -317,11 +317,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     public invalidateCachesFromApiTypesInvolved(api_types_involved: string[]) {
 
-        for (let i in api_types_involved) {
-            let api_type_involved: string = api_types_involved[i];
+        for (const i in api_types_involved) {
+            const api_type_involved: string = api_types_involved[i];
 
-            for (let j in this.cache.requestResponseCaches) {
-                let cache = this.cache.requestResponseCaches[j];
+            for (const j in this.cache.requestResponseCaches) {
+                const cache = this.cache.requestResponseCaches[j];
 
                 if (cache.api_types_involved == CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) {
                     this.invalidateCachedItem(cache);
@@ -337,8 +337,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     public invalidateUsingURLRegexp(regexp: RegExp) {
 
-        for (let i in this.cache.requestResponseCaches) {
-            let cachedItem: RequestResponseCacheVO = this.cache.requestResponseCaches[i];
+        for (const i in this.cache.requestResponseCaches) {
+            const cachedItem: RequestResponseCacheVO = this.cache.requestResponseCaches[i];
 
             if (regexp.test(cachedItem.url)) {
                 this.invalidateCachedItem(cachedItem);
@@ -381,7 +381,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number,
         api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
 
-        let index = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, type);
+        const index = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, type);
         if (!this.cache.requestResponseCaches[index]) {
             this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(apiDefinition, url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
@@ -420,8 +420,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         // Check for invalidation
         let defaultTimeout = true;
-        for (let i in this.invalidationRules.regexpRules) {
-            let invalidationRule: CacheInvalidationRegexpRuleVO = this.invalidationRules.regexpRules[i];
+        for (const i in this.invalidationRules.regexpRules) {
+            const invalidationRule: CacheInvalidationRegexpRuleVO = this.invalidationRules.regexpRules[i];
 
             if (invalidationRule.regexp.test(cache.url)) {
                 if (cache.datasDate && (Dates.add(cache.datasDate, invalidationRule.max_duration) < Dates.now())) {
@@ -485,7 +485,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     }
 
     private async traitementFailRequest(err, request: RequestResponseCacheVO) {
-        let self = this;
+        const self = this;
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'IN');
 
         if (401 == err.status) {
@@ -509,10 +509,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             request.state = RequestResponseCacheVO.STATE_REJECTED;
 
             while (request.reject_callbacks && request.reject_callbacks.length) {
-                let reject_callback = request.reject_callbacks.shift();
+                const reject_callback = request.reject_callbacks.shift();
 
                 // Make the calls asynchronous to call them all at the same time
-                let callback = async () => {
+                const callback = async () => {
                     reject_callback(null);
                 };
                 await callback();
@@ -526,16 +526,16 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             return;
         }
 
-        let sendable_objects_by_request_num: { [num: number]: LightWeightSendableRequestVO[] } = {};
-        let wrappable_requests_by_request_num: { [num: number]: RequestResponseCacheVO[] } = {};
-        let request_barrel_num_from_request_uid: { [request_uid: string]: number } = {};
+        const sendable_objects_by_request_num: { [num: number]: LightWeightSendableRequestVO[] } = {};
+        const wrappable_requests_by_request_num: { [num: number]: RequestResponseCacheVO[] } = {};
+        const request_barrel_num_from_request_uid: { [request_uid: string]: number } = {};
         let request_barrel_num: number = -1;
 
         // let sendable_objects: LightWeightSendableRequestVO[] = [];
-        let correspondance_by_request_num: { [num: number]: { [id_local: string]: string } } = {};
-        for (let i in wrappable_requests) {
-            let request = wrappable_requests[i];
-            let request_uid = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+        const correspondance_by_request_num: { [num: number]: { [id_local: string]: string } } = {};
+        for (const i in wrappable_requests) {
+            const request = wrappable_requests[i];
+            const request_uid = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
 
             // Choix du pool de requête
             if (!request_barrel_num_from_request_uid[request_uid]) {
@@ -561,7 +561,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].push(request);
 
             // Ajout de l'index de la requête au sein du pool
-            let this_query_index: string = (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length - 1).toString();
+            const this_query_index: string = (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length - 1).toString();
             request.index = this_query_index;
 
             // Ajout de la correspondance entre l'index de la requête et son id local
@@ -571,7 +571,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             correspondance_by_request_num[request_barrel_num_from_request_uid[request_uid]][this_query_index] = request_uid;
 
             // Version Light pour envoi
-            let light_weight = new LightWeightSendableRequestVO(request);
+            const light_weight = new LightWeightSendableRequestVO(request);
             if (!sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
                 sendable_objects_by_request_num[request_barrel_num_from_request_uid[request_uid]] = [];
             }
@@ -585,10 +585,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         // On encapsule les gets dans une requête de type post
-        let promise_pipeline = new PromisePipeline(nb_requests, 'AjaxCacheClientController.wrap_request');
+        const promise_pipeline = new PromisePipeline(nb_requests, 'AjaxCacheClientController.wrap_request');
 
-        for (let i in sendable_objects_by_request_num) {
-            let sendable_objects = sendable_objects_by_request_num[i];
+        for (const i in sendable_objects_by_request_num) {
+            const sendable_objects = sendable_objects_by_request_num[i];
 
             if (!sendable_objects.length) {
                 continue;
@@ -609,7 +609,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private async wrap_request_send(sendable_objects: LightWeightSendableRequestVO[], wrappable_requests: RequestResponseCacheVO[], correspondance: { [id_local: string]: string }) {
         try {
-            let results: RequestsWrapperResult = await this.post(
+            const results: RequestsWrapperResult = await this.post(
                 null,
                 "/api_handler/requests_wrapper", [],
                 JSON.stringify(sendable_objects),
@@ -623,8 +623,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 throw new Error('Pas de résultat pour la requête groupée.');
             }
 
-            for (let i in wrappable_requests) {
-                let wrapped_request = wrappable_requests[i];
+            for (const i in wrappable_requests) {
+                const wrapped_request = wrappable_requests[i];
 
                 if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
                     StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete');
@@ -667,7 +667,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await ThreadHandler.sleep(50, 'AjaxCacheClientController.processRequests');
             }
 
-            let this_batch_requests = this.waitingForRequest;
+            const this_batch_requests = this.waitingForRequest;
             this.waitingForRequest = [];
 
             // // On commence par séparer les requêtes wrappable des autres
@@ -710,10 +710,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     }
 
     private async resolve_all_wrappable_request(this_batch_requests: RequestResponseCacheVO[]) {
-        let wrappable_requests: RequestResponseCacheVO[] = [];
+        const wrappable_requests: RequestResponseCacheVO[] = [];
 
-        for (let i in this_batch_requests) {
-            let request = this_batch_requests[i];
+        for (const i in this_batch_requests) {
+            const request = this_batch_requests[i];
 
             if (!request.wrappable_request) {
                 continue;
@@ -729,8 +729,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     }
 
     private async resolve_all_non_wrappable_request(this_batch_requests: RequestResponseCacheVO[]) {
-        for (let i in this_batch_requests) {
-            let request = this_batch_requests[i];
+        for (const i in this_batch_requests) {
+            const request = this_batch_requests[i];
 
             if (request.wrappable_request) {
                 continue;
@@ -744,8 +744,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private async resolve_non_wrappable_request(request: RequestResponseCacheVO) {
 
-        let self = this;
-        let light_weight = new LightWeightSendableRequestVO(request);
+        const self = this;
+        const light_weight = new LightWeightSendableRequestVO(request);
 
         // if (this.api_logs.length >= this.api_logs_limit) {
         //     this.api_logs.shift();
@@ -776,7 +776,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                             await self.traitementFailRequest(err, request);
                         });
                 } else {
-                    let resolve_callback = request.resolve_callbacks.shift();
+                    const resolve_callback = request.resolve_callbacks.shift();
                     resolve_callback(null);
                 }
                 break;
@@ -786,7 +786,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 break;
 
             case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
-                let res = await this.post(
+                const res = await this.post(
                     request.apiDefinition,
                     request.url, request.api_types_involved, request.postdatas,
                     request.dataType, request.contentType, request.processData, request.timeout,
@@ -806,10 +806,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         while (request.resolve_callbacks && request.resolve_callbacks.length) {
-            let resolve_callback = request.resolve_callbacks.shift();
+            const resolve_callback = request.resolve_callbacks.shift();
 
             // Make the calls asynchronous to call them all at the same time
-            let callback = async () => {
+            const callback = async () => {
                 resolve_callback(datas);
             };
             await callback();

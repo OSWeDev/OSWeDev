@@ -25,12 +25,12 @@ test('ContextFilterServer: test updates_jointures - User => Lang', async () => {
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const user_modultable = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n: number = 1;
-    let tables_aliases_by_type: { [vo_type: string]: string } = {
+    const tables_aliases_by_type: { [vo_type: string]: string } = {
         user: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -50,7 +50,7 @@ test('ContextFilterServer: test updates_jointures - User => Lang', async () => {
         'ref.lang t1 on t1.id = t0.lang_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [LangVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]
+        [LangVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[LangVO.API_TYPE_ID]
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [LangVO.API_TYPE_ID]: 't1',
@@ -67,12 +67,12 @@ test('ContextFilterServer: test updates_jointures - Lang => User', async () => {
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const user_modultable = ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n = 1;
-    let tables_aliases_by_type = {
+    const tables_aliases_by_type = {
         [LangVO.API_TYPE_ID]: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -92,7 +92,7 @@ test('ContextFilterServer: test updates_jointures - Lang => User', async () => {
         'ref.user t1 on t1.lang_id = t0.id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]
+        [UserVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID]
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [UserVO.API_TYPE_ID]: 't1',
@@ -109,12 +109,12 @@ test('ContextFilterServer: test updates_jointures - User => Role', async () => {
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const userrole_modultable = ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n = 1;
-    let tables_aliases_by_type = {
+    const tables_aliases_by_type = {
         [UserVO.API_TYPE_ID]: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -136,8 +136,8 @@ test('ContextFilterServer: test updates_jointures - User => Role', async () => {
         'ref.role t2 on t2.id = t1.role_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserRoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
-        [RoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID],
+        [UserRoleVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID],
+        [RoleVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[RoleVO.API_TYPE_ID],
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [RoleVO.API_TYPE_ID]: 't2',
@@ -155,12 +155,12 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const userrole_modultable = ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n = 1;
-    let tables_aliases_by_type = {
+    const tables_aliases_by_type = {
         [UserRoleVO.API_TYPE_ID]: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -180,7 +180,7 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
         'ref.user t1 on t1.id = t0.user_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
+        [UserVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID],
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [UserVO.API_TYPE_ID]: 't1',
@@ -207,8 +207,8 @@ test('ContextFilterServer: test updates_jointures - UserRole => Role & User', as
         'ref.role t2 on t2.id = t0.role_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
-        [RoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID],
+        [UserVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID],
+        [RoleVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[RoleVO.API_TYPE_ID],
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [RoleVO.API_TYPE_ID]: 't2',
@@ -226,13 +226,13 @@ test('ContextFilterServer: test updates_jointures - UserRoleVO => AnonymizationF
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-    let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const UserRoleVO_modultable = ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID];
+    const AnonymizationUserConfVO_modultable = ModuleTableController.module_tables_by_vo_type[AnonymizationUserConfVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n = 1;
-    let tables_aliases_by_type = {
+    const tables_aliases_by_type = {
         [UserRoleVO.API_TYPE_ID]: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -256,9 +256,9 @@ test('ContextFilterServer: test updates_jointures - UserRoleVO => AnonymizationF
         'ref.anonym_field_conf t3 on t3.id = t2.anon_field_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
-        [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
-        [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+        [UserVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID],
+        [AnonymizationUserConfVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[AnonymizationUserConfVO.API_TYPE_ID],
+        [AnonymizationFieldConfVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[AnonymizationFieldConfVO.API_TYPE_ID],
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [AnonymizationFieldConfVO.API_TYPE_ID]: 't3',
@@ -277,13 +277,13 @@ test('ContextFilterServer: test updates_jointures - RoleVO => AnonymizationField
 
     ContextFilterTestsTools.getInstance().declare_modultables();
 
-    let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-    let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
-    let jointures: string[] = [];
-    let joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
+    const UserRoleVO_modultable = ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID];
+    const AnonymizationUserConfVO_modultable = ModuleTableController.module_tables_by_vo_type[AnonymizationUserConfVO.API_TYPE_ID];
+    const jointures: string[] = [];
+    const joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     let aliases_n = 1;
-    let tables_aliases_by_type = {
+    const tables_aliases_by_type = {
         [RoleVO.API_TYPE_ID]: 't0'
     };
     aliases_n = await ContextFilterServerController.updates_jointures(
@@ -309,10 +309,10 @@ test('ContextFilterServer: test updates_jointures - RoleVO => AnonymizationField
         'ref.anonym_field_conf t4 on t4.id = t3.anon_field_id'
     ]);
     expect(joined_tables_by_vo_type).toStrictEqual({
-        [UserRoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
-        [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
-        [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
-        [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+        [UserRoleVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserRoleVO.API_TYPE_ID],
+        [UserVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID],
+        [AnonymizationUserConfVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[AnonymizationUserConfVO.API_TYPE_ID],
+        [AnonymizationFieldConfVO.API_TYPE_ID]: ModuleTableController.module_tables_by_vo_type[AnonymizationFieldConfVO.API_TYPE_ID],
     });
     expect(tables_aliases_by_type).toStrictEqual({
         [AnonymizationFieldConfVO.API_TYPE_ID]: 't4',

@@ -1,10 +1,9 @@
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
-import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import moment from 'moment';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
+import ConversionHandler from '../../../shared/tools/ConversionHandler';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 
 export default class ContextQueryFieldServerController {
 
@@ -20,12 +19,12 @@ export default class ContextQueryFieldServerController {
             return null;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[query_field.api_type_id].get_field_by_id(query_field.field_name);
-        let field_type = field ? field.field_type : ((query_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int : null);
-        let res: DataFilterOption[] = [];
+        const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[query_field.api_type_id][query_field.field_name];
+        const field_type = field ? field.field_type : ((query_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int : null);
+        const res: DataFilterOption[] = [];
 
         let use_default_res = true;
-        let default_res = new DataFilterOption(
+        const default_res = new DataFilterOption(
             DataFilterOption.STATE_SELECTABLE,
             db_res.toString(),
             null
@@ -82,9 +81,9 @@ export default class ContextQueryFieldServerController {
             case ModuleTableFieldVO.FIELD_TYPE_html_array:
             case ModuleTableFieldVO.FIELD_TYPE_string_array:
                 use_default_res = false;
-                for (let i in db_res) {
-                    let db_i_res = db_res[i];
-                    let data_option = new DataFilterOption(
+                for (const i in db_res) {
+                    const db_i_res = db_res[i];
+                    const data_option = new DataFilterOption(
                         DataFilterOption.STATE_SELECTABLE,
                         db_i_res,
                         null

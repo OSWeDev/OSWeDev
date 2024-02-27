@@ -31,7 +31,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
     private onchange_actual_additional_options() {
 
         try {
-            let options = this.actual_additional_options ? ObjectHandler.try_get_json(this.actual_additional_options) : null;
+            const options = this.actual_additional_options ? ObjectHandler.try_get_json(this.actual_additional_options) : null;
 
             this.tmp_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
             this.onchange_inputs();
@@ -44,7 +44,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
     private onchange_inputs() {
 
         let options = JSON.parse(this.actual_additional_options);
-        let option_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
+        const option_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
         if ((!options) || (options[0] == null) || (option_segment_type != this.tmp_segment_type)) {
             options = [
                 this.get_segment_type_from_selected_option(this.tmp_segment_type)
@@ -56,7 +56,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
 
     private get_segment_type_from_selected_option(selected_option: string): number {
         if (this.segment_type_options) {
-            let res = this.segment_type_options.indexOf(selected_option);
+            const res = this.segment_type_options.indexOf(selected_option);
             return res >= 0 ? res : null;
         }
     }

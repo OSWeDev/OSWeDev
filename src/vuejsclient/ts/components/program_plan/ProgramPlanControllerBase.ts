@@ -114,7 +114,7 @@ export default abstract class ProgramPlanControllerBase {
         element,
         view: View) {
 
-        let getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
+        const getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
 
         // Définir l'état et donc l'icone
         let icon = null;
@@ -123,7 +123,7 @@ export default abstract class ProgramPlanControllerBase {
             return;
         }
 
-        let rdv: IPlanRDV = getRdvsByIds[event.rdv_id];
+        const rdv: IPlanRDV = getRdvsByIds[event.rdv_id];
 
         switch (rdv.state) {
             case this.programplan_shared_module.RDV_STATE_CONFIRMED:
@@ -140,7 +140,7 @@ export default abstract class ProgramPlanControllerBase {
                 icon = "fa-circle rdv-state-created";
         }
 
-        let i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
+        const i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
         element.find('div.fc-content').prepend(i);
     }
 
@@ -151,14 +151,14 @@ export default abstract class ProgramPlanControllerBase {
     ): Promise<boolean> {
 
         try {
-            let task: IPlanTask = get_tasks_by_ids[rdv.task_id];
-            let task_type: IPlanTaskType = get_task_types_by_ids[task.task_type_id];
+            const task: IPlanTask = get_tasks_by_ids[rdv.task_id];
+            const task_type: IPlanTaskType = get_task_types_by_ids[task.task_type_id];
 
             // Si on est sur un task_type qui ordonne les rdvs, on check qu'on les pose dans le bon ordre
             if (task_type.order_tasks_on_same_target) {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                let all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id)
+                const all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id)
                     .filter_is_false(field_names<IPlanRDV>().archived)
                     .filter_by_num_eq('target_id', rdv.target_id)
                     .select_vos<IPlanRDV>();
@@ -167,14 +167,14 @@ export default abstract class ProgramPlanControllerBase {
                 let max_weight_task: IPlanTask = null;
                 let nb_maxed_weight: number = 0;
 
-                for (let i in all_rdvs) {
-                    let all_rdv = all_rdvs[i];
+                for (const i in all_rdvs) {
+                    const all_rdv = all_rdvs[i];
 
                     if (all_rdv.id == rdv.id) {
                         continue;
                     }
 
-                    let all_rdv_task = get_tasks_by_ids[all_rdv.task_id];
+                    const all_rdv_task = get_tasks_by_ids[all_rdv.task_id];
 
                     if (!all_rdv_task) {
                         continue;
@@ -201,9 +201,9 @@ export default abstract class ProgramPlanControllerBase {
                 }
 
                 // Il nous faut toutes les tâches possible dans ce type par poids
-                let task_type_tasks: IPlanTask[] = [];
-                for (let j in get_tasks_by_ids) {
-                    let task_ = get_tasks_by_ids[j];
+                const task_type_tasks: IPlanTask[] = [];
+                for (const j in get_tasks_by_ids) {
+                    const task_ = get_tasks_by_ids[j];
 
                     if (task_.task_type_id == task_type.id) {
                         task_type_tasks.push(task_);

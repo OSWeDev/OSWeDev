@@ -144,7 +144,7 @@ export default class MainAggregateOperatorsHandlers {
 
         values.forEach((value: number) => {
             if ((res === null) || (typeof res === 'undefined')) {
-                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((!!value) ? true : false));
+                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((value) ? true : false));
                 return;
             }
 
@@ -155,7 +155,7 @@ export default class MainAggregateOperatorsHandlers {
             res = (!!res) && (!!value);
         });
 
-        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((!!res) ? 1 : 0));
+        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((res) ? 1 : 0));
     }
 
     /**
@@ -172,7 +172,7 @@ export default class MainAggregateOperatorsHandlers {
 
         values.forEach((value: number) => {
             if ((res === null) || (typeof res === 'undefined')) {
-                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((!!value) ? true : false));
+                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((value) ? true : false));
                 return;
             }
 
@@ -183,7 +183,7 @@ export default class MainAggregateOperatorsHandlers {
             res = (!!res) || (!!value);
         });
 
-        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((!!res) ? 1 : 0));
+        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((res) ? 1 : 0));
     }
 
     /**
@@ -200,7 +200,7 @@ export default class MainAggregateOperatorsHandlers {
 
         values.forEach((value: number) => {
             if ((res === null) || (typeof res === 'undefined')) {
-                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((!!value) ? true : false));
+                res = (typeof value === 'undefined') ? undefined : ((value === null) ? null : ((value) ? true : false));
                 return;
             }
 
@@ -211,7 +211,7 @@ export default class MainAggregateOperatorsHandlers {
             res = ((!!res) !== (!!value));
         });
 
-        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((!!res) ? 1 : 0));
+        return (typeof res === 'undefined') ? undefined : ((res === null) ? null : ((res) ? 1 : 0));
     }
 
     /**

@@ -29,16 +29,16 @@ export default class FieldFiltersVOManager {
         field_filters: FieldFiltersVO | { [label: string]: IReadableFieldFilters },
         field_filters_to_intersect: FieldFiltersVO | { [label: string]: IReadableFieldFilters }): FieldFiltersVO | { [label: string]: IReadableFieldFilters } {
 
-        let res: FieldFiltersVO | { [label: string]: IReadableFieldFilters } = {};
+        const res: FieldFiltersVO | { [label: string]: IReadableFieldFilters } = {};
 
-        for (let api_type_id in field_filters) {
+        for (const api_type_id in field_filters) {
             if (!field_filters_to_intersect[api_type_id]) {
                 continue;
             }
 
-            let fields = {};
+            const fields = {};
 
-            for (let field_id in field_filters[api_type_id]) {
+            for (const field_id in field_filters[api_type_id]) {
                 if (typeof field_filters_to_intersect[api_type_id][field_id] === 'undefined') {
                     continue;
                 }
@@ -162,7 +162,7 @@ export default class FieldFiltersVOManager {
         // Get all required filters props from widgets_options
         let field_filters_porps: Array<{ is_filter_hidden: boolean, vo_field_ref: VOFieldRefVO }> = [];
 
-        let human_readable_field_filters: {
+        const human_readable_field_filters: {
             [translatable_label_code: string]: IReadableFieldFilters
         } = {};
 
@@ -263,7 +263,7 @@ export default class FieldFiltersVOManager {
         with_readable_field_filters: { [translatable_label_code: string]: IReadableFieldFilters }
     ): { [translatable_label_code: string]: IReadableFieldFilters } {
 
-        let readable_field_filters: {
+        const readable_field_filters: {
             [translatable_label_code: string]: IReadableFieldFilters
         } = cloneDeep(from_readable_field_filters);
 
@@ -289,7 +289,7 @@ export default class FieldFiltersVOManager {
         options?: { should_restrict_to_api_type_id: boolean },
     ): FieldFiltersVO {
 
-        let field_filter: FieldFiltersVO = cloneDeep(field_filters);
+        const field_filter: FieldFiltersVO = cloneDeep(field_filters);
 
         if (field_filter) {
             delete field_filter[ContextFilterVO.CUSTOM_FILTERS_TYPE];
@@ -321,7 +321,7 @@ export default class FieldFiltersVOManager {
         }
     ): FieldFiltersVO {
 
-        let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
+        const field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
         if (field_filters[vo_field_ref.api_type_id]) {
             if (field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
@@ -398,7 +398,7 @@ export default class FieldFiltersVOManager {
         context_filter: ContextFilterVO
     ): FieldFiltersVO {
 
-        let field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
+        const field_filters: FieldFiltersVO = cloneDeep(from_field_filters);
 
         field_filters[vo_field_ref.api_type_id] = field_filters[vo_field_ref.api_type_id] ?? {};
         field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
@@ -487,7 +487,7 @@ export default class FieldFiltersVOManager {
 
         active_field_filters = cloneDeep(active_field_filters);
 
-        let field_filters_by_api_type_ids: {
+        const field_filters_by_api_type_ids: {
             [api_type_id: string]: FieldFiltersVO
         } = {};
 
@@ -514,7 +514,7 @@ export default class FieldFiltersVOManager {
 
             const field_filter_for_request = field_filters_for_request[api_type_id_for_request];
 
-            for (let key_j in required_api_type_ids) {
+            for (const key_j in required_api_type_ids) {
                 const api_type_id: string = required_api_type_ids[key_j];
 
                 const field_filters: {
@@ -545,7 +545,7 @@ export default class FieldFiltersVOManager {
                     }
 
                     // Check if the api_type_id (or vo_type) actually have the field_id to filter on
-                    const base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                    const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
                     const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
 
                     const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
@@ -591,7 +591,7 @@ export default class FieldFiltersVOManager {
 
         active_field_filters = cloneDeep(active_field_filters);
 
-        let excluded_field_filters: FieldFiltersVO = {};
+        const excluded_field_filters: FieldFiltersVO = {};
 
         // Remove unwanted field_filters (e.g. "__custom_filters__")
         const field_filters_for_request: {
@@ -626,11 +626,11 @@ export default class FieldFiltersVOManager {
         active_field_filters: FieldFiltersVO
     ): FieldFiltersVO {
 
-        for (let api_type_id in active_field_filters) {
+        for (const api_type_id in active_field_filters) {
 
             // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
-            let field_filters = active_field_filters[api_type_id];
-            for (let field_id in field_filters) {
+            const field_filters = active_field_filters[api_type_id];
+            for (const field_id in field_filters) {
                 const context_filter = field_filters[field_id];
 
                 if (!context_filter) {
@@ -803,15 +803,15 @@ export default class FieldFiltersVOManager {
         if (column.show_if_any_filter_active && column.show_if_any_filter_active.length) {
 
             let activated = false;
-            for (let j in column.show_if_any_filter_active) {
-                let page_filter_id = column.show_if_any_filter_active[j];
+            for (const j in column.show_if_any_filter_active) {
+                const page_filter_id = column.show_if_any_filter_active[j];
 
-                let page_widget = all_page_widgets_by_id[page_filter_id];
+                const page_widget = all_page_widgets_by_id[page_filter_id];
                 if (!page_widget) {
                     column.show_if_any_filter_active = [];
                     break;
                 }
-                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 if ((!active_field_filters) ||
                     (!active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
                     (!active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
@@ -832,15 +832,15 @@ export default class FieldFiltersVOManager {
         if (column.hide_if_any_filter_active && column.hide_if_any_filter_active.length) {
 
             let activated = false;
-            for (let j in column.hide_if_any_filter_active) {
-                let page_filter_id = column.hide_if_any_filter_active[j];
+            for (const j in column.hide_if_any_filter_active) {
+                const page_filter_id = column.hide_if_any_filter_active[j];
 
-                let page_widget = all_page_widgets_by_id[page_filter_id];
+                const page_widget = all_page_widgets_by_id[page_filter_id];
                 if (!page_widget) {
                     column.hide_if_any_filter_active = [];
                     break;
                 }
-                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+                const page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
                 if ((!active_field_filters) ||
                     (!active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
                     (!active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {

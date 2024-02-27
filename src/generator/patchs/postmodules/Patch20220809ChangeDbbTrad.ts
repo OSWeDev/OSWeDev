@@ -34,15 +34,15 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
     }
 
     private async update_trad(code: string, text: string) {
-        let trad: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(code);
+        const trad: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(code);
         if (!trad) {
             DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
                 'fr-fr': text
             }, code));
         } else {
-            let fr = await ModuleTranslation.getInstance().getLang('fr-fr');
+            const fr = await ModuleTranslation.getInstance().getLang('fr-fr');
             if (fr) {
-                let trad_fr: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                const trad_fr: TranslationVO = await query(TranslationVO.API_TYPE_ID)
                     .filter_by_num_eq(field_names<TranslationVO>().lang_id, fr.id)
                     .filter_by_num_eq(field_names<TranslationVO>().text_id, trad.id)
                     .select_vo<TranslationVO>();

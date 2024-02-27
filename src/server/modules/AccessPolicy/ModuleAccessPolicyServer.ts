@@ -80,7 +80,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -93,7 +93,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static async getLoggedUserName(): Promise<string> {
 
-        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        const user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
         return user ? user.name : null;
     }
 
@@ -109,7 +109,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         /**
          * on doit pouvoir charger son propre user
          */
-        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return null;
         }
@@ -119,7 +119,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static async getMyLang(): Promise<LangVO> {
 
-        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        const user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
         if (!user) {
             return null;
         }
@@ -342,7 +342,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public async registerSimplePolicy(group_id: number, default_behaviour: number, translatable_name: string, default_translations: { [code_lang: string]: string }, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        let access: AccessPolicyVO = new AccessPolicyVO();
+        const access: AccessPolicyVO = new AccessPolicyVO();
         access.group_id = group_id;
         access.default_behaviour = default_behaviour;
         access.translatable_name = translatable_name;
@@ -350,7 +350,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public async addDependency(src_pol: AccessPolicyVO, default_behaviour: number, depends_on_pol_id: AccessPolicyVO): Promise<PolicyDependencyVO> {
-        let dep: PolicyDependencyVO = new PolicyDependencyVO();
+        const dep: PolicyDependencyVO = new PolicyDependencyVO();
         dep.default_behaviour = default_behaviour;
         dep.src_pol_id = src_pol.id;
         dep.depends_on_pol_id = depends_on_pol_id.id;
@@ -376,22 +376,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onCreateAccessPolicyVO);
         postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onCreatePolicyDependencyVO);
@@ -985,7 +985,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
         if (!user) {
             return null;
@@ -1018,7 +1018,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
-                let uid: number = session.uid;
+                const uid: number = session.uid;
 
                 // On stocke le log de connexion en base
                 user_log = new UserLogVO();
@@ -1165,14 +1165,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
-        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+        const roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        const policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
-        for (let i in policy_names) {
-            let policy_name = policy_names[i];
+        for (const i in policy_names) {
+            const policy_name = policy_names[i];
 
-            for (let j in role_names) {
-                let role_name = role_names[j];
+            for (const j in role_names) {
+                const role_name = role_names[j];
 
                 await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.access_matrix);
             }
@@ -1195,7 +1195,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let challenge: string = TextHandler.getInstance().generateChallenge();
+        const challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
         console.debug("challenge:" + user.email + ':' + challenge + ':');
@@ -1211,12 +1211,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.getInstance().query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1265,8 +1265,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
-            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
+            const res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            const invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
             ConsoleHandler.error(error);
@@ -1289,9 +1289,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
-            for (let i in sessions) {
-                let session: IServerUserSession = sessions[i];
+            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
+            for (const i in sessions) {
+                const session: IServerUserSession = sessions[i];
 
                 if (!session) {
                     continue;
@@ -1321,7 +1321,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login(uid: number): Promise<boolean> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1336,7 +1336,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return false;
             }
 
-            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
             if (!user) {
                 return false;
@@ -1360,7 +1360,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -1383,7 +1383,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
@@ -1403,7 +1403,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -1465,14 +1465,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.role_anonymous.id) >= 0;
         }
 
-        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
+        const user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
 
-        for (let i in user_roles) {
+        for (const i in user_roles) {
             if (role_ids.indexOf(user_roles[i].id) >= 0) {
                 return true;
             }
@@ -1485,7 +1485,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        for (let sid in session_to_delete_by_sids) {
+        for (const sid in session_to_delete_by_sids) {
             await StackContext.runPromise(
                 { SESSION: session_to_delete_by_sids[sid] },
                 async () => {
@@ -1504,8 +1504,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
-        let role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
+        const target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
+        const role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
         /**
          * Le but est d'avoir false, donc on esquive le log et la déco avec le dernier param
          */
@@ -1522,7 +1522,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (role_policy) {
 
             // Si oui on la supprime
-            let insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
+            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
             if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }
@@ -1562,7 +1562,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return null;
@@ -1590,13 +1590,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
         }
 
-        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1610,13 +1610,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
         }
 
-        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1718,8 +1718,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
-        if (!!user) {
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
+        if (user) {
             await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
             return false;
         }
@@ -1857,7 +1857,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1882,7 +1882,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
-            if (!!user) {
+            if (user) {
 
                 if (user.invalidated) {
 
@@ -1910,7 +1910,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
 
             // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-            let lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
             user.lang_id = lang.id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
@@ -1923,7 +1923,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -1944,7 +1944,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -2003,7 +2003,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -2042,8 +2042,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @returns l'id de l'utilisateur qui a été impersoné
      */
     private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
-        let session = StackContext.get('SESSION');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const session = StackContext.get('SESSION');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -2063,7 +2063,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await context_query.select_vo<UserVO>();
+        const user: UserVO = await context_query.select_vo<UserVO>();
 
         if (!user) {
             return null;
@@ -2083,7 +2083,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         PushDataServerController.getInstance().registerSession(session);
 
         // On stocke le log de connexion en base
-        let user_log = new UserLogVO();
+        const user_log = new UserLogVO();
         user_log.user_id = user.id;
         user_log.log_time = Dates.now();
         user_log.referer = StackContext.get('REFERER');
@@ -2128,27 +2128,27 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     private async filterPolicyByActivModulesContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        let filter_module_actif: ContextFilterVO = new ContextFilterVO();
+        const filter_module_actif: ContextFilterVO = new ContextFilterVO();
         filter_module_actif.field_id = 'actif';
         filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
         filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
 
-        let res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
+        const res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
 
-        let query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
+        const query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
 
-        let filter_module_in: ContextFilterVO = new ContextFilterVO();
+        const filter_module_in: ContextFilterVO = new ContextFilterVO();
         filter_module_in.field_id = 'module_id';
         filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_module_in.filter_type = ContextFilterVO.TYPE_IN;
         filter_module_in.set_sub_query(query_module_actif, res);
 
-        let filter_no_module: ContextFilterVO = new ContextFilterVO();
+        const filter_no_module: ContextFilterVO = new ContextFilterVO();
         filter_no_module.field_id = 'module_id';
         filter_no_module.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_no_module.filter_type = ContextFilterVO.TYPE_NULL_ALL;
 
-        let filter_or: ContextFilterVO = new ContextFilterVO();
+        const filter_or: ContextFilterVO = new ContextFilterVO();
         filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
@@ -2164,12 +2164,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterPolicyByActivModules(datatable: ModuleTableVO<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
-        let res: AccessPolicyVO[] = [];
+        const res: AccessPolicyVO[] = [];
 
         await ModulesManagerServer.getInstance().preload_modules();
-        for (let i in vos) {
-            let vo: AccessPolicyVO = vos[i];
-            let moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;
+        for (const i in vos) {
+            const vo: AccessPolicyVO = vos[i];
+            const moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;
 
             if ((!vo.module_id) || (moduleVO && moduleVO.actif)) {
                 res.push(vo);
@@ -2179,18 +2179,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
-        let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
+        const roles_ids_by_name: { [role_name: string]: number } = {};
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
-        for (let i in roles) {
-            let role = roles[i];
+        for (const i in roles) {
+            const role = roles[i];
 
             roles_ids_by_name[role.translatable_name] = role.id;
         }
@@ -2199,11 +2199,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
-        let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
+        const policies_ids_by_name: { [role_name: string]: number } = {};
+        const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
-        for (let i in policies) {
-            let policy = policies[i];
+        for (const i in policies) {
+            const policy = policies[i];
 
             policies_ids_by_name[policy.translatable_name] = policy.id;
         }
@@ -2251,7 +2251,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
-        if (!!user.id) {
+        if (user.id) {
             old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().select_vo<UserVO>();
         }
 
@@ -2278,7 +2278,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
-        let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
         return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
@@ -2315,7 +2315,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let session = StackContext.get('SESSION');
 
         if (session && session.uid) {
-            let uid: number = session.uid;
+            const uid: number = session.uid;
 
             // On stocke le log de connexion en base
             user_log = new UserLogVO();
@@ -2339,7 +2339,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session = Object.assign(session, session.impersonated_from);
             // delete session.impersonated_from;
 
-            let uid: number = session.uid;
+            const uid: number = session.uid;
 
             // On stocke le log de connexion en base
             user_log = new UserLogVO();

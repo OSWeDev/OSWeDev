@@ -12,7 +12,7 @@ export default class VarDatatableFieldVO<T, U> extends DatatableField<T, U> {
         filter_additional_params: string,
         dashboard_id: number): VarDatatableFieldVO<any, any> {
 
-        let res = new VarDatatableFieldVO();
+        const res = new VarDatatableFieldVO();
         res.init(VarDatatableFieldVO.API_TYPE_ID, DatatableField.VAR_FIELD_TYPE, datatable_field_uid);
         res.var_id = var_id;
         res.filter_type = filter_type;

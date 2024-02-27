@@ -153,7 +153,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
     public registerApis() {
-        let self = this;
+        const self = this;
         APIControllerWrapper.registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
             null,
             self.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
@@ -168,7 +168,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ProgramSegmentParamVOStatic
         ));
 
-        if (!!this.rdv_prep_type_id) {
+        if (this.rdv_prep_type_id) {
             APIControllerWrapper.registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
                 null,
                 self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
@@ -205,7 +205,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field,
@@ -223,7 +223,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanProgramCategory.API_TYPE_ID, field_names<IPlanProgramCategory>().nb_closed_targets, ModuleTableFieldVO.FIELD_TYPE_int, 'Terminés', true, true, 0),
         );
 
-        let datatable = new ModuleTableVO(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
+        const datatable = new ModuleTableVO(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
         this.datatables.push(datatable);
     }
 
@@ -233,13 +233,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanContactType.API_TYPE_ID, field_names<IPlanContactType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de contact', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanContactType.API_TYPE_ID, field_names<IPlanContactType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Type de contact', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTableVO(this, this.contact_type_type_id, constructor, additional_fields, label_field, "Types de contact");
+        const datatable = new ModuleTableVO(this, this.contact_type_type_id, constructor, additional_fields, label_field, "Types de contact");
         this.datatables.push(datatable);
     }
 
@@ -249,13 +249,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanFacilitatorRegion.API_TYPE_ID, field_names<IPlanFacilitatorRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanFacilitatorRegion.API_TYPE_ID, field_names<IPlanFacilitatorRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTableVO(this, this.facilitator_region_type_id, constructor, additional_fields, label_field, "Régions des animateurs");
+        const datatable = new ModuleTableVO(this, this.facilitator_region_type_id, constructor, additional_fields, label_field, "Régions des animateurs");
         this.datatables.push(datatable);
     }
 
@@ -265,15 +265,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let user_id = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const user_id = ModuleTableFieldController.create_new(IPlanTargetGroup.API_TYPE_ID, field_names<IPlanTargetGroup>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(
             label_field,
             user_id
         );
 
-        let datatable = new ModuleTableVO(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
+        const datatable = new ModuleTableVO(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         this.datatables.push(datatable);
@@ -285,8 +285,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let region_director_uid = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().region_director_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Directeur de région', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const region_director_uid = ModuleTableFieldController.create_new(IPlanTargetRegion.API_TYPE_ID, field_names<IPlanTargetRegion>().region_director_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Directeur de région', false);
 
 
         additional_fields.unshift(
@@ -294,7 +294,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             region_director_uid
         );
 
-        let datatable = new ModuleTableVO(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
+        const datatable = new ModuleTableVO(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
 
 
         region_director_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
@@ -307,12 +307,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let zone_manager_uid = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().zone_manager_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const zone_manager_uid = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().zone_manager_uid, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
 
         let region_id;
 
-        if (!!this.target_region_type_id) {
+        if (this.target_region_type_id) {
             region_id = ModuleTableFieldController.create_new(IPlanTargetZone.API_TYPE_ID, field_names<IPlanTargetZone>().region_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
@@ -322,8 +322,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             zone_manager_uid
         );
 
-        let datatable = new ModuleTableVO(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
-        if (!!this.target_region_type_id) {
+        const datatable = new ModuleTableVO(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
+        if (this.target_region_type_id) {
             region_id.set_many_to_one_target_moduletable_name(this.target_region_type_id);
         }
         zone_manager_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
@@ -336,12 +336,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let user_id = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const user_id = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         let contact_type_id = null;
 
-        if (!!this.contact_type_type_id) {
+        if (this.contact_type_type_id) {
             contact_type_id = ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().contact_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type de contact', false);
             additional_fields.unshift(contact_type_id);
         }
@@ -355,10 +355,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanContact.API_TYPE_ID, field_names<IPlanContact>().infos, ModuleTableFieldVO.FIELD_TYPE_string, 'Infos', false)
         );
 
-        let datatable = new ModuleTableVO(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
+        const datatable = new ModuleTableVO(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        if (!!this.contact_type_type_id) {
+        if (this.contact_type_type_id) {
             contact_type_id.set_many_to_one_target_moduletable_name(this.contact_type_type_id);
         }
 
@@ -371,15 +371,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Cible', true);
-        let contact_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
+        const target_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Cible', true);
+        const contact_id = ModuleTableFieldController.create_new(IPlanTargetContact.API_TYPE_ID, field_names<IPlanTargetContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_id,
             contact_id
         );
 
-        let datatable = new ModuleTableVO(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
+        const datatable = new ModuleTableVO(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
         target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
 
@@ -392,8 +392,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let category_id = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const category_id = ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', false);
 
         additional_fields.unshift(
             label_field,
@@ -411,7 +411,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanProgram.API_TYPE_ID, field_names<IPlanProgram>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false)
         );
 
-        let datatable = new ModuleTableVO(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
+        const datatable = new ModuleTableVO(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
         category_id.set_many_to_one_target_moduletable_name(this.program_category_type_id);
         this.datatables.push(datatable);
     }
@@ -424,24 +424,24 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let manager_id;
         let partner_id;
-        let label_field = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let user_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const user_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
         let region_id;
 
         additional_fields.unshift(
             user_id);
 
-        if (!!this.manager_type_id) {
+        if (this.manager_type_id) {
             manager_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().manager_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager', false);
             additional_fields.unshift(manager_id);
         }
 
-        if (!!this.partner_type_id) {
+        if (this.partner_type_id) {
             partner_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().partner_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
 
-        if (!!this.facilitator_region_type_id) {
+        if (this.facilitator_region_type_id) {
             region_id = ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().region_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Région', false);
             additional_fields.unshift(region_id);
         }
@@ -452,18 +452,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanFacilitator.API_TYPE_ID, field_names<IPlanFacilitator>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTableVO(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
+        const datatable = new ModuleTableVO(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        if (!!this.manager_type_id) {
+        if (this.manager_type_id) {
             manager_id.set_many_to_one_target_moduletable_name(this.manager_type_id);
         }
 
-        if (!!this.partner_type_id) {
+        if (this.partner_type_id) {
             partner_id.set_many_to_one_target_moduletable_name(this.partner_type_id);
         }
 
-        if (!!this.facilitator_region_type_id) {
+        if (this.facilitator_region_type_id) {
             region_id.set_many_to_one_target_moduletable_name(this.facilitator_region_type_id);
         }
 
@@ -477,13 +477,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         let partner_id;
-        let user_id = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        const user_id = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(user_id);
 
-        if (!!this.partner_type_id) {
+        if (this.partner_type_id) {
             partner_id = ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().partner_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', false);
             additional_fields.unshift(partner_id);
         }
@@ -494,10 +494,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanManager.API_TYPE_ID, field_names<IPlanManager>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTableVO(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
+        const datatable = new ModuleTableVO(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        if (!!this.partner_type_id) {
+        if (this.partner_type_id) {
             partner_id.set_many_to_one_target_moduletable_name(this.partner_type_id);
         }
 
@@ -510,13 +510,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanEnseigne.API_TYPE_ID, field_names<IPlanEnseigne>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanEnseigne.API_TYPE_ID, field_names<IPlanEnseigne>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTableVO(this, this.enseigne_type_id, constructor, additional_fields, label_field, "Enseignes");
+        const datatable = new ModuleTableVO(this, this.enseigne_type_id, constructor, additional_fields, label_field, "Enseignes");
         this.datatables.push(datatable);
     }
 
@@ -526,7 +526,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
@@ -537,7 +537,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.push(
             ModuleTableFieldController.create_new(IPlanTaskType.API_TYPE_ID, field_names<IPlanTaskType>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTableVO(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
+        const datatable = new ModuleTableVO(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
         this.datatables.push(datatable);
     }
 
@@ -547,12 +547,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(label_field);
 
         let task_type_id;
-        if (!!this.task_type_type_id) {
+        if (this.task_type_type_id) {
             task_type_id = ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().task_type_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Type de tâche', false);
             additional_fields.unshift(task_type_id);
         }
@@ -564,8 +564,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.push(
             ModuleTableFieldController.create_new(IPlanTask.API_TYPE_ID, field_names<IPlanTask>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTableVO(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
-        if (!!this.task_type_type_id) {
+        const datatable = new ModuleTableVO(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
+        if (this.task_type_type_id) {
             task_type_id.set_many_to_one_target_moduletable_name(this.task_type_type_id);
         }
         this.datatables.push(datatable);
@@ -577,21 +577,21 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id;
         let zone_id;
         let group_id;
         additional_fields.unshift(label_field);
 
-        if (!!this.target_zone_type_id) {
+        if (this.target_zone_type_id) {
             zone_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().zone_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Zone', false);
             additional_fields.unshift(zone_id);
         }
-        if (!!this.target_group_type_id) {
+        if (this.target_group_type_id) {
             group_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Groupe', false);
             additional_fields.unshift(group_id);
         }
-        if (!!this.enseigne_type_id) {
+        if (this.enseigne_type_id) {
             enseigne_id = ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().enseigne_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Enseigne', true);
             additional_fields.unshift(enseigne_id);
         }
@@ -606,15 +606,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanTarget.API_TYPE_ID, field_names<IPlanTarget>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
-        let datatable = new ModuleTableVO(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
+        const datatable = new ModuleTableVO(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
 
-        if (!!this.enseigne_type_id) {
+        if (this.enseigne_type_id) {
             enseigne_id.set_many_to_one_target_moduletable_name(this.enseigne_type_id);
         }
-        if (!!this.target_group_type_id) {
+        if (this.target_group_type_id) {
             group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
         }
-        if (!!this.target_zone_type_id) {
+        if (this.target_zone_type_id) {
             zone_id.set_many_to_one_target_moduletable_name(this.target_zone_type_id);
         }
 
@@ -628,10 +628,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let prep_file_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().prep_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
-        let author_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
+        const prep_file_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().prep_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
+        const author_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
-        if (!!this.rdv_type_id) {
+        if (this.rdv_type_id) {
             rdv_id = ModuleTableFieldController.create_new(IPlanRDVPrep.API_TYPE_ID, field_names<IPlanRDVPrep>().rdv_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
@@ -641,9 +641,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
             prep_file_id
         );
 
-        let datatable = new ModuleTableVO(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
+        const datatable = new ModuleTableVO(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
 
-        if (!!this.rdv_type_id) {
+        if (this.rdv_type_id) {
             rdv_id.set_many_to_one_target_moduletable_name(this.rdv_type_id);
         }
 
@@ -659,10 +659,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let cr_file_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().cr_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
-        let author_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
+        const cr_file_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().cr_file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
+        const author_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Auteur', false);
 
-        if (!!this.rdv_type_id) {
+        if (this.rdv_type_id) {
             rdv_id = ModuleTableFieldController.create_new(IPlanRDVCR.API_TYPE_ID, field_names<IPlanRDVCR>().rdv_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'RDV', false);
             additional_fields.unshift(rdv_id);
         }
@@ -672,9 +672,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
             cr_file_id
         );
 
-        let datatable = new ModuleTableVO(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
+        const datatable = new ModuleTableVO(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
 
-        if (!!this.rdv_type_id) {
+        if (this.rdv_type_id) {
             rdv_id.set_many_to_one_target_moduletable_name(this.rdv_type_id);
         }
 
@@ -704,16 +704,16 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let task_id;
         let target_id;
-        let label_field = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().start_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
+        const label_field = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().start_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
         let facilitator_id;
         let program_id;
 
-        if (!!this.facilitator_type_id) {
+        if (this.facilitator_type_id) {
             facilitator_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', false);
             additional_fields.unshift(facilitator_id);
         }
 
-        if (!!this.target_type_id) {
+        if (this.target_type_id) {
             target_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', false);
             additional_fields.unshift(target_id);
         }
@@ -726,13 +726,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)
         );
 
-        if (!!this.program_type_id) {
+        if (this.program_type_id) {
             program_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', false);
             additional_fields.unshift(
                 program_id);
         }
 
-        if (!!this.task_type_id) {
+        if (this.task_type_id) {
             task_id = ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().task_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tâche', false);
             additional_fields.unshift(
                 task_id);
@@ -740,21 +740,21 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         additional_fields.push(ModuleTableFieldController.create_new(IPlanRDV.API_TYPE_ID, field_names<IPlanRDV>().target_validation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'RDV confirmé', false));
 
-        let datatable = new ModuleTableVO(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
+        const datatable = new ModuleTableVO(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
-        if (!!this.task_type_id) {
+        if (this.task_type_id) {
             task_id.set_many_to_one_target_moduletable_name(this.task_type_id);
         }
 
-        if (!!this.program_type_id) {
+        if (this.program_type_id) {
             program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         }
 
-        if (!!this.target_type_id) {
+        if (this.target_type_id) {
             target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
         }
 
-        if (!!this.facilitator_type_id) {
+        if (this.facilitator_type_id) {
             facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
         }
 
@@ -767,15 +767,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let facilitator_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
-        let program_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
+        const facilitator_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
+        const program_id = ModuleTableFieldController.create_new(IPlanProgramFacilitator.API_TYPE_ID, field_names<IPlanProgramFacilitator>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             facilitator_id,
             program_id
         );
 
-        let datatable = new ModuleTableVO(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
+        const datatable = new ModuleTableVO(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
         facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
@@ -787,15 +787,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let manager_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().manager_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager', true);
-        let program_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
+        const manager_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().manager_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Manager', true);
+        const program_id = ModuleTableFieldController.create_new(IPlanProgramManager.API_TYPE_ID, field_names<IPlanProgramManager>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             manager_id,
             program_id
         );
 
-        let datatable = new ModuleTableVO(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
+        const datatable = new ModuleTableVO(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
         manager_id.set_many_to_one_target_moduletable_name(this.manager_type_id);
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
@@ -807,15 +807,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let program_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
+        const target_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        const program_id = ModuleTableFieldController.create_new(IPlanProgramTarget.API_TYPE_ID, field_names<IPlanProgramTarget>().program_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             target_id,
             program_id
         );
 
-        let datatable = new ModuleTableVO(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
+        const datatable = new ModuleTableVO(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
         target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
@@ -827,13 +827,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let label_field = ModuleTableFieldController.create_new(IPlanPartner.API_TYPE_ID, field_names<IPlanPartner>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
+        const label_field = ModuleTableFieldController.create_new(IPlanPartner.API_TYPE_ID, field_names<IPlanPartner>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
 
         additional_fields.unshift(
             label_field
         );
 
-        let datatable = new ModuleTableVO(this, this.partner_type_id, constructor, additional_fields, label_field, "Partenaires");
+        const datatable = new ModuleTableVO(this, this.partner_type_id, constructor, additional_fields, label_field, "Partenaires");
         this.datatables.push(datatable);
     }
 
@@ -845,15 +845,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
-        let facilitator_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
+        const target_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().target_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        const facilitator_id = ModuleTableFieldController.create_new(IPlanTargetFacilitator.API_TYPE_ID, field_names<IPlanTargetFacilitator>().facilitator_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Animateur', true);
 
         additional_fields.unshift(
             target_id,
             facilitator_id
         );
 
-        let datatable = new ModuleTableVO(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
+        const datatable = new ModuleTableVO(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
         target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
         facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
         this.datatables.push(datatable);
@@ -865,15 +865,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_group_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().target_group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
-        let contact_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
+        const target_group_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().target_group_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
+        const contact_id = ModuleTableFieldController.create_new(IPlanTargetGroupContact.API_TYPE_ID, field_names<IPlanTargetGroupContact>().contact_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_group_id,
             contact_id
         );
 
-        let datatable = new ModuleTableVO(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
+        const datatable = new ModuleTableVO(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
         target_group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
         this.datatables.push(datatable);

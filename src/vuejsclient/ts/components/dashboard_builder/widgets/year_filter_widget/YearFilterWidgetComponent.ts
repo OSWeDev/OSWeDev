@@ -101,7 +101,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
      */
     @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options(): void {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -131,7 +131,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
 
-        let selected_years = YearFilterWidgetManager.get_selected_years_from_widget_options(
+        const selected_years = YearFilterWidgetManager.get_selected_years_from_widget_options(
             this.widget_options,
         );
 
@@ -167,7 +167,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         );
 
         let years_ranges: NumRange[] = [];
-        for (let i in this.selected_years) {
+        for (const i in this.selected_years) {
             if (!this.selected_years[i]) {
                 continue;
             }
@@ -185,7 +185,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
         }
 
@@ -212,7 +212,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -234,7 +234,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!this.force_selected_years_reset) && (!(years_ranges?.length > 0))) {
-            let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
+            const new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -255,11 +255,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
-        if (!!context_filter) {
+        if (context_filter) {
             if (!RangeHandler.are_same(context_filter.param_numranges, years_ranges)) {
                 context_filter.param_numranges = years_ranges;
 
-                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
+                const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
@@ -292,7 +292,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
+        if (root_context_filter) {
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(
                 root_context_filter,
                 ContextFilterVO.TYPE_DATE_YEAR
@@ -331,7 +331,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
         let options: YearFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptionsVO;
                 options = options ? new YearFilterWidgetOptionsVO().from(options) : null;
             }
@@ -381,7 +381,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: YearFilterWidgetOptionsVO = this.widget_options;
+        const options: YearFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -424,7 +424,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let other_filter_selected_years = this.relative_to_this_filter.selected_years;
+        const other_filter_selected_years = this.relative_to_this_filter.selected_years;
         if (!other_filter_selected_years) {
             return null;
         }
@@ -433,7 +433,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     get years(): string[] {
-        let res: string[] = YearFilterWidgetManager.get_available_years_from_widget_options(
+        const res: string[] = YearFilterWidgetManager.get_available_years_from_widget_options(
             this.widget_options,
         );
 
