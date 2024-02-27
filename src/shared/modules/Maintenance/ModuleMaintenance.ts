@@ -9,9 +9,9 @@ import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
@@ -98,7 +98,7 @@ export default class ModuleMaintenance extends Module {
             author_id,
         ];
 
-        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         let table = new ModuleTableVO(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
         this.datatables.push(table);

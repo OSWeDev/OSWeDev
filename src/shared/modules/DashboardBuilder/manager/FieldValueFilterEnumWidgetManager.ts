@@ -224,7 +224,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
+            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
 
             if (
                 base_table &&

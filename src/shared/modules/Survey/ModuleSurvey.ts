@@ -5,9 +5,9 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import SurveyParamVO from './vos/SurveyParamVO';
@@ -72,7 +72,7 @@ export default class ModuleSurvey extends Module {
         let table = new ModuleTableVO(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
         this.datatables.push(table);
 
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

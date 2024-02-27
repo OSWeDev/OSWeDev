@@ -80,9 +80,9 @@
 //     public target_database: string = null;
 //     public target_table: string = null;
 //     public target_field: string = null;
-//     public module_table: ModuleTableVO<any> = null;
+//     public module_table: ModuleTableVO = null;
 //     public field_label: DefaultTranslationVO;
-//     public manyToOne_target_moduletable: ModuleTableVO<any> = null;
+//     public manyToOne_target_moduletable: ModuleTableVO = null;
 
 //     public cascade_on_delete: boolean = true;
 //     public do_not_add_to_crud: boolean = false;
@@ -343,7 +343,7 @@
 //         return this;
 //     }
 
-//     public setModuleTable(moduleTable: ModuleTableVO<any>): ModuleTableFieldVO<T> {
+//     public setModuleTable(moduleTable: ModuleTableVO): ModuleTableFieldVO<T> {
 //         this.module_table = moduleTable;
 
 //         this.setLabelCodeText();
@@ -424,7 +424,7 @@
 //         return this;
 //     }
 
-//     public setTargetDatatable(module_table: ModuleTableVO<any>): ModuleTableFieldVO<T> {
+//     public setTargetDatatable(module_table: ModuleTableVO): ModuleTableFieldVO<T> {
 //         this.module_table = module_table;
 
 //         this.setLabelCodeText();

@@ -12,9 +12,9 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
@@ -453,8 +453,8 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        let datatable: ModuleTableVO = new ModuleTableVO(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
         datatable.set_is_archived();
@@ -473,7 +473,7 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
         datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
@@ -488,9 +488,9 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
         parent_role_id.donotCascadeOnDelete();
-        parent_role_id.addManyToOneRelation(datatable);
+        parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type.vo_type);
         this.datatables.push(datatable);
     }
 
@@ -502,10 +502,10 @@ export default class ModuleAccessPolicy extends Module {
             field_role_id,
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -518,7 +518,7 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(AccessPolicyGroupVO.API_TYPE_ID, field_names<AccessPolicyGroupVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
 
         this.datatables.push(datatable);
     }
@@ -539,10 +539,10 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
 
-        field_accpolgroup_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
-        field_module_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_accpolgroup_id.set_many_to_one_target_moduletable_name(AccessPolicyGroupVO.API_TYPE_ID);
+        field_module_id.set_many_to_one_target_moduletable_name(ModuleVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -559,10 +559,10 @@ export default class ModuleAccessPolicy extends Module {
             })
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
 
-        src_pol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        depends_on_pol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        src_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
+        depends_on_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -583,9 +583,9 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().data, ModuleTableFieldVO.FIELD_TYPE_string, 'JSON', false),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
+        let datatable: ModuleTableVO = new ModuleTableVO(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -599,10 +599,10 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().granted, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
+        let datatable: ModuleTableVO = new ModuleTableVO(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
 
-        field_accpol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_accpol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
+        field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }

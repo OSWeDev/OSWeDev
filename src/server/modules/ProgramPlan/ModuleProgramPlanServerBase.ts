@@ -12,7 +12,7 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IPlanFacilitator from '../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
@@ -440,7 +440,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -501,7 +501,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterManagerByIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterManagerByIdByContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -723,7 +723,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
@@ -784,7 +784,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;

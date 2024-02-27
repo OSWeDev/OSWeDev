@@ -5,9 +5,9 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ArchiveFilesConfVO from './vos/ArchiveFilesConfVO';
 import FileVO from './vos/FileVO';
 

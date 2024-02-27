@@ -1,9 +1,9 @@
 import { field_names } from '../../tools/ObjectHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from './vos/VarConfVO';
@@ -55,9 +55,9 @@ export default class VarsInitController {
     public register_var_data(
         api_type_id: string,
         constructor: () => VarDataBaseVO,
-        var_fields: Array<ModuleTableFieldVO<any>>,
+        var_fields: ModuleTableFieldVO[],
         module: Module = null,
-        is_test: boolean = false): ModuleTableVO<any> {
+        is_test: boolean = false): ModuleTableVO {
         let var_id = ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
 
         if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
@@ -97,7 +97,7 @@ export default class VarsInitController {
 
         let datatable = new ModuleTableVO(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
         if (!is_test) {
-            var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+            var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         }
         if (!!module) {
             module.datatables.push(datatable);

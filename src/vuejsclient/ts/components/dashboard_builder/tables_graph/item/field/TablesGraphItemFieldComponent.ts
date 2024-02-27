@@ -12,7 +12,7 @@ import './TablesGraphItemFieldComponent.scss';
 export default class TablesGraphItemFieldComponent extends VueComponentBase {
 
     @Prop()
-    private field: ModuleTableFieldVO<any>;
+    private field: ModuleTableFieldVO;
 
     get field_label(): string {
         if (!this.field) {

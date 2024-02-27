@@ -6,9 +6,9 @@ import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import GetFormattedImageParamVO, { GetFormattedImageParamVOStatic } from './apis/GetFormattedImageParamVO';
@@ -114,8 +114,8 @@ export default class ModuleImageFormat extends Module {
         let table = new ModuleTableVO(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
         this.datatables.push(table);
 
-        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        image_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageFormatVO.API_TYPE_ID]);
+        file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        image_format_id.set_many_to_one_target_moduletable_name(ImageFormatVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

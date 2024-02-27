@@ -65,14 +65,14 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
         return res;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase): any {
+    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return field_value;
     }
-    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase): any {
+    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return value;
     }
 
-    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO<any>) {
+    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO) {
 
         if ((!e) || (!field) || (!e[field.field_id])) {
             return;

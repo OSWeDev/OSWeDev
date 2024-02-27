@@ -29,7 +29,7 @@ export default class EnvParamsComponent extends VueComponentBase {
         return VOsTypesManager.moduleTables_by_voType[EnvParamsVO.API_TYPE_ID];
     }
 
-    get env_params_fields(): Array<ModuleTableFieldVO<any>> {
+    get env_params_fields(): ModuleTableFieldVO[] {
         return this.module_table.get_fields();
     }
 

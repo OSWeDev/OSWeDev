@@ -413,7 +413,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return {};
     }
 
-    get moduletable(): ModuleTableVO<any> {
+    get moduletable(): ModuleTableVO {
         return VOsTypesManager.moduleTables_by_voType[this.api_type_id];
     }
 

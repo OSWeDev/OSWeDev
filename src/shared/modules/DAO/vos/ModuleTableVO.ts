@@ -1,38 +1,33 @@
-import { isArray } from 'lodash';
-import moment from 'moment';
-import ConsoleHandler from '../tools/ConsoleHandler';
-import ConversionHandler from '../tools/ConversionHandler';
-import DateHandler from '../tools/DateHandler';
-import GeoPointHandler from '../tools/GeoPointHandler';
-import MatroidIndexHandler from '../tools/MatroidIndexHandler';
-import RangeHandler from '../tools/RangeHandler';
-import IRange from './DataRender/interfaces/IRange';
-import HourRange from './DataRender/vos/HourRange';
-import HourSegment from './DataRender/vos/HourSegment';
-import NumRange from './DataRender/vos/NumRange';
-import NumSegment from './DataRender/vos/NumSegment';
-import TimeSegment from './DataRender/vos/TimeSegment';
-import TSRange from './DataRender/vos/TSRange';
-import GeoPointVO from './GeoPoint/vos/GeoPointVO';
-import IDistantVOBase from './IDistantVOBase';
-import MatroidController from './Matroid/MatroidController';
-import Module from './Module';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from './ModuleTableFieldVO';
-import DefaultTranslationManager from './Translation/DefaultTranslationManager';
-import DefaultTranslationVO from './Translation/vos/DefaultTranslationVO';
-import VarDataBaseVO from './Var/vos/VarDataBaseVO';
-import cloneDeep from 'lodash/cloneDeep';
-import VOsTypesManager from './VO/manager/VOsTypesManager';
-import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
-import ObjectHandler, { reflect } from '../tools/ObjectHandler';
-import IIsServerField from './IIsServerField';
-import StatsController from './Stats/StatsController';
-import { field_names } from '../../../tools/ObjectHandler';
+import { cloneDeep, isArray } from 'lodash';
+import ObjectHandler, { field_names, reflect } from '../../../tools/ObjectHandler';
 import IArchivedVOBase from '../../IArchivedVOBase';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
+import ConversionHandler from '../../../tools/ConversionHandler';
+import GeoPointHandler from '../../../tools/GeoPointHandler';
+import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
+import RangeHandler from '../../../tools/RangeHandler';
+import ContextQueryInjectionCheckHandler from '../../ContextFilter/ContextQueryInjectionCheckHandler';
+import IRange from '../../DataRender/interfaces/IRange';
+import HourRange from '../../DataRender/vos/HourRange';
+import NumRange from '../../DataRender/vos/NumRange';
+import NumSegment from '../../DataRender/vos/NumSegment';
+import TSRange from '../../DataRender/vos/TSRange';
+import IDistantVOBase from '../../IDistantVOBase';
+import IIsServerField from '../../IIsServerField';
+import MatroidController from '../../Matroid/MatroidController';
+import Module from '../../Module';
+import StatsController from '../../Stats/StatsController';
+import DefaultTranslationManager from '../../Translation/DefaultTranslationManager';
+import DefaultTranslationVO from '../../Translation/vos/DefaultTranslationVO';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import VarDataBaseVO from '../../Var/vos/VarDataBaseVO';
+import ModuleTableFieldController from '../ModuleTableFieldController';
+import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 
 export default class ModuleTableVO implements IDistantVOBase {
+
+    public static API_TYPE_ID: string = "module_table";
 
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
@@ -162,48 +157,13 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
     private static UID: number = 1;
-    private static OFFUSC_IDs = [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
-        'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-        'w', 'x', 'y', 'z',
-        'a0', 'b0', 'c0', 'd0', 'e0', 'f0', 'g0', 'h0', 'i0', 'j0', 'k0',
-        'l0', 'm0', 'n0', 'o0', 'p0', 'q0', 'r0', 's0', 't0', 'u0', 'v0',
-        'w0', 'x0', 'y0', 'z0',
-        'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1', 'i1', 'j1', 'k1',
-        'l1', 'm1', 'n1', 'o1', 'p1', 'q1', 'r1', 's1', 't1', 'u1', 'v1',
-        'w1', 'x1', 'y1', 'z1',
-        'a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2', 'i2', 'j2', 'k2',
-        'l2', 'm2', 'n2', 'o2', 'p2', 'q2', 'r2', 's2', 't2', 'u2', 'v2',
-        'w2', 'x2', 'y2', 'z2',
-        'a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3', 'i3', 'j3', 'k3',
-        'l3', 'm3', 'n3', 'o3', 'p3', 'q3', 'r3', 's3', 't3', 'u3', 'v3',
-        'w3', 'x3', 'y3', 'z3',
-        'a4', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'h4', 'i4', 'j4', 'k4',
-        'l4', 'm4', 'n4', 'o4', 'p4', 'q4', 'r4', 's4', 't4', 'u4', 'v4',
-        'w4', 'x4', 'y4', 'z4',
-        'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5', 'i5', 'j5', 'k5',
-        'l5', 'm5', 'n5', 'o5', 'p5', 'q5', 'r5', 's5', 't5', 'u5', 'v5',
-        'w5', 'x5', 'y5', 'z5',
-        'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6', 'i6', 'j6', 'k6',
-        'l6', 'm6', 'n6', 'o6', 'p6', 'q6', 'r6', 's6', 't6', 'u6', 'v6',
-        'w6', 'x6', 'y6', 'z6',
-        'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7', 'i7', 'j7', 'k7',
-        'l7', 'm7', 'n7', 'o7', 'p7', 'q7', 'r7', 's7', 't7', 'u7', 'v7',
-        'w7', 'x7', 'y7', 'z7',
-        'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8', 'i8', 'j8', 'k8',
-        'l8', 'm8', 'n8', 'o8', 'p8', 'q8', 'r8', 's8', 't8', 'u8', 'v8',
-        'w8', 'x8', 'y8', 'z8',
-        'a9', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9', 'h9', 'i9', 'j9', 'k9',
-        'l9', 'm9', 'n9', 'o9', 'p9', 'q9', 'r9', 's9', 't9', 'u9', 'v9',
-        'w9', 'x9', 'y9', 'z9',
-        'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',
-        'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_',
-        'w_', 'x_', 'y_', 'z_',
-    ];
 
     private static getNextUID(): number {
         return ModuleTableVO.UID++;
     }
+
+    public id: number;
+    public _type: string = ModuleTableFieldVO.API_TYPE_ID;
 
     /**
      * Local thread cache -----
@@ -223,26 +183,19 @@ export default class ModuleTableVO implements IDistantVOBase {
     public is_segmented: boolean = false;
     public is_versioned: boolean = false;
     public is_archived: boolean = false;
-    public table_segmented_field: ModuleTableFieldVO<any> = null;
+    public table_segmented_field: ModuleTableFieldVO = null;
     public table_segmented_field_range_type: number = null;
     public table_segmented_field_segment_type: number = null;
 
     public hook_datatable_install: (db) => {} = null;
 
     public module: Module;
-    // public fields: Array<ModuleTableFieldVO<any>>;
+    // public fields: ModuleTableFieldVO[];
     public suffix: string;
     public prefix: string;
     public database: string;
     public vo_type: string;
     public label: DefaultTranslationVO = null;
-
-    /**
-     * On défini les champs uniques directement sur les champs,
-     *  et on remonte ici le fait qu'on a un index unique sur un champs, et on le fait pour chaque champs unique.
-     *  On peut aussi indiquer un index unique, sur un tableau de fields, et dans ce cas on le fait directement ici
-     */
-    public uniq_indexes: Array<Array<ModuleTableFieldVO<any>>> = [];
 
     /**
      * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
@@ -255,7 +208,7 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     public get_bdd_version: (e: T) => T = null;
 
-    public default_label_field: ModuleTableFieldVO<any> = null;
+    public default_label_field: ModuleTableFieldVO = null;
     public table_label_function: (vo: T) => string = null;
     public table_label_function_field_ids_deps: string[] = null;
     public importable: boolean = false;
@@ -278,14 +231,6 @@ export default class ModuleTableVO implements IDistantVOBase {
     public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } } = {};
 
     private vo_interfaces: { [interface_name: string]: boolean } = {};
-
-    private fields_: Array<ModuleTableFieldVO<any>> = [];
-    private fields_by_ids: { [field_id: string]: ModuleTableFieldVO<any> } = {};
-    private readonlyfields_by_ids: { [field_id: string]: ModuleTableFieldVO<any> } = {};
-
-    private sortedFields: Array<ModuleTableFieldVO<any>> = [];
-
-    private fieldIdToAPIMap: { [field_id: string]: string } = null;
     /**
      * ----- Local thread cache
      */
@@ -294,8 +239,8 @@ export default class ModuleTableVO implements IDistantVOBase {
         tmp_module: Module,
         tmp_vo_type: string,
         voConstructor: () => T,
-        tmp_fields: Array<ModuleTableFieldVO<any>>,
-        default_label_field: ModuleTableFieldVO<any>,
+        tmp_fields: ModuleTableFieldVO[],
+        default_label_field: ModuleTableFieldVO,
         label: string | DefaultTranslationVO = null
     ) {
 
@@ -342,7 +287,7 @@ export default class ModuleTableVO implements IDistantVOBase {
      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
      *  techniquement rien n'empeche d'étendre ça à tous les autres types de données
      */
-    public segment_on_field(field_id: string, segment_type: number): ModuleTableVO<any> {
+    public segment_on_field(field_id: string, segment_type: number): ModuleTableVO {
 
         let field = this.getFieldFromId(field_id);
 
@@ -543,15 +488,11 @@ export default class ModuleTableVO implements IDistantVOBase {
         return vo[this.table_segmented_field.field_id];
     }
 
-    public get_fields(): Array<ModuleTableFieldVO<any>> {
-        return this.fields_;
-    }
-
-    public get_field_by_id(field_id: string): ModuleTableFieldVO<any> {
+    public get_field_by_id(field_id: string): ModuleTableFieldVO {
         return this.fields_by_ids[field_id];
     }
 
-    public push_field(field: ModuleTableFieldVO<any>) {
+    public push_field(field: ModuleTableFieldVO) {
         this.fields_.push(field);
         this.fields_by_ids[field.field_id] = field;
         if (field.is_readonly) {
@@ -578,7 +519,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
     //remplis fields_ avec les ModuleTableFieldVO et fields_by_ids avec le ModuleTableFieldVO et leur field_id
-    public set_fields(fields: Array<ModuleTableFieldVO<any>>) {
+    public set_fields(fields: ModuleTableFieldVO[]) {
         this.fields_ = fields;
 
         this.fields_by_ids = {};
@@ -611,7 +552,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         this.set_sortedFields();
     }
 
-    public addAlias(api_type_id_alias: string): ModuleTableVO<any> {
+    public addAlias(api_type_id_alias: string): ModuleTableVO {
         VOsTypesManager.addAlias(api_type_id_alias, this.vo_type);
         return this;
     }
@@ -621,22 +562,22 @@ export default class ModuleTableVO implements IDistantVOBase {
      *  et sur tous les vos pour indiquer vers quels params on peut mapper des champs (pour des intersections également en base)
      * @param mapping_by_api_type_ids
      */
-    public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } }): ModuleTableVO<any> {
+    public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } }): ModuleTableVO {
         this.mapping_by_api_type_ids = mapping_by_api_type_ids;
         return this;
     }
 
-    public defineAsMatroid(): ModuleTableVO<any> {
+    public defineAsMatroid(): ModuleTableVO {
         this.isMatroidTable = true;
         return this;
     }
 
-    public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTableVO<any> {
+    public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTableVO {
         this.inherit_rights_from_vo_type = inherit_rights_from_vo_type;
         return this;
     }
 
-    public hideAnyToManyByDefault(): ModuleTableVO<any> {
+    public hideAnyToManyByDefault(): ModuleTableVO {
         this.any_to_many_default_behaviour_show = false;
         return this;
     }
@@ -646,7 +587,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         return this.vo_interfaces[interface_name];
     }
 
-    public defineVOInterfaces(interface_names: string[]): ModuleTableVO<any> {
+    public defineVOInterfaces(interface_names: string[]): ModuleTableVO {
 
         for (let i in interface_names) {
             let interface_name = interface_names[i];
@@ -659,7 +600,7 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     public define_default_label_function(
         table_label_function: (vo: T) => string,
-        table_label_function_field_ids_deps: string[]): ModuleTableVO<any> {
+        table_label_function_field_ids_deps: string[]): ModuleTableVO {
 
         this.default_label_field = null;
         this.table_label_function = table_label_function;
@@ -668,7 +609,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         return this;
     }
 
-    public defineVOConstructor(voConstructor: () => T): ModuleTableVO<any> {
+    public defineVOConstructor(voConstructor: () => T): ModuleTableVO {
         this.voConstructor = voConstructor;
 
         return this;
@@ -681,12 +622,12 @@ export default class ModuleTableVO implements IDistantVOBase {
         return null;
     }
 
-    public defineAsModuleParamTable(): ModuleTableVO<any> {
+    public defineAsModuleParamTable(): ModuleTableVO {
         this.isModuleParamTable = true;
         return this;
     }
 
-    public defineAsImportable(): ModuleTableVO<any> {
+    public defineAsImportable(): ModuleTableVO {
 
         // Il faut créer le moduleTable des datas raws.
         // this.registerImportableModuleTable();
@@ -695,7 +636,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         return this;
     }
 
-    public getFieldFromId(field_id: string): ModuleTableFieldVO<any> {
+    public getFieldFromId(field_id: string): ModuleTableFieldVO {
         if (!field_id) {
             return null;
         }
@@ -719,13 +660,13 @@ export default class ModuleTableVO implements IDistantVOBase {
      * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
      * @param vo_type
      */
-    public getRefFieldFromTargetVoType(vo_type: string): ModuleTableFieldVO<any> {
+    public getRefFieldFromTargetVoType(vo_type: string): ModuleTableFieldVO {
         if (!vo_type) {
             return null;
         }
 
         for (let i in this.fields_) {
-            let field: ModuleTableFieldVO<any> = this.fields_[i];
+            let field: ModuleTableFieldVO = this.fields_[i];
 
             if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
                 return field;
@@ -749,7 +690,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
 
-    public default_get_field_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>, translate_field_id: boolean = true): any {
+    public default_get_field_api_version(e: any, field: ModuleTableFieldVO, table: ModuleTableVO, translate_field_id: boolean = true): any {
         if ((!field) || (field.is_readonly)) {
             throw new Error('Should not ask for readonly fields');
         }
@@ -815,7 +756,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         }
     }
 
-    public default_field_from_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>): any {
+    public default_field_from_api_version(e: any, field: ModuleTableFieldVO, table: ModuleTableVO): any {
         if ((!field) || field.is_readonly) {
             throw new Error('Should no ask for readonly fields');
         }
@@ -980,53 +921,13 @@ export default class ModuleTableVO implements IDistantVOBase {
         DefaultTranslationManager.registerDefaultTranslation(this.label);
     }
 
-    public set_is_archived(): ModuleTableVO<any> {
+    public set_is_archived(): ModuleTableVO {
         this.is_archived = true;
 
         this.push_field((ModuleTableFieldController.create_new(IArchivedVOBase.API_TYPE_ID, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)).setModuleTable(this));
 
         return this;
     }
-
-    /**
-     * A voir si dirty et nécessite refonte mais ça semble bien suffisant et très simple/rapide
-     */
-    private getFieldIdToAPIMap(): { [field_id: string]: string } {
-
-        if (this.fieldIdToAPIMap) {
-            return this.fieldIdToAPIMap;
-        }
-
-        let res: { [field_id: string]: string } = {};
-        let n = 0;
-
-        for (let i in this.sortedFields) {
-            let field = this.sortedFields[i];
-
-            res[field.field_id] = ModuleTableVO.OFFUSC_IDs[n];
-            n++;
-        }
-
-        this.fieldIdToAPIMap = res;
-        return this.fieldIdToAPIMap;
-    }
-
-    // /**
-    //  * A voir si dirty et nécessite refonte mais ça semble bien suffisant et très simple/rapide
-    //  */
-    // private getAPIToFieldIdMap(): { [api_id: string]: string } {
-    //     let res: { [api_id: string]: string } = {};
-    //     let n = 0;
-
-    //     for (let i in this.sortedFields) {
-    //         let field = this.sortedFields[i];
-
-    //         res[ModuleTableVO.OFFUSC_IDs[n]] = field.field_id;
-    //         n++;
-    //     }
-
-    //     return res;
-    // }
 
     /**
      * Permet de récupérer un clone dont les fields sont insérables en bdd.
@@ -1123,7 +1024,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     private set_sortedFields() {
         this.sortedFields = Array.from(this.fields_);
 
-        this.sortedFields.sort((a: ModuleTableFieldVO<any>, b: ModuleTableFieldVO<any>) => {
+        this.sortedFields.sort((a: ModuleTableFieldVO, b: ModuleTableFieldVO) => {
             if (a.field_id < b.field_id) {
                 return -1;
             }
@@ -1135,7 +1036,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
 
-    private check_unicity_field_names(tmp_fields: Array<ModuleTableFieldVO<any>>) {
+    private check_unicity_field_names(tmp_fields: ModuleTableFieldVO[]) {
         let field_names: { [field_name: string]: boolean } = {};
 
         for (let i in tmp_fields) {

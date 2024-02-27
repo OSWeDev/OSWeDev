@@ -2,3 +2,12 @@ TODO
 
 Register default translations dans le générateur pour les modules tables fields - inutile partout ailleurs - à la fin de la déclaration des types de contenus
 ou a l'inverse il faudra vider du cache mémoire ModuleTableFieldController.GENERATOR_default_field_translations dès que c'est inutile (donc tout de suite ou après intégration des trads / jamais côté générateur)
+
+Mettre un registeraccesshook qui vérifie le droit associé au moduletable si on n'est pas admin pour avoir le droit de download le moduletablevo et les ModuleTableFieldVO et les compositeuniquekeys
+
+
+appeler :
+ModuleTableController.init_field_name_to_api_map()
+ModuleTableController.load_ModuleTableVOs_from_db()
+ModuleTableController.init_unique_fields_by_voType()
+ModuleTableController.init_readonly_fields_by_ids()

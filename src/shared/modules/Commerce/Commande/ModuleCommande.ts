@@ -109,7 +109,7 @@ export default class ModuleCommande extends Module {
             field_client_id
         ];
         let dt = new ModuleTableVO<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
-        field_client_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID]);
+        field_client_id.set_many_to_one_target_moduletable_name(ClientVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 
@@ -127,9 +127,9 @@ export default class ModuleCommande extends Module {
             field_informations_id
         ];
         let dt = new ModuleTableVO<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
-        field_commande_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
-        field_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
-        field_informations_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
+        field_commande_id.set_many_to_one_target_moduletable_name(CommandeVO.API_TYPE_ID);
+        field_produit_id.set_many_to_one_target_moduletable_name(ProduitVO.API_TYPE_ID);
+        field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 

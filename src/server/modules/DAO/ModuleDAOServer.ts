@@ -14,9 +14,10 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -29,9 +30,8 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
@@ -64,6 +64,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOServerController from './DAOServerController';
 import LogDBPerfServerController from './LogDBPerfServerController';
+import ModuleTableServerController from './ModuleTableServerController';
 import ThrottledQueryServerController from './ThrottledQueryServerController';
 import ThrottledRefuseServerController from './ThrottledRefuseServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -73,7 +74,6 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ModuleTableServerController from './ModuleTableServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -105,7 +105,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }, 1);
     }
 
-    public get_all_ranges_from_segmented_table(moduleTable: ModuleTableVO<any>): NumRange[] {
+    public get_all_ranges_from_segmented_table(moduleTable: ModuleTableVO): NumRange[] {
         let segmentations: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
         if (!segmentations) {
             return null;
@@ -193,7 +193,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On doit déclarer les access policies de tous les VO
         let lang: LangVO = is_generator ? await ModuleTranslation.getInstance().getLang(DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION) : null;
         for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[i];
+            let moduleTable: = VOsTypesManager.moduleTables_by_voType[i];
             let vo_type: string = moduleTable.vo_type;
 
             // Uniquement si le module est actif, mais là encore est-ce une erreur ? ...
@@ -356,7 +356,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
 
         if (!moduleTable) {
             ConsoleHandler.error("Impossible de trouver le moduleTable de ce _type ! " + JSON.stringify(vo));
@@ -381,17 +381,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const setters = [];
             let fields = moduleTable.get_fields();
             for (let i in fields) {
-                let field: ModuleTableFieldVO<any> = fields[i];
+                let field: ModuleTableFieldVO = fields[i];
 
-                if (typeof vo[field.field_id] == "undefined") {
-                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                if (typeof vo[field.field_name] == "undefined") {
+                    if (!field.has_default || !field.field_default_value) {
                         continue;
                     }
 
-                    vo[field.field_id] = field.field_default;
+                    vo[field.field_name] = field.field_default_value.value;
                 }
 
-                setters.push(field.field_id + ' = ${' + field.field_id + '}');
+                setters.push(field.field_name + ' = ${' + field.field_name + '}');
 
                 /**
                  * Cas des ranges
@@ -405,7 +405,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                    setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
+                    setters.push(field.field_name + '_ndx = ${' + field.field_name + '_ndx}');
                 }
             }
 
@@ -436,18 +436,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const tableFields = [];
             const placeHolders = [];
             for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
+                let field: ModuleTableFieldVO = moduleTable.get_fields()[f];
 
-                if (typeof vo[field.field_id] == "undefined") {
-                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                if (typeof vo[field.field_name] == "undefined") {
+                    if (!field.has_default || !field.field_default_value) {
                         continue;
                     }
 
-                    vo[field.field_id] = field.field_default;
+                    vo[field.field_name] = field.field_default_value.value;
                 }
 
-                tableFields.push(field.field_id);
-                placeHolders.push('${' + field.field_id + '}');
+                tableFields.push(field.field_name);
+                placeHolders.push('${' + field.field_name + '}');
 
                 /**
                  * Cas des ranges
@@ -461,8 +461,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                    tableFields.push(field.field_id + '_ndx');
-                    placeHolders.push('${' + field.field_id + '_ndx}');
+                    tableFields.push(field.field_name + '_ndx');
+                    placeHolders.push('${' + field.field_name + '_ndx}');
                 }
             }
 
@@ -486,9 +486,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // Grosse évol sur le insert or update, on va gérer les insert into ... on conflict ... do update
             //  Pour le moment, on gère ça uniquement pour la première clé unique déclarée sur le vo
-            if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
-                let uniq_index = moduleTable.uniq_indexes[0];
-                let uniq_index_field_names = uniq_index.map((field) => field.field_id);
+            let uniq_indexes: ModuleTableFieldVO[][] = ModuleTableController.unique_fields_by_vo_type[moduleTable.vo_type];
+            if (uniq_indexes && uniq_indexes.length) {
+                let uniq_index = uniq_indexes[0];
+                let uniq_index_field_names = uniq_index.map((field) => field.field_name);
 
                 let uniq_index_fields = uniq_index_field_names.join(', ');
 
@@ -757,7 +758,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
-    public async preload_segmented_known_database(t: ModuleTableVO<any>) {
+    public async preload_segmented_known_database(t: ModuleTableVO) {
         let segments_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(t);
 
         for (let i in segments_by_segmented_value) {
@@ -806,14 +807,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let first = true;
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
-            let ranges: IRange[] = matroid[matroid_field.field_id];
-            let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+            let ranges: IRange[] = matroid[matroid_field.field_name];
+            let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_name]) ? fields_ids_mapper[matroid_field.field_name] : matroid_field.field_name);
 
             if (!field) {
                 continue;
             }
 
-            if (moduleTable.is_segmented && (field.field_id == moduleTable.table_segmented_field.field_id)) {
+            if (moduleTable.is_segmented && (field.field_name == moduleTable.table_segmented_field.field_name)) {
                 continue;
             }
 
@@ -844,8 +845,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public getWhereClauseForRangeArray(
         api_type_id: string,
-        field: ModuleTableFieldVO<any>,
-        ranges: IRange[],
+        field: ModuleTableFieldVO<any,
+            ranges: IRange[],
     ): string {
         if (!field) {
             return null;
@@ -861,7 +862,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            where_clause_params.push(DAOServerController.getClauseWhereRangeIntersectsField(field.field_type, field.field_id, field_range));
+            where_clause_params.push(DAOServerController.getClauseWhereRangeIntersectsField(field.field_type, field.field_name, field_range));
         }
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
@@ -1000,7 +1001,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTableVO<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
+        let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTableVO, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
@@ -1009,7 +1010,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in vos) {
             let vo: IDistantVOBase = vos[i];
 
-            let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
             let tablename: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name_from_vo(vo) : moduleTable.full_name;
 
             if (!vos_by_vo_tablename_and_ids[tablename]) {
@@ -1055,12 +1056,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
 
-            let moduleTable: ModuleTableVO<any> = vos_by_vo_tablename_and_ids[tablename].moduletable;
+            let moduleTable: = vos_by_vo_tablename_and_ids[tablename].moduletable;
 
             for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
+                let field: ModuleTableFieldVO = moduleTable.get_fields()[f];
 
-                tableFields.push(field.field_id);
+                tableFields.push(field.field_name);
 
                 /**
                  * Cas des ranges
@@ -1074,7 +1075,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                    tableFields.push(field.field_id + '_ndx');
+                    tableFields.push(field.field_name + '_ndx');
                 }
             }
 
@@ -1109,27 +1110,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let vo_values: any[] = [];
 
                     for (const f in moduleTable.get_fields()) {
-                        let field: ModuleTableFieldVO<any> = moduleTable.get_fields()[f];
+                        let field: ModuleTableFieldVO = moduleTable.get_fields()[f];
 
-                        let fieldValue = vo[field.field_id];
+                        let fieldValue = vo[field.field_name];
 
                         if (typeof fieldValue == "undefined") {
-                            if (field.has_default && typeof field.field_default == 'undefined') {
-                                fieldValue = field.field_default;
+                            if (field.has_default && !!field.field_default_value) { // TODO FIXME DELETE THIS COMMENT IF OK : inversion de la condition, ça ressemble à un gros bug, mais changement fait dans un contexte de refonte qui n'a aucun rapport avec cette ligne et sans pouvoir tester....
+                                fieldValue = field.field_default_value.value;
                             } else {
                                 fieldValue = null;
                             }
                         }
 
                         if ((fieldValue == null) && field.field_required) {
-                            ConsoleHandler.error("Champ requis sans valeur, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + tablename + ' :vo:' + JSON.stringify(vo));
+                            ConsoleHandler.error("Champ requis sans valeur, on essaye pas d'enregistrer le VO :field_id: " + field.field_name + ' :table:' + tablename + ' :vo:' + JSON.stringify(vo));
                             is_valid = false;
                             break;
                         }
 
                         let securized_fieldValue = pgPromise.as.format('$1', [fieldValue]);
 
-                        setters.push(field.field_id + ' = ' + securized_fieldValue);
+                        setters.push(field.field_name + ' = ' + securized_fieldValue);
                         // cpt_field_vo++;
 
                         vo_values.push(securized_fieldValue);
@@ -1146,8 +1147,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                            securized_fieldValue = pgPromise.as.format('$1', [vo[field.field_id + '_ndx']]);
-                            setters.push(field.field_id + '_ndx = ' + securized_fieldValue);
+                            securized_fieldValue = pgPromise.as.format('$1', [vo[field.field_name + '_ndx']]);
+                            setters.push(field.field_name + '_ndx = ' + securized_fieldValue);
                             vo_values.push(securized_fieldValue);
 
                             // cpt_field_vo++;
@@ -1361,7 +1362,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         vos = insert_vos;
 
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vos[0]._type];
+        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vos[0]._type];
 
         if (moduleTable.is_segmented && !segmented_value) {
             throw new Error('Not implemented');
@@ -1378,9 +1379,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let fields = moduleTable.get_fields();
 
         for (let i in fields) {
-            let field: ModuleTableFieldVO<any> = fields[i];
+            let field: ModuleTableFieldVO = fields[i];
 
-            tableFields.push(field.field_id);
+            tableFields.push(field.field_name);
 
             /**
              * Cas des ranges
@@ -1394,7 +1395,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                tableFields.push(field.field_id + '_ndx');
+                tableFields.push(field.field_name + '_ndx');
             }
         }
 
@@ -1406,23 +1407,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let is_valid: boolean = true;
 
             for (let f in fields) {
-                let field: ModuleTableFieldVO<any> = fields[f];
+                let field: ModuleTableFieldVO = fields[f];
 
-                let fieldValue = vo[field.field_id];
+                let fieldValue = vo[field.field_name];
 
                 /**
                  * Cas des undefined
                  */
                 if (typeof fieldValue == "undefined") {
-                    if (field.has_default && typeof field.field_default != 'undefined') {
-                        fieldValue = field.field_default;
+                    if (field.has_default && !!field.field_default_value) {
+                        fieldValue = field.field_default_value.value;
                     } else {
                         fieldValue = null;
                     }
                 }
 
                 if ((fieldValue == null) && field.field_required) {
-                    ConsoleHandler.error("Champ requis sans valeur et !has_default, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
+                    ConsoleHandler.error("Champ requis sans valeur et !has_default, on essaye pas d'enregistrer le VO :field_id: " + field.field_name + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
                     is_valid = false;
                     break;
                 }
@@ -1480,7 +1481,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                     (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                    let fieldValue_ndx = vo[field.field_id + '_ndx'];
+                    let fieldValue_ndx = vo[field.field_name + '_ndx'];
 
                     stringified = (fieldValue_ndx == null) ? '' : JSON.stringify(fieldValue_ndx);
                     if ((!!stringified) && (typeof fieldValue_ndx == 'string')) {
@@ -1659,7 +1660,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        let datatable: = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
             ConsoleHandler.error("Impossible de trouver le datatable ! " + api_type_id);
@@ -1749,7 +1750,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in fields) {
                 let field = fields[i];
 
-                fields_select += ',t.' + field.field_id;
+                fields_select += ',t.' + field.field_name;
             }
 
             for (let segmentation_table in segmentations_tables) {
@@ -2156,7 +2157,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let time_in = Dates.now_ms();
 
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'IN');
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+        let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
 
         if (!moduleTable) {
             StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'USELESS');
@@ -2175,7 +2176,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            if (!vo[field.field_id]) {
+            if (!vo[field.field_name]) {
                 // champs vide, inutile de checker
                 continue;
             }
@@ -2184,15 +2185,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
 
-                    if (!(vo[field.field_id] as any[]).length) {
+                    if (!(vo[field.field_name] as any[]).length) {
                         // champs vide, inutile de checker
                         break;
                     }
 
                     promises.push((async () => {
                         try {
-                            let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                            if (nb != RangeHandler.getCardinalFromArray(vo[field.field_id])) {
+                            let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_name]);
+                            if (nb != RangeHandler.getCardinalFromArray(vo[field.field_name])) {
                                 refuse = true;
                             }
                         } catch (error) {
@@ -2220,110 +2221,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
         return await this._insertOrUpdateVOs(vos, false);
-    }
-
-    /**
-     * On checke les indexs uniques, et si on trouve que l'objet existe, on renvoie l'id de l'objet identifié
-     */
-    private async check_uniq_indexes(vo: IDistantVOBase, moduleTable: ModuleTableVO<any>): Promise<number> {
-        if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
-            for (let j in moduleTable.uniq_indexes) {
-                let uniq_index = moduleTable.uniq_indexes[j];
-
-                let replace_if_unique_field_id: { [field_id: string]: boolean } = {};
-
-                let filters = [];
-
-                for (let k in uniq_index) {
-                    let field = uniq_index[k];
-
-                    replace_if_unique_field_id[field.field_id] = field.replace_if_unique;
-
-                    // Si la valeur est null dans le vo ça sert à rien de tester
-                    if (vo[field.field_id] == null) {
-                        continue;
-                    }
-
-                    if (field.replace_if_unique) {
-                        return null;
-                    }
-
-                    let filter_: ContextFilterVO = null;
-
-                    switch (field.field_type) {
-                        case ModuleTableFieldVO.FIELD_TYPE_string:
-                        case ModuleTableFieldVO.FIELD_TYPE_email:
-                        case ModuleTableFieldVO.FIELD_TYPE_html:
-                        case ModuleTableFieldVO.FIELD_TYPE_password:
-                        case ModuleTableFieldVO.FIELD_TYPE_textarea:
-                            filter_ = filter(moduleTable.vo_type, field.field_id).by_text_has(vo[field.field_id]);
-                            break;
-                        case ModuleTableFieldVO.FIELD_TYPE_amount:
-                        case ModuleTableFieldVO.FIELD_TYPE_date:
-                        case ModuleTableFieldVO.FIELD_TYPE_enum:
-                        case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                        case ModuleTableFieldVO.FIELD_TYPE_float:
-                        case ModuleTableFieldVO.FIELD_TYPE_geopoint:
-                        case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                        case ModuleTableFieldVO.FIELD_TYPE_int:
-                        case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                        case ModuleTableFieldVO.FIELD_TYPE_month:
-                        case ModuleTableFieldVO.FIELD_TYPE_month:
-                        case ModuleTableFieldVO.FIELD_TYPE_prct:
-                        case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                        case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                            filter_ = filter(moduleTable.vo_type, field.field_id).by_num_eq(vo[field.field_id]); // pas has ?
-                            break;
-                        default:
-                            throw new Error('Not Implemented');
-                    }
-
-                    filters.push(filter_);
-                }
-
-                if ((!filters) || (!filters.length)) {
-                    continue;
-                }
-
-                let query_: ContextQueryVO = query(vo._type).add_filters(filters).set_limit(1, 0);
-
-                /**
-                 * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
-                 */
-                query_.exec_as_server();
-
-                let uniquevos: IDistantVOBase[] = null;
-
-                StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'query');
-
-                uniquevos = await query_.select_vos();
-
-                if (uniquevos && uniquevos[0] && uniquevos[0].id) {
-                    /**
-                     * JNE :Est-ce que c'est pas un code inaccessible depuis l'ajout de if (field.replace_if_unique) { return null; } dans la boucle au dessus ?
-                     */
-                    for (let field_id in replace_if_unique_field_id) {
-                        // Si on a la même valeur et qu'on ne peut pas remplacer, on throw une erreur
-                        if ((vo[field_id] != null) && (vo[field_id] == uniquevos[0][field_id]) && !replace_if_unique_field_id[field_id]) {
-                            let uid: number = StackContext.get('UID');
-                            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-                            if (uid && CLIENT_TAB_ID) {
-                                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION, true);
-                            }
-                            StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'error');
-
-                            let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
-                            ConsoleHandler.error(msg);
-                            throw new Error(msg);
-                        }
-                    }
-
-                    return uniquevos[0].id;
-                }
-            }
-        }
-        return null;
     }
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
@@ -2392,7 +2289,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduletable: = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduletable) {
                     StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'no_moduletable');
@@ -2563,19 +2460,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (vo && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
             for (let i in datatable.get_fields()) {
-                let field: ModuleTableFieldVO<any> = datatable.get_fields()[i];
+                let field: ModuleTableFieldVO = datatable.get_fields()[i];
 
                 if (datatable.default_label_field &&
-                    (field.field_id == datatable.default_label_field.field_id)) {
+                    (field.field_name == datatable.default_label_field.field_name)) {
                     continue;
                 }
 
                 if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
-                    (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
+                    (datatable.table_label_function_field_ids_deps.indexOf(field.field_name) > 0)) {
                     continue;
                 }
 
-                delete vo[field.field_id];
+                delete vo[field.field_name];
             }
         }
 
@@ -2823,7 +2720,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
-                let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+                let moduleTable: = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduleTable) {
                     return null;
@@ -2994,7 +2891,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     // for (let j in fields) {
                     //     let field = fields[j];
 
-                    //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+                    //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
                     // }
                     vo = ModuleTableVO.default_get_api_version(vo, false);
 
@@ -3032,7 +2929,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // for (let i in fields) {
             //     let field = fields[i];
 
-            //     vo[field.field_id] = table.default_get_field_api_version(vo[field.field_id], field);
+            //     vo[field.field_name] = table.default_get_field_api_version(vo[field.field_name], field);
             // }
             vo = ModuleTableVO.default_get_api_version(vo, false);
 

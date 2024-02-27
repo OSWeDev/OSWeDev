@@ -81,8 +81,8 @@ export default class ModuleClient extends Module {
             field_informations_id
         ];
         let dt = new ModuleTableVO<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_informations_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 

@@ -277,14 +277,14 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //     public is_segmented: boolean = false;
 //     public is_versioned: boolean = false;
 //     public is_archived: boolean = false;
-//     public table_segmented_field: ModuleTableFieldVO<any> = null;
+//     public table_segmented_field: ModuleTableFieldVO = null;
 //     public table_segmented_field_range_type: number = null;
 //     public table_segmented_field_segment_type: number = null;
 
 //     public hook_datatable_install: (db) => {} = null;
 
 //     public module: Module;
-//     // public fields: Array<ModuleTableFieldVO<any>>;
+//     // public fields: ModuleTableFieldVO[];
 //     public suffix: string;
 //     public prefix: string;
 //     public database: string;
@@ -296,7 +296,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //      *  et on remonte ici le fait qu'on a un index unique sur un champs, et on le fait pour chaque champs unique.
 //      *  On peut aussi indiquer un index unique, sur un tableau de fields, et dans ce cas on le fait directement ici
 //      */
-//     public uniq_indexes: Array<Array<ModuleTableFieldVO<any>>> = [];
+//     public uniq_indexes: Array<ModuleTableFieldVO[]> = [];
 
 //     /**
 //      * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
@@ -309,7 +309,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 //     public get_bdd_version: (e: T) => T = null;
 
-//     public default_label_field: ModuleTableFieldVO<any> = null;
+//     public default_label_field: ModuleTableFieldVO = null;
 //     public table_label_function: (vo: T) => string = null;
 //     public table_label_function_field_names_deps: string[] = null;
 //     public importable: boolean = false;
@@ -333,11 +333,11 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 //     private vo_interfaces: { [interface_name: string]: boolean } = {};
 
-//     private fields_: Array<ModuleTableFieldVO<any>> = [];
-//     private fields_by_ids: { [field_name: string]: ModuleTableFieldVO<any> } = {};
-//     private readonlyfields_by_ids: { [field_name: string]: ModuleTableFieldVO<any> } = {};
+//     private fields_: ModuleTableFieldVO[] = [];
+//     private fields_by_ids: { [field_name: string]: ModuleTableFieldVO } = {};
+//     private readonlyfields_by_ids: { [field_name: string]: ModuleTableFieldVO } = {};
 
-//     private sortedFields: Array<ModuleTableFieldVO<any>> = [];
+//     private sortedFields: ModuleTableFieldVO[] = [];
 
 //     private fieldIdToAPIMap: { [field_name: string]: string } = null;
 //     /**
@@ -348,8 +348,8 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         tmp_module: Module,
 //         tmp_vo_type: string,
 //         voConstructor: () => T,
-//         tmp_fields: Array<ModuleTableFieldVO<any>>,
-//         default_label_field: ModuleTableFieldVO<any>,
+//         tmp_fields: ModuleTableFieldVO[],
+//         default_label_field: ModuleTableFieldVO,
 //         label: string | DefaultTranslationVO = null
 //     ) {
 
@@ -399,7 +399,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
 //      *  techniquement rien n'empeche d'étendre ça à tous les autres types de données
 //      */
-//     public segment_on_field(field_name: string, segment_type: number): ModuleTableVO<any> {
+//     public segment_on_field(field_name: string, segment_type: number): ModuleTableVO {
 
 //         let field = this.getFieldFromId(field_name);
 
@@ -600,15 +600,15 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         return vo[this.table_segmented_field.field_name];
 //     }
 
-//     public get_fields(): Array<ModuleTableFieldVO<any>> {
+//     public get_fields(): ModuleTableFieldVO[] {
 //         return this.fields_;
 //     }
 
-//     public get_field_by_id(field_name: string): ModuleTableFieldVO<any> {
+//     public get_field_by_id(field_name: string): ModuleTableFieldVO {
 //         return this.fields_by_ids[field_name];
 //     }
 
-//     public push_field(field: ModuleTableFieldVO<any>) {
+//     public push_field(field: ModuleTableFieldVO) {
 //         this.fields_.push(field);
 //         this.fields_by_ids[field.field_name] = field;
 //         if (field.is_readonly) {
@@ -635,7 +635,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //     }
 
 //     //remplis fields_ avec les ModuleTableFieldVO et fields_by_ids avec le ModuleTableFieldVO et leur field_name
-//     public set_fields(fields: Array<ModuleTableFieldVO<any>>) {
+//     public set_fields(fields: ModuleTableFieldVO[]) {
 //         this.fields_ = fields;
 
 //         this.fields_by_ids = {};
@@ -668,7 +668,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         this.set_sortedFields();
 //     }
 
-//     public addAlias(api_type_id_alias: string): ModuleTableVO<any> {
+//     public addAlias(api_type_id_alias: string): ModuleTableVO {
 //         VOsTypesManager.addAlias(api_type_id_alias, this.vo_type);
 //         return this;
 //     }
@@ -678,22 +678,22 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //      *  et sur tous les vos pour indiquer vers quels params on peut mapper des champs (pour des intersections également en base)
 //      * @param mapping_by_api_type_ids
 //      */
-//     public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } }): ModuleTableVO<any> {
+//     public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } }): ModuleTableVO {
 //         this.mapping_by_api_type_ids = mapping_by_api_type_ids;
 //         return this;
 //     }
 
-//     public defineAsMatroid(): ModuleTableVO<any> {
+//     public defineAsMatroid(): ModuleTableVO {
 //         this.isMatroidTable = true;
 //         return this;
 //     }
 
-//     public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTableVO<any> {
+//     public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTableVO {
 //         this.inherit_rights_from_vo_type = inherit_rights_from_vo_type;
 //         return this;
 //     }
 
-//     public hideAnyToManyByDefault(): ModuleTableVO<any> {
+//     public hideAnyToManyByDefault(): ModuleTableVO {
 //         this.any_to_many_default_behaviour_show = false;
 //         return this;
 //     }
@@ -703,7 +703,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         return this.vo_interfaces[interface_name];
 //     }
 
-//     public defineVOInterfaces(interface_names: string[]): ModuleTableVO<any> {
+//     public defineVOInterfaces(interface_names: string[]): ModuleTableVO {
 
 //         for (let i in interface_names) {
 //             let interface_name = interface_names[i];
@@ -716,7 +716,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 
 //     public define_default_label_function(
 //         table_label_function: (vo: T) => string,
-//         table_label_function_field_names_deps: string[]): ModuleTableVO<any> {
+//         table_label_function_field_names_deps: string[]): ModuleTableVO {
 
 //         this.default_label_field = null;
 //         this.table_label_function = table_label_function;
@@ -725,7 +725,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         return this;
 //     }
 
-//     public defineVOConstructor(voConstructor: () => T): ModuleTableVO<any> {
+//     public defineVOConstructor(voConstructor: () => T): ModuleTableVO {
 //         this.voConstructor = voConstructor;
 
 //         return this;
@@ -738,12 +738,12 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         return null;
 //     }
 
-//     public defineAsModuleParamTable(): ModuleTableVO<any> {
+//     public defineAsModuleParamTable(): ModuleTableVO {
 //         this.isModuleParamTable = true;
 //         return this;
 //     }
 
-//     public defineAsImportable(): ModuleTableVO<any> {
+//     public defineAsImportable(): ModuleTableVO {
 
 //         // Il faut créer le moduleTable des datas raws.
 //         // this.registerImportableModuleTable();
@@ -752,7 +752,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         return this;
 //     }
 
-//     public getFieldFromId(field_name: string): ModuleTableFieldVO<any> {
+//     public getFieldFromId(field_name: string): ModuleTableFieldVO {
 //         if (!field_name) {
 //             return null;
 //         }
@@ -776,13 +776,13 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //      * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
 //      * @param vo_type
 //      */
-//     public getRefFieldFromTargetVoType(vo_type: string): ModuleTableFieldVO<any> {
+//     public getRefFieldFromTargetVoType(vo_type: string): ModuleTableFieldVO {
 //         if (!vo_type) {
 //             return null;
 //         }
 
 //         for (let i in this.fields_) {
-//             let field: ModuleTableFieldVO<any> = this.fields_[i];
+//             let field: ModuleTableFieldVO = this.fields_[i];
 
 //             if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
 //                 return field;
@@ -806,7 +806,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //     }
 
 
-//     public default_get_field_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>, translate_field_name: boolean = true): any {
+//     public default_get_field_api_version(e: any, field: ModuleTableFieldVO, table: ModuleTableVO, translate_field_name: boolean = true): any {
 //         if ((!field) || (field.is_readonly)) {
 //             throw new Error('Should not ask for readonly fields');
 //         }
@@ -872,7 +872,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         }
 //     }
 
-//     public default_field_from_api_version(e: any, field: ModuleTableFieldVO<any>, table: ModuleTableVO<any>): any {
+//     public default_field_from_api_version(e: any, field: ModuleTableFieldVO, table: ModuleTableVO): any {
 //         if ((!field) || field.is_readonly) {
 //             throw new Error('Should no ask for readonly fields');
 //         }
@@ -1015,7 +1015,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
 //      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_name utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
 //      */
-//     public force_numeric_field(field: ModuleTableFieldVO<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+//     public force_numeric_field(field: ModuleTableFieldVO, src_vo: any, dest_vo: any, field_alias: string = null) {
 
 //         if (field.is_readonly) {
 //             return;
@@ -1221,7 +1221,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //         DefaultTranslationManager.registerDefaultTranslation(this.label);
 //     }
 
-//     public set_is_archived(): ModuleTableVO<any> {
+//     public set_is_archived(): ModuleTableVO {
 //         this.is_archived = true;
 
 //         this.push_field((ModuleTableFieldController.create_new(field_names<>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)).setModuleTable(this));
@@ -1364,7 +1364,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //     private set_sortedFields() {
 //         this.sortedFields = Array.from(this.fields_);
 
-//         this.sortedFields.sort((a: ModuleTableFieldVO<any>, b: ModuleTableFieldVO<any>) => {
+//         this.sortedFields.sort((a: ModuleTableFieldVO, b: ModuleTableFieldVO) => {
 //             if (a.field_name < b.field_name) {
 //                 return -1;
 //             }
@@ -1376,7 +1376,7 @@ import ModuleTableFieldVO from './ModuleTableFieldVO';
 //     }
 
 
-//     private check_unicity_field_names(tmp_fields: Array<ModuleTableFieldVO<any>>) {
+//     private check_unicity_field_names(tmp_fields: ModuleTableFieldVO[]) {
 //         let field_names: { [field_name: string]: boolean } = {};
 
 //         for (let i in tmp_fields) {

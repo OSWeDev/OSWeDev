@@ -9,9 +9,9 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import NFCTagUserVO from './vos/NFCTagUserVO';
 import NFCTagVO from './vos/NFCTagVO';
@@ -120,8 +120,8 @@ export default class ModuleNFCConnect extends Module {
             user_id
         ];
         let datatable_user = new ModuleTableVO(this, NFCTagUserVO.API_TYPE_ID, () => new NFCTagUserVO(), datatable_fields_line, null, "NFC Tag User");
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        nfc_tag_id.addManyToOneRelation(datatable);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        nfc_tag_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
         this.datatables.push(datatable_user);
     }
 }

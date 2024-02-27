@@ -1,9 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import DAGBuilderEdgeVO from './vos/DAGBuilderEdgeVO';
 import DAGBuilderNodeVO from './vos/DAGBuilderNodeVO';
@@ -66,7 +66,7 @@ export default class ModuleDAGBuilder extends Module {
         ];
 
         let datatable = new ModuleTableVO(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
-        from.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
-        to.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
+        from.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
+        to.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
     }
 }

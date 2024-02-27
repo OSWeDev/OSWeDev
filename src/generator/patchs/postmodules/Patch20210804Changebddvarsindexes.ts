@@ -3,7 +3,7 @@
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import IGeneratorWorker from '../../IGeneratorWorker';
@@ -44,7 +44,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
                 continue;
             }
 
-            let fields = table.get_fields();
+            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[api_type_id];
 
             /**
              * On doit lancer la requete autant de fois qu'on a de champs contenant des timestamps

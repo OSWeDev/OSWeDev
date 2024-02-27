@@ -11,8 +11,8 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTableVO<any>,
-        interModuleTable: ModuleTableVO<any>,
+        targetModuleTable: ModuleTableVO,
+        interModuleTable: ModuleTableVO,
         sortedTargetFields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
 
         let res = new ManyToManyReferenceDatatableFieldVO();

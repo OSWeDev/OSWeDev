@@ -7,9 +7,9 @@ import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/v
 import StringAndNumberParamVO, { StringAndNumberParamVOStatic } from '../API/vos/apis/StringAndNumberParamVO';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import EnvParamsVO from './vos/EnvParamsVO';
 
 export default class ModuleEnvParam extends Module {

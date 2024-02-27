@@ -730,7 +730,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
-    get field(): ModuleTableFieldVO<any> {
+    get field(): ModuleTableFieldVO {
         if (!this.vo_field_ref) {
             return null;
         }

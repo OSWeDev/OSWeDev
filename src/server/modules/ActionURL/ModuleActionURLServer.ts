@@ -9,7 +9,7 @@ import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -65,7 +65,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleActionURL.APINAME_action_url, this.action_url.bind(this));
     }
 
-    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         let res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
 

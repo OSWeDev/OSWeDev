@@ -20,9 +20,9 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -601,7 +601,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 
         let max_formattedDatasStats: FormattedDatasStats = new FormattedDatasStats();
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[raw_api_type_id];
+        let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[raw_api_type_id];
 
         let has_datas: boolean = false;
 
@@ -1199,7 +1199,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return true;
     }
 
-    private async countValidatedDataAndColumnsBatchMode(raw_api_type_id: string, moduletable: ModuleTableVO<any>, data_import_format_id: number): Promise<FormattedDatasStats> {
+    private async countValidatedDataAndColumnsBatchMode(raw_api_type_id: string, moduletable: ModuleTableVO, data_import_format_id: number): Promise<FormattedDatasStats> {
 
         let res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
@@ -1207,14 +1207,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
-        let fields = moduletable.get_fields().map((field: ModuleTableFieldVO<any>) => field.field_name).join(') + COUNT(');
+        let fields = moduletable.get_fields().map((field: ModuleTableFieldVO) => field.field_name).join(') + COUNT(');
         query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
         res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
 
         return res;
     }
 
-    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTableVO<any>, data_import_format_id: number): FormattedDatasStats {
+    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTableVO, data_import_format_id: number): FormattedDatasStats {
         let res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
 

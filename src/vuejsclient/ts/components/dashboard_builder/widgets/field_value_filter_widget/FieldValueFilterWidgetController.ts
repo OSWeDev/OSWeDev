@@ -60,7 +60,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
 
         for (let i in api_type_ids) {
             let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            let module_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -101,7 +101,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
             let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
             let fields = segmented_moduletable.get_fields();
             for (let i in fields) {
-                let field: ModuleTableFieldVO<any> = fields[i];
+                let field: ModuleTableFieldVO = fields[i];
                 if (!field.manyToOne_target_moduletable) {
                     continue;
                 }

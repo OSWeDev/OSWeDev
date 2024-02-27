@@ -1,9 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IMatroid from './interfaces/IMatroid';
 import MatroidBaseController from './MatroidBaseController';
@@ -64,7 +64,7 @@ export default class MatroidController {
 
         let res: string = matroid._type;
 
-        let fields: Array<ModuleTableFieldVO<any>> = this.getMatroidFields(matroid._type);
+        let fields: ModuleTableFieldVO[] = this.getMatroidFields(matroid._type);
 
         for (let i in fields) {
             let field = fields[i];
@@ -152,14 +152,14 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public static getMatroidFields(api_type_id: string): Array<ModuleTableFieldVO<any>> {
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+    public static getMatroidFields(api_type_id: string): ModuleTableFieldVO[] {
+        let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!moduleTable) {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableFieldVO<any>> = [];
+        let matroid_fields: ModuleTableFieldVO[] = [];
         let mt_fields = moduleTable.get_fields();
         for (let i in mt_fields) {
             let field = mt_fields[i];
@@ -193,7 +193,7 @@ export default class MatroidController {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableFieldVO<any>> = this.getMatroidFields(matroid._type);
+        let matroid_fields: ModuleTableFieldVO[] = this.getMatroidFields(matroid._type);
         let matroid_bases: MatroidBase[] = [];
 
         if ((!matroid_fields) || (!matroid_fields.length)) {

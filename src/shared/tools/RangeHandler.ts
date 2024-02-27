@@ -1488,7 +1488,7 @@ export default class RangeHandler {
     }
 
 
-    public static getRangeType(table_field: ModuleTableFieldVO<any>): number {
+    public static getRangeType(table_field: ModuleTableFieldVO): number {
         switch (table_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_numrange:
             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
@@ -1509,7 +1509,7 @@ export default class RangeHandler {
         }
     }
 
-    public static getMaxRange(table_field: ModuleTableFieldVO<any>): IRange {
+    public static getMaxRange(table_field: ModuleTableFieldVO): IRange {
         switch (table_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_numrange:
             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:

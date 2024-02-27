@@ -10,9 +10,9 @@ import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import StackContext from '../../StackContext';
@@ -24,6 +24,7 @@ import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 
 export default class DAOServerController {
 
@@ -86,7 +87,7 @@ export default class DAOServerController {
         ForkedTasksController.register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, DAOServerController.add_segmented_known_databases);
     }
 
-    public static has_segmented_known_database(t: ModuleTableVO<any>, segment_value: number): boolean {
+    public static has_segmented_known_database(t: ModuleTableVO, segment_value: number): boolean {
         if ((!DAOServerController.segmented_known_databases[t.database]) || (!DAOServerController.segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
             return false;
         }
@@ -125,12 +126,13 @@ export default class DAOServerController {
 
         if (vos && vos.length && !DAOServerController.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
+            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[datatable.vo_type];
 
             for (let j in vos) {
                 let vo: IDistantVOBase = vos[j];
 
-                for (let i in datatable.get_fields()) {
-                    let field: ModuleTableFieldVO<any> = datatable.get_fields()[i];
+                for (let i in fields) {
+                    let field: ModuleTableFieldVO = fields[i];
 
                     if (datatable.default_label_field &&
                         (field.field_id == datatable.default_label_field.field_id)) {
@@ -251,7 +253,7 @@ export default class DAOServerController {
      * @param filter_field_type
      * @returns
      */
-    public static get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableFieldVO<any>, filter_field_type: string): string {
+    public static get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableFieldVO, filter_field_type: string): string {
         let ranges_query: string = 'ARRAY[';
 
         let first_range: boolean = true;
@@ -280,7 +282,7 @@ export default class DAOServerController {
      * @param filter_field_type
      * @returns
      */
-    public static get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableFieldVO<any>, filter_field_type: string): string {
+    public static get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableFieldVO, filter_field_type: string): string {
 
         ContextQueryInjectionCheckHandler.assert_integer(range.min);
         ContextQueryInjectionCheckHandler.assert_integer(range.max);

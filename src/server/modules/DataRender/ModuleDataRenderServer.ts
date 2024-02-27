@@ -11,7 +11,7 @@ import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRende
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
@@ -138,7 +138,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             .select_vos<T>();
     }
 
-    public async clearDataSegments(moduletable: ModuleTableVO<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegments(moduletable: ModuleTableVO, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
         for (let i in timeSegments) {
@@ -154,7 +154,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
-    public async clearDataSegment(moduletable: ModuleTableVO<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegment(moduletable: ModuleTableVO, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
     }
 

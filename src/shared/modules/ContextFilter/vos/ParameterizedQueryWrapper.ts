@@ -12,7 +12,7 @@ export default class ParameterizedQueryWrapper {
      * On prend arbitrairement la première table comme FROM,
      * on join vers elle par la suite.
      */
-    public joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> } = {};
+    public joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO } = {};
 
     public cross_joins: string[] = [];
 

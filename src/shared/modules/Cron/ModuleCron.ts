@@ -5,9 +5,9 @@ import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamV
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
 
 export default class ModuleCron extends Module {

@@ -70,7 +70,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id);
     }
 
-    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableFieldVO<any>) {
+    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableFieldVO) {
 
         let res = field.dataToHumanReadableField(this.checklist_item);
 
@@ -116,7 +116,7 @@ export default class CheckListItemComponent extends VueComponentBase {
         let checkpoint_description: string = '<ul>';
         for (let j in this.all_editable_fields) {
             let field: DatatableField<any, any> = this.all_editable_fields[j];
-            let table_field: ModuleTableFieldVO<any> = moduletable.get_field_by_id(field.module_table_field_id);
+            let table_field: ModuleTableFieldVO = moduletable.get_field_by_id(field.module_table_field_id);
 
             checkpoint_description += this.get_field_text(field, table_field);
         }
@@ -238,7 +238,7 @@ export default class CheckListItemComponent extends VueComponentBase {
                     let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
 
                     if (field) {
-                        let table_field: ModuleTableFieldVO<any> = moduletable.get_field_by_id(field.module_table_field_id);
+                        let table_field: ModuleTableFieldVO = moduletable.get_field_by_id(field.module_table_field_id);
 
                         checkpoint_description += this.get_field_text(field, table_field);
                     }

@@ -545,10 +545,10 @@ export default class FieldFiltersVOManager {
                     }
 
                     // Check if the api_type_id (or vo_type) actually have the field_id to filter on
-                    const base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
-                    const base_table_fields: Array<ModuleTableFieldVO<any>> = base_table.get_fields();
+                    const base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                    const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
 
-                    const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO<any>) => {
+                    const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
                         return field.field_id == context_filter.field_id;
                     }) != null;
 

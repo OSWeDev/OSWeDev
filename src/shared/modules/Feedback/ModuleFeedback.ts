@@ -8,9 +8,9 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import FeedbackStateVO from './vos/FeedbackStateVO';
@@ -132,16 +132,16 @@ export default class ModuleFeedback extends Module {
         let table = new ModuleTableVO(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');
         this.datatables.push(table);
 
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        impersonated_from_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        confirmation_mail_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailVO.API_TYPE_ID]);
-        screen_capture_1_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        screen_capture_2_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        screen_capture_3_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_1_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_2_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_3_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        state_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FeedbackStateVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        impersonated_from_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        confirmation_mail_id.set_many_to_one_target_moduletable_name(MailVO.API_TYPE_ID);
+        screen_capture_1_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        screen_capture_2_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        screen_capture_3_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        file_attachment_1_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        file_attachment_2_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        file_attachment_3_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        state_id.set_many_to_one_target_moduletable_name(FeedbackStateVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

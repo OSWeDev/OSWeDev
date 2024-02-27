@@ -3,9 +3,9 @@ import { field_names } from '../../tools/ObjectHandler';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import PopupVO from './vos/PopupVO';
@@ -53,7 +53,7 @@ export default class ModulePopup extends Module {
         let table = new ModuleTableVO(this, PopupVO.API_TYPE_ID, () => new PopupVO(), fields, null, 'Popups');
         this.datatables.push(table);
 
-        only_roles.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        only_roles.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

@@ -29,9 +29,9 @@ import Dates from '../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
@@ -737,7 +737,7 @@ export default class ModuleVar extends Module {
         this.datatables.push(datatable);
     }
 
-    private initializeVarConfAutoDepVO(): ModuleTableFieldVO<any> {
+    private initializeVarConfAutoDepVO(): ModuleTableFieldVO {
 
         let var_id = ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
         let datatable_fields = [
@@ -792,7 +792,7 @@ export default class ModuleVar extends Module {
         let datatable = new ModuleTableVO(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
         let var_id = this.initializeVarConfAutoDepVO();
-        var_id.addManyToOneRelation(datatable);
+        var_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
     }
 
     private initializeVarDataValueResVO() {
@@ -1008,7 +1008,7 @@ export default class ModuleVar extends Module {
             }
 
             for (let i in matroid_fields) {
-                let matroid_field: ModuleTableFieldVO<any> = matroid_fields[i];
+                let matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
                 if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
                     continue;
@@ -1070,7 +1070,7 @@ export default class ModuleVar extends Module {
             }
 
             for (let i in matroid_fields) {
-                let matroid_field: ModuleTableFieldVO<any> = matroid_fields[i];
+                let matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
                 if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
                     continue;

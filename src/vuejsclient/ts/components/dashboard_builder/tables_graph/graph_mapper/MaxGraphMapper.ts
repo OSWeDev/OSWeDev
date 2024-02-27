@@ -31,7 +31,7 @@ export default class MaxGraphMapper {
          * On ajoute d'abord les cellules / vo_type
          */
         let api_type_ids: string[] = [];
-        let tables: Array<ModuleTableVO<any>> = [];
+        let tables: ModuleTableVO[] = [];
         for (let i in vos_refs) {
             const graphvoref: DashboardGraphVORefVO = vos_refs[i];
 
@@ -95,7 +95,7 @@ export default class MaxGraphMapper {
          * Puis les edges entre ces types
          */
         for (let i in tables) {
-            const table: ModuleTableVO<any> = tables[i];
+            const table: ModuleTableVO = tables[i];
 
             let fields = table.get_fields();
             for (let j in fields) {

@@ -2,9 +2,9 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AnonymizationFieldConfVO from './vos/AnonymizationFieldConfVO';
 import AnonymizationUserConfVO from './vos/AnonymizationUserConfVO';
@@ -50,7 +50,7 @@ export default class ModuleAnonymization extends Module {
         ];
         let datatable2 = new ModuleTableVO(this, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
         this.datatables.push(datatable2);
-        anon_field_name.addManyToOneRelation(datatable);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        anon_field_name.set_many_to_one_target_moduletable_name(datatable.vo_type);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

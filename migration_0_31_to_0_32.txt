@@ -1,8 +1,8 @@
 = MIGRATION  0.31.x => 0.32.x
 
+L'ordre est important
 
 == REPLACE ALL
-Toujours les faire dans cet ordre
 
 === Sans paramètres
 FROM :
@@ -46,3 +46,55 @@ FROM :
 'ModuleTableFieldController.create_new\(field_names<([^>]+)>\('
 TO:
 'ModuleTableFieldController.create_new($1.API_TYPE_ID, field_names<$1>('
+
+=== REGEXP
+FROM : 
+'.addManyToOneRelation(<[^>]+>)?\(VOsTypesManager.moduleTables_by_voType\[([^\]]+)\]\)'
+TO:
+'.set_many_to_one_target_moduletable_name($2)'
+
+=== REGEXP
+FROM : 
+'.addManyToOneRelation\(([^)]+)\);'
+TO:
+'.set_many_to_one_target_moduletable_name($1.vo_type);'
+
+=== Mot Entier
+FROM :
+'ModuleTableFieldVO<any>'
+TO :
+'ModuleTableFieldVO'
+
+=== Mot Entier
+FROM :
+'ModuleTableVO<any>'
+TO :
+'ModuleTableVO'
+
+=== Mot Entier
+FROM :
+'Array<ModuleTableFieldVO>'
+TO :
+'ModuleTableFieldVO[]'
+
+!!!! à refaire tant qu'il reste des résultats à la recherche
+
+=== Mot Entier
+FROM :
+'Array<ModuleTableVO>'
+TO :
+'ModuleTableVO[]'
+
+!!!! à refaire tant qu'il reste des résultats à la recherche
+
+== Modifications restantes (principales)
+
+=== XXXfieldXXX.field_id
+a été renommé en field_name pour éviter les confusions avec XXXfieldXXX.id
+Pour identifier les occurrences facilement : '.field_id' en recherche [Mot entier] + [Respecter la casse]
+Possibilité de faire un REPLACE ALL du coup avec '.field_name' mais vérifier d'abord que les occurrences sont ok, le nom field_id peut-être utilisé dans d'autres objets...
+
+=== XXXmoduletableXXX.get_fields()
+a été supprimé au profit de VOsTypesManager.moduleTablesFields_by_voType_and_field_name[XXXmoduletableXXX.vo_type];
+Pour identifier les occurrences facilement : '.get_fields()' en recherche [Mot entier] + [Respecter la casse]
+

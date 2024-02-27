@@ -461,12 +461,12 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.set_filter_params(this.params);
     }
 
-    private enum_field_label_handler(field: ModuleTableFieldVO<any>) {
+    private enum_field_label_handler(field: ModuleTableFieldVO) {
         return (e: IDistantVOBase) =>
             NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).sync_label_handler(e);
     }
 
-    private async enum_search_handler(field: ModuleTableFieldVO<any>) {
+    private async enum_search_handler(field: ModuleTableFieldVO) {
         return NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).enum_query_options_handler;
     }
 

@@ -27,9 +27,9 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -1291,7 +1291,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO<any>, e: T): Promise<any> {
+    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO, e: T): Promise<any> {
         if (!e) {
             return null;
         }
@@ -1325,7 +1325,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
     private async field_to_xlsx(
-        field: ModuleTableFieldVO<any>,
+        field: ModuleTableFieldVO,
         src_vo: any,
         dest_vo: any,
         field_alias: string = null,

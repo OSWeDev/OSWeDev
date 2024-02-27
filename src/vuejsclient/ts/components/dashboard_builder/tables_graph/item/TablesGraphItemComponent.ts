@@ -27,7 +27,7 @@ export default class TablesGraphItemComponent extends VueComponentBase {
         return this.t(VOsTypesManager.moduleTables_by_voType[this.vo_type].label.code_text);
     }
 
-    get fields(): Array<ModuleTableFieldVO<any>> {
+    get fields(): ModuleTableFieldVO[] {
 
         return VOsTypesManager.moduleTables_by_voType[this.vo_type].get_fields();
     }

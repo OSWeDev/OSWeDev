@@ -750,7 +750,7 @@ export default class TableWidgetManager {
 
         for (const i in columns) {
             const column: TableColumnDescVO = columns[i];
-            let moduleTable: ModuleTableVO<any>;
+            let moduleTable: ModuleTableVO;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];

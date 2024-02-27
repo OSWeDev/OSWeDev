@@ -3,9 +3,9 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DataRenderController from './DataRenderController';
 import IRenderedData from './interfaces/IRenderedData';
 import DataRendererVO from './vos/DataRendererVO';
@@ -230,7 +230,7 @@ export default class ModuleDataRender extends Module {
         ];
 
         let datatable_log = new ModuleTableVO(this, DataRenderingLogVO.API_TYPE_ID, () => new DataRenderingLogVO(), datatable_fields, label_field, "Logs de render");
-        rendered_api_type_id.addManyToOneRelation(datatable_renderer);
+        rendered_api_type_id.set_many_to_one_target_moduletable_name(datatable_renderer.vo_type);
         this.datatables.push(datatable_log);
     }
 }

@@ -659,7 +659,7 @@ export default class FieldValueFilterWidgetManager {
 
         for (let i in api_type_ids) {
             let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            let module_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -720,7 +720,7 @@ export default class FieldValueFilterWidgetManager {
             let fields = segmented_moduletable.get_fields();
 
             for (let i in fields) {
-                let field: ModuleTableFieldVO<any> = fields[i];
+                let field: ModuleTableFieldVO = fields[i];
 
                 if (!field.manyToOne_target_moduletable) {
                     continue;

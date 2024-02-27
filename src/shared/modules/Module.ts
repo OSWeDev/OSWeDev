@@ -13,7 +13,7 @@ export default abstract class Module implements IModuleBase {
 
     public actif: boolean = false;
 
-    public datatables: Array<ModuleTableVO<any>> = [];
+    public datatables: ModuleTableVO[] = [];
     public name: string;
     public reflexiveClassName: string;
     public specificImportPath: string;
@@ -52,7 +52,7 @@ export default abstract class Module implements IModuleBase {
     public async hook_module_async_login_initialization(): Promise<any> { }
     public async hook_module_async_test_initialization(): Promise<any> { }
 
-    public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTableVO<any> {
+    public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTableVO {
         if (this.datatables) {
             for (var i = 0; i < this.datatables.length; i++) {
                 var datatable = this.datatables[i];
@@ -65,7 +65,7 @@ export default abstract class Module implements IModuleBase {
         return null;
     }
 
-    public add_datatable(datatable: ModuleTableVO<any>) {
+    public add_datatable(datatable: ModuleTableVO) {
 
         if (!this.datatables) {
             this.datatables = [];

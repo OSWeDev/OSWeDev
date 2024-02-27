@@ -14,7 +14,7 @@ export default class ModuleTableFieldController {
         field_required: boolean = false,     //si champ obligatoire
         has_default: boolean = false,        //si valeur par defaut
         field_default: T = null              //valeur par defaut
-    ) {
+    ): ModuleTableFieldVO {
         let res: ModuleTableFieldVO = new ModuleTableFieldVO();
 
         res.module_table_name = vo_type;
@@ -22,7 +22,12 @@ export default class ModuleTableFieldController {
         res.field_type = field_type;
         res.field_required = field_required;
         res.has_default = has_default;
-        res.field_default = field_default;
+
+        if (has_default) {
+            res.field_default_value = {
+                value: typeof field_default == 'undefined' ? null : field_default,
+            };
+        }
 
         res.cascade_on_delete = field_required;
 
@@ -42,6 +47,8 @@ export default class ModuleTableFieldController {
             ModuleTableFieldController.GENERATOR_default_field_translations[vo_type] = {};
         }
         ModuleTableFieldController.GENERATOR_default_field_translations[vo_type][field_name] = field_label;
+
+        return res;
     }
 
     public static validate_field_value(field: ModuleTableFieldVO, data: any): string {

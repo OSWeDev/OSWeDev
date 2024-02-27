@@ -9,7 +9,7 @@ export default class FieldPathWrapper {
      * @param is_manytoone Le sens de la relation (manytoone/true ou onetomany/false)
      */
     public constructor(
-        public field: ModuleTableFieldVO<any>,
+        public field: ModuleTableFieldVO,
         public is_manytoone: boolean = true
     ) { }
 }

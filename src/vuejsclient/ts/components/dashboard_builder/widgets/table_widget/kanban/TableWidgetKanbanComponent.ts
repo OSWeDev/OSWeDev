@@ -310,7 +310,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return res;
     }
 
-    get kanban_column_field(): ModuleTableFieldVO<any> {
+    get kanban_column_field(): ModuleTableFieldVO {
         if (!this.kanban_column) {
             return null;
         }
@@ -573,7 +573,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             let crud_table = VOsTypesManager.moduleTables_by_voType[self.crud_activated_api_type];
             let fields = crud_table.get_fields();
 
-            let data_field: ModuleTableFieldVO<any> = null;
+            let data_field: ModuleTableFieldVO = null;
             for (let i in fields) {
                 let field = fields[i];
 
@@ -1530,7 +1530,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column: TableColumnDescVO = this.columns[i];
-            let moduleTable: ModuleTableVO<any>;
+            let moduleTable: ModuleTableVO;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1588,7 +1588,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
         // for (let i in this.widget_options.columns) {
         //     let column: TableColumnDescVO = this.widget_options.columns[i];
-        //     let moduleTable: ModuleTableVO<any>;
+        //     let moduleTable: ModuleTableVO;
 
         //     if (column.type != TableColumnDescVO.TYPE_header) {
         //         moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1658,7 +1658,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // }
         return res;
     }
-    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO<any>) {
+    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO) {
         let res: DatatableField<any, any>;
         switch (column.type) {
             case TableColumnDescVO.TYPE_component:
@@ -1895,7 +1895,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&

@@ -1,14 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
-import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import Module from '../Module';
 import GetTranslationParamVO, { GetTranslationParamVOStatic } from './apis/GetTranslationParamVO';
 import TParamVO, { TParamVOStatic } from './apis/TParamVO';
 import DefaultTranslationVO from './vos/DefaultTranslationVO';
@@ -171,12 +171,9 @@ export default class ModuleTranslation extends Module {
         ];
 
         let datatable_translation = new ModuleTableVO(this, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
-        datatable_translation.uniq_indexes.push([
-            field_lang_id,
-            field_text_id
-        ]);
-        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
-        field_text_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        ModuleTableController.add_composite_unique_key_to_vo_type(TranslationVO.API_TYPE_ID, [field_lang_id, field_text_id]);
+        field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
+        field_text_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         this.datatables.push(datatable_translation);
     }
 

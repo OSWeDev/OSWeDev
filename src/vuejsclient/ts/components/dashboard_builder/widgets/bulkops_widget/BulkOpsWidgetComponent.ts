@@ -127,7 +127,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable).setUID_for_readDuplicateOnly(this.tablecolumn_field_id) : null;
     }
 
-    get moduletable(): ModuleTableVO<any> {
+    get moduletable(): ModuleTableVO {
         if (!this.api_type_id) {
             return null;
         }

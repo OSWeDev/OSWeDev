@@ -11,7 +11,6 @@ import NumSegment from "../../../shared/modules/DataRender/vos/NumSegment";
 import TSRange from "../../../shared/modules/DataRender/vos/TSRange";
 import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import GeoPointVO from "../../../shared/modules/GeoPoint/vos/GeoPointVO";
-import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
 import ConversionHandler from "../../../shared/tools/ConversionHandler";
 import DateHandler from "../../../shared/tools/DateHandler";
@@ -20,54 +19,10 @@ import ObjectHandler, { field_names } from "../../../shared/tools/ObjectHandler"
 import PromisePipeline from "../../../shared/tools/PromisePipeline/PromisePipeline";
 import RangeHandler from "../../../shared/tools/RangeHandler";
 import ConfigurationService from "../../env/ConfigurationService";
+import IDistantVOBase from "../IDistantVOBase";
 import ModuleDAOServer from "./ModuleDAOServer";
 
-export default class ModuleTableServerController {
-
-    public static translate_vos_from_db<T extends IDistantVOBase>(e: T): T {
-
-        if (e == null) {
-            return null;
-        }
-
-        if (isArray(e)) {
-            for (let i in e) {
-                e[i] = ModuleTableServerController.translate_vos_from_db(e[i]);
-            }
-            return e;
-
-        }
-
-        if (!e._type) {
-            return e;
-        }
-
-        let moduleTable = VOsTypesManager.moduleTables_by_voType[e._type];
-
-        if (!moduleTable) {
-            return e;
-        }
-
-        let readonly_fields_by_ids = ModuleTableController.readonly_fields_by_ids[moduleTable.vo_type];
-        for (let field_name in readonly_fields_by_ids) {
-            delete e[field_name];
-        }
-
-        let res: T = Object.assign(moduleTable.voConstructor(), e);
-        res.id = ConversionHandler.forceNumber(e.id);
-
-        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[e._type];
-        if (!fields) {
-            return res;
-        }
-        for (let i in fields) {
-            let field = fields[i];
-
-            ModuleTableServerController.translate_field_from_db(field, e, res);
-        }
-
-        return res;
-    }
+export default class ModuleTableFieldServerController {
 
     /**
      * Traduire le champs field.field_id de src_vo dans dest_vo. Possibilité de fournir un alias qui sera utilisé pour retrouver le champs dans la source et la destination

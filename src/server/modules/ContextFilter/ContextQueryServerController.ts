@@ -17,14 +17,13 @@ import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -43,8 +42,11 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
+import LogDBPerfServerController from '../DAO/LogDBPerfServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
+import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
@@ -52,9 +54,6 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import LogDBPerfServerController from '../DAO/LogDBPerfServerController';
-import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
-import ModuleTableServerController from '../DAO/ModuleTableServerController';
 
 export default class ContextQueryServerController {
 
@@ -623,8 +622,8 @@ export default class ContextQueryServerController {
             }
         }
 
-        let fields = moduletable.get_fields();
-        let fields_by_id: { [id: string]: ModuleTableFieldVO<any> } = {};
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduletable.vo_type];
+        let fields_by_id: { [id: string]: ModuleTableFieldVO } = {};
 
         for (let i in fields) {
             let field = fields[i];
@@ -642,7 +641,7 @@ export default class ContextQueryServerController {
         }
 
         // // Problème des triggers, qui modifient des champs, et on prend pas en compte ces champs si on limite aux new_api_translated_values
-        // let fields_by_id: { [id: string]: ModuleTableFieldVO<any> } = {};
+        // let fields_by_id: { [id: string]: ModuleTableFieldVO } = {};
         // for (let field_id in new_api_translated_values) {
         //     let field = moduletable.getFieldFromId(field_id);
 
@@ -658,7 +657,7 @@ export default class ContextQueryServerController {
         //     fields_by_id[field_id] = field;
         // }
 
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         if (!moduleTable) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_moduletable');
             return null;
@@ -814,7 +813,7 @@ export default class ContextQueryServerController {
         }
 
         // On commence par charger les vos à supprimer pour pouvoir réaliser les triggers
-        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         let vos_to_delete: IDistantVOBase[] = null;
         let deleted_vos_by_id: { [id: number]: IDistantVOBase } = {};
         let has_more_to_delete: boolean = true;
@@ -1004,8 +1003,8 @@ export default class ContextQueryServerController {
         return await ContextQueryServerController.build_select_query_not_count(context_query);
     }
 
-    public static async get_valid_segmentations(moduletable: ModuleTableVO<any>, context_query: ContextQueryVO): Promise<number[]> {
-        let segmentation_field: ModuleTableFieldVO<any> = moduletable.table_segmented_field;
+    public static async get_valid_segmentations(moduletable: ModuleTableVO, context_query: ContextQueryVO): Promise<number[]> {
+        let segmentation_field: ModuleTableFieldVO = moduletable.table_segmented_field;
 
         switch (segmentation_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
@@ -1080,7 +1079,7 @@ export default class ContextQueryServerController {
         }
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
-        let segmentation_field: ModuleTableFieldVO<any> = moduletable.table_segmented_field;
+        let segmentation_field: ModuleTableFieldVO = moduletable.table_segmented_field;
         switch (segmentation_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
 
@@ -1478,10 +1477,10 @@ export default class ContextQueryServerController {
     private static async build_moduletable_select_query(
         context_query: ContextQueryVO,
         access_type: string,
-        base_moduletable: ModuleTableVO<any> = null, // If we are in a segmented table, we need to pass the base moduletable
+        base_moduletable: ModuleTableVO = null, // If we are in a segmented table, we need to pass the base moduletable
         is_for_segmented_table: boolean = false,   // We can be either in segmented (manyToOne) table mode or in union queries mode
         segmented_table_field_id: number = null,
-        all_required_fields: Array<ModuleTableFieldVO<any>> = null,
+        all_required_fields: ModuleTableFieldVO[] = null,
     ): Promise<ParameterizedQueryWrapper> {
         let moduletable = base_moduletable;
 
@@ -1510,23 +1509,22 @@ export default class ContextQueryServerController {
      */
     private static get_common_fields_from_union_context_query(
         context_query: ContextQueryVO
-    ): { fields_intersection: Array<ModuleTableFieldVO<any>>, all_distinct_fields: Array<ModuleTableFieldVO<any>> } {
+    ): { fields_intersection: ModuleTableFieldVO[], all_distinct_fields: ModuleTableFieldVO[] } {
 
         // Whole unique field ids set
         const all_field_ids_set = new Set<string>();
 
-        let all_distinct_fields: Array<ModuleTableFieldVO<any>> = [];
-        let fields_intersection: Array<ModuleTableFieldVO<any>> = [];
+        let all_distinct_fields: ModuleTableFieldVO[] = [];
+        let fields_intersection: ModuleTableFieldVO[] = [];
 
         // We should get the moduletable fields from each vo_type
-        const fields_by_vo_type: { [vo_type: string]: Array<ModuleTableFieldVO<any>> } = {};
+        const fields_by_vo_type: { [vo_type: string]: ModuleTableFieldVO[] } = {};
 
         // We should keep the fields of the vo_type of the root context_query
         // We should keep fields intersection between each vo_type
 
-        const base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
-
-        fields_by_vo_type[context_query.base_api_type_id] = base_moduletable.get_fields();
+        let base_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[context_query.base_api_type_id];
+        fields_by_vo_type[context_query.base_api_type_id] = Object.values(base_fields);
 
         all_distinct_fields = Array.from(new Set([...all_distinct_fields, ...fields_by_vo_type[context_query.base_api_type_id]]));
 
@@ -1537,9 +1535,8 @@ export default class ContextQueryServerController {
         for (const key in context_query.union_queries) {
             const union_context_query = context_query.union_queries[key];
 
-            const union_moduletable = VOsTypesManager.moduleTables_by_voType[union_context_query.base_api_type_id];
-
-            fields_by_vo_type[union_context_query.base_api_type_id] = union_moduletable.get_fields();
+            let union_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[context_query.base_api_type_id];
+            fields_by_vo_type[union_context_query.base_api_type_id] = Object.values(union_fields);
         }
 
         // Add all existing fields to the set
@@ -1550,20 +1547,20 @@ export default class ContextQueryServerController {
         fields_intersection = Object.values(fields_by_vo_type).reduce(
             // Accumulator shall keep all fields of previous iteration that are also in currentVal
             // And remove the one that are not in currentVal
-            (accumulator: Array<ModuleTableFieldVO<any>>, currentVal: Array<ModuleTableFieldVO<any>>) => {
-                return accumulator.filter((field: ModuleTableFieldVO<any>) => currentVal.find(
+            (accumulator: ModuleTableFieldVO[], currentVal: ModuleTableFieldVO[]) => {
+                return accumulator.filter((field: ModuleTableFieldVO) => currentVal.find(
                     (currentField) => currentField.field_id === field.field_id)
                 );
             }
         );
 
         all_distinct_fields = Object.values(fields_by_vo_type).reduce(
-            (accumulator: Array<ModuleTableFieldVO<any>>, currentVal: Array<ModuleTableFieldVO<any>>) => {
+            (accumulator: ModuleTableFieldVO[], currentVal: ModuleTableFieldVO[]) => {
                 // Accumulator shall keep all distinct fields of each iteration
                 return accumulator.concat(
                     currentVal.filter(
                         // Add all fields that are not in accumulator (by field_id)
-                        (field: ModuleTableFieldVO<any>) => !accumulator.find(
+                        (field: ModuleTableFieldVO) => !accumulator.find(
                             (acc_field) => acc_field.field_id === field.field_id
                         )
                     )
@@ -1581,11 +1578,11 @@ export default class ContextQueryServerController {
     private static async build_select_query_not_count_segment(
         context_query: ContextQueryVO,
         access_type: string,
-        base_moduletable: ModuleTableVO<any>,
+        base_moduletable: ModuleTableVO,
         base_api_type_id: string,
         is_segmented: boolean = false,
         segmented_value: number = null,
-        all_required_fields: Array<ModuleTableFieldVO<any>> = null,
+        all_required_fields: ModuleTableFieldVO[] = null,
     ): Promise<ParameterizedQueryWrapper> {
 
         if (!base_api_type_id) {
@@ -1623,8 +1620,7 @@ export default class ContextQueryServerController {
 
         query_wrapper.joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
-
-        const base_moduletable_fields = base_moduletable.get_fields();
+        let base_moduletable_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[context_query.base_api_type_id];
 
         // Set all base_moduletable_fields by default
         if (!(context_query.fields?.length > 0)) {
@@ -1716,7 +1712,7 @@ export default class ContextQueryServerController {
             if (have_all_default_fields) {
 
                 // We should order all fields in the same way of the given all_required_fields
-                all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableFieldVO<any>);
+                all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableFieldVO);
 
                 // We should also add|specify _explicit_api_type_id field to retrieve it later
                 context_query.add_field(
@@ -2321,7 +2317,7 @@ export default class ContextQueryServerController {
         api_type_id: string,
         jointures: string[],
         cross_joins: string[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
         tables_aliases_by_type: { [vo_type: string]: string },
         access_type: string,
         selected_field: ContextQueryFieldVO = null
@@ -2402,7 +2398,7 @@ export default class ContextQueryServerController {
         filter: ContextFilterVO,
         context_query: ContextQueryVO,
         jointures: string[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
         tables_aliases_by_type: { [vo_type: string]: string },
         aliases_n: number
     ): Promise<number> {
@@ -2658,12 +2654,12 @@ export default class ContextQueryServerController {
                 continue;
             }
 
-            let nnfields = nn_table.get_fields();
+            let nnfields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[nn_table.vo_type];
             let has_inactive_relation = false;
             for (let j in nnfields) {
                 let nnfield = nnfields[j];
 
-                if ((context_query.active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) ||
+                if ((context_query.active_api_type_ids.indexOf(nnfield.many_to_one_target_moduletable_name) < 0) ||
                     (context_query.discarded_field_paths && context_query.discarded_field_paths[nn_table.vo_type] && context_query.discarded_field_paths[nn_table.vo_type][nnfield.field_id])) {
                     has_inactive_relation = true;
                     break;
@@ -2754,13 +2750,20 @@ export default class ContextQueryServerController {
     /**
      * Le plan est de supprimer toute référence à la table segmentée, sinon on tourne en rond
      */
-    private static configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTableVO<any>, src_context_query: ContextQueryVO): ContextQueryVO {
+    private static configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTableVO, src_context_query: ContextQueryVO): ContextQueryVO {
 
         let filters: ContextFilterVO[] = src_context_query.filters;
         let forbidden_api_type_id = segmented_table.vo_type;
-        let forbidden_fields: Array<ModuleTableFieldVO<any>> = segmented_table.get_fields().filter(
-            (field) => field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key
-        );
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[segmented_table.vo_type];
+        let forbidden_fields: ModuleTableFieldVO[] = [];
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
+                forbidden_fields.push(field);
+            }
+        }
 
         /**
          * On peut pas référencer une table segmentée donc on s'intéresse que aux liaisons issues de la table segmentée

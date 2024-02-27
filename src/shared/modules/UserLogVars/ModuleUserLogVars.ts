@@ -6,7 +6,7 @@ import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../Var/VarsInitController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import UserDataRangesVO from './vars/vos/UserDataRangesVO';
@@ -48,7 +48,7 @@ export default class ModuleUserLogVars extends Module {
         ];
 
         VarsInitController.getInstance().register_var_data(UserDataRangesVO.API_TYPE_ID, () => new UserDataRangesVO(), datatable_fields, this);
-        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
     private initializeUserMinDataRangesVO() {
@@ -60,6 +60,6 @@ export default class ModuleUserLogVars extends Module {
         ];
 
         VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, () => new UserMinDataRangesVO(), datatable_fields, this);
-        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

@@ -14,9 +14,9 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
@@ -26,6 +26,7 @@ import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
 import { field_names } from '../../tools/ObjectHandler';
+import IImportedData from './interfaces/IImportedData';
 
 export default class ModuleDataImport extends Module {
 
@@ -184,23 +185,23 @@ export default class ModuleDataImport extends Module {
         return dataImportFile.import_uid.replace(/[^a-zA-Z_]/g, '_');
     }
 
-    public registerImportableModuleTable(targetModuleTable: ModuleTableVO<any>) {
+    public registerImportableModuleTable(targetModuleTable: ModuleTableVO) {
 
         targetModuleTable.defineAsImportable();
 
         // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
-        let fields: Array<ModuleTableFieldVO<any>> = [];
+        let fields: ModuleTableFieldVO[] = [];
 
         for (let i in targetModuleTable.get_fields()) {
             let vofield = targetModuleTable.get_fields()[i];
 
-            fields.push(Object.assign(new ModuleTableFieldVO<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default), vofield));
+            fields.push(Object.assign(ModuleTableFieldController.create_new(targetModuleTable.vo_type, vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default_value?.value), vofield));
         }
 
-        let field_historic_id = new ModuleTableFieldVO<any>("historic_id", ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Historique", false);
-        fields.unshift(new ModuleTableFieldVO<any>("not_validated_msg", ModuleTableFieldVO.FIELD_TYPE_string, "Msg validation", false));
-        fields.unshift(new ModuleTableFieldVO<any>("imported_line_number", ModuleTableFieldVO.FIELD_TYPE_int, "N° de la ligne", false));
-        fields.unshift(new ModuleTableFieldVO<any>("importation_state", ModuleTableFieldVO.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
+        let field_historic_id = ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().historic_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Historique", false);
+        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_validated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg validation", false));
+        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().imported_line_number, ModuleTableFieldVO.FIELD_TYPE_int, "N° de la ligne", false));
+        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().importation_state, ModuleTableFieldVO.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
             [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTED],
@@ -214,16 +215,16 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
             [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT],
         }));
-        fields.push(new ModuleTableFieldVO<any>("creation_date", ModuleTableFieldVO.FIELD_TYPE_tstz, "Date de création", false).set_segmentation_type(TimeSegment.TYPE_MINUTE));
-        fields.push(new ModuleTableFieldVO<any>("not_imported_msg", ModuleTableFieldVO.FIELD_TYPE_string, "Msg import", false));
-        fields.push(new ModuleTableFieldVO<any>("not_posttreated_msg", ModuleTableFieldVO.FIELD_TYPE_string, "Msg post-traitement", false));
+        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date de création", false).set_segmentation_type(TimeSegment.TYPE_MINUTE));
+        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_imported_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg import", false));
+        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_posttreated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg post-traitement", false));
         fields.unshift(field_historic_id);
-        let importTable: ModuleTableVO<any> = new ModuleTableVO<any>(
+        let importTable: ModuleTableVO = new ModuleTableVO(
             targetModuleTable.module,
             ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type,
             () => ({} as any), fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_historic_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
+        field_historic_id.set_many_to_one_target_moduletable_name(DataImportHistoricVO.API_TYPE_ID);
         targetModuleTable.module.datatables.push(importTable);
         targetModuleTable.importable = true;
     }
@@ -234,7 +235,7 @@ export default class ModuleDataImport extends Module {
 
     public initialize() {
         // Création de la table dataimportfile
-        let field_file_id: ModuleTableFieldVO<any> = ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
+        let field_file_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
         let field_post_exec_module_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().post_exec_module_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Module de post-traitement', false);
         let label_field = ModuleTableFieldController.create_new(DataImportFormatVO.API_TYPE_ID, field_names<DataImportFormatVO>().import_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du fichier d\'import', true);
         let datatable_fields = [
@@ -274,8 +275,8 @@ export default class ModuleDataImport extends Module {
         ];
         let datatable_desc = new ModuleTableVO(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
-        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        field_post_exec_module_id.set_many_to_one_target_moduletable_name(ModuleVO.API_TYPE_ID);
         this.datatables.push(datatable_desc);
 
         // Création de la table dataimportcolumn
@@ -291,7 +292,7 @@ export default class ModuleDataImport extends Module {
             ModuleTableFieldController.create_new(DataImportColumnVO.API_TYPE_ID, field_names<DataImportColumnVO>().other_column_labels, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
         ];
         let dt2 = new ModuleTableVO(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
-        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
+        field_data_import_format_id.set_many_to_one_target_moduletable_name(DataImportFormatVO.API_TYPE_ID);
         this.datatables.push(dt2);
 
         label_field = ModuleTableFieldController.create_new(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().historic_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'ID unique', false);
@@ -374,11 +375,11 @@ export default class ModuleDataImport extends Module {
             ModuleTableFieldController.create_new(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().use_fast_track, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Fast Track', true, true, false),
         ];
         let datatable_historic = new ModuleTableVO(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
-        field_data_import_format_id.addManyToOneRelation(datatable_desc);
+        field_data_import_format_id.set_many_to_one_target_moduletable_name(datatable_desc.vo_type);
         field_user_id.donotCascadeOnDelete();
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        reimport_of_dih_id.addManyToOneRelation(datatable_historic);
-        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        reimport_of_dih_id.set_many_to_one_target_moduletable_name(datatable_historic.vo_type);
+        field_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         this.datatables.push(datatable_historic);
 
 
@@ -402,8 +403,8 @@ export default class ModuleDataImport extends Module {
             })
         ];
         let datatable_log = new ModuleTableVO(this, DataImportLogVO.API_TYPE_ID, () => new DataImportLogVO(), datatable_fields, label_field, "Logs d'importation").hideAnyToManyByDefault();
-        field_data_import_format_id.addManyToOneRelation(datatable_desc);
-        field_data_import_historic_id.addManyToOneRelation(datatable_historic);
+        field_data_import_format_id.set_many_to_one_target_moduletable_name(datatable_desc.vo_type);
+        field_data_import_historic_id.set_many_to_one_target_moduletable_name(datatable_historic.vo_type);
         this.datatables.push(datatable_log);
 
         //Création de la table dataimporterrorlogs
@@ -414,7 +415,7 @@ export default class ModuleDataImport extends Module {
             field_dih_id
         ];
         let data_error_log = new ModuleTableVO(this, DataImportErrorLogVO.API_TYPE_ID, () => new DataImportErrorLogVO(), datatable_fields, label_field, "Logs d'erreur d'importation").hideAnyToManyByDefault();
-        field_dih_id.addManyToOneRelation(datatable_historic);
+        field_dih_id.set_many_to_one_target_moduletable_name(datatable_historic.vo_type);
         this.datatables.push(data_error_log);
     }
 }

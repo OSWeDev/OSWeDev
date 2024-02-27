@@ -1098,7 +1098,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -1352,7 +1352,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return VOFieldRefVOHandler.is_type_ref_field(this.vo_field_ref);
     }
 
-    get field(): ModuleTableFieldVO<any> {
+    get field(): ModuleTableFieldVO {
         if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
             return null;
         }

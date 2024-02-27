@@ -12,9 +12,9 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import DocumentVO from '../Document/vos/DocumentVO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import VarsInitController from '../Var/VarsInitController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
@@ -154,8 +154,8 @@ export default class ModuleAnimation extends Module {
 
         let datatable = new ModuleTableVO(this, AnimationParametersVO.API_TYPE_ID, () => new AnimationParametersVO(), fields, null, "Animation - Params");
 
-        image_home_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        document_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
+        image_home_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        document_id_ranges.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -198,9 +198,9 @@ export default class ModuleAnimation extends Module {
 
         let datatable = new ModuleTableVO(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, computed_name_field, "Animation - Module");
 
-        theme_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
-        document_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        role_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        theme_id_field.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
+        document_id_field.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        role_id_ranges.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(MessageModuleTableFieldTypeController.getInstance());
 
@@ -227,9 +227,9 @@ export default class ModuleAnimation extends Module {
 
         let datatable = new ModuleTableVO(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");
 
-        module_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
-        question_file_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        reponse_file_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
+        question_file_id_field.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        reponse_file_id_field.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(ReponseTableFieldTypeController.getInstance());
 
@@ -253,8 +253,8 @@ export default class ModuleAnimation extends Module {
 
         let datatable = new ModuleTableVO(this, AnimationUserModuleVO.API_TYPE_ID, () => new AnimationUserModuleVO(), fields, null, "Animation - Info module utilisateur");
 
-        module_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
-        user_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
+        user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -272,8 +272,8 @@ export default class ModuleAnimation extends Module {
 
         let datatable = new ModuleTableVO(this, AnimationUserQRVO.API_TYPE_ID, () => new AnimationUserQRVO(), fields, null, "Animation - Info réponses utilisateur");
 
-        qr_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
-        user_id_field.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        qr_id_field.set_many_to_one_target_moduletable_name(AnimationQRVO.API_TYPE_ID);
+        user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -291,8 +291,8 @@ export default class ModuleAnimation extends Module {
 
         VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields, this);
 
-        theme_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
-        module_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
-        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        theme_id_ranges.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
+        module_id_ranges.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
+        user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

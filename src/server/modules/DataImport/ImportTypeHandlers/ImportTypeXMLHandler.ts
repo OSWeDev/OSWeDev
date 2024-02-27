@@ -196,7 +196,7 @@ export default class ImportTypeXMLHandler {
         let datas: IImportedData[] = [];
         let row_index: number = 1;
 
-        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         if (!xml_datas || !xml_datas.children || !xml_datas.children.length) {
             return null;
@@ -234,7 +234,7 @@ export default class ImportTypeXMLHandler {
         return datas;
     }
 
-    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO<any>): boolean {
+    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO): boolean {
 
         let last_row_has_data = false;
 

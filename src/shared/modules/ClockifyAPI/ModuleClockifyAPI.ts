@@ -9,9 +9,9 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VOsTypesManager';
 import ClockifyClientVO from './vos/ClockifyClientVO';
 import ClockifyProjetVO from './vos/ClockifyProjetVO';
@@ -108,7 +108,7 @@ export default class ModuleClockifyAPI extends Module {
             ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().note, ModuleTableFieldVO.FIELD_TYPE_string, 'Note', false),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, ClockifyClientVO.API_TYPE_ID, () => new ClockifyClientVO(), datatable_fields, null, "Client Clockify");
+        let datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyClientVO.API_TYPE_ID, () => new ClockifyClientVO(), datatable_fields, null, "Client Clockify");
 
         this.datatables.push(datatable);
     }
@@ -122,7 +122,7 @@ export default class ModuleClockifyAPI extends Module {
             ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().status, ModuleTableFieldVO.FIELD_TYPE_string, 'Statut', false),
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, ClockifyUserVO.API_TYPE_ID, () => new ClockifyUserVO(), datatable_fields, null, "Utilisateur Clockify");
+        let datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyUserVO.API_TYPE_ID, () => new ClockifyUserVO(), datatable_fields, null, "Utilisateur Clockify");
 
         this.datatables.push(datatable);
     }
@@ -139,10 +139,10 @@ export default class ModuleClockifyAPI extends Module {
             client_id
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, ClockifyProjetVO.API_TYPE_ID, () => new ClockifyProjetVO(), datatable_fields, null, "Projet Clockify");
+        let datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyProjetVO.API_TYPE_ID, () => new ClockifyProjetVO(), datatable_fields, null, "Projet Clockify");
         this.datatables.push(datatable);
 
-        client_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyClientVO.API_TYPE_ID]);
+        client_id.set_many_to_one_target_moduletable_name(ClockifyClientVO.API_TYPE_ID);
     }
 
     private initializeClockifyTache() {
@@ -155,10 +155,10 @@ export default class ModuleClockifyAPI extends Module {
             projet_id
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, ClockifyTacheVO.API_TYPE_ID, () => new ClockifyTacheVO(), datatable_fields, null, "Tâche Clockify");
+        let datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyTacheVO.API_TYPE_ID, () => new ClockifyTacheVO(), datatable_fields, null, "Tâche Clockify");
         this.datatables.push(datatable);
 
-        projet_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyProjetVO.API_TYPE_ID]);
+        projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
     }
 
     private initializeClockifyTimeEntry() {
@@ -176,11 +176,11 @@ export default class ModuleClockifyAPI extends Module {
             user_id
         ];
 
-        let datatable: ModuleTableVO<any> = new ModuleTableVO(this, ClockifyTimeEntryVO.API_TYPE_ID, () => new ClockifyTimeEntryVO(), datatable_fields, null, "Entrée de temps Clockify");
+        let datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyTimeEntryVO.API_TYPE_ID, () => new ClockifyTimeEntryVO(), datatable_fields, null, "Entrée de temps Clockify");
         this.datatables.push(datatable);
 
-        projet_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyProjetVO.API_TYPE_ID]);
-        tache_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyTacheVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyUserVO.API_TYPE_ID]);
+        projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
+        tache_id.set_many_to_one_target_moduletable_name(ClockifyTacheVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(ClockifyUserVO.API_TYPE_ID);
     }
 }

@@ -606,7 +606,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
     }
 
-    private get_advanced_string_filter(context_filter: ContextFilterVO, advanced_filter: AdvancedStringFilter, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO, previous_filter: AdvancedStringFilter): ContextFilterVO {
+    private get_advanced_string_filter(context_filter: ContextFilterVO, advanced_filter: AdvancedStringFilter, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO, previous_filter: AdvancedStringFilter): ContextFilterVO {
         let new_context_filter = this.get_ContextFilterVO_from_AdvancedStringFilter(advanced_filter, field, vo_field_ref);
 
         if (!new_context_filter) {
@@ -918,7 +918,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -1378,7 +1378,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.tmp_active_filter_options_lvl2 = tmp_active_filter_options_lvl2;
     }
 
-    private get_ContextFilterVO_from_AdvancedStringFilter(advanced_filter: AdvancedStringFilter, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    private get_ContextFilterVO_from_AdvancedStringFilter(advanced_filter: AdvancedStringFilter, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         let translated_active_options = null;
 
         switch (field.field_type) {

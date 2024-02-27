@@ -279,7 +279,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             this.t(this.field.field_label.code_text);
     }
 
-    get table(): ModuleTableVO<any> {
+    get table(): ModuleTableVO {
         if (!this.column) {
             return null;
         }
@@ -287,7 +287,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return VOsTypesManager.moduleTables_by_voType[this.column.api_type_id];
     }
 
-    get field(): ModuleTableFieldVO<any> {
+    get field(): ModuleTableFieldVO {
         if (!this.column) {
             return null;
         }

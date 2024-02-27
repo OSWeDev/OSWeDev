@@ -23,7 +23,7 @@ export default class NumRangeComponent extends VueComponentBase {
     private range: NumRange;
 
     @Prop({ default: null })
-    private vo_field: ModuleTableFieldVO<any>;
+    private vo_field: ModuleTableFieldVO;
 
     private segmented_min: string = null;
     private segmented_max: string = null;

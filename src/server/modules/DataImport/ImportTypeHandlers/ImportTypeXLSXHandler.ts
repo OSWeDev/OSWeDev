@@ -370,7 +370,7 @@ export default class ImportTypeXLSXHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
-        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
             last_row_has_data = false;

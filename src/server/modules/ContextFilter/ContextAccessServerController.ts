@@ -37,12 +37,11 @@ export default class ContextAccessServerController {
                 }
             }
         } else {
-            let table = VOsTypesManager.moduleTables_by_voType[base_api_type_id];
-            let table_fields = table.get_fields();
+            let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[base_api_type_id];
             for (let i in table_fields) {
                 let table_field = table_fields[i];
 
-                if (!ContextAccessServerController.check_access_to_field(base_api_type_id, table_field.field_id, access_type, roles)) {
+                if (!ContextAccessServerController.check_access_to_field(base_api_type_id, table_field.field_name, access_type, roles)) {
                     return false;
                 }
             }

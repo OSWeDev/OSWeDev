@@ -10,7 +10,7 @@ import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler'
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;

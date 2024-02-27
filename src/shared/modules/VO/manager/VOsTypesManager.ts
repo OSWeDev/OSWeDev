@@ -15,7 +15,10 @@ export default class VOsTypesManager {
      * Local thread cache -----
      */
     public static moduleTables_by_voType: { [voType: string]: ModuleTableVO } = {};
-    public static moduleTables_by_id: { [id: number]: ModuleTableVO } = {};
+    public static moduleTables_by_vo_id: { [vo_id: number]: ModuleTableVO } = {};
+
+    public static moduleTablesFields_by_voType_and_field_name: { [voType: string]: { [field_name: string]: ModuleTableFieldVO } } = {};
+    public static moduleTablesFields_by_vo_id_and_field_id: { [vo_id: number]: { [field_id: number]: ModuleTableFieldVO } } = {};
     /**
      * ----- Local thread cache
      */
@@ -122,7 +125,7 @@ export default class VOsTypesManager {
             }
 
             // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
-            if (!field.manyToOne_target_moduletable_id) {
+            if (!field.many_to_one_target_moduletable_id) {
                 isManyToMany = false;
                 break;
             }
@@ -134,11 +137,11 @@ export default class VOsTypesManager {
             }
 
             if (!manyToOne1) {
-                manyToOne1 = field.manyToOne_target_moduletable_id;
+                manyToOne1 = field.many_to_one_target_moduletable_id;
                 continue;
             }
 
-            if (manyToOne1 == field.manyToOne_target_moduletable_id) {
+            if (manyToOne1 == field.many_to_one_target_moduletable_id) {
                 isManyToMany = false;
                 break;
             }
@@ -187,11 +190,11 @@ export default class VOsTypesManager {
                 continue;
             }
 
-            if (!field.manyToOne_target_moduletable_id) {
+            if (!field.many_to_one_target_moduletable_id) {
                 continue;
             }
 
-            let target_table = VOsTypesManager.moduleTables_by_id[field.manyToOne_target_moduletable_id];
+            let target_table = VOsTypesManager.moduleTables_by_vo_id[field.many_to_one_target_moduletable_id];
             if (ignore_target_types && (ignore_target_types.indexOf(target_table.vo_type) >= 0)) {
                 continue;
             }
@@ -214,11 +217,11 @@ export default class VOsTypesManager {
                 continue;
             }
 
-            if (!field.manyToOne_target_moduletable_id) {
+            if (!field.many_to_one_target_moduletable_id) {
                 break;
             }
 
-            if (firstField.manyToOne_target_moduletable_id == field.manyToOne_target_moduletable_id) {
+            if (firstField.many_to_one_target_moduletable_id == field.many_to_one_target_moduletable_id) {
                 continue;
             }
 

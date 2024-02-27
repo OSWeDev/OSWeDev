@@ -30,7 +30,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
 
-    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
+    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
 
     /**
      * Field uniquement côté client..... a voir si on a pas plus propre comme système
@@ -150,7 +150,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    public setModuleTable(moduleTable: ModuleTableVO<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
         return this;
@@ -170,7 +170,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    get moduleTable(): ModuleTableVO<any> {
+    get moduleTable(): ModuleTableVO {
         if (!this.vo_type_id) {
             return null;
         }
@@ -479,7 +479,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableFieldVO<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
+    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;

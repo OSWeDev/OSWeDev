@@ -76,10 +76,23 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     /**
      * Lien vers la table liée pour les relations N/1
      */
-    public manyToOne_target_moduletable_id: number;
+    public many_to_one_target_moduletable_id: number;
+
+    /**
+     * Pour simplifier la création du code de trad et la création des tables,
+     *  on stocke à la fois l'id et le name des tables liées.
+     * On peut comme ça déclarer les tables et les champs séparément, dans n'importe quel ordre
+     *  (celà dit dans le cas de la liaison entre les tables, il faut pouvoir gérer les relations circulaires au niveau de la création des tables)
+     */
+    public many_to_one_target_moduletable_name: string; // Simplifier la création du code de trad et la création des tables
 
     public module_table_id: number;
-    public module_table_name: string; // Simplifier la création du code de trad
+    /**
+     * Pour simplifier la création du code de trad et la création des tables,
+     *  on stocke à la fois l'id et le name des tables liées.
+     * On peut comme ça déclarer les tables et les champs séparément, dans n'importe quel ordre
+     */
+    public module_table_name: string; // Simplifier la création du code de trad et la création des tables
 
     public cascade_on_delete: boolean; // true by default
     public do_not_add_to_crud: boolean; // false by default
@@ -89,7 +102,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public force_index: boolean; // false by default
     public is_readonly: boolean; // false by default
-    public replace_if_unique: boolean; // false by default
 
     public format_localized_time: boolean; // false by default
 
@@ -139,58 +151,15 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public field_type: string;                  //type de donnée dans la colonne
     public field_required: boolean;     //si champ obligatoire, false by default
     public has_default: boolean;        //si valeur par defaut, false by default
-    public field_default: T;              //valeur par defaut, null by default
+    public field_default_value: { value: any };              //valeur par defaut, null by default
 
     public default_translation: DefaultTranslationVO;
 
-    // get field_label_translatable_code(): string {
-    //     if (!this.module_table_id) {
-    //         return null;
-    //     }
-
-    //     //  On pourrait faire ça sur un getter mais en terme de perf et de compréhension du code, c'est plus clair en fait de garder le système actuel
-    //     // "fields.labels." + this.module_table_id + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-    //     return this.field_label.code_text;
-    // }
-
-    /**
-     * On passe en private pour être sûr de bien mettre la table à jour au besoin avec l'info de l'index d'unicité
-     */
-    // TODO FIXME BIZARRE à rendre public et simplifier le comportement (triggers ?)
-    private is_unique_: boolean; // false by default
+    public is_unique: boolean; // false by default
 
     public flag_as_secure_boolean_switch_only_server_side(): ModuleTableFieldVO {
         this.secure_boolean_switch_only_server_side = true;
         return this;
-    }
-
-    get is_unique(): boolean {
-        return this.is_unique_;
-    }
-
-    public set is_unique(is_unique_: boolean) {
-        this.is_unique_ = is_unique_;
-        if (!this.module_table) {
-            return;
-        }
-
-        if (!is_unique_) {
-            return;
-        }
-
-        let found = false;
-        for (let i in this.module_table.uniq_indexes) {
-            let index = this.module_table.uniq_indexes[i];
-
-            if (index && (index.length == 1) && (index[0].field_id == this.field_name)) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            this.module_table.uniq_indexes.push([this]);
-        }
     }
 
     public set_translatable_params_field_name(translatable_params_field_name: string): ModuleTableFieldVO {
@@ -249,9 +218,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
-    public unique(replace_if_unique: boolean = false): ModuleTableFieldVO {
+    public unique(): ModuleTableFieldVO {
         this.is_unique = true;
-        this.replace_if_unique = replace_if_unique;
         return this;
     }
 
@@ -261,7 +229,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     get is_indexed(): boolean {
-        return this.force_index || this.is_unique || !!this.manyToOne_target_moduletable_id;
+        return this.force_index || this.is_unique || !!this.many_to_one_target_moduletable_id;
     }
 
     public index(): ModuleTableFieldVO {
@@ -293,7 +261,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
-    public set_module_table(module_table: ModuleTableVO<any>): ModuleTableFieldVO {
+    public set_module_table(module_table: ModuleTableVO): ModuleTableFieldVO {
         if (!module_table) {
             throw new Error('ModuleTableFieldVO.set_module_table: module_table cannot be null');
         }
@@ -378,7 +346,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public getPGSqlFieldDescription() {
 
-        let default_value: string = this.field_default as any;
+        let default_value: string = this.has_default ? this.field_default_value?.value as any : undefined;
 
         try {
             if (!((typeof default_value === 'undefined') || TypesHandler.getInstance().isArray(default_value) ||
@@ -417,11 +385,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             return null;
         }
 
-        if (!this.manyToOne_target_moduletable_id) {
+        if (!this.many_to_one_target_moduletable_id) {
             return null;
         }
 
-        let target_table = VOsTypesManager.moduleTables_by_id[this.manyToOne_target_moduletable_id];
+        let target_table = VOsTypesManager.moduleTables_by_vo_id[this.many_to_one_target_moduletable_id];
 
         if (!target_table || !target_table.full_name) {
             return null;
@@ -439,8 +407,8 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         }
     }
 
-    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTableVO<U>): ModuleTableFieldVO {
-        this.manyToOne_target_moduletable_id = target_database;
+    public set_many_to_one_target_moduletable_name(many_to_one_target_moduletable_name: string): ModuleTableFieldVO {
+        this.many_to_one_target_moduletable_name = many_to_one_target_moduletable_name;
 
         return this;
     }

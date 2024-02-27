@@ -1,8 +1,8 @@
 import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ExpressSessionVO from './vos/ExpressSessionVO';
 
 export default class ModuleExpressDBSessions extends Module {

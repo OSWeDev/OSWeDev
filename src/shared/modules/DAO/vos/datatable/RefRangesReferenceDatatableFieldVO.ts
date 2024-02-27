@@ -14,7 +14,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTableVO<any>,
+        targetModuleTable: ModuleTableVO,
         sortedTargetFields: Array<DatatableField<any, any>>
     ): RefRangesReferenceDatatableFieldVO<any> {
 
@@ -47,7 +47,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdateSrcField();
     }
 
-    get srcField(): ModuleTableFieldVO<any> {
+    get srcField(): ModuleTableFieldVO {
         if (!this.moduleTable) {
             return null;
         }
@@ -55,7 +55,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return this.moduleTable.getFieldFromId(this.src_field_id);
     }
 
-    public setModuleTable(moduleTable: ModuleTableVO<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
 

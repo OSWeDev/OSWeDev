@@ -3,7 +3,7 @@ import IVOController from '../../interfaces/IVOController';
 import ModuleTableVO from '../../modules/ModuleTableVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import { field_names } from '../../tools/ObjectHandler';
 import IVersionedVO from './interfaces/IVersionedVO';
@@ -28,7 +28,7 @@ export default class VersionedVOController implements IVOController {
     /**
      * Local thread cache -----
      */
-    public registeredModuleTables: Array<ModuleTableVO<any>> = [];
+    public registeredModuleTables: ModuleTableVO[] = [];
     /**
      * ----- Local thread cache
      */
@@ -36,17 +36,17 @@ export default class VersionedVOController implements IVOController {
     private constructor() {
     }
 
-    public registerModuleTable(moduleTable: ModuleTableVO<any>) {
+    public registerModuleTable(moduleTable: ModuleTableVO) {
         moduleTable.defineVOInterfaces([VersionedVOController.INTERFACE_VERSIONED]);
         moduleTable.is_versioned = true;
 
         this.registeredModuleTables.push(moduleTable);
 
         let version_edit_author_id = ModuleTableFieldController.create_new(IVersionedVO.API_TYPE_ID, field_names<IVersionedVO>().version_edit_author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Modificateur', false).hide_from_datatable();
-        version_edit_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_edit_author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         version_edit_author_id.setModuleTable(moduleTable);
         let version_author_id = ModuleTableFieldController.create_new(IVersionedVO.API_TYPE_ID, field_names<IVersionedVO>().version_author_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable();
-        version_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         version_author_id.setModuleTable(moduleTable);
 
         moduleTable.push_field(version_edit_author_id);
@@ -79,18 +79,18 @@ export default class VersionedVOController implements IVOController {
             VersionedVOController.VERSIONED_TRASHED_DATABASE
         ];
 
-        let TRASHED_DATABASE: ModuleTableVO<any> = null;
+        let TRASHED_DATABASE: ModuleTableVO = null;
 
         for (let e in vo_types) {
             let vo_type = vo_types[e];
             let database = databases[e];
 
-            let fields: Array<ModuleTableFieldVO<any>> = [];
+            let fields: ModuleTableFieldVO[] = [];
 
             for (let i in moduleTable.get_fields()) {
                 let vofield = moduleTable.get_fields()[i];
 
-                let cloned_field = new ModuleTableFieldVO<any>(
+                let cloned_field = new ModuleTableFieldVO(
                     vofield.field_id, vofield.field_type,
                     vofield.field_label ? cloneDeep(vofield.field_label) : null,
                     vofield.field_required, vofield.has_default, vofield.field_default);
@@ -100,7 +100,7 @@ export default class VersionedVOController implements IVOController {
                 fields.push(cloned_field);
             }
 
-            let newTable: ModuleTableVO<any> = new ModuleTableVO<any>(moduleTable.module, vo_type, moduleTable.voConstructor, fields, null, vo_type);
+            let newTable: ModuleTableVO = new ModuleTableVO(moduleTable.module, vo_type, moduleTable.voConstructor, fields, null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
 
@@ -118,9 +118,9 @@ export default class VersionedVOController implements IVOController {
                 // on doit garder les versions coute que coute et décider au moment de la restauration si oui ou non on peut restaurer (si j'ai un id qui existe plus, soit il existe en trashed de l'autre
                 //  type et je propose de restaurer soit il existe pas et pas mandatory donc je mets null soit il existe pas et mandatory et je refuse la restauration (ou on propose de remplacer la liaison))
                 if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_TRASHED_DATABASE)) {
-                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(TRASHED_DATABASE);
+                    newTable.getFieldFromId(vofield.field_id).set_many_to_one_target_moduletable_name(TRASHED_DATABASE.vo_type);
                 } else if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_DATABASE)) {
-                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(moduleTable);
+                    newTable.getFieldFromId(vofield.field_id).set_many_to_one_target_moduletable_name(moduleTable.vo_type);
                 } else if ((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE)) {
                     let newField = newTable.getFieldFromId(vofield.field_id);
                     newField.has_relation = false;
@@ -133,7 +133,7 @@ export default class VersionedVOController implements IVOController {
                             newField.field_type = ModuleTableFieldVO.FIELD_TYPE_int;
                     }
                 } else {
-                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
+                    newTable.getFieldFromId(vofield.field_id).set_many_to_one_target_moduletable_name(vofield.manyToOne_target_moduletable.vo_type);
                 }
             }
 

@@ -295,7 +295,7 @@ export default class ImportTypeCSVHandler {
                         }
                     } else if (raw_row_index > dataImportFormat.column_labels_row_index) {
 
-                        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+                        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
                         let rowData: IImportedData = {
                             _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
@@ -538,7 +538,7 @@ export default class ImportTypeCSVHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
-        let moduletable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
 
@@ -566,7 +566,7 @@ export default class ImportTypeCSVHandler {
         return datas;
     }
 
-    private populate_row_data(raw_row_data: any, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO<any>): boolean {
+    private populate_row_data(raw_row_data: any, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO): boolean {
 
         let last_row_has_data = false;
 

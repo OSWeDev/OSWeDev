@@ -5,9 +5,9 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../Var/VarsInitController';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
@@ -90,7 +90,7 @@ export default class ModuleStats extends Module {
         ];
 
         VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, () => new StatsGroupSecDataRangesVO(), datatable_fields, this);
-        stats_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsGroupVO.API_TYPE_ID]);
+        stats_groupe_id_ranges.set_many_to_one_target_moduletable_name(StatsGroupVO.API_TYPE_ID);
     }
 
     private initializeStatVO() {
@@ -105,7 +105,7 @@ export default class ModuleStats extends Module {
         let table = new ModuleTableVO(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');
         table.segment_on_field('stat_group_id', NumSegment.TYPE_INT);
         this.datatables.push(table);
-        stat_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsGroupVO.API_TYPE_ID]);
+        stat_group_id.set_many_to_one_target_moduletable_name(StatsGroupVO.API_TYPE_ID);
     }
 
     private initializeStatClientWrapperVO() {
@@ -160,11 +160,11 @@ export default class ModuleStats extends Module {
         let table = new ModuleTableVO(this, StatsGroupVO.API_TYPE_ID, () => new StatsGroupVO(), fields, name_field, 'Groupes de stats');
         this.datatables.push(table);
         VersionedVOController.getInstance().registerModuleTable(table);
-        category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsCategoryVO.API_TYPE_ID]);
-        sub_category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsSubCategoryVO.API_TYPE_ID]);
-        event_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsEventVO.API_TYPE_ID]);
-        stat_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsTypeVO.API_TYPE_ID]);
-        thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsThreadVO.API_TYPE_ID]);
+        category_id.set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
+        sub_category_id.set_many_to_one_target_moduletable_name(StatsSubCategoryVO.API_TYPE_ID);
+        event_id.set_many_to_one_target_moduletable_name(StatsEventVO.API_TYPE_ID);
+        stat_type_id.set_many_to_one_target_moduletable_name(StatsTypeVO.API_TYPE_ID);
+        thread_id.set_many_to_one_target_moduletable_name(StatsThreadVO.API_TYPE_ID);
     }
 
     // private initializeStatsGroupCacheLinkVO() {
@@ -212,7 +212,7 @@ export default class ModuleStats extends Module {
         let table = new ModuleTableVO(this, StatsSubCategoryVO.API_TYPE_ID, () => new StatsSubCategoryVO(), fields, name_field, 'Sous-catégories de stats');
         this.datatables.push(table);
         VersionedVOController.getInstance().registerModuleTable(table);
-        category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsCategoryVO.API_TYPE_ID]);
+        category_id.set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
     }
 
     // private initializeStatsSubCategoryCacheLinkVO() {
@@ -255,7 +255,7 @@ export default class ModuleStats extends Module {
         let table = new ModuleTableVO(this, StatsEventVO.API_TYPE_ID, () => new StatsEventVO(), fields, name_field, 'Evènements de stats');
         this.datatables.push(table);
         VersionedVOController.getInstance().registerModuleTable(table);
-        sub_category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsSubCategoryVO.API_TYPE_ID]);
+        sub_category_id.set_many_to_one_target_moduletable_name(StatsSubCategoryVO.API_TYPE_ID);
     }
 
     // private initializeStatsEventCacheLinkVO() {

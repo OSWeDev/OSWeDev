@@ -1163,7 +1163,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column: TableColumnDescVO = this.columns[i];
-            let moduleTable: ModuleTableVO<any>;
+            let moduleTable: ModuleTableVO;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1225,7 +1225,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
         // for (let i in this.widget_options.columns) {
         //     let column: TableColumnDescVO = this.widget_options.columns[i];
-        //     let moduleTable: ModuleTableVO<any>;
+        //     let moduleTable: ModuleTableVO;
 
         //     if (column.type != TableColumnDescVO.TYPE_header) {
         //         moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1305,7 +1305,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (let i in this.default_widget_options_columns) {
             let column: TableColumnDescVO = this.default_widget_options_columns[i];
-            let moduleTable: ModuleTableVO<any>;
+            let moduleTable: ModuleTableVO;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
@@ -1358,7 +1358,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
 
-    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO<any>) {
+    private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTableVO) {
         let res: DatatableField<any, any>;
         switch (column?.type) {
             case TableColumnDescVO.TYPE_component:
@@ -1646,7 +1646,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
         if (
             base_table &&

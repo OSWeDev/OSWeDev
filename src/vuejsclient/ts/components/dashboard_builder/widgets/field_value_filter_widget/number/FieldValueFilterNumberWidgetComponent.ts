@@ -436,7 +436,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+            let base_table: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
             if (
                 base_table &&
@@ -562,7 +562,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return true;
     }
 
-    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableFieldVO<any>): ContextFilterVO {
+    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableFieldVO): ContextFilterVO {
         let context_filter = new ContextFilterVO();
 
         context_filter.field_id = this.vo_field_ref.field_id;

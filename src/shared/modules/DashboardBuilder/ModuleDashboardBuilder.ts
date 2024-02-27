@@ -18,9 +18,9 @@ import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO'
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
@@ -102,7 +102,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_VarDatatableFieldVO();
     }
 
-    private init_DashboardVO(): ModuleTableVO<any> {
+    private init_DashboardVO(): ModuleTableVO {
 
         let datatable_fields = [
             ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
@@ -114,7 +114,7 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
 
-    private init_DashboardGraphVORefVO(db_table: ModuleTableVO<any>): ModuleTableVO<any> {
+    private init_DashboardGraphVORefVO(db_table: ModuleTableVO): ModuleTableVO {
 
         let dashboard_id = ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
@@ -130,11 +130,11 @@ export default class ModuleDashboardBuilder extends Module {
 
         let res = new ModuleTableVO(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
         this.datatables.push(res);
-        dashboard_id.addManyToOneRelation(db_table);
+        dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
     }
 
-    private init_DashboardPageVO(db_table: ModuleTableVO<any>): ModuleTableVO<any> {
+    private init_DashboardPageVO(db_table: ModuleTableVO): ModuleTableVO {
 
         let dashboard_id = ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
@@ -147,11 +147,11 @@ export default class ModuleDashboardBuilder extends Module {
 
         let res = new ModuleTableVO(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
         this.datatables.push(res);
-        dashboard_id.addManyToOneRelation(db_table);
+        dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
     }
 
-    private init_DashboardWidgetVO(): ModuleTableVO<any> {
+    private init_DashboardWidgetVO(): ModuleTableVO {
 
         let name = ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
 
@@ -175,7 +175,7 @@ export default class ModuleDashboardBuilder extends Module {
         return res;
     }
 
-    private init_DashboardPageWidgetVO(db_page: ModuleTableVO<any>, db_widget: ModuleTableVO<any>) {
+    private init_DashboardPageWidgetVO(db_page: ModuleTableVO, db_widget: ModuleTableVO) {
 
         let widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
         let page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
@@ -218,8 +218,8 @@ export default class ModuleDashboardBuilder extends Module {
             )
         );
 
-        widget_id.addManyToOneRelation(db_widget);
-        page_id.addManyToOneRelation(db_page);
+        widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
+        page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
     }
 
     /**
@@ -227,7 +227,7 @@ export default class ModuleDashboardBuilder extends Module {
      *  - Database table to stock user favorites of active filters
      *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
-    private init_FavoritesFiltersVO(db_page: ModuleTableVO<any>) {
+    private init_FavoritesFiltersVO(db_page: ModuleTableVO) {
 
         let page_id = ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
@@ -253,7 +253,7 @@ export default class ModuleDashboardBuilder extends Module {
             )
         );
 
-        page_id.addManyToOneRelation(db_page);
+        page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
     }
 
     /**
@@ -348,7 +348,7 @@ export default class ModuleDashboardBuilder extends Module {
         ];
 
         this.datatables.push(new ModuleTableVO(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
     }
 
     private init_AdvancedDateFilterOptDescVO() {
@@ -703,7 +703,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         this.datatables.push(new ModuleTableVO(this, VarDatatableFieldVO.API_TYPE_ID, () => new VarDatatableFieldVO(), datatable_fields, null, "VarDatatableFieldVO"));
 
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
-        dashboard_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DashboardVO.API_TYPE_ID]);
+        var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
+        dashboard_id.set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
     }
 }

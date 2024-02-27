@@ -8,9 +8,9 @@ import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
@@ -3410,7 +3410,7 @@ export default class ContextFilterServerController {
         query_tables_prefix: string,
         jointures: string[],
         filters: ContextFilterVO[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
         tables_aliases_by_type: { [vo_type: string]: string },
         path: FieldPathWrapper[],
         aliases_n: number
@@ -3474,11 +3474,11 @@ export default class ContextFilterServerController {
                             let fields: string = 'id';
 
                             // Add all fields by default
-                            let table_fields = table.get_fields();
+                            let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
-                                fields += ', ' + field.field_id;
+                                fields += ', ' + field.field_name;
                             }
 
                             jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
@@ -3564,11 +3564,11 @@ export default class ContextFilterServerController {
                             let fields: string = 'id';
 
                             // Add all fields by default
-                            let table_fields = table.get_fields();
+                            let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
                             for (const j in table_fields) {
                                 const field = table_fields[j];
 
-                                fields += ', ' + field.field_id;
+                                fields += ', ' + field.field_name;
                             }
 
                             jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
@@ -3619,7 +3619,7 @@ export default class ContextFilterServerController {
         api_type_id: string,
         cross_jointures: string[],
         filters: ContextFilterVO[],
-        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO<any> },
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTableVO },
         tables_aliases_by_type: { [vo_type: string]: string },
         aliases_n: number
     ): Promise<number> {
@@ -3674,11 +3674,11 @@ export default class ContextFilterServerController {
                     let fields: string = 'id';
 
                     // Add all fields by default
-                    let table_fields = table.get_fields();
+                    let table_fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[table.vo_type];
                     for (const j in table_fields) {
                         const field = table_fields[j];
 
-                        fields += ', ' + field.field_id;
+                        fields += ', ' + field.field_name;
                     }
 
                     cross_jointure_table_ref = '(SELECT ' + fields + ' FROM ' + tables.join(' UNION ALL SELECT ' + fields + ' FROM ') + ')';
@@ -3708,7 +3708,7 @@ export default class ContextFilterServerController {
      */
     public static async get_table_full_name(
         context_query: ContextQueryVO,
-        moduletable: ModuleTableVO<any>,
+        moduletable: ModuleTableVO,
         filters: ContextFilterVO[]): Promise<string> {
 
         let full_name = moduletable.full_name;

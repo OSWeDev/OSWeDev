@@ -653,7 +653,7 @@ export default class ContextFilterVOHandler {
         return new_query_filters;
     }
 
-    public static get_ContextFilterVO_None(field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): number {
+    public static get_ContextFilterVO_None(field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
         if ((!field) && (vo_field_ref.field_name == 'id')) {
@@ -698,7 +698,7 @@ export default class ContextFilterVOHandler {
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
      * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
-    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableFieldVO<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 

@@ -8,9 +8,9 @@ import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
@@ -108,7 +108,7 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentVO.API_TYPE_ID, () => new DocumentVO(), fields, name, 'Documents');
         this.datatables.push(table);
 
-        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }
@@ -138,8 +138,8 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentRoleVO.API_TYPE_ID, () => new DocumentRoleVO(), fields, null, 'Roles d\'accès aux Documents');
         this.datatables.push(table);
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
     }
 
 
@@ -155,8 +155,8 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentLangVO.API_TYPE_ID, () => new DocumentLangVO(), fields, null, 'Langues des Documents');
         this.datatables.push(table);
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
     private initializeDocumentTagLangVO() {
@@ -171,8 +171,8 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentTagLangVO.API_TYPE_ID, () => new DocumentTagLangVO(), fields, null, 'Langues des Tags');
         this.datatables.push(table);
 
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
     private initializeDocumentTagGroupVO() {
@@ -201,8 +201,8 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentTagGroupLangVO.API_TYPE_ID, () => new DocumentTagGroupLangVO(), fields, null, 'Langues des TagGroups');
         this.datatables.push(table);
 
-        dtg_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        dtg_id.set_many_to_one_target_moduletable_name(DocumentTagGroupVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
 
@@ -218,8 +218,8 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentTagDocumentTagGroupVO.API_TYPE_ID, () => new DocumentTagDocumentTagGroupVO(), fields, null, 'Groupes des Tags');
         this.datatables.push(table);
 
-        dtg_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+        dtg_id.set_many_to_one_target_moduletable_name(DocumentTagGroupVO.API_TYPE_ID);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
     }
 
 
@@ -235,7 +235,7 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTableVO(this, DocumentDocumentTagVO.API_TYPE_ID, () => new DocumentDocumentTagVO(), fields, null, 'Tags des Documents');
         this.datatables.push(table);
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
     }
 }

@@ -16,8 +16,8 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTableVO<any>,
-        destField: ModuleTableFieldVO<any>,
+        targetModuleTable: ModuleTableVO,
+        destField: ModuleTableFieldVO,
         sortedTargetFields: Array<DatatableField<any, any>>): OneToManyReferenceDatatableFieldVO<any> {
 
         let res = new OneToManyReferenceDatatableFieldVO();
@@ -50,7 +50,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdatedestField();
     }
 
-    get destField(): ModuleTableFieldVO<any> {
+    get destField(): ModuleTableFieldVO {
         if ((!this.dest_field_id) || (!this.target_module_table_type_id)) {
             return null;
         }

@@ -8,9 +8,9 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
@@ -112,13 +112,13 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTableVO<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTableVO = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
         }
 
-        let refFields: Array<ModuleTableFieldVO<any>> = [];
+        let refFields: ModuleTableFieldVO[] = [];
 
         for (let i in VOsTypesManager.moduleTables_by_voType) {
             let table = VOsTypesManager.moduleTables_by_voType[i];

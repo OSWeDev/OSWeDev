@@ -8,9 +8,9 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import MenuElementVO from './vos/MenuElementVO';
 
@@ -92,7 +92,7 @@ export default class ModuleMenu extends Module {
         let table = new ModuleTableVO(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
         this.datatables.push(table);
 
-        menu_parent_id.addManyToOneRelation(table);
+        menu_parent_id.set_many_to_one_target_moduletable_name(table.vo_type);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

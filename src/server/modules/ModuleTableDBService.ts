@@ -1,13 +1,11 @@
+import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../shared/modules/DataRender/vos/NumRange';
-import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../shared/modules/ModuleTableFieldVO';
+import ModuleTableVO from '../../shared/modules/ModuleTableVO';
 import StatsController from '../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../shared/modules/Stats/vos/StatVO';
+import VOsTypesManager from '../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
@@ -35,7 +33,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test datatable_install
-    public async datatable_install(moduleTable: ModuleTableVO<any>) {
+    public async datatable_install(moduleTable: ModuleTableVO) {
 
         await this.create_or_update_datatable(moduleTable);
 
@@ -44,14 +42,14 @@ export default class ModuleTableDBService {
 
     // Après installation de tous les modules
     // istanbul ignore next: nothing to test
-    public async datatable_configure(moduleTable: ModuleTableVO<any>) {
+    public async datatable_configure(moduleTable: ModuleTableVO) {
         return true;
     }
 
     /**
      * Returns the tablename, without schema
      */
-    public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTableVO<any>): Promise<{ [segmented_value: number]: string }> {
+    public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTableVO): Promise<{ [segmented_value: number]: string }> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-');
 
@@ -74,7 +72,7 @@ export default class ModuleTableDBService {
         return segments_by_segmented_value;
     }
 
-    public async create_or_update_datatable(moduleTable: ModuleTableVO<any>, segments: IRange[] = null) {
+    public async create_or_update_datatable(moduleTable: ModuleTableVO, segments: IRange[] = null) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
@@ -199,7 +197,7 @@ export default class ModuleTableDBService {
                 let column_names_list = [];
 
                 column_names_list.push('id');
-                let fields = moduleTable.get_fields();
+                let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
                 for (let i in fields) {
                     column_names_list.push(fields[i].field_id);
                 }
@@ -244,7 +242,8 @@ export default class ModuleTableDBService {
         } else {
 
             // On doit entre autre ajouter la table en base qui gère les fields
-            if ((!moduleTable.get_fields()) || (!moduleTable.get_fields().length)) {
+            let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+            if ((!fields) || (!fields.length)) {
                 ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
             } else {
                 await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
@@ -253,7 +252,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test handle_check_segment
-    private async handle_check_segment(moduleTable: ModuleTableVO<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
+    private async handle_check_segment(moduleTable: ModuleTableVO, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
 
@@ -285,7 +284,7 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     // istanbul ignore next: cannot test do_check_or_update_moduletable
-    private async do_check_or_update_moduletable(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
+    private async do_check_or_update_moduletable(moduleTable: ModuleTableVO, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
 
@@ -318,15 +317,11 @@ export default class ModuleTableDBService {
     /**
      * @returns true if causes a change in the db structure
      */
-    private async check_datatable_structure(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
+    private async check_datatable_structure(moduleTable: ModuleTableVO, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
-        let fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> } = {};
-        for (let i in moduleTable.get_fields()) {
-            let field = moduleTable.get_fields()[i];
-            fields_by_field_id[field.field_id.toLowerCase()] = field;
-        }
+        let fields_by_field_name: { [field_name: string]: ModuleTableFieldVO } = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
 
         let table_cols_by_name: { [col_name: string]: TableColumnDescriptor } = {};
         for (let i in table_cols) {
@@ -335,14 +330,14 @@ export default class ModuleTableDBService {
         }
 
         let res: boolean = false;
-        res = await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        if (await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+        res = await this.checkMissingInTS(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name);
+        if (await this.checkMissingInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
             res = true;
         }
-        if (await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+        if (await this.checkColumnsStrutInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
             res = true;
         }
-        if (await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+        if (await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
             res = true;
         }
         return res;
@@ -358,8 +353,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkConstraintsOnForeignKey
     private async checkConstraintsOnForeignKey(
-        moduleTable: ModuleTableVO<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
+        moduleTable: ModuleTableVO,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -449,8 +444,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkMissingInTS
     private async checkMissingInTS(
-        moduleTable: ModuleTableVO<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
+        moduleTable: ModuleTableVO,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -505,8 +500,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkMissingInDB
     private async checkMissingInDB(
-        moduleTable: ModuleTableVO<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
+        moduleTable: ModuleTableVO,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -515,13 +510,13 @@ export default class ModuleTableDBService {
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+        for (let i in fields) {
+            let field = fields[i];
 
-        for (let i in moduleTable.get_fields()) {
-            let field = moduleTable.get_fields()[i];
-
-            if (!table_cols_by_name[field.field_id.toLowerCase()]) {
+            if (!table_cols_by_name[field.field_name.toLowerCase()]) {
                 console.error('-');
-                console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_id + ':table:' + full_name + ':');
+                console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_name + ':table:' + full_name + ':');
                 console.error('ACTION: Création automatique...');
 
                 try {
@@ -547,7 +542,7 @@ export default class ModuleTableDBService {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                let index = field.field_id.toLowerCase() + '_ndx';
+                let index = field.field_name.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
                     console.error('-');
                     console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
@@ -577,8 +572,8 @@ export default class ModuleTableDBService {
      */
     // istanbul ignore next: cannot test checkColumnsStrutInDB
     private async checkColumnsStrutInDB(
-        moduleTable: ModuleTableVO<any>,
-        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO<any> },
+        moduleTable: ModuleTableVO,
+        fields_by_field_id: { [field_id: string]: ModuleTableFieldVO },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
@@ -587,20 +582,21 @@ export default class ModuleTableDBService {
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
 
-        for (let i in moduleTable.get_fields()) {
-            let field = moduleTable.get_fields()[i];
+        for (let i in fields) {
+            let field = fields[i];
 
-            if (!table_cols_by_name[field.field_id]) {
+            if (!table_cols_by_name[field.field_name]) {
                 continue;
             }
 
-            let table_col = table_cols_by_name[field.field_id];
+            let table_col = table_cols_by_name[field.field_name];
 
             // // On check les infos récupérées de la base : column_default, is_nullable, data_type
             // if (field.field_required == (table_col.is_nullable != TableColumnDescriptor.IS_NOT_NULLABLE_VALUE)) {
             //     console.error('-');
-            //     console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
+            //     console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':field:' + field.field_name + ':table:' + moduleTable.full_name + ':');
             //     console.error('ACTION: Aucune. Résoudre manuellement');
             //     console.error('---');
             // }
@@ -624,7 +620,7 @@ export default class ModuleTableDBService {
 
             if (!field.isAcceptableCurrentDBType(table_col.data_type)) {
                 console.error('-');
-                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_id + ':table:' + full_name + ':');
+                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_name + ':table:' + full_name + ':');
                 console.error('ACTION: Aucune. Résoudre manuellement');
                 console.error('---');
             }
@@ -639,7 +635,7 @@ export default class ModuleTableDBService {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                let index = field.field_id.toLowerCase() + '_ndx';
+                let index = field.field_name.toLowerCase() + '_ndx';
                 if (!table_cols_by_name[index]) {
                     continue;
                 }
@@ -661,13 +657,15 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     // istanbul ignore next: cannot test chec_indexes
-    private async chec_indexes(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string): Promise<boolean> {
+    private async chec_indexes(moduleTable: ModuleTableVO, database_name: string, table_name: string): Promise<boolean> {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
 
         let res_: boolean = false;
-        for (let i = 0; i < moduleTable.get_fields().length; i++) {
-            let field = moduleTable.get_fields()[i];
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+
+        for (let i in fields) {
+            let field = fields[i];
 
             let index_str = field.getPGSqlFieldIndex(database_name, table_name);
             if (!index_str) {
@@ -688,7 +686,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: cannot test create_new_datatable
-    private async create_new_datatable(moduleTable: ModuleTableVO<any>, database_name: string, table_name: string) {
+    private async create_new_datatable(moduleTable: ModuleTableVO, database_name: string, table_name: string) {
 
         StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
@@ -696,8 +694,10 @@ export default class ModuleTableDBService {
 
         let pgSQL: string = 'CREATE TABLE IF NOT EXISTS ' + full_name + ' (';
         pgSQL += 'id bigserial NOT NULL';
-        for (let i = 0; i < moduleTable.get_fields().length; i++) {
-            let field = moduleTable.get_fields()[i];
+        let fields = VOsTypesManager.moduleTablesFields_by_voType_and_field_name[moduleTable.vo_type];
+
+        for (let i in fields) {
+            let field = fields[i];
 
             pgSQL += ', ' + field.getPGSqlFieldDescription();
 
@@ -710,13 +710,13 @@ export default class ModuleTableDBService {
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
                 (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
 
-                pgSQL += ', ' + field.field_id.toLowerCase() + '_ndx' + ' text';
+                pgSQL += ', ' + field.field_name.toLowerCase() + '_ndx' + ' text';
             }
         }
 
         pgSQL += ', CONSTRAINT ' + table_name + '_pkey PRIMARY KEY (id)';
-        for (let i = 0; i < moduleTable.get_fields().length; i++) {
-            let field = moduleTable.get_fields()[i];
+        for (let i in fields) {
+            let field = fields[i];
 
             if (field.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) {
                 continue;
@@ -733,13 +733,10 @@ export default class ModuleTableDBService {
          * Ajout des clés d'unicité
          */
         let uniq_constraints = '';
-        if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
-            for (let i in moduleTable.uniq_indexes) {
-                let uniq_index = moduleTable.uniq_indexes[i];
-
-                // if (uniq_index.length <= 1) {
-                //     continue;
-                // }
+        let uniq_indexes: ModuleTableFieldVO[][] = ModuleTableController.unique_fields_by_vo_type[moduleTable.vo_type];
+        if (uniq_indexes && uniq_indexes.length) {
+            for (let i in uniq_indexes) {
+                let uniq_index = uniq_indexes[i];
 
                 uniq_constraints += ', UNIQUE (' + uniq_index.map((f) => f.field_id).join(', ') + ')';
             }
@@ -756,7 +753,7 @@ export default class ModuleTableDBService {
     }
 
     // istanbul ignore next: nothing to test
-    private get_segmented_table_common_limited_seq_label(moduletable: ModuleTableVO<any>): string {
+    private get_segmented_table_common_limited_seq_label(moduletable: ModuleTableVO): string {
         return moduletable.name.substring(0, 63 - '_common_id_seq'.length) + '_common_id_seq';
     }
 }

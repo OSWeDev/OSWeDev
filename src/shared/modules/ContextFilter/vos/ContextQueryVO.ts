@@ -765,7 +765,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableFieldVO<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
+        let matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];
@@ -844,7 +844,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
-        let matroid_fields: Array<ModuleTableFieldVO<any>> = MatroidController.getMatroidFields(matroid_api_type_id);
+        let matroid_fields: ModuleTableFieldVO[] = MatroidController.getMatroidFields(matroid_api_type_id);
 
         for (let i in matroids) {
             let matroid: IMatroid = matroids[i];

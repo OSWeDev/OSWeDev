@@ -4,7 +4,7 @@ import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
 import FieldFiltersVO from './vos/FieldFiltersVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 
 export default class DashboardBuilderController {
 

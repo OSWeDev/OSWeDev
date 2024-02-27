@@ -1,9 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ICheckList from './interfaces/ICheckList';
@@ -45,7 +45,7 @@ export default abstract class ModuleCheckListBase extends Module {
     }
 
     protected abstract callInitializeCheckList();
-    protected initializeCheckList(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => ICheckList) {
+    protected initializeCheckList(additional_fields: ModuleTableFieldVO[], constructor: () => ICheckList) {
         if (!this.checklist_type_id) {
             return;
         }
@@ -69,7 +69,7 @@ export default abstract class ModuleCheckListBase extends Module {
     }
 
     protected abstract callInitializeCheckListItem();
-    protected initializeCheckListItem(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => ICheckListItem) {
+    protected initializeCheckListItem(additional_fields: ModuleTableFieldVO[], constructor: () => ICheckListItem) {
         if (!this.checklistitem_type_id) {
             return;
         }
@@ -90,13 +90,13 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
-        checklist_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]);
+        checklist_id.set_many_to_one_target_moduletable_name(this.checklist_type_id);
         VersionedVOController.getInstance().registerModuleTable(datatable);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializeCheckListItemCheckPoints();
-    protected initializeCheckListItemCheckPoints(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => ICheckListItemCheckPoints) {
+    protected initializeCheckListItemCheckPoints(additional_fields: ModuleTableFieldVO[], constructor: () => ICheckListItemCheckPoints) {
         if (!this.checklistitemcheckpoints_type_id) {
             return;
         }
@@ -114,13 +114,13 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.checklistitemcheckpoints_type_id, constructor, additional_fields, null, "CheckListItemCheckPoints");
-        checklistitem_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklistitem_type_id]);
-        checkpoint_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
+        checklistitem_id.set_many_to_one_target_moduletable_name(this.checklistitem_type_id);
+        checkpoint_id.set_many_to_one_target_moduletable_name(this.checkpoint_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializeCheckPoint();
-    protected initializeCheckPoint(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => ICheckPoint) {
+    protected initializeCheckPoint(additional_fields: ModuleTableFieldVO[], constructor: () => ICheckPoint) {
         if (!this.checkpoint_type_id) {
             return;
         }
@@ -142,12 +142,12 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");
-        checklist_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]);
+        checklist_id.set_many_to_one_target_moduletable_name(this.checklist_type_id);
         this.datatables.push(datatable);
     }
 
     // protected abstract callInitializeCheckPointDep();
-    // protected initializeCheckPointDep(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => ICheckPointDep) {
+    // protected initializeCheckPointDep(additional_fields: ModuleTableFieldVO[], constructor: () => ICheckPointDep) {
     //     if (!this.checkpointdep_type_id) {
     //         return;
     //     }
@@ -161,8 +161,8 @@ export default abstract class ModuleCheckListBase extends Module {
     //     );
 
     //     let datatable = new ModuleTableVO(this, this.checkpointdep_type_id, constructor, additional_fields, null, "Dépendances des CheckPoints");
-    //     checkpoint_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
-    //     dependson_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
+    //     checkpoint_id.set_many_to_one_target_moduletable_name(this.checkpoint_type_id);
+    //     dependson_id.set_many_to_one_target_moduletable_name(this.checkpoint_type_id);
     //     this.datatables.push(datatable);
     // }
 }

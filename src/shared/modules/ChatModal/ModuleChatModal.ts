@@ -4,9 +4,9 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import FileVO from '../File/vos/FileVO';
 import ImageVO from '../Image/vos/ImageVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import ChatModalMessageFileVO from './vos/ChatModalMessageFileVO';
@@ -64,8 +64,8 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalMessageFileVO.API_TYPE_ID, () => new ChatModalMessageFileVO(), fields, null, "Fichiers attachés aux messages");
 
-        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalMessageVO.API_TYPE_ID]);
+        file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -83,8 +83,8 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalMessageImageVO.API_TYPE_ID, () => new ChatModalMessageImageVO(), fields, null, "Images attachées aux messages");
 
-        image_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalMessageVO.API_TYPE_ID]);
+        image_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -103,7 +103,7 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalMessageReplyOptionVO.API_TYPE_ID, () => new ChatModalMessageReplyOptionVO(), fields, null, "Options de réponse aux messages");
 
-        message_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalMessageVO.API_TYPE_ID]);
+        message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -122,8 +122,8 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalMessageVO.API_TYPE_ID, () => new ChatModalMessageVO(), fields, null, "Lien compte Azure");
 
-        thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalThreadVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalUserVO.API_TYPE_ID]);
+        thread_id.set_many_to_one_target_moduletable_name(ChatModalThreadVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(ChatModalUserVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -151,8 +151,8 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalThreadUserVO.API_TYPE_ID, () => new ChatModalThreadUserVO(), fields, null, "Utilisateurs du thread");
 
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalUserVO.API_TYPE_ID]);
-        thread_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ChatModalThreadVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(ChatModalUserVO.API_TYPE_ID);
+        thread_id.set_many_to_one_target_moduletable_name(ChatModalThreadVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }
@@ -170,8 +170,8 @@ export default class ChatModal extends Module {
 
         let datatable = new ModuleTableVO(this, ChatModalUserVO.API_TYPE_ID, () => new ChatModalUserVO(), fields, null, "Utilisateurs du chat");
 
-        avatar_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        avatar_id.set_many_to_one_target_moduletable_name(ImageVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(datatable);
     }

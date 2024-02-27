@@ -12,9 +12,9 @@ import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
@@ -180,8 +180,8 @@ export default class ModuleDataExport extends Module {
 
         let moduleTable: ModuleTableVO<ExportHistoricVO> = new ModuleTableVO<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
 
-        export_to_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        exported_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        export_to_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        exported_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         this.datatables.push(moduleTable);
     }
@@ -197,7 +197,7 @@ export default class ModuleDataExport extends Module {
         ];
         let moduleTable: ModuleTableVO<ExportVarcolumnConfVO> = new ModuleTableVO<ExportVarcolumnConfVO>(this, ExportVarcolumnConfVO.API_TYPE_ID, () => new ExportVarcolumnConfVO(), datatable_fields, null, 'Conf des vars pour export');
 
-        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
 
         this.datatables.push(moduleTable);
     }
@@ -245,7 +245,7 @@ export default class ModuleDataExport extends Module {
 
         let moduleTable: ModuleTableVO<ExportContextQueryToXLSXQueryVO> = new ModuleTableVO<ExportContextQueryToXLSXQueryVO>(this, ExportContextQueryToXLSXQueryVO.API_TYPE_ID, () => new ExportContextQueryToXLSXQueryVO(), datatable_fields, filename, 'Exports de ContextQuery en XLSX');
 
-        target_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        target_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(moduleTable);
     }
@@ -262,7 +262,7 @@ export default class ModuleDataExport extends Module {
 
         let moduleTable: ModuleTableVO<ExportLogVO> = new ModuleTableVO<ExportLogVO>(this, ExportLogVO.API_TYPE_ID, () => new ExportLogVO(), datatable_fields, field_name);
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         this.datatables.push(moduleTable);
     }

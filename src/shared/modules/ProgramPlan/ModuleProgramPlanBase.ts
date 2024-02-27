@@ -10,9 +10,9 @@ import FileVO from '../File/vos/FileVO';
 import Dates from '../FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../FormatDatesNombres/ModuleFormatDatesNombres';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IPlanContact from './interfaces/IPlanContact';
 import IPlanContactType from './interfaces/IPlanContactType';
@@ -200,7 +200,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramCategory();
-    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramCategory) {
+    protected initializePlanProgramCategory(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanProgramCategory) {
         if (!this.program_category_type_id) {
             return;
         }
@@ -228,7 +228,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanContactType();
-    protected initializePlanContactType(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanContactType) {
+    protected initializePlanContactType(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanContactType) {
         if (!this.contact_type_type_id) {
             return;
         }
@@ -244,7 +244,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanFacilitatorRegion();
-    protected initializePlanFacilitatorRegion(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanFacilitatorRegion) {
+    protected initializePlanFacilitatorRegion(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanFacilitatorRegion) {
         if (!this.facilitator_region_type_id) {
             return;
         }
@@ -260,7 +260,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTargetGroup();
-    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetGroup) {
+    protected initializePlanTargetgroup(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetGroup) {
         if (!this.target_group_type_id) {
             return;
         }
@@ -275,12 +275,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTableVO(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
 
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetRegion();
-    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetRegion) {
+    protected initializePlanTargetRegion(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetRegion) {
         if (!this.target_region_type_id) {
             return;
         }
@@ -297,12 +297,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTableVO(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
 
 
-        region_director_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        region_director_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetZone();
-    protected initializePlanTargetZone(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetZone) {
+    protected initializePlanTargetZone(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetZone) {
         if (!this.target_zone_type_id) {
             return;
         }
@@ -324,14 +324,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTableVO(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
         if (!!this.target_region_type_id) {
-            region_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_region_type_id]);
+            region_id.set_many_to_one_target_moduletable_name(this.target_region_type_id);
         }
-        zone_manager_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        zone_manager_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanContact();
-    protected initializePlanContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanContact) {
+    protected initializePlanContact(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanContact) {
         if (!this.contact_type_id) {
             return;
         }
@@ -356,17 +356,17 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         if (!!this.contact_type_type_id) {
-            contact_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_type_id]);
+            contact_type_id.set_many_to_one_target_moduletable_name(this.contact_type_type_id);
         }
 
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetContact();
-    protected initializePlanTargetContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetContact) {
+    protected initializePlanTargetContact(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetContact) {
         if (!this.target_contact_type_id) {
             return;
         }
@@ -380,14 +380,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
-        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
-        contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
+        target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
+        contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
 
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgram();
-    protected initializePlanProgram(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgram) {
+    protected initializePlanProgram(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanProgram) {
         if (!this.program_type_id) {
             return;
         }
@@ -412,12 +412,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
-        category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_category_type_id]);
+        category_id.set_many_to_one_target_moduletable_name(this.program_category_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanFacilitator();
-    protected initializePlanFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanFacilitator) {
+    protected initializePlanFacilitator(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanFacilitator) {
         if (!this.facilitator_type_id) {
             return;
         }
@@ -453,18 +453,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         if (!!this.manager_type_id) {
-            manager_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.manager_type_id]);
+            manager_id.set_many_to_one_target_moduletable_name(this.manager_type_id);
         }
 
         if (!!this.partner_type_id) {
-            partner_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.partner_type_id]);
+            partner_id.set_many_to_one_target_moduletable_name(this.partner_type_id);
         }
 
         if (!!this.facilitator_region_type_id) {
-            region_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_region_type_id]);
+            region_id.set_many_to_one_target_moduletable_name(this.facilitator_region_type_id);
         }
 
         this.datatables.push(datatable);
@@ -472,7 +472,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
     protected abstract callInitializePlanManager();
-    protected initializePlanManager(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanManager) {
+    protected initializePlanManager(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanManager) {
         if (!this.manager_type_id) {
             return;
         }
@@ -495,17 +495,17 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
         if (!!this.partner_type_id) {
-            partner_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.partner_type_id]);
+            partner_id.set_many_to_one_target_moduletable_name(this.partner_type_id);
         }
 
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanEnseigne();
-    protected initializePlanEnseigne(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanEnseigne) {
+    protected initializePlanEnseigne(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanEnseigne) {
         if (!this.enseigne_type_id) {
             return;
         }
@@ -521,7 +521,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTaskType();
-    protected initializePlanTaskType(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTaskType) {
+    protected initializePlanTaskType(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTaskType) {
         if (!this.task_type_type_id) {
             return;
         }
@@ -542,7 +542,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTask();
-    protected initializePlanTask(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTask) {
+    protected initializePlanTask(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTask) {
         if (!this.task_type_id) {
             return;
         }
@@ -566,13 +566,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTableVO(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {
-            task_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_type_id]);
+            task_type_id.set_many_to_one_target_moduletable_name(this.task_type_type_id);
         }
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTarget();
-    protected initializePlanTarget(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTarget) {
+    protected initializePlanTarget(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTarget) {
         if (!this.target_type_id) {
             return;
         }
@@ -609,20 +609,20 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTableVO(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
 
         if (!!this.enseigne_type_id) {
-            enseigne_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.enseigne_type_id]);
+            enseigne_id.set_many_to_one_target_moduletable_name(this.enseigne_type_id);
         }
         if (!!this.target_group_type_id) {
-            group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_group_type_id]);
+            group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
         }
         if (!!this.target_zone_type_id) {
-            zone_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_zone_type_id]);
+            zone_id.set_many_to_one_target_moduletable_name(this.target_zone_type_id);
         }
 
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanRDVPrep();
-    protected initializePlanRDVPrep(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDVPrep) {
+    protected initializePlanRDVPrep(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanRDVPrep) {
         if (!this.rdv_prep_type_id) {
             return;
         }
@@ -644,16 +644,16 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTableVO(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
 
         if (!!this.rdv_type_id) {
-            rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
+            rdv_id.set_many_to_one_target_moduletable_name(this.rdv_type_id);
         }
 
-        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        prep_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        prep_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanRDVCR();
-    protected initializePlanRDVCR(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDVCR) {
+    protected initializePlanRDVCR(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanRDVCR) {
         if (!this.rdv_cr_type_id) {
             return;
         }
@@ -675,18 +675,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTableVO(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
 
         if (!!this.rdv_type_id) {
-            rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
+            rdv_id.set_many_to_one_target_moduletable_name(this.rdv_type_id);
         }
 
-        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        cr_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        cr_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanRDV();
     protected initializePlanRDV(
         states: { [state_id: number]: string },
-        additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanRDV,
+        additional_fields: ModuleTableFieldVO[], constructor: () => IPlanRDV,
         start_time_segmentation_type: number = TimeSegment.TYPE_DAY,
         end_time_segmentation_type: number = TimeSegment.TYPE_DAY,
     ) {
@@ -743,26 +743,26 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTableVO(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
         if (!!this.task_type_id) {
-            task_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_id]);
+            task_id.set_many_to_one_target_moduletable_name(this.task_type_id);
         }
 
         if (!!this.program_type_id) {
-            program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
+            program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         }
 
         if (!!this.target_type_id) {
-            target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
+            target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
         }
 
         if (!!this.facilitator_type_id) {
-            facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
+            facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
         }
 
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgramFacilitator();
-    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramFacilitator) {
+    protected initializePlanProgramFacilitator(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanProgramFacilitator) {
         if (!this.program_facilitator_type_id) {
             return;
         }
@@ -776,13 +776,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
-        facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
+        facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
+        program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgramManager();
-    protected initializePlanProgramManager(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramManager) {
+    protected initializePlanProgramManager(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanProgramManager) {
         if (!this.program_manager_type_id) {
             return;
         }
@@ -796,13 +796,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
-        manager_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.manager_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
+        manager_id.set_many_to_one_target_moduletable_name(this.manager_type_id);
+        program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgramTarget();
-    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanProgramTarget) {
+    protected initializePlanProgramTarget(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanProgramTarget) {
         if (!this.program_target_type_id) {
             return;
         }
@@ -816,13 +816,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
-        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
+        target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
+        program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanPartner();
-    protected initializePlanPartner(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanPartner) {
+    protected initializePlanPartner(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanPartner) {
         if (!this.partner_type_id) {
             return;
         }
@@ -840,7 +840,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
     protected abstract callInitializePlanTargetFacilitator();
-    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetFacilitator) {
+    protected initializePlanTargetFacilitator(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetFacilitator) {
         if (!this.target_facilitator_type_id) {
             return;
         }
@@ -854,13 +854,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
-        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
-        facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
+        target_id.set_many_to_one_target_moduletable_name(this.target_type_id);
+        facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanTargetGroupContact();
-    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableFieldVO<any>>, constructor: () => IPlanTargetGroupContact) {
+    protected initializePlanTargetGroupContact(additional_fields: ModuleTableFieldVO[], constructor: () => IPlanTargetGroupContact) {
         if (!this.target_group_contact_type_id) {
             return;
         }
@@ -874,8 +874,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTableVO(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
-        target_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_group_type_id]);
-        contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
+        target_group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
+        contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
         this.datatables.push(datatable);
     }
 }

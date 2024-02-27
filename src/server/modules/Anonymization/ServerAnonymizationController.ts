@@ -78,7 +78,7 @@ export default class ServerAnonymizationController {
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les vos valides
      */
-    public static async anonymiseContextAccessHook(moduletable: ModuleTableVO<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    public static async anonymiseContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
             // FIXME TODO très chaud ça... comment on peut faire ça sous forme de context filter ... ?

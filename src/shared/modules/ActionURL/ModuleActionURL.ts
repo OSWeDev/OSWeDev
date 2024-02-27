@@ -4,9 +4,9 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/vos/apis/StringAndBooleanParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
-import ModuleTableVO from '../ModuleTableVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../ModuleTableFieldVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ActionURLCRVO from './vos/ActionURLCRVO';
 import ActionURLUserVO from './vos/ActionURLUserVO';
@@ -73,7 +73,7 @@ export default class ModuleActionURL extends Module {
         let table = new ModuleTableVO(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');
         this.datatables.push(table);
 
-        action_url_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ActionURLVO.API_TYPE_ID]);
+        action_url_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);
     }
 
     private initializeActionURL() {
@@ -110,7 +110,7 @@ export default class ModuleActionURL extends Module {
         let table = new ModuleTableVO(this, ActionURLUserVO.API_TYPE_ID, () => new ActionURLUserVO(), fields, null, 'Droits usage URL d\'action');
         this.datatables.push(table);
 
-        action_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ActionURLVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        action_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

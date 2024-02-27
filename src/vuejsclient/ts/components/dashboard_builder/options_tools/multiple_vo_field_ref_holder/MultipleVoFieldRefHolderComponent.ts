@@ -102,23 +102,23 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
         return false;
     }
 
-    private is_type_boolean(field: ModuleTableFieldVO<any>): boolean {
+    private is_type_boolean(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_boolean(field);
     }
 
-    private is_type_enum(field: ModuleTableFieldVO<any>): boolean {
+    private is_type_enum(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_enum(field);
     }
 
-    private is_type_date(field: ModuleTableFieldVO<any>): boolean {
+    private is_type_date(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_date(field);
     }
 
-    private is_type_string(field: ModuleTableFieldVO<any>): boolean {
+    private is_type_string(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_string(field);
     }
 
-    private is_type_number(field: ModuleTableFieldVO<any>, field_id: string): boolean {
+    private is_type_number(field: ModuleTableFieldVO, field_id: string): boolean {
         if (!field) {
 
             /**

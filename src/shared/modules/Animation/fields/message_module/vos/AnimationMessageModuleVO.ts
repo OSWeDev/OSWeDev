@@ -10,7 +10,7 @@ import ModuleAnimation from '../../../ModuleAnimation';
 export default class AnimationMessageModuleVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_message_module';
 
-    public static moduleTable(): ModuleTableVO<any> {
+    public static moduleTable(): ModuleTableVO {
         let datatable_fields = [
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().min, ModuleTableFieldVO.FIELD_TYPE_prct, "Min"),
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().max, ModuleTableFieldVO.FIELD_TYPE_prct, "Max"),
@@ -22,12 +22,12 @@ export default class AnimationMessageModuleVO implements IDistantVOBase {
 
     public static fields(): Array<DatatableField<any, any>> {
         let fields: Array<DatatableField<any, any>> = [];
-        let moduleTable: ModuleTableVO<any> = AnimationMessageModuleVO.moduleTable();
-        let moduleTable_fields: Array<ModuleTableFieldVO<any>> = moduleTable.get_fields();
+        let moduleTable: ModuleTableVO = AnimationMessageModuleVO.moduleTable();
+        let moduleTable_fields: ModuleTableFieldVO[] = moduleTable.get_fields();
 
         if (moduleTable_fields) {
             for (let i in moduleTable_fields) {
-                let field: ModuleTableFieldVO<any> = moduleTable_fields[i];
+                let field: ModuleTableFieldVO = moduleTable_fields[i];
                 fields.push(SimpleDatatableFieldVO.createNew(field.field_id).setModuleTable(moduleTable));
             }
         }

@@ -65,8 +65,8 @@ export default class ModuleAbonnement extends Module {
         let dt = new ModuleTableVO<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, () => new PackAbonnementVO(), datatable_fields, field_ligne_commande_id, DefaultTranslationVO.create_new({
             'fr-fr': 'PackAbonnement'
         }));
-        field_ligne_commande_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
-        field_abonnement_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
+        field_ligne_commande_id.set_many_to_one_target_moduletable_name(CommandeVO.API_TYPE_ID);
+        field_abonnement_id.set_many_to_one_target_moduletable_name(AbonnementVO.API_TYPE_ID);
         this.datatables.push(dt);
     }
 }

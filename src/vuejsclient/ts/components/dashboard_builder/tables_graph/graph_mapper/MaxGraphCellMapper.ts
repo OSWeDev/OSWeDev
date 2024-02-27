@@ -53,7 +53,7 @@ export default class MaxGraphCellMapper {
     public graphvoref: DashboardGraphVORefVO = null;
 
     public api_type_id: string = null;
-    public moduletable: ModuleTableVO<any> = null;
+    public moduletable: ModuleTableVO = null;
     public label: string = null;
 
     public incoming_edges: MaxGraphEdgeMapper[] = [];
@@ -92,7 +92,7 @@ export default class MaxGraphCellMapper {
         return newcell;
     }
 
-    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableFieldVO<any>): MaxGraphEdgeMapper {
+    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableFieldVO): MaxGraphEdgeMapper {
 
         if (!!this.outgoing_edges[field.field_id]) {
             return null;
