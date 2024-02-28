@@ -107,7 +107,6 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
     public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
     public static PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID = 'ModuleAccessPolicy.SESSION_SHARE_SEND_IN_BLUE_MAIL_ID';
-    public static PARAM_NAME_ACTIVATED_USER_API_KEY = 'ModuleAccessPolicy.ACTIVATED_USER_API_KEY';
 
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
