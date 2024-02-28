@@ -468,6 +468,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     private configureTraductions(): void {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'En attente'
+        }, 'evoliz_devis.status_en_attente.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Contrat effectué'
         }, 'evoliz_devis.status_contrat_effectue.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

@@ -1,6 +1,7 @@
 export default class EvolizDevisVO {
     public static API_TYPE_ID: string = "evoliz_devis";
 
+    public static STATUS_EN_ATTENTE: number = 0;
     public static STATUS_CONTRAT_EFFECTUE: number = 0;
     public static STATUS_PROPOSITION_EFFECTUEE: number = 1;
     public static STATUS_NEGOCITATION: number = 2;
@@ -8,6 +9,7 @@ export default class EvolizDevisVO {
     public static STATUS_FACTUREE: number = 4;
     public static STATUS_PERDUE: number = 5;
 
+    public static STATUS_EN_ATTENTE_LABEL: string = 'evoliz_devis.status_en_attente.___LABEL___';
     public static STATUS_CONTRAT_EFFECTUE_LABEL: string = 'evoliz_devis.status_contrat_effectue.___LABEL___';
     public static STATUS_PROPOSITION_EFFECTUEE_LABEL: string = 'evoliz_devis.status_proposition_effectuee.___LABEL___';
     public static STATUS_NEGOCITATION_LABEL: string = 'evoliz_devis.status_negociation.___LABEL___';
@@ -16,6 +18,7 @@ export default class EvolizDevisVO {
     public static STATUS_PERDUE_LABEL: string = 'evoliz_devis.status_perdue.___LABEL___';
 
     public static STATE_LABELS: { [id: number]: string } = {
+        [EvolizDevisVO.STATUS_EN_ATTENTE]: EvolizDevisVO.STATUS_EN_ATTENTE_LABEL,
         [EvolizDevisVO.STATUS_CONTRAT_EFFECTUE]: EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL,
         [EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE]: EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL,
         [EvolizDevisVO.STATUS_NEGOCITATION]: EvolizDevisVO.STATUS_NEGOCITATION_LABEL,
@@ -28,6 +31,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE;
@@ -51,6 +55,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE_LABEL;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL;
