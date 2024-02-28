@@ -19,7 +19,7 @@ export default class UserAPIVO implements IDistantVOBase {
     public id: number;
     public _type: string = UserAPIVO.API_TYPE_ID;
 
+    public name: string;
     public api_key: string;
     public user_id: number;
-
 }

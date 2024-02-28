@@ -1,6 +1,7 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
@@ -436,14 +437,15 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserAPIVO() {
-        let field_api_key = new ModuleTableField('api_key', ModuleTableField.FIELD_TYPE_foreign_key, 'API Key', true).unique();
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID User', true).unique();
+        let label = new ModuleTableField(field_names<UserAPIVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let field_user_id = new ModuleTableField(field_names<UserAPIVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let datatable_fields = [
-            field_api_key,
+            label,
             field_user_id,
+            new ModuleTableField(field_names<UserAPIVO>().api_key, ModuleTableField.FIELD_TYPE_string, 'API Key', true).unique()
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, field_api_key, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, label, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
 
         field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 

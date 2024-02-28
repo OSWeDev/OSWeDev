@@ -381,14 +381,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.generateApiKey);
 
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.generateApiKeyUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
@@ -2245,80 +2243,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
         return false;
     }
-
-    private async generateApiKeyUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
-        return ModuleAccessPolicyServer.getInstance().generateApiKey(vo_update_holder.post_update_vo);
-    }
-
-    private async generateApiKey(user: UserVO) {
-        try {
-
-            let is_api_key_activated: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_ACTIVATED_USER_API_KEY);
-
-            if (!is_api_key_activated) {
-                return false;
-            }
-
-            let exist_user_api_vo: UserAPIVO = await query(UserAPIVO.API_TYPE_ID).filter_by_num_eq(field_names<UserAPIVO>().user_id, user.id).select_vo<UserAPIVO>();
-            if (!!exist_user_api_vo) {
-                return false;
-            }
-
-            let api_key: string = await ModuleAccessPolicyServer.getInstance().generateApiKeyForUser(40);
-            let exist_api_key: boolean = true;
-            while (exist_api_key) {
-                exist_user_api_vo = await query(UserAPIVO.API_TYPE_ID).filter_by_text_eq(field_names<UserAPIVO>().api_key, api_key).select_vo<UserAPIVO>();
-                if (!!exist_user_api_vo) {
-                    api_key = await ModuleAccessPolicyServer.getInstance().generateApiKeyForUser(40);
-                } else {
-                    exist_api_key = false;
-                }
-            }
-
-            let user_api_vo: UserAPIVO = UserAPIVO.createNew(api_key, user.id);
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_api_vo);
-
-            return true;
-
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-        return false;
-    }
-
-    private generateApiKeyForUser(length: number): string {
-        let lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
-        let uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let numericChars = '0123456789';
-        let specialChars = '!@#$%^&*()_-+=<>?';
-
-        let charSets = [lowercaseChars, uppercaseChars, numericChars, specialChars];
-
-        let password = '';
-
-        // Ensure at least one character from each set
-        charSets.forEach((charSet) => {
-            password += this.generateRandomCharFromSet(charSet);
-        });
-
-        // Fill the rest of the password with random characters
-        for (let i = charSets.length * 4; i < length; i++) {
-            let randomCharSet = charSets[Math.floor(Math.random() * charSets.length)];
-            password += this.generateRandomCharFromSet(randomCharSet);
-        }
-
-        // Shuffle the password to mix character sets
-        let shuffledPassword = password.split('').sort(() => Math.random() - 0.5).join('');
-
-        return shuffledPassword;
-    }
-
-    private generateRandomCharFromSet(charSet: string): string {
-        const randomIndex = Math.floor(Math.random() * charSet.length);
-        return charSet[randomIndex];
-    }
-
 
     private async checkBlockingOrInvalidatingUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(vo_update_holder.post_update_vo, vo_update_holder.pre_update_vo);

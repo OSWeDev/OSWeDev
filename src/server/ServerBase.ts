@@ -142,9 +142,13 @@ export default abstract class ServerBase {
     // /**
     //  * Gestion des clefs d'API
     //  */
-
     // public verifyApiKeyMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    //     const apiKey = req.headers['x-api-key'] as string || '';
+    //     const apiKey = req.headers['x-api-key'] as string;
+
+    //     if (!apiKey) {
+    //         next();
+    //         return;
+    //     }
 
     //     // Vérifier la clé d'API ici. Exemple :
     //     const isValidApiKey = await this.checkApiKey(apiKey);
@@ -157,7 +161,10 @@ export default abstract class ServerBase {
     // }
 
     // public async checkApiKey(apiKey: string): Promise<boolean> {
-    //     let exist_user_api_vo: UserAPIVO = await query(UserAPIVO.API_TYPE_ID).filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey).select_vo<UserAPIVO>();
+    //     let exist_user_api_vo: UserAPIVO = await query(UserAPIVO.API_TYPE_ID)
+    //         .filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey)
+    //         .exec_as_server()
+    //         .select_vo<UserAPIVO>();
 
     //     return !!exist_user_api_vo; // Retourne true si valide, false sinon
     // }
