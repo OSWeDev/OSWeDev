@@ -8,6 +8,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class Patch20230427PatchPies implements IGeneratorWorker {
 
@@ -30,22 +31,22 @@ export default class Patch20230427PatchPies implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         let translation = await query(TranslationVO.API_TYPE_ID)
-            .filter_by_text_eq('code_text', 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
-            .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités en pourcentage. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut';
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
 
         translation = await query(TranslationVO.API_TYPE_ID)
-            .filter_by_text_eq('code_text', 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
-            .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Point de départ du graphique en degrés. Entre 0 et 360. Exemple pour une jauge : 270';
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);
 
         translation = await query(TranslationVO.API_TYPE_ID)
-            .filter_by_text_eq('code_text', 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
-            .filter_by_text_eq('code_lang', 'fr-fr', LangVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___', TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr', LangVO.API_TYPE_ID)
             .select_vo<TranslationVO>();
         translation.translated = 'Circumference du graphique. Entre 0 et 360. Exemple pour une jauge : 180';
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translation);

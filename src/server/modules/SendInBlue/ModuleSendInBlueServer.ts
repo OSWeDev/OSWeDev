@@ -20,6 +20,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import SendInBlueMailServerController from './SendInBlueMailServerController';
 import SendInBlueServerController from './SendInBlueServerController';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleSendInBlueServer extends ModuleServerBase {
 
@@ -133,8 +134,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         // Contexte serveur pour la suite
 
         const mails: MailVO[] = await query(MailVO.API_TYPE_ID)
-            .filter_by_text_eq('message_id', event.messageId)
-            .filter_by_text_eq('email', event.email)
+            .filter_by_text_eq(field_names<MailVO>().message_id, event.messageId)
+            .filter_by_text_eq(field_names<MailVO>().email, event.email)
             .exec_as_server()
             .select_vos<MailVO>();
 

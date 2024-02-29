@@ -714,11 +714,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
-        return await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', text).select_vo<TranslatableTextVO>();
+        return await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, text).select_vo<TranslatableTextVO>();
     }
 
     public async getLang(text: string): Promise<LangVO> {
-        return await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', text).select_vo<LangVO>();
+        return await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, text).select_vo<LangVO>();
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -891,7 +891,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async t(code_text: string, lang_id: number): Promise<string> {
-        const translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq('code_text', code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+        const translation = await query(TranslationVO.API_TYPE_ID)
+            .filter_by_id(lang_id, LangVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
         if (!translation) {
             return null;
         }

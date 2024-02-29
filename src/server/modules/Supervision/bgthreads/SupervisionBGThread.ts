@@ -7,6 +7,7 @@ import SupervisionController from '../../../../shared/modules/Supervision/Superv
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
@@ -81,7 +82,7 @@ export default class SupervisionBGThread implements IBGThread {
 
                 promises.push((async () => {
                     const items: ISupervisedItem[] = await query(api_type_id)
-                        .filter_is_true('invalid').select_vos<ISupervisedItem>();
+                        .filter_is_true(field_names<ISupervisedItem>().invalid).select_vos<ISupervisedItem>();
 
                     if (server_controller.already_work) {
                         return;

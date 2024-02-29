@@ -3,20 +3,21 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
+import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemClientController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemClientController';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ISupervisedItemGraphSegmentation from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import ISupervisedItemURL from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
-import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
-import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
-import SupervisionDashboardItemComponent from '../dashboard/item/SupervisionDashboardItemComponent';
 import SupervisionClientController from '../SupervisionClientController';
-import SupervisedItemHistChartComponent from './hist_chart/SupervisedItemHistChartComponent';
+import SupervisionDashboardItemComponent from '../dashboard/item/SupervisionDashboardItemComponent';
 import './SupervisedItemComponent.scss';
+import SupervisedItemHistChartComponent from './hist_chart/SupervisedItemHistChartComponent';
 
 @Component({
     template: require('./SupervisedItemComponent.pug'),
@@ -192,7 +193,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
         promises.push((async () => {
             tmp_hist = await query(SupervisionController.getInstance()
                 .getSupHistVoType(this.supervised_item_vo_type))
-                .filter_by_text_eq('name', this.supervised_item.name)
+                .filter_by_text_eq(field_names<ISupervisedItem>().name, this.supervised_item.name)
                 .select_vos<ISupervisedItem>();
 
         })());
@@ -200,7 +201,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
         let current_value: ISupervisedItem = null;
         promises.push((async () => {
             current_value = await query(this.supervised_item_vo_type)
-                .filter_by_text_eq('name', this.supervised_item.name, this.supervised_item_vo_type, true)
+                .filter_by_text_eq(field_names<ISupervisedItem>().name, this.supervised_item.name, this.supervised_item_vo_type, true)
                 .select_vo<ISupervisedItem>();
         })());
 

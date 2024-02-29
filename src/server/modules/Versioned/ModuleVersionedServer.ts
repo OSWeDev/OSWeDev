@@ -17,6 +17,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleParamsServer from '../Params/ModuleParamsServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
@@ -61,7 +62,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         let robot_user_id: number = await ModuleParamsServer.getInstance().getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
 
         if (!robot_user_id) {
-            const robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
+            const robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().name, 'robot').exec_as_server().select_vo<UserVO>();
             robot_user_id = robot_user ? robot_user.id : null;
             await ModuleParamsServer.getInstance().setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
         }

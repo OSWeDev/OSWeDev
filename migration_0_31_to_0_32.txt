@@ -1,6 +1,14 @@
 = MIGRATION  0.31.x => 0.32.x
 
 PREMIERE ETAPE : remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
+Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
+ - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
+    - "\.filter_by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf)\(('|")"
+    - "\.filter_is_(true|false)\(('|")"
+    ...
+    - ".field('"
+    - '.field("'
+
 
 L'ordre est important
 
@@ -164,6 +172,18 @@ FROM :
 'VarsInitController\.getInstance\(\)\.register_var_data\(([^,]+), \(\) => new ([^,.]+)\(\), ([^,]+), ([^,]+)\);'
 TO :
 'VarsInitController.getInstance().register_var_data($1, $2, $3, $4);'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'.manyToOne_target_moduletable.vo_type'
+TO :
+'.foreign_ref_vo_type'
+
+
+
+
+
+
 
 
 == Modifications restantes (principales)

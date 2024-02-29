@@ -211,7 +211,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo_type_translatable_code: string = ModuleTableController.module_tables_by_vo_type[vo_type].label ? ModuleTableController.module_tables_by_vo_type[vo_type].label.code_text : null;
                 let translation_from_bdd: TranslationVO = (is_generator && lang && vo_type_translatable_code) ? await query(TranslationVO.API_TYPE_ID)
                     .filter_by_id(lang.id, LangVO.API_TYPE_ID)
-                    .filter_by_text_eq('code_text', vo_type_translatable_code, TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, vo_type_translatable_code, TranslatableTextVO.API_TYPE_ID)
                     .select_vo<TranslationVO>() : null;
                 if (translation_from_bdd && (translation_from_bdd.translated != "")) {
                     vo_translation = translation_from_bdd.translated;
@@ -2509,7 +2509,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
-        return await query(API_TYPE_ID).filter_by_text_eq('name', name, API_TYPE_ID, true).select_vo<U>();
+        return await query(API_TYPE_ID).filter_by_text_eq(field_names<INamedVO>().name, name, API_TYPE_ID, true).select_vo<U>();
     }
 
     private async getVarImportsByMatroidParams<T extends IDistantVOBase>(

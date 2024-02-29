@@ -784,7 +784,7 @@
 //         for (let i in this.fields_) {
 //             let field: ModuleTableFieldVO = this.fields_[i];
 
-//             if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
+//             if (field && field.has_relation && field.manyToOne_target_moduletable && field.foreign_ref_vo_type == vo_type) {
 //                 return field;
 //             }
 //         }

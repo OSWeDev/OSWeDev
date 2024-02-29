@@ -1151,7 +1151,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).exec_as_server(exec_as_server).select_vo<UserRoleVO>();
+        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<UserRoleVO>().user_id, user_id)
+            .filter_by_num_eq(field_names<UserRoleVO>().role_id, role_id)
+            .exec_as_server(exec_as_server).select_vo<UserRoleVO>();
 
         if (!userRole) {
             userRole = new UserRoleVO();
@@ -1596,7 +1599,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1616,7 +1619,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1718,7 +1721,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, vo.email).exec_as_server().select_vo<UserVO>();
         if (user) {
             await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
             return false;

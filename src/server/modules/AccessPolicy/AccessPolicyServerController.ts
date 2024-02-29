@@ -13,6 +13,7 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -750,12 +751,12 @@ export default class AccessPolicyServerController {
 
         let roleFromBDD: RoleVO = null;
         try {
-            roleFromBDD = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vo<RoleVO>();
+            roleFromBDD = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vo<RoleVO>();
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + RoleVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
-                const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
+                const vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role.translatable_name).select_vos<RoleVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 roleFromBDD = null;
             } else {
@@ -808,12 +809,12 @@ export default class AccessPolicyServerController {
 
         let groupFromBDD: AccessPolicyGroupVO = null;
         try {
-            groupFromBDD = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vo<AccessPolicyGroupVO>();
+            groupFromBDD = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vo<AccessPolicyGroupVO>();
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + AccessPolicyGroupVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
-                const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
+                const vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyGroupVO>().translatable_name, group.translatable_name).select_vos<AccessPolicyGroupVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 groupFromBDD = null;
             } else {
@@ -869,12 +870,12 @@ export default class AccessPolicyServerController {
 
         let policyFromBDD: AccessPolicyVO = null;
         try {
-            policyFromBDD = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vo<AccessPolicyVO>();
+            policyFromBDD = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vo<AccessPolicyVO>();
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed :' + AccessPolicyVO.API_TYPE_ID) {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
-                const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
+                const vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq(field_names<AccessPolicyVO>().translatable_name, policy.translatable_name).select_vos<AccessPolicyVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;

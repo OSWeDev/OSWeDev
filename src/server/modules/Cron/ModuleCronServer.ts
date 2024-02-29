@@ -10,6 +10,7 @@ import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorker
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -188,7 +189,7 @@ export default class ModuleCronServer extends ModuleServerBase {
 
         // Create or load cron worker
         const vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
-            .filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid)
+            .filter_by_text_eq(field_names<CronWorkerPlanification>().planification_uid, cronWorkerPlan.planification_uid)
             .exec_as_server()
             .select_vo<CronWorkerPlanification>();
 

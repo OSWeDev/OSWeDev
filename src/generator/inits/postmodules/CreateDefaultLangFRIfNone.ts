@@ -6,6 +6,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
@@ -43,7 +44,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
     private async createlang(code_lang: string) {
         try {
-            let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', code_lang).select_one();
+            let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, code_lang).select_one();
 
             if (lang) {
                 return;

@@ -1,10 +1,11 @@
 import { Cell, Editor, Graph } from "@maxgraph/core";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
-import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
 import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
+import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
+import { field_names } from "../../../../../../shared/tools/ObjectHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 import MaxGraphEdgeMapper from "./MaxGraphEdgeMapper";
@@ -108,7 +109,7 @@ export default class MaxGraphMapper {
                 /**
                  * Si les deux types ne sont pas activés, on ne crée pas l'edge
                  */
-                if (!res.cells[table.vo_type] || !res.cells[field.manyToOne_target_moduletable.vo_type]) {
+                if (!res.cells[table.vo_type] || !res.cells[field.foreign_ref_vo_type]) {
                     continue;
                 }
 
@@ -122,11 +123,11 @@ export default class MaxGraphMapper {
                 /**
                  * On s'intéresse pour le moment pas aux self-références
                  */
-                if (table.vo_type == field.manyToOne_target_moduletable.vo_type) {
+                if (table.vo_type == field.foreign_ref_vo_type) {
                     continue;
                 }
 
-                const new_edge: MaxGraphEdgeMapper = res.cells[table.vo_type].add_edge(res.cells[field.manyToOne_target_moduletable.vo_type], field);
+                const new_edge: MaxGraphEdgeMapper = res.cells[table.vo_type].add_edge(res.cells[field.foreign_ref_vo_type], field);
                 res.edges.push(new_edge);
             }
         }
@@ -156,7 +157,7 @@ export default class MaxGraphMapper {
             for (const j in nnfields) {
                 const nnfield = nnfields[j];
 
-                if (api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                if (api_type_ids.indexOf(nnfield.foreign_ref_vo_type) < 0) {
                     has_inactive_relation = true;
                     break;
                 }
@@ -354,8 +355,8 @@ export default class MaxGraphMapper {
         }
 
         const db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard_id)
-            .filter_by_text_eq('vo_type', this.maxgraph_elt_by_maxgraph_id[selected_cell.id].api_type_id)
+            .filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard_id)
+            .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, this.maxgraph_elt_by_maxgraph_id[selected_cell.id].api_type_id)
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells) || (!db_cells.length)) {

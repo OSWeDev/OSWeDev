@@ -12,7 +12,7 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -857,7 +857,7 @@ export default class PushDataServerController {
         const promises = [];
 
         try {
-            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
+            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
@@ -912,7 +912,7 @@ export default class PushDataServerController {
         const promises = [];
 
         try {
-            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
+            const role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq(field_names<RoleVO>().translatable_name, role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;

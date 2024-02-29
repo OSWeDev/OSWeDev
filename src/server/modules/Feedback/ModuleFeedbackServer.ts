@@ -28,6 +28,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import StackContext from '../../StackContext';
@@ -268,7 +269,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         if (!feedback.state_id) {
-            const default_state = await query(FeedbackStateVO.API_TYPE_ID).filter_is_true('is_default_state').select_vo<FeedbackStateVO>();
+            const default_state = await query(FeedbackStateVO.API_TYPE_ID)
+                .filter_is_true(field_names<FeedbackStateVO>().is_default_state).select_vo<FeedbackStateVO>();
             if (!default_state) {
                 ConsoleHandler.error('pre_create_feedback_assigne_default_state:Aucun état par défaut n\'est défini pour les retours d\'expérience');
                 return true;

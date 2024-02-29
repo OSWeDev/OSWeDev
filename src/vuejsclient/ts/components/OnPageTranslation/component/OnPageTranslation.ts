@@ -18,7 +18,7 @@ import { ModuleOnPageTranslationGetter } from '../store/OnPageTranslationStore';
 import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
 import './OnPageTranslation.scss';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../shared/tools/ObjectHandler';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleGPT from '../../../../../shared/modules/GPT/ModuleGPT';
 import GPTCompletionAPIMessageVO from '../../../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
@@ -167,7 +167,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
             // on doit tester d'abord le translatable puis la translation
             let translatable: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
-                .filter_by_text_eq('code_text', editable_translation.translation_code)
+                .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, editable_translation.translation_code)
                 .select_vo<TranslatableTextVO>();
             if (!translatable) {
                 translatable = new TranslatableTextVO();
@@ -245,7 +245,7 @@ export default class OnPageTranslation extends VueComponentBase {
                     Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
 
                     const translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
-                        .filter_by_text_eq('code_text', editable_translation.translation_code, TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, editable_translation.translation_code, TranslatableTextVO.API_TYPE_ID)
                         .filter_by_id(other_lang.id, LangVO.API_TYPE_ID)
                         .select_vo<TranslationVO>();
                     Vue.set(this.translations[other_lang.code_lang], editable_translation.translation_code, translation);

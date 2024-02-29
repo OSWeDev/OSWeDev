@@ -262,7 +262,8 @@ export default class VarsServerController {
         }
 
         if (!daoVarConf) {
-            daoVarConf = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name, VarConfVO.API_TYPE_ID, true).exec_as_server(true).select_vo<VarConfVO>();
+            daoVarConf = await query(VarConfVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<VarConfVO>().name, varConf.name, VarConfVO.API_TYPE_ID, true).exec_as_server(true).select_vo<VarConfVO>();
         }
 
         if (daoVarConf) {

@@ -138,7 +138,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let param_height = height ? parseInt(height.toString()) : 0;
             let param_width = width ? parseInt(width.toString()) : 0;
 
-            const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
+            const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<ImageFormatVO>().name, format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
                 ConsoleHandler.error('Impossible de charger le format d\'image :' + format_name);
@@ -154,8 +154,8 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
              *  Si on trouve pas on génère la nouvelle image et on la renvoie
              */
             const fis: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID)
-                .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID)
-                .filter_by_text_eq('image_src', src)
+                .filter_by_text_eq(field_names<ImageFormatVO>().name, format_name, ImageFormatVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<FormattedImageVO>().image_src, src)
                 .select_vos<FormattedImageVO>();
 
             let res_diff_min_value: number = null;

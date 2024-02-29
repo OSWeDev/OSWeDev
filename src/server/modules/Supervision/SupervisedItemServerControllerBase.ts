@@ -2,6 +2,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ISupervisedItemServerController from './interfaces/ISupervisedItemServerController';
 import SupervisionServerController from './SupervisionServerController';
 
@@ -35,7 +36,7 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
         try {
 
             const supervised_pdvs: T[] = await query(this.api_type_id)
-                .filter_is_true('invalid')
+                .filter_is_true(field_names<ISupervisedItem>().invalid)
                 .select_vos<T>();
 
             for (const i in supervised_pdvs) {

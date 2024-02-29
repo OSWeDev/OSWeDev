@@ -14,6 +14,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -136,7 +137,7 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
 
                 // Si le projet est relié à un client, on essaye de le récupérer pour l'y connecter
                 if (clockify_project.clientId) {
-                    clockify_client = await query(ClockifyClientVO.API_TYPE_ID).filter_by_text_eq('clockify_id', clockify_project.clientId).select_vo();
+                    clockify_client = await query(ClockifyClientVO.API_TYPE_ID).filter_by_text_eq(field_names<ClockifyClientVO>().clockify_id, clockify_project.clientId).select_vo();
                 }
 
                 const new_projet = ClockifyProjetVO.createNew(
@@ -209,10 +210,10 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
                     let projet: ClockifyProjetVO = null;
                     let tache: ClockifyTacheVO = null;
                     if (clockify_timeentry.projectId) {
-                        projet = await query(ClockifyProjetVO.API_TYPE_ID).filter_by_text_eq('clockify_id', clockify_timeentry.projectId).select_vo();
+                        projet = await query(ClockifyProjetVO.API_TYPE_ID).filter_by_text_eq(field_names<ClockifyProjetVO>().clockify_id, clockify_timeentry.projectId).select_vo();
                     }
                     if (clockify_timeentry.taskId) {
-                        tache = await query(ClockifyTacheVO.API_TYPE_ID).filter_by_text_eq('clockify_id', clockify_timeentry.taskId).select_vo();
+                        tache = await query(ClockifyTacheVO.API_TYPE_ID).filter_by_text_eq(field_names<ClockifyTacheVO>().clockify_id, clockify_timeentry.taskId).select_vo();
                     }
 
                     const new_entry = ClockifyTimeEntryVO.createNew(

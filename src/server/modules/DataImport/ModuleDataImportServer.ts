@@ -549,7 +549,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
-        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq('api_type_id', API_TYPE_ID).select_vos<DataImportFormatVO>();
+        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq(field_names<DataImportFormatVO>().api_type_id, API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {

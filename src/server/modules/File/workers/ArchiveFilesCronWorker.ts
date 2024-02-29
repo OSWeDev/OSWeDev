@@ -8,6 +8,7 @@ import ICronWorker from "../../Cron/interfaces/ICronWorker";
 import FileServerController from "../FileServerController";
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 
 
 export default class ArchiveFilesCronWorker implements ICronWorker {
@@ -46,7 +47,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                 for (const j in files) {
                     const file = files[j];
                     const file_vos: FileVO[] = await query(FileVO.API_TYPE_ID)
-                        .filter_by_text_eq('path', filterFileVO.path_to_check + "/" + file)
+                        .filter_by_text_eq(field_names<FileVO>().path, filterFileVO.path_to_check + "/" + file)
                         .select_vos<FileVO>();
 
                     var file_vo: FileVO = file_vos[0] || null;

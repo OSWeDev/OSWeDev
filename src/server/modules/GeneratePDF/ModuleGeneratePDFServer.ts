@@ -7,6 +7,7 @@ import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGenerat
 import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
@@ -50,7 +51,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
         /**
          * On va vérifier qu'il existe un fileVO qui fait référence à ce document, sinon on le crée
          */
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_text_eq('path', filepath_return).select_vo<FileVO>();
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_text_eq(field_names<FileVO>().path, filepath_return).select_vo<FileVO>();
 
         if (!file) {
             file = new FileVO();

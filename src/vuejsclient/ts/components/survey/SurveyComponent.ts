@@ -9,12 +9,13 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import ModuleSurvey from '../../../../shared/modules/Survey/ModuleSurvey';
 import SurveyParamVO from '../../../../shared/modules/Survey/vos/SurveyParamVO';
 import SurveyVO from '../../../../shared/modules/Survey/vos/SurveyVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import VueAppController from '../../../VueAppController';
+import VueComponentBase from '../VueComponentBase';
 import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
-import VueComponentBase from '../VueComponentBase';
-import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 import './SurveyComponent.scss';
+import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 
 const { parse, stringify } = require('flatted/cjs');
 
@@ -66,13 +67,13 @@ export default class SurveyComponent extends VueComponentBase {
             if (this.$route.name) {
                 this.tmp_type = null;
                 //Le survey apparaît-il-sur cette page ?
-                this.need_a_survey = await query(SurveyParamVO.API_TYPE_ID).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyParamVO>();
+                this.need_a_survey = await query(SurveyParamVO.API_TYPE_ID).filter_by_text_eq(field_names<SurveyParamVO>().route_name, this.$route.name).select_vo<SurveyParamVO>();
 
                 if (this.need_a_survey) {
                     //L'utilisateur a-t-il déjà complété ce survey ?
                     this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
                     const user_id = this.user.id;
-                    this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyVO>();
+                    this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq(field_names<SurveyVO>().route_name, this.$route.name).select_vo<SurveyVO>();
                 }
 
                 //Si le survey est autorisé à apparaître : Est-ce un pop-up ? Si oui Combien de temps avant d'apparaître ?

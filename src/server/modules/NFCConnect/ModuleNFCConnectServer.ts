@@ -315,7 +315,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        const insertOrDeleteQueryResult = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq('name', serial_number).exec_as_server().delete_vos();
+        const insertOrDeleteQueryResult = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq(field_names<NFCTagVO>().name, serial_number).exec_as_server().delete_vos();
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.length) || (!insertOrDeleteQueryResult[0].id)) {
             ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
             return false;

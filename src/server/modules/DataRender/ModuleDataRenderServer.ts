@@ -19,6 +19,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -115,7 +116,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {
-        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq('renderer_name', text).select_vo<DataRendererVO>();
+        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
     }
 
     /**

@@ -1018,16 +1018,16 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
                 if (
                     !base_table.table_segmented_field ||
                     !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                    !active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
+                    !Object.keys(active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
                 ) {
                     return;
                 }
 
                 let has_filter: boolean = false;
 
-                for (const field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                for (const field_id in active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]) {
+                    if (active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type][field_id]) {
                         has_filter = true;
                         break;
                     }

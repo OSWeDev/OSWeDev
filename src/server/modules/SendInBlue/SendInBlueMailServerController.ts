@@ -18,6 +18,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class SendInBlueMailServerController {
 
@@ -256,7 +257,7 @@ export default class SendInBlueMailServerController {
     }
 
     private async get_uid_if_exists(email: string) {
-        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, email).exec_as_server().select_vo<UserVO>();
         if (user) {
             return user.id;
         }

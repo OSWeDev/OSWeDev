@@ -13,6 +13,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanFacilitator from '../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
@@ -476,7 +477,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_facilitator_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
@@ -537,7 +538,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_manager_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
@@ -744,7 +745,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
 
-        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).exec_as_server();
+        return query(moduletable.vo_type).field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).exec_as_server();
     }
 
     /**
@@ -799,11 +800,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
          *  donc on fait une subquery sur rdv.id mais en indiquant bien que cette subquery doit utiliser les context filters access hooks
          */
         const res: ContextQueryVO = query(moduletable.vo_type)
-            .field('id', 'filter_' + moduletable.vo_type + '_id')
-            .filter_by_num_in('rdv_id',
+            .field(field_names<IDistantVOBase>().id, 'filter_' + moduletable.vo_type + '_id')
+            .filter_by_num_in(field_names<IPlanRDVCR>().rdv_id,
                 query(this.programplan_shared_module.rdv_type_id)
                     .filter_is_false(field_names<IPlanRDV>().archived)
-                    .field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
+                    .field(field_names<IDistantVOBase>().id, 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
             .exec_as_server();
 
         res.is_access_hook_def = true;

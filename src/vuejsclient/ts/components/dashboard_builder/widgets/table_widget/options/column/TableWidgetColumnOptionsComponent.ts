@@ -3,15 +3,16 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import TableWidgetOptionsVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import { ConditionStatement } from '../../../../../../../../shared/tools/ConditionHandler';
@@ -274,9 +275,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
+        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         return this.t(this.table.label.code_text) +
             ' > ' +
-            this.t(this.field.field_label.code_text);
+            (field_label ?
+                this.t(field_label.code_text) :
+                null);
     }
 
     get table(): ModuleTableVO {
@@ -304,9 +309,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
+        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         const res: string[] = [
             this.t(this.table.label.code_text),
-            this.t(this.field.field_label.code_text)
+            field_label ?
+                this.t(field_label.code_text) :
+                null
         ];
 
         if (this.default_sort_field == TableColumnDescVO.SORT_asc) {
@@ -333,7 +342,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         const self = this;
 
         promises.push(((async () => {
-            const all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').set_query_distinct().filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
+            const all_ids = await query(DashboardWidgetVO.API_TYPE_ID)
+                .field(field_names<DashboardWidgetVO>().id)
+                .set_query_distinct()
+                .filter_is_true(field_names<DashboardWidgetVO>().is_filter)
+                .select_vos<DashboardWidgetVO>();
             self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
         })()));
         promises.push(((async () => {
@@ -1022,7 +1035,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return this.object_column.field_id;
                 }
 
-                return this.t(field.field_label.code_text);
+                let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+                    ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
+                return field_label ? this.t(field_label.code_text) : null;
             case TableColumnDescVO.TYPE_var_ref:
                 if (!this.object_column.var_id) {
                     return null;

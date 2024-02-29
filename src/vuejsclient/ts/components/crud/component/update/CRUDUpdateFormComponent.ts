@@ -21,6 +21,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),
@@ -209,8 +210,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
             try {
                 this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                    .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                    .filter_is_true('is_update')
+                    .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                    .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
                     .select_vo<CRUDFieldRemoverConfVO>();
             } catch (error) {
                 if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
@@ -218,8 +219,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                      * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
                      */
                     const doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                        .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                        .filter_is_true('is_update')
+                        .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                        .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
                         .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, 'id', true))
                         .select_vos<CRUDFieldRemoverConfVO>();
                     doublons.shift();

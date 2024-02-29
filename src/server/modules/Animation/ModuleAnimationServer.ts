@@ -1,4 +1,5 @@
 
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -14,16 +15,15 @@ import AnimationQRVO from '../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationThemeVO from '../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -33,8 +33,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -197,7 +197,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             });
 
             const langs: LangVO[] = await query(LangVO.API_TYPE_ID)
-                .filter_by_text_eq('code_lang', ConfigurationService.node_configuration.DEFAULT_LOCALE)
+                .filter_by_text_eq(field_names<LangVO>().code_lang, ConfigurationService.node_configuration.DEFAULT_LOCALE)
                 .exec_as_server()
                 .select_vos<LangVO>();
             const lang: LangVO = langs ? langs[0] : null;

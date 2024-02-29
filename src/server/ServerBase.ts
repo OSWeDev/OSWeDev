@@ -36,36 +36,36 @@ import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
-import ConfigurationService from './env/ConfigurationService';
-import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import MemoryUsageStat from './MemoryUsageStat';
+import ConfigurationService from './env/ConfigurationService';
+import EnvParam from './env/EnvParam';
 import AccessPolicyServerController from './modules/AccessPolicy/AccessPolicyServerController';
-import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
+import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
-import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
+import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
-import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import { IClient } from 'pg-promise/typescript/pg-subset';
+import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
+import { field_names } from '../shared/tools/ObjectHandler';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
-import { IClient } from 'pg-promise/typescript/pg-subset';
-import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
-import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
-import { DailyRotateFileTransportOptions } from 'winston/lib/winston/transports';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -765,7 +765,7 @@ export default abstract class ServerBase {
                 }
 
                 const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
-                    .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true)
+                    .filter_by_text_eq(field_names<ImageFormatVO>().name, format_name, ImageFormatVO.API_TYPE_ID, true)
                     .select_vo<ImageFormatVO>();
 
                 if (!format) {
@@ -828,7 +828,9 @@ export default abstract class ServerBase {
             await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
-                    file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
+                    file = await query(FileVO.API_TYPE_ID)
+                        .filter_is_true(field_names<FileVO>().is_secured)
+                        .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
                     has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.checkAccessSync(file.file_access_policy_name) : false;
                 });
 

@@ -11,6 +11,7 @@ import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -114,7 +115,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
 
         if (param) {
             return;
@@ -244,7 +245,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
             let param: ParamVO = null;
             try {
                 param = await query(ParamVO.API_TYPE_ID)
-                    .filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true)
+                    .filter_by_text_eq(field_names<ParamVO>().name, text, ParamVO.API_TYPE_ID, true)
                     .exec_as_server(exec_as_server)
                     .select_vo<ParamVO>();
             } catch (error) {
@@ -262,7 +263,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private async _setParamValue(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = false) {
         let param: ParamVO = await query(ParamVO.API_TYPE_ID)
-            .filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true)
+            .filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true)
             .exec_as_server(exec_as_server)
             .select_vo<ParamVO>();
 

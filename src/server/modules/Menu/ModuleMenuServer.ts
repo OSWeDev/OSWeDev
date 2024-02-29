@@ -15,6 +15,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -201,7 +202,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         const res: MenuElementVO[] = [];
 
         const all = await query(MenuElementVO.API_TYPE_ID)
-            .filter_by_text_eq('app_name', app_name)
+            .filter_by_text_eq(field_names<MenuElementVO>().app_name, app_name)
             .select_vos<MenuElementVO>();
         for (const i in all) {
             const elt = all[i];

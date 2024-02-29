@@ -56,7 +56,7 @@ export default class ExpressDBSessionsServerController extends Store {
         } else {
 
             // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
-            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).filter_by_date_same_or_after('expire', Dates.now()).exec_as_server().select_vo<ExpressSessionVO>();
+            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).filter_by_date_same_or_after('expire', Dates.now()).exec_as_server().select_vo<ExpressSessionVO>();
             ExpressDBSessionsServerController.session_cache[sid] = this_session;
         }
 
@@ -132,7 +132,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 delete ExpressDBSessionsServerController.session_cache[sid];
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
                 try {
-                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
+                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).exec_as_server().select_vo<ExpressSessionVO>();
 
                     if (db_sess) {
                         await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
@@ -249,7 +249,7 @@ export default class ExpressDBSessionsServerController extends Store {
                 StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
                 delete ExpressDBSessionsServerController.session_cache[sid];
                 try {
-                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
+                    const db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).exec_as_server().select_vo<ExpressSessionVO>();
                     if (db_sess && db_sess.id) {
                         await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
                         ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this sid. deleting and replacing with new session:' + sid);

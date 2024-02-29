@@ -91,7 +91,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     for (const i in fields) {
                         const field = fields[i];
 
-                        if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == kanban_column.api_type_id)) {
+                        if (field.manyToOne_target_moduletable && (field.foreign_ref_vo_type == kanban_column.api_type_id)) {
                             found++;
                         }
                     }
