@@ -2,14 +2,9 @@
 
 import { IDatabase } from 'pg-promise';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20221216ChangeDbbTradsToIncludeLabels implements IGeneratorWorker {

@@ -1,15 +1,17 @@
 import { SendMailOptions } from 'nodemailer';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
 import PrepareHTMLParamVO, { PrepareHTMLParamVOStatic } from './vos/PrepareHTMLParamVO';
-import { field_names } from '../../tools/ObjectHandler';
 
 export default class ModuleMailer extends Module {
 
@@ -103,11 +105,10 @@ export default class ModuleMailer extends Module {
             ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().send_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
             ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
-        const datatable = new ModuleTableVO(this, MailVO.API_TYPE_ID, () => new MailVO(), datatable_fields, label, "Mails");
+        const datatable = ModuleTableController.create_new(this.name, MailVO, label, "Mails");
         category_id.set_many_to_one_target_moduletable_name(MailCategoryVO.API_TYPE_ID);
         sent_by_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         sent_to_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeMailCategoryVO() {
@@ -115,8 +116,7 @@ export default class ModuleMailer extends Module {
         const datatable_fields = [
             label
         ];
-        const datatable = new ModuleTableVO(this, MailCategoryVO.API_TYPE_ID, () => new MailCategoryVO(), datatable_fields, label, "Catégories de mail");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, MailCategoryVO, label, "Catégories de mail");
     }
 
     private initializeMailEventVO() {
@@ -129,8 +129,7 @@ export default class ModuleMailer extends Module {
             ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().event, ModuleTableFieldVO.FIELD_TYPE_enum, 'Evènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
             ModuleTableFieldController.create_new(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().reason, ModuleTableFieldVO.FIELD_TYPE_string, 'Raison', false),
         ];
-        const datatable = new ModuleTableVO(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");
+        const datatable = ModuleTableController.create_new(this.name, MailEventVO, label, "Evènements de mail");
         mail_id.set_many_to_one_target_moduletable_name(MailVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 }

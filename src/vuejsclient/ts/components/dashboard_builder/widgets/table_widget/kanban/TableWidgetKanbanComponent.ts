@@ -38,9 +38,9 @@ import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';

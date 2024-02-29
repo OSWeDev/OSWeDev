@@ -1,11 +1,11 @@
-import Module from '../../Module';
 import AccessPolicyTools from '../../../tools/AccessPolicyTools';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import ImportTranslation from './vos/ImportTranslation';
-import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
-import ModuleDataImport from '../../DataImport/ModuleDataImport';
 import { field_names } from '../../../tools/ObjectHandler';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
+import ModuleDataImport from '../../DataImport/ModuleDataImport';
+import Module from '../../Module';
+import ImportTranslation from './vos/ImportTranslation';
 
 
 export default class ModuleTranslationsImport extends Module {
@@ -43,8 +43,7 @@ export default class ModuleTranslationsImport extends Module {
             ModuleTableFieldController.create_new(ImportTranslation.API_TYPE_ID, field_names<ImportTranslation>().translated, ModuleTableFieldVO.FIELD_TYPE_string, 'translated', false)
         ];
 
-        const datatable = new ModuleTableVO(this, ImportTranslation.API_TYPE_ID, () => new ImportTranslation(), datatable_fields, null, "Import des traductions");
-        ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ImportTranslation, null, "Import des traductions");
+        ModuleDataImport.getInstance().registerImportableModuleTable(datatable, ImportTranslation);
     }
 }

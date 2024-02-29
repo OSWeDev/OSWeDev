@@ -1,23 +1,22 @@
 import { field_names } from '../../../../../tools/ObjectHandler';
+import ModuleTableController from '../../../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../../IDistantVOBase';
-import ModuleTableVO from '../../../../ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../ModuleTableFieldVO';
 import ModuleAnimation from '../../../ModuleAnimation';
 
 export default class AnimationReponseVO implements IDistantVOBase {
     public static API_TYPE_ID: string = 'anim_reponse';
 
     public static moduleTable(): ModuleTableVO {
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Poids"),
-            ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Réponse"),
-            ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().valid, ModuleTableFieldVO.FIELD_TYPE_boolean, "Valide"),
-        ];
+        ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, "Poids");
+        ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Réponse");
+        ModuleTableFieldController.create_new(AnimationReponseVO.API_TYPE_ID, field_names<AnimationReponseVO>().valid, ModuleTableFieldVO.FIELD_TYPE_boolean, "Valide");
 
-        return new ModuleTableVO(ModuleAnimation.getInstance(), AnimationReponseVO.API_TYPE_ID, null, datatable_fields, null);
+        return ModuleTableController.create_new(ModuleAnimation.getInstance().name, AnimationReponseVO, null, ModuleAnimation.getInstance().name);
     }
 
     public static fields(): Array<DatatableField<any, any>> {
@@ -35,7 +34,7 @@ export default class AnimationReponseVO implements IDistantVOBase {
         return fields;
     }
 
-    // public _type: string;
+    public _type: string = AnimationReponseVO.API_TYPE_ID;
     public id: number;
 
     public weight: number;

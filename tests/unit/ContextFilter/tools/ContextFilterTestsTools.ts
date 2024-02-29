@@ -45,7 +45,7 @@ export default class ContextFilterTestsTools {
             ModuleTableFieldController.create_new(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().anonymizer_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Fonction', true).setEnumValues(AnonymizationFieldConfVO.TYPE_ANONYMIZER_LABELS),
         ];
 
-        const datatable = new ModuleTableVO(null, AnonymizationFieldConfVO.API_TYPE_ID, () => new AnonymizationFieldConfVO(), datatable_fields, null, "Anonymisation");
+        const datatable = ModuleTableController.create_new(null.name, AnonymizationFieldConfVO, null, "Anonymisation");
         ModuleTableController.set_label_function(AnonymizationFieldConfVO.API_TYPE_ID, (vo: AnonymizationFieldConfVO) => vo.vo_type + "." + vo.field_name, null);
         datatable.set_bdd_ref('ref', AnonymizationFieldConfVO.API_TYPE_ID);
     }
@@ -57,7 +57,7 @@ export default class ContextFilterTestsTools {
             user_id,
             anon_field_name
         ];
-        const datatable = new ModuleTableVO(null, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
+        const datatable = ModuleTableController.create_new(null.name, AnonymizationUserConfVO, null, "Lien anonymisation/utilisateur");
         anon_field_name.set_many_to_one_target_moduletable_name(AnonymizationFieldConfVO.API_TYPE_ID);
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', AnonymizationUserConfVO.API_TYPE_ID);
@@ -73,7 +73,7 @@ export default class ContextFilterTestsTools {
             ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(null, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, RoleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
         parent_role_id.donotCascadeOnDelete();
         parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
         datatable.set_bdd_ref('ref', RoleVO.API_TYPE_ID);
@@ -87,7 +87,7 @@ export default class ContextFilterTestsTools {
             field_role_id,
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(null, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, UserRoleVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', UserRoleVO.API_TYPE_ID);
@@ -100,7 +100,7 @@ export default class ContextFilterTestsTools {
             ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_flag, ModuleTableFieldVO.FIELD_TYPE_string, 'Code du drapeau', false),
             ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_phone, ModuleTableFieldVO.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
-        const datatable: ModuleTableVO = new ModuleTableVO(null, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, LangVO, label_field, "Langues");
         datatable.set_bdd_ref('ref', LangVO.API_TYPE_ID);
     }
 
@@ -109,7 +109,7 @@ export default class ContextFilterTestsTools {
         const datatable_fields = [
             label_field
         ];
-        const datatable: ModuleTableVO = new ModuleTableVO(null, TranslatableTextVO.API_TYPE_ID, () => new TranslatableTextVO(), datatable_fields, label_field, "Codes");
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, TranslatableTextVO, label_field, "Codes");
         datatable.set_bdd_ref('ref', TranslatableTextVO.API_TYPE_ID);
     }
 
@@ -123,7 +123,7 @@ export default class ContextFilterTestsTools {
             label_field
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(null, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, TranslationVO, label_field, "Traductions");
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         field_text_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', TranslationVO.API_TYPE_ID);
@@ -152,7 +152,7 @@ export default class ContextFilterTestsTools {
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(null, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, UserVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', UserVO.API_TYPE_ID);
     }

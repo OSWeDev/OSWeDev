@@ -3425,14 +3425,14 @@ export default class ContextFilterServerController {
 
             if (path_i.is_manytoone) {
 
-                if (!tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type]) {
+                if (!tables_aliases_by_type[path_i.field.foreign_ref_vo_type]) {
 
-                    const api_type_id = path_i.field.manyToOne_target_moduletable.vo_type;
+                    const api_type_id = path_i.field.foreign_ref_vo_type;
                     tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
-                    joined_tables_by_vo_type[api_type_id] = path_i.field.manyToOne_target_moduletable;
+                    joined_tables_by_vo_type[api_type_id] = ModuleTableController.module_tables_by_vo_type[path_i.field.foreign_ref_vo_type];
                     let jointure_table_ref: string = null;
                     const table = joined_tables_by_vo_type[api_type_id];
 
@@ -3501,7 +3501,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[api_type_id] + '.id = ' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_name
+                                tables_aliases_by_type[path_i.field.module_table_vo_type] + '.' + path_i.field.field_name
                             );
                             break;
                         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
@@ -3510,7 +3510,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[api_type_id] + '.id::numeric <@ ANY(' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_name + ')'
+                                tables_aliases_by_type[path_i.field.module_table_vo_type] + '.' + path_i.field.field_name + ')'
                             );
                             break;
                         default:
@@ -3518,14 +3518,14 @@ export default class ContextFilterServerController {
                     }
                 }
             } else {
-                if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
+                if (!tables_aliases_by_type[path_i.field.module_table_vo_type]) {
 
-                    const api_type_id = path_i.field.module_table.vo_type;
+                    const api_type_id = path_i.field.module_table_vo_type;
                     tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
-                    joined_tables_by_vo_type[api_type_id] = path_i.field.module_table;
+                    joined_tables_by_vo_type[api_type_id] = ModuleTableController.module_tables_by_vo_type[path_i.field.module_table_vo_type];
                     let jointure_table_ref: string = null;
                     const table = joined_tables_by_vo_type[api_type_id];
 
@@ -3591,7 +3591,7 @@ export default class ContextFilterServerController {
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_name + ' = ' +
-                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
+                                tables_aliases_by_type[path_i.field.foreign_ref_vo_type] + '.id'
                             );
                             break;
                         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
@@ -3599,7 +3599,7 @@ export default class ContextFilterServerController {
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
-                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
+                                tables_aliases_by_type[path_i.field.foreign_ref_vo_type] + '.id::numeric <@ ANY(' +
                                 tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_name + ')'
                             );
                             break;
@@ -3754,8 +3754,8 @@ export default class ContextFilterServerController {
              *  donc on prend tous les filtres simple liés au type de segmentation (pdv dans l'exemple des lignes de factu)
              *  et on requête les pdvs qui réponde à ça. on pourrait commencer par requêter le count d'ailleurs mais ça fait 2 requêtes...
              */
-            if ((!is_implemented) && !!moduletable.table_segmented_field.many_to_one_target_moduletable_name) {
-                const linked_segment_table = ModuleTableController.module_tables_by_vo_type[moduletable.table_segmented_field.many_to_one_target_moduletable_name];
+            if ((!is_implemented) && !!moduletable.table_segmented_field.foreign_ref_vo_type) {
+                const linked_segment_table = ModuleTableController.module_tables_by_vo_type[moduletable.table_segmented_field.foreign_ref_vo_type];
 
                 const simple_filters = ContextFilterVOHandler.get_simple_filters_by_vo_type(
                     filters, linked_segment_table.vo_type);

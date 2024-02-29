@@ -1,4 +1,5 @@
 import { cloneDeep } from "lodash";
+import ConsoleHandler from "../../tools/ConsoleHandler";
 import MatroidIndexHandler from "../../tools/MatroidIndexHandler";
 import { reflect } from "../../tools/ObjectHandler";
 import { query } from "../ContextFilter/vos/ContextQueryVO";
@@ -12,7 +13,6 @@ import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqu
 import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
-import ConsoleHandler from "../../tools/ConsoleHandler";
 
 export default class ModuleTableController {
 
@@ -54,7 +54,7 @@ export default class ModuleTableController {
     /**
      * Les constructeurs des vos par vo_type
      */
-    public static vo_constructor_by_vo_type: { [vo_type: string]: { new <T extends IDistantVOBase>(): T } } = {};
+    public static vo_constructor_by_vo_type: { [vo_type: string]: { new(): IDistantVOBase } } = {};
     /**
      * Les vo_types déclarés par module
      */
@@ -69,9 +69,9 @@ export default class ModuleTableController {
      * @param table_label La trad par défaut pour cette table
      * @returns une nouvelle instance de ModuleTableVO
      */
-    public static create_new(
+    public static create_new<T extends IDistantVOBase>(
         module_name: string,
-        vo_constructor: { new <T extends IDistantVOBase>(): T },
+        vo_constructor: { new(): T },
         label_field: ModuleTableFieldVO = null,
         label: string | DefaultTranslationVO = null
     ): ModuleTableVO {
@@ -105,8 +105,6 @@ export default class ModuleTableController {
             }
         }
         res.label = label;
-
-        res.check_unicity_field_names(tmp_fields);
 
         if (res.module_name) {
             res.set_bdd_ref("ref", res.module_name, res.vo_type, "module");
@@ -211,7 +209,7 @@ export default class ModuleTableController {
             return cloneDeep(e);
         }
 
-        let res: T = table.getNewVO();
+        let res: T = new ModuleTableController.vo_constructor_by_vo_type[table.vo_type]() as T;
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
 
         if ((!fields) || (!res)) {

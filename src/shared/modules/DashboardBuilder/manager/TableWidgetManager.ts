@@ -8,7 +8,10 @@ import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOM
 import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import CRUD from '../../DAO/vos/CRUD';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import ComponentDatatableFieldVO from '../../DAO/vos/datatable/ComponentDatatableFieldVO';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
@@ -17,8 +20,6 @@ import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableField
 import VarDatatableFieldVO from '../../DAO/vos/datatable/VarDatatableFieldVO';
 import ExportVarcolumnConfVO from '../../DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
 import BulkActionVO from '../vos/BulkActionVO';
@@ -787,8 +788,11 @@ export default class TableWidgetManager {
 
                     // sur un simple on set le label
                     // FIXME TODO : set_translatable_title a été supprimé pour éviter des trads appliquées côté front par des widgets et qui ne seraient pas valides en export côté serveur
-                    if (data_field['set_translatable_title']) {
-                        data_field['set_translatable_title'](field.field_label.code_text);
+                    if (data_field['set_translatable_title'] &&
+                        ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type] &&
+                        ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type][field.field_name]) {
+                        data_field['set_translatable_title'](
+                            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type][field.field_name].code_text);
                     }
 
                     data_field.setModuleTable(moduleTable)

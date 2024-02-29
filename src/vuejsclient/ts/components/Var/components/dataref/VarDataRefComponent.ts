@@ -2,14 +2,13 @@ import 'jquery-contextmenu';
 import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../shared/modules/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -19,15 +18,14 @@ import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdat
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FilterObj from '../../../../../../shared/tools/Filters';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
-import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./VarDataRefComponent.pug')

@@ -1,12 +1,10 @@
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
 import WeightHandler from '../../../../tools/WeightHandler';
-import Alert from '../../../Alert/vos/Alert';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../ModuleTableFieldVO';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
-import ModuleTableController from '../../ModuleTableFieldController';
+import ModuleTableController from '../../ModuleTableController';
+import ModuleTableFieldController from '../../ModuleTableFieldController';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -178,7 +176,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return ModuleTableController.module_tables_by_vo_type[this.vo_type_id];
     }
 
-    get moduleTableField(): ModuleTableFieldVO<T> {
+    get moduleTableField(): ModuleTableFieldVO {
         if (!this.moduleTable) {
             return null;
         }
@@ -500,7 +498,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (this.moduleTableField) {
             this.is_required = this.moduleTableField.field_required;
             this.validate = (this.validate != null) ? this.validate : (data: any) => {
-                return ModuleTableController.validate_field_value(this.moduleTableField, data);
+                return ModuleTableFieldController.validate_field_value(this.moduleTableField, data);
             };
             this.field_type = (this.field_type != null) ? this.field_type : this.moduleTableField.field_type;
             this.enum_values = (this.enum_values != null) ? this.enum_values : this.moduleTableField.enum_values;

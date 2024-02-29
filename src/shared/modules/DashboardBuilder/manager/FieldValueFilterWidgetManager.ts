@@ -6,11 +6,10 @@ import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOH
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
+import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
-import ModuleTableVO from "../../ModuleTableVO";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../ModuleTableFieldVO";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVOHandler from "../handlers/VOFieldRefVOHandler";
 import BooleanFilterModel from "../models/BooleanFilterModel";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
@@ -126,7 +125,7 @@ export default class FieldValueFilterWidgetManager {
             const boolean_filter_type = boolean_filter_options[i];
 
             const this_filter = new ContextFilterVO();
-            this_filter.field_id = vo_field_ref.field_id;
+            this_filter.field_name = vo_field_ref.field_id;
             this_filter.vo_type = vo_field_ref.api_type_id;
 
             if (boolean_filter_type == BooleanFilterModel.FILTER_TYPE_TRUE) {
@@ -143,7 +142,7 @@ export default class FieldValueFilterWidgetManager {
                 filter = this_filter;
             } else {
                 const or = new ContextFilterVO();
-                or.field_id = vo_field_ref.field_id;
+                or.field_name = vo_field_ref.field_id;
                 or.vo_type = vo_field_ref.api_type_id;
                 or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
                 or.left_hook = filter;
@@ -215,7 +214,7 @@ export default class FieldValueFilterWidgetManager {
 
         if (has_null_value) {
             const cf_null_value: ContextFilterVO = new ContextFilterVO();
-            cf_null_value.field_id = vo_field_ref.field_id;
+            cf_null_value.field_name = vo_field_ref.field_id;
             cf_null_value.vo_type = vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -289,7 +288,7 @@ export default class FieldValueFilterWidgetManager {
         if (has_null_value) {
             const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
-            cf_null_value.field_id = vo_field_ref.field_id;
+            cf_null_value.field_name = vo_field_ref.field_id;
             cf_null_value.vo_type = vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -375,7 +374,7 @@ export default class FieldValueFilterWidgetManager {
 
                 if (has_null_value_multiple) {
                     const cf_null_value: ContextFilterVO = new ContextFilterVO();
-                    cf_null_value.field_id = options.vo_field_ref_multiple[i].field_id;
+                    cf_null_value.field_name = options.vo_field_ref_multiple[i].field_id;
                     cf_null_value.vo_type = options.vo_field_ref_multiple[i].api_type_id;
                     cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -419,7 +418,7 @@ export default class FieldValueFilterWidgetManager {
         if (has_null_value) {
             const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
-            cf_null_value.field_id = options.vo_field_ref.field_id;
+            cf_null_value.field_name = options.vo_field_ref.field_id;
             cf_null_value.vo_type = options.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -509,7 +508,7 @@ export default class FieldValueFilterWidgetManager {
 
                 if (has_null_value_multiple) {
                     const cf_null_value: ContextFilterVO = new ContextFilterVO();
-                    cf_null_value.field_id = options.vo_field_ref_multiple[i].field_id;
+                    cf_null_value.field_name = options.vo_field_ref_multiple[i].field_id;
                     cf_null_value.vo_type = options.vo_field_ref_multiple[i].api_type_id;
                     cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -553,7 +552,7 @@ export default class FieldValueFilterWidgetManager {
         if (has_null_value) {
             const cf_null_value: ContextFilterVO = new ContextFilterVO();
 
-            cf_null_value.field_id = options.vo_field_ref.field_id;
+            cf_null_value.field_name = options.vo_field_ref.field_id;
             cf_null_value.vo_type = options.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -722,7 +721,7 @@ export default class FieldValueFilterWidgetManager {
             for (const i in fields) {
                 const field: ModuleTableFieldVO = fields[i];
 
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
 

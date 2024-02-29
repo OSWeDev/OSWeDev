@@ -18,7 +18,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';

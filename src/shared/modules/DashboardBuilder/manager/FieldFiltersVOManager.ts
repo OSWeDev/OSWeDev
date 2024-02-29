@@ -1,23 +1,22 @@
 import { cloneDeep } from "lodash";
-import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
+import ObjectHandler from "../../../tools/ObjectHandler";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import TranslationManager from "../../Translation/manager/TranslationManager";
-import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
+import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
+import TranslationManager from "../../Translation/manager/TranslationManager";
+import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import IReadableFieldFilters from "../interfaces/IReadableFieldFilters";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
-import VOFieldRefVO from '../vos/VOFieldRefVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../ModuleTableFieldVO";
-import ModuleTableVO from "../../ModuleTableVO";
-import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
-import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
-import ObjectHandler from "../../../tools/ObjectHandler";
-import TableColumnDescVO from "../vos/TableColumnDescVO";
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import TableColumnDescVO from "../vos/TableColumnDescVO";
+import VOFieldRefVO from '../vos/VOFieldRefVO';
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
+import VOFieldRefVOManager from "./VOFieldRefVOManager";
+import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 
 /**
  * FieldFiltersVOManager
@@ -549,7 +548,7 @@ export default class FieldFiltersVOManager {
                     const base_table_fields: ModuleTableFieldVO[] = base_table.get_fields();
 
                     const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableFieldVO) => {
-                        return field.field_id == context_filter.field_id;
+                        return field.field_id == context_filter.field_name;
                     }) != null;
 
                     if (!has_context_filter_field) {

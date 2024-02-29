@@ -2,9 +2,9 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import IGeneratorWorker from '../../IGeneratorWorker';
 

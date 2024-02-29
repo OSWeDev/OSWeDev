@@ -1,16 +1,16 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import Module from '../Module';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import MenuElementVO from './vos/MenuElementVO';
 
@@ -89,8 +89,7 @@ export default class ModuleMenu extends Module {
             ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().access_policy_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé du droit d\'accès', false, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
         ];
 
-        const table = new ModuleTableVO(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, MenuElementVO, name, 'Menus');
 
         menu_parent_id.set_many_to_one_target_moduletable_name(table.vo_type);
 

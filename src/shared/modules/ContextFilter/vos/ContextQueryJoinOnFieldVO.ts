@@ -24,7 +24,7 @@ export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
         res.joined_table_alias = joined_table_alias;
         res.joined_table_field_alias = joined_table_field_alias;
         res.initial_context_query_api_type_id = initial_context_query_api_type_id;
-        res.initial_context_query_field_id_or_alias = initial_context_query_field_id_or_alias;
+        res.initial_context_query_field_name_or_alias = initial_context_query_field_id_or_alias;
 
         return res;
     }
@@ -42,7 +42,7 @@ export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
     /**
      * Peut être un id de field ou un alias mais sera directement le nom du champ dans le select
      */
-    public initial_context_query_field_id_or_alias: string;
+    public initial_context_query_field_name_or_alias: string;
 
     public constructor() { }
 
@@ -56,6 +56,6 @@ export default class ContextQueryJoinOnFieldVO implements IDistantVOBase {
         log_func('ContextQueryJoinOnFieldVO - joined_table_alias:' + this.joined_table_alias);
         log_func('                          - joined_table_field_id_or_alias: ' + this.joined_table_field_alias);
         log_func('                          - initial_context_query_api_type_id:' + this.initial_context_query_api_type_id);
-        log_func('                          - initial_context_query_field_id_or_alias:' + this.initial_context_query_field_id_or_alias);
+        log_func('                          - initial_context_query_field_id_or_alias:' + this.initial_context_query_field_name_or_alias);
     }
 }

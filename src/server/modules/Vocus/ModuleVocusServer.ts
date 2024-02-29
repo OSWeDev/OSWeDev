@@ -1,28 +1,26 @@
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import Module from '../../../shared/modules/Module';
+import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModulesManager from '../../../shared/modules/ModulesManager';
-import Module from '../../../shared/modules/Module';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
@@ -147,11 +145,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             for (const j in fields) {
                 const field = fields[j];
 
-                if (!field.has_relation) {
-                    continue;
-                }
-
-                if ((!field.manyToOne_target_moduletable) || (field.manyToOne_target_moduletable.vo_type != moduleTable.vo_type)) {
+                if ((!field.foreign_ref_vo_type) || (field.foreign_ref_vo_type != moduleTable.vo_type)) {
                     continue;
                 }
 
@@ -168,7 +162,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             const refField = refFields[i];
 
             promises.push((async () => {
-                const refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                const refvos: IDistantVOBase[] = await query(refField.module_table_vo_type)
                     .filter_by_num_x_ranges(refField.field_id, [RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
                     .select_vos<IDistantVOBase>();
 
@@ -184,11 +178,12 @@ export default class ModuleVocusServer extends ModuleServerBase {
                     tmp.linked_id = refvo.id;
                     tmp.linked_type = refvo._type;
 
-                    const table = refField.module_table;
+                    const table = ModuleTableController.module_tables_by_vo_type[refField.module_table_vo_type];
+                    const table_label_function = ModuleTableController.table_label_function_by_vo_type[refField.module_table_vo_type];
                     if (table && table.default_label_field) {
                         tmp.linked_label = refvo[table.default_label_field.field_id];
-                    } else if (table && table.table_label_function) {
-                        tmp.linked_label = table.table_label_function(refvo);
+                    } else if (table && table_label_function) {
+                        tmp.linked_label = table_label_function(refvo);
                     }
 
                     res_map[refvo._type][refvo.id] = tmp;

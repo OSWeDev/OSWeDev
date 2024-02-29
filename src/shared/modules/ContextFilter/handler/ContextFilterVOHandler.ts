@@ -3,6 +3,8 @@ import ConsoleHandler from '../../../tools/ConsoleHandler';
 import LocaleManager from '../../../tools/LocaleManager';
 import { all_promises } from '../../../tools/PromiseTools';
 import RangeHandler from '../../../tools/RangeHandler';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
@@ -16,14 +18,11 @@ import TSRange from '../../DataRender/vos/TSRange';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import VarConfVO from '../../Var/vos/VarConfVO';
 import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
-import { query } from '../vos/ContextQueryVO';
 import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
-import VarConfVO from '../../Var/vos/VarConfVO';
+import { query } from '../vos/ContextQueryVO';
 
 /**
  * ContextFilterVOHandler
@@ -314,7 +313,7 @@ export default class ContextFilterVOHandler {
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     const simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
                     const module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_name :
+                        simpleField.moduleTableField.module_table_vo_type + '___' + simpleField.moduleTableField.field_name :
                         simpleField.moduleTableField.field_name;
 
                     // On doit gérer le cas des champs aggrégés en divisant la valeur et en refaisant l'aggrégation par la suite
@@ -360,7 +359,7 @@ export default class ContextFilterVOHandler {
                     const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
 
                     const src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_name :
+                        manyToOneField.srcField.module_table_vo_type + '___' + manyToOneField.srcField.field_name :
                         manyToOneField.srcField.field_name;
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
@@ -461,7 +460,7 @@ export default class ContextFilterVOHandler {
                     resData[field.datatable_field_uid] = [];
 
                     const refField_src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_name + '__raw' : // We are waiting for the actual converted NumRange[] value
+                        refField.srcField.module_table_vo_type + '___' + refField.srcField.field_name + '__raw' : // We are waiting for the actual converted NumRange[] value
                         refField.srcField.field_name;
 
                     await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_name], async (id: number) => {
@@ -603,7 +602,7 @@ export default class ContextFilterVOHandler {
         }
 
         const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
-        const field = moduletable.get_field_by_id(vo_field_ref.field_name);
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         let exclude_values_context_filter: ContextFilterVO = null;
 
@@ -634,7 +633,7 @@ export default class ContextFilterVOHandler {
         if (query_filters) {
 
             for (const i in query_filters) {
-                if ((query_filters[i].field_name == vo_field_ref.field_name) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
+                if ((query_filters[i].field_name == vo_field_ref.field_id) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
                     if (concat_exclude_values) {
                         is_add = true;
                         new_query_filters.push(ContextFilterVO.and([query_filters[i], exclude_values_context_filter]));
@@ -656,7 +655,7 @@ export default class ContextFilterVOHandler {
     public static get_ContextFilterVO_None(field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
-        if ((!field) && (vo_field_ref.field_name == 'id')) {
+        if ((!field) && (vo_field_ref.field_id == 'id')) {
             field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;

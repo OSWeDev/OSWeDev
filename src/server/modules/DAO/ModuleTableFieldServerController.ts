@@ -1,6 +1,7 @@
 import { isArray } from "lodash";
 import moment from "moment";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../../shared/modules/DAO/vos/ModuleTableVO";
 import HourRange from "../../../shared/modules/DataRender/vos/HourRange";
@@ -11,7 +12,6 @@ import TSRange from "../../../shared/modules/DataRender/vos/TSRange";
 import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import GeoPointVO from "../../../shared/modules/GeoPoint/vos/GeoPointVO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
-import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
 import ConversionHandler from "../../../shared/tools/ConversionHandler";
 import DateHandler from "../../../shared/tools/DateHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
@@ -195,7 +195,7 @@ export default class ModuleTableFieldServerController {
                             }
                             trans_ = new_obj;
                         } else {
-                            trans_ = Object.assign(field_table.voConstructor(), ModuleTableServerController.translate_vos_from_db(trans_));
+                            trans_ = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[elt_type](), ModuleTableServerController.translate_vos_from_db(trans_));
                         }
                     }
                 }

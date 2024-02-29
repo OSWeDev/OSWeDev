@@ -1,23 +1,22 @@
-import { cloneDeep } from 'lodash';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
+import IDistantVOBase from '../../IDistantVOBase';
+import Module from '../../Module';
+import ModulesManager from '../../ModulesManager';
 import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 import ModuleDAO from '../ModuleDAO';
+import ModuleTableController from '../ModuleTableController';
 import ComputedDatatableFieldVO from './datatable/ComputedDatatableFieldVO';
 import Datatable from './datatable/Datatable';
 import DatatableField from './datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from './datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from './datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from './datatable/OneToManyReferenceDatatableFieldVO';
-import ReferenceDatatableField from './datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableFieldVO from './datatable/RefRangesReferenceDatatableFieldVO';
+import ReferenceDatatableField from './datatable/ReferenceDatatableField';
 import SimpleDatatableFieldVO from './datatable/SimpleDatatableFieldVO';
-import ModulesManager from '../../ModulesManager';
-import Module from '../../Module';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -36,7 +35,7 @@ export default class CRUD<T extends IDistantVOBase> {
     }
 
     public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
-        const moduleTable: ModuleTableVO<V> = ModuleTableController.module_tables_by_vo_type[api_type_id];
+        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
         const crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
@@ -114,60 +113,63 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static get_dt_field(field: ModuleTableFieldVO): DatatableField<any, any> {
         let dt_field: DatatableField<any, any> = null;
+        let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+        let foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
 
-        if (field.manyToOne_target_moduletable) {
+        if (field.foreign_ref_vo_type) {
 
             let dt_fields: Array<DatatableField<any, any>> = [
                 ComputedDatatableFieldVO.createNew(
                     field.field_id + '__target_label',
-                    ModuleDAO.getInstance().get_compute_function_uid(field.manyToOne_target_moduletable.vo_type)
+                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
                 )
             ];
 
-            if (field.manyToOne_target_moduletable.default_label_field) {
+            if (foreign_table.default_label_field) {
                 dt_fields = [
-                    SimpleDatatableFieldVO.createNew(field.manyToOne_target_moduletable.default_label_field.field_id)
+                    SimpleDatatableFieldVO.createNew(foreign_table.default_label_field.field_id)
                 ];
             }
 
             if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                 dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                     field.field_id,
-                    ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
+                    ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type],
                     dt_fields
                 );
 
             } else {
-                if (VOsTypesManager.isManyToManyModuleTable(field.module_table)) {
-                    if (field.manyToOne_target_moduletable.default_label_field) {
+                if (VOsTypesManager.isManyToManyModuleTable(table)) {
+                    if (foreign_table.default_label_field) {
                         dt_field = ManyToManyReferenceDatatableFieldVO.createNew(
                             field.field_id,
-                            field.manyToOne_target_moduletable,
-                            field.module_table,
+                            foreign_table,
+                            table,
                             [
-                                SimpleDatatableFieldVO.createNew(field.manyToOne_target_moduletable.default_label_field.field_id)
+                                SimpleDatatableFieldVO.createNew(foreign_table.default_label_field.field_id)
                             ]
                         );
                     }
 
-                    if (field.manyToOne_target_moduletable.table_label_function) {
+                    let label_function = ModuleTableController.table_label_function_by_vo_type[field.foreign_ref_vo_type];
+                    if (label_function) {
                         dt_field = ManyToManyReferenceDatatableFieldVO.createNew(
                             field.field_id,
-                            field.manyToOne_target_moduletable,
-                            field.module_table,
+                            foreign_table,
+                            table,
                             [
                                 ComputedDatatableFieldVO.createNew(
-                                    field.manyToOne_target_moduletable.vo_type + '__' + field.field_id + '__target_label',
-                                    ModuleDAO.getInstance().get_compute_function_uid(field.manyToOne_target_moduletable.vo_type)
+                                    field.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
+                                    ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
                                 )
                             ]);
                     }
                 } else {
                     dt_field = ManyToOneReferenceDatatableFieldVO.createNew(
                         field.field_id,
-                        ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
+                        ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type],
                         dt_fields
-                    ).setModuleTable(field.module_table);
+                    ).setModuleTable(table);
                 }
             }
         } else {
@@ -176,20 +178,20 @@ export default class CRUD<T extends IDistantVOBase> {
 
             switch (field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                    if (!field.manyToOne_target_moduletable) {
+                    if (!foreign_table) {
                         return dt_field;
                     }
 
                     const dt_fields: Array<DatatableField<any, any>> = [
                         ComputedDatatableFieldVO.createNew(
                             field.field_id + '__target_label',
-                            ModuleDAO.getInstance().get_compute_function_uid(field.manyToOne_target_moduletable.vo_type)
+                            ModuleDAO.getInstance().get_compute_function_uid(field.foreign_ref_vo_type)
                         )
                     ];
 
                     dt_field = RefRangesReferenceDatatableFieldVO.createNew(
                         field.field_id,
-                        ModuleTableController.module_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type],
+                        ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type],
                         dt_fields
                     );
                     break;
@@ -240,45 +242,49 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
 
-                if (field.manyToOne_target_moduletable.full_name != moduleTable.full_name) {
+                if (field.foreign_ref_vo_type != moduleTable.vo_type) {
                     continue;
                 }
 
-                if (except_table_names && (except_table_names.indexOf(field.module_table.name) >= 0)) {
+                let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+                let foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
+
+                if (except_table_names && (except_table_names.indexOf(table.name) >= 0)) {
                     continue;
                 }
 
-                const otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
+                const otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(table, field);
 
-                if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
+                if ((!otherField) || (!foreign_table)) {
                     continue;
                 }
 
-                if (otherField.manyToOne_target_moduletable.default_label_field) {
+                if (foreign_table.default_label_field) {
                     crud.readDatatable.pushField(ManyToManyReferenceDatatableFieldVO.createNew(
-                        field.module_table.full_name + '_' + field.field_id,
-                        otherField.manyToOne_target_moduletable,
-                        field.module_table,
+                        table.full_name + '_' + field.field_id,
+                        foreign_table,
+                        table,
                         [
-                            SimpleDatatableFieldVO.createNew(otherField.manyToOne_target_moduletable.default_label_field.field_id)
+                            SimpleDatatableFieldVO.createNew(foreign_table.default_label_field.field_id)
                         ]
                     ));
                     continue;
                 }
 
-                if (otherField.manyToOne_target_moduletable.table_label_function) {
+                let label_function = ModuleTableController.table_label_function_by_vo_type[field.foreign_ref_vo_type];
+                if (label_function) {
                     crud.readDatatable.pushField(ManyToManyReferenceDatatableFieldVO.createNew(
-                        field.module_table.full_name + '_' + field.field_id,
-                        otherField.manyToOne_target_moduletable,
-                        field.module_table,
+                        table.full_name + '_' + field.field_id,
+                        foreign_table,
+                        table,
                         [
                             ComputedDatatableFieldVO.createNew(
-                                otherField.manyToOne_target_moduletable.vo_type + '__' + field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(otherField.manyToOne_target_moduletable.vo_type)
+                                otherField.foreign_ref_vo_type + '__' + field.field_id + '__target_label',
+                                ModuleDAO.getInstance().get_compute_function_uid(otherField.foreign_ref_vo_type)
                             )
                         ]));
                     continue;
@@ -327,39 +333,41 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
 
-                if (field.manyToOne_target_moduletable.full_name != moduleTable.full_name) {
+                if (field.foreign_ref_vo_type != moduleTable.vo_type) {
                     continue;
                 }
 
-                if (except_table_names && (except_table_names.indexOf(field.module_table.name) >= 0)) {
+                if (except_table_names && (except_table_names.indexOf(field.foreign_ref_vo_type) >= 0)) {
                     continue;
                 }
 
-                if (field.module_table.default_label_field) {
+                let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+                if (table.default_label_field) {
                     crud.readDatatable.pushField(OneToManyReferenceDatatableFieldVO.createNew(
-                        field.module_table.full_name + '_' + field.field_id,
-                        field.module_table,
+                        table.full_name + '_' + field.field_id,
+                        table,
                         field,
                         [
-                            SimpleDatatableFieldVO.createNew(field.module_table.default_label_field.field_id)
+                            SimpleDatatableFieldVO.createNew(table.default_label_field.field_id)
                         ]
                     ));
                     continue;
                 }
 
-                if (field.module_table.table_label_function) {
+                let label_function = ModuleTableController.table_label_function_by_vo_type[field.module_table_vo_type];
+                if (label_function) {
                     crud.readDatatable.pushField(OneToManyReferenceDatatableFieldVO.createNew(
-                        field.module_table.full_name + '_' + field.field_id,
-                        field.module_table,
+                        table.full_name + '_' + field.field_id,
+                        table,
                         field,
                         [
                             ComputedDatatableFieldVO.createNew(
                                 field.field_id + '__target_label',
-                                ModuleDAO.getInstance().get_compute_function_uid(field.module_table.vo_type)
+                                ModuleDAO.getInstance().get_compute_function_uid(table.vo_type)
                             )
                         ]));
                     continue;

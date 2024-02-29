@@ -7,12 +7,12 @@ import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VOsTypesManager';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import ClockifyClientVO from './vos/ClockifyClientVO';
 import ClockifyProjetVO from './vos/ClockifyProjetVO';
 import ClockifyTacheVO from './vos/ClockifyTacheVO';
@@ -108,9 +108,7 @@ export default class ModuleClockifyAPI extends Module {
             ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().note, ModuleTableFieldVO.FIELD_TYPE_string, 'Note', false),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyClientVO.API_TYPE_ID, () => new ClockifyClientVO(), datatable_fields, null, "Client Clockify");
-
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyClientVO, null, "Client Clockify");
     }
 
     private initializeClockifyUser() {
@@ -122,9 +120,7 @@ export default class ModuleClockifyAPI extends Module {
             ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().status, ModuleTableFieldVO.FIELD_TYPE_string, 'Statut', false),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyUserVO.API_TYPE_ID, () => new ClockifyUserVO(), datatable_fields, null, "Utilisateur Clockify");
-
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyUserVO, null, "Utilisateur Clockify");
     }
 
     private initializeClockifyProjet() {
@@ -139,8 +135,7 @@ export default class ModuleClockifyAPI extends Module {
             client_id
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyProjetVO.API_TYPE_ID, () => new ClockifyProjetVO(), datatable_fields, null, "Projet Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyProjetVO, null, "Projet Clockify");
 
         client_id.set_many_to_one_target_moduletable_name(ClockifyClientVO.API_TYPE_ID);
     }
@@ -155,8 +150,7 @@ export default class ModuleClockifyAPI extends Module {
             projet_id
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyTacheVO.API_TYPE_ID, () => new ClockifyTacheVO(), datatable_fields, null, "Tâche Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyTacheVO, null, "Tâche Clockify");
 
         projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
     }
@@ -176,8 +170,7 @@ export default class ModuleClockifyAPI extends Module {
             user_id
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, ClockifyTimeEntryVO.API_TYPE_ID, () => new ClockifyTimeEntryVO(), datatable_fields, null, "Entrée de temps Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyTimeEntryVO, null, "Entrée de temps Clockify");
 
         projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
         tache_id.set_many_to_one_target_moduletable_name(ClockifyTacheVO.API_TYPE_ID);

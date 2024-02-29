@@ -16,12 +16,13 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
@@ -32,7 +33,6 @@ import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -2129,7 +2129,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async filterPolicyByActivModulesContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
         const filter_module_actif: ContextFilterVO = new ContextFilterVO();
-        filter_module_actif.field_id = 'actif';
+        filter_module_actif.field_name = 'actif';
         filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
         filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
 
@@ -2138,13 +2138,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         const query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
 
         const filter_module_in: ContextFilterVO = new ContextFilterVO();
-        filter_module_in.field_id = 'module_id';
+        filter_module_in.field_name = 'module_id';
         filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_module_in.filter_type = ContextFilterVO.TYPE_IN;
         filter_module_in.set_sub_query(query_module_actif, res);
 
         const filter_no_module: ContextFilterVO = new ContextFilterVO();
-        filter_no_module.field_id = 'module_id';
+        filter_no_module.field_name = 'module_id';
         filter_no_module.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_no_module.filter_type = ContextFilterVO.TYPE_NULL_ALL;
 
@@ -2163,7 +2163,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterPolicyByActivModules(datatable: ModuleTableVO<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
+    private async filterPolicyByActivModules(datatable: ModuleTableVO, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
         const res: AccessPolicyVO[] = [];
 
         await ModulesManagerServer.getInstance().preload_modules();

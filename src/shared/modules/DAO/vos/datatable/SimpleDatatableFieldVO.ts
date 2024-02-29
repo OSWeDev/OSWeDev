@@ -1,14 +1,13 @@
 
 
 import moment from 'moment';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
@@ -18,8 +17,8 @@ import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
 import RangeHandler from '../../../../tools/RangeHandler';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
+import ModuleTableFieldController from '../../ModuleTableFieldController';
 import DatatableField from './DatatableField';
-import { isArray } from 'lodash';
 
 export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
@@ -576,7 +575,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return this.translatable_title_custom;
         }
 
-        const e = this.moduleTableField.field_label.code_text;
+        const trad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name][this.moduleTableField.field_name] : null;
+        const e = trad ? trad.code_text : null;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {

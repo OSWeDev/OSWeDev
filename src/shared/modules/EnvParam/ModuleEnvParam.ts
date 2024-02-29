@@ -11,6 +11,7 @@ import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import EnvParamsVO from './vos/EnvParamsVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModuleEnvParam extends Module {
 
@@ -75,8 +76,6 @@ export default class ModuleEnvParam extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeEnvParamsVO();
     }
 
@@ -246,7 +245,6 @@ export default class ModuleEnvParam extends Module {
             ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().BLOCK_TEAMS_MESSAGES, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true),
         ];
 
-        const table = new ModuleTableVO(this, EnvParamsVO.API_TYPE_ID, () => new EnvParamsVO(), fields, null, 'Static Env Params');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }
 }

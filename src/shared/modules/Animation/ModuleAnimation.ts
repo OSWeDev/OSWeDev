@@ -1,23 +1,22 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import RoleVO from '../AccessPolicy/vos/RoleVO';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import DocumentVO from '../Document/vos/DocumentVO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import VarsInitController from '../Var/VarsInitController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';
@@ -83,8 +82,6 @@ export default class ModuleAnimation extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeAnimationParametersVO();
         this.initializeAnimationThemeVO();
         this.initializeAnimationModuleVO();
@@ -152,12 +149,10 @@ export default class ModuleAnimation extends Module {
             document_id_ranges,
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationParametersVO.API_TYPE_ID, () => new AnimationParametersVO(), fields, null, "Animation - Params");
+        const datatable = ModuleTableController.create_new(this.name, AnimationParametersVO, null, "Animation - Params");
 
         image_home_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         document_id_ranges.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeAnimationThemeVO() {
@@ -171,9 +166,7 @@ export default class ModuleAnimation extends Module {
             id_import,
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationThemeVO.API_TYPE_ID, () => new AnimationThemeVO(), fields, name_field, "Animation - Thème");
-
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, AnimationThemeVO, name_field, "Animation - Thème");
     }
 
     private initializeAnimationModuleVO() {
@@ -196,15 +189,13 @@ export default class ModuleAnimation extends Module {
             id_import,
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, computed_name_field, "Animation - Module");
+        const datatable = ModuleTableController.create_new(this.name, AnimationModuleVO, computed_name_field, "Animation - Module");
 
         theme_id_field.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
         document_id_field.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
         role_id_ranges.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(MessageModuleTableFieldTypeController.getInstance());
-
-        this.datatables.push(datatable);
     }
 
     private initializeAnimationQRVO() {
@@ -225,15 +216,13 @@ export default class ModuleAnimation extends Module {
             reponse_file_id_field,
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");
+        const datatable = ModuleTableController.create_new(this.name, AnimationQRVO, name_field, "Animation - Question/Réponses");
 
         module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
         question_file_id_field.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         reponse_file_id_field.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(ReponseTableFieldTypeController.getInstance());
-
-        this.datatables.push(datatable);
     }
 
     private initializeAnimationUserModuleVO() {
@@ -251,12 +240,10 @@ export default class ModuleAnimation extends Module {
             user_id_field,
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationUserModuleVO.API_TYPE_ID, () => new AnimationUserModuleVO(), fields, null, "Animation - Info module utilisateur");
+        const datatable = ModuleTableController.create_new(this.name, AnimationUserModuleVO, null, "Animation - Info module utilisateur");
 
         module_id_field.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);
         user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeAnimationUserQRVO() {
@@ -270,12 +257,10 @@ export default class ModuleAnimation extends Module {
             ModuleTableFieldController.create_new(AnimationUserQRVO.API_TYPE_ID, field_names<AnimationUserQRVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date").set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        const datatable = new ModuleTableVO(this, AnimationUserQRVO.API_TYPE_ID, () => new AnimationUserQRVO(), fields, null, "Animation - Info réponses utilisateur");
+        const datatable = ModuleTableController.create_new(this.name, AnimationUserQRVO, null, "Animation - Info réponses utilisateur");
 
         qr_id_field.set_many_to_one_target_moduletable_name(AnimationQRVO.API_TYPE_ID);
         user_id_field.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeThemeModuleDataRangesVO() {
@@ -289,7 +274,7 @@ export default class ModuleAnimation extends Module {
             user_id_ranges
         ];
 
-        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, ThemeModuleDataRangesVO, datatable_fields, this);
 
         theme_id_ranges.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
         module_id_ranges.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);

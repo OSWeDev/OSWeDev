@@ -1,11 +1,11 @@
 import { field_names } from '../../tools/ObjectHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import ModulesManager from '../ModulesManager';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 
@@ -52,13 +52,13 @@ export default class VarsInitController {
 
     private static instance: VarsInitController = null;
 
-    public register_var_data(
+    public register_var_data<T extends VarDataBaseVO>(
         api_type_id: string,
-        constructor: () => VarDataBaseVO,
+        vo_constructor: { new(): T },
         var_fields: ModuleTableFieldVO[],
         module: Module = null,
         is_test: boolean = false): ModuleTableVO {
-        const var_id = ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
+        const var_id = ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
 
         if (!VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id]) {
             VarsInitController.pre_registered_var_data_api_type_id_modules_list[api_type_id] = [];
@@ -88,19 +88,16 @@ export default class VarsInitController {
 
         var_fields.unshift(var_id);
         var_fields = var_fields.concat([
-            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
-            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
-            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
-            ModuleTableFieldController.create_new(VarDataBaseVO.API_TYPE_ID, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
+            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
+            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
+            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly(),
+            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
         ]);
 
-        const datatable = new ModuleTableVO(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
+        const datatable = ModuleTableController.create_new(module.name, vo_constructor, null, module.name).defineAsMatroid();
         if (!is_test) {
             var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
-        }
-        if (module) {
-            module.datatables.push(datatable);
         }
         return datatable;
     }

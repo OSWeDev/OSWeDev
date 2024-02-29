@@ -1,4 +1,3 @@
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 
 /**
@@ -7,7 +6,7 @@ import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
  */
 export default class VOsTypesHandler {
 
-    public static is_type_boolean<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_boolean<T>(field: ModuleTableFieldVO): boolean {
 
         if (!field) {
             return false;
@@ -22,7 +21,7 @@ export default class VOsTypesHandler {
         }
     }
 
-    public static is_type_enum<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_enum<T>(field: ModuleTableFieldVO): boolean {
 
         if (!field) {
             return false;
@@ -37,7 +36,7 @@ export default class VOsTypesHandler {
         }
     }
 
-    public static is_type_date<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_date<T>(field: ModuleTableFieldVO): boolean {
 
         if (!field) {
             return false;
@@ -55,7 +54,7 @@ export default class VOsTypesHandler {
         }
     }
 
-    public static is_type_string<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_string<T>(field: ModuleTableFieldVO): boolean {
 
         if (!field) {
             return false;
@@ -111,7 +110,7 @@ export default class VOsTypesHandler {
         }
     }
 
-    public static is_type_number<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_number<T>(field: ModuleTableFieldVO): boolean {
 
         switch (field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_int:
@@ -127,7 +126,7 @@ export default class VOsTypesHandler {
         }
     }
 
-    public static is_type_ref_field<T>(field: ModuleTableFieldVO<T>): boolean {
+    public static is_type_ref_field<T>(field: ModuleTableFieldVO): boolean {
 
         switch (field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_file_ref:

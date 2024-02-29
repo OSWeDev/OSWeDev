@@ -58,10 +58,10 @@ export default class MonthFilterWidgetManager {
 
         if (widget_options.is_vo_field_ref) {
             context_filter.vo_type = vo_field_ref.api_type_id;
-            context_filter.field_id = vo_field_ref.field_id;
+            context_filter.field_name = vo_field_ref.field_id;
         } else {
             context_filter.vo_type = ContextFilterVO.CUSTOM_FILTERS_TYPE;
-            context_filter.field_id = widget_options.custom_filter_name;
+            context_filter.field_name = widget_options.custom_filter_name;
         }
 
         return context_filter;

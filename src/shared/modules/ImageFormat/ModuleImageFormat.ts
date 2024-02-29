@@ -4,13 +4,12 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
-import FileVO from '../File/vos/FileVO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import FileVO from '../File/vos/FileVO';
+import Module from '../Module';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import GetFormattedImageParamVO, { GetFormattedImageParamVOStatic } from './apis/GetFormattedImageParamVO';
 import FormattedImageVO from './vos/FormattedImageVO';
 import ImageFormatVO from './vos/ImageFormatVO';
@@ -86,8 +85,7 @@ export default class ModuleImageFormat extends Module {
             ModuleTableFieldController.create_new(ImageFormatVO.API_TYPE_ID, field_names<ImageFormatVO>().watermark_rotate, ModuleTableFieldVO.FIELD_TYPE_int, 'Watermark Rotation'),
         ];
 
-        const table = new ModuleTableVO(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, ImageFormatVO, null, 'Formats d\'image');
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }
@@ -111,8 +109,7 @@ export default class ModuleImageFormat extends Module {
             ModuleTableFieldController.create_new(FormattedImageVO.API_TYPE_ID, field_names<FormattedImageVO>().quality, ModuleTableFieldVO.FIELD_TYPE_prct, 'Qualité', true, true, 0.9),
         ];
 
-        const table = new ModuleTableVO(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, FormattedImageVO, null, 'Images formattées');
 
         file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         image_format_id.set_many_to_one_target_moduletable_name(ImageFormatVO.API_TYPE_ID);

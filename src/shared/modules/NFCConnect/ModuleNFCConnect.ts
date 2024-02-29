@@ -1,18 +1,15 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import UserLogVO from '../AccessPolicy/vos/UserLogVO';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import Module from '../Module';
 import NFCTagUserVO from './vos/NFCTagUserVO';
 import NFCTagVO from './vos/NFCTagVO';
 
@@ -105,13 +102,12 @@ export default class ModuleNFCConnect extends Module {
 
     public initialize() {
 
-        const label = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Numéro de série', true);
+        const label = ModuleTableFieldController.create_new(NFCTagVO.API_TYPE_ID, field_names<NFCTagVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Numéro de série', true);
         const datatable_fields = [
             label,
-            ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true),
+            ModuleTableFieldController.create_new(NFCTagVO.API_TYPE_ID, field_names<NFCTagVO>().activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Actif', true, true, true),
         ];
-        const datatable = new ModuleTableVO(this, NFCTagVO.API_TYPE_ID, () => new NFCTagVO(), datatable_fields, label, "NFC Tags");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, NFCTagVO, label, "NFC Tags");
 
         const nfc_tag_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().nfc_tag_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'NFC Tag', true);
         const user_id = ModuleTableFieldController.create_new(NFCTagUserVO.API_TYPE_ID, field_names<NFCTagUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
@@ -119,9 +115,8 @@ export default class ModuleNFCConnect extends Module {
             nfc_tag_id,
             user_id
         ];
-        const datatable_user = new ModuleTableVO(this, NFCTagUserVO.API_TYPE_ID, () => new NFCTagUserVO(), datatable_fields_line, null, "NFC Tag User");
+        const datatable_user = ModuleTableController.create_new(this.name, NFCTagUserVO, null, "NFC Tag User");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         nfc_tag_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
-        this.datatables.push(datatable_user);
     }
 }

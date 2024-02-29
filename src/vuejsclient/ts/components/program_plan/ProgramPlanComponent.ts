@@ -9,7 +9,7 @@ import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/Insert
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';

@@ -7,7 +7,7 @@ import ContextFilterTestsTools from './tools/ContextFilterTestsTools';
 import VOsTypesManager from '../../../src/shared/modules/VO/manager/VOsTypesManager';
 import UserVO from '../../../src/shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterServerController from '../../../src/server/modules/ContextFilter/ContextFilterServerController';
-import ModuleTableVO from '../../../src/shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../src/shared/modules/DAO/vos/ModuleTableVO';
 import LangVO from '../../../src/shared/modules/Translation/vos/LangVO';
 import UserRoleVO from '../../../src/shared/modules/AccessPolicy/vos/UserRoleVO';
 import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';

@@ -3,7 +3,7 @@ import moment from 'moment';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../src/shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../../../../src/shared/modules/Var/VarsInitController';
 import VarDAG from '../../../../src/server/modules/Var/vos/VarDAG';
 import VarDAGNode from '../../../../src/server/modules/Var/vos/VarDAGNode';

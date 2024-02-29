@@ -14,4 +14,4 @@ import IUserData from './IUserData';
  * @param user_data les données de l'utilisateur qui initie la demande
  * @param user_roles les roles de l'utilisateur qui initie la demande
  */
-export type IContextHookFilterVos<T extends IDistantVOBase> = (moduletable: ModuleTableVO<T>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]) => Promise<ContextQueryVO>;
+export type IContextHookFilterVos<T extends IDistantVOBase> = (moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]) => Promise<ContextQueryVO>;

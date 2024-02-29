@@ -4,7 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
 import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ArrayHandler from '../../../../shared/tools/ArrayHandler';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';

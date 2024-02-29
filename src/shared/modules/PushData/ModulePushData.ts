@@ -12,6 +12,7 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APINotifTypeResultVO from './vos/APINotifTypeResultVO';
 import NotificationVO from './vos/NotificationVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModulePushData extends Module {
 
@@ -114,9 +115,8 @@ export default class ModulePushData extends Module {
 
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().room_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Room ID', false),
         ];
-        const datatable = new ModuleTableVO(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
+        const datatable = ModuleTableController.create_new(this.name, NotificationVO, null, "Notifications");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private init_APIResultVO() {
@@ -124,7 +124,6 @@ export default class ModulePushData extends Module {
             ModuleTableFieldController.create_new(APINotifTypeResultVO.API_TYPE_ID, field_names<APINotifTypeResultVO>().api_call_id, ModuleTableFieldVO.FIELD_TYPE_int, 'api_call_id', true),
             ModuleTableFieldController.create_new(APINotifTypeResultVO.API_TYPE_ID, field_names<APINotifTypeResultVO>().res, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'res', false)
         ];
-        const datatable = new ModuleTableVO(this, APINotifTypeResultVO.API_TYPE_ID, () => new APINotifTypeResultVO(), datatable_fields, null, "APIRes");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, APINotifTypeResultVO, null, "APIRes");
     }
 }

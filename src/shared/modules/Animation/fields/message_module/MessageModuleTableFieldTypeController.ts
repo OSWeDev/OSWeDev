@@ -1,9 +1,8 @@
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import ModuleTableFieldVO from '../../../DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../ModuleTableFieldVO';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import AnimationMessageModuleVO from './vos/AnimationMessageModuleVO';
 

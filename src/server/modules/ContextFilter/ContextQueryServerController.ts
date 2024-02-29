@@ -15,6 +15,8 @@ import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilte
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
@@ -44,6 +46,7 @@ import ServerAnonymizationController from '../Anonymization/ServerAnonymizationC
 import DAOServerController from '../DAO/DAOServerController';
 import LogDBPerfServerController from '../DAO/LogDBPerfServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleTableFieldServerController from '../DAO/ModuleTableFieldServerController';
 import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import ThrottledQueryServerController from '../DAO/ThrottledQueryServerController';
 import ThrottledRefuseServerController from '../DAO/ThrottledRefuseServerController';
@@ -54,8 +57,6 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
-import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 
 export default class ContextQueryServerController {
 
@@ -379,7 +380,7 @@ export default class ContextQueryServerController {
                 // }
 
                 const forced_numeric_field = {};
-                module_table.force_numeric_field(module_field, row, forced_numeric_field, field_name);
+                ModuleTableFieldServerController.translate_field_from_db(module_field, row, forced_numeric_field, field_name);
                 row[field_name + '__raw'] = forced_numeric_field[field_name];
 
                 // si on est en édition on laisse la data raw
@@ -744,7 +745,7 @@ export default class ContextQueryServerController {
                         }
                         let failed: boolean = false;
 
-                        const bdd_version = moduleTable.get_bdd_version(vo_to_update);
+                        const bdd_version = ModuleTableServerController.translate_vos_to_db(vo_to_update);
                         const query_uid = LogDBPerfServerController.log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
                         const db_result = await ModuleServiceBase.db.oneOrNone(sql, bdd_version).catch((reason) => {
                             ConsoleHandler.error('update_vos :' + reason);
@@ -1011,14 +1012,14 @@ export default class ContextQueryServerController {
         switch (segmentation_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
 
-                if (!segmentation_field.manyToOne_target_moduletable.vo_type) {
+                if (!segmentation_field.foreign_ref_vo_type) {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type)
+                let seg_query = query(segmentation_field.foreign_ref_vo_type)
                     .field('id')
                     .set_query_distinct()
                     .exec_as_server(context_query.is_server);
@@ -1085,14 +1086,14 @@ export default class ContextQueryServerController {
         switch (segmentation_field.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
 
-                if (!segmentation_field.manyToOne_target_moduletable.vo_type) {
+                if (!segmentation_field.foreign_ref_vo_type) {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                const seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+                const seg_query = query(segmentation_field.foreign_ref_vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
                 // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
                 // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
@@ -1160,7 +1161,7 @@ export default class ContextQueryServerController {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
             // Si on ignore_access_hook, on ignore les droits aussi
-            if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_api_type_ids_field_names(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
+            if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_api_type_ids_fields(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_check_access_failed');
                 return null;
             }
@@ -1286,7 +1287,7 @@ export default class ContextQueryServerController {
             for (const key in union_context_queries) {
                 const union_context_query = context_query.union_queries[key];
 
-                const has_access_api_type_id = ContextAccessServerController.check_access_to_api_type_ids_field_names(
+                const has_access_api_type_id = ContextAccessServerController.check_access_to_api_type_ids_fields(
                     union_context_query,
                     union_context_query.base_api_type_id,
                     union_context_query.fields,
@@ -1433,7 +1434,7 @@ export default class ContextQueryServerController {
 
             context_query_segmented.filter_by_id(
                 id,
-                moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
+                moduletable.table_segmented_field.foreign_ref_vo_type
             );
 
             // Build sub-query for the final db request to union
@@ -1641,8 +1642,10 @@ export default class ContextQueryServerController {
             // We should stick to the given fields_for_query (if any without overflow fields)
             const fields_for_query = context_query.fields;
 
+            const base_moduletable_fields_as_array = Object.values(base_moduletable_fields);
+
             // When it is all_default_fields, we should add all_required_fields
-            const have_all_default_fields = base_moduletable_fields.every(
+            const have_all_default_fields = base_moduletable_fields_as_array.every(
                 (moduletable_field) => fields_for_query.find(
                     (field) => field.field_name === moduletable_field.field_name
                 )
@@ -1651,7 +1654,7 @@ export default class ContextQueryServerController {
             // Fields which are in the in the all_required_fields
             // But not in moduletable_fields
             const field_names_to_add: string[] = all_required_fields?.filter(
-                (required_field) => !base_moduletable_fields.find(
+                (required_field) => !base_moduletable_fields_as_array.find(
                     (f) => f.field_name === required_field.field_name
                 )
             ).map((field) => field.field_name);
@@ -2661,7 +2664,7 @@ export default class ContextQueryServerController {
             for (const j in nnfields) {
                 const nnfield = nnfields[j];
 
-                if ((context_query.active_api_type_ids.indexOf(nnfield.many_to_one_target_moduletable_name) < 0) ||
+                if ((context_query.active_api_type_ids.indexOf(nnfield.foreign_ref_vo_type) < 0) ||
                     (context_query.discarded_field_paths && context_query.discarded_field_paths[nn_table.vo_type] && context_query.discarded_field_paths[nn_table.vo_type][nnfield.field_name])) {
                     has_inactive_relation = true;
                     break;
@@ -2823,7 +2826,7 @@ export default class ContextQueryServerController {
                     new_filter.param_text = f.param_text;
                     new_filter.param_textarray = f.param_textarray;
                     new_filter.right_hook = f.right_hook;
-                    new_filter.vo_type = field.manyToOne_target_moduletable.vo_type;
+                    new_filter.vo_type = field.foreign_ref_vo_type;
                     new_filter.param_tsranges = f.param_tsranges;
                     new_filter.sub_query = f.sub_query;
                     new_filter.text_ignore_case = f.text_ignore_case;

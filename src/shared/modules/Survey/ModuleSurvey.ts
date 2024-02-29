@@ -12,6 +12,7 @@ import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import SurveyParamVO from './vos/SurveyParamVO';
 import SurveyVO from './vos/SurveyVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 
 export default class ModuleSurvey extends Module {
@@ -69,8 +70,7 @@ export default class ModuleSurvey extends Module {
             ModuleTableFieldController.create_new(SurveyVO.API_TYPE_ID, field_names<SurveyVO>().route_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
         ];
 
-        const table = new ModuleTableVO(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, SurveyVO, null, 'Surveys');
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
@@ -86,8 +86,7 @@ export default class ModuleSurvey extends Module {
             ModuleTableFieldController.create_new(SurveyParamVO.API_TYPE_ID, field_names<SurveyParamVO>().content, ModuleTableFieldVO.FIELD_TYPE_html, 'Contenu'),
         ];
 
-        const table = new ModuleTableVO(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, SurveyParamVO, null, 'SurveysParam');
 
 
         VersionedVOController.getInstance().registerModuleTable(table);

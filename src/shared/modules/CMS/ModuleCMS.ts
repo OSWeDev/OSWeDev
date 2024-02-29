@@ -2,15 +2,14 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import URLHandler from '../../tools/URLHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import ImageVO from '../Image/vos/ImageVO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ImageVO from '../Image/vos/ImageVO';
+import Module from '../Module';
 import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IInstantiatedPageComponent from './interfaces/IInstantiatedPageComponent';
 import HtmlComponentVO from './page_components_types/HtmlComponentVO';
 import HtmlHtmlComponentVO from './page_components_types/HtmlHtmlComponentVO';
@@ -182,10 +181,9 @@ export default class ModuleCMS extends Module {
             translatable_title_id
         ];
 
-        const datatable = new ModuleTableVO(this, PageVO.API_TYPE_ID, () => new PageVO(), datatable_fields, label_field, "Pages");
+        const datatable = ModuleTableController.create_new(this.name, PageVO, label_field, "Pages");
         translatable_title_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         content_type_id.set_many_to_one_target_moduletable_name(ContentTypeVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeContentTypeVO() {
@@ -197,10 +195,9 @@ export default class ModuleCMS extends Module {
             translatable_desc_id
         ];
 
-        const datatable = new ModuleTableVO(this, ContentTypeVO.API_TYPE_ID, () => new ContentTypeVO(), datatable_fields, label_field, "Types de contenus");
+        const datatable = ModuleTableController.create_new(this.name, ContentTypeVO, label_field, "Types de contenus");
         translatable_desc_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         translatable_name_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializePageAliasVO() {
@@ -211,14 +208,13 @@ export default class ModuleCMS extends Module {
             page_id
         ];
 
-        const datatable = new ModuleTableVO(this, PageAliasVO.API_TYPE_ID, () => new PageAliasVO(), datatable_fields, label_field, "Alias des pages");
+        const datatable = ModuleTableController.create_new(this.name, PageAliasVO, label_field, "Alias des pages");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeTemplateComponentVO() {
         const label_field = ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'UID du composant', true);
-        const translatable_name_id = ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().translatable_title_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Nom', false);
+        const translatable_name_id = ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().translatable_name_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Nom', false);
         const translatable_desc_id = ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().translatable_desc_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Description', false);
         const thumbnail_id = ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().thumbnail_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Miniature', false);
         const datatable_fields = [
@@ -229,11 +225,10 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(TemplateComponentVO.API_TYPE_ID, field_names<TemplateComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, TemplateComponentVO.API_TYPE_ID, () => new TemplateComponentVO(), datatable_fields, label_field, "Templates de composants");
+        const datatable = ModuleTableController.create_new(this.name, TemplateComponentVO, label_field, "Templates de composants");
         translatable_name_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         translatable_desc_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         thumbnail_id.set_many_to_one_target_moduletable_name(ImageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
 
@@ -247,10 +242,9 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(ImgHtmlComponentVO.API_TYPE_ID, field_names<ImgHtmlComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, ImgHtmlComponentVO.API_TYPE_ID, () => new ImgHtmlComponentVO(), datatable_fields, null, "Composant template : Img+HTML");
+        const datatable = ModuleTableController.create_new(this.name, ImgHtmlComponentVO, null, "Composant template : Img+HTML");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
         image_vo_id.set_many_to_one_target_moduletable_name(ImageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeHTML_Img_ComponentVO() {
@@ -263,10 +257,9 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(HtmlImgComponentVO.API_TYPE_ID, field_names<HtmlImgComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, HtmlImgComponentVO.API_TYPE_ID, () => new HtmlImgComponentVO(), datatable_fields, null, "Composant template : HTML+Img");
+        const datatable = ModuleTableController.create_new(this.name, HtmlImgComponentVO, null, "Composant template : HTML+Img");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
         image_vo_id.set_many_to_one_target_moduletable_name(ImageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeHTML_ComponentVO() {
@@ -277,9 +270,8 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(HtmlComponentVO.API_TYPE_ID, field_names<HtmlComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, HtmlComponentVO.API_TYPE_ID, () => new HtmlComponentVO(), datatable_fields, null, "Composant template : HTML");
+        const datatable = ModuleTableController.create_new(this.name, HtmlComponentVO, null, "Composant template : HTML");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeHTML_HTML_ComponentVO() {
@@ -291,9 +283,8 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(HtmlHtmlComponentVO.API_TYPE_ID, field_names<HtmlHtmlComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, HtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML");
+        const datatable = ModuleTableController.create_new(this.name, HtmlHtmlComponentVO, null, "Composant template : HTML+HTML");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeHTML_HTML_HTML_ComponentVO() {
@@ -306,8 +297,7 @@ export default class ModuleCMS extends Module {
             ModuleTableFieldController.create_new(HtmlHtmlHtmlComponentVO.API_TYPE_ID, field_names<HtmlHtmlHtmlComponentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable = new ModuleTableVO(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML+HTML");
+        const datatable = ModuleTableController.create_new(this.name, HtmlHtmlHtmlComponentVO, null, "Composant template : HTML+HTML+HTML");
         page_id.set_many_to_one_target_moduletable_name(PageVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 }

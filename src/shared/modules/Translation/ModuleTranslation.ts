@@ -4,10 +4,10 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import Module from '../Module';
 import GetTranslationParamVO, { GetTranslationParamVOStatic } from './apis/GetTranslationParamVO';
 import TParamVO, { TParamVOStatic } from './apis/TParamVO';
@@ -145,8 +145,7 @@ export default class ModuleTranslation extends Module {
             ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_flag, ModuleTableFieldVO.FIELD_TYPE_string, 'Code du drapeau', false),
             ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_phone, ModuleTableFieldVO.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
-        const datatable_lang = new ModuleTableVO(this, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
-        this.datatables.push(datatable_lang);
+        const datatable_lang = ModuleTableController.create_new(this.name, LangVO, label_field, "Langues");
     }
 
     private initialize_TranslatableTextVO() {
@@ -155,8 +154,7 @@ export default class ModuleTranslation extends Module {
         const datatable_fields = [
             label_field
         ];
-        const datatable_translatabletext = new ModuleTableVO(this, TranslatableTextVO.API_TYPE_ID, () => new TranslatableTextVO(), datatable_fields, label_field, "Codes");
-        this.datatables.push(datatable_translatabletext);
+        const datatable_translatabletext = ModuleTableController.create_new(this.name, TranslatableTextVO, label_field, "Codes");
     }
 
     private initialize_TranslationVO() {
@@ -170,11 +168,10 @@ export default class ModuleTranslation extends Module {
             label_field
         ];
 
-        const datatable_translation = new ModuleTableVO(this, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
-        ModuleTableController.add_composite_unique_key_to_vo_type(TranslationVO.API_TYPE_ID, [field_lang_id, field_text_id]);
+        const datatable_translation = ModuleTableController.create_new(this.name, TranslationVO, label_field, "Traductions");
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(TranslationVO.API_TYPE_ID, [field_lang_id, field_text_id]);
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         field_text_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
-        this.datatables.push(datatable_translation);
     }
 
     private initialize_DefaultTranslationVO() {
@@ -183,7 +180,6 @@ export default class ModuleTranslation extends Module {
             label_field,
             ModuleTableFieldController.create_new(DefaultTranslationVO.API_TYPE_ID, field_names<DefaultTranslationVO>().default_translations, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traductions', true),
         ];
-        const datatable_translatabletext = new ModuleTableVO(this, DefaultTranslationVO.API_TYPE_ID, () => new DefaultTranslationVO(), datatable_fields, label_field, "Traductions par défaut");
-        this.datatables.push(datatable_translatabletext);
+        const datatable_translatabletext = ModuleTableController.create_new(this.name, DefaultTranslationVO, label_field, "Traductions par défaut");
     }
 }

@@ -1,9 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import Module from '../Module';
 import ImageVO from './vos/ImageVO';
 
 export default class ModuleImage extends Module {
@@ -38,7 +38,6 @@ export default class ModuleImage extends Module {
             label_field,
         ];
 
-        const datatable = new ModuleTableVO(this, ImageVO.API_TYPE_ID, () => new ImageVO(), datatable_fields, label_field, "Images");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ImageVO, label_field, "Images");
     }
 }

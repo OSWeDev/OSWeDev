@@ -1,9 +1,9 @@
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
+import ModuleTableController from '../../ModuleTableController';
 
 export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -59,7 +59,7 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         }
     }
 
-    get interModuleTable(): ModuleTableVO<Inter> {
+    get interModuleTable(): ModuleTableVO {
         return this.inter_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.inter_module_table_type_id] : null;
     }
 

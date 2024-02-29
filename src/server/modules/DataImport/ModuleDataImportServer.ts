@@ -1,16 +1,18 @@
 
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDataImport from '../../../shared/modules/DataImport/ModuleDataImport';
+import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
 import DataImportColumnVO from '../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
 import DataImportFormatVO from '../../../shared/modules/DataImport/vos/DataImportFormatVO';
@@ -19,10 +21,8 @@ import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLo
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -45,15 +45,14 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import DataImportBGThread from './bgthreads/DataImportBGThread';
 import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
+import DataImportBGThread from './bgthreads/DataImportBGThread';
 import ImportLogger from './logger/ImportLogger';
-import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -1316,7 +1315,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 for (const j in vo_fields) {
 
                     const vo_field = vo_fields[j];
-                    if (!vo_field.manyToOne_target_moduletable) {
+                    if (!vo_field.foreign_ref_vo_type) {
                         continue;
                     }
 
@@ -1325,32 +1324,32 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                      *      alors soit on a "déjà importé" (donc déjà dans le ordered_vos_by_type_and_initial_id) et dans ce cas c'est ok
                      *      soit on a pas importé et on doit postpone
                      */
-                    if (vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
-                        vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
+                    if (vos_by_type_and_initial_id[vo_field.foreign_ref_vo_type] &&
+                        vos_by_type_and_initial_id[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]]) {
 
-                        if (ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
-                            ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
+                        if (ordered_vos_by_type_and_initial_id[vo_field.foreign_ref_vo_type] &&
+                            ordered_vos_by_type_and_initial_id[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]]) {
 
                             /**
                              * si on a pas la ref encore on la stocke
                              */
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type] = {};
+                            if (!ref_fields[vo_field.foreign_ref_vo_type]) {
+                                ref_fields[vo_field.foreign_ref_vo_type] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]] = {};
+                            if (!ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]]) {
+                                ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type] = {};
+                            if (!ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]][vo._type]) {
+                                ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]][vo._type] = {};
                             }
 
-                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id]) {
-                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id] = {};
+                            if (!ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]][vo._type][vo.id]) {
+                                ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]][vo._type][vo.id] = {};
                             }
 
-                            ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_name]][vo._type][vo.id][vo_field.field_name] = true;
+                            ref_fields[vo_field.foreign_ref_vo_type][vo[vo_field.field_name]][vo._type][vo.id][vo_field.field_name] = true;
                             continue;
                         }
                         need_ref = true;

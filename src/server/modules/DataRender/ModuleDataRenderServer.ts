@@ -124,7 +124,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
      * @param rendered_data_time_segment_type
      */
     public async getDataSegment<T extends IDistantVOBase>(
-        datatable: ModuleTableVO<T>,
+        datatable: ModuleTableVO,
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
 

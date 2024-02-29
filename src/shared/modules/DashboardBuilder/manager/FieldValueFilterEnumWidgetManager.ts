@@ -1,24 +1,25 @@
-import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
-import DashboardVO from "../vos/DashboardVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
-import ModuleTableVO from "../../ModuleTableVO";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
-import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
-import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
-import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFiltersVOManager from "./FieldFiltersVOManager";
-import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
-import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
-import ModuleDAO from "../../DAO/ModuleDAO";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
-import UserVO from "../../AccessPolicy/vos/UserVO";
 import { cloneDeep } from "lodash";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
+import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
+import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import UserVO from "../../AccessPolicy/vos/UserVO";
+import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleDAO from "../../DAO/ModuleDAO";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import DashboardVO from "../vos/DashboardVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
+import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -232,17 +233,17 @@ export default class FieldValueFilterEnumWidgetManager {
             ) {
                 if (
                     !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                    !base_table.table_segmented_field.foreign_ref_vo_type ||
+                    !active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
+                    !Object.keys(active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
                 ) {
                     return;
                 }
 
                 let has_filter: boolean = false;
 
-                for (const field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                for (const field_id in active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]) {
+                    if (active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type][field_id]) {
                         has_filter = true;
                         break;
                     }

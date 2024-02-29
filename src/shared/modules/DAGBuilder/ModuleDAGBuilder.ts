@@ -1,10 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import Module from '../Module';
 import DAGBuilderEdgeVO from './vos/DAGBuilderEdgeVO';
 import DAGBuilderNodeVO from './vos/DAGBuilderNodeVO';
 
@@ -49,7 +48,7 @@ export default class ModuleDAGBuilder extends Module {
             ModuleTableFieldController.create_new(DAGBuilderNodeVO.API_TYPE_ID, field_names<DAGBuilderNodeVO>().props_json, ModuleTableFieldVO.FIELD_TYPE_string, 'props_json', false)
         ];
 
-        const datatable = new ModuleTableVO(this, DAGBuilderNodeVO.API_TYPE_ID, () => new DAGBuilderNodeVO(), datatable_fields, null, "DAGBuilder Node");
+        const datatable = ModuleTableController.create_new(this.name, DAGBuilderNodeVO, null, "DAGBuilder Node");
     }
 
     private init_DAGBuilderEdgeVO() {
@@ -65,7 +64,7 @@ export default class ModuleDAGBuilder extends Module {
             ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().arrowColor, ModuleTableFieldVO.FIELD_TYPE_string, 'arrowColor', false),
         ];
 
-        const datatable = new ModuleTableVO(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
+        const datatable = ModuleTableController.create_new(this.name, DAGBuilderEdgeVO, null, "DAGBuilder Edge");
         from.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
         to.set_many_to_one_target_moduletable_name(DAGBuilderNodeVO.API_TYPE_ID);
     }

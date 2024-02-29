@@ -1,10 +1,10 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import IDistantVOBase from "../../IDistantVOBase";
-import ModuleTableVO from "../../ModuleTableVO";
 import TableFieldTypesManager from "../../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import ModuleTableController from "../ModuleTableController";
+import ModuleTableVO from "./ModuleTableVO";
 
 
 export default class ModuleTableFieldVO implements IDistantVOBase {
@@ -75,16 +75,18 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     /**
      * Lien vers la table liée pour les relations N/1
+     * Remplace many_to_one_target_moduletable qui n'est pas utilisé que dans le contexte manytoone, et qui n'est plus le moduletable directement
      */
-    public many_to_one_target_moduletable_id: number;
+    public foreign_ref_moduletable_id: number;
 
     /**
      * Pour simplifier la création du code de trad et la création des tables,
      *  on stocke à la fois l'id et le name des tables liées.
      * On peut comme ça déclarer les tables et les champs séparément, dans n'importe quel ordre
      *  (celà dit dans le cas de la liaison entre les tables, il faut pouvoir gérer les relations circulaires au niveau de la création des tables)
+     * Remplace many_to_one_target_moduletable qui n'est pas utilisé que dans le contexte manytoone, et qui n'est plus le moduletable directement
      */
-    public many_to_one_target_moduletable_name: string; // Simplifier la création du code de trad et la création des tables
+    public foreign_ref_vo_type: string; // Simplifier la création du code de trad et la création des tables
 
     public module_table_id: number;
     /**
@@ -92,7 +94,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
      *  on stocke à la fois l'id et le name des tables liées.
      * On peut comme ça déclarer les tables et les champs séparément, dans n'importe quel ordre
      */
-    public module_table_name: string; // Simplifier la création du code de trad et la création des tables
+    public module_table_vo_type: string; // Simplifier la création du code de trad et la création des tables
 
     public cascade_on_delete: boolean; // true by default
     public do_not_add_to_crud: boolean; // false by default
@@ -229,7 +231,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     get is_indexed(): boolean {
-        return this.force_index || this.is_unique || !!this.many_to_one_target_moduletable_id;
+        return this.force_index || this.is_unique || !!this.foreign_ref_moduletable_id;
     }
 
     public index(): ModuleTableFieldVO {
@@ -261,13 +263,20 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @deprecated
+     */
+    get field_id(): string {
+        return this.field_name;
+    }
+
     public set_module_table(module_table: ModuleTableVO): ModuleTableFieldVO {
         if (!module_table) {
             throw new Error('ModuleTableFieldVO.set_module_table: module_table cannot be null');
         }
 
         this.module_table_id = module_table.id;
-        this.module_table_name = module_table.name;
+        this.module_table_vo_type = module_table.name;
 
         return this;
     }
@@ -303,7 +312,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     public getValidationTextCodeBase(): string {
-        return "validation.ko." + ModuleTableController.module_tables_by_vo_type[this.module_table_name].full_name + "." + this.field_name + ".";
+        return "validation.ko." + ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type].full_name + "." + this.field_name + ".";
     }
 
     /**
@@ -337,11 +346,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     get field_label_translatable_code(): string {
-        if (!this.module_table_name) {
+        if (!this.module_table_vo_type) {
             return null;
         }
 
-        return "fields.labels." + this.module_table_name + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels." + this.module_table_vo_type + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public getPGSqlFieldDescription() {
@@ -385,11 +394,11 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             return null;
         }
 
-        if (!this.many_to_one_target_moduletable_id) {
+        if (!this.foreign_ref_vo_type) {
             return null;
         }
 
-        const target_table = VOsTypesManager.moduleTables_by_vo_id[this.many_to_one_target_moduletable_id];
+        const target_table = ModuleTableController.module_tables_by_vo_type[this.foreign_ref_vo_type];
 
         if (!target_table || !target_table.full_name) {
             return null;
@@ -408,7 +417,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     public set_many_to_one_target_moduletable_name(many_to_one_target_moduletable_name: string): ModuleTableFieldVO {
-        this.many_to_one_target_moduletable_name = many_to_one_target_moduletable_name;
+        this.foreign_ref_vo_type = many_to_one_target_moduletable_name;
 
         return this;
     }

@@ -12,7 +12,6 @@ import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "./ModuleTableController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
-import IDistantVOBase from "../IDistantVOBase";
 
 export default class ModuleTableFieldController {
 
@@ -39,7 +38,7 @@ export default class ModuleTableFieldController {
     ): ModuleTableFieldVO {
         const res: ModuleTableFieldVO = new ModuleTableFieldVO();
 
-        res.module_table_name = vo_type;
+        res.module_table_vo_type = vo_type;
         res.field_name = field_name;
         res.field_type = field_type;
         res.field_required = field_required;
@@ -155,7 +154,7 @@ export default class ModuleTableFieldController {
          */
         if (field.secure_boolean_switch_only_server_side) {
             if (e) {
-                StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_from_api.secure_boolean_switch_only_server_side", field.module_table_name + '.' + field.field_name);
+                StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_from_api.secure_boolean_switch_only_server_side", field.module_table_vo_type + '.' + field.field_name);
             }
             return false;
         }
@@ -184,7 +183,7 @@ export default class ModuleTableFieldController {
 
             case ModuleTableFieldVO.FIELD_TYPE_hour:
             case ModuleTableFieldVO.FIELD_TYPE_tstz:
-                return ConversionHandler.forceNumber(e);
+                return ConversionHandler.forceNumber(e as string | number);
 
             case ModuleTableFieldVO.FIELD_TYPE_int_array:
             case ModuleTableFieldVO.FIELD_TYPE_float_array: {
@@ -217,7 +216,7 @@ export default class ModuleTableFieldController {
                     return null;
                 }
 
-                return (e.length > 2) ? e.substr(1, e.length - 2).split(',') : e;
+                return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 2).split(',') : e;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj: {
 
@@ -254,7 +253,7 @@ export default class ModuleTableFieldController {
                             }
                             trans_ = new_obj;
                         } else {
-                            trans_ = Object.assign(field_table.voConstructor(), ModuleTableController.translate_vos_from_api(trans_));
+                            trans_ = Object.assign(ModuleTableController.vo_constructor_by_vo_type[elt_type], ModuleTableController.translate_vos_from_api(trans_));
                         }
                     }
                 }
@@ -287,7 +286,7 @@ export default class ModuleTableFieldController {
          */
         if (field.secure_boolean_switch_only_server_side) {
             if (e) {
-                StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_to_api.secure_boolean_switch_only_server_side", field.module_table_name + '.' + field.field_name);
+                StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_to_api.secure_boolean_switch_only_server_side", field.module_table_vo_type + '.' + field.field_name);
             }
             return false;
         }

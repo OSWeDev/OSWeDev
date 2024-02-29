@@ -10,7 +10,7 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleParams from '../../../../../../../shared/modules/Params/ModuleParams';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';

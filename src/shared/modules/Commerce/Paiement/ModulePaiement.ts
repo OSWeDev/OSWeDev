@@ -1,9 +1,8 @@
 import { field_names } from '../../../tools/ObjectHandler';
-import Module from '../../Module';
-import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import Module from '../../Module';
 import AbonnementVO from '../Abonnement/vos/AbonnementVO';
 import ModePaiementVO from './vos/ModePaiementVO';
 import PaiementVO from './vos/PaiementVO';
@@ -31,17 +30,17 @@ export default class ModulePaiement extends Module {
 
     public initializeModePaiement(): void {
         // Création de la table ModePaiement
-        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(ModePaiementVO.API_TYPE_ID, field_names<ModePaiementVO>().mode, ModuleTableFieldVO.FIELD_TYPE_string, 'Mode');
+        const default_label_field: ModuleTableFieldVO = ModuleTableFieldController.create_new(ModePaiementVO.API_TYPE_ID, field_names<ModePaiementVO>().mode, ModuleTableFieldVO.FIELD_TYPE_string, 'Mode');
         const datatable_fields = [
             default_label_field,
         ];
-        this.datatables.push(new ModuleTableVO<ModePaiementVO>(this, ModePaiementVO.API_TYPE_ID, () => new ModePaiementVO(), datatable_fields, default_label_field, 'Mode de paiement'));
+        ModuleTableController.create_new(this.name, ModePaiementVO, default_label_field, 'Mode de paiement');
     }
 
     public initializePaiement(): void {
         // Création de la table Paiement
-        const field_abonnement_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(PaiementVO.API_TYPE_ID, field_names<PaiementVO>().abonnement_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Abonnement', true);
-        const field_mode_paiement_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(PaiementVO.API_TYPE_ID, field_names<PaiementVO>().mode_paiement_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mode paiement', true);
+        const field_abonnement_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(PaiementVO.API_TYPE_ID, field_names<PaiementVO>().abonnement_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Abonnement', true);
+        const field_mode_paiement_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(PaiementVO.API_TYPE_ID, field_names<PaiementVO>().mode_paiement_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Mode paiement', true);
 
         const datatable_fields = [
             field_abonnement_id,
@@ -51,9 +50,8 @@ export default class ModulePaiement extends Module {
                 [PaiementVO.STATUT_SUCCES]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_SUCCES],
             }),
         ];
-        const dt = new ModuleTableVO<PaiementVO>(this, PaiementVO.API_TYPE_ID, () => new PaiementVO(), datatable_fields, field_mode_paiement_id, 'Paiement');
+        const dt = ModuleTableController.create_new(this.name, PaiementVO, field_mode_paiement_id, 'Paiement');
         field_abonnement_id.set_many_to_one_target_moduletable_name(AbonnementVO.API_TYPE_ID);
         field_mode_paiement_id.set_many_to_one_target_moduletable_name(ModePaiementVO.API_TYPE_ID);
-        this.datatables.push(dt);
     }
 }

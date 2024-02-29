@@ -1,20 +1,19 @@
-import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
-import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
+import VarsController from '../../../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ModuleDAOServer from '../../../DAO/ModuleDAOServer';
+import PixelVarDataController from '../../PixelVarDataController';
 import VarsCacheController from '../../VarsCacheController';
 import VarsDatasProxy from '../../VarsDatasProxy';
 import VarsProcessBase from './VarsProcessBase';
-import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
-import PixelVarDataController from '../../PixelVarDataController';
-import VarsController from '../../../../../shared/modules/Var/VarsController';
 
 export default class VarsProcessUpdateDB extends VarsProcessBase {
 

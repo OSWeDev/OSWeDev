@@ -1,13 +1,12 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
 import ImageVO from '../Image/vos/ImageVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import ChatModalMessageFileVO from './vos/ChatModalMessageFileVO';
 import ChatModalMessageImageVO from './vos/ChatModalMessageImageVO';
@@ -62,12 +61,10 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalMessageFileVO.API_TYPE_ID, field_names<ChatModalMessageFileVO>().file_url, ModuleTableFieldVO.FIELD_TYPE_string, "URL du fichier"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalMessageFileVO.API_TYPE_ID, () => new ChatModalMessageFileVO(), fields, null, "Fichiers attachés aux messages");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalMessageFileVO, null, "Fichiers attachés aux messages");
 
         file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeChatModalMessageImageVO() {
@@ -81,12 +78,10 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalMessageImageVO.API_TYPE_ID, field_names<ChatModalMessageImageVO>().image_url, ModuleTableFieldVO.FIELD_TYPE_string, "URL de l'image"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalMessageImageVO.API_TYPE_ID, () => new ChatModalMessageImageVO(), fields, null, "Images attachées aux messages");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalMessageImageVO, null, "Images attachées aux messages");
 
         image_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
         message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeChatModalMessageReplyOptionVO() {
@@ -101,11 +96,9 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalMessageReplyOptionVO.API_TYPE_ID, field_names<ChatModalMessageReplyOptionVO>().translatable_code_text, ModuleTableFieldVO.FIELD_TYPE_translatable_text, "Texte de l'option de réponse"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalMessageReplyOptionVO.API_TYPE_ID, () => new ChatModalMessageReplyOptionVO(), fields, null, "Options de réponse aux messages");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalMessageReplyOptionVO, null, "Options de réponse aux messages");
 
         message_id.set_many_to_one_target_moduletable_name(ChatModalMessageVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeChatModalMessageVO() {
@@ -120,12 +113,10 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalMessageVO.API_TYPE_ID, field_names<ChatModalMessageVO>().creation_date_sec, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date de création du message"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalMessageVO.API_TYPE_ID, () => new ChatModalMessageVO(), fields, null, "Lien compte Azure");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalMessageVO, null, "Lien compte Azure");
 
         thread_id.set_many_to_one_target_moduletable_name(ChatModalThreadVO.API_TYPE_ID);
         user_id.set_many_to_one_target_moduletable_name(ChatModalUserVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeChatModalThreadVO() {
@@ -134,9 +125,7 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalThreadVO.API_TYPE_ID, field_names<ChatModalThreadVO>().title, ModuleTableFieldVO.FIELD_TYPE_string, "Titre du thread"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalThreadVO.API_TYPE_ID, () => new ChatModalThreadVO(), fields, null, "Threads");
-
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ChatModalThreadVO, null, "Threads");
         VersionedVOController.getInstance().registerModuleTable(datatable);
     }
 
@@ -149,12 +138,10 @@ export default class ChatModal extends Module {
             thread_id,
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalThreadUserVO.API_TYPE_ID, () => new ChatModalThreadUserVO(), fields, null, "Utilisateurs du thread");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalThreadUserVO, null, "Utilisateurs du thread");
 
         user_id.set_many_to_one_target_moduletable_name(ChatModalUserVO.API_TYPE_ID);
         thread_id.set_many_to_one_target_moduletable_name(ChatModalThreadVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
     private initializeChatModalUserVO() {
@@ -168,11 +155,9 @@ export default class ChatModal extends Module {
             ModuleTableFieldController.create_new(ChatModalUserVO.API_TYPE_ID, field_names<ChatModalUserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom de l'utilisateur"),
         ];
 
-        const datatable = new ModuleTableVO(this, ChatModalUserVO.API_TYPE_ID, () => new ChatModalUserVO(), fields, null, "Utilisateurs du chat");
+        const datatable = ModuleTableController.create_new(this.name, ChatModalUserVO, null, "Utilisateurs du chat");
 
         avatar_id.set_many_to_one_target_moduletable_name(ImageVO.API_TYPE_ID);
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 }

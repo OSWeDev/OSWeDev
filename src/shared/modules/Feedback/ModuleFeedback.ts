@@ -1,18 +1,17 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import FeedbackStateVO from './vos/FeedbackStateVO';
 import FeedbackVO from './vos/FeedbackVO';
 
@@ -69,8 +68,7 @@ export default class ModuleFeedback extends Module {
             ModuleTableFieldController.create_new(FeedbackStateVO.API_TYPE_ID, field_names<FeedbackStateVO>().is_default_state, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Etat par défaut', true, true, false),
         ];
 
-        const table = new ModuleTableVO(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, FeedbackStateVO, name, 'Feedbacks - Etats');
     }
 
     private initializeFeedbackVO() {
@@ -129,8 +127,7 @@ export default class ModuleFeedback extends Module {
             ModuleTableFieldController.create_new(FeedbackVO.API_TYPE_ID, field_names<FeedbackVO>().preferred_times_called, ModuleTableFieldVO.FIELD_TYPE_string, 'Horaires de préférence', false).hide_from_datatable(),
         ];
 
-        const table = new ModuleTableVO(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, FeedbackVO, null, 'Feedbacks');
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         impersonated_from_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);

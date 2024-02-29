@@ -2,12 +2,11 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
-import IRange from '../../DataRender/interfaces/IRange';
-import IMatroid from '../../Matroid/interfaces/IMatroid';
-import MatroidController from '../../Matroid/MatroidController';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import IRange from '../../DataRender/interfaces/IRange';
+import MatroidController from '../../Matroid/MatroidController';
+import IMatroid from '../../Matroid/interfaces/IMatroid';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
@@ -54,9 +53,8 @@ export default class VarDataBaseVO implements IMatroid {
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
         const varConf = VarsController.var_conf_by_name[var_name];
-        const moduletable = ModuleTableController.module_tables_by_vo_type[varConf.var_data_vo_type];
 
-        const res: T = moduletable.voConstructor();
+        const res: T = new ModuleTableController.vo_constructor_by_vo_type[varConf.var_data_vo_type]() as T;
         res._type = varConf.var_data_vo_type;
         res.var_id = varConf.id;
 

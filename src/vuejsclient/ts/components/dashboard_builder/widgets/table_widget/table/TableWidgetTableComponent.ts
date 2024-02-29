@@ -43,9 +43,9 @@ import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExpor
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
-import ModuleTableVO from '../../../../../../../shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';

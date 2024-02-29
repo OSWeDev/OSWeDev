@@ -5,8 +5,8 @@ import AnonymizationUserConfVO from "../../../shared/modules/Anonymization/vos/A
 import ContextQueryFieldVO from "../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO";
 import ContextQueryVO, { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
+import ModuleTableVO from "../../../shared/modules/DAO/vos/ModuleTableVO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
-import ModuleTableVO from "../../../shared/modules/ModuleTableVO";
 import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
@@ -50,7 +50,7 @@ export default class ServerAnonymizationController {
         ServerAnonymizationController.registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_name][anonymization_user_conf.user_id] = anonymization_user_conf;
     }
 
-    public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
+    public static async check_is_anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
         const res: T[] = [];
 
         for (const i in vos) {
@@ -95,7 +95,7 @@ export default class ServerAnonymizationController {
         return null;
     }
 
-    public static anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, vos: T[], uid: number, user_data: IUserData): T[] {
+    public static anonymise<T extends IDistantVOBase>(datatable: ModuleTableVO, vos: T[], uid: number, user_data: IUserData): T[] {
         const res: T[] = [];
 
         for (const i in vos) {

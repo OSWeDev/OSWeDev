@@ -2,7 +2,7 @@ import { Cell, Editor, Graph } from "@maxgraph/core";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
-import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";

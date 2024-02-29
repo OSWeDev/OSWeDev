@@ -4,6 +4,10 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import ComponentDatatableFieldVO from '../DAO/vos/datatable/ComponentDatatableFieldVO';
 import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
@@ -18,10 +22,6 @@ import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO'
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
@@ -108,8 +108,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        const res = new ModuleTableVO(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
     }
 
@@ -128,8 +127,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardGraphVORefVO.API_TYPE_ID, field_names<DashboardGraphVORefVO>().values_to_exclude, ModuleTableFieldVO.FIELD_TYPE_string_array, 'field_id des liens à exclure'),
         ];
 
-        const res = new ModuleTableVO(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, DashboardGraphVORefVO, null, "Cellule du graph de vos de Dashboard");
         dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
     }
@@ -145,8 +143,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false),
         ];
 
-        const res = new ModuleTableVO(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, DashboardPageVO, null, "Pages de Dashboard");
         dashboard_id.set_many_to_one_target_moduletable_name(db_table.vo_type);
         return res;
     }
@@ -168,9 +165,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false),
         ];
 
-        const res = new ModuleTableVO(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
-
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, DashboardWidgetVO, name, "Widgets de Dashboard");
 
         return res;
     }
@@ -207,16 +202,12 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().background, ModuleTableFieldVO.FIELD_TYPE_string, 'background', true),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                DashboardPageWidgetVO.API_TYPE_ID,
-                () => new DashboardPageWidgetVO(),
-                datatable_fields,
-                null,
-                "Pages de Dashboard"
-            )
-        );
+        ModuleTableController.create_new(
+            this.name,
+            DashboardPageWidgetVO,
+            null,
+            "Pages de Dashboard"
+        )
 
         widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
@@ -242,17 +233,12 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(FavoritesFiltersVO.API_TYPE_ID, field_names<FavoritesFiltersVO>().options, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Behaviours Options', false),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                FavoritesFiltersVO.API_TYPE_ID,
-                () => new FavoritesFiltersVO(),
-                datatable_fields,
-                null,
-                "Filtres Favoris"
-            )
-        );
-
+        ModuleTableController.create_new(
+            this.name,
+            FavoritesFiltersVO,
+            null,
+            "Filtres Favoris"
+        )
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
     }
 
@@ -269,16 +255,12 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(SharedFiltersVO.API_TYPE_ID, field_names<SharedFiltersVO>().shared_with_dashboard_ids, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Filtre partagé avec les dashboards', false),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                SharedFiltersVO.API_TYPE_ID,
-                () => new SharedFiltersVO(),
-                datatable_fields,
-                null,
-                "Filtres Favoris"
-            )
-        );
+        ModuleTableController.create_new(
+            this.name,
+            SharedFiltersVO,
+            null,
+            "Filtres Favoris"
+        )
     }
 
     private init_VOFieldRefVO() {
@@ -289,7 +271,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(VOFieldRefVO.API_TYPE_ID, field_names<VOFieldRefVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, VOFieldRefVO.API_TYPE_ID, () => new VOFieldRefVO(), datatable_fields, null, "Référence de champs"));
+        ModuleTableController.create_new(this.name, VOFieldRefVO, null, "Référence de champs");
     }
 
     private init_TableColumnDescVO() {
@@ -347,7 +329,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
+        ModuleTableController.create_new(this.name, TableColumnDescVO, null, "Référence de champs");
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
     }
 
@@ -362,346 +344,334 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(AdvancedDateFilterOptDescVO.API_TYPE_ID, field_names<AdvancedDateFilterOptDescVO>().segmentation_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de segment').setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, AdvancedDateFilterOptDescVO.API_TYPE_ID, () => new AdvancedDateFilterOptDescVO(), datatable_fields, null, "Option filtre date avancé"));
+        ModuleTableController.create_new(this.name, AdvancedDateFilterOptDescVO, null, "Option filtre date avancé");
     }
 
 
     private initialize_ComponentDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().component_name, ModuleTableFieldVO.FIELD_TYPE_string, 'component_name'),
-            ModuleTableFieldController.create_new(field_names<ComponentDatatableFieldVO<any, any>>().parameter_datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'parameter_datatable_field_uid'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().component_name, ModuleTableFieldVO.FIELD_TYPE_string, 'component_name'),
+            ModuleTableFieldController.create_new(ComponentDatatableFieldVO.API_TYPE_ID, field_names<ComponentDatatableFieldVO<any, any>>().parameter_datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'parameter_datatable_field_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, ComponentDatatableFieldVO.API_TYPE_ID, () => new ComponentDatatableFieldVO(), datatable_fields, null, "ComponentDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, ComponentDatatableFieldVO, null, "ComponentDatatableFieldVO");
     }
 
     private initialize_ComputedDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<ComputedDatatableFieldVO<any, any, any>>().compute_function_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'compute_function_uid'),
+            ModuleTableFieldController.create_new(ComputedDatatableFieldVO.API_TYPE_ID, field_names<ComputedDatatableFieldVO<any, any, any>>().compute_function_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'compute_function_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, ComputedDatatableFieldVO.API_TYPE_ID, () => new ComputedDatatableFieldVO(), datatable_fields, null, "ComputedDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, ComputedDatatableFieldVO, null, "ComputedDatatableFieldVO");
     }
 
     private initialize_CRUDActionsDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<CRUDActionsDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(CRUDActionsDatatableFieldVO.API_TYPE_ID, field_names<CRUDActionsDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, CRUDActionsDatatableFieldVO.API_TYPE_ID, () => new CRUDActionsDatatableFieldVO(), datatable_fields, null, "CRUDActionsDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, CRUDActionsDatatableFieldVO, null, "CRUDActionsDatatableFieldVO");
     }
 
     private initialize_FileDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<FileDatatableFieldVO<any, any>>().parameter_datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'parameter_datatable_field_uid'),
+            ModuleTableFieldController.create_new(FileDatatableFieldVO.API_TYPE_ID, field_names<FileDatatableFieldVO<any, any>>().parameter_datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'parameter_datatable_field_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, FileDatatableFieldVO.API_TYPE_ID, () => new FileDatatableFieldVO(), datatable_fields, null, "FileDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, FileDatatableFieldVO, null, "FileDatatableFieldVO");
     }
 
     private initialize_InputDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<InputDatatableFieldVO<any, any>>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'field_type'),
+            ModuleTableFieldController.create_new(InputDatatableFieldVO.API_TYPE_ID, field_names<InputDatatableFieldVO<any, any>>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'field_type'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, InputDatatableFieldVO.API_TYPE_ID, () => new InputDatatableFieldVO(), datatable_fields, null, "InputDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, InputDatatableFieldVO, null, "InputDatatableFieldVO");
     }
 
     private initialize_ManyToManyReferenceDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
 
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().inter_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'inter_module_table_type_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interTargetRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interTargetRefFieldId'),
-            ModuleTableFieldController.create_new(field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interSrcRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interSrcRefFieldId'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().inter_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'inter_module_table_type_id'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interTargetRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interTargetRefFieldId'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interSrcRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interSrcRefFieldId'),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                ManyToManyReferenceDatatableFieldVO.API_TYPE_ID,
-                () => new ManyToManyReferenceDatatableFieldVO(),
-                datatable_fields,
-                null,
-                "ManyToManyReferenceDatatableFieldVO"
-            )
-        );
+        ModuleTableController.create_new(
+            this.name,
+            ManyToManyReferenceDatatableFieldVO,
+            null,
+            "ManyToManyReferenceDatatableFieldVO"
+        )
     }
 
     private initialize_ManyToOneReferenceDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
 
-            ModuleTableFieldController.create_new(field_names<ManyToOneReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, () => new ManyToOneReferenceDatatableFieldVO(), datatable_fields, null, "ManyToOneReferenceDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, ManyToOneReferenceDatatableFieldVO, null, "ManyToOneReferenceDatatableFieldVO");
     }
 
     private initialize_OneToManyReferenceDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
 
-            ModuleTableFieldController.create_new(field_names<OneToManyReferenceDatatableFieldVO<any>>()._dest_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_dest_field_id'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>()._dest_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_dest_field_id'),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                OneToManyReferenceDatatableFieldVO.API_TYPE_ID,
-                () => new OneToManyReferenceDatatableFieldVO(),
-                datatable_fields,
-                null,
-                "OneToManyReferenceDatatableFieldVO"
-            )
-        );
+        ModuleTableController.create_new(
+            this.name,
+            OneToManyReferenceDatatableFieldVO,
+            null,
+            "OneToManyReferenceDatatableFieldVO"
+        )
     }
 
     private initialize_RefRangesReferenceDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
 
-            ModuleTableFieldController.create_new(field_names<RefRangesReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
         ];
 
-        this.datatables.push(
-            new ModuleTableVO(
-                this,
-                RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
-                () => new RefRangesReferenceDatatableFieldVO(),
-                datatable_fields,
-                null,
-                "RefRangesReferenceDatatableFieldVO"
-            )
-        );
+        ModuleTableController.create_new(
+            this.name,
+            RefRangesReferenceDatatableFieldVO,
+            null,
+            "RefRangesReferenceDatatableFieldVO"
+        )
     }
 
     private initialize_SelectBoxDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<SelectBoxDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(SelectBoxDatatableFieldVO.API_TYPE_ID, field_names<SelectBoxDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, SelectBoxDatatableFieldVO.API_TYPE_ID, () => new SelectBoxDatatableFieldVO(), datatable_fields, null, "SelectBoxDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, SelectBoxDatatableFieldVO, null, "SelectBoxDatatableFieldVO");
     }
 
     private initialize_SimpleDatatableFieldVO() {
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'field_type'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().enum_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'enum_values'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'segmentation_type'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().is_inclusive_data, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_inclusive_data'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().is_inclusive_ihm, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_inclusive_ihm'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().return_min_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'return_min_value'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().format_localized_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'format_localized_time'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().return_max_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'return_max_value'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<SimpleDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'field_type'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().enum_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'enum_values'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'segmentation_type'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().is_inclusive_data, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_inclusive_data'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().is_inclusive_ihm, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_inclusive_ihm'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().return_min_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'return_min_value'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().format_localized_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'format_localized_time'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().return_max_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'return_max_value'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, SimpleDatatableFieldVO.API_TYPE_ID, () => new SimpleDatatableFieldVO(), datatable_fields, null, "SimpleDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, SimpleDatatableFieldVO, null, "SimpleDatatableFieldVO");
     }
 
     private initialize_VarDatatableFieldVO() {
-        const var_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Variable");
-        const dashboard_id = ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard");
+        const var_id = ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Variable");
+        const dashboard_id = ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().dashboard_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard");
 
         const datatable_fields = [
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>()._vo_type_id, ModuleTableFieldVO.FIELD_TYPE_string, '_vo_type_id'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().vo_type_full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'vo_type_full_name'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'tooltip'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().is_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_required', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_readonly', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().hiden_export, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hiden_export', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'hidden_print', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().force_toggle_button, ModuleTableFieldVO.FIELD_TYPE_boolean, 'force_toggle_button', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().translatable_place_holder, ModuleTableFieldVO.FIELD_TYPE_string, 'translatable_place_holder'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().select_options_enabled, ModuleTableFieldVO.FIELD_TYPE_int_array, 'select_options_enabled'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>()._module_table_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_module_table_field_id'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
             var_id,
             dashboard_id,
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().filter_type, ModuleTableFieldVO.FIELD_TYPE_string, 'filter_type'),
-            ModuleTableFieldController.create_new(field_names<VarDatatableFieldVO<any, any>>().filter_additional_params, ModuleTableFieldVO.FIELD_TYPE_string, 'filter_additional_params'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().filter_type, ModuleTableFieldVO.FIELD_TYPE_string, 'filter_type'),
+            ModuleTableFieldController.create_new(VarDatatableFieldVO.API_TYPE_ID, field_names<VarDatatableFieldVO<any, any>>().filter_additional_params, ModuleTableFieldVO.FIELD_TYPE_string, 'filter_additional_params'),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, VarDatatableFieldVO.API_TYPE_ID, () => new VarDatatableFieldVO(), datatable_fields, null, "VarDatatableFieldVO"));
+        ModuleTableController.create_new(this.name, VarDatatableFieldVO, null, "VarDatatableFieldVO");
 
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         dashboard_id.set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);

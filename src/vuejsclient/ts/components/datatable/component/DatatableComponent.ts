@@ -20,7 +20,7 @@ import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesN
 import IArchivedVOBase from '../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';

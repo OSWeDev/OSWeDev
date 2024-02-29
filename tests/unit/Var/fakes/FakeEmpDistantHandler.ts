@@ -1,9 +1,9 @@
 
 import moment from 'moment';
 import DAOUpdateVOHolder from '../../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
-import ModuleTableVO from '../../../../src/shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../../src/shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../src/shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../src/shared/modules/VO/manager/VOsTypesManager';
 import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
 
@@ -17,7 +17,7 @@ export default class FakeEmpDistantHandler {
             ModuleTableFieldController.create_new('value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
         ];
 
-        VOsTypesManager.registerModuleTable(new ModuleTableVO(null, FakeEmpDistantVO.API_TYPE_ID, () => new FakeEmpDistantVO(), datatable_fields, null));
+        VOsTypesManager.registerModuleTable(ModuleTableController.create_new(null.name, FakeEmpDistantVO, null), null.name);
     }
 
     public static get_distant_A(): FakeEmpDistantVO {

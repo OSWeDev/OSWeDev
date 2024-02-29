@@ -1,7 +1,9 @@
 import { cloneDeep, isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
+import ModuleTableController from "../../DAO/ModuleTableController";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
 import NumRange from "../../DataRender/vos/NumRange";
@@ -10,10 +12,7 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 import IIsServerField from "../../IIsServerField";
 import MatroidController from "../../Matroid/MatroidController";
 import IMatroid from "../../Matroid/interfaces/IMatroid";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../ModuleTableFieldVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
@@ -109,24 +108,24 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public query_tables_prefix: string;
 
     /**
-     * On renomme / remplace is_access_hook_def par is_admin => on indique qu'on ignore tout type de
+     * On renomme / remplace is_access_hook_def par is_server => on indique qu'on ignore tout type de
      *  filtrage des types de données et des données (les droits, et les content access hooks)
      * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
     public is_server: boolean;
 
     /**
-     * @deprecated use is_admin
+     * @deprecated use is_server
      */
     get is_access_hook_def(): boolean {
         return this.is_server;
     }
 
     /**
-     * @deprecated use is_admin
+     * @deprecated use is_server
      */
-    set is_access_hook_def(is_admin: boolean) {
-        this.is_server = is_admin;
+    set is_access_hook_def(is_server: boolean) {
+        this.is_server = is_server;
     }
 
     /**

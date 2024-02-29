@@ -1,12 +1,11 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
-import IRange from '../DataRender/interfaces/IRange';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
-import IMatroid from './interfaces/IMatroid';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import IRange from '../DataRender/interfaces/IRange';
 import MatroidBaseController from './MatroidBaseController';
+import IMatroid from './interfaces/IMatroid';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import MatroidCutResult from './vos/MatroidCutResult';
@@ -550,7 +549,7 @@ export default class MatroidController {
         const moduletable_from = ModuleTableController.module_tables_by_vo_type[from._type];
         const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
-        const res: U = moduletable_to.voConstructor();
+        const res: U = new ModuleTableController.vo_constructor_by_vo_type[_type]() as U;
         res._type = _type;
 
         // Compatibilité avec les vars

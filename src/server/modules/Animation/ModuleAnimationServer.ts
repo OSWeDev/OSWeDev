@@ -556,13 +556,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         const filter_roles: ContextFilterVO = new ContextFilterVO();
         filter_roles.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-        filter_roles.field_id = 'role_id_ranges';
+        filter_roles.field_name = 'role_id_ranges';
         filter_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
         filter_roles.param_numranges = RangeHandler.get_ids_ranges_from_vos(user_roles);
 
         const filter_no_roles: ContextFilterVO = new ContextFilterVO();
         filter_no_roles.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
-        filter_no_roles.field_id = 'role_id_ranges';
+        filter_no_roles.field_name = 'role_id_ranges';
         filter_no_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
 
         const filter_or: ContextFilterVO = new ContextFilterVO();
@@ -578,7 +578,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterAnimationModule(datatable: ModuleTableVO<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
+    private async filterAnimationModule(datatable: ModuleTableVO, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
         if (this.isAdmin()) {
             return vos;
         }

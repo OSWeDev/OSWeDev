@@ -143,11 +143,11 @@ export default class SupervisionController {
             for (const i in table_fields) {
                 const vofield = table_fields[i];
 
-                if (!vofield.many_to_one_target_moduletable_name) {
+                if (!vofield.foreign_ref_vo_type) {
                     continue;
                 }
 
-                newTable_fields[vofield.field_name].set_many_to_one_target_moduletable_name(vofield.many_to_one_target_moduletable_name);
+                newTable_fields[vofield.field_name].set_many_to_one_target_moduletable_name(vofield.foreign_ref_vo_type);
             }
         }
     }

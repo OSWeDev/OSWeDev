@@ -30,7 +30,7 @@ import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO"
 import VOsTypesHandler from "../../../shared/modules/VO/handler/VOsTypesHandler";
 import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../shared/modules/ModuleTableFieldVO";
+import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 
 // MONTHS MIXIN
 const months = [

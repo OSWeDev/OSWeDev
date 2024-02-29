@@ -1,9 +1,9 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleEnvParam from '../../../shared/modules/EnvParam/ModuleEnvParam';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
 

@@ -3,16 +3,15 @@ import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import DatatableField from '../DAO/vos/datatable/DatatableField';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import DatatableField from '../DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import StatsController from '../Stats/StatsController';
 import VarConfVO from '../Var/vos/VarConfVO';
 import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
 import ContextFilterVO from './vos/ContextFilterVO';
@@ -341,8 +340,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(SortByVO.API_TYPE_ID, field_names<SortByVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
         ];
 
-        const datatable = new ModuleTableVO(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, SortByVO, null, "Trier");
     }
 
     private init_ContextFilterVO() {
@@ -368,8 +366,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextFilterVO.API_TYPE_ID, field_names<ContextFilterVO>().sub_query, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
-        const datatable = new ModuleTableVO(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ContextFilterVO, null, "Filtre contextuel");
     }
 
     private init_ContextQueryJoinOnFieldVO() {
@@ -381,8 +378,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryJoinOnFieldVO.API_TYPE_ID, field_names<ContextQueryJoinOnFieldVO>().initial_context_query_field_name_or_alias, ModuleTableFieldVO.FIELD_TYPE_string, 'initial_context_query_field_name_or_alias', true),
         ];
 
-        const datatable = new ModuleTableVO(this, ContextQueryJoinOnFieldVO.API_TYPE_ID, () => new ContextQueryJoinOnFieldVO(), datatable_fields, null, "Champs pour join de requêtes");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ContextQueryJoinOnFieldVO, null, "Champs pour join de requêtes");
     }
 
     private init_ContextQueryJoinVO() {
@@ -394,8 +390,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryJoinVO.API_TYPE_ID, field_names<ContextQueryJoinVO>().join_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'join_type', true, true, ContextQueryJoinVO.JOIN_TYPE_LEFT_JOIN).setEnumValues(ContextQueryJoinVO.JOIN_TYPE_LABELS),
         ];
 
-        const datatable = new ModuleTableVO(this, ContextQueryJoinVO.API_TYPE_ID, () => new ContextQueryJoinVO(), datatable_fields, null, "Join de requête");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ContextQueryJoinVO, null, "Join de requête");
     }
 
     private init_ContextQueryFieldVO() {
@@ -408,8 +403,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
             ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false),
         ];
-        const datatable = new ModuleTableVO(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ContextQueryFieldVO, null, "Champs de requête");
     }
 
     private init_ContextQueryVO() {
@@ -423,7 +417,7 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_offset, ModuleTableFieldVO.FIELD_TYPE_int, 'query_offset', true, true, 0),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().sort_by, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_tables_prefix, ModuleTableFieldVO.FIELD_TYPE_string, 'query_tables_prefix', false),
-            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().is_admin, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_admin', true, true, false).flag_as_secure_boolean_switch_only_server_side(),
+            ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().is_server, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_server', true, true, false).flag_as_secure_boolean_switch_only_server_side(),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().use_technical_field_versioning, ModuleTableFieldVO.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().query_distinct, ModuleTableFieldVO.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().discarded_field_paths, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
@@ -435,7 +429,6 @@ export default class ModuleContextFilter extends Module {
             ModuleTableFieldController.create_new(ContextQueryVO.API_TYPE_ID, field_names<ContextQueryVO>().throttle_query_select, ModuleTableFieldVO.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
         ];
 
-        const datatable = new ModuleTableVO(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, ContextQueryVO, null, "Requête");
     }
 }

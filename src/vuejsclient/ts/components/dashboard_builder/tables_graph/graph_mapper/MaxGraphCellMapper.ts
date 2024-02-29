@@ -1,8 +1,8 @@
 import { Cell, Geometry, Graph, Rectangle } from "@maxgraph/core";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
-import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../../../../shared/modules/ModuleTableFieldVO";
+import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";

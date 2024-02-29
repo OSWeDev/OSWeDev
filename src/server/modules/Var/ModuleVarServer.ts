@@ -13,6 +13,8 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
@@ -23,15 +25,12 @@ import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTC
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
@@ -1438,15 +1437,15 @@ export default class ModuleVarServer extends ModuleServerBase {
                 switch (matroid_field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                        if (matroid_field.has_relation) {
+                        if (!!matroid_field.foreign_ref_vo_type) {
 
-                            const alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
-                            const context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
+                            const alias = matroid_field.foreign_ref_vo_type + '__id';
+                            const context_query: ContextQueryVO = query(matroid_field.foreign_ref_vo_type)
                                 .using(active_api_type_ids)
                                 .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
-                                    new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, alias)
+                                    new ContextQueryFieldVO(matroid_field.foreign_ref_vo_type, 'id', alias)
                                 ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 

@@ -4,7 +4,7 @@ import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRang
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';

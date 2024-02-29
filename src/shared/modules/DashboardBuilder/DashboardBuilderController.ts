@@ -1,10 +1,9 @@
 import { RouteConfig } from 'vue-router';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
-import TableColumnDescVO from './vos/TableColumnDescVO';
-import FieldFiltersVO from './vos/FieldFiltersVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import FieldFiltersVO from './vos/FieldFiltersVO';
+import TableColumnDescVO from './vos/TableColumnDescVO';
 
 export default class DashboardBuilderController {
 
@@ -109,7 +108,7 @@ export default class DashboardBuilderController {
 
                 const existing_filter = context[column.api_type_id][column.field_id];
                 const and_filter = new ContextFilterVO();
-                and_filter.field_id = column.field_id;
+                and_filter.field_name = column.field_id;
                 and_filter.vo_type = column.api_type_id;
                 and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
                 and_filter.left_hook = existing_filter;

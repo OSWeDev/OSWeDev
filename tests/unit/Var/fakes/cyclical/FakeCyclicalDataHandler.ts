@@ -7,7 +7,7 @@ import TSRange from '../../../../../src/shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidCutResult from '../../../../../src/shared/modules/Matroid/vos/MatroidCutResult';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../src/shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
 import ConsoleHandler from '../../../../../src/shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';

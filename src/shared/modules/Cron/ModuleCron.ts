@@ -1,13 +1,13 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
 
 export default class ModuleCron extends Module {
@@ -80,6 +80,7 @@ export default class ModuleCron extends Module {
             ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().intervale_recurrence, ModuleTableFieldVO.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
-        this.datatables.push(new ModuleTableVO(this, CronWorkerPlanification.API_TYPE_ID, () => new CronWorkerPlanification(), datatable_fields, label_field, "Tâches planifiées"));
+        ModuleTableController.create_new(this.name, CronWorkerPlanification, label_field, "Tâches planifiées")
+            ;
     }
 }

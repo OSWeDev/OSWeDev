@@ -637,9 +637,9 @@ export default class ModuleVar extends Module {
             switch (matroid_field.field_type) {
                 case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                 case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                    if (matroid_field.many_to_one_target_moduletable_name) {
+                    if (matroid_field.foreign_ref_vo_type) {
 
-                        const alias = this.get_var_param_field_name(matroid_field.many_to_one_target_moduletable_name, 'id', page_widgets_ids_to_exclude_as_alias_prefix);
+                        const alias = this.get_var_param_field_name(matroid_field.foreign_ref_vo_type, 'id', page_widgets_ids_to_exclude_as_alias_prefix);
                         if ((!row[alias]) || !row[alias].length) {
                             refuse_param = true;
                             break;
@@ -733,9 +733,8 @@ export default class ModuleVar extends Module {
             ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_segmentation_type', false)
         ];
 
-        const datatable = new ModuleTableVO(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
+        const datatable = ModuleTableController.create_new(this.name, VarPixelFieldConfVO, null, VarPixelFieldConfVO.API_TYPE_ID);
         ModuleTableController.set_label_function(VarPixelFieldConfVO.API_TYPE_ID, (vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_name, null);
-        this.datatables.push(datatable);
     }
 
     private initializeVarConfAutoDepVO(): ModuleTableFieldVO {
@@ -748,8 +747,7 @@ export default class ModuleVar extends Module {
             ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().params_transform_strategies, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
         ];
 
-        const datatable = new ModuleTableVO(this, VarConfAutoDepVO.API_TYPE_ID, () => new VarConfAutoDepVO(), datatable_fields, null, 'Configuration de dependance pour var automatique');
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarConfAutoDepVO, null, 'Configuration de dependance pour var automatique');
 
         return var_id;
     }
@@ -790,8 +788,7 @@ export default class ModuleVar extends Module {
             ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_only_atomic_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a que des imports indépendants', true, true, false),
         ];
 
-        const datatable = new ModuleTableVO(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarConfVO, labelField, VarConfVO.API_TYPE_ID);
         const var_id = this.initializeVarConfAutoDepVO();
         var_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
     }
@@ -806,8 +803,7 @@ export default class ModuleVar extends Module {
             ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().is_computing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
         ];
 
-        const datatable = new ModuleTableVO(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarDataValueResVO, null, VarDataValueResVO.API_TYPE_ID);
     }
 
     private initializeVarDataInvalidatorVO() {
@@ -821,8 +817,7 @@ export default class ModuleVar extends Module {
             ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_denied, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
             ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
         ];
-        const datatable = new ModuleTableVO(this, VarDataInvalidatorVO.API_TYPE_ID, () => new VarDataInvalidatorVO(), datatable_fields, null);
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarDataInvalidatorVO, null, VarDataInvalidatorVO.API_TYPE_ID);
     }
 
     /**
@@ -1011,11 +1006,11 @@ export default class ModuleVar extends Module {
             for (const i in matroid_fields) {
                 const matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
-                if ((!matroid_field) || (!matroid_field.many_to_one_target_moduletable_name)) {
+                if ((!matroid_field) || (!matroid_field.foreign_ref_vo_type)) {
                     continue;
                 }
 
-                const matroid_field_api_type_id: string = matroid_field.many_to_one_target_moduletable_name;
+                const matroid_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
                 const matroid_field_name: string = 'id';
 
                 if (!needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix]) {
@@ -1073,11 +1068,11 @@ export default class ModuleVar extends Module {
             for (const i in matroid_fields) {
                 const matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
-                if ((!matroid_field) || (!matroid_field.many_to_one_target_moduletable_name)) {
+                if ((!matroid_field) || (!matroid_field.foreign_ref_vo_type)) {
                     continue;
                 }
 
-                const matroid_field_api_type_id: string = matroid_field.many_to_one_target_moduletable_name;
+                const matroid_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
                 const matroid_field_name: string = 'id';
 
                 if (!needed_dimensions[matroid_field_api_type_id]) {

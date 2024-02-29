@@ -8,7 +8,7 @@ import RefRangesReferenceDatatableFieldVO from "../../../../../shared/modules/DA
 import SimpleDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../../../shared/modules/ModuleTableFieldVO";
+import ModuleTableFieldVO from "../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import TableFieldTypesManager from "../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";

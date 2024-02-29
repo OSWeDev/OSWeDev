@@ -1,15 +1,13 @@
 import { field_names } from '../../../tools/ObjectHandler';
-import UserVO from '../../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
-import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
+import UserVO from '../../AccessPolicy/vos/UserVO';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../DAO/ModuleDAO';
-import Module from '../../Module';
-import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import Module from '../../Module';
 import ClientVO from './vos/ClientVO';
 import InformationsVO from './vos/InformationsVO';
 
@@ -56,7 +54,7 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
-        const default_label_field: ModuleTableFieldVO<string> = ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, 'Email');
+        const default_label_field: ModuleTableFieldVO = ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, 'Email');
         const datatable_fields = [
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom'),
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().prenom, ModuleTableFieldVO.FIELD_TYPE_string, 'Prenom'),
@@ -68,22 +66,21 @@ export default class ModuleClient extends Module {
             ModuleTableFieldController.create_new(InformationsVO.API_TYPE_ID, field_names<InformationsVO>().siret, ModuleTableFieldVO.FIELD_TYPE_string, 'Siret'),
             default_label_field,
         ];
-        this.datatables.push(new ModuleTableVO<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations'));
+        ModuleTableController.create_new(this.name, InformationsVO, default_label_field, 'Informations');
     }
 
     public initializeClient(): void {
         // Création de la table Client
-        const field_informations_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
-        const field_user_id: ModuleTableFieldVO<number> = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
+        const field_informations_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
+        const field_user_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(ClientVO.API_TYPE_ID, field_names<ClientVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true);
 
         const datatable_fields = [
             field_user_id,
             field_informations_id
         ];
-        const dt = new ModuleTableVO<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
+        const dt = ModuleTableController.create_new(this.name, ClientVO, field_user_id, 'Client');
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
-        this.datatables.push(dt);
     }
 
     public async getClientById(clientId: number): Promise<ClientVO> {

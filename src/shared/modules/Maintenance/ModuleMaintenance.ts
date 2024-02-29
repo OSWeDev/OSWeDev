@@ -1,19 +1,18 @@
 import { field_names } from '../../tools/ObjectHandler';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
 
 export default class ModuleMaintenance extends Module {
@@ -100,7 +99,6 @@ export default class ModuleMaintenance extends Module {
 
         author_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        const table = new ModuleTableVO(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, MaintenanceVO, null, 'Maintenances');
     }
 }

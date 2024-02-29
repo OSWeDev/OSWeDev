@@ -6,6 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -272,7 +273,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             /**
              * On historise
              */
-            const historique: ISupervisedItem = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
+            const historique: ISupervisedItem = new ModuleTableController.vo_constructor_by_vo_type[vo_update_handler.post_update_vo._type]() as ISupervisedItem;
 
             const moduletablefields = ModuleTableController.module_tables_by_vo_type[vo_update_handler.post_update_vo._type].get_fields();
             for (const i in moduletablefields) {

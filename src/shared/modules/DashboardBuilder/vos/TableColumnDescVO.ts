@@ -1,4 +1,6 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import IDistantVOBase from "../../IDistantVOBase";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";

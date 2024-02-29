@@ -1,3 +1,4 @@
+import ModuleTableController from "../modules/DAO/ModuleTableController";
 import IRange from "../modules/DataRender/interfaces/IRange";
 import HourSegment from "../modules/DataRender/vos/HourSegment";
 import NumRange from "../modules/DataRender/vos/NumRange";
@@ -8,7 +9,6 @@ import MatroidController from "../modules/Matroid/MatroidController";
 import VarsController from "../modules/Var/VarsController";
 import VarDataBaseVO from "../modules/Var/vos/VarDataBaseVO";
 import VarPixelFieldConfVO from "../modules/Var/vos/VarPixelFieldConfVO";
-import VOsTypesManager from "../modules/VO/manager/VOsTypesManager";
 import RangeHandler from "./RangeHandler";
 
 export default class MatroidIndexHandler {
@@ -319,7 +319,7 @@ export default class MatroidIndexHandler {
             console.error(error);
         }
 
-        const res: VarDataBaseVO = ModuleTableController.module_tables_by_vo_type[var_conf.var_data_vo_type].voConstructor();
+        const res: VarDataBaseVO = new ModuleTableController.vo_constructor_by_vo_type[var_conf.var_data_vo_type]() as VarDataBaseVO;
 
         res.var_id = var_id;
         const fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);

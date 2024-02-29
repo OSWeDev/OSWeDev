@@ -3,30 +3,25 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
-import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
-import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
-import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
-import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
-import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
@@ -34,6 +29,11 @@ import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserSessionVO from './vos/UserSessionVO';
 import UserVO from './vos/UserVO';
+import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
+import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
+import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
+import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
+import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -453,19 +453,17 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
         datatable.set_is_archived();
 
-        this.datatables.push(datatable);
-
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID]);
     }
 
     private initializeUserSession() {
-        const label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique(true);
+        const label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique();
 
         const datatable_fields = [
             label_field,
@@ -473,9 +471,8 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserSessionVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
         datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
-        this.datatables.push(datatable);
     }
 
     private initializeRole() {
@@ -488,10 +485,9 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, RoleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
         parent_role_id.donotCascadeOnDelete();
-        parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type.vo_type);
-        this.datatables.push(datatable);
+        parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
     }
 
     private initializeUserRoles() {
@@ -502,12 +498,11 @@ export default class ModuleAccessPolicy extends Module {
             field_role_id,
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserRoleVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
-        this.datatables.push(datatable);
     }
 
     private initializeModuleAccessPolicyGroup() {
@@ -518,9 +513,8 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(AccessPolicyGroupVO.API_TYPE_ID, field_names<AccessPolicyGroupVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyGroupVO.API_TYPE_ID, () => new AccessPolicyGroupVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, AccessPolicyGroupVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Groupe de droits" }));
 
-        this.datatables.push(datatable);
     }
 
     private initializeModuleAccessPolicy() {
@@ -539,12 +533,11 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, AccessPolicyVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Droit" }));
 
         field_accpolgroup_id.set_many_to_one_target_moduletable_name(AccessPolicyGroupVO.API_TYPE_ID);
         field_module_id.set_many_to_one_target_moduletable_name(ModuleVO.API_TYPE_ID);
 
-        this.datatables.push(datatable);
     }
 
     private initializeModulePolicyDependency() {
@@ -559,12 +552,11 @@ export default class ModuleAccessPolicy extends Module {
             })
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, PolicyDependencyVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Dépendances entre droits" }));
 
         src_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
         depends_on_pol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
 
-        this.datatables.push(datatable);
     }
 
 
@@ -583,11 +575,10 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().data, ModuleTableFieldVO.FIELD_TYPE_string, 'JSON', false),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserLogVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_name, NumSegment.TYPE_INT);
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        this.datatables.push(datatable);
     }
 
     private initializeRolesPolicies() {
@@ -599,11 +590,10 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(RolePolicyVO.API_TYPE_ID, field_names<RolePolicyVO>().granted, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
-        const datatable: ModuleTableVO = new ModuleTableVO(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
+        ModuleTableController.create_new(this.name, RolePolicyVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Droits des rôles" }));
 
         field_accpol_id.set_many_to_one_target_moduletable_name(AccessPolicyVO.API_TYPE_ID);
         field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
-        this.datatables.push(datatable);
     }
 }

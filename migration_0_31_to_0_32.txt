@@ -1,5 +1,7 @@
 = MIGRATION  0.31.x => 0.32.x
 
+PREMIERE ETAPE : remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
+
 L'ordre est important
 
 == REPLACE ALL
@@ -113,24 +115,66 @@ FROM :
 TO :
 'ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id'
 
+=== REGEXP
 
-ModuleTableController.create_new(moduleTable.module_name, vo_type, moduleTable.voConstructor, fields, null, vo_type); => ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
-new ModuleTableVO(
-ModuleTableController.create_new(
+FROM :
+'/shared/modules/ModuleTableVO('|");'
+TO :
+'/shared/modules/DAO/vos/ModuleTableVO$1;'
+
+=== REGEXP
+
+FROM :
+'/shared/modules/ModuleTableFieldVO('|");'
+TO :
+'/shared/modules/DAO/vos/ModuleTableFieldVO$1;'
+
+=== REGEXP
+
+FROM :
+'\n\s+this\.datatables\.push\([^\)]+\);'
+TO:
+''
+
+=== REGEXP
+
+FROM :
+'new ModuleTableVO\(([^,]+), ([^,.]+)\.API_TYPE_ID, ([^,]+), ([^,]+), ([^,]+), ([^,]+)\);'
+TO:
+'ModuleTableController.create_new($1.name, $2, $5, $6);'
+
+=== REGEXP
+
+FROM :
+'new ModuleTableVO\(([^,]+), ([^,.]+)\.API_TYPE_ID, ([^,]+), ([^,]+), ([^,]+)\);'
+TO:
+'ModuleTableController.create_new($1.name, $2, $5, $1.name);'
+
+=== Mot Entier + Respecter la casse
+
+FROM :
+'.unique(true)'
+TO:
+'.unique()'
+
+
+=== REGEXP
+
+FROM :
+'VarsInitController\.getInstance\(\)\.register_var_data\(([^,]+), \(\) => new ([^,.]+)\(\), ([^,]+), ([^,]+)\);'
+TO :
+'VarsInitController.getInstance().register_var_data($1, $2, $3, $4);'
+
 
 == Modifications restantes (principales)
 
 === XXXfieldXXX.field_id
-a été renommé en field_name pour éviter les confusions avec XXXfieldXXX.id
+a été renommé en field_name pour éviter les confusions avec XXXfieldXXX.id sur plein de vos (principalement sur les vos de contextquerys et moduletables)
 Pour identifier les occurrences facilement : '.field_id' en recherche [Mot entier] + [Respecter la casse]
-Possibilité de faire un REPLACE ALL du coup avec '.field_name' mais vérifier d'abord que les occurrences sont ok, le nom field_id peut-être utilisé dans d'autres objets...
+On ne peut pas faire un REPLACE ALL avec '.field_name' le nom field_id est utilisé dans d'autres objets...
 
-=== XXXmoduletableXXX.get_fields()
-a été supprimé au profit de VOsTypesManager.moduleTablesFields_by_voType_and_field_name[XXXmoduletableXXX.vo_type];
-Pour identifier les occurrences facilement : '.get_fields()' en recherche [Mot entier] + [Respecter la casse]
-
-
-
+=== new ModuleTableVO(
+Finir de remplacer les new ModuleTableVO( restants dans le code
 
 
 

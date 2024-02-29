@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VueComponentBase from '../../VueComponentBase';
 import '../RangesComponent.scss';
 

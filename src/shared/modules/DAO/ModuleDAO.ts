@@ -2,28 +2,28 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import IMatroid from '../Matroid/interfaces/IMatroid';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import IMatroid from '../Matroid/interfaces/IMatroid';
+import Module from '../Module';
+import ModuleTableController from './ModuleTableController';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
 import APIDAOParamsVO, { APIDAOParamsVOStatic } from './vos/APIDAOParamsVO';
-import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
+import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
-import ComputedDatatableFieldVO from './vos/datatable/ComputedDatatableFieldVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import ModuleTableCompositeUniqueKeyVO from './vos/ModuleTableCompositeUniqueKeyVO';
+import ComputedDatatableFieldVO from './vos/datatable/ComputedDatatableFieldVO';
 
 export default class ModuleDAO extends Module {
 
@@ -327,8 +327,9 @@ export default class ModuleDAO extends Module {
                 continue;
             }
 
-            if (moduleTable.table_label_function) {
-                ComputedDatatableFieldVO.define_compute_function(this.get_compute_function_uid(moduleTable.vo_type), moduleTable.table_label_function);
+            let label_function = ModuleTableController.table_label_function_by_vo_type[moduleTable.vo_type];
+            if (label_function) {
+                ComputedDatatableFieldVO.define_compute_function(this.get_compute_function_uid(moduleTable.vo_type), label_function);
             }
         }
     }
@@ -354,8 +355,7 @@ export default class ModuleDAO extends Module {
             ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
         ];
 
-        const res = new ModuleTableVO(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, CRUDFieldRemoverConfVO, null, "Champs supprimés du CRUD");
         return res;
     }
 
@@ -367,11 +367,10 @@ export default class ModuleDAO extends Module {
             ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Table - Nom', true),
             ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table - Lien', true)
                 .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID),
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique(true).readonly(),
+            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly(),
         ];
 
-        const res = new ModuleTableVO(this, ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, () => new ModuleTableCompositeUniqueKeyVO(), datatable_fields, null, "Clés uniques composites");
-        this.datatables.push(res);
+        const res = ModuleTableController.create_new(this.name, ModuleTableCompositeUniqueKeyVO, null, "Clés uniques composites");
         return res;
     }
 }

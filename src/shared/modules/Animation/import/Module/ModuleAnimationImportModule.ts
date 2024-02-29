@@ -1,10 +1,10 @@
 import AccessPolicyTools from "../../../../tools/AccessPolicyTools";
 import { field_names } from "../../../../tools/ObjectHandler";
+import ModuleTableController from "../../../DAO/ModuleTableController";
+import ModuleTableFieldController from "../../../DAO/ModuleTableFieldController";
+import ModuleTableFieldVO from "../../../DAO/vos/ModuleTableFieldVO";
 import ModuleDataImport from "../../../DataImport/ModuleDataImport";
 import Module from "../../../Module";
-import ModuleTableVO from "../../../ModuleTableVO";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../ModuleTableFieldVO";
 import AnimationImportModuleVO from "./vos/AnimationImportModuleVO";
 
 
@@ -50,8 +50,7 @@ export default class ModuleAnimationImportModule extends Module {
         ];
 
 
-        const datatable = new ModuleTableVO(this, AnimationImportModuleVO.API_TYPE_ID, () => new AnimationImportModuleVO(), datatable_fields, null, "Import des traductions");
-        ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, AnimationImportModuleVO, null, "Import des traductions");
+        ModuleDataImport.getInstance().registerImportableModuleTable(datatable, AnimationImportModuleVO);
     }
 }

@@ -1,13 +1,12 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import PopupVO from './vos/PopupVO';
 
 export default class ModulePopup extends Module {
@@ -46,12 +45,11 @@ export default class ModulePopup extends Module {
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().title, ModuleTableFieldVO.FIELD_TYPE_html, 'Titre', true),
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().message, ModuleTableFieldVO.FIELD_TYPE_html, 'Message', true),
             ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().btn_txt, ModuleTableFieldVO.FIELD_TYPE_string, 'Texte du bouton', false, true, 'Fermer'),
-            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().cookie_name, ModuleTableFieldVO.FIELD_TYPE_string, "Cookie pour bloquer l'affichage", true).unique(false),
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().cookie_name, ModuleTableFieldVO.FIELD_TYPE_string, "Cookie pour bloquer l'affichage", true).unique(),
             only_roles,
         ];
 
-        const table = new ModuleTableVO(this, PopupVO.API_TYPE_ID, () => new PopupVO(), fields, null, 'Popups');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, PopupVO, null, 'Popups');
 
         only_roles.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 

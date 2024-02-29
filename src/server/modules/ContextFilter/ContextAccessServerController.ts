@@ -4,13 +4,14 @@ import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQue
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
 export default class ContextAccessServerController {
 
-    public static check_access_to_api_type_ids_field_ids(
+    public static check_access_to_api_type_ids_fields(
         context_query: ContextQueryVO,
         base_api_type_id: string,
         fields: ContextQueryFieldVO[],
@@ -68,7 +69,7 @@ export default class ContextAccessServerController {
         }
 
         for (const i in fields) {
-            const api_type_id = fields[i].field.module_table.vo_type;
+            const api_type_id = fields[i].field.module_table_vo_type;
             const field_id = fields[i].field.field_id;
 
             if (!ContextAccessServerController.check_access_to_field(api_type_id, field_id, access_type, roles)) {

@@ -1,5 +1,5 @@
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ModuleDAO from './ModuleDAO';
+import ModuleTableController from './ModuleTableController';
 
 export default class DAOController {
 

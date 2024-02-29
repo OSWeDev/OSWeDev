@@ -1,10 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
 import BGThreadVO from './vos/BGThreadVO';
 
 export default class ModuleBGThread extends Module {
@@ -37,6 +37,6 @@ export default class ModuleBGThread extends Module {
             ModuleTableFieldController.create_new(BGThreadVO.API_TYPE_ID, field_names<BGThreadVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
         ];
 
-        this.datatables.push(new ModuleTableVO(this, BGThreadVO.API_TYPE_ID, () => new BGThreadVO(), datatable_fields, label_field, "BGThreads"));
+        ModuleTableController.create_new(this.name, BGThreadVO, label_field, "BGThreads");
     }
 }

@@ -4,8 +4,8 @@ import VarsServerCallBackSubsController from '../../../../server/modules/Var/Var
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import VarsClientsSubsCacheHolder from '../../../../server/modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';

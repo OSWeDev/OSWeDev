@@ -1,11 +1,11 @@
 import { cloneDeep, isArray } from "lodash";
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldController from "../../../shared/modules/DAO/ModuleTableFieldController";
 import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleTableVO from "../../../shared/modules/DAO/vos/ModuleTableVO";
 import IRange from "../../../shared/modules/DataRender/interfaces/IRange";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
-import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
 import ConversionHandler from "../../../shared/tools/ConversionHandler";
 import GeoPointHandler from "../../../shared/tools/GeoPointHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
@@ -46,7 +46,7 @@ export default class ModuleTableServerController {
             delete e[field_name];
         }
 
-        const res: T = Object.assign(moduleTable.voConstructor<T>(), e as T);
+        const res: T = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type](), e as T);
         res.id = ConversionHandler.forceNumber(e.id);
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];

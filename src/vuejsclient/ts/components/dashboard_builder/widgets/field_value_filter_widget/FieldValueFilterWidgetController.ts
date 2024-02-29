@@ -3,9 +3,9 @@ import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
-import ModuleTableVO from "../../../../../../shared/modules/ModuleTableVO";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../../../../shared/modules/ModuleTableFieldVO";
+import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 

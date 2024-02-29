@@ -3,11 +3,10 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import Module from '../Module';
 import AzureConnectedUserVO from './vos/AzureConnectedUserVO';
 import AzureConnectCallbackParamVO, { AzureConnectCallbackParamVOStatic } from './vos/apis/AzureConnectCallbackParamVO';
 
@@ -41,8 +40,6 @@ export default class ModuleAzureConnect extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeAzureConnectedUserVO();
     }
 
@@ -78,11 +75,9 @@ export default class ModuleAzureConnect extends Module {
             ModuleTableFieldController.create_new(AzureConnectedUserVO.API_TYPE_ID, field_names<AzureConnectedUserVO>().connect_callback_redirect_url, ModuleTableFieldVO.FIELD_TYPE_string, "connect_callback_redirect_url"),
         ];
 
-        const datatable = new ModuleTableVO(this, AzureConnectedUserVO.API_TYPE_ID, () => new AzureConnectedUserVO(), fields, null, "Lien compte Azure");
+        const datatable = ModuleTableController.create_new(this.name, AzureConnectedUserVO, null, "Lien compte Azure");
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(datatable);
     }
 
 }

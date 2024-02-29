@@ -1,11 +1,10 @@
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import ModuleTableController from '../../ModuleTableFieldController';
+import { default as ModuleTableController, default as ModuleTableFieldController } from '../../ModuleTableFieldController';
 
 export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -76,7 +75,13 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        const e = this.srcField.field_label.code_text;
+        const defaulttrad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name][this.src_field_id] : null;
+        const e = defaulttrad ? defaulttrad.code_text : null;
+
+        if (!e) {
+            return null;
+        }
+
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {

@@ -1,5 +1,6 @@
+import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
 import ParameterizedQueryWrapperField from "./ParameterizedQueryWrapperField";
-import ModuleTableVO from "../../ModuleTableVO";
+
 
 export default class ParameterizedQueryWrapper {
 

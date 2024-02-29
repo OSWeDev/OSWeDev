@@ -1,14 +1,13 @@
-import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import RangeHandler from "../../../tools/RangeHandler";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
-import ContextFilterVO from "../vos/ContextFilterVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../ModuleTableFieldVO";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ContextFilterVO from "../vos/ContextFilterVO";
 
 /**
  * ContextFilterVOManager
@@ -83,12 +82,12 @@ export default class ContextFilterVOManager {
 
         const context_filter = new ContextFilterVO();
 
-        context_filter.field_name = vo_field_ref.field_name;
+        context_filter.field_name = vo_field_ref.field_id;
         context_filter.vo_type = vo_field_ref.api_type_id;
 
         let field_type = null;
 
-        if ((!field) && (vo_field_ref.field_name == 'id')) {
+        if ((!field) && (vo_field_ref.field_id == 'id')) {
             field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;

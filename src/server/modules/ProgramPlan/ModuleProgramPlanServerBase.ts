@@ -1,24 +1,24 @@
 
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanFacilitator from '../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
-import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -460,13 +460,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         const is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
-        is_own_facilitators_manager_filter.field_id = 'user_id';
+        is_own_facilitators_manager_filter.field_name = 'user_id';
         is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.manager_type_id;
         is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_manager_filter.param_numeric = loggedUserId;
 
         const is_own_facilitator_filter: ContextFilterVO = new ContextFilterVO();
-        is_own_facilitator_filter.field_id = 'user_id';
+        is_own_facilitator_filter.field_name = 'user_id';
         is_own_facilitator_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitator_filter.param_numeric = loggedUserId;
         is_own_facilitator_filter.vo_type = moduletable.vo_type;
@@ -482,7 +482,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTableVO<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
+    private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTableVO, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -521,13 +521,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         const is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
-        is_own_facilitators_manager_filter.field_id = 'user_id';
+        is_own_facilitators_manager_filter.field_name = 'user_id';
         is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
         is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_manager_filter.param_numeric = loggedUserId;
 
         const is_own_manager_filter: ContextFilterVO = new ContextFilterVO();
-        is_own_manager_filter.field_id = 'user_id';
+        is_own_manager_filter.field_name = 'user_id';
         is_own_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_manager_filter.param_numeric = loggedUserId;
         is_own_manager_filter.vo_type = moduletable.vo_type;
@@ -543,7 +543,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterManagerByIdByAccess(datatable: ModuleTableVO<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
+    private async filterManagerByIdByAccess(datatable: ModuleTableVO, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -553,7 +553,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterManagerByIdByAccess_own_team(datatable: ModuleTableVO<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
+    private async filterManagerByIdByAccess_own_team(datatable: ModuleTableVO, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
 
         if (!this.programplan_shared_module.manager_type_id) {
             return null;
@@ -631,7 +631,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return res;
     }
 
-    private async filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable: ModuleTableVO<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
+    private async filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable: ModuleTableVO, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
 
         if (!this.programplan_shared_module.manager_type_id) {
             return null;
@@ -739,7 +739,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         const is_own_facilitators_rdv_filter: ContextFilterVO = new ContextFilterVO();
-        is_own_facilitators_rdv_filter.field_id = 'user_id';
+        is_own_facilitators_rdv_filter.field_name = 'user_id';
         is_own_facilitators_rdv_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
         is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
@@ -750,7 +750,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTableVO<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
+    private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTableVO, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -760,7 +760,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTableVO<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
+    private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTableVO, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         const res: IPlanRDV[] = [];
 
         const facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.vosArray_to_vosByIds(
@@ -813,7 +813,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTableVO<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
+    private async filterRDVCRPrepsByFacilitatorIdByAccess<T extends IPlanRDVCR[] | IPlanRDVPrep[]>(datatable: ModuleTableVO, vos: T, uid: number): Promise<T> {
         if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
@@ -823,8 +823,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
-    private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTableVO<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        const res = [];
+    private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam<T extends IPlanRDVCR[] | IPlanRDVPrep[]>(
+        datatable: ModuleTableVO,
+        vos: T,
+        uid: number
+    ): Promise<T> {
+
+        const res: T = [] as T;
 
         const rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(
             await query(this.programplan_shared_module.rdv_type_id).filter_is_false(field_names<IPlanRDV>().archived).select_vos<IPlanRDV>()

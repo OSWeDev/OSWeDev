@@ -3,6 +3,9 @@
 import { readFileSync } from 'fs';
 import moment from 'moment';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -12,10 +15,6 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import XmlNode from '../../../../shared/modules/DataImport/vos/XmlNode';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import FileHandler from '../../../../shared/tools/FileHandler';

@@ -1,5 +1,4 @@
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../../shared/modules/ModuleTableFieldVO";
+import ModuleTableFieldVO from "../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 
 export default class FieldPathWrapper {
 

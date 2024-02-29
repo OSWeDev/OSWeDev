@@ -18,7 +18,7 @@
 // import MatroidController from './Matroid/MatroidController';
 // import Module from './Module';
 // import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from './ModuleTableFieldVO';
+// import ModuleTableFieldVO from './ModuleTableFieldVO';
 // import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 // import DefaultTranslationVO from './Translation/vos/DefaultTranslationVO';
 // import VarDataBaseVO from './Var/vos/VarDataBaseVO';

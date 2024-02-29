@@ -1,5 +1,6 @@
 import INamedVO from '../../../interfaces/INamedVO';
 import ObjectHandler from '../../../tools/ObjectHandler';
+import ModuleTableController from '../../DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
@@ -31,11 +32,11 @@ export default class VOsTypesManager {
                 for (const j in fields) {
                     const field = fields[j];
 
-                    if (!field.has_relation) {
+                    if (!field.foreign_ref_vo_type) {
                         continue;
                     }
 
-                    if (field.manyToOne_target_moduletable.vo_type == to_api_type_id) {
+                    if (field.foreign_ref_vo_type == to_api_type_id) {
                         VOsTypesManager.types_references[to_api_type_id].push(field);
                     }
                 }
@@ -109,7 +110,7 @@ export default class VOsTypesManager {
             }
 
             // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
-            if (!field.many_to_one_target_moduletable_id) {
+            if (!field.foreign_ref_moduletable_id) {
                 isManyToMany = false;
                 break;
             }
@@ -121,11 +122,11 @@ export default class VOsTypesManager {
             }
 
             if (!manyToOne1) {
-                manyToOne1 = field.many_to_one_target_moduletable_id;
+                manyToOne1 = field.foreign_ref_moduletable_id;
                 continue;
             }
 
-            if (manyToOne1 == field.many_to_one_target_moduletable_id) {
+            if (manyToOne1 == field.foreign_ref_moduletable_id) {
                 isManyToMany = false;
                 break;
             }
@@ -174,11 +175,11 @@ export default class VOsTypesManager {
                 continue;
             }
 
-            if (!field.many_to_one_target_moduletable_id) {
+            if (!field.foreign_ref_vo_type) {
                 continue;
             }
 
-            const target_table = VOsTypesManager.moduleTables_by_vo_id[field.many_to_one_target_moduletable_id];
+            const target_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
             if (ignore_target_types && (ignore_target_types.indexOf(target_table.vo_type) >= 0)) {
                 continue;
             }
@@ -201,11 +202,11 @@ export default class VOsTypesManager {
                 continue;
             }
 
-            if (!field.many_to_one_target_moduletable_id) {
+            if (!field.foreign_ref_moduletable_id) {
                 break;
             }
 
-            if (firstField.many_to_one_target_moduletable_id == field.many_to_one_target_moduletable_id) {
+            if (firstField.foreign_ref_moduletable_id == field.foreign_ref_moduletable_id) {
                 continue;
             }
 

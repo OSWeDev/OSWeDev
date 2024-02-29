@@ -3,16 +3,17 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import DAOController from '../../../shared/modules/DAO/DAOController';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import StackContext from '../../StackContext';
@@ -24,7 +25,6 @@ import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 
 export default class DAOServerController {
 
@@ -94,7 +94,7 @@ export default class DAOServerController {
         return true;
     }
 
-    public static checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, access_type: string): boolean {
+    public static checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTableVO, access_type: string): boolean {
 
         if (!datatable) {
             ConsoleHandler.error('checkAccessSync:!datatable');
@@ -108,7 +108,7 @@ export default class DAOServerController {
     /**
      * @depracated do not use anymore, use context queries instead - will be deleted soon
      */
-    public static async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTableVO<T>, access_type: string, vos: T[]): Promise<T[]> {
+    public static async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTableVO, access_type: string, vos: T[]): Promise<T[]> {
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         const hooks = DAOServerController.access_hooks[datatable.vo_type] && DAOServerController.access_hooks[datatable.vo_type][access_type] ? DAOServerController.access_hooks[datatable.vo_type][access_type] : [];
@@ -139,8 +139,9 @@ export default class DAOServerController {
                         continue;
                     }
 
-                    if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
-                        (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
+                    let table_label_function_field_ids_deps = ModuleTableController.table_label_function_field_ids_deps_by_vo_type[datatable.vo_type];
+                    if (table_label_function_field_ids_deps && table_label_function_field_ids_deps.length &&
+                        (table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
                         continue;
                     }
 

@@ -8,7 +8,11 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
@@ -27,9 +31,6 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -37,7 +38,6 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -54,6 +54,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleTableFieldServerController from '../DAO/ModuleTableFieldServerController';
+import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -65,7 +67,6 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
-import ModuleTableServerController from '../DAO/ModuleTableServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -719,7 +720,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         throw new Error('Unknown field');
                     }
 
-                    table.force_numeric_field(table_field, data, res[i], field.alias);
+                    ModuleTableFieldServerController.translate_field_from_db(table_field, data, res[i], field.alias);
 
                     res[i] = await this.field_to_xlsx(
                         table_field,
@@ -774,14 +775,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             const field = fields[i];
             ordered_column_list.push(field.field_id);
 
-            const text = await ModuleTranslation.getInstance().getTranslatableText(field.field_label.code_text);
+            let label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[api_type_id] ?
+                ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[api_type_id][field.field_id] :
+                null;
+            const text = await ModuleTranslation.getInstance().getTranslatableText(label.code_text);
             if (!text) {
-                ConsoleHandler.error('Code texte de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Code texte de colonne introuvable:' + label.code_text);
                 continue;
             }
             const translation = await ModuleTranslation.getInstance().getTranslation(lang_id, text.id);
             if (!translation) {
-                ConsoleHandler.error('Traduction de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Traduction de colonne introuvable:' + label.code_text);
                 continue;
             }
             column_labels[field.field_id] = translation.translated;
@@ -931,7 +935,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id },
+                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_name },
                     // TODO: get page id from to get the right translation
                 );
 

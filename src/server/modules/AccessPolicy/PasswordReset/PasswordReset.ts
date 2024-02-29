@@ -1,18 +1,15 @@
-import { field_names } from '../../../../shared/tools/ObjectHandler';
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import StackContext from '../../../StackContext';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
-import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class PasswordReset {
 
@@ -131,7 +128,7 @@ export default class PasswordReset {
 
         try {
 
-            const msg = ModuleTableController.validate_field_value(
+            const msg = ModuleTableFieldController.validate_field_value(
                 ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].getFieldFromId(field_names<UserVO>().password),
                 new_pwd1);
             if (!((!msg) || (msg == ""))) {

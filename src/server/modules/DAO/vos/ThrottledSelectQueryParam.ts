@@ -1,11 +1,10 @@
 import pgPromise from 'pg-promise';
 import ContextQueryVO from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ParameterizedQueryWrapperField from "../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField";
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 
 export default class ThrottledSelectQueryParam {

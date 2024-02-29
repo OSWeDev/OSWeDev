@@ -21,6 +21,7 @@ import StatsSubCategoryVO from './vos/StatsSubCategoryVO';
 import StatsThreadVO from './vos/StatsThreadVO';
 import StatsTypeVO from './vos/StatsTypeVO';
 import StatVO from './vos/StatVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 
 export default class ModuleStats extends Module {
@@ -89,7 +90,7 @@ export default class ModuleStats extends Module {
             ModuleTableFieldController.create_new(StatsGroupSecDataRangesVO.API_TYPE_ID, field_names<StatsGroupSecDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(false),
         ];
 
-        VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, () => new StatsGroupSecDataRangesVO(), datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, StatsGroupSecDataRangesVO, datatable_fields, this);
         stats_groupe_id_ranges.set_many_to_one_target_moduletable_name(StatsGroupVO.API_TYPE_ID);
     }
 
@@ -102,9 +103,8 @@ export default class ModuleStats extends Module {
             ModuleTableFieldController.create_new(StatVO.API_TYPE_ID, field_names<StatVO>().timestamp_s, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true).index(),
         ];
 
-        const table = new ModuleTableVO(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');
+        const table = ModuleTableController.create_new(this.name, StatVO, null, 'Stats');
         table.segment_on_field('stat_group_id', NumSegment.TYPE_INT);
-        this.datatables.push(table);
         stat_group_id.set_many_to_one_target_moduletable_name(StatsGroupVO.API_TYPE_ID);
     }
 
@@ -124,13 +124,12 @@ export default class ModuleStats extends Module {
             ModuleTableFieldController.create_new(StatClientWrapperVO.API_TYPE_ID, field_names<StatClientWrapperVO>().stats_aggregator_min_segment_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND).setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
         ];
 
-        const table = new ModuleTableVO(this, StatClientWrapperVO.API_TYPE_ID, () => new StatClientWrapperVO(), fields, null, 'Stats - Client side wrapper');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatClientWrapperVO, null, 'Stats - Client side wrapper');
     }
 
     private initializeStatsGroupVO() {
 
-        const name_field = ModuleTableFieldController.create_new(StatsGroupVO.API_TYPE_ID, field_names<StatsGroupVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du groupe', true).unique(true);
+        const name_field = ModuleTableFieldController.create_new(StatsGroupVO.API_TYPE_ID, field_names<StatsGroupVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du groupe', true).unique();
 
         const category_id = ModuleTableFieldController.create_new(StatsGroupVO.API_TYPE_ID, field_names<StatsGroupVO>().category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Catégorie', false);
         const sub_category_id = ModuleTableFieldController.create_new(StatsGroupVO.API_TYPE_ID, field_names<StatsGroupVO>().sub_category_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Sous-catégorie', false);
@@ -157,8 +156,7 @@ export default class ModuleStats extends Module {
             ModuleTableFieldController.create_new(StatsGroupVO.API_TYPE_ID, field_names<StatsGroupVO>().stats_aggregator_min_segment_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
         ];
 
-        const table = new ModuleTableVO(this, StatsGroupVO.API_TYPE_ID, () => new StatsGroupVO(), fields, name_field, 'Groupes de stats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsGroupVO, name_field, 'Groupes de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
         category_id.set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
         sub_category_id.set_many_to_one_target_moduletable_name(StatsSubCategoryVO.API_TYPE_ID);
@@ -169,7 +167,7 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsGroupCacheLinkVO() {
 
-    //     let name_field = ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du groupe - cache', true).unique(true);
+    //     let name_field = ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du groupe - cache', true).unique();
 
     //     let fields = [
     //         name_field,
@@ -183,20 +181,19 @@ export default class ModuleStats extends Module {
     //         ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().stats_aggregator_min_segment_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
     //     ];
 
-    //     let table = new ModuleTableVO(this, StatsGroupCacheLinkVO.API_TYPE_ID, () => new StatsGroupCacheLinkVO(), fields, name_field, 'Groupes de stats - cache');
+    //     let table = ModuleTableController.create_new(this.name, StatsGroupCacheLinkVO, name_field, 'Groupes de stats - cache');
     //     this.datatables.push(table);
     //     VersionedVOController.getInstance().registerModuleTable(table);
     // }
 
     private initializeStatsCategoryVO() {
 
-        const name_field = ModuleTableFieldController.create_new(StatsCategoryVO.API_TYPE_ID, field_names<StatsCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Catégorie', true).unique(true);
+        const name_field = ModuleTableFieldController.create_new(StatsCategoryVO.API_TYPE_ID, field_names<StatsCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Catégorie', true).unique();
         const fields = [
             name_field,
         ];
 
-        const table = new ModuleTableVO(this, StatsCategoryVO.API_TYPE_ID, () => new StatsCategoryVO(), fields, name_field, 'Catégories de stats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsCategoryVO, name_field, 'Catégories de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 
@@ -209,8 +206,7 @@ export default class ModuleStats extends Module {
             category_id,
         ];
 
-        const table = new ModuleTableVO(this, StatsSubCategoryVO.API_TYPE_ID, () => new StatsSubCategoryVO(), fields, name_field, 'Sous-catégories de stats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsSubCategoryVO, name_field, 'Sous-catégories de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
         category_id.set_many_to_one_target_moduletable_name(StatsCategoryVO.API_TYPE_ID);
     }
@@ -224,7 +220,7 @@ export default class ModuleStats extends Module {
     //         ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().category_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la catégorie', true),
     //     ];
 
-    //     let table = new ModuleTableVO(this, StatsSubCategoryCacheLinkVO.API_TYPE_ID, () => new StatsSubCategoryCacheLinkVO(), fields, name_field, 'Sous-catégories de stats - cache');
+    //     let table = ModuleTableController.create_new(this.name, StatsSubCategoryCacheLinkVO, name_field, 'Sous-catégories de stats - cache');
     //     this.datatables.push(table);
     //     VersionedVOController.getInstance().registerModuleTable(table);
     // }
@@ -237,8 +233,7 @@ export default class ModuleStats extends Module {
             name_field
         ];
 
-        const table = new ModuleTableVO(this, StatsTypeVO.API_TYPE_ID, () => new StatsTypeVO(), fields, name_field, 'Types de stats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsTypeVO, name_field, 'Types de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 
@@ -252,8 +247,7 @@ export default class ModuleStats extends Module {
             sub_category_id
         ];
 
-        const table = new ModuleTableVO(this, StatsEventVO.API_TYPE_ID, () => new StatsEventVO(), fields, name_field, 'Evènements de stats');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsEventVO, name_field, 'Evènements de stats');
         VersionedVOController.getInstance().registerModuleTable(table);
         sub_category_id.set_many_to_one_target_moduletable_name(StatsSubCategoryVO.API_TYPE_ID);
     }
@@ -267,7 +261,7 @@ export default class ModuleStats extends Module {
     //         ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().sub_category_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de la sous-catégorie', true),
     //     ];
 
-    //     let table = new ModuleTableVO(this, StatsEventCacheLinkVO.API_TYPE_ID, () => new StatsEventCacheLinkVO(), fields, name_field, 'Evènements de stats - cache');
+    //     let table = ModuleTableController.create_new(this.name, StatsEventCacheLinkVO, name_field, 'Evènements de stats - cache');
     //     this.datatables.push(table);
     //     VersionedVOController.getInstance().registerModuleTable(table);
     // }
@@ -275,15 +269,14 @@ export default class ModuleStats extends Module {
 
     private initializeStatsThreadVO() {
 
-        const name_field = ModuleTableFieldController.create_new(StatsThreadVO.API_TYPE_ID, field_names<StatsThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom principal du Thread', true).unique(true);
+        const name_field = ModuleTableFieldController.create_new(StatsThreadVO.API_TYPE_ID, field_names<StatsThreadVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom principal du Thread', true).unique();
 
         const fields = [
             name_field,
             ModuleTableFieldController.create_new(StatsThreadVO.API_TYPE_ID, field_names<StatsThreadVO>().aliases, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Alias', false)
         ];
 
-        const table = new ModuleTableVO(this, StatsThreadVO.API_TYPE_ID, () => new StatsThreadVO(), fields, name_field, 'Threads');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, StatsThreadVO, name_field, 'Threads');
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 

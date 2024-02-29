@@ -43,8 +43,6 @@ export default class ModuleTableVO implements IDistantVOBase {
     public table_segmented_field_range_type: number = null;
     public table_segmented_field_segment_type: number = null;
 
-    public hook_datatable_install: (db) => {} = null;
-
     public module_name: string;
     // public module: Module;
     // public fields: ModuleTableFieldVO[];
@@ -53,8 +51,6 @@ export default class ModuleTableVO implements IDistantVOBase {
     public database: string;
     public vo_type: string;
     public label: DefaultTranslationVO = null;
-
-    public get_bdd_version: (e: T) => T = null;
 
     public default_label_field: ModuleTableFieldVO = null;
     public importable: boolean = false;
@@ -65,8 +61,6 @@ export default class ModuleTableVO implements IDistantVOBase {
     public isMatroidTable: boolean = false;
 
     public any_to_many_default_behaviour_show: boolean = true;
-
-    public voConstructor: <T extends IDistantVOBase>() => T = null;
 
     /**
      * Mappings de traduction d'un Vo de ce type vers un Vo du type b
@@ -161,8 +155,17 @@ export default class ModuleTableVO implements IDistantVOBase {
     /**
      * @deprecated use ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name] instead
      */
-    public getFieldFromId(field_name: string): ModuleTableFieldController {
+    public getFieldFromId(field_name: string): ModuleTableFieldVO {
         return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name];
+    }
+
+    /**
+     * @deprecated use ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type] instead. WARN it is a map not an array
+     */
+    public get_fields(): ModuleTableFieldVO[] {
+        return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type] ?
+            Object.values(ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type]) :
+            null;
     }
 
     public get_segmented_full_name(segmented_value: number): string {
@@ -296,7 +299,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
     public get_field_by_id(field_name: string): ModuleTableFieldVO {
-        return this.fields_by_ids[field_name];
+        return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name];
     }
 
     public defineAsMatroid(): ModuleTableVO {
@@ -312,19 +315,6 @@ export default class ModuleTableVO implements IDistantVOBase {
     public hideAnyToManyByDefault(): ModuleTableVO {
         this.any_to_many_default_behaviour_show = false;
         return this;
-    }
-
-    public defineVOConstructor(voConstructor: () => T): ModuleTableVO {
-        this.voConstructor = voConstructor;
-
-        return this;
-    }
-
-    public getNewVO(): T {
-        if (this.voConstructor) {
-            return this.voConstructor();
-        }
-        return null;
     }
 
     public defineAsModuleParamTable(): ModuleTableVO {
@@ -354,7 +344,7 @@ export default class ModuleTableVO implements IDistantVOBase {
         for (const i in fields) {
             const field: ModuleTableFieldVO = fields[i];
 
-            if (field && field.many_to_one_target_moduletable_name == vo_type) {
+            if (field && field.foreign_ref_vo_type == vo_type) {
                 return field;
             }
         }
@@ -406,20 +396,5 @@ export default class ModuleTableVO implements IDistantVOBase {
         ModuleTableFieldController.create_new(this._type, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false);
 
         return this;
-    }
-
-    private check_unicity_field_names(tmp_fields: ModuleTableFieldVO[]) {
-        const field_names: { [field_name: string]: boolean } = {};
-
-        for (const i in tmp_fields) {
-            const field = tmp_fields[i];
-
-            if (field_names[field.field_name]) {
-                ConsoleHandler.error('Field name ' + field.field_name + ' already exists in table ' + this.name);
-                throw new Error('Field name ' + field.field_name + ' already exists in table ' + this.name);
-            }
-
-            field_names[field.field_name] = true;
-        }
     }
 }

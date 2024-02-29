@@ -12,6 +12,7 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import SendInBlueMailEventVO from './vos/SendInBlueMailEventVO';
 import SendInBlueVO from './vos/SendInBlueVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModuleSendInBlue extends Module {
 
@@ -89,7 +90,6 @@ export default class ModuleSendInBlue extends Module {
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().sender_sms_name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Sender SMS name (only alphanumeric characters)' }), true),
             ModuleTableFieldController.create_new(SendInBlueVO.API_TYPE_ID, field_names<SendInBlueVO>().default_folder_list, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Default Folder List' }), true),
         ];
-        const datatable = new ModuleTableVO(this, SendInBlueVO.API_TYPE_ID, () => new SendInBlueVO(), datatable_fields, null, DefaultTranslationVO.create_new({ 'fr-fr': 'Parametres SendInBlue' }));
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, SendInBlueVO, null, DefaultTranslationVO.create_new({ 'fr-fr': 'Parametres SendInBlue' }));
     }
 }

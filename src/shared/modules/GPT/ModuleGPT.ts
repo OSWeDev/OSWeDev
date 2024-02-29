@@ -4,17 +4,16 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ActionURLVO from '../ActionURL/vos/ActionURLVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
 import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import OseliaPromptVO from '../Oselia/vos/OseliaPromptVO';
 import OseliaThreadFeedbackVO from '../Oselia/vos/OseliaThreadFeedbackVO';
 import OseliaThreadMessageFeedbackVO from '../Oselia/vos/OseliaThreadMessageFeedbackVO';
 import OseliaUserPromptVO from '../Oselia/vos/OseliaUserPromptVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import APIGPTAskAssistantParam, { APIGPTAskAssistantParamStatic } from './api/APIGPTAskAssistantParam';
 import APIGPTGenerateResponseParam, { APIGPTGenerateResponseParamStatic } from './api/APIGPTGenerateResponseParam';
@@ -146,8 +145,7 @@ export default class ModuleGPT extends Module {
             default_assistant_id,
         ];
 
-        const datatable = new ModuleTableVO(this, OseliaPromptVO.API_TYPE_ID, () => new OseliaPromptVO(), datatable_fields, label_field, "Prompts Osélia");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, OseliaPromptVO, label_field, "Prompts Osélia");
         default_assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(datatable);
@@ -164,8 +162,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(OseliaUserPromptVO.API_TYPE_ID, field_names<OseliaUserPromptVO>().why_and_what_we_adapted_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description de la spécialisation (raison et impact)', true),
         ];
 
-        const datatable = new ModuleTableVO(this, OseliaUserPromptVO.API_TYPE_ID, () => new OseliaUserPromptVO(), datatable_fields, null, "Prompts Osélia - surcharge par utilisateur");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, OseliaUserPromptVO, null, "Prompts Osélia - surcharge par utilisateur");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         prompt_id.set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
 
@@ -187,8 +184,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableFieldVO.FIELD_TYPE_string, 'Feedback', false),
         ];
 
-        const datatable = new ModuleTableVO(this, OseliaThreadMessageFeedbackVO.API_TYPE_ID, () => new OseliaThreadMessageFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Message");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, OseliaThreadMessageFeedbackVO, null, "Retour expérience Osélia - Message");
         assistant_thread_message_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
         assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         prompt_id.set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
@@ -208,8 +204,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(OseliaThreadMessageFeedbackVO.API_TYPE_ID, field_names<OseliaThreadMessageFeedbackVO>().feedback, ModuleTableFieldVO.FIELD_TYPE_string, 'Feedback', false),
         ];
 
-        const datatable = new ModuleTableVO(this, OseliaThreadFeedbackVO.API_TYPE_ID, () => new OseliaThreadFeedbackVO(), datatable_fields, null, "Retour expérience Osélia - Thread");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, OseliaThreadFeedbackVO, null, "Retour expérience Osélia - Thread");
         assistant_thread_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
@@ -229,8 +224,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        const table = new ModuleTableVO(this, GPTCompletionAPIMessageVO.API_TYPE_ID, () => new GPTCompletionAPIMessageVO(), fields, null, 'GPT Completion API - Message');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTCompletionAPIMessageVO, null, 'GPT Completion API - Message');
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         conversation_id.set_many_to_one_target_moduletable_name(GPTCompletionAPIConversationVO.API_TYPE_ID);
@@ -243,8 +237,7 @@ export default class ModuleGPT extends Module {
             label
         ];
 
-        const table = new ModuleTableVO(this, GPTCompletionAPIConversationVO.API_TYPE_ID, () => new GPTCompletionAPIConversationVO(), fields, label, 'GPT Completion API - Conversation');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTCompletionAPIConversationVO, label, 'GPT Completion API - Conversation');
     }
 
     private initializeGPTAssistantAPIAssistantVO() {
@@ -257,8 +250,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIAssistantVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantVO(), fields, label, 'GPT Assistant API - Assistant');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
     }
 
     private initializeGPTAssistantAPIFunctionVO() {
@@ -273,8 +265,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().prepend_thread_vo, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Thread VO en 1er param', true, true, true),
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionVO(), fields, label, 'GPT Assistant API - Fonction');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionVO, label, 'GPT Assistant API - Fonction');
     }
 
     private initializeGPTAssistantAPIAssistantFunctionVO() {
@@ -287,8 +278,7 @@ export default class ModuleGPT extends Module {
             function_id
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, () => new GPTAssistantAPIAssistantFunctionVO(), fields, null, 'GPT Assistant API - Assistant/Fonction');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantFunctionVO, null, 'GPT Assistant API - Assistant/Fonction');
 
         assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         function_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFunctionVO.API_TYPE_ID);
@@ -310,8 +300,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().bytes, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Bytes', true, true, 0),
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIFileVO.API_TYPE_ID, () => new GPTAssistantAPIFileVO(), fields, label, 'GPT Assistant API - Fichier');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFileVO, label, 'GPT Assistant API - Fichier');
 
         file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
     }
@@ -334,8 +323,7 @@ export default class ModuleGPT extends Module {
 
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIFunctionParamVO.API_TYPE_ID, () => new GPTAssistantAPIFunctionParamVO(), fields, null, 'GPT Assistant API - Param de Fonction');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionParamVO, null, 'GPT Assistant API - Param de Fonction');
 
         function_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFunctionVO.API_TYPE_ID);
     }
@@ -357,8 +345,7 @@ export default class ModuleGPT extends Module {
             current_oselia_prompt_id
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         current_default_assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
@@ -381,8 +368,7 @@ export default class ModuleGPT extends Module {
             label
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIRunVO.API_TYPE_ID, () => new GPTAssistantAPIRunVO(), fields, label, 'GPT Assistant API - Tâche');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIRunVO, label, 'GPT Assistant API - Tâche');
 
         thread_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
@@ -414,8 +400,7 @@ export default class ModuleGPT extends Module {
             ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageVO(), fields, label, 'GPT Assistant API - Thread Message');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageVO, label, 'GPT Assistant API - Thread Message');
 
         thread_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
@@ -434,8 +419,7 @@ export default class ModuleGPT extends Module {
             file_id
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageFileVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageFileVO(), fields, null, 'GPT Assistant API - Thread Message File');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageFileVO, null, 'GPT Assistant API - Thread Message File');
 
         thread_message_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
         file_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFileVO.API_TYPE_ID);
@@ -461,8 +445,7 @@ export default class ModuleGPT extends Module {
             email_id
         ];
 
-        const table = new ModuleTableVO(this, GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, () => new GPTAssistantAPIThreadMessageContentVO(), fields, null, 'GPT Assistant API - Thread Message Content');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageContentVO, null, 'GPT Assistant API - Thread Message Content');
         thread_message_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
         assistant_file_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFileVO.API_TYPE_ID);
         action_url_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);

@@ -5,7 +5,7 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './EnvParamsComponent.scss';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import { field_names } from '../../../../shared/tools/ObjectHandler';

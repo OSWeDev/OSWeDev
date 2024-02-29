@@ -123,19 +123,6 @@ export default class ModuleDBService {
             await ModuleTableDBService.getInstance(this.db).datatable_install(datatable);
             // promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
         }
-        // if (promises && promises.length) {
-        //     await all_promises(promises);
-        // }
-
-        // On appelle le hook de fin d'installation
-        for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
-            const datatable = ModuleTableController.module_tables_by_vo_type[vo_type];
-
-            if (datatable.hook_datatable_install) {
-
-                return await datatable.hook_datatable_install(datatable);
-            }
-        }
     }
 
     // ETAPE 5 de l'installation

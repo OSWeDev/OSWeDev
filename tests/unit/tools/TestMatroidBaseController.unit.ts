@@ -1,9 +1,9 @@
 import { test, expect } from "playwright-test-coverage";
 
 import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-import ModuleTableVO from '../../../src/shared/modules/ModuleTableVO';
+import ModuleTableVO from '../../../src/shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../src/shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
 import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';

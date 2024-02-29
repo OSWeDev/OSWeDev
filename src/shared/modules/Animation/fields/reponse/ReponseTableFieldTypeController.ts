@@ -1,9 +1,8 @@
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import ModuleTableFieldVO from '../../../DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../ModuleTableFieldVO';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import AnimationReponseVO from './vos/AnimationReponseVO';
 
@@ -36,10 +35,10 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
     }
 
     public dataToIHM(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
-        res[field.datatable_field_uid] = vo[field.module_table_field_name];
+        res[field.datatable_field_uid] = vo[field.module_table_field_id];
     }
     public IHMToData(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
-        res[field.module_table_field_name] = vo[field.datatable_field_uid];
+        res[field.module_table_field_id] = vo[field.datatable_field_uid];
     }
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {

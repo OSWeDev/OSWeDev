@@ -30,7 +30,7 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
     public async work(db: IDatabase<any>) {
 
         const filter = new ContextFilterVO();
-        filter.field_id = 'code_text';
+        filter.field_name = 'code_text';
         filter.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
         filter.vo_type = TranslatableTextVO.API_TYPE_ID;
         filter.param_textarray = [

@@ -1,11 +1,10 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 

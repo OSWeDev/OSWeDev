@@ -12,6 +12,7 @@ import SupervisedCRONController from './SupervisedCRONController';
 import SupervisionController from './SupervisionController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 import SupervisedCRONVO from './vos/SupervisedCRONVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModuleSupervision extends Module {
 
@@ -58,8 +59,6 @@ export default class ModuleSupervision extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeSupervisedCategoryVO();
         this.initializeSupervisedCRONVO();
     }
@@ -72,9 +71,7 @@ export default class ModuleSupervision extends Module {
             ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
         ];
 
-        const datatable = new ModuleTableVO(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
-
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, SupervisedCategoryVO, name_field, "Supervision - Catégorie");
     }
 
     private initializeSupervisedCRONVO() {
@@ -84,8 +81,7 @@ export default class ModuleSupervision extends Module {
             ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true),
         ];
 
-        const datatable = new ModuleTableVO(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON");
         SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
     }
 }

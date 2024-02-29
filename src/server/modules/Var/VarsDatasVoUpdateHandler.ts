@@ -1,15 +1,13 @@
+import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import StatsController from '../../../shared/modules/Stats/StatsController';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
-import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -33,7 +31,6 @@ import VarsServerCallBackSubsController from './VarsServerCallBackSubsController
 import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
-import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO

@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';

@@ -1,32 +1,31 @@
 import { field_names } from '../../tools/ObjectHandler';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
-import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
 import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import VarConfVO from '../Var/vos/VarConfVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IExportableSheet from './interfaces/IExportableSheet';
+import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
+import ExportHistoricVO from './vos/ExportHistoricVO';
+import ExportVarIndicatorVO from './vos/ExportVarIndicatorVO';
+import ExportVarcolumnConfVO from './vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
-import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
-import ExportHistoricVO from './vos/ExportHistoricVO';
-import ExportVarcolumnConfVO from './vos/ExportVarcolumnConfVO';
-import ExportVarIndicatorVO from './vos/ExportVarIndicatorVO';
 
 export default class ModuleDataExport extends Module {
 
@@ -178,12 +177,10 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().export_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        const moduleTable: ModuleTableVO<ExportHistoricVO> = new ModuleTableVO<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
+        const moduleTable = ModuleTableController.create_new(this.name, ExportHistoricVO, null);
 
         export_to_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         exported_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
-
-        this.datatables.push(moduleTable);
     }
 
     private initializeExportVarcolumnConfVO() {
@@ -195,11 +192,9 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().filter_type, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Type de filtre" }), false),
             ModuleTableFieldController.create_new(ExportVarcolumnConfVO.API_TYPE_ID, field_names<ExportVarcolumnConfVO>().filter_additional_params, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': "Paramètres additionnels" }), false),
         ];
-        const moduleTable: ModuleTableVO<ExportVarcolumnConfVO> = new ModuleTableVO<ExportVarcolumnConfVO>(this, ExportVarcolumnConfVO.API_TYPE_ID, () => new ExportVarcolumnConfVO(), datatable_fields, null, 'Conf des vars pour export');
+        const moduleTable = ModuleTableController.create_new(this.name, ExportVarcolumnConfVO, null, 'Conf des vars pour export');
 
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
-
-        this.datatables.push(moduleTable);
     }
 
     private initializeExportVarIndicatorVO() {
@@ -208,9 +203,7 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportVarIndicatorVO.API_TYPE_ID, field_names<ExportVarIndicatorVO>().column_labels, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Libellés colonnes" }), true),
             ModuleTableFieldController.create_new(ExportVarIndicatorVO.API_TYPE_ID, field_names<ExportVarIndicatorVO>().varcolumn_conf, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "Conf des variables" }), true),
         ];
-        const moduleTable: ModuleTableVO<ExportVarIndicatorVO> = new ModuleTableVO<ExportVarIndicatorVO>(this, ExportVarIndicatorVO.API_TYPE_ID, () => new ExportVarIndicatorVO(), datatable_fields, null, 'Conf export des KPIs');
-
-        this.datatables.push(moduleTable);
+        const moduleTable = ModuleTableController.create_new(this.name, ExportVarIndicatorVO, null, 'Conf export des KPIs');
     }
 
     private initializeExportContextQueryToXLSXQueryVO() {
@@ -243,11 +236,9 @@ export default class ModuleDataExport extends Module {
             ModuleTableFieldController.create_new(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().vars_indicator, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, DefaultTranslationVO.create_new({ 'fr-fr': "KPIs" }), false),
         ];
 
-        const moduleTable: ModuleTableVO<ExportContextQueryToXLSXQueryVO> = new ModuleTableVO<ExportContextQueryToXLSXQueryVO>(this, ExportContextQueryToXLSXQueryVO.API_TYPE_ID, () => new ExportContextQueryToXLSXQueryVO(), datatable_fields, filename, 'Exports de ContextQuery en XLSX');
+        const moduleTable = ModuleTableController.create_new(this.name, ExportContextQueryToXLSXQueryVO, filename, 'Exports de ContextQuery en XLSX');
 
         target_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(moduleTable);
     }
 
     private initializeExportLogVO(): void {
@@ -260,10 +251,8 @@ export default class ModuleDataExport extends Module {
             field_user_id
         ];
 
-        const moduleTable: ModuleTableVO<ExportLogVO> = new ModuleTableVO<ExportLogVO>(this, ExportLogVO.API_TYPE_ID, () => new ExportLogVO(), datatable_fields, field_name);
+        const moduleTable = ModuleTableController.create_new(this.name, ExportLogVO, field_name);
 
         field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
-
-        this.datatables.push(moduleTable);
     }
 }

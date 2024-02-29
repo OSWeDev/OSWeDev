@@ -1,18 +1,19 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ParamVO from './vos/ParamVO';
 import GetParamParamAsBooleanVO, { GetParamParamAsBooleanVOStatic } from './vos/apis/GetParamParamAsBooleanVO';
 import GetParamParamAsNumberVO, { GetParamParamAsNumberVOStatic } from './vos/apis/GetParamParamAsNumberVO';
 import GetParamParamAsStringVO, { GetParamParamAsStringVOStatic } from './vos/apis/GetParamParamAsStringVO';
 import SetParamParamVO, { SetParamParamVOStatic } from './vos/apis/SetParamParamVO';
-import ParamVO from './vos/ParamVO';
 
 export default class ModuleParams extends Module {
 
@@ -132,7 +133,7 @@ export default class ModuleParams extends Module {
             ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
         ];
 
-        this.datatables.push(new ModuleTableVO(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
+        ModuleTableController.create_new(this.name, ParamVO, label_field, "Params");
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {

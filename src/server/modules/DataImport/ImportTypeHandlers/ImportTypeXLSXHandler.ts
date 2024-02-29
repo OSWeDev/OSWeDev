@@ -1,27 +1,24 @@
 
 
-import XLSX from 'xlsx';
-import { CellAddress, WorkBook, WorkSheet } from 'xlsx';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
+import moment from 'moment';
+import XLSX, { CellAddress, WorkBook, WorkSheet } from 'xlsx';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
-import ModuleTableVO from '../../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../shared/modules/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
+import TextHandler from '../../../../shared/tools/TextHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
-import TextHandler from '../../../../shared/tools/TextHandler';
-import moment from 'moment';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ImportTypeXLSXHandler {
     // istanbul ignore next: nothing to test : getInstance

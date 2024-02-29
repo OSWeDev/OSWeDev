@@ -1,7 +1,8 @@
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import RangeHandler from '../../tools/RangeHandler';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import ModuleTableController from './ModuleTableController';
+import ModuleTableFieldController from './ModuleTableFieldController';
 import ModuleTableCompositeUniqueKeyVO from "./vos/ModuleTableCompositeUniqueKeyVO";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 

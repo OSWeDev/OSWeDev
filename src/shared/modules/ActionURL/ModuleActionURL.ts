@@ -3,11 +3,10 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import StringAndBooleanParamVO, { StringAndBooleanParamVOStatic } from '../API/vos/apis/StringAndBooleanParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import Module from '../Module';
 import ActionURLCRVO from './vos/ActionURLCRVO';
 import ActionURLUserVO from './vos/ActionURLUserVO';
 import ActionURLVO from './vos/ActionURLVO';
@@ -47,8 +46,6 @@ export default class ModuleActionURL extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeActionURL();
         this.initializeActionURLUserVO();
         this.initializeActionURLCRVO();
@@ -70,8 +67,7 @@ export default class ModuleActionURL extends Module {
             ModuleTableFieldController.create_new(ActionURLCRVO.API_TYPE_ID, field_names<ActionURLCRVO>().cr_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, ActionURLCRVO.CR_TYPE_INFO).setEnumValues(ActionURLCRVO.CR_TYPE_LABELS),
         ];
 
-        const table = new ModuleTableVO(this, ActionURLCRVO.API_TYPE_ID, () => new ActionURLCRVO(), fields, null, 'CR URLs d\'action');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, ActionURLCRVO, null, 'CR URLs d\'action');
 
         action_url_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);
     }
@@ -94,8 +90,7 @@ export default class ModuleActionURL extends Module {
             ModuleTableFieldController.create_new(ActionURLVO.API_TYPE_ID, field_names<ActionURLVO>().button_bootstrap_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de bouton', true, true, ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY).setEnumValues(ActionURLVO.BOOTSTRAP_BUTTON_TYPE_LABELS),
         ];
 
-        const table = new ModuleTableVO(this, ActionURLVO.API_TYPE_ID, () => new ActionURLVO(), fields, label, 'URLs d\'action');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, ActionURLVO, label, 'URLs d\'action');
     }
 
     private initializeActionURLUserVO() {
@@ -107,8 +102,7 @@ export default class ModuleActionURL extends Module {
             user_id,
         ];
 
-        const table = new ModuleTableVO(this, ActionURLUserVO.API_TYPE_ID, () => new ActionURLUserVO(), fields, null, 'Droits usage URL d\'action');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, ActionURLUserVO, null, 'Droits usage URL d\'action');
 
         action_id.set_many_to_one_target_moduletable_name(ActionURLVO.API_TYPE_ID);
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);

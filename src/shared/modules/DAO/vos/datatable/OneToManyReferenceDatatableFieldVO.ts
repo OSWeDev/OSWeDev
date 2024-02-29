@@ -1,14 +1,13 @@
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../shared/modules/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/ModuleTableFieldVO';
 import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import RangeHandler from '../../../../tools/RangeHandler';
 import NumRange from '../../../DataRender/vos/NumRange';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
-import ModuleTableController from '../../ModuleTableFieldController';
+import ModuleTableController from '../../ModuleTableController';
+import ModuleTableFieldController from '../../ModuleTableFieldController';
 
 export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -122,7 +121,7 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         }
         this.is_required = this.destField.field_required;
         this.validate = this.validate ? this.validate : (data: any) => {
-            return ModuleTableController.validate_field_value(this.destField, data);
+            return ModuleTableFieldController.validate_field_value(this.destField, data);
         };
     }
 

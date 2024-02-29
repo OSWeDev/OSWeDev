@@ -1,10 +1,11 @@
 import { field_names } from '../../../../../tools/ObjectHandler';
+import ModuleTableController from '../../../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../../IDistantVOBase';
-import ModuleTableVO from '../../../../ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../ModuleTableFieldVO';
 import ModuleAnimation from '../../../ModuleAnimation';
 
 export default class AnimationMessageModuleVO implements IDistantVOBase {
@@ -17,7 +18,7 @@ export default class AnimationMessageModuleVO implements IDistantVOBase {
             ModuleTableFieldController.create_new(AnimationMessageModuleVO.API_TYPE_ID, field_names<AnimationMessageModuleVO>().message, ModuleTableFieldVO.FIELD_TYPE_html, "Message"),
         ];
 
-        return new ModuleTableVO(ModuleAnimation.getInstance(), AnimationMessageModuleVO.API_TYPE_ID, null, datatable_fields, null);
+        return ModuleTableController.create_new(ModuleAnimation.getInstance().name, AnimationMessageModuleVO, null, ModuleAnimation.getInstance().name);
     }
 
     public static fields(): Array<DatatableField<any, any>> {
@@ -35,7 +36,7 @@ export default class AnimationMessageModuleVO implements IDistantVOBase {
         return fields;
     }
 
-    // public _type: string;
+    public _type: string = AnimationMessageModuleVO.API_TYPE_ID;
     public id: number;
 
     public min: number;

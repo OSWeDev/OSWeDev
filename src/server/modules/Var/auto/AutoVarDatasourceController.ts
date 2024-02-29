@@ -31,9 +31,9 @@ export default class AutoVarDatasourceController extends DataSourceControllerMat
 
                 for (const j in path) {
                     const path_elt = path[j];
-                    api_type_ids[path_elt.field.module_table.vo_type] = true;
-                    if (path_elt.field.manyToOne_target_moduletable) {
-                        api_type_ids[path_elt.field.manyToOne_target_moduletable.vo_type] = true;
+                    api_type_ids[path_elt.field.module_table_vo_type] = true;
+                    if (!!path_elt.field.foreign_ref_vo_type) {
+                        api_type_ids[path_elt.field.foreign_ref_vo_type] = true;
                     }
                 }
             }

@@ -270,8 +270,8 @@ export default class VarConfVO implements INamedVO {
      * @param id Pour les tests unitaires en priorité, on a juste à set l'id pour éviter de chercher en bdd
      */
     public constructor(
-        public name: string,
-        public var_data_vo_type: string,
+        public name: string = null,
+        public var_data_vo_type: string = null,
         public segment_types: { [matroid_field_id: string]: number } = null,
         id: number = null) {
 

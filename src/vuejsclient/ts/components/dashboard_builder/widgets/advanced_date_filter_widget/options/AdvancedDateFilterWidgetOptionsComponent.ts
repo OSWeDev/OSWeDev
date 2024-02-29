@@ -17,7 +17,7 @@ import AdvancedDateFilterWidgetOptions from './AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsComponent.scss';
 import AdvancedDateFilterWidgetOptionsOptComponent from './opt/AdvancedDateFilterWidgetOptionsOptComponent';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/ModuleTableFieldVO';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsComponent.pug'),
