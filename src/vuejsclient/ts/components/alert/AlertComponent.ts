@@ -1,10 +1,11 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import VueComponentBase from '../VueComponentBase';
 import './AlertComponent.scss';
 import { ModuleAlertAction, ModuleAlertGetter } from './AlertStore';
 import AlertViewComponent from './AlertViewComponent';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 
 @Component({
     template: require('./AlertComponent.pug'),
@@ -57,7 +58,14 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: true })
     private title_translation_params: { [param_name: string]: any };
 
-    public mounted() {
+    private throttle_update = ThrottleHelper.declare_throttle_without_args(this.update, 100);
+
+    @Watch('path')
+    public on_change_path() {
+        this.throttle_update();
+    }
+
+    public update() {
         if (!this.path) {
             return;
         }
@@ -68,6 +76,10 @@ export default class AlertComponent extends VueComponentBase {
             // TODO ajouter l'alerte dans le store store
             this.register_path_in_alerts_list(this.path);
         }
+    }
+
+    public mounted() {
+        this.throttle_update();
     }
 
     public beforeDestroy() {
