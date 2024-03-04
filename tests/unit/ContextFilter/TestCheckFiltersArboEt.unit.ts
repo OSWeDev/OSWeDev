@@ -26,8 +26,8 @@ test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
     instance = ContextQueryServerController;
 
     const filters = [
-        filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
-            .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
+        filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
+            .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('b').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a')))
     ];
 
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)

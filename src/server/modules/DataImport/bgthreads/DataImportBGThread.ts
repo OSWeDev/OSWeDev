@@ -119,12 +119,12 @@ export default class DataImportBGThread implements IBGThread {
                  */
                 dih = await query(DataImportHistoricVO.API_TYPE_ID)
                     .add_filters([
-                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_has([ModuleDataImport.IMPORTATION_STATE_IMPORTED, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT])
+                        filter(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().state).by_num_has([ModuleDataImport.IMPORTATION_STATE_IMPORTED, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT])
                             .or(
-                                filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
+                                filter(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().state).by_num_eq(
                                     ModuleDataImport.IMPORTATION_STATE_FORMATTED
                                 ).and(
-                                    filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                                    filter(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().autovalidate).is_true()
                                 )
                             )
                     ])

@@ -185,8 +185,12 @@ FROM :
 TO :
 "new SortByVO($1.API_TYPE_ID, field_names<$1>().$2"
 
+=== REGEXP
 
-
+FROM :
+"filter\(([^., ]+).API_TYPE_ID, '([^', ]+)'\)"
+TO :
+"filter($1.API_TYPE_ID, field_names<$1>().$2)"
 
 
 

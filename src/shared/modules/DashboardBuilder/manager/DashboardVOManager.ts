@@ -8,6 +8,7 @@ import SharedFiltersVOManager from "./SharedFiltersVOManager";
 import RangeHandler from "../../../tools/RangeHandler";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import { field_names } from "../../../tools/ObjectHandler";
 
 /**
  * DashboardVOManager

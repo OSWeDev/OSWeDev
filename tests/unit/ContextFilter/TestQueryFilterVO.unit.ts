@@ -10,31 +10,31 @@ ConsoleHandler.init();
 test('QueryFilterVO: Build a simple tree with and', () => {
     instance = ContextQueryServerController;
 
-    const f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    const f_ = filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_AND);
-    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a'));
-    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a'));
+    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'));
 });
 
 
 test('QueryFilterVO: Build a simple tree with or', () => {
     instance = ContextQueryServerController;
 
-    const f_ = filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    const f_ = filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_OR);
-    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a'));
-    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'));
+    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a'));
+    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'));
 });
 
 test('QueryFilterVO: Build a tree with and in and', () => {
     instance = ContextQueryServerController;
 
     const f_ =
-        filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b')).and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a'));
+        filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b')).and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a'));
 
     expect(f_.filter_type).toStrictEqual(ContextFilterVO.TYPE_FILTER_AND);
-    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b')));
-    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a'));
+    expect(f_.left_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b')));
+    expect(f_.right_hook).toStrictEqual(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a'));
 });

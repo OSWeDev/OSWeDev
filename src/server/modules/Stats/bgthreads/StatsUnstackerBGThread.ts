@@ -12,6 +12,7 @@ import StatsThreadVO from '../../../../shared/modules/Stats/vos/StatsThreadVO';
 import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
@@ -355,8 +356,8 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 .exec_as_server()
                 .add_filters([
                     ContextFilterVO.or([
-                        filter(StatsThreadVO.API_TYPE_ID, 'name').by_text_eq(invalid_stats_group.thread_name),
-                        filter(StatsThreadVO.API_TYPE_ID, 'aliases').by_text_has(invalid_stats_group.thread_name),
+                        filter(StatsThreadVO.API_TYPE_ID, field_names<StatsThreadVO>().name).by_text_eq(invalid_stats_group.thread_name),
+                        filter(StatsThreadVO.API_TYPE_ID, field_names<StatsThreadVO>().aliases).by_text_has(invalid_stats_group.thread_name),
                     ])
                 ]).select_vo<StatsThreadVO>();
             if (!lastcheck) {

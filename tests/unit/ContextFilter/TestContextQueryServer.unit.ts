@@ -197,8 +197,8 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison', async ()
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
         .field('firstname').field('lastname')
         .add_filters([
-            filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
-                .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
+            filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
+                .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('b').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a')))
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
@@ -220,18 +220,18 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async
         .add_filters([
 
             ContextFilterVO.or([
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a')
-                    .and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
-                    .and(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c'))
-                    .and(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d')),
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a1')
-                    .and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b1'))
-                    .and(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c1'))
-                    .and(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d1')),
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a2')
-                    .and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b2'))
-                    .and(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c2'))
-                    .and(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d2'))
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a')
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d')),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a1')
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b1'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c1'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d1')),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a2')
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b2'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c2'))
+                    .and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d2'))
             ])
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
@@ -254,18 +254,18 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', asyn
         .add_filters([
 
             ContextFilterVO.and([
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a')
-                    .or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
-                    .or(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c'))
-                    .or(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d')),
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a1')
-                    .or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b1'))
-                    .or(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c1'))
-                    .or(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d1')),
-                filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a2')
-                    .or(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b2'))
-                    .or(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c2'))
-                    .or(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d2'))
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a')
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d')),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a1')
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b1'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c1'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d1')),
+                filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a2')
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b2'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq('c2'))
+                    .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().password).by_text_eq('d2'))
             ])
         ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 

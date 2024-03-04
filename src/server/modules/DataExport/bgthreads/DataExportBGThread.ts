@@ -6,6 +6,7 @@ import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHi
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
@@ -54,8 +55,8 @@ export default class DataExportBGThread implements IBGThread {
             const exhi: ExportHistoricVO = await query(ExportHistoricVO.API_TYPE_ID)
                 .add_filters([
                     ContextFilterVO.or([
-                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
-                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
+                        filter(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().state).by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
+                        filter(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().state).by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
                     ])]
                 ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().creation_date, true)).select_vo<ExportHistoricVO>();
 
