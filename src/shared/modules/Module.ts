@@ -60,7 +60,7 @@ export default abstract class Module implements IModuleBase {
         return null;
     }
 
-    protected forceActivationOnInstallation(): void {
+    public forceActivationOnInstallation(): void {
         this.activate_on_installation = true;
     }
 }

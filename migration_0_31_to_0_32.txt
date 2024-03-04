@@ -1,18 +1,17 @@
 = MIGRATION  0.31.x => 0.32.x
 
+L'ordre est important
+
 PREMIERE ETAPE : remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
 Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
  - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
     - "\.filter_((by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf|ranges))|(is_(true|false)))\(('|")"
-    ...
-    - ".field('"
-    - '.field("'
+    - "\.field\(('|")"
 
-L'ordre est important
 
 == REPLACE ALL
 
-=== Sans paramètres
+=== Mot Entier + Respecter la casse
 FROM :
 'new DefaultTranslation('
 TO :
@@ -46,7 +45,7 @@ TO:
 FROM : 
 'import ModuleTableFieldVO from '
 TO :
-'import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+'import ModuleTableFieldController from 'oswedev/dist/shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '
 
 === REGEXP
@@ -241,6 +240,10 @@ bash
 Copy code
 npx eslint --init
 Suivez les instructions pour configurer ESLint selon vos besoins (par exemple, analyser du code TypeScript, utiliser des normes de codage populaires, etc.).
+
+========================!
+EXEMPLE de conf : CF CONF DE OSWEDEV
+========================!
 
 Si vous avez besoin d'une configuration plus spécifique, créez ou modifiez manuellement le fichier .eslintrc.js (ou le format de fichier de configuration que vous avez choisi). Par exemple, pour un projet TypeScript avec Vue.js, votre configuration pourrait ressembler à ceci :
 
