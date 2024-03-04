@@ -25,6 +25,7 @@ import AccessPolicyVO from './vos/AccessPolicyVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
+import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserSessionVO from './vos/UserSessionVO';
@@ -429,6 +430,23 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
         this.initializeUserLogVO();
+        this.initializeUserAPIVO();
+    }
+
+    private initializeUserAPIVO() {
+        let label = new ModuleTableField(field_names<UserAPIVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let field_user_id = new ModuleTableField(field_names<UserAPIVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let datatable_fields = [
+            label,
+            field_user_id,
+            new ModuleTableField(field_names<UserAPIVO>().api_key, ModuleTableField.FIELD_TYPE_string, 'API Key', true).unique()
+        ];
+
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, label, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
+
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        this.datatables.push(datatable);
     }
 
     private initializeUser() {

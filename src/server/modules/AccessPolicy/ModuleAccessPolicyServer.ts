@@ -61,6 +61,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
+import UserAPIVO from '../../../shared/modules/AccessPolicy/vos/UserAPIVO';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -2245,7 +2246,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
         return false;
     }
-
 
     private async checkBlockingOrInvalidatingUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(vo_update_holder.post_update_vo, vo_update_holder.pre_update_vo);

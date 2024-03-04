@@ -137,6 +137,36 @@ export default abstract class ServerBase {
         this.csrfProtection = csrf({ cookie: true });
     }
 
+    // /**
+    //  * Gestion des clefs d'API
+    //  */
+    // public verifyApiKeyMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    //     const apiKey = req.headers['x-api-key'] as string;
+
+    //     if (!apiKey) {
+    //         next();
+    //         return;
+    //     }
+
+    //     // Vérifier la clé d'API ici. Exemple :
+    //     const isValidApiKey = await this.checkApiKey(apiKey);
+
+    //     if (!isValidApiKey) {
+    //         return res.status(401).json({ message: 'Invalid or missing API Key' });
+    //     }
+
+    //     next();
+    // }
+
+    // public async checkApiKey(apiKey: string): Promise<boolean> {
+    //     let exist_user_api_vo: UserAPIVO = await query(UserAPIVO.API_TYPE_ID)
+    //         .filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey)
+    //         .exec_as_server()
+    //         .select_vo<UserAPIVO>();
+
+    //     return !!exist_user_api_vo; // Retourne true si valide, false sinon
+    // }
+
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 

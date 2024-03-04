@@ -1,14 +1,13 @@
-import fs from 'fs';
+import fs, { existsSync } from 'fs';
 import jimp from 'jimp';
 import { isEqual } from 'lodash';
 import path from 'path';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -16,8 +15,8 @@ import ModuleImageFormat from '../../../shared/modules/ImageFormat/ModuleImageFo
 import FormattedImageVO from '../../../shared/modules/ImageFormat/vos/FormattedImageVO';
 import ImageFormatVO from '../../../shared/modules/ImageFormat/vos/ImageFormatVO';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -26,7 +25,6 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
@@ -202,7 +200,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 }
             }
 
-            if (res_diff_min_fi) {
+            if (res_diff_min_fi && existsSync(res_diff_min_fi.formatted_src)) {
                 return res_diff_min_fi;
             }
 
@@ -312,7 +310,12 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 await image.blit(fontCanvas, 0, 0).writeAsync(new_img_file.path);
             }
 
-            const new_img_formattee: FormattedImageVO = new FormattedImageVO();
+            let new_img_formattee: FormattedImageVO = new FormattedImageVO();
+
+            if (res_diff_min_fi) {
+                new_img_formattee = res_diff_min_fi;
+            }
+
             new_img_formattee.align_haut = format.align_haut;
             new_img_formattee.align_larg = format.align_larg;
             new_img_formattee.file_id = new_img_file.id;

@@ -1,9 +1,9 @@
 // VO Invoice pour la création de facture
 export default class EvolizInvoicePOSTVO {
 
-    // Document date (REQUIRED format: YYYY-MM-DD)
+    // (REQUIRED format: YYYY-MM-DD) Document date
     public documentdate: string;
-    // The client's id to attach the invoice to (REQUIRED)
+    // (REQUIRED) The client's id to attach the invoice to
     public clientid: number;
     // External Document number, must be unique
     public external_document_number: string;
@@ -11,9 +11,9 @@ export default class EvolizInvoicePOSTVO {
     public contactid: number;
     // object on the document
     public object: string;
-    // Invoice condition information
+    // (REQUIRED) Invoice condition information
     public term: {
-        // Payment term identifier
+        // (REQUIRED) Payment term identifier
         paytermid: number,
         // Penalty rate
         penalty: number,
@@ -38,7 +38,7 @@ export default class EvolizInvoicePOSTVO {
     };
     // Comments on the document with html
     public comment: string;
-    // Analytic axis id, this field is accepted only when analytic option is enabled, required if invoice is checked in analytic configuration.
+    // (REQUIRED) Catégorie de la facture
     public analyticid: number;
     // Invoice rebate in amount, must be between 0 and the invoice total amount excluding vat
     public global_rebate: number;
@@ -57,13 +57,13 @@ export default class EvolizInvoicePOSTVO {
     public templateid: number;
     // Invoice items: On rempli obligatoirement soit articleid, soit designation, quantity et unit_price_vat_exclude
     public items: Array<{
-        // Article unique identifier
+        // (REQUIRED) Article unique identifier
         articleid: number,
-        // Article designation with html
+        // (REQUIRED Si pas de articleid) Article designation with html
         designation: string,
-        // Article quantity
+        // (REQUIRED Si pas de articleid) Article quantity
         quantity: number,
-        // Article unit price excluding vat
+        // (REQUIRED Si pas de articleid) Article unit price excluding vat
         unit_price_vat_exclude: number,
         // Article reference with html
         reference: string,

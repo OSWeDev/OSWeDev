@@ -1,28 +1,28 @@
 import moment from 'moment';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
+import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizContactClientVO from '../../../shared/modules/EvolizAPI/vos/contact_clients/EvolizContactClientVO';
 import EvolizContactProspectVO from '../../../shared/modules/EvolizAPI/vos/contact_prospects/EvolizContactProspectVO';
+import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
+import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
+import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
 import EvolizProspectVO from '../../../shared/modules/EvolizAPI/vos/prospects/EvolizProspectVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import EvolizAPIToken from './vos/EvolizAPIToken';
-import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
-import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -94,6 +94,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_prospect, this.create_prospect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_prospects.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_prospect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_payment_terms, this.list_payment_terms.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -130,8 +131,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         if (return_connect) {
             this.token = return_connect;
         }
-
-        ConsoleHandler.log(this.token.access_token);
     }
 
     // DEVIS
@@ -197,6 +196,17 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
             return devis;
 
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Payment terms
+    public async list_payment_terms(): Promise<EvolizPaymentTermsVO[]> {
+        try {
+            let payterms: EvolizPaymentTermsVO[] = await this.get_all_pages('/api/v1/payterms') as EvolizPaymentTermsVO[];
+
+            return payterms;
         } catch (error) {
             console.error(error);
         }
@@ -457,6 +467,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     private configureTraductions(): void {
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'En attente'
+        }, 'evoliz_devis.status_en_attente.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Contrat effectué'
         }, 'evoliz_devis.status_contrat_effectue.___LABEL___'));
