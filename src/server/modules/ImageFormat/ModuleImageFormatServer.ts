@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { existsSync } from 'fs';
 import jimp from 'jimp';
 import { isEqual } from 'lodash';
 import path from 'path';
@@ -202,7 +202,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 }
             }
 
-            if (res_diff_min_fi) {
+            if (res_diff_min_fi && existsSync(res_diff_min_fi.formatted_src)) {
                 return res_diff_min_fi;
             }
 
@@ -313,6 +313,11 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             }
 
             let new_img_formattee: FormattedImageVO = new FormattedImageVO();
+
+            if (res_diff_min_fi) {
+                new_img_formattee = res_diff_min_fi;
+            }
+
             new_img_formattee.align_haut = format.align_haut;
             new_img_formattee.align_larg = format.align_larg;
             new_img_formattee.file_id = new_img_file.id;
