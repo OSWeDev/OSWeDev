@@ -5,6 +5,7 @@ import ConsoleHandler from "../../../src/shared/tools/ConsoleHandler";
 import ContextQueryVO, { query } from '../../../src/shared/modules/ContextFilter/vos/ContextQueryVO';
 import UserVO from '../../../src/shared/modules/AccessPolicy/vos/UserVO';
 import SortByVO from '../../../src/shared/modules/ContextFilter/vos/SortByVO';
+import { field_names } from "../../../src/shared/tools/ObjectHandler";
 
 let instance: ContextQueryServerController;
 ConsoleHandler.init();
@@ -30,8 +31,8 @@ test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
     ];
 
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
-        .field('firstname').field('lastname')
-        .add_filters(filters).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+        .field(field_names<UserVO>().firstname).field(field_names<UserVO>().lastname)
+        .add_filters(filters).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     instance['check_filters_arbo_ET'](context_query);
     expect(context_query.filters).toStrictEqual(filters);

@@ -216,7 +216,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         const res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
 
         const all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
+        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has(field_names<AnimationQRVO>().module_id, all_module_ids).select_vos<AnimationQRVO>();
 
         const module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
@@ -255,7 +255,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         const res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
         const all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
+        const qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has(field_names<AnimationQRVO>().module_id, all_module_ids).select_vos<AnimationQRVO>();
         const qr_by_ids: { [id: number]: AnimationQRVO } = {};
         const qr_ids: number[] = [];
 
@@ -316,7 +316,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         if (module_ids && module_ids.length > 0) {
             res = module_ids;
         } else if (theme_ids && theme_ids.length > 0) {
-            const modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).filter_by_num_has('theme_id', theme_ids).select_vos<AnimationModuleVO>();
+            const modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).filter_by_num_has(field_names<AnimationModuleVO>().theme_id, theme_ids).select_vos<AnimationModuleVO>();
 
             if (modules && modules.length > 0) {
                 res = res.concat(modules.map((m) => m.id));
@@ -413,16 +413,16 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (module_ids.length > 0 && user_ids.length > 0) {
             aums = await query(AnimationUserModuleVO.API_TYPE_ID)
-                .filter_by_num_has('module_id', module_ids)
-                .filter_by_num_has('user_id', user_ids)
+                .filter_by_num_has(field_names<AnimationUserModuleVO>().module_id, module_ids)
+                .filter_by_num_has(field_names<AnimationUserModuleVO>().user_id, user_ids)
                 .select_vos<AnimationUserModuleVO>();
         } else if (module_ids.length > 0) {
             aums = await query(AnimationUserModuleVO.API_TYPE_ID)
-                .filter_by_num_has('module_id', module_ids)
+                .filter_by_num_has(field_names<AnimationUserModuleVO>().module_id, module_ids)
                 .select_vos<AnimationUserModuleVO>();
         } else if (user_ids.length > 0) {
             aums = await query(AnimationUserModuleVO.API_TYPE_ID)
-                .filter_by_num_has('user_id', user_ids)
+                .filter_by_num_has(field_names<AnimationUserModuleVO>().user_id, user_ids)
                 .select_vos<AnimationUserModuleVO>();
         } else {
             aums = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
@@ -570,7 +570,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         filter_or.left_hook = filter_no_roles;
         filter_or.right_hook = filter_roles;
 
-        const res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field('id', 'filter_animation_module_id').add_filters([filter_or]).exec_as_server();
+        const res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field(field_names<AnimationModuleVO>().id, 'filter_animation_module_id').add_filters([filter_or]).exec_as_server();
 
         return res;
     }

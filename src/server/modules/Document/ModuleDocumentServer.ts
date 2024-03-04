@@ -18,6 +18,7 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import FileHandler from '../../../shared/tools/FileHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -217,7 +218,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return;
         }
 
-        const docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq('file_id', f.id).select_vos<DocumentVO>();
+        const docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq(field_names<DocumentVO>().file_id, f.id).select_vos<DocumentVO>();
         if ((!docs) || (!docs.length)) {
             return;
         }
@@ -242,11 +243,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         const main_query = query(DocumentVO.API_TYPE_ID);
         const user = await ModuleAccessPolicyServer.getSelfUser();
         return await main_query
-            .filter_by_num_eq('lang_id', user.lang_id, DocumentLangVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DocumentTagLangVO>().lang_id, user.lang_id, DocumentLangVO.API_TYPE_ID)
             .add_filters([
                 ContextFilterVO.or([
-                    filter(DocumentRoleVO.API_TYPE_ID, 'role_id').by_num_in(query(UserRoleVO.API_TYPE_ID).field('role_id').exec_as_server().filter_by_num_eq('user_id', StackContext.get('UID')), main_query),
-                    filter(DocumentRoleVO.API_TYPE_ID, 'role_id').is_null_or_empty()
+                    filter(DocumentRoleVO.API_TYPE_ID, field_names<DocumentRoleVO>().role_id).by_num_in(query(UserRoleVO.API_TYPE_ID).field(field_names<UserRoleVO>().role_id).exec_as_server().filter_by_num_eq(field_names<UserRoleVO>().user_id, StackContext.get('UID')), main_query),
+                    filter(DocumentRoleVO.API_TYPE_ID, field_names<DocumentRoleVO>().role_id).is_null_or_empty()
                 ])
             ])
             .select_vos<DocumentVO>();
@@ -254,11 +255,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
         const user = await ModuleAccessPolicyServer.getSelfUser();
-        return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
+        return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq(field_names<DocumentTagLangVO>().lang_id, user.lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
         const user = await ModuleAccessPolicyServer.getSelfUser();
-        return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', user.lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
+        return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq(field_names<DocumentTagLangVO>().lang_id, user.lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }

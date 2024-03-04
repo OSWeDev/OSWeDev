@@ -83,7 +83,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
 
         //Identification de la page vers laquelle copier
         const current_page: DashboardPageVO = this.find_page_by_id(find_page_id);
-        const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', current_page.id).select_vos<DashboardPageWidgetVO>();
+        const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, current_page.id).select_vos<DashboardPageWidgetVO>();
 
         //Eviter ces i afin d'avoir des cellules qui ont un identifiant griditem différent
         const i_to_avoid: number[] = [];

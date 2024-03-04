@@ -19,6 +19,7 @@ import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './NoSegmentDataImportComponent.scss';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./NoSegmentDataImportComponent.pug'),
@@ -317,7 +318,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
 
         const dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
-            .filter_by_text_including('api_type_id', this.valid_api_type_ids)
+            .filter_by_text_including(field_names<DataImportHistoricVO>().api_type_id, this.valid_api_type_ids)
             .select_vos<DataImportHistoricVO>();
 
         this.storeDatas({ API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID, vos: dihs });

@@ -159,7 +159,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
-        const versions_query = query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
+        const versions_query = query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq(field_names<IVersionedVO>().parent_id, vo.id).exec_as_server();
         const versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
         for (const i in versions) {
@@ -193,7 +193,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         }
         cloned.id = insertionRes.id;
 
-        const versions_query = query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
+        const versions_query = query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq(field_names<IVersionedVO>().parent_id, vo.id).exec_as_server();
         const versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
         for (const i in versions) {

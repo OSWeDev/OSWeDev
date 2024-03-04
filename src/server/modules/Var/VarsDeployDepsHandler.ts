@@ -18,6 +18,7 @@ import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
+import { field_names } from "../../../shared/tools/ObjectHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -159,10 +160,10 @@ export default class VarsDeployDepsHandler {
         }
 
         const pixel_query = query(varconf.var_data_vo_type)
-            // .filter_by_num_eq('var_id', varconf.id)
-            //     .filter_is_true('_bdd_only_is_pixel')
-            .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
-            .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
+            // .filter_by_num_eq(field_names<VarDataBaseVO>().var_id, varconf.id)
+            //     .filter_is_true(field_names<VarDataBaseVO>()._bdd_only_is_pixel)
+            .field(field_names<VarConfVO>().id, 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
+            .field(field_names<VarDataBaseVO>().value, 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
@@ -174,7 +175,7 @@ export default class VarsDeployDepsHandler {
             throw new Error('No pixel_query_indexes for node:' + node.var_data.index);
         }
 
-        pixel_query.filter_by_text_has('_bdd_only_index', pixel_query_indexes);
+        pixel_query.filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, pixel_query_indexes);
 
         // /**
         //  * On ajoute les filtrages :
@@ -320,10 +321,10 @@ export default class VarsDeployDepsHandler {
             ConsoleHandler.error('No iknown_pixels_query_indexes for node:' + node.var_data.index);
             throw new Error('No known_pixels_query_indexes for node:' + node.var_data.index);
         }
-        known_pixels_query.filter_by_text_has('_bdd_only_index', known_pixels_query_indexes);
+        known_pixels_query.filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, known_pixels_query_indexes);
 
-        // known_pixels_query.filter_by_num_eq('var_id', varconf.id);
-        // known_pixels_query.filter_is_true('_bdd_only_is_pixel');
+        // known_pixels_query.filter_by_num_eq(field_names<VarDataBaseVO>().var_id, varconf.id);
+        // known_pixels_query.filter_is_true(field_names<VarDataBaseVO>()._bdd_only_is_pixel);
 
         // // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
         // //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');

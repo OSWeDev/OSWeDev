@@ -3,6 +3,7 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 
@@ -32,7 +33,7 @@ export default class InitLoggedOnce implements IGeneratorWorker {
         for (const i in users) {
             const user = users[i];
 
-            const logs: UserLogVO[] = await query(UserLogVO.API_TYPE_ID).filter_by_num_eq('user_id', user.id).select_vos();
+            const logs: UserLogVO[] = await query(UserLogVO.API_TYPE_ID).filter_by_num_eq(field_names<UserLogVO>().user_id, user.id).select_vos();
             for (const j in logs) {
                 const log = logs[j];
 

@@ -99,7 +99,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq(field_names<MailEventVO>().mail_id, mail.id).select_vos<MailEventVO>();
 
         const api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
@@ -153,7 +153,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq(field_names<MailEventVO>().mail_id, mail.id).exec_as_server().select_vos<MailEventVO>();
 
         await this.update_mail_event(mail, event, bdd_events);
     }

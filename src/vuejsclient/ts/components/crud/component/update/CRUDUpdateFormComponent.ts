@@ -221,7 +221,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     const doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
                         .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
                         .filter_is_true(field_names<CRUDFieldRemoverConfVO>().is_update)
-                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, 'id', true))
+                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
                         .select_vos<CRUDFieldRemoverConfVO>();
                     doublons.shift();
                     await ModuleDAO.getInstance().deleteVOs(doublons);

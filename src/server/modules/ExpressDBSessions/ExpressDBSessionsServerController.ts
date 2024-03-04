@@ -56,7 +56,7 @@ export default class ExpressDBSessionsServerController extends Store {
         } else {
 
             // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
-            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).filter_by_date_same_or_after('expire', Dates.now()).exec_as_server().select_vo<ExpressSessionVO>();
+            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq(field_names<ExpressSessionVO>().sid, sid).filter_by_date_same_or_after(field_names<ExpressSessionVO>().expire, Dates.now()).exec_as_server().select_vo<ExpressSessionVO>();
             ExpressDBSessionsServerController.session_cache[sid] = this_session;
         }
 

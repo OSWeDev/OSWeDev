@@ -93,7 +93,7 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
 
     private async addRole(user: UserVO, role: RoleVO): Promise<void> {
 
-        const userroles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', role.id).select_vos();
+        const userroles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, role.id).select_vos();
 
         if ((!!userroles) && (!!userroles.length)) {
             return;

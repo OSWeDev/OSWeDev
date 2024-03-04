@@ -24,7 +24,7 @@ import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vo
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
@@ -495,7 +495,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         promises.push((async () => {
             const checkpoints = await query(self.checklist_shared_module.checkpoint_type_id)
-                .filter_by_num_eq('checklist_id', self.checklist.id)
+                .filter_by_num_eq(field_names<ICheckPoint>().checklist_id, self.checklist.id)
                 .select_vos<ICheckPoint>();
 
             checkpoints_by_id = VOsTypesManager.vosArray_to_vosByIds(checkpoints);

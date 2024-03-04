@@ -40,7 +40,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -959,8 +959,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         if (vo_update_handler && vo_update_handler.pre_update_vo && vo_update_handler.post_update_vo &&
             ((!vo_update_handler.pre_update_vo.pixel_activated) && vo_update_handler.post_update_vo.pixel_activated)) {
             const delete_cache_query = query(vo_update_handler.pre_update_vo.var_data_vo_type)
-                .filter_by_num_eq('var_id', vo_update_handler.pre_update_vo.id)
-                .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_COMPUTED);
+                .filter_by_num_eq(field_names<VarDataBaseVO>().var_id, vo_update_handler.pre_update_vo.id)
+                .filter_by_num_eq(field_names<VarDataBaseVO>().value_type, VarDataBaseVO.VALUE_TYPE_COMPUTED);
 
             await ContextQueryServerController.delete_vos(delete_cache_query);
         }

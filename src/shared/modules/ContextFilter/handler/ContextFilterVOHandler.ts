@@ -23,6 +23,7 @@ import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
 import { query } from '../vos/ContextQueryVO';
+import { field_names } from '../../../tools/ObjectHandler';
 
 /**
  * ContextFilterVOHandler
@@ -582,13 +583,11 @@ export default class ContextFilterVOHandler {
      * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
      */
     public static get_empty_res_context_hook_query(api_type_id: string) {
-        // on veut rien renvoyer, donc on fait une query qui retourne rien
-        const filter_none: ContextFilterVO = new ContextFilterVO();
-        filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-        filter_none.field_name = 'id';
-        filter_none.vo_type = api_type_id;
-
-        return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_server();
+        return query(api_type_id)
+            .filter_is_null(field_names<IDistantVOBase>().id)
+            .field(field_names<IDistantVOBase>().id)
+            .set_query_distinct()
+            .exec_as_server();
     }
 
     public static add_context_filters_exclude_values(

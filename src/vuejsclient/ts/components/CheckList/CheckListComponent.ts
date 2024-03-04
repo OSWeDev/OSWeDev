@@ -158,7 +158,7 @@ export default class CheckListComponent extends VueComponentBase {
         promises.push((async () => {
 
             const checkpoints: ICheckPoint[] = await query(self.checklist_shared_module.checkpoint_type_id)
-                .filter_by_num_eq('checklist_id', self.list_id)
+                .filter_by_num_eq(field_names<ICheckPoint>().checklist_id, self.list_id)
                 .select_vos<ICheckPoint>();
 
             checkpoints_by_id = VOsTypesManager.vosArray_to_vosByIds(checkpoints);

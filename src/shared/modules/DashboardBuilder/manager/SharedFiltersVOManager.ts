@@ -6,6 +6,7 @@ import ModuleDAO from "../../DAO/ModuleDAO";
 import RangeHandler from "../../../tools/RangeHandler";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import DashboardPageFieldFiltersVOManager from "./DashboardPageFieldFiltersVOManager";
+import { field_names } from "../../../tools/ObjectHandler";
 
 /**
  * SharedFiltersVOManager
@@ -97,7 +98,7 @@ export default class SharedFiltersVOManager {
         // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const shared_filters = await context_query
-            .filter_by_num_x_ranges('shared_from_dashboard_ids', dashboard_ids_numranges)
+            .filter_by_num_x_ranges(field_names<SharedFiltersVO>().shared_from_dashboard_ids, dashboard_ids_numranges)
             .select_vos<SharedFiltersVO>();
 
         // We need to filter shared_filters that share by each dashboard_id
@@ -180,7 +181,7 @@ export default class SharedFiltersVOManager {
         // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const shared_filters = await context_query
-            .filter_by_num_x_ranges('shared_with_dashboard_ids', dashboard_ids_numranges)
+            .filter_by_num_x_ranges(field_names<SharedFiltersVO>().shared_with_dashboard_ids, dashboard_ids_numranges)
             .select_vos<SharedFiltersVO>();
 
         // We need to filter shared_filters that share with each dashboard_id

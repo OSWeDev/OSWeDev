@@ -1583,7 +1583,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + error.message);
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des vars impliquées : ' + JSON.stringify(vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
-                        let duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
+                        let duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
                         if (duplicates && duplicates.length) {
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
@@ -1622,7 +1622,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             result = await self.insert_without_triggers_using_COPY(vos, segmented_value, exec_as_server);
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
                         } else {
-                            let get_select_query_str: string = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
+                            let get_select_query_str: string = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str);
@@ -2619,7 +2619,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         return await query(api_type_id)
             .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
-            .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_IMPORT)
+            .filter_by_num_eq(field_names<VarDataBaseVO>().value_type, VarDataBaseVO.VALUE_TYPE_IMPORT)
             .select_vos<T>();
     }
 

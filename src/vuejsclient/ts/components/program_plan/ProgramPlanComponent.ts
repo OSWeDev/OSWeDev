@@ -48,6 +48,7 @@ import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanCompon
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import './ProgramPlanComponent.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 
 @Component({
@@ -478,7 +479,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 promises.push((async () => {
 
                     const program_managers: IPlanProgramManager[] = await query(this.program_plan_shared_module.program_manager_type_id)
-                        .filter_by_num_eq('program_id', self.program_id)
+                        .filter_by_num_eq(field_names<IPlanProgramManager>().program_id, self.program_id)
                         .select_vos<IPlanProgramManager>();
 
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_manager_type_id, vos: program_managers });
@@ -490,7 +491,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 promises.push((async () => {
 
                     const program_facilitators: IPlanProgramFacilitator[] = await query(this.program_plan_shared_module.program_facilitator_type_id)
-                        .filter_by_num_eq('program_id', self.program_id)
+                        .filter_by_num_eq(field_names<IPlanProgramFacilitator>().program_id, self.program_id)
                         .select_vos<IPlanProgramFacilitator>();
 
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_facilitator_type_id, vos: program_facilitators });
@@ -502,7 +503,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 promises.push((async () => {
 
                     const program_targets: IPlanProgramTarget[] = await query(this.program_plan_shared_module.program_target_type_id)
-                        .filter_by_num_eq('program_id', self.program_id)
+                        .filter_by_num_eq(field_names<IPlanProgramTarget>().program_id, self.program_id)
                         .select_vos<IPlanProgramTarget>();
 
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_target_type_id, vos: program_targets });
@@ -814,11 +815,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     const partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
                     let target_name: string = (target) ? target.name : "";
-                    const target_table: ModuleTableVO<IPlanTarget> = ModuleTableController.module_tables_by_vo_type[this.program_plan_shared_module.target_type_id];
+                    const target_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[this.program_plan_shared_module.target_type_id];
+                    const table_label_function = ModuleTableController.table_label_function_by_vo_type[this.program_plan_shared_module.target_type_id];
                     if (target_table && target_table.default_label_field) {
                         target_name = (target) ? target[target_table.default_label_field.field_id] : "";
-                    } else if (target_table && target_table.table_label_function) {
-                        target_name = (target) ? target_table.table_label_function(target) : "";
+                    } else if (table_label_function) {
+                        target_name = (target) ? table_label_function(target) : "";
                     }
 
                     res.push({
@@ -1107,7 +1109,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             const all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
                                 .filter_is_false(field_names<IPlanRDV>().archived)
-                                .filter_by_num_eq('target_id', rdv.target_id)
+                                .filter_by_num_eq(field_names<IPlanRDV>().target_id, rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
                             for (const i in all_rdvs) {
@@ -1435,7 +1437,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                             const all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
                                 .filter_is_false(field_names<IPlanRDV>().archived)
-                                .filter_by_num_eq('target_id', rdv.target_id)
+                                .filter_by_num_eq(field_names<IPlanRDV>().target_id, rdv.target_id)
                                 .select_vos<IPlanRDV>();
 
                             let max_weight: number = -1;
@@ -1677,7 +1679,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                 const all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
                     .filter_is_false(field_names<IPlanRDV>().archived)
-                    .filter_by_num_eq('target_id', this.selected_rdv.target_id)
+                    .filter_by_num_eq(field_names<IPlanRDV>().target_id, this.selected_rdv.target_id)
                     .select_vos<IPlanRDV>();
 
                 for (const i in all_rdvs) {
@@ -1858,7 +1860,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         const rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id)
             .filter_is_false(field_names<IPlanRDV>().archived)
-            .filter_by_num_eq('target_id', this.selected_rdv.target_id)
+            .filter_by_num_eq(field_names<IPlanRDV>().target_id, this.selected_rdv.target_id)
             .select_vos<IPlanRDV>();
 
         const rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(rdvs);
@@ -1876,7 +1878,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             promises.push((async () => {
                 const vos: IPlanRDVPrep[] = await query(this.program_plan_shared_module.rdv_prep_type_id)
-                    .filter_by_num_has('rdv_id', rdvs_ids)
+                    .filter_by_num_has(field_names<IPlanRDVPrep>().rdv_id, rdvs_ids)
                     .select_vos<IPlanRDVPrep>();
 
                 self.addPrepsByIds(
@@ -1893,7 +1895,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
 
             const vos: IPlanRDVCR[] = await query(this.program_plan_shared_module.rdv_cr_type_id)
-                .filter_by_num_has('rdv_id', rdvs_ids)
+                .filter_by_num_has(field_names<IPlanRDVCR>().rdv_id, rdvs_ids)
                 .select_vos<IPlanRDVCR>();
 
             self.addCrsByIds(vos);

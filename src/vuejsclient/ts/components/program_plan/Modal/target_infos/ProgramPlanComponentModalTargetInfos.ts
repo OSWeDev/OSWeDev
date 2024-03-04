@@ -21,6 +21,7 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import "./ProgramPlanComponentModalTargetInfos.scss";
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./ProgramPlanComponentModalTargetInfos.pug'),
@@ -83,12 +84,12 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
     private async onChangeSelectedRDV() {
         let target_contact_links: IPlanTargetContact[] = [];
         if (this.program_plan_shared_module.target_contact_type_id) {
-            target_contact_links = await query(this.program_plan_shared_module.target_contact_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanTargetContact>();
+            target_contact_links = await query(this.program_plan_shared_module.target_contact_type_id).filter_by_num_eq(field_names<IPlanTargetContact>().target_id, this.selected_rdv.target_id).select_vos<IPlanTargetContact>();
         }
 
         let target_group_contact_links: IPlanTargetGroupContact[] = [];
         if (this.program_plan_shared_module.target_group_contact_type_id) {
-            target_group_contact_links = await query(this.program_plan_shared_module.target_group_contact_type_id).filter_by_num_eq('target_group_id', this.target.group_id).select_vos<IPlanTargetGroupContact>();
+            target_group_contact_links = await query(this.program_plan_shared_module.target_group_contact_type_id).filter_by_num_eq(field_names<IPlanTargetGroupContact>().target_group_id, this.target.group_id).select_vos<IPlanTargetGroupContact>();
         }
 
         const contacts_ids: number[] = [];

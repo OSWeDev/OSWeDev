@@ -2,6 +2,7 @@ import UserLogVO from "../../../../../shared/modules/AccessPolicy/vos/UserLogVO"
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../../../../shared/modules/ContextFilter/vos/SortByVO";
 import UserDataRangesVO from "../../../../../shared/modules/UserLogVars/vars/vos/UserDataRangesVO";
+import { field_names } from "../../../../../shared/tools/ObjectHandler";
 import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
 export default class LastUserLogCSRFTSDatasourceController extends DataSourceControllerMatroidIndexedBase {
@@ -22,10 +23,10 @@ export default class LastUserLogCSRFTSDatasourceController extends DataSourceCon
     public async get_data(param: UserDataRangesVO): Promise<number> {
 
         const last_csrf: UserLogVO = await query(UserLogVO.API_TYPE_ID)
-            .filter_by_num_x_ranges('user_id', param.user_id_ranges)
-            .filter_is_false('impersonated')
-            .filter_by_num_eq('log_type', UserLogVO.LOG_TYPE_CSRF_REQUEST)
-            .set_sort(new SortByVO(UserLogVO.API_TYPE_ID, 'log_time', false))
+            .filter_by_num_x_ranges(field_names<UserLogVO>().user_id, param.user_id_ranges)
+            .filter_is_false(field_names<UserLogVO>().impersonated)
+            .filter_by_num_eq(field_names<UserLogVO>().log_type, UserLogVO.LOG_TYPE_CSRF_REQUEST)
+            .set_sort(new SortByVO(UserLogVO.API_TYPE_ID, field_names<UserLogVO>().log_time, false))
             .set_limit(1)
             .select_vo<UserLogVO>();
 

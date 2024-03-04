@@ -1913,7 +1913,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
 
             // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
             user.lang_id = lang.id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
@@ -2138,7 +2138,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         const res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
 
-        const query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
+        const query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field(field_names<ModuleVO>().id, 'filter_module_actif_id');
 
         const filter_module_in: ContextFilterVO = new ContextFilterVO();
         filter_module_in.field_name = 'module_id';
@@ -2156,7 +2156,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
 
-        res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
+        res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().id, 'filter_access_policy_id')]);
         res.add_filters([filter_or]);
         res.exec_as_server();
 

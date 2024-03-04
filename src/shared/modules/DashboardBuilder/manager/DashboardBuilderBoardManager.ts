@@ -1,3 +1,4 @@
+import { field_names } from "../../../tools/ObjectHandler";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
@@ -43,7 +44,7 @@ export default class DashboardBuilderBoardManager {
         }
 
         const db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', dashboard_id)
+            .filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, dashboard_id)
             .select_vos<DashboardGraphVORefVO>();
 
         // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};

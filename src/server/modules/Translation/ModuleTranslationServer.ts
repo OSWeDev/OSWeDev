@@ -731,7 +731,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async getTranslations(num: number): Promise<TranslationVO[]> {
         return await query(TranslationVO.API_TYPE_ID)
-            .filter_by_num_eq('lang_id', num)
+            .filter_by_num_eq(field_names<TranslationVO>().lang_id, num)
             .select_vos<TranslationVO>();
     }
 
@@ -817,7 +817,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if (!lang) {
             return null;
         }
-        const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('lang_id', lang.id).select_vos<TranslationVO>();
+        const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq(field_names<TranslationVO>().lang_id, lang.id).select_vos<TranslationVO>();
 
         return translations;
     }

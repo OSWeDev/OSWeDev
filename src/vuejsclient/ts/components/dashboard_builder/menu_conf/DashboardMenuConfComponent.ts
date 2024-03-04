@@ -15,6 +15,7 @@ import MenuController from '../../menu/MenuController';
 import MenuOrganizerComponent from '../../menu/organizer/MenuOrganizerComponent';
 import VueComponentBase from '../../VueComponentBase';
 import './DashboardMenuConfComponent.scss';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardMenuConfComponent.pug'),
@@ -128,7 +129,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 const db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.dashboard.translatable_name_code_text);
                 if (db_translatable_text) {
 
-                    const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('text_id', db_translatable_text.id).select_vos<TranslationVO>();
+                    const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq(field_names<TranslationVO>().text_id, db_translatable_text.id).select_vos<TranslationVO>();
 
                     for (const i in translations) {
                         const translation = translations[i];

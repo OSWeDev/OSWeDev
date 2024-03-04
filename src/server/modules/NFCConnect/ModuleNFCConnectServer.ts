@@ -185,7 +185,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         }
 
         try {
-            const user_tags: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).select_vos<NFCTagUserVO>();
+            const user_tags: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq(field_names<NFCTagUserVO>().user_id, user_id).select_vos<NFCTagUserVO>();
             if ((!user_tags) || (!user_tags.length)) {
                 return null;
             }
@@ -216,7 +216,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq(field_names<NFCTagUserVO>().nfc_tag_id, tag.id).exec_as_server().select_vos<NFCTagUserVO>();
         if ((!tags_user) || (tags_user.length != 1)) {
             ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
             return false;
@@ -244,7 +244,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq(field_names<NFCTagUserVO>().nfc_tag_id, tag.id).exec_as_server().select_vos<NFCTagUserVO>();
         if ((!tags_user) || (tags_user.length != 1)) {
             return false;
         }
@@ -282,7 +282,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             tag.id = insertOrDeleteQueryResult.id;
         }
 
-        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).exec_as_server().select_vos<NFCTagUserVO>();
+        const tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq(field_names<NFCTagUserVO>().nfc_tag_id, tag.id).exec_as_server().select_vos<NFCTagUserVO>();
         if ((tags_user) && (tags_user.length > 0)) {
 
             if ((tags_user.length == 1) && (tags_user[0].user_id == user_id)) {

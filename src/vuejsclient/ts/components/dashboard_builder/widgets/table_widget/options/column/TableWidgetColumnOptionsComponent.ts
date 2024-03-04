@@ -350,7 +350,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
         })()));
         promises.push(((async () => {
-            const policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
+            const policies = await query(AccessPolicyVO.API_TYPE_ID).field(field_names<AccessPolicyVO>().translatable_name).select_vos<AccessPolicyVO>();
 
             self.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
         })()));

@@ -7,6 +7,7 @@ import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import WidgetOptionsVOManager from "./WidgetOptionsVOManager";
 import VOFieldRefVOManager from './VOFieldRefVOManager';
+import { field_names } from '../../../tools/ObjectHandler';
 
 /**
  * DashboardPageWidgetVOManager
@@ -417,7 +418,7 @@ export default class DashboardPageWidgetVOManager {
         // Initialize page_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq('page_id', page_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page_id)
             .select_vos<DashboardPageWidgetVO>();
 
         self.page_widgets_by_page_id[page_id] = page_widgets;
@@ -469,7 +470,7 @@ export default class DashboardPageWidgetVOManager {
         // Initialize pages_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const pages_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_has('page_id', page_ids)
+            .filter_by_num_has(field_names<DashboardPageWidgetVO>().page_id, page_ids)
             .select_vos<DashboardPageWidgetVO>();
 
         page_ids.map((page_id) => {
@@ -531,7 +532,7 @@ export default class DashboardPageWidgetVOManager {
         }
 
         page_widget = await query(DashboardPageWidgetVO.API_TYPE_ID)
-            .filter_by_num_eq('id', page_widget_id)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().id, page_widget_id)
             .select_vo<DashboardPageWidgetVO>();
 
         return page_widget;

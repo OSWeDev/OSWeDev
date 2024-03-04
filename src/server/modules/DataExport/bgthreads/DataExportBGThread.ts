@@ -57,7 +57,7 @@ export default class DataExportBGThread implements IBGThread {
                         filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
                         filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
                     ])]
-                ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, 'creation_date', true)).select_vo<ExportHistoricVO>();
+                ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().creation_date, true)).select_vo<ExportHistoricVO>();
 
             if (!exhi) {
                 this.stats_out('inactive', time_in);

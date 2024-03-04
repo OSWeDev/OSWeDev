@@ -12,6 +12,7 @@ import PopupVO from '../../../../shared/modules/Popup/vos/PopupVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
 import './PopupComponent.scss';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./PopupComponent.pug'),
@@ -25,14 +26,14 @@ export default class PopupComponent extends VueComponentBase {
         const roles: RoleVO[] = await ModuleAccessPolicy.getInstance().getMyRoles();
 
         this.popups = await query(PopupVO.API_TYPE_ID)
-            .filter_by_date_x_ranges('activated_ts_range', [
+            .filter_by_date_x_ranges(field_names<PopupVO>().activated_ts_range, [
                 RangeHandler.create_single_elt_TSRange(Dates.now(), TimeSegment.TYPE_DAY)
             ])
             .add_filters([ContextFilterVO.or([
-                filter(PopupVO.API_TYPE_ID, 'only_roles').is_null_or_empty(),
-                filter(PopupVO.API_TYPE_ID, 'only_roles').by_num_x_ranges(RangeHandler.create_multiple_NumRange_from_ids(roles.map((role: RoleVO) => role.id), NumSegment.TYPE_INT)),
+                filter(PopupVO.API_TYPE_ID, field_names<PopupVO>().only_roles).is_null_or_empty(),
+                filter(PopupVO.API_TYPE_ID, field_names<PopupVO>().only_roles).by_num_x_ranges(RangeHandler.create_multiple_NumRange_from_ids(roles.map((role: RoleVO) => role.id), NumSegment.TYPE_INT)),
             ])])
-            .set_sort(new SortByVO(PopupVO.API_TYPE_ID, 'activated_ts_range', true))
+            .set_sort(new SortByVO(PopupVO.API_TYPE_ID, field_names<PopupVO>().activated_ts_range, true))
             .select_vos<PopupVO>();
 
         if (!this.popups.length) {

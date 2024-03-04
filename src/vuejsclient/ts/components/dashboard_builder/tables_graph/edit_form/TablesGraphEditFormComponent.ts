@@ -9,6 +9,7 @@ import MaxGraphCellMapper from '../graph_mapper/MaxGraphCellMapper';
 import MaxGraphEdgeMapper from '../graph_mapper/MaxGraphEdgeMapper';
 import MaxGraphMapper from '../graph_mapper/MaxGraphMapper';
 import './TablesGraphEditFormComponent.scss';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./TablesGraphEditFormComponent.pug'),
@@ -84,7 +85,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
         const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
 
         const edges = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id)
             .select_vos<DashboardGraphVORefVO>();
 
         for (const i in edges) {

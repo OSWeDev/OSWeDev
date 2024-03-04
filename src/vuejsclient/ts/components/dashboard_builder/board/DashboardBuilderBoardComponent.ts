@@ -28,6 +28,7 @@ import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -302,7 +303,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }
 
                     // On reload les widgets
-                    self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
                     page_widget = self.widgets.find((w) => w.id == insertOrDeleteQueryResult.id);
 
                     self.editable_dashboard_page = Object.assign({

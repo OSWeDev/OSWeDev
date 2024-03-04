@@ -521,7 +521,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
-        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).set_limit(50).select_vos<DataImportHistoricVO>();
+        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportHistoricVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportHistoricVO>();
     }
 
     public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
@@ -529,7 +529,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
-        return await query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).set_limit(50).select_vos<DataImportLogVO>();
+        return await query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportLogVO>().data_import_format_id, num).set_limit(50).select_vos<DataImportLogVO>();
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
@@ -553,7 +553,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
-        return await query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).select_vos<DataImportColumnVO>();
+        return await query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq(field_names<DataImportColumnVO>().data_import_format_id, num).select_vos<DataImportColumnVO>();
     }
 
     /**

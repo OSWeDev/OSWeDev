@@ -24,7 +24,7 @@ import TranslationVO from '../../../../shared/modules/Translation/vos/Translatio
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -361,7 +361,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             export_vos = export_vos.concat(pages.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
 
-        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
+        const graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         if (graphvorefs && graphvorefs.length) {
             export_vos = export_vos.concat(graphvorefs.map((p) => ModuleTableController.translate_vos_to_api(p)));
         }
@@ -370,7 +370,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in pages) {
             const page = pages[i];
 
-            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', page.id).select_vos<DashboardPageWidgetVO>();
+            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id).select_vos<DashboardPageWidgetVO>();
             if (this_page_widgets && this_page_widgets.length) {
                 export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
@@ -611,8 +611,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             null,
             {
                 sorts: [
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
                 ]
             },
             options
@@ -638,8 +638,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             dashboard_id,
             {
                 sorts: [
-                    new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)
+                    new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, true),
+                    new SortByVO(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().id, true)
                 ]
             },
             options

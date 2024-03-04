@@ -946,12 +946,12 @@ export default class AccessPolicyServerController {
 
         let dependencyFromBDD: PolicyDependencyVO = null;
         try {
-            dependencyFromBDD = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
+            dependencyFromBDD = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed : ' + PolicyDependencyVO.API_TYPE_ID) {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
                 ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
-                const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
+                const vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq(field_names<PolicyDependencyVO>().src_pol_id, dependency.src_pol_id).filter_by_num_eq(field_names<PolicyDependencyVO>().depends_on_pol_id, dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
                 await ModuleDAOServer.getInstance().deleteVOs_as_server(vos);
                 dependencyFromBDD = null;
             } else {

@@ -34,7 +34,7 @@ import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import ArrayHandler from '../../../shared/tools/ArrayHandler';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -1020,7 +1020,7 @@ export default class ContextQueryServerController {
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
                 let seg_query = query(segmentation_field.foreign_ref_vo_type)
-                    .field('id')
+                    .field(field_names<IDistantVOBase>().id)
                     .set_query_distinct()
                     .exec_as_server(context_query.is_server);
                 seg_query = ContextQueryServerController.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query);
@@ -1093,7 +1093,7 @@ export default class ContextQueryServerController {
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                const seg_query = query(segmentation_field.foreign_ref_vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
+                const seg_query = query(segmentation_field.foreign_ref_vo_type).field(field_names<IDistantVOBase>().id).set_query_distinct().exec_as_server(context_query.is_server);
 
                 // On ajoute des fasttracks pour ne pas avoir besoin de faire en base une requête dont le résultat est évident
                 // Typiquement si on construit une requete de type select id from t0 where t0.id = 10, la réponse est 10 dans ce contexte
@@ -1628,7 +1628,7 @@ export default class ContextQueryServerController {
         // Set all base_moduletable_fields by default
         if (!(context_query.fields?.length > 0)) {
 
-            context_query.field('id');
+            context_query.field(field_names<IDistantVOBase>().id);
 
             // Add all fields by default
             for (const i in base_moduletable_fields) {

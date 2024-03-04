@@ -160,7 +160,7 @@ export default abstract class ProgramPlanControllerBase {
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
                 const all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id)
                     .filter_is_false(field_names<IPlanRDV>().archived)
-                    .filter_by_num_eq('target_id', rdv.target_id)
+                    .filter_by_num_eq(field_names<IPlanRDV>().target_id, rdv.target_id)
                     .select_vos<IPlanRDV>();
 
                 let max_weight: number = -1;

@@ -5,6 +5,7 @@ import FacturationProduitVO from '../../../../shared/modules/Commerce/Produit/vo
 import ProduitVO from '../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
 import ProduitVOBase from '../../../../shared/modules/Commerce/Produit/vos/ProduitVOBase';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 import ProduitControllersManager from './ProduitControllersManager';
@@ -33,7 +34,7 @@ export default class ModuleProduitServer extends ModuleServerBase {
     }
 
     public async getFacturationProduitByIdProduit(num: number): Promise<FacturationProduitVO[]> {
-        return await query(FacturationProduitVO.API_TYPE_ID).filter_by_num_eq('produit_id', num).select_vos<FacturationProduitVO>();
+        return await query(FacturationProduitVO.API_TYPE_ID).filter_by_num_eq(field_names<FacturationProduitVO>().produit_id, num).select_vos<FacturationProduitVO>();
     }
 
     public async getPrixProduit(

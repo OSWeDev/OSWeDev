@@ -29,6 +29,7 @@ import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirec
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
 import VueAnimationQrComponent from "../qr/qr";
+import { field_names } from "../../../../../../shared/tools/ObjectHandler";
 
 @Component({
     template: require("./module.pug"),
@@ -85,7 +86,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await query(AnimationModuleVO.API_TYPE_ID).filter_by_id(this.module_id).select_vo<AnimationModuleVO>())());
-        promises.push((async () => this.qrs = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_eq('module_id', this.module_id).select_vos<AnimationQRVO>())());
+        promises.push((async () => this.qrs = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_eq(field_names<AnimationQRVO>().module_id, this.module_id).select_vos<AnimationQRVO>())());
         promises.push((async () => this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
@@ -175,8 +176,8 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     private async reloadUqrs() {
         const user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
-            .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
-            .filter_by_num_eq('user_id', this.logged_user_id)
+            .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, this.qrs.map((m) => m.id))
+            .filter_by_num_eq(field_names<AnimationUserQRVO>().user_id, this.logged_user_id)
             .select_vos<AnimationUserQRVO>();
 
         for (const i in user_qrs) {
@@ -200,8 +201,8 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         if (restart) {
             if (this.um) {
                 const user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
-                    .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
-                    .filter_by_num_eq('user_id', this.logged_user_id)
+                    .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, this.qrs.map((m) => m.id))
+                    .filter_by_num_eq(field_names<AnimationUserQRVO>().user_id, this.logged_user_id)
                     .select_vos<AnimationUserQRVO>();
 
                 let toDelete: IDistantVOBase[] = [this.um];

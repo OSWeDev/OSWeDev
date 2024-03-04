@@ -137,11 +137,11 @@ export default class DataImportBGThread implements IBGThread {
                  * Sinon on tente d'entamer un nouvel import, dans un ordre basé en premier lieu sur le poids de l'import, puis sur l'ancienneté
                  */
                 dih = await query(DataImportHistoricVO.API_TYPE_ID)
-                    .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_UPLOADED)
+                    .filter_by_num_eq(field_names<DataImportHistoricVO>().state, ModuleDataImport.IMPORTATION_STATE_UPLOADED)
                     .set_sorts([
-                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'weight', true),
-                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'start_date', true),
-                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'id', true)
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().weight, true),
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().start_date, true),
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().id, true)
                     ])
                     .set_limit(1)
                     .select_vo();
@@ -209,10 +209,10 @@ export default class DataImportBGThread implements IBGThread {
         StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'IN');
 
         const dihs = await query(DataImportHistoricVO.API_TYPE_ID)
-            .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
+            .filter_by_num_eq(field_names<DataImportHistoricVO>().state, ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
             .set_sorts([
-                new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'start_date', true),
-                new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'id', true)
+                new SortByVO(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().start_date, true),
+                new SortByVO(DataImportHistoricVO.API_TYPE_ID, field_names<DataImportHistoricVO>().id, true)
             ]).select_vos<DataImportHistoricVO>();
 
         for (const i in dihs) {

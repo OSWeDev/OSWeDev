@@ -70,6 +70,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -2015,7 +2016,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 break;
             default:
                 this.kanban_column_is_enum = false;
-                let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id).field('id');
+                let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id).field(field_names<IDistantVOBase>().id);
                 if (this.widget_options.use_kanban_column_weight_if_exists) {
                     kanban_column_values_query = kanban_column_values_query.set_sort(new SortByVO(this.kanban_column.api_type_id, 'weight', true));
                 }

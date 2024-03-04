@@ -225,8 +225,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
             dashboard_id,
             {
                 sorts: [
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
                 ]
             },
             options

@@ -11,6 +11,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -233,7 +234,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
         const maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
-            .filter_is_false('maintenance_over')
+            .filter_is_false(field_names<MaintenanceVO>().maintenance_over)
             .exec_as_server()
             .select_vos<MaintenanceVO>();
         return (maintenances && maintenances.length) ? maintenances[0] : null;

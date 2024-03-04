@@ -23,7 +23,7 @@ export default class MaxGraphMapper {
 
         const res = graph_mapper ? graph_mapper : new MaxGraphMapper();
         res.dashboard_id = dashboard_id;
-        const vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', dashboard_id).select_vos<DashboardGraphVORefVO>();
+        const vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, dashboard_id).select_vos<DashboardGraphVORefVO>();
         if (!vos_refs || !vos_refs.length) {
             return res;
         }

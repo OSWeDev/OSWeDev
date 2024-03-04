@@ -73,7 +73,7 @@ export default class SurveyComponent extends VueComponentBase {
                     //L'utilisateur a-t-il déjà complété ce survey ?
                     this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
                     const user_id = this.user.id;
-                    this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq(field_names<SurveyVO>().route_name, this.$route.name).select_vo<SurveyVO>();
+                    this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq(field_names<SurveyVO>().user_id, user_id).filter_by_text_eq(field_names<SurveyVO>().route_name, this.$route.name).select_vo<SurveyVO>();
                 }
 
                 //Si le survey est autorisé à apparaître : Est-ce un pop-up ? Si oui Combien de temps avant d'apparaître ?

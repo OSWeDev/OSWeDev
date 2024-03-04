@@ -3,12 +3,10 @@
 PREMIERE ETAPE : remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
 Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
  - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
-    - "\.filter_by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf)\(('|")"
-    - "\.filter_is_(true|false)\(('|")"
+    - "\.filter_((by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf|ranges))|(is_(true|false)))\(('|")"
     ...
     - ".field('"
     - '.field("'
-
 
 L'ordre est important
 
@@ -180,6 +178,12 @@ TO :
 '.foreign_ref_vo_type'
 
 
+=== REGEXP
+
+FROM :
+"new SortByVO\(([^., ]+).API_TYPE_ID, '([^', ]+)'"
+TO :
+"new SortByVO($1.API_TYPE_ID, field_names<$1>().$2"
 
 
 

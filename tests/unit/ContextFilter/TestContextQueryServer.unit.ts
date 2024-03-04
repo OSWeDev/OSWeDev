@@ -41,7 +41,7 @@ test('ContextQueryServer: test .build_select_query - User => Lang', async () => 
         new ContextQueryFieldVO(UserVO.API_TYPE_ID, 'firstname', 'firstname'),
         new ContextQueryFieldVO(UserVO.API_TYPE_ID, 'lastname', 'lastname'),
     ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -65,7 +65,7 @@ test('ContextQueryServer: test .build_select_query - Lang => User', async () => 
     const context_query: ContextQueryVO = query(LangVO.API_TYPE_ID).using(UserVO.API_TYPE_ID).add_fields([
         new ContextQueryFieldVO(LangVO.API_TYPE_ID, 'code_lang', 'code_lang'),
     ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
+    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().phone, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -88,7 +88,7 @@ test('ContextQueryServer: test .build_select_query - Userrole => User & Role', a
     let context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID]).add_fields([
         new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
     ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
+    context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().phone, true));
 
     let request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -106,7 +106,7 @@ test('ContextQueryServer: test .build_select_query - Userrole => User & Role', a
         new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
     ]);
     context_query.add_filters([filter_]);
-    context_query.set_sort(new SortByVO(RoleVO.API_TYPE_ID, 'translatable_name', true));
+    context_query.set_sort(new SortByVO(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, true));
 
     request = await ContextQueryServerController.build_select_query(context_query);
 
@@ -129,7 +129,7 @@ test('ContextQueryServer: test .build_select_query - UserRoleVO => Anonymization
     const context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID]).add_fields([
         new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
     ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(AnonymizationUserConfVO.API_TYPE_ID, 'anon_field_id', true));
+    context_query.set_sort(new SortByVO(AnonymizationUserConfVO.API_TYPE_ID, field_names<AnonymizationUserConfVO>().anon_field_id, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -154,7 +154,7 @@ test('ContextQueryServer: test .build_select_query - UserRoleVO => Anonymization
         .add_fields([
             new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
         ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
+    context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().vo_type, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -179,7 +179,7 @@ test('ContextQueryServer: test .build_select_query - RoleVO => AnonymizationFiel
     ).add_fields([
         new ContextQueryFieldVO(RoleVO.API_TYPE_ID, 'translatable_name', 'translatable_name'),
     ]).add_filters([filter_]);
-    context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
+    context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().vo_type, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -199,7 +199,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison', async ()
         .add_filters([
             filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
                 .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
-        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -233,7 +233,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async
                     .and(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c2'))
                     .and(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d2'))
             ])
-        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 
@@ -267,7 +267,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', asyn
                     .or(filter(UserVO.API_TYPE_ID, 'name').by_text_eq('c2'))
                     .or(filter(UserVO.API_TYPE_ID, 'password').by_text_eq('d2'))
             ])
-        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+        ]).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     const request: ParameterizedQueryWrapper = await ContextQueryServerController.build_select_query(context_query);
 

@@ -863,7 +863,7 @@ export default class PushDataServerController {
                 return;
             }
 
-            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().role_id, role.id).select_vos<UserRoleVO>();
 
             if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
@@ -918,7 +918,7 @@ export default class PushDataServerController {
                 return;
             }
 
-            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+            const usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().role_id, role.id).select_vos<UserRoleVO>();
             if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;

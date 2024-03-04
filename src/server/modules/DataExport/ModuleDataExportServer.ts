@@ -1456,7 +1456,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 const user = await ModuleAccessPolicy.getInstance().getSelfUser();
                 const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field('lang_id').filter_by_id(user.id))
+                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(user.id))
                     .select_vos();
                 const trad = trads ? trads[0] : null;
                 dest_vo[dest_field_id] = trad ? trad.translated : null;

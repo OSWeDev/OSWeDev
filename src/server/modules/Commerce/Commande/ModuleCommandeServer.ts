@@ -11,6 +11,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
@@ -43,11 +44,11 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async getCommandesUser(num: number): Promise<CommandeVO[]> {
-        return await query(CommandeVO.API_TYPE_ID).filter_by_num_eq('user_id', num, ClientVO.API_TYPE_ID).select_vos<CommandeVO>();
+        return await query(CommandeVO.API_TYPE_ID).filter_by_num_eq(field_names<ClientVO>().user_id, num, ClientVO.API_TYPE_ID).select_vos<CommandeVO>();
     }
 
     public async getLignesCommandeByCommandeId(num: number): Promise<LigneCommandeVO[]> {
-        return await query(LigneCommandeVO.API_TYPE_ID).filter_by_num_eq('commande_id', num).select_vos<LigneCommandeVO>();
+        return await query(LigneCommandeVO.API_TYPE_ID).filter_by_num_eq(field_names<LigneCommandeVO>().commande_id, num).select_vos<LigneCommandeVO>();
     }
 
     public async creationPanier(): Promise<CommandeVO> {

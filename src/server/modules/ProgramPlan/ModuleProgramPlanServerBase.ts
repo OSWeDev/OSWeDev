@@ -288,7 +288,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         if (!ids.length) {
             return [];
         }
-        return await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVPrep>();
+        return await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_has(field_names<IPlanRDVPrep>().rdv_id, ids).select_vos<IPlanRDVPrep>();
     }
 
     public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
@@ -305,7 +305,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         if (!ids.length) {
             return [];
         }
-        return await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVCR>();
+        return await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_has(field_names<IPlanRDVCR>().rdv_id, ids).select_vos<IPlanRDVCR>();
     }
 
     public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
@@ -321,16 +321,16 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
             return await query(this.programplan_shared_module.rdv_type_id)
                 .filter_is_false(field_names<IPlanRDV>().archived)
-                .filter_by_date_before('start_time', end_time)
-                .filter_by_date_same_or_after('end_time', start_time)
+                .filter_by_date_before(field_names<IPlanRDV>().start_time, end_time)
+                .filter_by_date_same_or_after(field_names<IPlanRDV>().end_time, start_time)
                 .select_vos<IPlanRDV>();
         }
 
         return await query(this.programplan_shared_module.rdv_type_id)
             .filter_is_false(field_names<IPlanRDV>().archived)
-            .filter_by_date_before('start_time', end_time)
-            .filter_by_date_same_or_after('end_time', start_time)
-            .filter_by_num_eq('program_id', program_id)
+            .filter_by_date_before(field_names<IPlanRDV>().start_time, end_time)
+            .filter_by_date_same_or_after(field_names<IPlanRDV>().end_time, start_time)
+            .filter_by_num_eq(field_names<IPlanRDV>().program_id, program_id)
             .select_vos<IPlanRDV>();
     }
 
@@ -581,7 +581,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         // On check si on est un manager
-        const user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanManager>();
+        const user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq(field_names<IPlanManager>().user_id, loggedUserId).select_vos<IPlanManager>();
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             const res_: IPlanFacilitator[] = [];
@@ -603,7 +603,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return res_;
         }
 
-        const user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanFacilitator>();
+        const user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq(field_names<IPlanFacilitator>().user_id, loggedUserId).select_vos<IPlanFacilitator>();
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -663,7 +663,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         // On check si on est un manager
-        const user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanManager>();
+        const user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq(field_names<IPlanManager>().user_id, loggedUserId).select_vos<IPlanManager>();
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             const res_: IPlanFacilitator[] = [];
@@ -685,7 +685,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return res_;
         }
 
-        const user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanFacilitator>();
+        const user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq(field_names<IPlanFacilitator>().user_id, loggedUserId).select_vos<IPlanFacilitator>();
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -865,13 +865,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
         if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
+            const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq(field_names<IPlanRDVCR>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
             const cr = crs ? crs[0] : null;
 
             let prep = null;
             if (this.programplan_shared_module.rdv_prep_type_id) {
-                const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
+                const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq(field_names<IPlanRDVPrep>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
                 prep = preps ? preps[0] : null;
             }
 
@@ -900,7 +900,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = null;
         if (this.programplan_shared_module.rdv_prep_type_id) {
-            const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
+            const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq(field_names<IPlanRDVPrep>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -930,7 +930,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
+        const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq(field_names<IPlanRDVCR>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         const cr = crs ? crs[0] : null;
 
@@ -958,7 +958,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let prep = null;
 
         if (this.programplan_shared_module.rdv_prep_type_id) {
-            const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
+            const preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq(field_names<IPlanRDVPrep>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -988,7 +988,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
+        const crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq(field_names<IPlanRDVCR>().rdv_id, rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         const cr = crs ? crs[0] : null;
 

@@ -26,6 +26,7 @@ import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQu
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import { debounce } from 'lodash';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -477,8 +478,8 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         const dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
-            .filter_by_text_including('api_type_id', this.valid_api_type_ids)
-            .filter_by_num_x_ranges('segment_date_index', num_ranges)
+            .filter_by_text_including(field_names<DataImportHistoricVO>().api_type_id, this.valid_api_type_ids)
+            .filter_by_num_x_ranges(field_names<DataImportHistoricVO>().segment_date_index, num_ranges)
             .select_vos<DataImportHistoricVO>();
 
         this.storeDatas({

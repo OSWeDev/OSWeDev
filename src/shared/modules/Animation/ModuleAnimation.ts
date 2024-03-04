@@ -126,8 +126,8 @@ export default class ModuleAnimation extends Module {
 
     public async getUserModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
         const ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
-            .filter_by_num_eq('module_id', module_id)
-            .filter_by_num_eq('user_id', user_id)
+            .filter_by_num_eq(field_names<AnimationUserModuleVO>().module_id, module_id)
+            .filter_by_num_eq(field_names<AnimationUserModuleVO>().user_id, user_id)
             .select_vos<AnimationUserModuleVO>();
 
         return ums ? ums[0] : null;
