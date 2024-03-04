@@ -1,5 +1,4 @@
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
 import FieldFiltersVOManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager";
 import VOFieldRefVOManager from "../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager";
@@ -194,6 +193,7 @@ export default class FavoritesFiltersVOService {
         return context_field_filters;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FavoritesFiltersVOService {
         if (!FavoritesFiltersVOService.instance) {
             FavoritesFiltersVOService.instance = new FavoritesFiltersVOService();
@@ -279,7 +279,9 @@ export default class FavoritesFiltersVOService {
                 xlsx_data.file_access_policy_name,
                 xlsx_data.target_user_id,
                 xlsx_data.do_not_use_filter_by_datatable_field_uid,
-                xlsx_data.export_options,
+                xlsx_data.export_active_field_filters,
+                xlsx_data.export_vars_indicator,
+                xlsx_data.send_email_with_export_notification,
                 xlsx_data.vars_indicator,
             );
         }

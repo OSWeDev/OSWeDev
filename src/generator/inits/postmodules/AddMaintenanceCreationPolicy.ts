@@ -6,6 +6,7 @@ import PostModulesPoliciesPatchBase from '../../patchs/PostModulesPoliciesPatchB
 
 export default class AddMaintenanceCreationPolicy extends PostModulesPoliciesPatchBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AddMaintenanceCreationPolicy {
         if (!AddMaintenanceCreationPolicy.instance) {
             AddMaintenanceCreationPolicy.instance = new AddMaintenanceCreationPolicy();

@@ -24,6 +24,7 @@ export default class SendInBlueMailServerController {
     public static PATH_EMAIL: string = 'smtp/email';
     public static PATH_STATS_EVENTS: string = 'smtp/statistics/events';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueMailServerController {
         if (!SendInBlueMailServerController.instance) {
             SendInBlueMailServerController.instance = new SendInBlueMailServerController();
@@ -33,7 +34,19 @@ export default class SendInBlueMailServerController {
 
     private static instance: SendInBlueMailServerController = null;
 
-    public async send(mail_category: string, to: SendInBlueMailVO, subject: string, textContent: string, htmlContent: string, tags: string[] = null, templateId: number = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+    public async send(
+        mail_category: string,
+        to: SendInBlueMailVO,
+        subject: string,
+        textContent: string,
+        htmlContent: string,
+        tags: string[] = null,
+        templateId: number = null,
+        bcc: SendInBlueMailVO[] = null,
+        cc: SendInBlueMailVO[] = null,
+        attachments: SendInBlueAttachmentVO[] = null,
+        sender: SendInBlueMailVO = null,
+        reply_to: SendInBlueMailVO = null): Promise<boolean> {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
@@ -49,9 +62,9 @@ export default class SendInBlueMailServerController {
         }
 
         let postParams: any = {
-            sender: await SendInBlueServerController.getInstance().getSender(),
+            sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
             to: [to],
-            replyTo: await SendInBlueServerController.getInstance().getReplyTo(),
+            replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
             subject: subject,
             htmlContent: htmlContent,
             textContent: textContent,
@@ -96,7 +109,17 @@ export default class SendInBlueMailServerController {
         return true;
     }
 
-    public async sendWithTemplate(mail_category: string, to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<MailVO> {
+    public async sendWithTemplate(
+        mail_category: string,
+        to: SendInBlueMailVO,
+        templateId: number,
+        tags: string[] = null,
+        params: { [param_name: string]: any } = {},
+        bcc: SendInBlueMailVO[] = null,
+        cc: SendInBlueMailVO[] = null,
+        attachments: SendInBlueAttachmentVO[] = null,
+        sender: SendInBlueMailVO = null,
+        reply_to: SendInBlueMailVO = null): Promise<MailVO> {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
@@ -112,10 +135,10 @@ export default class SendInBlueMailServerController {
         }
 
         let postParams: any = {
-            sender: await SendInBlueServerController.getInstance().getSender(),
+            sender: sender ? sender : await SendInBlueServerController.getInstance().getSender(),
             to: [to],
             templateId: templateId,
-            replyTo: await SendInBlueServerController.getInstance().getReplyTo(),
+            replyTo: reply_to ? reply_to : await SendInBlueServerController.getInstance().getReplyTo(),
         };
 
         if (bcc && bcc.length > 0) {

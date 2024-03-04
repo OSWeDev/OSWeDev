@@ -11,6 +11,7 @@ export interface IFeedbackState {
 
 export default class FeedbackStore implements IStoreModule<IFeedbackState, FeedbackContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FeedbackStore {
         if (!FeedbackStore.instance) {
             FeedbackStore.instance = new FeedbackStore();

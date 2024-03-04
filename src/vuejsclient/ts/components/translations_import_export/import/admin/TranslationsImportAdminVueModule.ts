@@ -11,6 +11,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
 
     public static ROUTE_PATH: string = "/import/translations";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TranslationsImportAdminVueModule {
         if (!TranslationsImportAdminVueModule.instance) {
             TranslationsImportAdminVueModule.instance = new TranslationsImportAdminVueModule();

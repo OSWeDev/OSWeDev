@@ -163,8 +163,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.refresh_button) {
                 this.refresh_button = true;
             }
-            if (!this.can_filter_by) {
-                this.can_filter_by = true;
+            if (this.can_filter_by) {
+                this.can_filter_by = false;
             }
             if (!this.show_bulk_edit) {
                 this.show_bulk_edit = false;
@@ -409,7 +409,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.enum_fg_colors = null;
                 crud_actions_column.bg_color_header = null;
                 crud_actions_column.font_color_header = null;
-                crud_actions_column.can_filter_by = true;
+                crud_actions_column.can_filter_by = false;
                 crud_actions_column.column_width = 0;
                 crud_actions_column.kanban_column = false;
                 await this.add_column(crud_actions_column);

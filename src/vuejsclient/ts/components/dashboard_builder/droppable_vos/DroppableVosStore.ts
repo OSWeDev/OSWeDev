@@ -13,6 +13,7 @@ export interface IDroppableVosState {
 
 export default class DroppableVosStore implements IStoreModule<IDroppableVosState, DroppableVosContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DroppableVosStore {
         if (!DroppableVosStore.instance) {
             DroppableVosStore.instance = new DroppableVosStore();

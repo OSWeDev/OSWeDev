@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20230428UpdateUserArchivedField implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230428UpdateUserArchivedField {
         if (!Patch20230428UpdateUserArchivedField.instance) {
             Patch20230428UpdateUserArchivedField.instance = new Patch20230428UpdateUserArchivedField();

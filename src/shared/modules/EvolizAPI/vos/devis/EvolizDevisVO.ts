@@ -1,23 +1,29 @@
 export default class EvolizDevisVO {
     public static API_TYPE_ID: string = "evoliz_devis";
 
+    public static STATUS_EN_ATTENTE: number = 0;
     public static STATUS_CONTRAT_EFFECTUE: number = 0;
     public static STATUS_PROPOSITION_EFFECTUEE: number = 1;
     public static STATUS_NEGOCITATION: number = 2;
     public static STATUS_CONFIRMEE: number = 3;
-    public static STATUS_PERDUE: number = 4;
+    public static STATUS_FACTUREE: number = 4;
+    public static STATUS_PERDUE: number = 5;
 
+    public static STATUS_EN_ATTENTE_LABEL: string = 'evoliz_devis.status_en_attente.___LABEL___';
     public static STATUS_CONTRAT_EFFECTUE_LABEL: string = 'evoliz_devis.status_contrat_effectue.___LABEL___';
     public static STATUS_PROPOSITION_EFFECTUEE_LABEL: string = 'evoliz_devis.status_proposition_effectuee.___LABEL___';
     public static STATUS_NEGOCITATION_LABEL: string = 'evoliz_devis.status_negociation.___LABEL___';
     public static STATUS_CONFIRMEE_LABEL: string = 'evoliz_devis.status_confirmee.___LABEL___';
+    public static STATUS_FACTUREE_LABEL: string = 'evoliz_devis.status_facturee.___LABEL___';
     public static STATUS_PERDUE_LABEL: string = 'evoliz_devis.status_perdue.___LABEL___';
 
     public static STATE_LABELS: { [id: number]: string } = {
+        [EvolizDevisVO.STATUS_EN_ATTENTE]: EvolizDevisVO.STATUS_EN_ATTENTE_LABEL,
         [EvolizDevisVO.STATUS_CONTRAT_EFFECTUE]: EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL,
         [EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE]: EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL,
         [EvolizDevisVO.STATUS_NEGOCITATION]: EvolizDevisVO.STATUS_NEGOCITATION_LABEL,
         [EvolizDevisVO.STATUS_CONFIRMEE]: EvolizDevisVO.STATUS_CONFIRMEE_LABEL,
+        [EvolizDevisVO.STATUS_FACTUREE]: EvolizDevisVO.STATUS_FACTUREE_LABEL,
         [EvolizDevisVO.STATUS_PERDUE]: EvolizDevisVO.STATUS_PERDUE_LABEL,
     };
 
@@ -25,6 +31,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE;
@@ -32,10 +39,11 @@ export default class EvolizDevisVO {
                 return EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE;
             case 8:
             case 12:
+                return EvolizDevisVO.STATUS_CONFIRMEE;
             case 16:
             case 20:
             case 24:
-                return EvolizDevisVO.STATUS_CONFIRMEE;
+                return EvolizDevisVO.STATUS_FACTUREE;
             case -1:
                 return EvolizDevisVO.STATUS_PERDUE;
             default:
@@ -47,6 +55,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE_LABEL;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL;
@@ -54,10 +63,11 @@ export default class EvolizDevisVO {
                 return EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL;
             case 8:
             case 12:
+                return EvolizDevisVO.STATUS_CONFIRMEE_LABEL;
             case 16:
             case 20:
             case 24:
-                return EvolizDevisVO.STATUS_CONFIRMEE_LABEL;
+                return EvolizDevisVO.STATUS_FACTUREE_LABEL;
             case -1:
                 return EvolizDevisVO.STATUS_PERDUE_LABEL;
             default:

@@ -10,6 +10,7 @@ export default class ModuleVersioned extends Module {
     public static PARAM_NAME_ROBOT_USER_ID: string = "ModuleVersioned.ROBOT_USER_ID";
     public static APINAME_RESTORE_TRASHED_VO: string = "RESTORE_TRASHED_VO";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleVersioned {
         if (!ModuleVersioned.instance) {
             ModuleVersioned.instance = new ModuleVersioned();

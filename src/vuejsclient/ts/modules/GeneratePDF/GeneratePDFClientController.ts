@@ -2,6 +2,7 @@ import ModuleGeneratePDF from '../../../../shared/modules/GeneratePDF/ModuleGene
 
 export default class GeneratePDFClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): GeneratePDFClientController {
         if (!GeneratePDFClientController.instance) {
             GeneratePDFClientController.instance = new GeneratePDFClientController();

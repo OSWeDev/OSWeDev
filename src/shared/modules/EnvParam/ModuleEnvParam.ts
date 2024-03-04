@@ -21,6 +21,7 @@ export default class ModuleEnvParam extends Module {
     public static APINAME_set_env_param_boolean: string = "set_env_param_boolean";
     public static APINAME_set_env_param_number: string = "set_env_param_number";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleEnvParam {
         if (!ModuleEnvParam.instance) {
             ModuleEnvParam.instance = new ModuleEnvParam();

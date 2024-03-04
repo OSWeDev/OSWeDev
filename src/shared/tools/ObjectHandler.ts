@@ -35,6 +35,17 @@ export const reflect: <T>(obj?: T) => { [P in keyof T]?: P } = <T>(obj?: T): { [
 
 export default class ObjectHandler {
 
+    public static try_get_json(e: any): any {
+        try {
+            return (e && (typeof e === 'string') && (
+                (e.startsWith('{') && e.endsWith('}')) ||
+                (e.startsWith('[') && e.endsWith(']'))
+            )) ? JSON.parse(e) : e;
+        } catch (error) {
+            return e;
+        }
+    }
+
     /**
      * Copie d'object VO. Pas opti mais fonctionnel
      */

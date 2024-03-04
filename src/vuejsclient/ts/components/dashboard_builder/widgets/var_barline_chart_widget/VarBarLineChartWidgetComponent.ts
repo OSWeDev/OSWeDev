@@ -82,7 +82,7 @@
 //     //         return null;
 //     //     }
 
-//     //     return this.widget_options.filter_additional_params ? JSON.parse(this.widget_options.filter_additional_params) : undefined;
+//     //     return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
 //     // }
 
 //     // get translated_title(): string {

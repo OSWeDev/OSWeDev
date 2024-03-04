@@ -23,6 +23,7 @@ let callWatchers = async (watchers: DaoStoreTypeWatcherDefinition[]) => {
 
 export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DAOStore {
         if (!DAOStore.instance) {
             DAOStore.instance = new DAOStore();

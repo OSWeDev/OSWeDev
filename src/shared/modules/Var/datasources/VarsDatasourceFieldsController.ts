@@ -2,6 +2,7 @@ export default class VarsDatasourceFieldsController {
 
     public static CUMUL_NAME_SEPARATOR: string = "__FIELD__";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarsDatasourceFieldsController {
         if (!VarsDatasourceFieldsController.instance) {
             VarsDatasourceFieldsController.instance = new VarsDatasourceFieldsController();

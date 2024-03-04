@@ -13,6 +13,7 @@ export interface ICRUDState {
 
 export default class CRUDStore implements IStoreModule<ICRUDState, CRUDContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CRUDStore {
         if (!CRUDStore.instance) {
             CRUDStore.instance = new CRUDStore();

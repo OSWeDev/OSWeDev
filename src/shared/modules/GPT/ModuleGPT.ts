@@ -40,6 +40,7 @@ export default class ModuleGPT extends Module {
 
     public static POLICY_ASSISTANT_FILES_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ASSISTANT_FILES_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleGPT {
         if (!ModuleGPT.instance) {
             ModuleGPT.instance = new ModuleGPT();
@@ -254,7 +255,8 @@ export default class ModuleGPT extends Module {
         let fields = [
             user_id,
             label,
-            current_default_assistant_id
+            current_default_assistant_id,
+            new ModuleTableField(field_names<GPTAssistantAPIThreadVO>().celia_is_running, ModuleTableField.FIELD_TYPE_boolean, 'Celia en cours de réflexion', true, true, false)
         ];
 
         let table = new ModuleTable(this, GPTAssistantAPIThreadVO.API_TYPE_ID, () => new GPTAssistantAPIThreadVO(), fields, label, 'GPT Assistant API - Thread');

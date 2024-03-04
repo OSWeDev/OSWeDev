@@ -9,6 +9,7 @@ export default class ModulePowershell extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModulePowershell.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModulePowershell.MODULE_NAME + '.FO_ACCESS';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePowershell {
         if (!ModulePowershell.instance) {
             ModulePowershell.instance = new ModulePowershell();

@@ -6,6 +6,7 @@ export default class AjaxCacheController {
     public static POST_UID: number = 1;
     public static HEADER_GZIP: string = 'zlib_gzip';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AjaxCacheController {
         if (!AjaxCacheController.instance) {
             AjaxCacheController.instance = new AjaxCacheController();

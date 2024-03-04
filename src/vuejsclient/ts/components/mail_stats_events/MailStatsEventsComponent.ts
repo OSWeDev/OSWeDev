@@ -1,14 +1,16 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailCategoryVO from '../../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
+import VOEventRegistrationKey from '../../modules/PushData/VOEventRegistrationKey';
 import VueComponentBase from '../VueComponentBase';
 import './MailStatsEventsComponent.scss';
 
@@ -18,29 +20,25 @@ import './MailStatsEventsComponent.scss';
 })
 export default class MailStatsEventsComponent extends VueComponentBase {
 
+    public mails: MailVO[] = null;
+    public events_by_mail: { [mail_id: number]: MailEventVO[] } = null;
+
     @Prop({ default: null })
     private category_name: string;
 
     @Prop({ default: null })
     private email_to: string;
 
-    @Prop({ default: false })
-    private auto_update: boolean;
-
     private category: MailCategoryVO = null;
-    private mails: MailVO[] = null;
-    private events_by_mail: { [mail_id: number]: MailEventVO[] } = null;
-
-    private last_event: MailEventVO = null;
-    private nb_mails_recus: number = 0;
-    private nb_mails_ouverts: number = 0;
-    private nb_mails_clique: number = 0;
 
     private is_loading: boolean = true;
     private force_reload: boolean = true;
 
-    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
-    private throttled_auto_update = ThrottleHelper.declare_throttle_without_args(this.throttled_update_datas.bind(this), 30000, { leading: false, trailing: true });
+    private vo_events_registration_keys: VOEventRegistrationKey[] = [];
+
+    private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 10, { leading: false, trailing: true });
+
+    private throttled_update_datas_mail_events = ThrottleHelper.declare_throttle_without_args(this.update_datas_mail_events.bind(this), 10, { leading: false, trailing: true });
 
     @Watch('category_name', { immediate: true })
     @Watch('email_to')
@@ -49,16 +47,11 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     }
 
     private async sendinblue_refresh_mail_events() {
-        if (!this.last_event) {
-            return;
-        }
-
         this.is_loading = true;
         for (let i in this.mails) {
             await ModuleSendInBlue.getInstance().sendinblue_refresh_mail_events(this.mails[i].id);
         }
-        this.force_reload = true;
-        await this.throttled_update_datas();
+        this.is_loading = false;
     }
 
     private async update_datas() {
@@ -67,6 +60,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
         let changed_category = false;
         if ((!this.category) || (this.category_name && (this.category_name != this.category.name))) {
+            await this.unregister_all_vo_event_callbacks();
             this.category = await ModuleDAO.getInstance().getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, this.category_name);
             changed_category = true;
         }
@@ -77,62 +71,121 @@ export default class MailStatsEventsComponent extends VueComponentBase {
         }
 
         if (changed_category || this.force_reload) {
+
+            let filtres = [filter(MailVO.API_TYPE_ID, field_names<MailVO>().category_id).by_num_eq(this.category.id)];
             if (this.email_to) {
-                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).filter_by_text_eq('email', this.email_to).select_vos<MailVO>();
-            } else {
-                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).select_vos<MailVO>();
+                filtres.push(filter(MailVO.API_TYPE_ID, field_names<MailVO>().email).by_text_eq(this.email_to));
             }
 
-            let promises = [];
-            let events_by_mail: { [mail_id: number]: MailEventVO[] } = {};
-            let last_event = null;
-            let mails_recus: { [mail_id: number]: boolean } = {};
-            let mails_ouverts: { [mail_id: number]: boolean } = {};
-            let mails_clique: { [mail_id: number]: boolean } = {};
+            await this.register_vo_updates_on_list(
+                MailVO.API_TYPE_ID,
+                reflect<this>().mails,
+                filtres
+            );
 
-            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([MailEventVO.API_TYPE_ID]);
-
-            for (let i in this.mails) {
-                let mail = this.mails[i];
-
-                promises.push((async () => {
-                    let events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
-                    events_by_mail[mail.id] = events;
-                    for (let e in events) {
-                        let event = events[e];
-
-                        if ((!last_event) || (last_event.event_date < event.event_date)) {
-                            last_event = event;
-                        }
-
-                        switch (event.event) {
-                            case MailEventVO.EVENT_Ouverture:
-                                mails_ouverts[mail.id] = true;
-                                break;
-                            case MailEventVO.EVENT_Clic:
-                                mails_clique[mail.id] = true;
-                                break;
-                            case MailEventVO.EVENT_Delivre:
-                                mails_recus[mail.id] = true;
-                                break;
-                        }
-                    }
-                })());
-            }
-            await all_promises(promises);
-
-            this.events_by_mail = events_by_mail;
-            this.last_event = last_event;
-            this.nb_mails_recus = Object.keys(mails_recus).length;
-            this.nb_mails_ouverts = Object.keys(mails_ouverts).length;
-            this.nb_mails_clique = Object.keys(mails_clique).length;
+            await this.throttled_update_datas_mail_events();
         }
 
         this.is_loading = false;
+    }
 
-        if (this.auto_update) {
-            this.throttled_auto_update();
+    private async update_datas_mail_events() {
+        let promises = [];
+
+        for (let i in this.mails) {
+            let mail = this.mails[i];
+
+            promises.push((async () => {
+
+                await this.register_vo_updates_on_list(
+                    MailEventVO.API_TYPE_ID,
+                    mail.id.toString(),
+                    [filter(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().mail_id).by_num_eq(mail.id)],
+                    null,
+                    reflect<this>().events_by_mail
+                );
+            })());
         }
+        await all_promises(promises);
+    }
+
+    get nb_mails_recus(): number {
+        let res = 0;
+
+        for (let i in this.events_by_mail) {
+            let events = this.events_by_mail[i];
+
+            for (let e in events) {
+                let event = events[e];
+
+                if (event.event == MailEventVO.EVENT_Delivre) {
+                    res++;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    get nb_mails_ouverts(): number {
+        let res = 0;
+
+        for (let i in this.events_by_mail) {
+            let events = this.events_by_mail[i];
+
+            for (let e in events) {
+                let event = events[e];
+
+                if (event.event == MailEventVO.EVENT_Ouverture) {
+                    res++;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    get nb_mails_clique(): number {
+        let res = 0;
+
+        for (let i in this.events_by_mail) {
+            let events = this.events_by_mail[i];
+
+            for (let e in events) {
+                let event = events[e];
+
+                if (event.event == MailEventVO.EVENT_Clic) {
+                    res++;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    get last_event(): MailEventVO {
+        let last_event = null;
+
+        for (let i in this.events_by_mail) {
+            let events = this.events_by_mail[i];
+
+            for (let e in events) {
+                let event = events[e];
+
+                if ((!last_event) || (last_event.event_date < event.event_date)) {
+                    last_event = event;
+                }
+            }
+        }
+
+        return last_event;
+    }
+
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
     }
 
     get last_event_class() {

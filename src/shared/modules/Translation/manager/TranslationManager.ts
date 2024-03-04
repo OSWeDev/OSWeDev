@@ -34,6 +34,7 @@ export default class TranslationManager {
         return translations;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TranslationManager {
         if (!TranslationManager.instance) {
             TranslationManager.instance = new TranslationManager();

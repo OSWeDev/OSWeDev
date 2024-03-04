@@ -18,6 +18,7 @@ import ModuleAnimationImportThemeDefaultFormats from "./ModuleAnimationImportThe
 
 export default class ModuleAnimationImportThemeServer extends DataImportModuleBase<AnimationImportThemeVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportThemeServer {
         if (!ModuleAnimationImportThemeServer.instance) {
             ModuleAnimationImportThemeServer.instance = new ModuleAnimationImportThemeServer();

@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CHECKEnvParamsForMDPRecovery implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CHECKEnvParamsForMDPRecovery {
         if (!CHECKEnvParamsForMDPRecovery.instance) {
             CHECKEnvParamsForMDPRecovery.instance = new CHECKEnvParamsForMDPRecovery();

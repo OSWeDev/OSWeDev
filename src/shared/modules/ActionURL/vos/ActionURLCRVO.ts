@@ -14,8 +14,13 @@ export default class ActionURLCRVO implements IDistantVOBase {
     public _type: string = ActionURLCRVO.API_TYPE_ID;
 
     public action_url_id: number;
-    public translatable_cr: string;
-    public translation_params_json: string;
+
+    public translatable_cr_title: string;
+    public translatable_cr_title_params_json: string;
+
+    public translatable_cr_content: string;
+    public translatable_cr_content_params_json: string;
+
     public ts: number;
     public cr_type: number;
 }

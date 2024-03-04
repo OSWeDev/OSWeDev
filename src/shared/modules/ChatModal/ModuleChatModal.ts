@@ -24,6 +24,7 @@ export default class ChatModal extends Module {
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ChatModal.MODULE_NAME + ".POLICY_FO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ChatModal {
         if (!ChatModal.instance) {
             ChatModal.instance = new ChatModal();

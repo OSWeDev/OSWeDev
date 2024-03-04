@@ -12,4 +12,6 @@
                     i.fa-duotone.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
                 template(v-if='action_cr.cr_type == 3')
                     i.fa-duotone.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
-            .action_cr_message(v-html="t(action_cr.translatable_cr, action_cr.translation_params_json)")
+            .action_cr_title
+                h3(v-html="action_cr.translatable_cr_title_params_json ? t(action_cr.translatable_cr_title, action_cr.translatable_cr_title_params_json) : t(action_cr.translatable_cr_title)")
+            .action_cr_message(v-html="action_cr.translatable_cr_content_params_json ? t(action_cr.translatable_cr_content, action_cr.translatable_cr_content_params_json) : t(action_cr.translatable_cr_content)")

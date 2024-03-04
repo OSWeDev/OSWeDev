@@ -7,6 +7,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 
 export default class MailParamsInit implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MailParamsInit {
         if (!MailParamsInit.instance) {
             MailParamsInit.instance = new MailParamsInit();

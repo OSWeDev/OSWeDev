@@ -9,6 +9,7 @@ import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportQRDefaultFormats {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportQRDefaultFormats {
         if (!ModuleAnimationImportQRDefaultFormats.instance) {
             ModuleAnimationImportQRDefaultFormats.instance = new ModuleAnimationImportQRDefaultFormats();

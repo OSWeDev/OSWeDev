@@ -12,6 +12,7 @@ import VueAppController from '../../../../VueAppController';
 export default class MaintenanceAdminVueModule extends VueModuleBase {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MaintenanceAdminVueModule {
         if (!MaintenanceAdminVueModule.instance) {
             MaintenanceAdminVueModule.instance = new MaintenanceAdminVueModule();

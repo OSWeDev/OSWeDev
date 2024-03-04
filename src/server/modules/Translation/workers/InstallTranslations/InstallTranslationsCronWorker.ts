@@ -16,6 +16,7 @@ export default class InstallTranslationsCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "InstallTranslationsCronWorker";
     }

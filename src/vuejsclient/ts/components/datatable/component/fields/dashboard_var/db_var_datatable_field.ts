@@ -277,6 +277,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     get var_filter_additional_params(): string {
-        return this.filter_additional_params ? JSON.parse(this.filter_additional_params) : undefined;
+        return this.filter_additional_params ? ObjectHandler.try_get_json(this.filter_additional_params) : undefined;
     }
 }

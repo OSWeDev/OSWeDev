@@ -944,6 +944,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 if (!has_filter) {
                     return;
                 }
+
+                // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
+                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+
+                if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
+                    ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
+                    return;
+                }
             } else {
                 context_query = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
                     context_query,

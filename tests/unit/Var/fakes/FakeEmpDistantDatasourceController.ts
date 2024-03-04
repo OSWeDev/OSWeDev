@@ -8,6 +8,7 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
 
     public static fake_distant_datas: FakeEmpDistantVO[] = [];
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeEmpDistantDatasourceController {
         if (!FakeEmpDistantDatasourceController.instance) {
             FakeEmpDistantDatasourceController.instance = new FakeEmpDistantDatasourceController(

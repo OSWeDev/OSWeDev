@@ -14,6 +14,7 @@ import SupervisionBGThread from '../../../server/modules/Supervision/bgthreads/S
 
 export default class Patch20230927AddAliveTimeoutToSomeBGThreads implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230927AddAliveTimeoutToSomeBGThreads {
         if (!Patch20230927AddAliveTimeoutToSomeBGThreads.instance) {
             Patch20230927AddAliveTimeoutToSomeBGThreads.instance = new Patch20230927AddAliveTimeoutToSomeBGThreads();

@@ -44,20 +44,22 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
         this.vo_init = vo_init;
 
-        $('#crud_create_modal').modal('show');
+        this.$nextTick(() => {
+            $('#crud_create_modal_' + this.api_type_id).modal('show');
 
-        if (!this.on_hidden_initialized) {
-            this.on_hidden_initialized = true;
-            $("#crud_create_modal").on("hidden.bs.modal", async () => {
-                if (this.onclose_callback) {
-                    await this.onclose_callback();
-                }
-            });
-        }
+            if (!this.on_hidden_initialized) {
+                this.on_hidden_initialized = true;
+                $('#crud_create_modal_' + this.api_type_id).on("hidden.bs.modal", async () => {
+                    if (this.onclose_callback) {
+                        await this.onclose_callback();
+                    }
+                });
+            }
+        });
     }
 
     private async close_modal() {
-        $('#crud_create_modal').modal('hide');
+        $('#crud_create_modal_' + this.api_type_id).modal('hide');
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
         if (crud) {
             crud.createDatatable.refresh();

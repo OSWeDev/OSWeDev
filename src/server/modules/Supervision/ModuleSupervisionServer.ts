@@ -57,6 +57,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         super(ModuleSupervision.getInstance().name);
     }
 
+    // istanbul ignore next: cannot test registerCrons
     public registerCrons() {
         SupervisionCronWorkersHandler.getInstance();
     }
@@ -391,6 +392,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
     }
 
+    // istanbul ignore next: cannot test execute_manually
     private async execute_manually(text: string) {
         if (!text) {
             return null;
@@ -403,6 +405,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         await SupervisionServerController.getInstance().registered_controllers[text].work_all();
     }
 
+    // istanbul ignore next: cannot test refresh_one_manually
     private async refresh_one_manually(api_type_id: string, name: string) {
         if (!api_type_id) {
             return null;

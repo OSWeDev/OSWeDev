@@ -33,6 +33,7 @@ export default class ModuleMaintenance extends Module {
     public static APINAME_START_MAINTENANCE: string = "start_maintenance";
     public static APINAME_END_PLANNED_MAINTENANCE: string = "end_planned_maintenance";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleMaintenance {
         if (!ModuleMaintenance.instance) {
             ModuleMaintenance.instance = new ModuleMaintenance();

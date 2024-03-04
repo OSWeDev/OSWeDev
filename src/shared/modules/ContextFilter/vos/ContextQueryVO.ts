@@ -1,31 +1,30 @@
 import { cloneDeep, isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
-import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
+import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
-import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
-import IMatroid from "../../Matroid/interfaces/IMatroid";
+import TimeSegment from "../../DataRender/vos/TimeSegment";
+import IIsServerField from "../../IIsServerField";
 import MatroidController from "../../Matroid/MatroidController";
+import IMatroid from "../../Matroid/interfaces/IMatroid";
 import ModuleTableField from "../../ModuleTableField";
-import VarConfVO from "../../Var/vos/VarConfVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import VarConfVO from "../../Var/vos/VarConfVO";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
-import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
-import SortByVO from "./SortByVO";
-import ContextQueryJoinVO from "./ContextQueryJoinVO";
 import ContextQueryJoinOnFieldVO from "./ContextQueryJoinOnFieldVO";
+import ContextQueryJoinVO from "./ContextQueryJoinVO";
+import SortByVO from "./SortByVO";
 
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
  */
-export default class ContextQueryVO extends AbstractVO implements IDistantVOBase {
+export default class ContextQueryVO extends AbstractVO implements IDistantVOBase, IIsServerField {
     public static API_TYPE_ID: string = "context_query";
 
     public id: number;

@@ -17,6 +17,7 @@ export interface ITranslatableTextState {
 
 export default class TranslatableTextStore implements IStoreModule<ITranslatableTextState, TranslatableTextContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TranslatableTextStore {
         if (!TranslatableTextStore.instance) {
             TranslatableTextStore.instance = new TranslatableTextStore();

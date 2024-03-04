@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class FeedbackAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FeedbackAdminVueModule {
         if (!FeedbackAdminVueModule.instance) {
             FeedbackAdminVueModule.instance = new FeedbackAdminVueModule();

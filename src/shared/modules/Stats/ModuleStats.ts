@@ -31,6 +31,7 @@ export default class ModuleStats extends Module {
 
     public static APINAME_register_client_stats: string = "register_client_stats";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleStats {
         if (!ModuleStats.instance) {
             ModuleStats.instance = new ModuleStats();

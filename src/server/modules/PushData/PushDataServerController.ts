@@ -16,12 +16,12 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
-import ServerBase from '../../ServerBase';
-import ConfigurationService from '../../env/ConfigurationService';
 
 export default class PushDataServerController {
 
@@ -70,6 +70,7 @@ export default class PushDataServerController {
 
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
             PushDataServerController.instance = new PushDataServerController();
@@ -166,6 +167,13 @@ export default class PushDataServerController {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_creation, this.notify_vo_creation.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, this.notify_vo_update.bind(this));
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, this.notify_vo_deletion.bind(this));
     }
 
     public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -445,7 +453,7 @@ export default class PushDataServerController {
         }
 
         let update_vo_notif: NotificationVO = new NotificationVO();
-        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_CREATED;
+        update_vo_notif.notification_type = NotificationVO.TYPE_NOTIF_VO_UPDATED;
         update_vo_notif.room_id = room_id;
         update_vo_notif.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api([
             pre_update_vo,
@@ -857,7 +865,7 @@ export default class PushDataServerController {
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
@@ -911,7 +919,7 @@ export default class PushDataServerController {
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
-            if (!usersRoles) {
+            if ((!usersRoles) || (!usersRoles.length)) {
                 ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }

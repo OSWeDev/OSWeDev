@@ -8,6 +8,7 @@ import ExportContextQueryToXLSXParamVO from '../vos/apis/ExportContextQueryToXLS
  */
 export default class ExportContextQueryToXLSXManager {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ExportContextQueryToXLSXManager {
         if (!ExportContextQueryToXLSXManager.instance) {
             ExportContextQueryToXLSXManager.instance = new ExportContextQueryToXLSXManager();

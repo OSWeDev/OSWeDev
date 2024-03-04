@@ -13,6 +13,7 @@ import "./CRUDUpdateModalComponent.scss";
 })
 export default class CRUDUpdateModalComponent extends VueComponentBase {
 
+    private api_type_id: string = null;
     private vo: IDistantVOBase = null;
 
     private on_hidden_initialized: boolean = false;
@@ -26,6 +27,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         show_insert_or_update_target: boolean = true,
     ) {
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
+        this.api_type_id = vo._type;
 
         this.show_insert_or_update_target = show_insert_or_update_target;
 
@@ -41,20 +43,22 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         this.vo = vo;
         this.onclose_callback = onclose_callback;
 
-        $('#crud_update_modal').modal('show');
+        this.$nextTick(() => {
+            $('#crud_update_modal_' + this.api_type_id).modal('show');
 
-        if (!this.on_hidden_initialized) {
-            this.on_hidden_initialized = true;
-            $("#crud_update_modal").on("hidden.bs.modal", async () => {
-                if (this.onclose_callback) {
-                    await this.onclose_callback();
-                }
-            });
-        }
+            if (!this.on_hidden_initialized) {
+                this.on_hidden_initialized = true;
+                $('#crud_update_modal_' + this.api_type_id).on("hidden.bs.modal", async () => {
+                    if (this.onclose_callback) {
+                        await this.onclose_callback();
+                    }
+                });
+            }
+        });
     }
 
     private async close_modal() {
-        $('#crud_update_modal').modal('hide');
+        $('#crud_update_modal_' + this.api_type_id).modal('hide');
 
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
         if (crud) {

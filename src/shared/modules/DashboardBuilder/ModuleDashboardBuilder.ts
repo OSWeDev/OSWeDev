@@ -43,6 +43,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDashboardBuilder {
 
         if (!ModuleDashboardBuilder.instance) {
@@ -165,8 +166,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<DashboardWidgetVO>().default_width, ModuleTableField.FIELD_TYPE_int, 'Largeur par défaut', true, true, 106),
             new ModuleTableField(field_names<DashboardWidgetVO>().default_height, ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
             new ModuleTableField(field_names<DashboardWidgetVO>().default_background, ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
-            new ModuleTableField(field_names<DashboardWidgetVO>().is_filter, ModuleTableField.FIELD_TYPE_boolean, 'is_filter'),
-            new ModuleTableField(field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableField.FIELD_TYPE_boolean, 'is_validation_filters'),
+            new ModuleTableField(field_names<DashboardWidgetVO>().is_filter, ModuleTableField.FIELD_TYPE_boolean, 'is_filter', true, true, false),
+            new ModuleTableField(field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableField.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
@@ -324,6 +325,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().filter_custom_field_filters, ModuleTableField.FIELD_TYPE_plain_vo_obj, "filter_custom_field_filters"),
 
             new ModuleTableField(field_names<TableColumnDescVO>().show_if_any_filter_active, ModuleTableField.FIELD_TYPE_int_array, "show_if_any_filter_active"),
+            new ModuleTableField(field_names<TableColumnDescVO>().hide_if_any_filter_active, ModuleTableField.FIELD_TYPE_int_array, "hide_if_any_filter_active"),
             new ModuleTableField(field_names<TableColumnDescVO>().do_not_user_filter_active_ids, ModuleTableField.FIELD_TYPE_int_array, "do_not_user_filter_active_ids"),
             new ModuleTableField(field_names<TableColumnDescVO>().readonly, ModuleTableField.FIELD_TYPE_boolean, "Readonly", false, true, true),
             new ModuleTableField(field_names<TableColumnDescVO>().exportable, ModuleTableField.FIELD_TYPE_boolean, "Exportable", false, true, true),
@@ -342,10 +344,12 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().children, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Enfants"),
             new ModuleTableField(field_names<TableColumnDescVO>().bg_color_header, ModuleTableField.FIELD_TYPE_string, "Header BG color"),
             new ModuleTableField(field_names<TableColumnDescVO>().font_color_header, ModuleTableField.FIELD_TYPE_string, "Header FG color"),
+            new ModuleTableField(field_names<TableColumnDescVO>().kanban_column, ModuleTableField.FIELD_TYPE_boolean, "Colonne Kanban", true, true, false),
+            new ModuleTableField(field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableField.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false),
+            new ModuleTableField(field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
-
         var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 

@@ -10,6 +10,7 @@ import VueAppController from '../../../VueAppController';
 export default class SendInBlueAdminVueModule extends VueModuleBase {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueAdminVueModule {
         if (!SendInBlueAdminVueModule.instance) {
             SendInBlueAdminVueModule.instance = new SendInBlueAdminVueModule();

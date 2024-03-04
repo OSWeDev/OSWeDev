@@ -429,6 +429,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.shared_filters.save_failed.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Suppression en cours...'
+        }, 'dashboard_builder.shared_filters.delete_start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre partagé supprimé avec succès'
+        }, 'dashboard_builder.shared_filters.delete_ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de la suppression du filtre partagé'
+        }, 'dashboard_builder.shared_filters.delete_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre caché'
         }, 'dashboard_builder.shared_filters.filter_hidden.___LABEL___'));
 
@@ -470,7 +480,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer une date par mois'
         }, 'dashboards.widgets.icons_tooltips.monthfilter.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Insérer un bloc de texte'
+        }, 'dashboards.widgets.icons_tooltips.BlocText.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Min/Max relatifs à l\'année actuelle'
         }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
@@ -2374,6 +2386,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher une popup sur les champs du tableau" },
             'table_widget_column_conf.show_tooltip.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer si filtres actifs" },
+            'table_widget_column.hide_if_any_filter_active.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer si 1 filtre actif" },
+            'table_widget_column_conf.hide_if_any_filter_active.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

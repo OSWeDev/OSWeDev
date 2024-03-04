@@ -7,6 +7,7 @@ import SaveFavoritesFiltersCallUpdaters from "./SaveFavoritesFiltersCallUpdaters
  */
 export default class SaveFavoritesFiltersWidgetController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SaveFavoritesFiltersWidgetController {
         if (!this.instance) {
             this.instance = new SaveFavoritesFiltersWidgetController();

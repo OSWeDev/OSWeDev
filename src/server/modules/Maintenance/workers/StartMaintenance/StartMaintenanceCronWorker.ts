@@ -18,10 +18,12 @@ export default class StartMaintenanceCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "StartMaintenanceCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         await ModuleMaintenance.getInstance().start_maintenance(ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE);
     }

@@ -29,6 +29,7 @@ import { Uploadable } from 'openai/uploads';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 
 export default class GPTAssistantAPIServerController {
 
@@ -90,7 +91,7 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
-    public static async get_thread(user_id: number, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
+    public static async get_thread(user_id: number = null, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
 
         try {
 
@@ -126,7 +127,8 @@ export default class GPTAssistantAPIServerController {
     public static async push_message(
         thread_vo: GPTAssistantAPIThreadVO,
         content: string,
-        files: FileVO[]): Promise<{ message_gpt: ThreadMessage, message_vo: GPTAssistantAPIThreadMessageVO }> {
+        files: FileVO[],
+        user_id: number = null): Promise<{ message_gpt: ThreadMessage, message_vo: GPTAssistantAPIThreadMessageVO }> {
 
         try {
 
@@ -181,7 +183,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
             message_vo.thread_id = thread_vo.id;
-            message_vo.user_id = thread_vo.user_id;
+            message_vo.user_id = user_id ? user_id : thread_vo.user_id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
 
@@ -242,7 +244,7 @@ export default class GPTAssistantAPIServerController {
         return assistant_vo;
     }
 
-    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number, current_default_assistant_id: number = null): Promise<GPTAssistantAPIThreadVO> {
+    public static async check_or_create_thread_vo(thread_gpt: Thread, user_id: number = null, current_default_assistant_id: number = null): Promise<GPTAssistantAPIThreadVO> {
 
         if (!thread_gpt) {
             return null;
@@ -261,7 +263,7 @@ export default class GPTAssistantAPIServerController {
 
         thread_vo = new GPTAssistantAPIThreadVO();
         thread_vo.gpt_thread_id = thread_gpt.id;
-        thread_vo.user_id = user_id;
+        thread_vo.user_id = user_id ? user_id : await ModuleVersionedServer.getInstance().get_robot_user_id();
         thread_vo.current_default_assistant_id = current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
@@ -300,7 +302,10 @@ export default class GPTAssistantAPIServerController {
         return run_vo;
     }
 
-    public static async check_or_create_message_vo(message_gpt: ThreadMessage, thread_vo: GPTAssistantAPIThreadVO): Promise<GPTAssistantAPIThreadMessageVO> {
+    public static async check_or_create_message_vo(
+        message_gpt: ThreadMessage,
+        thread_vo: GPTAssistantAPIThreadVO,
+        user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO> {
 
         if (!message_gpt) {
             return null;
@@ -328,7 +333,7 @@ export default class GPTAssistantAPIServerController {
         message_vo.run_id = run ? run.id : null;
         message_vo.assistant_id = run ? run.assistant_id : null;
         message_vo.thread_id = thread_vo.id;
-        message_vo.user_id = thread_vo.user_id;
+        message_vo.user_id = user_id ? user_id : thread_vo.user_id;
         message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS.indexOf(message_gpt.role);
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
@@ -426,7 +431,7 @@ export default class GPTAssistantAPIServerController {
         thread_id: string,
         content: string,
         files: FileVO[],
-        user_id: number): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         let assistant: { assistant_gpt: Assistant, assistant_vo: GPTAssistantAPIAssistantVO } = await GPTAssistantAPIServerController.get_assistant(assistant_id);
 
@@ -471,13 +476,18 @@ export default class GPTAssistantAPIServerController {
             return null;
         }
 
+        // On indique que Célia est en train de travailler sur cette discussion
+        thread.thread_vo.celia_is_running = true;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+
         let asking_message: {
             message_gpt: ThreadMessage;
             message_vo: GPTAssistantAPIThreadMessageVO;
         } = await GPTAssistantAPIServerController.push_message(
             thread.thread_vo,
             content,
-            files
+            files,
+            user_id
         );
 
         //  La discussion est en place, on peut demander à l'assistant de répondre
@@ -496,12 +506,15 @@ export default class GPTAssistantAPIServerController {
                 case "cancelled":
                 case "cancelling":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run cancelled');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "expired":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run expired');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "failed":
                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run failed');
+                    await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                     return null;
                 case "requires_action":
 
@@ -520,6 +533,12 @@ export default class GPTAssistantAPIServerController {
                                 try {
 
                                     let function_vo: GPTAssistantAPIFunctionVO = availableFunctions[tool_call.function.name];
+
+                                    if (!function_vo) {
+                                        function_response = "UNKNOWN_FUNCTION : Check the name and retry.";
+                                        throw new Error('function_vo not found: ' + tool_call.function.name);
+                                    }
+
                                     let function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     let function_args = JSON.parse(tool_call.function.arguments);
                                     let ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread.thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
@@ -552,6 +571,7 @@ export default class GPTAssistantAPIServerController {
 
                     } else {
                         ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - type not supported: ' + run.required_action.type);
+                        await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                         return null;
                     }
 
@@ -561,7 +581,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
 
-            await ThreadHandler.sleep(100, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
             run = await ModuleGPTServer.openai.beta.threads.runs.retrieve(
                 thread.thread_gpt.id,
                 run.id
@@ -569,6 +589,7 @@ export default class GPTAssistantAPIServerController {
 
             if (!run) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run not found');
+                await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
                 return null;
             }
         }
@@ -586,6 +607,13 @@ export default class GPTAssistantAPIServerController {
             res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread.thread_vo));
         }
 
+        await GPTAssistantAPIServerController.close_thread_celia(thread.thread_vo);
+
         return res;
+    }
+
+    private static async close_thread_celia(thread_vo: GPTAssistantAPIThreadVO) {
+        thread_vo.celia_is_running = false;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
     }
 }

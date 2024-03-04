@@ -6,6 +6,7 @@ import TypesHandler from './TypesHandler';
 export default class TimeHandler {
     public static MINUTES_TIME_FOR_INDEX_FORMAT: string = 'HH:mm';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): TimeHandler {
         if (!TimeHandler.instance) {
             TimeHandler.instance = new TimeHandler();

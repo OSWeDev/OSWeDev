@@ -1093,7 +1093,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     // On a de multiples updates sur un même id, on prend le dernier mais on log tout
                     let length = vos_by_ids[vo_id].length;
                     vos_by_ids[vo_id].forEach((vo) => {
-                        ConsoleHandler.warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo.id + ':' + JSON.stringify(vo));
+                        ConsoleHandler.warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo_id + ':' + vo.id + ':' + JSON.stringify(vo));
 
                     });
 
@@ -1225,6 +1225,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         await promise_pipeline.end();
 
+        // FIXME TODO : mais comment on peut avoir du reste à faire ici alors que personne push dans reste_a_faire ?
         if (reste_a_faire && reste_a_faire.length) {
             let reste_a_faire_res = await this.insertOrUpdateVOs_without_triggers(reste_a_faire, max_connections_to_use, exec_as_server);
             if (reste_a_faire_res && reste_a_faire_res.length) {
@@ -1556,6 +1557,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 for (let i in lines) {
                     let line: string = lines[i];
+
+                    if (ConfigurationService.node_configuration.DEBUG_var_insert_with_copy) {
+                        if (moduleTable.isMatroidTable) {
+                            ConsoleHandler.log('insert_without_triggers_using_COPY:DEBUG_var_insert_with_copy:line:' + line);
+                        }
+                    }
                     rs.push(line + "\n");
                 }
                 rs.push(null);
@@ -1566,11 +1573,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ConsoleHandler.error('insert_without_triggers_using_COPY:' + error);
 
                     if (error && error.message && error.message.startsWith('duplicate key value violates unique constraint') && error.message.endsWith('__bdd_only_index_key"')) {
-                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index, on tente de retrouver les vars impliquées et de corriger automatiquement');
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index, on tente de retrouver les vars impliquées et de corriger automatiquement. (' + vos.length + ' vars impliquées du type ' + moduleTable.vo_type + ')');
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + error.message);
+                        ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des vars impliquées : ' + JSON.stringify(vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
                         let duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
                         if (duplicates && duplicates.length) {
                             ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
+                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
                             let duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
                             let filtered_not_imported_vos: VarDataBaseVO[] = [];
@@ -2936,6 +2946,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } catch (error) {
                         ConsoleHandler.error('post_create_trigger_hook :' + vo._type + ':' + vo.id + ':' + error);
                     }
+
+                    vo.id = parseInt(results[i].id.toString());
                     InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(vo.id));
                 });
             }

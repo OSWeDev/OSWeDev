@@ -25,6 +25,7 @@ import UQRsRangesDatasourceController from "../datasources/UQRsRangesDatasourceC
  */
 export default class VarDayPrctAtteinteSeuilAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarDayPrctAtteinteSeuilAnimationController {
         if (!VarDayPrctAtteinteSeuilAnimationController.instance) {
             VarDayPrctAtteinteSeuilAnimationController.instance = new VarDayPrctAtteinteSeuilAnimationController();

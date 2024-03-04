@@ -1,8 +1,8 @@
 .celia_thread_widget_component
-    template(v-if='too_many_threads')
-        .too_many_threads.bg-primary
-            i.fa-duotone.fa-filters
-            | {{ label('celia_thread_widget_component.too_many_threads') }}
+    //- template(v-if='too_many_threads')
+    //-     .too_many_threads.bg-primary
+    //-         i.fa-duotone.fa-filters
+    //-         | {{ label('celia_thread_widget_component.too_many_threads') }}
 
     template(v-if='has_access_to_thread')
         template(v-if='is_loading_thread')
@@ -11,9 +11,9 @@
 
         template(v-else)
             .thread_container(ref='thread_container')
-                .update_button 
-                    button.btn.btn-sm.btn-primary(v-on:click='force_reload')
-                        i.fa-duotone.fa-sync
+                //- .update_button 
+                //-     button.btn.btn-sm.btn-primary(v-on:click='force_reload')
+                //-         i.fa-duotone.fa-sync
                 template(v-if='(!thread_messages) || (!thread_messages.length)')
                     .no_messages
                         i.fa-duotone.fa-comments
@@ -25,6 +25,20 @@
                             :thread_message='thread_message'
                             @thread_message_updated='thread_message_updated'
                         )
+                    template(v-if='thread.celia_is_running')
+                        .thread_message
+                            .thread_message_header
+                                .thread_message_header_left
+                                    .thread_message_header_left_avatar
+                                        img(:src='role_assistant_avatar_url')
+                                    .thread_message_header_left_username
+                                        | {{ label('celia_thread_widget_component.thread_message_header_left_username.celia') }}
+
+                            .thread_message_body
+                                .thread_message_body_content
+                                    .thread_message_body_text
+                                        i.fa-duotone.fa-spinner-third.fa-spin
+
     
                 .thread_message_input
                     .thread_message_input_textarea

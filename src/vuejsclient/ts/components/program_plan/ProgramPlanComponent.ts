@@ -531,6 +531,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         ids[program_manager.manager_id] = true;
                     }
 
+                    if ((!ids) || (!ObjectHandler.hasAtLeastOneAttribute(ids))) {
+                        return;
+                    }
+
                     managers = await query(this.program_plan_shared_module.manager_type_id)
                         .filter_by_ids(ObjectHandler.getNumberMapIndexes(ids))
                         .select_vos<IPlanManager>();
@@ -598,6 +602,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 for (let i in self.getStoredDatas[this.program_plan_shared_module.program_facilitator_type_id]) {
                     let program_facilitator: IPlanProgramFacilitator = self.getStoredDatas[this.program_plan_shared_module.program_facilitator_type_id][i] as IPlanProgramFacilitator;
                     ids[program_facilitator.facilitator_id] = true;
+                }
+
+                if ((!ids) || (!ObjectHandler.hasAtLeastOneAttribute(ids))) {
+                    return;
                 }
 
                 facilitators = await query(this.program_plan_shared_module.facilitator_type_id)
@@ -717,6 +725,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (!!target.enseigne_id) {
                         ids[target.enseigne_id] = true;
                     }
+                }
+
+                if ((!ids) || (!ObjectHandler.hasAtLeastOneAttribute(ids))) {
+                    return;
                 }
 
                 let enseignes: IPlanEnseigne[] = await query(this.program_plan_shared_module.enseigne_type_id)

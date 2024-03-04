@@ -4,6 +4,7 @@ export default class ModuleDataSource extends Module {
 
     public static MODULE_NAME: string = 'DataSource';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDataSource {
         if (!ModuleDataSource.instance) {
             ModuleDataSource.instance = new ModuleDataSource();

@@ -55,6 +55,14 @@ export default interface IEnvParam {
     DEBUG_IO_ROOMS?: boolean;
     DEBUG_VO_EVENTS?: boolean;
 
+    DEBUG_var_insert_with_copy?: boolean;
+
+    DEBUG_var_get_instance_semaphored_db_loaded_var_data?: boolean;
+
+    DEBUG_waiting_registered_task_result_wrappers?: boolean;
+    DEBUG_waiting_registered_task_result_wrappers_threshold?: number;
+    DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean;
+
     DEBUG_PROMISE_PIPELINE?: boolean;
     DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;
 
@@ -88,4 +96,6 @@ export default interface IEnvParam {
     TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
 
     BLOCK_TEAMS_MESSAGES?: boolean;
+
+    EXPRESS_SECRET: string;
 }

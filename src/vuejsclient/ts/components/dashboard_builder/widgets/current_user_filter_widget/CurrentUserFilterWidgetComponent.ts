@@ -16,12 +16,6 @@ export default class CurrentUserFilterWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
 
-    /**
-     * Watch on page_widget
-     *
-     * @returns {void}
-     */
-    @Watch('page_widget', { immediate: true })
     private mounted() {
         this.set_active_field_filter({
             field_id: field_names<UserVO>().id,

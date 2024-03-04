@@ -6,6 +6,7 @@ import GeneratorBase from "./GeneratorBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulesClientInitializationDatasGenerator {
         if (!ModulesClientInitializationDatasGenerator.instance) {
             ModulesClientInitializationDatasGenerator.instance = new ModulesClientInitializationDatasGenerator();

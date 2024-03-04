@@ -5,6 +5,7 @@
         ServiceFactory.instance = this;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(){
         if (!ServiceFactory.instance){
             ServiceFactory.instance = new ServiceFactory();

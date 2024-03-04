@@ -4,6 +4,7 @@ import ValidationFiltersCallUpdaters from "./ValidationFiltersCallUpdaters";
 
 export default class ValidationFiltersWidgetController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ValidationFiltersWidgetController {
         if (!this.instance) {
             this.instance = new ValidationFiltersWidgetController();

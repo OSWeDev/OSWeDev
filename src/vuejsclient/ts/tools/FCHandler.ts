@@ -9,6 +9,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
  */
 export default class FCHandler {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FCHandler {
         if (!FCHandler.instance) {
             FCHandler.instance = new FCHandler();

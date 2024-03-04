@@ -5,6 +5,7 @@ import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/Data
 
 export default class CountUserLogLoginDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CountUserLogLoginDatasourceController {
         if (!CountUserLogLoginDatasourceController.instance) {
             CountUserLogLoginDatasourceController.instance = new CountUserLogLoginDatasourceController(

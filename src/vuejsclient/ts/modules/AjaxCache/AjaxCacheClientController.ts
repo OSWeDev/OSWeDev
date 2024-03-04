@@ -33,6 +33,7 @@ import ThreadHandler from '../../../../shared/tools/ThreadHandler';
  */
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AjaxCacheClientController {
         if (!AjaxCacheClientController.instance) {
             AjaxCacheClientController.instance = new AjaxCacheClientController();

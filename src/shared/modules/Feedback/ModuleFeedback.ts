@@ -25,6 +25,7 @@ export default class ModuleFeedback extends Module {
 
     public static APINAME_feedback: string = "feedback";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFeedback {
         if (!ModuleFeedback.instance) {
             ModuleFeedback.instance = new ModuleFeedback();

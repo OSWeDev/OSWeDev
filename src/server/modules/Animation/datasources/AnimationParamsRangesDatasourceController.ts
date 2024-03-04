@@ -6,6 +6,7 @@ import DataSourceControllerSimpleCacheBase from "../../Var/datasource/DataSource
 
 export default class AnimationParamsRangesDatasourceController extends DataSourceControllerSimpleCacheBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AnimationParamsRangesDatasourceController {
         if (!AnimationParamsRangesDatasourceController.instance) {
             AnimationParamsRangesDatasourceController.instance = new AnimationParamsRangesDatasourceController(

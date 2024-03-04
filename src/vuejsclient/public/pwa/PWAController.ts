@@ -2,6 +2,7 @@
 
 export default class PWAController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PWAController {
         if (!PWAController.instance) {
             PWAController.instance = new PWAController();

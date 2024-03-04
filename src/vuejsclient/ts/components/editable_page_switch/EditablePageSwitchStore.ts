@@ -16,6 +16,7 @@ export interface IEditablePageSwitchState {
 
 export default class EditablePageSwitchStore implements IStoreModule<IEditablePageSwitchState, EditablePageSwitchContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): EditablePageSwitchStore {
         if (!EditablePageSwitchStore.instance) {
             EditablePageSwitchStore.instance = new EditablePageSwitchStore();

@@ -65,6 +65,9 @@ import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import { DailyRotateFileTransportOptions } from 'winston/lib/winston/transports';
+import UserAPIVO from '../shared/modules/AccessPolicy/vos/UserAPIVO';
+import { field_names } from '../shared/tools/ObjectHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -95,6 +98,8 @@ export default abstract class ServerBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private session;
+
+    private ROOT_FOLDER: string = null;
     // private subscription;
 
     /* istanbul ignore next: nothing to test here */
@@ -133,6 +138,36 @@ export default abstract class ServerBase {
         ModulesManager.isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
+
+    // /**
+    //  * Gestion des clefs d'API
+    //  */
+    // public verifyApiKeyMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    //     const apiKey = req.headers['x-api-key'] as string;
+
+    //     if (!apiKey) {
+    //         next();
+    //         return;
+    //     }
+
+    //     // Vérifier la clé d'API ici. Exemple :
+    //     const isValidApiKey = await this.checkApiKey(apiKey);
+
+    //     if (!isValidApiKey) {
+    //         return res.status(401).json({ message: 'Invalid or missing API Key' });
+    //     }
+
+    //     next();
+    // }
+
+    // public async checkApiKey(apiKey: string): Promise<boolean> {
+    //     let exist_user_api_vo: UserAPIVO = await query(UserAPIVO.API_TYPE_ID)
+    //         .filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey)
+    //         .exec_as_server()
+    //         .select_vo<UserAPIVO>();
+
+    //     return !!exist_user_api_vo; // Retourne true si valide, false sinon
+    // }
 
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
@@ -224,11 +259,11 @@ export default abstract class ServerBase {
         const logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)(),
-                new (winston_daily_rotate_file)({
-                    filename: './logs/log',
-                    datePattern: 'yyyy-MM-dd.',
-                    prepend: true
-                })
+                new (winston_daily_rotate_file)(
+                    {
+                        filename: './logs/log',
+                        datePattern: 'yyyy-MM-dd.'
+                    })
             ]
         });
 
@@ -401,7 +436,7 @@ export default abstract class ServerBase {
         });
 
         this.session = expressSession({
-            secret: 'vk4s8dq2j4',
+            secret: ConfigurationService.node_configuration.EXPRESS_SECRET,
             name: 'sid',
             proxy: true,
             resave: false,
@@ -472,29 +507,6 @@ export default abstract class ServerBase {
                 return next();
             });
 
-        // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
-        // Accept-Encoding: gzip, deflate
-        // app.get('/public/generated/js/*.js.gz', function (req, res, next) {
-        //     res.set('Content-Encoding', 'gzip');
-        //     next();
-        // });
-        // test: /\.js$|\.css$|\.html|\.woff2?|\.eot|\.ttf|\.svg$/,
-        //'/public/generated/js/*.js'
-
-        let tryuseGZ = function (bundle, req, res, next) {
-
-            let gzpath = './src/' + bundle + '/' + req.url + '.gz';
-            if (req.acceptsEncodings('gzip') || req.acceptsEncodings('deflate')) {
-
-                res.set('Content-Encoding', 'gzip');
-                if (fs.existsSync(gzpath)) {
-
-                    res.sendFile(path.resolve(gzpath));
-                    return;
-                }
-            }
-            next();
-        };
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:END');
         }
@@ -508,19 +520,6 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
         }
-
-        // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
-        //     tryuseGZ('client', req, res, next);
-        // });
-
-        // app.get(/^[/]admin[/]public[/]generated[/].*/, function (req, res, next) {
-        //     tryuseGZ('admin', req, res, next);
-        // });
-
-        // app.get('*.gz', function (req, res, next) {
-        //     res.set('Content-Encoding', 'gzip');
-        //     next();
-        // });
 
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
@@ -555,11 +554,17 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = decodeURIComponent(req.path);
+            let url = path.normalize(decodeURIComponent(req.path));
+            let normalized = path.resolve('./dist' + url);
+
+            if (!this.ROOT_FOLDER) {
+                this.ROOT_FOLDER = path.resolve('./');
+            }
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if (!fs.existsSync(path.resolve('./dist' + url))) {
-                StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
+            // On fait la chasse aux sync
+            if (!normalized.startsWith(this.ROOT_FOLDER)) {
+                StatsController.register_stat_COMPTEUR('express', 'public', 'strange_normalized_url');
 
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
@@ -576,7 +581,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            res.sendFile(path.resolve('./dist' + url));
+            res.sendFile(normalized);
         });
 
         // Le service de push

@@ -71,6 +71,29 @@ export default class RangeHandler {
         return null;
     }
 
+    public static get_array_from_ranges(ranges: IRange[]): number[] {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: number[] = [];
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if (!range) {
+                continue;
+            }
+
+            RangeHandler.foreach_sync(range, (e: number) => {
+                res.push(e);
+            }, range.segment_type);
+        }
+
+        return res;
+    }
+
     /**
      * get_ids_ranges_from_list
      *   - Create NumRanges from ids list

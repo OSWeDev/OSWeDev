@@ -20,6 +20,7 @@ import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -60,7 +61,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
+import UserAPIVO from '../../../shared/modules/AccessPolicy/vos/UserAPIVO';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -961,6 +962,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, ModuleAccessPolicyServer.getLoggedUserId as any);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, ModuleAccessPolicyServer.getLoggedUserName);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonate, this.impersonate.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, ModuleAccessPolicyServer.getMyLang);
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_sendrecapture, this.sendrecapture.bind(this));
@@ -2021,65 +2023,85 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
+    private async impersonate(uid: number): Promise<number> {
+
+        if (!uid) {
+            return null;
+        }
+
+        try {
+            return await this.do_impersonate(query(UserVO.API_TYPE_ID).filter_by_id(uid));
+        } catch (error) {
+            ConsoleHandler.error("impersonate:" + uid + ":" + error);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param context_query la requete qui permet de récupérer le user à impersonate
+     * @returns l'id de l'utilisateur qui a été impersoné
+     */
+    private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
+        let session = StackContext.get('SESSION');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
+            // On est en readonly partout, donc on informe sur impossibilité de se connecter
+            await PushDataServerController.getInstance().notifySimpleERROR(
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
+                'error.global_update_blocker.activated.___LABEL___'
+            );
+            return null;
+        }
+
+        if ((!session) || (!session.uid)) {
+            return null;
+        }
+
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            return null;
+        }
+
+        let user: UserVO = await context_query.select_vo<UserVO>();
+
+        if (!user) {
+            return null;
+        }
+
+        if (user.blocked || user.invalidated || user.archived) {
+            ConsoleHandler.error("impersonate:blocked or invalidated or archived");
+            context_query.log(true);
+            await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
+            return null;
+        }
+
+        session.impersonated_from = Object.assign({}, session);
+        session.uid = user.id;
+        session.user_vo = user;
+
+        PushDataServerController.getInstance().registerSession(session);
+
+        // On stocke le log de connexion en base
+        let user_log = new UserLogVO();
+        user_log.user_id = user.id;
+        user_log.log_time = Dates.now();
+        user_log.referer = StackContext.get('REFERER');
+        user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+        user_log.handle_impersonation(session);
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
+
+        await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+
+        return user.id;
+    }
+
     private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.get('SESSION');
-            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-
-            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
-                // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.getInstance().notifySimpleERROR(
-                    StackContext.get('UID'),
-                    StackContext.get('CLIENT_TAB_ID'),
-                    'error.global_update_blocker.activated.___LABEL___'
-                );
-                return null;
-            }
-
-            if ((!session) || (!session.uid)) {
-                return null;
-            }
-
-            if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
-                return null;
-            }
-
-            if (!email) {
-                return null;
-            }
-
-            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).select_vo<UserVO>();
-
-            if (!user) {
-                return null;
-            }
-
-            if (user.blocked || user.invalidated) {
-                ConsoleHandler.error("impersonate login:" + email + ":blocked or invalidated");
-                await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
-                return null;
-            }
-
-            session.impersonated_from = Object.assign({}, session);
-            session.uid = user.id;
-            session.user_vo = user;
-
-            PushDataServerController.getInstance().registerSession(session);
-
-            // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = Dates.now();
-            user_log.referer = StackContext.get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-            user_log.handle_impersonation(session);
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
-
-            return user.id;
+            return await this.do_impersonate(query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, email));
         } catch (error) {
             ConsoleHandler.error("impersonate login:" + email + ":" + error);
         }
@@ -2221,7 +2243,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
         return false;
     }
-
 
     private async checkBlockingOrInvalidatingUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(vo_update_holder.post_update_vo, vo_update_holder.pre_update_vo);

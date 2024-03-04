@@ -14,6 +14,7 @@ export default class ModuleUserLogVars extends Module {
 
     public static MODULE_NAME: string = "UserLogVars";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleUserLogVars {
         if (!ModuleUserLogVars.instance) {
             ModuleUserLogVars.instance = new ModuleUserLogVars();

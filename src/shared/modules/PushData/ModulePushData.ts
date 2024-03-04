@@ -20,6 +20,7 @@ export default class ModulePushData extends Module {
     public static APINAME_leave_io_room: string = 'leave_io_room';
     public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModulePushData {
         if (!ModulePushData.instance) {
             ModulePushData.instance = new ModulePushData();

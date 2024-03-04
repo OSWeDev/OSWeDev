@@ -17,6 +17,7 @@ import LastUserLogCSRFTSDatasourceController from '../datasources/LastUserLogCSR
 
 export default class VarLastCSRFTSController extends VarServerControllerBase<UserDataRangesVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarLastCSRFTSController {
         if (!VarLastCSRFTSController.instance) {
             VarLastCSRFTSController.instance = new VarLastCSRFTSController();

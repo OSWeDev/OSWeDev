@@ -21,6 +21,7 @@ import ModuleAnimationImportModuleDefaultFormats from "./ModuleAnimationImportMo
 
 export default class ModuleAnimationImportModuleServer extends DataImportModuleBase<AnimationImportModuleVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportModuleServer {
         if (!ModuleAnimationImportModuleServer.instance) {
             ModuleAnimationImportModuleServer.instance = new ModuleAnimationImportModuleServer();

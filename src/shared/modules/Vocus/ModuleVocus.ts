@@ -15,6 +15,7 @@ export default class ModuleVocus extends Module {
 
     public static APINAME_getVosRefsById = "getVosRefsById";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleVocus {
         if (!ModuleVocus.instance) {
             ModuleVocus.instance = new ModuleVocus();

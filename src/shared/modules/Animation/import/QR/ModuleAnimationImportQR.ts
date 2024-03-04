@@ -12,6 +12,7 @@ export default class ModuleAnimationImportQR extends Module {
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimationImportQR.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportQR {
         if (!ModuleAnimationImportQR.instance) {
             ModuleAnimationImportQR.instance = new ModuleAnimationImportQR();

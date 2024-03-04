@@ -9,6 +9,7 @@ export default class VersionedVOController implements IVOController {
 
     public static INTERFACE_VERSIONED: string = 'IVERSIONED';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VersionedVOController {
         if (!VersionedVOController.instance) {
             VersionedVOController.instance = new VersionedVOController();

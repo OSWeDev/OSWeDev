@@ -10,6 +10,7 @@ import './scss/data_import.scss';
 
 export default class DataImportVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DataImportVueModule {
         if (!DataImportVueModule.instance) {
             DataImportVueModule.instance = new DataImportVueModule();

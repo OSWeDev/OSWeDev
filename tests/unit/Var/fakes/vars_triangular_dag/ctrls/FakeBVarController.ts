@@ -14,6 +14,7 @@ export default class FakeBVarController extends VarServerControllerBase<FakeData
     public static DEP_E: string = 'E' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_F: string = 'F' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeBVarController {
         if (!FakeBVarController.instance) {
             FakeBVarController.instance = new FakeBVarController();

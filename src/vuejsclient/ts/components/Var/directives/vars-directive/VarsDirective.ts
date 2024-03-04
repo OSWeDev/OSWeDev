@@ -14,6 +14,7 @@ import IVarDirectiveParams from './IVarsDirectiveParams';
 export default class VarsDirective {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarsDirective {
         if (!VarsDirective.instance) {
             VarsDirective.instance = new VarsDirective();

@@ -43,6 +43,7 @@ export default abstract class PlayWrightServerController {
         return test_title.replace(/[^a-bA-B0-9]/g, '_');
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): PlayWrightServerController {
         return PlayWrightServerController.instance;
     }

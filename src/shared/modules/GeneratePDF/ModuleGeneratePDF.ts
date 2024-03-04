@@ -8,6 +8,7 @@ export default class ModuleGeneratePDF extends Module {
 
     public static APINAME_generatePDF: string = "generatePDF";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleGeneratePDF {
         if (!ModuleGeneratePDF.instance) {
             ModuleGeneratePDF.instance = new ModuleGeneratePDF();

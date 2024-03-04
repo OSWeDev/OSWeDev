@@ -35,6 +35,7 @@ export default class FeedbackConfirmationMail {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : sendConfirmationEmail
     public async sendConfirmationEmail(feedback: FeedbackVO): Promise<MailVO> {
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin

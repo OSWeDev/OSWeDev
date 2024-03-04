@@ -13,6 +13,7 @@ import VarsClientController from '../../VarsClientController';
 export default class VarDirective {
 
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarDirective {
         if (!VarDirective.instance) {
             VarDirective.instance = new VarDirective();

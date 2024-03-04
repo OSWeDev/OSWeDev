@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class CheckBasicSchemas implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CheckBasicSchemas {
         if (!CheckBasicSchemas.instance) {
             CheckBasicSchemas.instance = new CheckBasicSchemas();

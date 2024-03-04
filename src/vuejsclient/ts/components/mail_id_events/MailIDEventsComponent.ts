@@ -1,10 +1,11 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
+import { field_names, reflect } from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
 import './MailIDEventsComponent.scss';
 
@@ -14,13 +15,13 @@ import './MailIDEventsComponent.scss';
 })
 export default class MailIDEventsComponent extends VueComponentBase {
 
+    public mail_events: MailEventVO[] = null;
+
     @Prop({ default: null })
     private mail_id: number;
 
     private mail: MailVO = null;
-    private mail_events: MailEventVO[] = null;
 
-    private last_event: MailEventVO = null;
     private is_loading: boolean = true;
 
     private throttled_update_datas = ThrottleHelper.declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
@@ -33,6 +34,7 @@ export default class MailIDEventsComponent extends VueComponentBase {
     private async update_datas() {
 
         this.is_loading = true;
+        await this.unregister_all_vo_event_callbacks();
 
         if (!this.mail_id) {
             this.is_loading = false;
@@ -43,11 +45,17 @@ export default class MailIDEventsComponent extends VueComponentBase {
 
         this.mail = await query(MailVO.API_TYPE_ID).filter_by_id(this.mail_id).select_vo<MailVO>();
 
+        await this.register_vo_updates_on_list(
+            MailEventVO.API_TYPE_ID,
+            reflect<this>().mail_events,
+            [filter(MailEventVO.API_TYPE_ID, field_names<MailEventVO>().mail_id).by_num_eq(this.mail_id)]
+        );
+
+        this.is_loading = false;
+    }
+
+    get last_event(): MailEventVO {
         let last_event = null;
-
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([MailEventVO.API_TYPE_ID]);
-
-        this.mail_events = await query(MailEventVO.API_TYPE_ID).filter_by_id(this.mail_id, MailVO.API_TYPE_ID).select_vos<MailEventVO>();
 
         for (let e in this.mail_events) {
             let event = this.mail_events[e];
@@ -57,8 +65,11 @@ export default class MailIDEventsComponent extends VueComponentBase {
             }
         }
 
-        this.last_event = last_event;
-        this.is_loading = false;
+        return last_event;
+    }
+
+    private async beforeDestroy() {
+        await this.unregister_all_vo_event_callbacks();
     }
 
     get last_event_class() {

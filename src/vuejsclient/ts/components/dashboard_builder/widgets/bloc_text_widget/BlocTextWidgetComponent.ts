@@ -26,6 +26,22 @@ export default class BlocTextWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private bloc_text: string = null;
+
+    @Watch('widget_options', { immediate: true, deep: true })
+    private async onchange_widget_options() {
+        if (!this.widget_options) {
+            this.bloc_text = null;
+
+            return;
+        }
+        this.bloc_text = this.widget_options.bloc_text;
+    }
+
+    private async mounted() {
+        this.onchange_widget_options();
+    }
+
     get widget_options(): BlocTextWidgetOptionsVO {
         if (!this.page_widget) {
             return null;

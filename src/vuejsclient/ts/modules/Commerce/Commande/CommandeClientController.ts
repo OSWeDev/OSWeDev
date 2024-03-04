@@ -6,6 +6,7 @@ import AjaxCacheClientController from "../../AjaxCache/AjaxCacheClientController
 
 export default class CommandeClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CommandeClientController {
         if (!CommandeClientController.instance) {
             CommandeClientController.instance = new CommandeClientController();

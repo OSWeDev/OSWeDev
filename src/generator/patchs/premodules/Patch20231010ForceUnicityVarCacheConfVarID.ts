@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231010ForceUnicityVarCacheConfVarID implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231010ForceUnicityVarCacheConfVarID {
         if (!Patch20231010ForceUnicityVarCacheConfVarID.instance) {
             Patch20231010ForceUnicityVarCacheConfVarID.instance = new Patch20231010ForceUnicityVarCacheConfVarID();

@@ -299,6 +299,7 @@ export default class YearFilterWidgetManager {
         return res;
     }
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): YearFilterWidgetManager {
         if (!YearFilterWidgetManager.instance) {
             YearFilterWidgetManager.instance = new YearFilterWidgetManager();

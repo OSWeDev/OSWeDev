@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20230424MakeSureSCSSUrlsParamsAreOK implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230424MakeSureSCSSUrlsParamsAreOK {
         if (!Patch20230424MakeSureSCSSUrlsParamsAreOK.instance) {
             Patch20230424MakeSureSCSSUrlsParamsAreOK.instance = new Patch20230424MakeSureSCSSUrlsParamsAreOK();

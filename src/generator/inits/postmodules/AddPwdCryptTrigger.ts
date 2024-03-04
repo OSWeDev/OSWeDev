@@ -5,6 +5,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class AddPwdCryptTrigger implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AddPwdCryptTrigger {
         if (!AddPwdCryptTrigger.instance) {
             AddPwdCryptTrigger.instance = new AddPwdCryptTrigger();

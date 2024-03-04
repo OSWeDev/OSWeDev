@@ -28,6 +28,7 @@ export default class ModuleCommande extends Module {
     public static APINAME_getParamLigneCommandeById: string = "getParamLigneCommandeById";
     public static APINAME_creationPanier: string = "creationPanier";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleCommande {
         if (!ModuleCommande.instance) {
             ModuleCommande.instance = new ModuleCommande();

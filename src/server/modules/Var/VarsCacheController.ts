@@ -50,15 +50,23 @@ export default class VarsCacheController {
             throw new Error('Pas de node ou de var_data');
         }
 
-        // Si ça vient de la bdd, on le met à jour évidemment
+        /**
+         * On update en base aucune data issue de la BDD, puisque si on a chargé la donnée, soit c'est un import qu'on a donc interdiction de toucher, soit c'est
+         *  un cache de var_data pas invalidé, et puisque pas invalidé, on y touche pas
+         */
         if (!!node.var_data.id) {
-            return true;
+            return false;
         }
 
         let controller = VarsServerController.registered_vars_controller_by_var_id[node.var_data.var_id];
 
         if (!controller) {
             throw new Error('Pas de controller pour la var_id ' + node.var_data.var_id);
+        }
+
+        // Si c'est un pixel, on save tout le temps, on a déjà passé le is_pixel_of_card_supp_1 avant
+        if (controller.varConf.pixel_activated) {
+            return true;
         }
 
         // Si on veut insérer que des caches demandés explicitement par le client ou le server

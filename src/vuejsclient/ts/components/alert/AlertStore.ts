@@ -16,6 +16,7 @@ export interface IAlertState {
 
 export default class AlertStore implements IStoreModule<IAlertState, AlertContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): AlertStore {
         if (!AlertStore.instance) {
             AlertStore.instance = new AlertStore();

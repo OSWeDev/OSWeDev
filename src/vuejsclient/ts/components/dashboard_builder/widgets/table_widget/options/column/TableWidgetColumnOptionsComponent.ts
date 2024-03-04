@@ -167,6 +167,18 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
     }
 
+    private hide_if_any_filter_active_label(page_widget_id: number): string {
+        let page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
+
     private do_not_user_filter_active_ids_label(page_widget_id: number): string {
         let page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
@@ -739,7 +751,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
-        new_column.can_filter_by = true;
+        new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};

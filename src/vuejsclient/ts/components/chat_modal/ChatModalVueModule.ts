@@ -3,6 +3,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 
 export default class ChatModalVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ChatModalVueModule {
         if (!ChatModalVueModule.instance) {
             ChatModalVueModule.instance = new ChatModalVueModule();

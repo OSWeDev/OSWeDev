@@ -21,6 +21,7 @@ import ModuleFileServerBase from './ModuleFileServerBase';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFileServer {
         if (!ModuleFileServer.instance) {
             ModuleFileServer.instance = new ModuleFileServer();

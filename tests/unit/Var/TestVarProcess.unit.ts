@@ -19,6 +19,7 @@ import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../src/shared/tools/PromisePipeline/PromisePipeline';
 import FakeTriangularValidDataHandler from './fakes/vars_triangular_dag/FakeTriangularValidDataHandler';
 import FakeTriangularVarsInit from './fakes/vars_triangular_dag/FakeTriangularVarsInit';
+import ThreadHandler from '../../../src/shared/tools/ThreadHandler';
 
 ConsoleHandler.init();
 ConfigurationService.setEnvParams({});
@@ -455,6 +456,10 @@ test('DAG: test var process', async () => {
     expect(node_a.tags).toStrictEqual({
         [VarDAGNode.TAG_3_DATA_LOADED]: true
     });
+
+    // Depuis le throttle sur is_computable, il faut patienter un peu avant de voir un is_computable sur ces noeuds
+    await ThreadHandler.sleep(100, 'Waitiscomputable');
+
     expect(node_b.tags).toStrictEqual({
         [VarDAGNode.TAG_4_IS_COMPUTABLE]: true
     });
@@ -502,6 +507,9 @@ test('DAG: test var process', async () => {
     did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     await promise_pipeline.end();
     expect(did_something).toBeTruthy();
+
+    // Depuis le throttle sur is_computable, il faut patienter un peu avant de voir un is_computable sur ces noeuds
+    await ThreadHandler.sleep(100, 'Waitiscomputable');
 
     // On computer le second étage
     expect(node_a.tags).toStrictEqual({

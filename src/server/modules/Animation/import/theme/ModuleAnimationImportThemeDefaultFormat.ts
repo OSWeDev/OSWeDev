@@ -9,6 +9,7 @@ import ModulesManagerServer from "../../../ModulesManagerServer";
 
 export default class ModuleAnimationImportThemeDefaultFormats {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAnimationImportThemeDefaultFormats {
         if (!ModuleAnimationImportThemeDefaultFormats.instance) {
             ModuleAnimationImportThemeDefaultFormats.instance = new ModuleAnimationImportThemeDefaultFormats();

@@ -8,6 +8,7 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 export default class MenuController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MenuController {
         if (!MenuController.instance) {
             MenuController.instance = new MenuController();

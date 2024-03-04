@@ -7,6 +7,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20230209AddColumnFormatDatesNombres implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230209AddColumnFormatDatesNombres {
         if (!Patch20230209AddColumnFormatDatesNombres.instance) {
             Patch20230209AddColumnFormatDatesNombres.instance = new Patch20230209AddColumnFormatDatesNombres();

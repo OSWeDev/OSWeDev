@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20210803ChangeDIHDateType implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20210803ChangeDIHDateType {
         if (!Patch20210803ChangeDIHDateType.instance) {
             Patch20210803ChangeDIHDateType.instance = new Patch20210803ChangeDIHDateType();

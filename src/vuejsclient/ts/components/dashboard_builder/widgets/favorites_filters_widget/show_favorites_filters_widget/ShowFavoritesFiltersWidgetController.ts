@@ -2,6 +2,7 @@ import ThrottleHelper from "../../../../../../../shared/tools/ThrottleHelper";
 
 export default class ShowFavoritesFiltersWidgetController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ShowFavoritesFiltersWidgetController {
         if (!this.instance) {
             this.instance = new ShowFavoritesFiltersWidgetController();

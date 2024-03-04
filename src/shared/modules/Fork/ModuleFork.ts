@@ -4,6 +4,7 @@ export default class ModuleFork extends Module {
 
     public static MODULE_NAME: string = "Fork";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFork {
         if (!ModuleFork.instance) {
             ModuleFork.instance = new ModuleFork();

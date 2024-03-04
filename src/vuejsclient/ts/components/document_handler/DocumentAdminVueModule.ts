@@ -11,6 +11,7 @@ import MenuController from '../menu/MenuController';
 
 export default class DocumentAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DocumentAdminVueModule {
         if (!DocumentAdminVueModule.instance) {
             DocumentAdminVueModule.instance = new DocumentAdminVueModule();

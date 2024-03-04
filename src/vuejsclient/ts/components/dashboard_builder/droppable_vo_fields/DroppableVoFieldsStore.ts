@@ -12,6 +12,7 @@ export interface IDroppableVoFieldsState {
 
 export default class DroppableVoFieldsStore implements IStoreModule<IDroppableVoFieldsState, DroppableVoFieldsContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DroppableVoFieldsStore {
         if (!DroppableVoFieldsStore.instance) {
             DroppableVoFieldsStore.instance = new DroppableVoFieldsStore();

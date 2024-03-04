@@ -22,6 +22,7 @@ export interface INotificationState {
 
 export default class NotificationStore implements IStoreModule<INotificationState, NotificationContext> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): NotificationStore {
         if (!NotificationStore.instance) {
             NotificationStore.instance = new NotificationStore();

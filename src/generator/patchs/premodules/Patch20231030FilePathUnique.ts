@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20231030FilePathUnique implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20231030FilePathUnique {
         if (!Patch20231030FilePathUnique.instance) {
             Patch20231030FilePathUnique.instance = new Patch20231030FilePathUnique();

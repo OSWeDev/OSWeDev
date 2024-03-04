@@ -11,6 +11,14 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public static FIELD_MODIFIER_NULL_IF_NO_COLUMN: number = 3;
     public static FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID: number = 4; // Case when using union we should keep api_type_id for each VO
     public static FIELD_MODIFIER_DISTINCT: number = 5;
+    public static FIELD_MODIFIER_LABELS: string[] = [
+        'ContextQueryFieldVO.FIELD_MODIFIER_NONE',
+        'ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NAN',
+        'ContextQueryFieldVO.FIELD_MODIFIER_LOWER',
+        'ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN',
+        'ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID',
+        'ContextQueryFieldVO.FIELD_MODIFIER_DISTINCT'
+    ];
 
     public id: number;
     public _type: string = ContextQueryFieldVO.API_TYPE_ID;

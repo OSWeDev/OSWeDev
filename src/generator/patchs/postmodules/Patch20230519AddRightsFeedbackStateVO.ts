@@ -8,6 +8,7 @@ import PostModulesPoliciesPatchBase from "../PostModulesPoliciesPatchBase";
 
 export default class Patch20230519AddRightsFeedbackStateVO extends PostModulesPoliciesPatchBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20230519AddRightsFeedbackStateVO {
         if (!Patch20230519AddRightsFeedbackStateVO.instance) {
             Patch20230519AddRightsFeedbackStateVO.instance = new Patch20230519AddRightsFeedbackStateVO();

@@ -8,6 +8,7 @@ import MenuController from '../menu/MenuController';
 
 export default class FileAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FileAdminVueModule {
         if (!FileAdminVueModule.instance) {
             FileAdminVueModule.instance = new FileAdminVueModule();

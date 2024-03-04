@@ -16,6 +16,7 @@ export default class ModuleDAGBuilder extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAGBuilder.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDAGBuilder.MODULE_NAME + ".BO_ACCESS";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDAGBuilder {
         if (!ModuleDAGBuilder.instance) {
             ModuleDAGBuilder.instance = new ModuleDAGBuilder();

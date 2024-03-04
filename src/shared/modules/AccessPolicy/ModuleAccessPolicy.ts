@@ -1,6 +1,7 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
@@ -28,6 +29,7 @@ import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/Toggl
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
+import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserSessionVO from './vos/UserSessionVO';
@@ -60,6 +62,7 @@ export default class ModuleAccessPolicy extends Module {
     public static ROLE_ANONYMOUS: string = AccessPolicyTools.ROLE_UID_PREFIX + 'anonymous';
 
     public static APINAME_impersonateLogin = "impersonateLogin";
+    public static APINAME_impersonate = "impersonate";
     public static APINAME_change_lang = "change_lang";
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_TEST_ACCESS = "ACCESS_TEST_ACCESS";
@@ -108,6 +111,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAccessPolicy {
         if (!ModuleAccessPolicy.instance) {
             ModuleAccessPolicy.instance = new ModuleAccessPolicy();
@@ -132,6 +136,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
+    public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
     public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
@@ -391,10 +396,17 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<LoginParamVO, number>(
-            null,
+            ModuleAccessPolicy.POLICY_IMPERSONATE,
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, number>(
+            ModuleAccessPolicy.POLICY_IMPERSONATE,
+            ModuleAccessPolicy.APINAME_impersonate,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
@@ -420,6 +432,23 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
         this.initializeUserLogVO();
+        this.initializeUserAPIVO();
+    }
+
+    private initializeUserAPIVO() {
+        let label = new ModuleTableField(field_names<UserAPIVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let field_user_id = new ModuleTableField(field_names<UserAPIVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let datatable_fields = [
+            label,
+            field_user_id,
+            new ModuleTableField(field_names<UserAPIVO>().api_key, ModuleTableField.FIELD_TYPE_string, 'API Key', true).unique()
+        ];
+
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, label, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
+
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        this.datatables.push(datatable);
     }
 
     private initializeUser() {

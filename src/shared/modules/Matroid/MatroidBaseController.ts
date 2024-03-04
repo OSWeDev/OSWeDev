@@ -6,6 +6,7 @@ import RangesCutResult from './vos/RangesCutResult';
 
 export default class MatroidBaseController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): MatroidBaseController {
         if (!MatroidBaseController.instance) {
             MatroidBaseController.instance = new MatroidBaseController();

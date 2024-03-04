@@ -9,6 +9,7 @@ import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CreateDefaultLangFRIfNone {
         if (!CreateDefaultLangFRIfNone.instance) {
             CreateDefaultLangFRIfNone.instance = new CreateDefaultLangFRIfNone();

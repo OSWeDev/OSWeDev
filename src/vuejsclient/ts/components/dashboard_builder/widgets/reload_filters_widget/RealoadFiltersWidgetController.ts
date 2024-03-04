@@ -6,6 +6,7 @@ import DashboardPageVO from "../../../../../../shared/modules/DashboardBuilder/v
  */
 export default class ReloadFiltersWidgetController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ReloadFiltersWidgetController {
         if (!this.instance) {
             this.instance = new ReloadFiltersWidgetController();

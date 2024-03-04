@@ -12,6 +12,7 @@ import './supervision_crud.scss';
 
 export default class SupervisionAdminVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SupervisionAdminVueModule {
         if (!SupervisionAdminVueModule.instance) {
             SupervisionAdminVueModule.instance = new SupervisionAdminVueModule();

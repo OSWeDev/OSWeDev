@@ -20,6 +20,7 @@ export default class ModuleAzureConnect extends Module {
     public static AZURE_CONNECT_CLIENT_ID_PARAM_NAME: string = "ModuleAzureConnect.AZURE_CONNECT_CLIENT_ID";
     public static AZURE_CONNECT_CLIENT_SECRET_PARAM_NAME: string = "ModuleAzureConnect.AZURE_CONNECT_CLIENT_SECRET";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleAzureConnect {
         if (!ModuleAzureConnect.instance) {
             ModuleAzureConnect.instance = new ModuleAzureConnect();

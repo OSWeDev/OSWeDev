@@ -4,6 +4,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ServerAPIController implements IAPIController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ServerAPIController {
         if (!ServerAPIController.instance) {
             ServerAPIController.instance = new ServerAPIController();

@@ -3,6 +3,7 @@ import DashboardPageWidgetVO from "../../../../../../shared/modules/DashboardBui
 
 export default class ResetFiltersWidgetController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ResetFiltersWidgetController {
         if (!this.instance) {
             this.instance = new ResetFiltersWidgetController();

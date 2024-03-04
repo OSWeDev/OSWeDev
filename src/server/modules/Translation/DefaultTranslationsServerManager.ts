@@ -13,6 +13,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class DefaultTranslationsServerManager {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DefaultTranslationsServerManager {
         if (!DefaultTranslationsServerManager.instance) {
             DefaultTranslationsServerManager.instance = new DefaultTranslationsServerManager();

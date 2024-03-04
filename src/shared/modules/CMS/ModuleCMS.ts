@@ -32,6 +32,7 @@ export default class ModuleCMS extends Module {
     // public static APINAME_registerTemplateComponent: string = "registerTemplateComponent";
     public static APINAME_getPageComponents: string = "getPageComponents";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleCMS {
         if (!ModuleCMS.instance) {
             ModuleCMS.instance = new ModuleCMS();

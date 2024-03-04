@@ -3,11 +3,11 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
-import { EvolizClientParamStatic } from './vos/apis/EvolizClientParam';
-import { EvolizProspectParamStatic } from './vos/apis/EvolizProspectParam';
-import { EvolizContactClientParamStatic } from './vos/apis/EvolizContactClientParam';
-import { EvolizContactProspectParamStatic } from './vos/apis/EvolizContactProspectParam';
-import { EvolizInvoiceParamStatic } from './vos/apis/EvolizInvoiceParam';
+import EvolizClientParam, { EvolizClientParamStatic } from './vos/apis/EvolizClientParam';
+import EvolizProspectParam, { EvolizProspectParamStatic } from './vos/apis/EvolizProspectParam';
+import EvolizContactClientParam, { EvolizContactClientParamStatic } from './vos/apis/EvolizContactClientParam';
+import EvolizContactProspectParam, { EvolizContactProspectParamStatic } from './vos/apis/EvolizContactProspectParam';
+import EvolizInvoiceParam, { EvolizInvoiceParamStatic } from './vos/apis/EvolizInvoiceParam';
 import EvolizClientVO from './vos/clients/EvolizClientVO';
 import EvolizContactClientVO from './vos/contact_clients/EvolizContactClientVO';
 import EvolizContactProspectVO from './vos/contact_prospects/EvolizContactProspectVO';
@@ -15,6 +15,10 @@ import EvolizInvoiceVO from './vos/invoices/EvolizInvoiceVO';
 import EvolizProspectVO from './vos/prospects/EvolizProspectVO';
 import EvolizDevisVO from './vos/devis/EvolizDevisVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import EvolizArticleVO from './vos/articles/EvolizArticleVO';
+import EvolizArticleParam, { EvolizArticleParamStatic } from './vos/apis/EvolizArticleParam';
+import EvolizInvoicePOSTVO from './vos/invoices/EvolizInvoicePOSTVO';
+import EvolizPaymentTermsVO from './vos/payment_terms/EvolizPaymentTermsVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -24,6 +28,8 @@ export default class ModuleEvolizAPI extends Module {
     public static EvolizAPI_BaseURL: string = 'www.evoliz.io';
     public static APINAME_list_devis: string = "list_devis";
     public static APINAME_get_devis: string = "get_devis";
+    public static APINAME_list_articles: string = "list_articles";
+    public static APINAME_create_article: string = "create_article";
     public static APINAME_list_invoices: string = "list_invoices";
     public static APINAME_create_invoice: string = "create_invoice";
     public static APINAME_list_clients: string = "list_clients";
@@ -34,6 +40,7 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_create_prospect: string = "create_prospect";
     public static APINAME_list_contact_prospects: string = "list_contact_prospects";
     public static APINAME_create_contact_prospect: string = "create_contact_prospect";
+    public static APINAME_list_payment_terms: string = "list_payment_terms";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -41,6 +48,7 @@ export default class ModuleEvolizAPI extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleEvolizAPI.MODULE_NAME + '.FO_ACCESS';
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleEvolizAPI {
         if (!ModuleEvolizAPI.instance) {
             ModuleEvolizAPI.instance = new ModuleEvolizAPI();
@@ -52,16 +60,19 @@ export default class ModuleEvolizAPI extends Module {
 
     public list_devis: () => Promise<EvolizDevisVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_devis);
     public get_devis: (evoliz_id: string) => Promise<EvolizDevisVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_get_devis);
+    public list_articles: () => Promise<EvolizArticleVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_articles);
+    public create_article: (article: EvolizArticleVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_article);
     public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
-    public create_invoice: (invoice: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
+    public create_invoice: (invoice: EvolizInvoicePOSTVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
-    public create_client: (client: EvolizClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_client);
+    public create_client: (client: EvolizClientVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_client);
     public list_contact_clients: () => Promise<EvolizContactClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_contact_clients);
-    public create_contact_client: (contact: EvolizContactClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_client);
+    public create_contact_client: (contact: EvolizContactClientVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_client);
     public list_prospects: () => Promise<EvolizProspectVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_prospects);
-    public create_prospect: (prospect: EvolizProspectVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_prospect);
+    public create_prospect: (prospect: EvolizProspectVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_prospect);
     public list_contact_prospects: () => Promise<EvolizContactProspectVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_contact_prospects);
-    public create_contact_prospect: (contact: EvolizContactProspectVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_prospect);
+    public create_contact_prospect: (contact: EvolizContactProspectVO) => Promise<number> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_prospect);
+    public list_payment_terms: () => Promise<EvolizPaymentTermsVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_payment_terms);
 
     private constructor() {
 
@@ -82,13 +93,26 @@ export default class ModuleEvolizAPI extends Module {
             StringParamVOStatic,
         ));
 
+        APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizArticleVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_articles,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizArticleParam, number>(
+            null,
+            ModuleEvolizAPI.APINAME_create_article,
+            [],
+            EvolizArticleParamStatic
+        ));
+
         APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizInvoiceVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_invoices,
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizInvoiceVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizInvoiceParam, number>(
             null,
             ModuleEvolizAPI.APINAME_create_invoice,
             [],
@@ -101,7 +125,7 @@ export default class ModuleEvolizAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizClientVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizClientParam, number>(
             null,
             ModuleEvolizAPI.APINAME_create_client,
             [],
@@ -114,7 +138,7 @@ export default class ModuleEvolizAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactClientVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactClientParam, number>(
             null,
             ModuleEvolizAPI.APINAME_create_contact_client,
             [],
@@ -127,7 +151,7 @@ export default class ModuleEvolizAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizProspectVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizProspectParam, number>(
             null,
             ModuleEvolizAPI.APINAME_create_prospect,
             [],
@@ -140,11 +164,17 @@ export default class ModuleEvolizAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactProspectVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactProspectParam, number>(
             null,
             ModuleEvolizAPI.APINAME_create_contact_prospect,
             [],
             EvolizContactProspectParamStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizPaymentTermsVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_payment_terms,
+            []
         ));
     }
 

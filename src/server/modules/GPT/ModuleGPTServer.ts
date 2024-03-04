@@ -55,7 +55,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         thread_id: string,
         content: string,
         files: FileVO[],
-        user_id: number
+        user_id: number = null
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
         return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
     }
@@ -125,9 +125,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4", 60000);
-            // const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-3.5-turbo", 60000);
-            // const modelId = "gpt-3.5-turbo";
+            const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
 
             if (!conversation || !newPrompt) {
                 throw new Error("Invalid conversation or prompt");

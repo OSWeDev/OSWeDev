@@ -171,16 +171,16 @@
 
                         template(slot="option", slot-scope="props")
                             template(v-if='is_translatable_type')
-                                div.option__title(v-tooltip="label(props.option.label)") {{ label(props.option.label) }}
+                                div.option__title(:title="label(props.option.label)") {{ label(props.option.label) }}
                             template(v-else)
-                                div.option__title(v-tooltip="props.option.label") {{ props.option.label }}
+                                div.option__title(:title="props.option.label") {{ props.option.label }}
 
                         template(slot="tag", slot-scope="props")
                             .pill_wrapper.bg-success
                                 template(v-if='is_translatable_type')
-                                    div.option__tag(v-tooltip="label(props.option.label)") {{ label(props.option.label) }}
+                                    div.option__tag(:title="label(props.option.label)") {{ label(props.option.label) }}
                                 template(v-else)
-                                    div.option__tag(v-tooltip="props.option.label") {{ props.option.label }}
+                                    div.option__tag(:title="props.option.label") {{ props.option.label }}
                                 i.fa-solid.fa-square-x(@click='props.remove(props.option)')
 
                     template

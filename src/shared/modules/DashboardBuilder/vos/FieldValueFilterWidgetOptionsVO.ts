@@ -3,6 +3,7 @@ import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";
+import ObjectHandler from "../../../tools/ObjectHandler";
 
 /**
  * @class FieldValueFilterWidgetOptionsVO
@@ -31,7 +32,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: FieldValueFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
+        let options: FieldValueFilterWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if ((!options) || (!options.vo_field_ref)) {
             return res;
         }

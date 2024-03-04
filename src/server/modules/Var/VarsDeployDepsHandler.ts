@@ -426,7 +426,8 @@ export default class VarsDeployDepsHandler {
 
             RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
 
-                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
+                // Pas sur d'avoir besoin de cloner les fields, on tente sans, par ce que niveau perf ça devrait être mieux
+                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, false);
                 new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
                     RangeHandler.getRangeType(field),
                     pixel_value,
@@ -435,6 +436,7 @@ export default class VarsDeployDepsHandler {
                     true,
                     segment_type
                 )];
+                new_var_data
                 if (!aggregated_datas[new_var_data.index]) {
                     VarsDeployDepsHandler.populate_missing_pixels(
                         aggregated_datas,

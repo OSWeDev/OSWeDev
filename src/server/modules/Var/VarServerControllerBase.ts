@@ -34,8 +34,6 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     //  */
     // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
-    public aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
-
     protected constructor(
         public varConf: VarConfVO,
         public var_name_default_translations: { [code_lang: string]: string },
@@ -43,6 +41,39 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         public var_explaination_default_translations: { [code_lang: string]: string },
         public var_deps_names_default_translations: { [dep_id: string]: { [code_lang: string]: string } }
     ) {
+    }
+
+    public aggregateValues(values: number[]): number {
+
+        switch (this.varConf.aggregator) {
+            case VarConfVO.SUM_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM(values);
+
+            case VarConfVO.TIMES_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_TIMES(values);
+
+            case VarConfVO.MAX_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_MAX(values);
+
+            case VarConfVO.MIN_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_MIN(values);
+
+            case VarConfVO.AND_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_AND(values);
+
+            case VarConfVO.OR_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_OR(values);
+
+            case VarConfVO.XOR_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_XOR(values);
+
+            case VarConfVO.AVG_AGGREGATOR:
+                return MainAggregateOperatorsHandlers.getInstance().aggregateValues_AVG(values);
+
+            case VarConfVO.NO_AGGREGATOR:
+            default:
+                throw new Error('VarServerControllerBase: aggregateValues: aggregator not implemented: ' + this.varConf.aggregator);
+        }
     }
 
     /**

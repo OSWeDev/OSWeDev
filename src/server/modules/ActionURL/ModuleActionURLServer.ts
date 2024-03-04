@@ -82,7 +82,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, do_not_redirect: boolean = false, req: Request, res: Response): Promise<boolean> {
+    private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
 
         let uid = ModuleAccessPolicyServer.getLoggedUserId();
 
@@ -109,7 +109,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             let action_res = await this.do_action_url(action_url, code, uid, req, res);
             if ((!res.headersSent) && (!do_not_redirect)) {
                 // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
-                res.redirect('/action_url_cr/' + action_url.id);
+                res.redirect('/#/action_url_cr/' + action_url.id);
             }
 
             return action_res;
@@ -120,8 +120,8 @@ export default class ModuleActionURLServer extends ModuleServerBase {
     }
 
     private async do_action_url(action_url: ActionURLVO, code: string, uid: number, req: Request, res: Response): Promise<boolean> {
-        if (action_url.action_remaining_counter <= 0) {
-            ConsoleHandler.error('action_url code :' + code + ': uid :' + uid + ': this action_url has no remaining counter.');
+        if (action_url.action_remaining_counter == 0) {
+            ConsoleHandler.error('No more remaining counter for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
             return false;
         }
 
@@ -139,11 +139,6 @@ export default class ModuleActionURLServer extends ModuleServerBase {
 
         if (!module_instance[action_url.action_callback_function_name]) {
             ConsoleHandler.error('No function found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
-            return false;
-        }
-
-        if (action_url.action_remaining_counter == 0) {
-            ConsoleHandler.error('No more remaining counter for action_url:' + code + ': module_name:' + action_url.action_callback_module_name + ': function_name:' + action_url.action_callback_function_name);
             return false;
         }
 

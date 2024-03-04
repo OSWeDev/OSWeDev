@@ -3,6 +3,7 @@ import ISessionObject from "./interfaces/ISessionObject";
 
 export default class ExpressSessionController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ExpressSessionController {
         if (!ExpressSessionController.instance) {
             ExpressSessionController.instance = new ExpressSessionController();

@@ -19,6 +19,7 @@ import ImgHtmlComponentTemplate from './component_templates/ImgHtml/ImgHtmlCompo
 
 export default class CMSFrontVueModule extends VueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): CMSFrontVueModule {
         if (!CMSFrontVueModule.instance) {
             CMSFrontVueModule.instance = new CMSFrontVueModule();

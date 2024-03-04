@@ -2,7 +2,6 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
@@ -489,7 +488,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                                         [self.field_id_selected]: new_value
                                     });
 
-                                    ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
+                                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
 
                                     await self.throttled_update_visible_options();
 

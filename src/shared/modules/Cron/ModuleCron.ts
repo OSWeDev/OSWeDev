@@ -21,6 +21,7 @@ export default class ModuleCron extends Module {
     public static APINAME_run_manual_task: string = "run_manual_task";
     public static APINAME_get_manual_tasks: string = "get_manual_tasks";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleCron {
         if (!ModuleCron.instance) {
             ModuleCron.instance = new ModuleCron();

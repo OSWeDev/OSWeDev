@@ -2,6 +2,7 @@ import DashboardBuilderVueModuleBase from './DashboardBuilderVueModuleBase';
 
 export default class DashboardBuilderClientVueModule extends DashboardBuilderVueModuleBase {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderClientVueModule {
         if (!DashboardBuilderClientVueModule.instance) {
             DashboardBuilderClientVueModule.instance = new DashboardBuilderClientVueModule();

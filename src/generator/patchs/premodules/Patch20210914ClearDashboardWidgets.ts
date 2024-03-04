@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20210914ClearDashboardWidgets implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20210914ClearDashboardWidgets {
         if (!Patch20210914ClearDashboardWidgets.instance) {
             Patch20210914ClearDashboardWidgets.instance = new Patch20210914ClearDashboardWidgets();

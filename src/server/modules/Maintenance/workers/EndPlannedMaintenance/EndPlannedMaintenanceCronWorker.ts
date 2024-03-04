@@ -17,10 +17,12 @@ export default class EndPlannedMaintenanceCronWorker implements ICronWorker {
     private constructor() {
     }
 
+    // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "EndPlannedMaintenanceCronWorker";
     }
 
+    // istanbul ignore next: nothing to test : work
     public async work() {
         await ModuleMaintenance.getInstance().end_planned_maintenance();
     }

@@ -1309,6 +1309,7 @@ export default class ContextFilterVOHandler {
                     value = value.replace(/<\/p>/gi, '\n');
                     value = value.replace(/<br>/gi, '\n');
                     value = value.replace(/<(?:.|\n)*?>/gm, '');
+                    value = value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script *>/gi, "");
                     // value = $("<p>" + value + "</p>").text();
                 } catch (error) {
                     value = value;
@@ -1335,6 +1336,7 @@ export default class ContextFilterVOHandler {
                     v = v.replace(/<\/p>/gi, '\n');
                     v = v.replace(/<br>/gi, '\n');
                     v = v.replace(/<(?:.|\n)*?>/gm, '');
+                    v = v.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script *>/gi, "");
                     // v = $("<p>" + v + "</p>").text();
                 } catch (error) {
                     v = v;

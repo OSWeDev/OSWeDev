@@ -14,6 +14,7 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
     public static DEP_CSRFCount: string = 'VarMonthCompareCSRFCountMAndMm2Controller.CSRFCount' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_CSRFCountMm2: string = 'VarMonthCompareCSRFCountMAndMm2Controller.CSRFCountMm2' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): VarMonthCompareCSRFCountMAndMm2Controller {
         if (!VarMonthCompareCSRFCountMAndMm2Controller.instance) {
             VarMonthCompareCSRFCountMAndMm2Controller.instance = new VarMonthCompareCSRFCountMAndMm2Controller();

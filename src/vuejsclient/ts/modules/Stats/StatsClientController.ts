@@ -6,6 +6,7 @@ import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 export default class StatsClientController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): StatsClientController {
         if (!StatsClientController.instance) {
             StatsClientController.instance = new StatsClientController();

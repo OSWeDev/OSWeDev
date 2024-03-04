@@ -18,6 +18,7 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
     public static DEP_CyclB: string = 'CyclB' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeVarControllerCyclA {
         if (!FakeVarControllerCyclA.instance) {
             FakeVarControllerCyclA.instance = new FakeVarControllerCyclA();

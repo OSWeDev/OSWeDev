@@ -13,6 +13,7 @@ import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos
 
 export default class SendInBlueMailCampaignServerController {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): SendInBlueMailCampaignServerController {
         if (!SendInBlueMailCampaignServerController.instance) {
             SendInBlueMailCampaignServerController.instance = new SendInBlueMailCampaignServerController();

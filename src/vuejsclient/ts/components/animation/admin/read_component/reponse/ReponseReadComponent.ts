@@ -6,6 +6,7 @@ import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ITableFieldTypeReadComponent from '../../../../../../../shared/modules/TableFieldTypes/interfaces/ITableFieldTypeReadComponent';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import VueComponentBase from '../../../../VueComponentBase';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./ReponseReadComponent.pug'),
@@ -26,7 +27,7 @@ export default class ReponseReadComponent extends VueComponentBase implements IT
     @Watch('value', { immediate: true })
     @Watch('row', { immediate: true })
     private reload_field_values(): void {
-        this.field_values = (this.value) ? JSON.parse(this.value) : null;
+        this.field_values = ObjectHandler.try_get_json(this.value);
     }
 
     private async created() { }

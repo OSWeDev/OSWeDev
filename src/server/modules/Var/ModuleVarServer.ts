@@ -485,7 +485,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_d, this.invalidate_imports_for_d.bind(this));
 
-        ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
+        ModuleServiceBase.getInstance().post_modules_installation_hooks.push(async () => {
 
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD
@@ -511,6 +511,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             VarsServerController.init_varcontrollers_dag();
+
+            /**
+             * On nettoie les varconfs en bdd qui n'ont plus de controller associé dans l'application
+             */
+            await VarsServerController.clean_varconfs_without_controller();
         });
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] =
@@ -1731,7 +1736,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         prompt += "Génère une explication simple destinée à l'utilisateur de l'application - donc avec un language adapté aux garagistes et gestionnaires de concessions.\n";
         prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
-        ConsoleHandler.log('prompt', prompt);
+        ConsoleHandler.log('prompt:' + prompt);
 
         let gpt_msg = await ModuleGPT.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER, user_id, prompt));
 

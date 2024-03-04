@@ -14,6 +14,7 @@ import FakeDistantVO from './vos/FakeDistantVO';
 
 export default class FakeVarControllerDsDistant extends VarServerControllerBase<FakeDataVO> {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): FakeVarControllerDsDistant {
         if (!FakeVarControllerDsDistant.instance) {
             FakeVarControllerDsDistant.instance = new FakeVarControllerDsDistant();

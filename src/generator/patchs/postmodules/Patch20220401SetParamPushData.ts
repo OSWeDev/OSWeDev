@@ -6,6 +6,7 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20220401SetParamPushData implements IGeneratorWorker {
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): Patch20220401SetParamPushData {
         if (!Patch20220401SetParamPushData.instance) {
             Patch20220401SetParamPushData.instance = new Patch20220401SetParamPushData();

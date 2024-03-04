@@ -32,6 +32,8 @@ import UpdateVosParamVO, { UpdateVosParamVOStatic } from './vos/UpdateVosParamVO
 
 export default class ModuleContextFilter extends Module {
 
+    public static MAX_SEGMENTATION_OPTIONS: number = 200;
+
     public static MODULE_NAME: string = "ContextFilter";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleContextFilter.MODULE_NAME;
@@ -49,6 +51,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_build_select_query: string = "build_select_query";
     public static APINAME_build_select_query_str: string = "build_select_query_str";
 
+    // istanbul ignore next: nothing to test
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
             ModuleContextFilter.instance = new ModuleContextFilter();
@@ -172,62 +175,98 @@ export default class ModuleContextFilter extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_count_valid_segmentations,
-            null,
+            (params: CountValidSegmentationsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {
+                    [params.api_type_id]: true
+                };
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             CountValidSegmentationsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select,
-            null,
+            (params: SelectVosParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectVosParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,
             ModuleContextFilter.APINAME_select_filter_visible_options,
-            null,
+            (params: SelectFilterVisibleOptionsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectFilterVisibleOptionsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_datatable_rows,
-            null,
+            (params: SelectDatatableRowsParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectDatatableRowsParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_count,
-            null,
+            (params: SelectCountParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectCountParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_vo_from_unique_field,
-            null,
+            (params: QueryVOFromUniqueFieldContextFiltersParamVO) => {
+                return [params.api_type_id];
+            },
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
-            null,
+            (params: BuildSelectQueryParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             BuildSelectQueryParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
             null,
             ModuleContextFilter.APINAME_build_select_query_str,
-            null,
+            (params: BuildSelectQueryParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             BuildSelectQueryParamVOStatic
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
             null,
             ModuleContextFilter.APINAME_select_vos,
-            null,
+            (params: SelectVosParamVO) => {
+                let res: { [api_type_id: string]: boolean } = {};
+                this.define_used_api_type_ids_from_query(params.context_query, res);
+                return Object.keys(res);
+            },
             SelectVosParamVOStatic
         ));
 
@@ -250,12 +289,58 @@ export default class ModuleContextFilter extends Module {
         ));
     }
 
+    private define_used_api_type_ids_from_query(query_: ContextQueryVO, res: { [api_type_id: string]: boolean }) {
+        res[query_.base_api_type_id] = true;
+
+        if (query_.fields) {
+            for (let i in query_.fields) {
+                res[query_.fields[i].api_type_id] = true;
+            }
+        }
+
+        if (query_.filters) {
+            for (let i in query_.filters) {
+                this.define_used_api_type_ids_from_filter(query_.filters[i], res);
+            }
+        }
+
+        if (query_.union_queries) {
+            for (let i in query_.union_queries) {
+                this.define_used_api_type_ids_from_query(query_.union_queries[i], res);
+            }
+        }
+
+        if (query_.joined_context_queries) {
+            for (let i in query_.joined_context_queries) {
+                this.define_used_api_type_ids_from_query(query_.joined_context_queries[i].joined_context_query, res);
+            }
+        }
+    }
+
+    private define_used_api_type_ids_from_filter(filter_: ContextFilterVO, res: { [api_type_id: string]: boolean }) {
+        res[filter_.vo_type] = true;
+
+        if (filter_.left_hook) {
+            this.define_used_api_type_ids_from_filter(filter_.left_hook, res);
+        }
+
+        if (filter_.right_hook) {
+            this.define_used_api_type_ids_from_filter(filter_.right_hook, res);
+        }
+
+        if (filter_.sub_query) {
+            this.define_used_api_type_ids_from_query(filter_.sub_query, res);
+        }
+    }
+
     private init_SortByVO() {
 
         let datatable_fields = [
+            new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias'),
             new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID'),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID'),
             new ModuleTableField('sort_asc', ModuleTableField.FIELD_TYPE_boolean, 'ASC', true, true, true),
+            new ModuleTableField('modifier', ModuleTableField.FIELD_TYPE_enum, 'Modificateur').setEnumValues(SortByVO.MODIFIER_LABELS),
         ];
 
         let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
@@ -322,8 +407,9 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID du champs', true),
             new ModuleTableField('alias', ModuleTableField.FIELD_TYPE_string, 'Alias', false),
             new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            new ModuleTableField('modifier', ModuleTableField.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
+            new ModuleTableField('cast_with', ModuleTableField.FIELD_TYPE_string, 'Caster avec', false),
         ];
-
         let datatable = new ModuleTable(this, ContextQueryFieldVO.API_TYPE_ID, () => new ContextQueryFieldVO(), datatable_fields, null, "Champs de requête");
         this.datatables.push(datatable);
     }
@@ -343,9 +429,12 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
-            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'union_queries', false),
             new ModuleTableField('joined_context_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'joined_context_queries', false),
             new ModuleTableField('do_count_results', ModuleTableField.FIELD_TYPE_boolean, 'do_count_results', true, true, false),
+            new ModuleTableField('max_age_ms', ModuleTableField.FIELD_TYPE_int, 'max_age_ms', true, true, 0),
+            new ModuleTableField('request_id', ModuleTableField.FIELD_TYPE_int, 'request_id', false),
+            new ModuleTableField('throttle_query_select', ModuleTableField.FIELD_TYPE_boolean, 'throttle_query_select', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");

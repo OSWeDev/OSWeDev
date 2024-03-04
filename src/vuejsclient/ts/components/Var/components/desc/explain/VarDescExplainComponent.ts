@@ -525,7 +525,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         prompt += "Génère une explication simple destinée à l'utilisateur de l'application - donc avec un language adapté aux garagistes et gestionnaires de concessions.\n";
         prompt += "L'explication doit avoir au maximum 100 mots, et expliquer clairement la valeur actuelle de la variable, en utilisant les éléments ci-dessus.\n";
-        ConsoleHandler.log('prompt', prompt);
+        ConsoleHandler.log('prompt:' + prompt);
         return prompt;
     }
 
