@@ -89,6 +89,9 @@ export default class ModuleTableController {
             ModuleTableController.vo_type_by_module_name[module_name] = {};
         }
         ModuleTableController.vo_type_by_module_name[module_name][vo_type] = true;
+        if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type]) {
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type] = {};
+        }
 
         if (res.module_name) {
             res.set_bdd_suffix_prefix_table_name(res.module_name, res.vo_type, "module");

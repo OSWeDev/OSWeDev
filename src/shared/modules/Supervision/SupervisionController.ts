@@ -5,6 +5,7 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import IDistantVOBase from '../IDistantVOBase';
 import ISupervisedItem from './interfaces/ISupervisedItem';
 import ISupervisedItemController from './interfaces/ISupervisedItemController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
@@ -135,6 +136,18 @@ export default class SupervisionController {
                 fields.push(cloned_field);
             }
 
+            /**
+             * On ajoute le constructeur de la table, avec le _type mis à jour
+             */
+            ModuleTableController.vo_constructor_by_vo_type[vo_type] = class implements IDistantVOBase {
+                public constructor() {
+                    let res = new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type]();
+                    res._type = vo_type;
+                    return res;
+                };
+                public id: number;
+                public _type: string;
+            };
             const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);

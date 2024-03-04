@@ -434,19 +434,17 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserAPIVO() {
-        let label = new ModuleTableField(field_names<UserAPIVO>().name, ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let field_user_id = new ModuleTableField(field_names<UserAPIVO>().user_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        let field_user_id = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let datatable_fields = [
             label,
             field_user_id,
-            new ModuleTableField(field_names<UserAPIVO>().api_key, ModuleTableField.FIELD_TYPE_string, 'API Key', true).unique()
+            ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique()
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, UserAPIVO.API_TYPE_ID, () => new UserAPIVO(), datatable_fields, label, new DefaultTranslation({ 'fr-fr': "Clefs d'API des utilisateurs" }));
+        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }));
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-
-        this.datatables.push(datatable);
+        field_user_id.set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
     }
 
     private initializeUser() {

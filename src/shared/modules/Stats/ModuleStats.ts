@@ -2,26 +2,26 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleParams from '../Params/ModuleParams';
 import VarsInitController from '../Var/VarsInitController';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
+import StatsController from './StatsController';
 import RegisterClientStatsParamVO, { RegisterClientStatsParamVOStatic } from './params/RegisterClientStatsParamVO';
 import StatsGroupSecDataRangesVO from './vars/vos/StatsGroupDayDataRangesVO';
 import StatClientWrapperVO from './vos/StatClientWrapperVO';
+import StatVO from './vos/StatVO';
 import StatsCategoryVO from './vos/StatsCategoryVO';
 import StatsEventVO from './vos/StatsEventVO';
 import StatsGroupVO from './vos/StatsGroupVO';
 import StatsSubCategoryVO from './vos/StatsSubCategoryVO';
 import StatsThreadVO from './vos/StatsThreadVO';
 import StatsTypeVO from './vos/StatsTypeVO';
-import StatVO from './vos/StatVO';
-import ModuleTableController from '../DAO/ModuleTableController';
 
 
 export default class ModuleStats extends Module {
@@ -53,6 +53,19 @@ export default class ModuleStats extends Module {
 
         super("stats", ModuleStats.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+
+    /* istanbul ignore next: nothing to test here */
+    public async hook_module_async_client_admin_initialization(): Promise<any> {
+        await this.initializeasync();
+        return true;
+    }
+
+    /* istanbul ignore next: nothing to test here */
+    public async hook_module_configure(): Promise<boolean> {
+        await this.initializeasync();
+        return true;
     }
 
     public initialize() {
@@ -280,4 +293,10 @@ export default class ModuleStats extends Module {
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 
+    /* istanbul ignore next: nothing to test here */
+    private async initializeasync() {
+        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
+            StatsController.getInstance().UNSTACK_THROTTLE = res;
+        });
+    }
 }

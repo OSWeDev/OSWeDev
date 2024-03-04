@@ -3,7 +3,6 @@ import ThrottleHelper from '../../tools/ThrottleHelper';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Dates from '../FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../Params/ModuleParams';
 import StatVO from '../Stats/vos/StatVO';
 import StatClientWrapperVO from './vos/StatClientWrapperVO';
 import StatsTypeVO from './vos/StatsTypeVO';
@@ -75,10 +74,10 @@ export default class StatsController {
         }
 
         const default_value = 60000;
+        if ((!!StatsController.getInstance().UNSTACK_THROTTLE) && (StatsController.getInstance().UNSTACK_THROTTLE !== default_value)) {
+            return;
+        }
         StatsController.getInstance().UNSTACK_THROTTLE = default_value;
-        ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000).then((res: number) => {
-            StatsController.getInstance().UNSTACK_THROTTLE = res;
-        });
     }
 
     /**

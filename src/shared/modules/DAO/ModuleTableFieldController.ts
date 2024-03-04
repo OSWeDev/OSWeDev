@@ -50,6 +50,11 @@ export default class ModuleTableFieldController {
             };
         }
 
+        if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type]) {
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type] = {};
+        }
+        ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name] = res;
+
         res.cascade_on_delete = field_required;
 
         if (!field_label) {

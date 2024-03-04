@@ -244,7 +244,7 @@ export default class ModuleTableDBService {
 
             // On doit entre autre ajouter la table en base qui gère les fields
             const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
-            if ((!fields) || (!fields.length)) {
+            if ((!fields) || (!ObjectHandler.hasAtLeastOneAttribute(fields))) {
                 ConsoleHandler.error('ModuleTableDBService: no fields for table - DB declaration is impossible without fields:' + moduleTable.full_name);
             } else {
                 await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);

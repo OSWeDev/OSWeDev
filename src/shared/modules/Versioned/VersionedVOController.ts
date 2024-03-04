@@ -6,6 +6,7 @@ import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import IDistantVOBase from '../IDistantVOBase';
 import IVersionedVO from './interfaces/IVersionedVO';
 
 export default class VersionedVOController implements IVOController {
@@ -92,9 +93,21 @@ export default class VersionedVOController implements IVOController {
                 fields.push(cloned_field);
             }
 
+            /**
+             * On ajoute le constructeur de la table, avec le _type mis à jour
+             */
+            ModuleTableController.vo_constructor_by_vo_type[vo_type] = class implements IDistantVOBase {
+                public constructor() {
+                    let res = new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type]();
+                    res._type = vo_type;
+                    return res;
+                };
+                public id: number;
+                public _type: string;
+            };
+
             // TODO FIXME le constructeur est clairement pas bon, on utilise le constructeur du main vo, pour les versioned. a priori pas d'impact aujourd'hui, mais c'est complètement faux
-            const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type], null, vo_type);
-            newTable.vo_type = vo_type;
+            const newTable: ModuleTableVO = ModuleTableController.create_new(moduleTable.module_name, ModuleTableController.vo_constructor_by_vo_type[vo_type], null, vo_type);
             newTable.set_bdd_ref(database, moduleTable.name);
             newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
 

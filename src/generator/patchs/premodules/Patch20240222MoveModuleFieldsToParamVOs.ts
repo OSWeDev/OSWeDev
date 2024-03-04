@@ -50,20 +50,24 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_SUBJECT_PREFIX = 'ModuleMailer.subject_prefix';
              *     public static PARAM_NAME_SUBJECT_SUFFIX = 'ModuleMailer.subject_suffix';
              */
-            const conf_module_mailer_lines = await db.oneOrNone("SELECT * FROM admin.module_mailer;");
-            const conf_module_mailer_line = conf_module_mailer_lines ? conf_module_mailer_lines[0] : null;
-            if (conf_module_mailer_line) {
-                ConsoleHandler.log('Migration des champs de ModuleMailer vers ParamVOs');
-                await this.add_param_if_not_exists(db, 'ModuleMailer.host', conf_module_mailer_line.host);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.port', conf_module_mailer_line.port ? conf_module_mailer_line.port.toString() : null);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.secure', conf_module_mailer_line.secure ? '1' : '0');
-                await this.add_param_if_not_exists(db, 'ModuleMailer.auth_user', conf_module_mailer_line.auth_user);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.auth_pass', conf_module_mailer_line.auth_pass);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.from_address', conf_module_mailer_line.from_address);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.subject_prefix', conf_module_mailer_line.subject_prefix);
-                await this.add_param_if_not_exists(db, 'ModuleMailer.subject_suffix', conf_module_mailer_line.subject_suffix);
+            try {
+                const conf_module_mailer_lines = await db.oneOrNone("SELECT * FROM admin.module_mailer;");
+                const conf_module_mailer_line = (conf_module_mailer_lines && !!conf_module_mailer_lines.length) ? conf_module_mailer_lines[0] : conf_module_mailer_lines;
+                if (conf_module_mailer_line) {
+                    ConsoleHandler.log('Migration des champs de ModuleMailer vers ParamVOs');
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.host', conf_module_mailer_line.host);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.port', conf_module_mailer_line.port ? conf_module_mailer_line.port.toString() : null);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.secure', conf_module_mailer_line.secure ? '1' : '0');
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.auth_user', conf_module_mailer_line.auth_user);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.auth_pass', conf_module_mailer_line.auth_pass);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.from_address', conf_module_mailer_line.from_address);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.subject_prefix', conf_module_mailer_line.subject_prefix);
+                    await this.add_param_if_not_exists(db, 'ModuleMailer.subject_suffix', conf_module_mailer_line.subject_suffix);
 
-                await db.none("DROP TABLE admin.module_mailer;");
+                    await db.none("DROP TABLE admin.module_mailer;");
+                }
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleMailer vers ParamVOs:' + error);
             }
 
             /**
@@ -83,18 +87,23 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_nombre_separateur_1000 = 'ModuleFormatDatesNombres.nombre_separateur_1000';
              *     public static PARAM_NAME_nombre_separateur_decimal = 'ModuleFormatDatesNombres.nombre_separateur_decimal';
              */
-            const conf_module_format_dates_nombres_lines = await db.oneOrNone("SELECT * FROM admin.module_format_dates_nombres;");
-            const conf_module_format_dates_nombres_line = conf_module_format_dates_nombres_lines ? conf_module_format_dates_nombres_lines[0] : null;
-            if (conf_module_format_dates_nombres_line) {
-                ConsoleHandler.log('Migration des champs de ModuleFormatDatesNombres vers ParamVOs');
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_month_date', conf_module_format_dates_nombres_line.date_format_month_date);
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear_month_date', conf_module_format_dates_nombres_line.date_format_fullyear_month_date);
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear_month_day_date', conf_module_format_dates_nombres_line.date_format_fullyear_month_day_date);
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear', conf_module_format_dates_nombres_line.date_format_fullyear);
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.nombre_separateur_1000', conf_module_format_dates_nombres_line.nombre_separateur_1000);
-                await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.nombre_separateur_decimal', conf_module_format_dates_nombres_line.nombre_separateur_decimal);
+            try {
+                const conf_module_format_dates_nombres_lines = await db.oneOrNone("SELECT * FROM admin.module_format_dates_nombres;");
+                const conf_module_format_dates_nombres_line = (conf_module_format_dates_nombres_lines && !!conf_module_format_dates_nombres_lines.length) ? conf_module_format_dates_nombres_lines[0] : conf_module_format_dates_nombres_lines;
+                if (conf_module_format_dates_nombres_line) {
+                    ConsoleHandler.log('Migration des champs de ModuleFormatDatesNombres vers ParamVOs');
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_month_date', conf_module_format_dates_nombres_line.date_format_month_date);
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear_month_date', conf_module_format_dates_nombres_line.date_format_fullyear_month_date);
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear_month_day_date', conf_module_format_dates_nombres_line.date_format_fullyear_month_day_date);
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.date_format_fullyear', conf_module_format_dates_nombres_line.date_format_fullyear);
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.nombre_separateur_1000', conf_module_format_dates_nombres_line.nombre_separateur_1000);
+                    await this.add_param_if_not_exists(db, 'ModuleFormatDatesNombres.nombre_separateur_decimal', conf_module_format_dates_nombres_line.nombre_separateur_decimal);
 
-                await db.none("DROP TABLE admin.module_format_dates_nombres;");
+                    await db.none("DROP TABLE admin.module_format_dates_nombres;");
+                }
+
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleFormatDatesNombres vers ParamVOs:' + error);
             }
 
             /**
@@ -218,90 +227,106 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *     public static PARAM_NAME_animation_vert: string = 'sass_skin_generator.animation_vert';
              *     public static PARAM_NAME_header_text_color_mid_opacity: string = 'sass_skin_generator.header_text_color_mid_opacity';
              */
-            const conf_module_sass_skin_configurator_lines = await db.oneOrNone("SELECT * FROM admin.module_sass_resource_planning_skin_configurator;");
-            const conf_module_sass_skin_configurator_line = conf_module_sass_skin_configurator_lines ? conf_module_sass_skin_configurator_lines[0] : null;
-            if (conf_module_sass_skin_configurator_line) {
-                ConsoleHandler.log('Migration des champs de ModuleSASSSkinConfigurator vers ParamVOs');
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.danger_color', conf_module_sass_skin_configurator_line.danger_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.success_color', conf_module_sass_skin_configurator_line.success_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.input_editable_bg_color_danger', conf_module_sass_skin_configurator_line.input_editable_bg_color_danger);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.input_editable_bg_color', conf_module_sass_skin_configurator_line.input_editable_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.input_readonly_text_color', conf_module_sass_skin_configurator_line.input_readonly_text_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.input_ok_bg_color', conf_module_sass_skin_configurator_line.input_ok_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.button_text_color', conf_module_sass_skin_configurator_line.button_text_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.button_primary_bg_color', conf_module_sass_skin_configurator_line.button_primary_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.button_primary_active_bg_color', conf_module_sass_skin_configurator_line.button_primary_active_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.button_warning_color', conf_module_sass_skin_configurator_line.button_warning_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_bg_color', conf_module_sass_skin_configurator_line.table_header_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_border', conf_module_sass_skin_configurator_line.table_border);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_activeitems_bg_color', conf_module_sass_skin_configurator_line.table_activeitems_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_bg_color', conf_module_sass_skin_configurator_line.main_sidebar_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_bg_color_rgba', conf_module_sass_skin_configurator_line.main_sidebar_bg_color_rgba);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_footer_bg_color', conf_module_sass_skin_configurator_line.main_footer_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_header_bg_color', conf_module_sass_skin_configurator_line.main_header_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_box_body_bg_color', conf_module_sass_skin_configurator_line.main_box_body_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_text_color', conf_module_sass_skin_configurator_line.main_menu_text_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_box_title_color', conf_module_sass_skin_configurator_line.main_box_title_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_url', conf_module_sass_skin_configurator_line.main_background_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_icons_lightbackground', conf_module_sass_skin_configurator_line.main_icons_lightbackground);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_bg_color', conf_module_sass_skin_configurator_line.main_menu_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_active_bg_color', conf_module_sass_skin_configurator_line.main_menu_active_bg_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.box_title_bg_url', conf_module_sass_skin_configurator_line.box_title_bg_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_store_url', conf_module_sass_skin_configurator_line.picto_store_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_store_info_url', conf_module_sass_skin_configurator_line.picto_store_info_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_orga_url', conf_module_sass_skin_configurator_line.picto_orga_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_tool_small_url', conf_module_sass_skin_configurator_line.picto_tool_small_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_fleche_verte_url', conf_module_sass_skin_configurator_line.picto_fleche_verte_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_clock_small_url', conf_module_sass_skin_configurator_line.picto_clock_small_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_objectivos_url', conf_module_sass_skin_configurator_line.picto_objectivos_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_atteindre_url', conf_module_sass_skin_configurator_line.picto_atteindre_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_equipe_url', conf_module_sass_skin_configurator_line.picto_equipe_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_link_color', conf_module_sass_skin_configurator_line.main_link_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.header_text_color', conf_module_sass_skin_configurator_line.header_text_color);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.light_warning', conf_module_sass_skin_configurator_line.light_warning);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.light_low', conf_module_sass_skin_configurator_line.light_low);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.gris_clair', conf_module_sass_skin_configurator_line.gris_clair);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.vert_clair', conf_module_sass_skin_configurator_line.vert_clair);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_odd_bg', conf_module_sass_skin_configurator_line.table_header_odd_bg);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_even_bg', conf_module_sass_skin_configurator_line.table_header_even_bg);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_content_odd_bg', conf_module_sass_skin_configurator_line.table_content_odd_bg);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.table_content_even_bg', conf_module_sass_skin_configurator_line.table_content_even_bg);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background', conf_module_sass_skin_configurator_line.main_background);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_background', conf_module_sass_skin_configurator_line.main_sidebar_background);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.planning_realise_header_bg', conf_module_sass_skin_configurator_line.planning_realise_header_bg);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_int_url', conf_module_sass_skin_configurator_line.main_background_int_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_header_url', conf_module_sass_skin_configurator_line.main_background_header_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.logo_url', conf_module_sass_skin_configurator_line.logo_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_product_url', conf_module_sass_skin_configurator_line.picto_product_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_saisonnalite_url', conf_module_sass_skin_configurator_line.picto_saisonnalite_url);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_background', conf_module_sass_skin_configurator_line.animation_background);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_secondary', conf_module_sass_skin_configurator_line.animation_secondary);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_orange', conf_module_sass_skin_configurator_line.animation_orange);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_rouge', conf_module_sass_skin_configurator_line.animation_rouge);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_vert', conf_module_sass_skin_configurator_line.animation_vert);
-                await this.add_param_if_not_exists(db, 'sass_skin_generator.header_text_color_mid_opacity', conf_module_sass_skin_configurator_line.header_text_color_mid_opacity);
+            try {
+                const conf_module_sass_skin_configurator_lines = await db.oneOrNone("SELECT * FROM admin.module_sass_resource_planning_skin_configurator;");
+                const conf_module_sass_skin_configurator_line = (conf_module_sass_skin_configurator_lines && !!conf_module_sass_skin_configurator_lines.length) ? conf_module_sass_skin_configurator_lines[0] : conf_module_sass_skin_configurator_lines;
+                if (conf_module_sass_skin_configurator_line) {
+                    ConsoleHandler.log('Migration des champs de ModuleSASSSkinConfigurator vers ParamVOs');
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.danger_color', conf_module_sass_skin_configurator_line.danger_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.success_color', conf_module_sass_skin_configurator_line.success_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.input_editable_bg_color_danger', conf_module_sass_skin_configurator_line.input_editable_bg_color_danger);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.input_editable_bg_color', conf_module_sass_skin_configurator_line.input_editable_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.input_readonly_text_color', conf_module_sass_skin_configurator_line.input_readonly_text_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.input_ok_bg_color', conf_module_sass_skin_configurator_line.input_ok_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.button_text_color', conf_module_sass_skin_configurator_line.button_text_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.button_primary_bg_color', conf_module_sass_skin_configurator_line.button_primary_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.button_primary_active_bg_color', conf_module_sass_skin_configurator_line.button_primary_active_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.button_warning_color', conf_module_sass_skin_configurator_line.button_warning_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_bg_color', conf_module_sass_skin_configurator_line.table_header_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_border', conf_module_sass_skin_configurator_line.table_border);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_activeitems_bg_color', conf_module_sass_skin_configurator_line.table_activeitems_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_bg_color', conf_module_sass_skin_configurator_line.main_sidebar_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_bg_color_rgba', conf_module_sass_skin_configurator_line.main_sidebar_bg_color_rgba);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_footer_bg_color', conf_module_sass_skin_configurator_line.main_footer_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_header_bg_color', conf_module_sass_skin_configurator_line.main_header_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_box_body_bg_color', conf_module_sass_skin_configurator_line.main_box_body_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_text_color', conf_module_sass_skin_configurator_line.main_menu_text_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_box_title_color', conf_module_sass_skin_configurator_line.main_box_title_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_url', conf_module_sass_skin_configurator_line.main_background_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_icons_lightbackground', conf_module_sass_skin_configurator_line.main_icons_lightbackground);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_bg_color', conf_module_sass_skin_configurator_line.main_menu_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_menu_active_bg_color', conf_module_sass_skin_configurator_line.main_menu_active_bg_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.box_title_bg_url', conf_module_sass_skin_configurator_line.box_title_bg_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_store_url', conf_module_sass_skin_configurator_line.picto_store_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_store_info_url', conf_module_sass_skin_configurator_line.picto_store_info_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_orga_url', conf_module_sass_skin_configurator_line.picto_orga_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_tool_small_url', conf_module_sass_skin_configurator_line.picto_tool_small_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_fleche_verte_url', conf_module_sass_skin_configurator_line.picto_fleche_verte_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_clock_small_url', conf_module_sass_skin_configurator_line.picto_clock_small_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_objectivos_url', conf_module_sass_skin_configurator_line.picto_objectivos_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_atteindre_url', conf_module_sass_skin_configurator_line.picto_atteindre_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_equipe_url', conf_module_sass_skin_configurator_line.picto_equipe_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_link_color', conf_module_sass_skin_configurator_line.main_link_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.header_text_color', conf_module_sass_skin_configurator_line.header_text_color);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.light_warning', conf_module_sass_skin_configurator_line.light_warning);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.light_low', conf_module_sass_skin_configurator_line.light_low);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.gris_clair', conf_module_sass_skin_configurator_line.gris_clair);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.vert_clair', conf_module_sass_skin_configurator_line.vert_clair);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_odd_bg', conf_module_sass_skin_configurator_line.table_header_odd_bg);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_header_even_bg', conf_module_sass_skin_configurator_line.table_header_even_bg);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_content_odd_bg', conf_module_sass_skin_configurator_line.table_content_odd_bg);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.table_content_even_bg', conf_module_sass_skin_configurator_line.table_content_even_bg);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background', conf_module_sass_skin_configurator_line.main_background);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_sidebar_background', conf_module_sass_skin_configurator_line.main_sidebar_background);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.planning_realise_header_bg', conf_module_sass_skin_configurator_line.planning_realise_header_bg);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_int_url', conf_module_sass_skin_configurator_line.main_background_int_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.main_background_header_url', conf_module_sass_skin_configurator_line.main_background_header_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.logo_url', conf_module_sass_skin_configurator_line.logo_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_product_url', conf_module_sass_skin_configurator_line.picto_product_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.picto_saisonnalite_url', conf_module_sass_skin_configurator_line.picto_saisonnalite_url);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_background', conf_module_sass_skin_configurator_line.animation_background);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_secondary', conf_module_sass_skin_configurator_line.animation_secondary);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_orange', conf_module_sass_skin_configurator_line.animation_orange);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_rouge', conf_module_sass_skin_configurator_line.animation_rouge);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.animation_vert', conf_module_sass_skin_configurator_line.animation_vert);
+                    await this.add_param_if_not_exists(db, 'sass_skin_generator.header_text_color_mid_opacity', conf_module_sass_skin_configurator_line.header_text_color_mid_opacity);
 
-                await db.none("DROP TABLE admin.module_sass_resource_planning_skin_configurator;");
+                    await db.none("DROP TABLE admin.module_sass_resource_planning_skin_configurator;");
+                }
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleSASSSkinConfigurator vers ParamVOs:' + error);
             }
 
             /**
              * ModuleAccessPolicy
              * A priori on a toujours la table mais on s'en sert plus, on la supprime dans ce cas
              */
-            const conf_module_access_policy_lines = await db.oneOrNone("SELECT * FROM admin.module_access_policy;");
-            const conf_module_access_policy_line = conf_module_access_policy_lines ? conf_module_access_policy_lines[0] : null;
-            if (conf_module_access_policy_line) {
-                await db.none("DROP TABLE admin.module_access_policy;");
+            try {
+
+                const conf_module_access_policy_lines = await db.oneOrNone("SELECT * FROM admin.module_access_policy;");
+                const conf_module_access_policy_line = (conf_module_access_policy_lines && !!conf_module_access_policy_lines.length) ? conf_module_access_policy_lines[0] : conf_module_access_policy_lines;
+                if (conf_module_access_policy_line) {
+                    await db.none("DROP TABLE admin.module_access_policy;");
+                }
+
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleAccessPolicy vers ParamVOs:' + error);
             }
 
             /**
              * ModuleMaintenance
              * Idem
              */
-            const conf_module_maintenance_lines = await db.oneOrNone("SELECT * FROM admin.module_maintenance;");
-            const conf_module_maintenance_line = conf_module_maintenance_lines ? conf_module_maintenance_lines[0] : null;
-            if (conf_module_maintenance_line) {
-                await db.none("DROP TABLE admin.module_maintenance;");
+            try {
+
+                const conf_module_maintenance_lines = await db.oneOrNone("SELECT * FROM admin.module_maintenance;");
+                const conf_module_maintenance_line = (conf_module_maintenance_lines && !!conf_module_maintenance_lines.length) ? conf_module_maintenance_lines[0] : conf_module_maintenance_lines;
+                if (conf_module_maintenance_line) {
+                    await db.none("DROP TABLE admin.module_maintenance;");
+                }
+
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleMaintenance vers ParamVOs:' + error);
             }
 
             /**
@@ -309,10 +334,16 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
              *  tout en bloquant aussi la compilation pour assurer une prise en compte et un correctif immédiat
              */
             // Il existe la table "admin.modules" normalement qu'il est normal d'avoir et qu'on veut pas prendre en compte du coup
-            const remaining_tables = await db.manyOrNone("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
-            if (remaining_tables && (remaining_tables.length > 0)) {
-                ConsoleHandler.error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
-                throw new Error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
+            try {
+
+                const remaining_tables = await db.manyOrNone("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
+                if (remaining_tables && (remaining_tables.length > 0)) {
+                    ConsoleHandler.error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
+                    throw new Error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
+                }
+
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de la migration des champs de ModuleMaintenance vers ParamVOs:' + error);
             }
 
         } catch (error) {

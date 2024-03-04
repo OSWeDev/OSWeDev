@@ -1,13 +1,11 @@
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../shared/modules/Menu/vos/MenuElementVO';
-import Module from '../../../shared/modules/Module';
-import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import VueAppController from '../../VueAppController';
 import CRUDComponentManager from '../../ts/components/crud/CRUDComponentManager';
 import MenuController from '../../ts/components/menu/MenuController';
 import VueModuleBase from '../../ts/modules/VueModuleBase';
-import VueAppController from '../../VueAppController';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class ModulesAdminVueModule extends VueModuleBase {
 
@@ -62,38 +60,5 @@ export default class ModulesAdminVueModule extends VueModuleBase {
                 modulesMenuBranch.id
             ),
             this.routes);
-
-        for (const i in ModulesManager.getInstance().modules_by_name) {
-            const wrapper = ModulesManager.getInstance().modules_by_name[i];
-            if (!wrapper) {
-                continue;
-            }
-
-            const sharedModule = wrapper.getModuleComponentByRole(Module.SharedModuleRoleName);
-            if (!sharedModule) {
-                continue;
-            }
-
-            if (!sharedModule.actif) {
-                continue;
-            }
-
-            if ((!(sharedModule as Module).fields) || ((sharedModule as Module).fields.length <= 0)) {
-                continue;
-            }
-
-            await CRUDComponentManager.getInstance().registerCRUD(ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name, null,
-                MenuElementVO.create_new(
-                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name,
-                    "fa-sliders",
-                    30,
-                    null,
-                    null,
-                    modulesMenuBranch.id
-                ),
-                this.routes);
-        }
     }
 }
