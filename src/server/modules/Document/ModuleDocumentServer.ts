@@ -203,7 +203,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return false;
         }
 
-        const BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+        const BASE_URL: string = ConfigurationService.node_configuration.base_url;
         const url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
 
         d.document_url = url;
@@ -223,7 +223,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return;
         }
 
-        const BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+        const BASE_URL: string = ConfigurationService.node_configuration.base_url;
         const url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
 
         for (const i in docs) {

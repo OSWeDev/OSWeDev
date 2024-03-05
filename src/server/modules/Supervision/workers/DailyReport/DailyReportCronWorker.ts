@@ -69,14 +69,14 @@ export default class DailyReportCronWorker implements ICronWorker {
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
         const TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
             return;
         }
 
         if (TEAMS_WEBHOOK_PARAM_NAME) {
             const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-            message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision";
+            message.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision";
             message.summary = "Bilan quotidien de supervision de l'application";
 
             message.sections.push(new TeamsWebhookContentSectionVO().set_text("<blockquote>Erreurs : " +
@@ -128,7 +128,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             if (!log_errors) {
                 log_errors = '<ul>';
             }
-            log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+            log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
 
             log_errors_remaining--;
             if (!log_errors_remaining) {
@@ -145,7 +145,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private async send_mail(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
 
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
             return;
         }
 

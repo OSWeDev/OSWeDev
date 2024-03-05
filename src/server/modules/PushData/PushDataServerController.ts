@@ -429,7 +429,7 @@ export default class PushDataServerController {
             vo
         ]));
 
-        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+        if (ConfigurationService.node_configuration.debug_vo_events) {
             ConsoleHandler.log('notify_vo_creation:' + room_id + ':' + vo._type + ':' + vo.id);
         }
 
@@ -460,7 +460,7 @@ export default class PushDataServerController {
             post_update_vo
         ]));
 
-        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+        if (ConfigurationService.node_configuration.debug_vo_events) {
             ConsoleHandler.log('notify_vo_update:' + room_id + ':' + pre_update_vo._type + ':' + pre_update_vo.id);
         }
 
@@ -490,7 +490,7 @@ export default class PushDataServerController {
             vo
         ]));
 
-        if (ConfigurationService.node_configuration.DEBUG_VO_EVENTS) {
+        if (ConfigurationService.node_configuration.debug_vo_events) {
             ConsoleHandler.log('notify_vo_deletion:' + room_id + ':' + vo._type + ':' + vo.id);
         }
 

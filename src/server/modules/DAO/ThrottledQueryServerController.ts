@@ -34,7 +34,7 @@ export default class ThrottledQueryServerController {
 
             const param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
-            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.debug_throttled_select) {
                 ConsoleHandler.log('throttle_select_query:' + param.parameterized_full_query);
             }
 
@@ -57,10 +57,10 @@ export default class ThrottledQueryServerController {
      */
     public static async shift_select_queries(): Promise<void> {
 
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'ThrottledQueryServerController.shift_select_queries', true);
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.shift_select_queries', true);
         const force_freeze: { [parameterized_full_query: string]: boolean } = {};
         const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
-        const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.MAX_NB_AUTO_UNION_IN_SELECT;
+        const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
         const waiter = 1;
         const throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
             ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
@@ -92,7 +92,7 @@ export default class ThrottledQueryServerController {
             // "dedoublonned" - JNE Copyright 2023
             const dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
 
-            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.debug_throttled_select) {
                 ConsoleHandler.log('shift_select_queries:pushing param');
             }
 
@@ -186,13 +186,13 @@ export default class ThrottledQueryServerController {
     ) {
         const self = this;
         const throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
                 ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
             }
         }, 10000, { leading: true, trailing: true });
 
         const throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
                 ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
             }
         }, 10000, { leading: true, trailing: true });
@@ -236,7 +236,7 @@ export default class ThrottledQueryServerController {
         same_field_labels_param: ThrottledSelectQueryParam
     ): () => Promise<void> {
         const res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
-        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+        if (ConfigurationService.node_configuration.debug_throttled_select) {
             ConsoleHandler.log('shift_select_queries:do_shift_select_queries:cache:' + same_field_labels_param.parameterized_full_query);
         }
         StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'from_cache');
@@ -368,7 +368,7 @@ export default class ThrottledQueryServerController {
 
             all_params_promises.push((async () => {
 
-                if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+                if (ConfigurationService.node_configuration.debug_throttled_select) {
                     ConsoleHandler.log('do_select_query:results_of_index:' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
                 }
 

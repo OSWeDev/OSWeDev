@@ -23,7 +23,7 @@ export default class SendInBlueSmsServerController {
     public async send(recipient: SendInBlueSmsFormatVO, content: string, tag: string = null, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
 
         // On check que l'env permet d'envoyer des mails
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
 
             if (ModuleMailerServer.getInstance().check_mail_whitelist(recipient.tel, [], [])) {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + recipient.tel);

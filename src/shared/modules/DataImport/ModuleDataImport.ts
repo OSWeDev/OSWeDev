@@ -186,30 +186,30 @@ export default class ModuleDataImport extends Module {
 
     public registerImportableModuleTable(targetModuleTable: ModuleTableVO, vo_constructor: { new(): IDistantVOBase }) {
 
-        targetModuleTable.defineAsImportable();
+        let imported_vo_type = ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type;
 
-        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
-        const fields: ModuleTableFieldVO[] = [];
+        targetModuleTable.defineAsImportable();
 
         for (const i in targetModuleTable.get_fields()) {
             const vofield = targetModuleTable.get_fields()[i];
 
-            fields.push(Object.assign(
+            Object.assign(
                 ModuleTableFieldController.create_new(
-                    targetModuleTable.vo_type,
+                    imported_vo_type,
                     vofield.field_id,
                     vofield.field_type,
                     ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vofield.module_table_vo_type][vofield.field_name],
                     vofield.field_required,
                     vofield.has_default,
                     vofield.field_default_value?.value
-                ), vofield));
+                ), vofield);
         }
 
-        const field_historic_id = ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().historic_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Historique", false);
-        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_validated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg validation", false));
-        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().imported_line_number, ModuleTableFieldVO.FIELD_TYPE_int, "N° de la ligne", false));
-        fields.unshift(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().importation_state, ModuleTableFieldVO.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
+        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().historic_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Historique", false).set_many_to_one_target_moduletable_name(DataImportHistoricVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().not_validated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg validation", false);
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().imported_line_number, ModuleTableFieldVO.FIELD_TYPE_int, "N° de la ligne", false);
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().importation_state, ModuleTableFieldVO.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
             [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTED],
@@ -222,18 +222,26 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION],
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
             [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT],
-        }));
-        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date de création", false).set_segmentation_type(TimeSegment.TYPE_MINUTE));
-        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_imported_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg import", false));
-        fields.push(ModuleTableFieldController.create_new(targetModuleTable.vo_type, field_names<IImportedData>().not_posttreated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg post-traitement", false));
-        fields.unshift(field_historic_id);
+        });
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date de création", false).set_segmentation_type(TimeSegment.TYPE_MINUTE);
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().not_imported_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg import", false);
+        ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().not_posttreated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg post-traitement", false);
+
+        let import_vo_constructor = class implements IDistantVOBase {
+            public constructor() {
+                let res = new vo_constructor();
+                res._type = imported_vo_type;
+                return res;
+            };
+            public id: number;
+            public _type: string;
+        };
         const importTable: ModuleTableVO = ModuleTableController.create_new(
             targetModuleTable.module_name,
-            vo_constructor,
+            import_vo_constructor,
             null,
             "Import " + targetModuleTable.name);
-        importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_historic_id.set_many_to_one_target_moduletable_name(DataImportHistoricVO.API_TYPE_ID);
+        importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, imported_vo_type);
         targetModuleTable.importable = true;
     }
 

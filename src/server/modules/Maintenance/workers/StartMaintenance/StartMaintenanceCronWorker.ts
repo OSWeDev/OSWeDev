@@ -25,6 +25,6 @@ export default class StartMaintenanceCronWorker implements ICronWorker {
 
     // istanbul ignore next: nothing to test : work
     public async work() {
-        await ModuleMaintenance.getInstance().start_maintenance(ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE);
+        await ModuleMaintenance.getInstance().start_maintenance(ConfigurationService.node_configuration.start_maintenance_acceptation_code);
     }
 }

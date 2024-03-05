@@ -25,7 +25,7 @@ export default class ActionURLServerTools extends ModuleServerBase {
     }
 
     public static get_action_full_url(action_url: ActionURLVO, do_not_redirect: boolean = false): string {
-        return ConfigurationService.node_configuration.BASE_URL + 'api_handler/action_url/' + action_url.action_code + '/' + (do_not_redirect ? 'true' : 'false');
+        return ConfigurationService.node_configuration.base_url + 'api_handler/action_url/' + action_url.action_code + '/' + (do_not_redirect ? 'true' : 'false');
     }
 
     public static async add_right_for_admins_on_action_url(action_url: ActionURLVO) {

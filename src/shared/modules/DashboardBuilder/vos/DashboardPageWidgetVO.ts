@@ -29,22 +29,22 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
      */
     public page_id: number;
 
-    public isDraggable: boolean;
-    public isResizable: boolean;
+    // public isdraggable: boolean;
+    // public isresizable: boolean;
     public static: boolean;
-    public minH: number;
-    public minW: number;
-    public maxH: number;
-    public maxW: number;
+    // public minh: number;
+    // public minw: number;
+    // public maxh: number;
+    // public maxw: number;
     public x: number;
     public y: number;
     public w: number;
     public h: number;
     public i: number;
-    public dragAllowFrom: string;
-    public dragIgnoreFrom: string;
-    public resizeIgnoreFrom: string;
-    public preserveAspectRatio: boolean;
+    // public dragallowfrom: string;
+    // public dragignorefrom: string;
+    // public resizeignorefrom: string;
+    // public preserveaspectratio: boolean;
 
     public weight: number;
 

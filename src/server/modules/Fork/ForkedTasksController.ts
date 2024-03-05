@@ -236,14 +236,14 @@ export default class ForkedTasksController {
                 to_delete.push(i);
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
-                if ((wrapper.creation_time + ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_threshold) < now) {
+            if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers) {
+                if ((wrapper.creation_time + ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers_threshold) < now) {
                     nb_waiting++;
                     time_waiting += (now - wrapper.creation_time);
 
                     max_time_waiting = Math.max(max_time_waiting, (now - wrapper.creation_time));
 
-                    if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid) {
+                    if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers_verbose_result_task_uid) {
                         ConsoleHandler.warn('Waiting for task result:' + wrapper.task_uid + ' for ' + (now - wrapper.creation_time) + ' s');
                         continue;
                     }
@@ -251,7 +251,7 @@ export default class ForkedTasksController {
             }
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
+        if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers) {
             if (nb_waiting > 0) {
                 ConsoleHandler.warn('Waiting for task result:' + nb_waiting + ' for ' + Math.round(time_waiting / nb_waiting) + ' s on average - ' + max_time_waiting + ' s max');
             }

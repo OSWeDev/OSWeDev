@@ -117,7 +117,7 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
-        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
@@ -170,11 +170,11 @@ export default abstract class ServerBase {
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:START');
         }
         await this.createMandatoryFolders();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:END');
         }
 
@@ -182,21 +182,21 @@ export default abstract class ServerBase {
 
         this.envParam = ConfigurationService.node_configuration;
 
-        EnvHandler.BASE_URL = this.envParam.BASE_URL;
-        EnvHandler.NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
-        EnvHandler.IS_DEV = !!this.envParam.ISDEV;
-        EnvHandler.DEBUG_PROMISE_PIPELINE = !!this.envParam.DEBUG_PROMISE_PIPELINE;
-        EnvHandler.MAX_POOL = this.envParam.MAX_POOL;
-        EnvHandler.COMPRESS = !!this.envParam.COMPRESS;
-        EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
-        EnvHandler.VERSION = this.version;
-        EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
-        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
-        EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
+        EnvHandler.base_url = this.envParam.base_url;
+        EnvHandler.node_verbose = !!this.envParam.node_verbose;
+        EnvHandler.is_dev = !!this.envParam.isdev;
+        EnvHandler.debug_promise_pipeline = !!this.envParam.debug_promise_pipeline;
+        EnvHandler.max_pool = this.envParam.max_pool;
+        EnvHandler.compress = !!this.envParam.compress;
+        EnvHandler.code_google_analytics = this.envParam.code_google_analytics;
+        EnvHandler.version = this.version;
+        EnvHandler.activate_pwa = !!this.envParam.activate_pwa;
+        EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
+        EnvHandler.debug_vars = !!this.envParam.debug_vars;
 
-        this.connectionString = this.envParam.CONNECTION_STRING;
+        this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        this.port = process.env.PORT ? process.env.PORT : this.envParam.PORT;
+        this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
@@ -220,26 +220,26 @@ export default abstract class ServerBase {
         });
         this.db = pgp({
             connectionString: this.connectionString,
-            max: this.envParam.MAX_POOL,
+            max: this.envParam.max_pool,
         });
 
-        this.db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
+        this.db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
         const GM = this.modulesService;
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
         await GM.register_all_modules(this.db);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:START');
         }
         await this.initializeDataImports();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:END');
         }
 
@@ -271,7 +271,7 @@ export default abstract class ServerBase {
             return stringValue;
         });
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
@@ -361,7 +361,7 @@ export default abstract class ServerBase {
         // const csrfMiddleware = new csurf();
         // this.app.use(csrfMiddleware);
 
-        if (this.envParam.COMPRESS) {
+        if (this.envParam.compress) {
             const shouldCompress = function (req, res) {
                 if (req.headers['x-no-compression']) {
                     // don't compress responses with this request header
@@ -376,7 +376,7 @@ export default abstract class ServerBase {
 
         this.app.use(createLocaleMiddleware({
             priority: ["accept-language", "default"],
-            default: this.envParam.DEFAULT_LOCALE
+            default: this.envParam.default_locale
         }));
 
         // JNE : Ajout du header no cache sur les requetes gérées par express
@@ -434,7 +434,7 @@ export default abstract class ServerBase {
         });
 
         this.session = expressSession({
-            secret: ConfigurationService.node_configuration.EXPRESS_SECRET,
+            secret: ConfigurationService.node_configuration.express_secret,
             name: 'sid',
             proxy: true,
             resave: false,
@@ -505,25 +505,25 @@ export default abstract class ServerBase {
                 return next();
             });
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:express:END');
         }
 
         this.hook_configure_express();
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
         }
         await this.hook_pwa_init();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
         }
         this.registerApis(this.app);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:registerApis:END');
         }
 
@@ -543,7 +543,7 @@ export default abstract class ServerBase {
         /**
          * Pour le DEBUG en local
          */
-        if (ConfigurationService.node_configuration.ISDEV) {
+        if (ConfigurationService.node_configuration.isdev) {
             this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
         }
 
@@ -745,7 +745,7 @@ export default abstract class ServerBase {
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
-                if (EnvHandler.NODE_VERBOSE) {
+                if (EnvHandler.node_verbose) {
                     ConsoleHandler.log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             }
@@ -873,41 +873,41 @@ export default abstract class ServerBase {
         });
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(this.app);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:END');
         }
 
         // A ce stade on a chargé toutes les trads par défaut possible et immaginables
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:START');
         }
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:END');
         }
 
         // Derniers chargements
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
         await this.modulesService.late_server_modules_configurations(false);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
@@ -926,7 +926,7 @@ export default abstract class ServerBase {
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 
@@ -1102,7 +1102,7 @@ export default abstract class ServerBase {
                     data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     // data_base_api_url: "",
-                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
+                    data_default_locale: ServerBase.getInstance().envParam.default_locale
                 }
             ));
         });
@@ -1117,11 +1117,11 @@ export default abstract class ServerBase {
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
+                    data_code_pays: ServerBase.getInstance().envParam.code_pays,
                     data_node_env: process.env.NODE_ENV,
                     data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
-                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
+                    data_default_locale: ServerBase.getInstance().envParam.default_locale,
                 }
             ));
         });
@@ -1135,7 +1135,7 @@ export default abstract class ServerBase {
 
         // // JNE : Savoir si on est en DEV depuis la Vue.js client
         // this.app.get('/api/isdev', (req, res) => {
-        //     res.json(ServerBase.getInstance().envParam.ISDEV);
+        //     res.json(ServerBase.getInstance().envParam.isdev);
         // });
         // // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
@@ -1186,7 +1186,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        if (ConfigurationService.node_configuration.ACTIVATE_LONG_JOHN) {
+        if (ConfigurationService.node_configuration.activate_long_john) {
             require('longjohn');
         }
 
@@ -1212,7 +1212,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:join-room: ' + room);
                 }
             });
@@ -1223,7 +1223,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:leave-room: ' + room);
                 }
             });
@@ -1235,7 +1235,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:create-room: ' + room);
                 }
 
@@ -1247,7 +1247,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:delete-room: ' + room);
                 }
 
@@ -1286,24 +1286,24 @@ export default abstract class ServerBase {
 
             // ServerBase.getInstance().testNotifs();
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
             }
             await ServerBase.getInstance().hook_on_ready();
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:fork_threads:START');
             }
             await ForkServerController.fork_threads();
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:fork_threads:END');
             }
             BGThreadServerController.SERVER_READY = true;
 
-            if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
+            if (ConfigurationService.node_configuration.auto_end_maintenance_on_start) {
                 await ModuleMaintenance.getInstance().end_planned_maintenance();
             }
 

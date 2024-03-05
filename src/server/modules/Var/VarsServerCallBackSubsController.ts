@@ -112,18 +112,18 @@ export default class VarsServerCallBackSubsController {
             return true;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
             ConsoleHandler.log("notify_vardatas_throttled:IN:" + var_datas.length);
         }
 
         if (!await ForkedTasksController.exec_self_on_bgthread(VarsBGThreadNameHolder.bgthread_name, VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                 ConsoleHandler.log("notify_vardatas_throttled:OUT not VarsBGThread process:" + var_datas.length);
             }
             return false;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
             ConsoleHandler.log("notify_vardatas_throttled:VarsBGThread process:" + var_datas.length);
         }
 
@@ -135,14 +135,14 @@ export default class VarsServerCallBackSubsController {
             delete VarsServerCallBackSubsController.cb_subs[var_data.index];
 
             if ((!save_array_cbs) || (!save_array_cbs.length)) {
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("notify_vardatas_throttled:!save_array_cbs:" + var_datas.length + ":" + var_data.index);
                 }
 
                 continue;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                 ConsoleHandler.log("notify_vardatas_throttled:save_array_cbs length " + save_array_cbs.length + ":" + var_datas.length + ":" + var_data.index);
             }
 
@@ -154,7 +154,7 @@ export default class VarsServerCallBackSubsController {
         }
         await all_promises(promises);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
             ConsoleHandler.log("notify_vardatas_throttled:OUT:" + var_datas.length);
         }
 
@@ -177,7 +177,7 @@ export default class VarsServerCallBackSubsController {
 
         return new Promise(async (resolve, reject) => {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                 ConsoleHandler.log("get_vars_datas:IN:" + nb_params);
             }
 
@@ -188,14 +188,14 @@ export default class VarsServerCallBackSubsController {
                 resolve,
                 params_indexes)) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:OUT not main:" + nb_params);
                 }
                 return null;
             }
 
             let waiting_nb = nb_params;
-            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
             }
 
@@ -203,11 +203,11 @@ export default class VarsServerCallBackSubsController {
                 res[data.index] = data;
                 waiting_nb--;
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:cb:" + nb_params + ":" + data.index);
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.log("get_vars_datas:waiting_nb:OUT:" + waiting_nb);
                 }
 
@@ -224,25 +224,25 @@ export default class VarsServerCallBackSubsController {
                 }
                 self.cb_subs[param_index].push(cb);
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:push cb:" + nb_params + ":" + param_index);
                 }
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                 ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:IN:" + nb_params);
             }
             notifyable_vars = await VarsDatasProxy.get_var_datas_or_ask_to_bgthread(params_list);
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                 ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:OUT:" + nb_params);
             }
 
             if (notifyable_vars && notifyable_vars.length) {
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:IN:" + nb_params);
                 }
                 await VarsServerCallBackSubsController.notify_vardatas(notifyable_vars);
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.debug_vars_server_subs_cbs) {
                     ConsoleHandler.log("get_vars_datas:notify_vardatas:OUT:" + nb_params);
                 }
             }

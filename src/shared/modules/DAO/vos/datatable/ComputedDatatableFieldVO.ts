@@ -24,6 +24,8 @@ export default class ComputedDatatableFieldVO<T, U, V extends IDistantVOBase> ex
         return res;
     }
 
+    public _type: string = ComputedDatatableFieldVO.API_TYPE_ID;
+
     public compute_function_uid: string;
 
     public dataToReadIHM(e: T, vo: V): U {

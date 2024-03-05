@@ -116,7 +116,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
 
             if (this.check_mail_whitelist(mailOptions.to, mailOptions.cc, mailOptions.bcc)) {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + mailOptions.to + ':' + mailOptions.cc + ':' + mailOptions.bcc);
@@ -176,8 +176,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
         to: string | Address | Array<string | Address>,
         cc: string | Address | Array<string | Address>,
         bcc: string | Address | Array<string | Address>): boolean {
-        const whitelisted_emails: string[] = ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST ?
-            ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST.split(',') : null;
+        const whitelisted_emails: string[] = ConfigurationService.node_configuration.mail_delivery_whitelist ?
+            ConfigurationService.node_configuration.mail_delivery_whitelist.split(',') : null;
 
         if ((!whitelisted_emails) || (!whitelisted_emails.length)) {
             return false;

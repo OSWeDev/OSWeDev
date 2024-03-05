@@ -238,7 +238,7 @@ export default class VarsDatasVoUpdateHandler {
 
         while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
 
-            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'VarsDatasVoUpdateHandler.handle_intersectors');
+            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'VarsDatasVoUpdateHandler.handle_intersectors');
 
             while (ObjectHandler.hasAtLeastOneAttribute(actual_invalidators)) {
                 const invalidator_id = ObjectHandler.getFirstAttributeName(actual_invalidators);
@@ -271,7 +271,7 @@ export default class VarsDatasVoUpdateHandler {
                             return;
                         }
 
-                        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                             ConsoleHandler.log('VarsDatasVoUpdateHandler.deploy_invalidators:DEPLOYING:' + new_invalidator_id + ':by:' + invalidator_id);
                             new_invalidator.console_log();
                             actual_invalidator.console_log();
@@ -307,7 +307,7 @@ export default class VarsDatasVoUpdateHandler {
             varindexes_by_api_type_id[var_to_delete._type].push(var_to_delete.index);
         }
 
-        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         const promise_pipeline = new PromisePipeline(max, 'VarsDatasVoUpdateHandler.delete_vars_pack_without_triggers');
 
         for (const api_type_id in varindexes_by_api_type_id) {
@@ -364,7 +364,7 @@ export default class VarsDatasVoUpdateHandler {
 
         // On fait l'union
         invalidators = this.union_invalidators(invalidators);
-        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
             ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:UNION:' + invalidators.length);
         }
 
@@ -373,7 +373,7 @@ export default class VarsDatasVoUpdateHandler {
          * Puis réinsérer dans l'arbre : les registers (clients et serveurs) + les vars pixel never delete qui ont été invalidées en db
          */
         const invalidated_pixels_never_delete: VarDataBaseVO[] = [];
-        const promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_Vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
+        const promise_pipeline: PromisePipeline = new PromisePipeline(ConfigurationService.node_configuration.max_vars_invalidators, 'VarsDatasVoUpdateHandler.handle_invalidators');
 
         for (const i in invalidators) {
             const invalidator = invalidators[i];
@@ -383,7 +383,7 @@ export default class VarsDatasVoUpdateHandler {
                 if (this_invalidated_pixels_never_delete && this_invalidated_pixels_never_delete.length) {
                     invalidated_pixels_never_delete.push(...this_invalidated_pixels_never_delete);
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                         this_invalidated_pixels_never_delete.forEach((pixel_never_delete) => {
                             ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:this_invalidated_pixels_never_delete:' + pixel_never_delete.index + ':by:');
                             invalidator.console_log();
@@ -444,7 +444,7 @@ export default class VarsDatasVoUpdateHandler {
                         break;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                     ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:SUBInvalidated:' + index + ':by:');
                     invalidator.console_log();
                 }
@@ -456,7 +456,7 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
             }
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
@@ -572,12 +572,12 @@ export default class VarsDatasVoUpdateHandler {
             // for (let j in list_nodes) {
 
             //     list_nodes[j].unlinkFromDAG(true);
-            //     if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
             //         ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + list_nodes[j].var_data.index);
             //     }
             // }
             node.unlinkFromDAG(true);
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.apply_invalidator_in_tree:UNLINKED:' + node.var_data.index + ':by:');
                 invalidator.console_log();
             }
@@ -593,7 +593,7 @@ export default class VarsDatasVoUpdateHandler {
             return null;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
             ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:' + invalidator.var_data.index + ':');
         }
 
@@ -601,7 +601,7 @@ export default class VarsDatasVoUpdateHandler {
 
             const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index +
                     ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
                     ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
@@ -619,7 +619,7 @@ export default class VarsDatasVoUpdateHandler {
                 return null;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': INVALIDATED');
             }
 
@@ -632,7 +632,7 @@ export default class VarsDatasVoUpdateHandler {
         for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
             const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[i];
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
                     ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
                     ':node_index:' + node.var_data.index + ':node_var_id:' + node.var_data.var_id + ':invalidator_var_id:' + invalidator.var_data.var_id +
@@ -663,7 +663,7 @@ export default class VarsDatasVoUpdateHandler {
                 throw new Error('Not Implemented');
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:INTERSECTED:' + invalidator.var_data.index +
                     ':node_index:' + node.var_data.index + ': INVALIDATED');
             }
@@ -850,7 +850,7 @@ export default class VarsDatasVoUpdateHandler {
         //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
         // }
 
-        const promise_pipeline = new PromisePipeline(Math.max(ConfigurationService.node_configuration.MAX_POOL / 3, 5), 'VarsDatasVoUpdateHandler.init_leaf_intersectors');
+        const promise_pipeline = new PromisePipeline(Math.max(ConfigurationService.node_configuration.max_pool / 3, 5), 'VarsDatasVoUpdateHandler.init_leaf_intersectors');
 
         for (const i in vo_types) {
             const vo_type = vo_types[i];
@@ -860,7 +860,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.debug_vars) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
@@ -877,7 +877,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.debug_vars) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);

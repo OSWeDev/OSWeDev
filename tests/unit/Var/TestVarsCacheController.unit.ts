@@ -49,11 +49,11 @@ test.describe('VarsCacheVarsCacheController', () => {
 
         var_controller.varConf.pixel_activated = true;
         const field = new VarPixelFieldConfVO();
-        field.pixel_param_field_id = 'employee_id_ranges';
+        field.pixel_param_field_name = 'employee_id_ranges';
         field.pixel_range_type = NumRange.RANGE_TYPE;
         field.pixel_segmentation_type = NumSegment.TYPE_INT;
         field.pixel_vo_api_type_id = FakeEmpDayDataVO.API_TYPE_ID;
-        field.pixel_vo_field_id = 'employee_id_ranges';
+        field.pixel_vo_field_name = 'employee_id_ranges';
         var_controller.varConf.pixel_fields = [field];
 
         const result = VarsCacheController.BDD_do_cache_param_data(var_node);
@@ -65,11 +65,11 @@ test.describe('VarsCacheVarsCacheController', () => {
 
         var_controller.varConf.pixel_activated = true;
         const field = new VarPixelFieldConfVO();
-        field.pixel_param_field_id = 'employee_id_ranges';
+        field.pixel_param_field_name = 'employee_id_ranges';
         field.pixel_range_type = NumRange.RANGE_TYPE;
         field.pixel_segmentation_type = NumSegment.TYPE_INT;
         field.pixel_vo_api_type_id = FakeEmpDayDataVO.API_TYPE_ID;
-        field.pixel_vo_field_id = 'employee_id_ranges';
+        field.pixel_vo_field_name = 'employee_id_ranges';
         var_controller.varConf.pixel_fields = [field];
 
         const result = VarsCacheController.BDD_do_cache_param_data(var_node);

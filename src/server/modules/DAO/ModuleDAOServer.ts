@@ -871,8 +871,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
-        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool));
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         let promise_pipeline = new PromisePipeline(max_connections_to_use, 'ModuleDAOServer.deleteVOsMulticonnections');
 
         let res: InsertOrDeleteQueryResult[] = [];
@@ -900,8 +900,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
 
         /**
          * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
@@ -1005,7 +1005,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTableVO, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
 
         let promise_pipeline = new PromisePipeline(max_connections_to_use, 'ModuleDAOServer.insertOrUpdateVOs_without_triggers');
 
@@ -1519,13 +1519,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // if (!this.copy_dedicated_pool) {
         //     this.copy_dedicated_pool = new Pool({
-        //         connectionString: ConfigurationService.node_configuration.CONNECTION_STRING,
+        //         connectionString: ConfigurationService.node_configuration.connection_string,
         //         max: 10,
         //     });
         // }
 
         let copy_dedicated_pool: any = new Pool({
-            connectionString: ConfigurationService.node_configuration.CONNECTION_STRING,
+            connectionString: ConfigurationService.node_configuration.connection_string,
             max: 1,
         });
 
@@ -1564,7 +1564,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in lines) {
                     let line: string = lines[i];
 
-                    if (ConfigurationService.node_configuration.DEBUG_var_insert_with_copy) {
+                    if (ConfigurationService.node_configuration.debug_var_insert_with_copy) {
                         if (moduleTable.isMatroidTable) {
                             ConsoleHandler.log('insert_without_triggers_using_COPY:DEBUG_var_insert_with_copy:line:' + line);
                         }
@@ -2113,7 +2113,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let res: T[] = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         let promise_pipeline = new PromisePipeline(max, 'ModuleDAOServer.filterByForeignKeys');
 
         for (let i in vos) {
@@ -2356,7 +2356,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
-                if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                if (ConfigurationService.node_configuration.debug_deletevos) {
                     ConsoleHandler.log('DELETEVOS:oneOrNone:' + sql + ':' + JSON.stringify(vo));
                 }
 
@@ -2373,7 +2373,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
-                if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                if (ConfigurationService.node_configuration.debug_deletevos) {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
@@ -2484,7 +2484,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getBaseUrl(): Promise<string> {
-        return ConfigurationService.node_configuration.BASE_URL;
+        return ConfigurationService.node_configuration.base_url;
     }
 
     /**
@@ -2674,7 +2674,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On ajoute un filtrage via hook
         if (!exec_as_server) {
             let tmp_vos = [];
-            let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+            let limit = ConfigurationService.node_configuration.max_pool / 2;
             let promises_pipeline = new PromisePipeline(limit, 'ModuleDAOServer.insert_vos');
             for (let i in vos) {
                 let vo = vos[i];
@@ -2720,7 +2720,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let bdd_versions = [];
 
             let time_before_getqueryfor_insertOrUpdateVO = Dates.now_ms();
-            let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleDAOServer.insert_vos.2');
+            let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleDAOServer.insert_vos.2');
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
@@ -2836,7 +2836,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
-            promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleDAOServer.insert_vos.3');
+            promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleDAOServer.insert_vos.3');
             for (let i in results) {
                 let vo = vos[i];
 
@@ -2881,7 +2881,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (updates && updates.length) {
 
-            let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleDAOServer._insertOrUpdateVOs');
+            let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleDAOServer._insertOrUpdateVOs');
 
             for (let i in updates) {
                 let vo = updates[i];

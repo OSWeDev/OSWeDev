@@ -191,6 +191,20 @@ FROM :
 TO :
 "filter($1.API_TYPE_ID, field_names<$1>().$2)"
 
+=== REGEXP
+
+FROM :
+'%%ENV%%([^%]+)%%'
+TO :
+'%%ENV%%\L$1%%'
+
+=== REGEXP
+
+FROM :
+'ConfigurationService\.node_configuration\.([a-zA-Z0-9_-]+)'
+TO :
+'ConfigurationService.node_configuration.\L$1'
+
 
 
 == Modifications restantes (principales)
@@ -203,9 +217,10 @@ On ne peut pas faire un REPLACE ALL avec '.field_name' le nom field_id est utili
 === new ModuleTableVO(
 Finir de remplacer les new ModuleTableVO( restants dans le code
 
-
-
-
+=== Passer en minuscule le STATIC_ENV_PARAMS (les attributs, pas les noms des Envs, et pas le STATIC_ENV_PARAMS en lui-même) (on passe en minuscule pour permettre la création d'une table associée)
+Sélectionner tous les noms des attributs, Utiliser CTRL+SHIFT+P, tapper 'minuscule' et sélectionner l'action "transformer en minuscules"
+Vérifier aussi avec une recherche sur ".BASE_URL" et " = ConfigurationService.node_configuration;" en [Mot entier] + [Respecter la casse] pour s'assurer de corriger toutes les utilisations
+Idem sur "EnvHandler."
 
 
 = Migrer de TSLint à ESLint

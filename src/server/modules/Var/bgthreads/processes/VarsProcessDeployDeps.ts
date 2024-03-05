@@ -18,7 +18,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
     private static instance: VarsProcessDeployDeps = null;
 
     private constructor() {
-        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 10, false, ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps);
+        super('VarsProcessDeployDeps', VarDAGNode.TAG_1_NOTIFIED_START, VarDAGNode.TAG_2_DEPLOYING, VarDAGNode.TAG_2_DEPLOYED, 10, false, ConfigurationService.node_configuration.max_varsprocessdeploydeps);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
@@ -30,7 +30,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsProcessDeployDeps:START: ' + node.var_data.index + ' ' + node.var_data.value);
         }
 
@@ -38,7 +38,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
          * Si on a une value valide, c'est qu'on a pas besoin de déployer les deps
          */
         if (VarsServerController.has_valid_value(node.var_data)) {
-            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDeployDeps:END - has_valid_value: ' + node.var_data.index + ' ' + node.var_data.value);
             }
             return true;
@@ -48,7 +48,7 @@ export default class VarsProcessDeployDeps extends VarsProcessBase {
         //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
         await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(node);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsProcessDeployDeps:END: ' + node.var_data.index + ' ' + node.var_data.value);
         }
 

@@ -16,6 +16,8 @@ export default class InputDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return res;
     }
 
+    public _type: string = InputDatatableFieldVO.API_TYPE_ID;
+
     public field_type: string;
 
     public dataToReadIHM(e: T, vo: IDistantVOBase): U {

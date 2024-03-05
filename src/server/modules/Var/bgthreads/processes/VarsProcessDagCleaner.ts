@@ -53,7 +53,7 @@ export default class VarsProcessDagCleaner extends VarsProcessBase {
                 }
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('VarsProcessDagCleaner: ' + node.var_data.index + ' ' + node.var_data.value);
             }
         }

@@ -12,6 +12,7 @@ import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "./ModuleTableController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
+import ConsoleHandler from "../../tools/ConsoleHandler";
 
 export default class ModuleTableFieldController {
 
@@ -48,6 +49,19 @@ export default class ModuleTableFieldController {
             res.field_default_value = {
                 value: typeof field_default == 'undefined' ? null : field_default,
             };
+        }
+
+        // Check de cohérence : le field_name doit être unique et en minuscules
+        if (ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type] &&
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name]) {
+            ConsoleHandler.error('create_new: field_name doit être unique: ' + field_name);
+            throw new Error('create_new: field_name doit être unique: ' + field_name);
+        }
+
+        if (field_name != field_name.toLowerCase()) {
+            ConsoleHandler.error('create_new: field_name doit être en minuscules: ' + field_name);
+            // TODO FIXME : remettre le THROW en place quand on n'aura plus de données ultra critiques qui sont incompatibles avec ce test .....
+            // throw new Error('create_new: field_name doit être en minuscules: ' + field_name);
         }
 
         if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type]) {

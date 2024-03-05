@@ -111,7 +111,7 @@ export default class ModuleDBService {
          * FIXME : on peut pas faire ça en fait
          */
         // let promises = [];
-        // let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        // let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
             const datatable = ModuleTableController.module_tables_by_vo_type[vo_type];
 

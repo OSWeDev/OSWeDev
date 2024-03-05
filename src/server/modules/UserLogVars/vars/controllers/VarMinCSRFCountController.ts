@@ -37,7 +37,7 @@ export default class VarMinCSRFCountController extends VarServerControllerBase<U
                     .set_vo_field_name('id')
                     .set_param_field_name('user_id_ranges')
                     .set_range_type(NumRange.RANGE_TYPE)
-                    .set_segmentation_type(NumSegment.TYPE_INT)
+                    .set_segmentation_type(NumSegment.TYPE_INT),
             ]),
             { 'fr-fr': 'Nb chargement application' },
             {

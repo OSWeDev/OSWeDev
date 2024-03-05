@@ -44,13 +44,13 @@ export default class VarsTabsSubsController {
                 return;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('get_subs_index:IN:clean_old_subs:IN');
             }
 
             await self.clean_old_subs(force_update);
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.debug_vars) {
                 ConsoleHandler.log('get_subs_index:IN:clean_old_subs:OUT');
             }
 
@@ -95,7 +95,7 @@ export default class VarsTabsSubsController {
             this._tabs_subs[param_index][user_id][client_tab_id].last_registration_ts = Dates.now();
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
         }
     }
@@ -153,7 +153,7 @@ export default class VarsTabsSubsController {
             VarsClientsSubsCacheManager.remove_sub(param_index);
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
         }
     }
@@ -252,13 +252,13 @@ export default class VarsTabsSubsController {
     //             return;
     //         }
 
-    //         if (ConfigurationService.node_configuration.DEBUG_VARS) {
+    //         if (ConfigurationService.node_configuration.debug_vars) {
     //             ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:IN');
     //         }
 
     //         await self.clean_old_subs();
 
-    //         if (ConfigurationService.node_configuration.DEBUG_VARS) {
+    //         if (ConfigurationService.node_configuration.debug_vars) {
     //             ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:OUT');
     //         }
 
@@ -270,7 +270,7 @@ export default class VarsTabsSubsController {
     //             }
     //         }
 
-    //         if (ConfigurationService.node_configuration.DEBUG_VARS) {
+    //         if (ConfigurationService.node_configuration.debug_vars) {
     //             ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':for has_registered_user:OUT:resolve:' + res.length + ':');
     //         }
 
@@ -311,7 +311,7 @@ export default class VarsTabsSubsController {
         }
         this.last_subs_clean = now;
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
         }
 
@@ -364,7 +364,7 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[indexs_to_delete[i]];
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:OUT:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
         }
     }

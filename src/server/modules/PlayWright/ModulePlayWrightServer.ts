@@ -40,8 +40,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     protected async setup_and_login(access_code: string): Promise<string> {
 
-        if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-            ConsoleHandler.error('ModulePlayWrightServer setup_and_login: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+        if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+            ConsoleHandler.error('ModulePlayWrightServer setup_and_login: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 
@@ -50,8 +50,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     // private async global_setup(access_code: string) {
 
-    //     if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-    //         ConsoleHandler.error('ModulePlayWrightServer global_setup: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+    //     if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+    //         ConsoleHandler.error('ModulePlayWrightServer global_setup: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
     //         return;
     //     }
 
@@ -59,8 +59,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
     // }
     // private async global_teardown(access_code: string) {
 
-    //     if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-    //         ConsoleHandler.error('ModulePlayWrightServer global_teardown: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+    //     if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+    //         ConsoleHandler.error('ModulePlayWrightServer global_teardown: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
     //         return;
     //     }
 
@@ -69,8 +69,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private async after_all(access_code: string) {
 
-        if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-            ConsoleHandler.error('ModulePlayWrightServer after_all: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+        if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+            ConsoleHandler.error('ModulePlayWrightServer after_all: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 
@@ -79,8 +79,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private async after_each(access_code: string, test_title: string) {
 
-        if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-            ConsoleHandler.error('ModulePlayWrightServer after_each: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+        if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+            ConsoleHandler.error('ModulePlayWrightServer after_each: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 
@@ -89,8 +89,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private async before_all(access_code: string, test_title: string) {
 
-        if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-            ConsoleHandler.error('ModulePlayWrightServer before_all: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+        if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+            ConsoleHandler.error('ModulePlayWrightServer before_all: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 
@@ -99,8 +99,8 @@ export default class ModulePlayWrightServer extends ModuleServerBase {
 
     private async before_each(access_code: string, test_title: string) {
 
-        if (!access_code || (access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE)) {
-            ConsoleHandler.error('ModulePlayWrightServer before_each: access_code != ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE');
+        if (!access_code || (access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code)) {
+            ConsoleHandler.error('ModulePlayWrightServer before_each: access_code != ConfigurationService.node_configuration.start_maintenance_acceptation_code');
             return;
         }
 

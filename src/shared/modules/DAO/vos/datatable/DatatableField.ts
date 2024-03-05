@@ -36,7 +36,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public vue_component: ICRUDComponentField = null;
 
     public id: number;
-    public _type: string;
+    public abstract _type: string;
 
     public _vo_type_id: string;
 

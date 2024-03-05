@@ -65,7 +65,7 @@ export default class OrderedPromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb1}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -75,7 +75,7 @@ export default class OrderedPromisePipeline {
 
         if (this.has_free_slot()) {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -89,7 +89,7 @@ export default class OrderedPromisePipeline {
             this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid] = this.do_cb1(cb1, cb1_uid);
         } else {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():!has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -112,7 +112,7 @@ export default class OrderedPromisePipeline {
                 StatsController.register_stat_DUREE('OrderedPromisePipeline', this.stat_name, 'WAIT_FOR_PUSH', Dates.now_ms() - time_in);
             }
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():RACE END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -125,7 +125,7 @@ export default class OrderedPromisePipeline {
             this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid] = this.do_cb1(cb1, cb1_uid);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -136,18 +136,18 @@ export default class OrderedPromisePipeline {
      */
     public async end(): Promise<void> {
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():START:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (this.nb_running_promises === 0) {
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.end():END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             return;
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -161,7 +161,7 @@ export default class OrderedPromisePipeline {
 
         await wait_for_end;
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -173,7 +173,7 @@ export default class OrderedPromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb1}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.do_cb1():BEFORECB1:' + this.uid + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -183,7 +183,7 @@ export default class OrderedPromisePipeline {
             ConsoleHandler.error('OrderedPromisePipeline.do_cb1():ERROR:' + error + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.do_cb1():AFTERCB1:' + this.uid + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 

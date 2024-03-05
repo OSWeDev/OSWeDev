@@ -732,13 +732,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            'fr-fr': '%%ENV%%app_title%%: Pour réinitialiser votre compte: %%ENV%%base_url%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            'fr-fr': '%%ENV%%app_title%%: Pour initialiser votre compte: %%ENV%%base_url%%%%ENV%%url_recovery_challenge%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.initpwd'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            'fr-fr': '%%ENV%%app_title%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%base_url%%%%ENV%%url_recovery_challenge%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.recapture'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'

@@ -63,7 +63,7 @@ export default class VarsDeployDepsHandler {
         // ?? pourquoi on change ça ici => en fait c'est l'équivalent du tag je pense donc surement à supp
         // node.already_tried_loading_data_and_deploy = true;
 
-        const DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+        const DEBUG_VARS = ConfigurationService.node_configuration.debug_vars;
 
         const varconf = VarsController.var_conf_by_id[node.var_data.var_id];
 
@@ -544,7 +544,7 @@ export default class VarsDeployDepsHandler {
 
             if (node.var_dag.nodes[dep.index]) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
@@ -562,7 +562,7 @@ export default class VarsDeployDepsHandler {
                 // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
                 // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 

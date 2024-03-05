@@ -54,7 +54,7 @@ export default abstract class ForkedProcessWrapperBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
-        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
@@ -114,33 +114,33 @@ export default abstract class ForkedProcessWrapperBase {
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 
-        const connectionString = envParam.CONNECTION_STRING;
+        const connectionString = envParam.connection_string;
 
         const pgp: pg_promise.IMain = pg_promise({});
         const db: IDatabase<any> = pgp(connectionString);
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
         }
         await this.modulesService.register_all_modules(db);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:END');
         }
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(null);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 
@@ -149,7 +149,7 @@ export default abstract class ForkedProcessWrapperBase {
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations(false);
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
@@ -165,7 +165,7 @@ export default abstract class ForkedProcessWrapperBase {
         }
         const i18nextInit = I18nextInit.getInstance(locales_corrected);
         LocaleManager.getInstance().i18n = i18nextInit.i18next;
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 

@@ -318,7 +318,7 @@ export default class AccessPolicyServerController {
 
         await ModulesManagerServer.getInstance().preload_modules();
         const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).exec_as_server().select_vos<AccessPolicyVO>();
-        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'AccessPolicyServerController.preload_registered_policies');
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'AccessPolicyServerController.preload_registered_policies');
         for (const i in policies) {
             const policy: AccessPolicyVO = policies[i];
 

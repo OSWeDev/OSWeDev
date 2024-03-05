@@ -18,6 +18,8 @@ export default class ComponentDatatableFieldVO<T, U> extends DatatableField<T, U
         return res;
     }
 
+    public _type: string = ComponentDatatableFieldVO.API_TYPE_ID;
+
     public component_name: string;
     public parameter_datatable_field_uid: string;
 

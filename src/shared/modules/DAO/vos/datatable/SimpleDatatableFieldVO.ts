@@ -544,6 +544,8 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
+    public _type: string = SimpleDatatableFieldVO.API_TYPE_ID;
+
     get max_values(): number {
 
         return this.moduleTableField.max_values;

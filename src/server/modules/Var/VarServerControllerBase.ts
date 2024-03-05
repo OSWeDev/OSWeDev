@@ -187,7 +187,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
+        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.max_pool / 3 : 10;
         const promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group');
 
         for (const k in c_or_d_vos) {
@@ -237,7 +237,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
+        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.max_pool / 3 : 10;
         const promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group');
 
         for (const k in u_vo_holders) {

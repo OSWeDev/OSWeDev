@@ -91,7 +91,7 @@ export default class ForkServerController {
 
             ForkServerController.forks_availability[i] = Dates.now();
 
-            if (ConfigurationService.node_configuration.DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
+            if (ConfigurationService.node_configuration.debug_forks && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.get_argv(forked), {
                     execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
                     serialization: "advanced"

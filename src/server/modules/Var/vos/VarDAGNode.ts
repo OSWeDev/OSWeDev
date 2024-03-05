@@ -250,7 +250,7 @@ export default class VarDAGNode extends DAGNodeBase {
                 }
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_var_get_instance_semaphored_db_loaded_var_data) {
+            if (ConfigurationService.node_configuration.debug_var_get_instance_semaphored_db_loaded_var_data) {
                 ConsoleHandler.log('VarDAGNode.getInstance_semaphored:already_tried_load_cache_complet:' + already_tried_load_cache_complet + ':is_client_sub?' + node.is_client_sub + ':is_server_sub?' + node.is_server_sub + ':TAG_0_CREATED:' + JSON.stringify(node.var_data));
             }
 
@@ -261,7 +261,7 @@ export default class VarDAGNode extends DAGNodeBase {
             /* istanbul ignore next: impossible to test - linked to above query */
             if (VarsServerController.has_valid_value(node.var_data)) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                     ConsoleHandler.log('VarDAGNode.getInstance_semaphored:has_valid_value:is_client_sub?' + node.is_client_sub +
                         ':is_server_sub?' + node.is_server_sub + ':TAG_4_COMPUTED & TAG_6_UPDATED_IN_DB:' + JSON.stringify(node.var_data));
                 }
@@ -271,7 +271,7 @@ export default class VarDAGNode extends DAGNodeBase {
                 node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
             } else {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                     ConsoleHandler.log('VarDAGNode.getInstance_semaphored:!has_valid_value:is_client_sub?' + node.is_client_sub +
                         ':is_server_sub?' + node.is_server_sub + ':TAG_0_CREATED:' + JSON.stringify(node.var_data));
                 }
@@ -285,7 +285,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
     // private static async try_load_cache_complet(node: VarDAGNode) {
 
-    //     let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+    //     let DEBUG_VARS = ConfigurationService.node_configuration.debug_vars;
 
     //     let cache_complet = await VarsDatasProxy.get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
     //     let wrapper = VarsDatasProxy.vars_datas_buffer_wrapped_indexes[node.var_data.index];
@@ -372,7 +372,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if (this.tags[tag]) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
                     'VarDAGNode.add_tag:' + this.var_data.index +
                     ':tag:' + tag +
@@ -384,7 +384,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if (VarDAGNode.STEP_TAGS_INDEXES[tag] < this.current_step) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
                     'VarDAGNode.add_tag:' + this.var_data.index +
                     ':tag:' + tag +
@@ -398,7 +398,7 @@ export default class VarDAGNode extends DAGNodeBase {
         //  et idem pour UPDATED_IN_DB si on est déjà IS_DELETABLE
         if ((tag == VarDAGNode.TAG_3_DATA_LOADED) && this.tags[VarDAGNode.TAG_4_IS_COMPUTABLE]) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
                     'VarDAGNode.add_tag:' + this.var_data.index +
                     ':tag:' + tag +
@@ -410,7 +410,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if ((tag == VarDAGNode.TAG_6_UPDATED_IN_DB) && this.tags[VarDAGNode.TAG_7_IS_DELETABLE]) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
                     'VarDAGNode.add_tag:' + this.var_data.index +
                     ':tag:' + tag +
@@ -420,7 +420,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return true;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log(
                 'VarDAGNode.add_tag:' + this.var_data.index +
                 ':tag:' + tag);
@@ -445,7 +445,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if (!this.tags[tag]) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log(
                     'VarDAGNode.remove_tag:' + this.var_data.index +
                     ':tag:' + tag +
@@ -455,7 +455,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log(
                 'VarDAGNode.remove_tag:' + this.var_data.index +
                 ':tag:' + tag);
@@ -492,7 +492,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
         dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log(
                 'VarDAGNode.addOutgoingDep:' + this.var_data.index +
                 ':outgoing_dep:' + dep.dep_name +
@@ -538,7 +538,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return false;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log(
                 'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
                 ':delete dag.nodes[this.var_data.index]');
@@ -566,7 +566,7 @@ export default class VarDAGNode extends DAGNodeBase {
             for (const j in deps) {
                 const incoming_dep = deps[j];
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                     ConsoleHandler.log(
                         'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
                         ':incoming_dep:' + incoming_dep.dep_name +
@@ -590,7 +590,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
                 if (incoming_dep == outgoing_dep) {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                    if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                         ConsoleHandler.log(
                             'VarDAGNode.unlinkFromDAG:' + this.var_data.index +
                             ':outgoing_dep:' + outgoing_dep.dep_name +
@@ -632,7 +632,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return this.var_dag.nodes[this.var_data.index];
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log('VarDAGNode.linkToDAG:' + this.var_data.index);
         }
 
@@ -720,7 +720,7 @@ export default class VarDAGNode extends DAGNodeBase {
             }
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+        if (ConfigurationService.node_configuration.debug_vars_current_tree) {
             ConsoleHandler.log('VarDAGNode.update_current_step_tag:' + this.var_data.index +
                 ':current_step:' + this.current_step + ':updated_current_step:' + updated_current_step);
         }
@@ -744,11 +744,11 @@ export default class VarDAGNode extends DAGNodeBase {
 
 
             if (this.tags[VarDAGNode.TAG_4_COMPUTED]) {
-                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                     ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ' && already TAG_4_COMPUTED: removing TAG_3_DATA_LOADED');
                 }
             } else {
-                if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+                if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                     ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_3_DATA_LOADED && is_computable:' + this.var_data.index + ':TAG_4_IS_COMPUTABLE');
                 }
                 this.add_tag(VarDAGNode.TAG_4_IS_COMPUTABLE);
@@ -761,7 +761,7 @@ export default class VarDAGNode extends DAGNodeBase {
 
         if ((this.current_step == VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_6_UPDATED_IN_DB]) && this.is_deletable) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
+            if (ConfigurationService.node_configuration.debug_vars_current_tree) {
                 ConsoleHandler.log('VarDAGNode.onchange_current_step:current_step == VarDAGNode.TAG_6_UPDATED_IN_DB && is_deletable:' + this.var_data.index + ':TAG_7_IS_DELETABLE');
             }
 

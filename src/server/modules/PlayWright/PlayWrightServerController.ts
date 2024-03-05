@@ -85,7 +85,7 @@ export default abstract class PlayWrightServerController {
         /**
          * On bloque en prod dans tous les cas pour le moment pour raison de sécurité
          */
-        if (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV) {
+        if (ConfigurationService.node_configuration.is_main_prod_env) {
             StatsController.register_stat_COMPTEUR('PlayWrightServerController', 'login', 'IS_MAIN_PROD_ENV');
             throw new Error('PlayWrightServerController: login should not be called in prod');
         }

@@ -16,6 +16,7 @@
     },
     "plugins": [
         "@typescript-eslint",
+        "@stylistic",
         "vue"
     ],
     "rules": {
@@ -26,5 +27,29 @@
             }
         ],
         "no-case-declarations": "warn",
+        "no-unused-vars": "off",
+        "@stylistic/comma-dangle": [
+            "error",
+            "always-multiline"
+        ],
+        "@stylistic/no-trailing-spaces": "error",
+        "@stylistic/indent": [
+            "error",
+            4
+        ],
+        "@stylistic/semi": [
+            "error",
+            "always"
+        ],
+        "@stylistic/no-extra-semi": [
+            "error"
+        ],
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "args": "none"
+            }
+        ],
+        "vue/multi-word-component-names": "off"
     }
 }

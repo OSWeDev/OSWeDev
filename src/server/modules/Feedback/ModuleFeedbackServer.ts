@@ -383,7 +383,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let card_name: string = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + feedback.title;
+            let card_name: string = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + feedback.title;
 
             if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
                 idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
@@ -398,7 +398,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 
             const envParam: EnvParam = ConfigurationService.node_configuration;
-            const file_url = envParam.BASE_URL + feedback_file_patch;
+            const file_url = envParam.base_url + feedback_file_patch;
 
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
@@ -468,7 +468,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
             // let gtp_4_brief_msg = await GPTServerController.ask_assistant(
             //     'g-4dPuTN6RY-celia-c-dms-mail-writer',
-            //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+            //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
             //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
             //     'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
             //     'Ci-après les éléments constituant le formulaire de contact client : {' +
@@ -485,7 +485,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
                 GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                 uid,
-                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
                 'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
                 'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. Le format HTML doit être compatible avec Teams. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
@@ -500,7 +500,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
                 const teamsWebhookContent = new TeamsWebhookContentVO();
-                teamsWebhookContent.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                teamsWebhookContent.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url;
                 teamsWebhookContent.summary = gtp_4_brief.content;
 
                 if (feedback.screen_capture_1_id) {
@@ -532,7 +532,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 if ((!!feedback.id) && !!dashboard_feedback_id) {
                     teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                         new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                            ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                            ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
                 }
 
                 await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
@@ -545,7 +545,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        const file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.base_url + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
@@ -556,7 +556,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        const file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.base_url + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
@@ -596,7 +596,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     //                 break;
     //         }
 
-    //         let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+    //         let BASE_URL: string = ConfigurationService.node_configuration.base_url;
     //         let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
     //         apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
     //     }
@@ -648,7 +648,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
             routes_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
-            routes_message += '1. [' + route + '](' + envParam.BASE_URL + '#' + route + ')';
+            routes_message += '1. [' + route + '](' + envParam.base_url + '#' + route + ')';
         }
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
@@ -664,12 +664,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.name + ' | UID ' + feedback.user_id + '](' +
-            envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.user_id) + ')';
+            envParam.base_url + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.user_id) + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Connection : ' + Dates.format(feedback.user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Login : ' + Dates.format(feedback.user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         if (feedback.is_impersonated) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : [Admin user | UID ' + feedback.impersonated_from_user_id + '](' +
-                envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id) + ')';
+                envParam.base_url + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id) + ')';
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Connection : ' + Dates.format(feedback.impersonated_from_user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Login : ' + Dates.format(feedback.impersonated_from_user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         }
@@ -712,10 +712,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 break;
         }
 
-        const start_url = envParam.BASE_URL + '#' + feedback.feedback_start_url;
+        const start_url = envParam.base_url + '#' + feedback.feedback_start_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start URL : [' + start_url + '](' + start_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start date : ' + Dates.format(feedback.feedback_start_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-        const end_url = envParam.BASE_URL + '#' + feedback.feedback_end_url;
+        const end_url = envParam.base_url + '#' + feedback.feedback_end_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission URL : [' + end_url + '](' + end_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission date : ' + Dates.format(feedback.feedback_end_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission type : ' + type;
@@ -736,7 +736,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        let file_url = envParam.BASE_URL + file.path;
+        let file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 1 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_2_id) {
             return res;
@@ -746,7 +746,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 2 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_3_id) {
             return res;
@@ -756,7 +756,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 3 : ' + file_url + '](' + file_url + ')';
 
         return res;
@@ -776,7 +776,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        let file_url = envParam.BASE_URL + file.path;
+        let file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
@@ -789,7 +789,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
@@ -802,7 +802,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';

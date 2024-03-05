@@ -27,6 +27,8 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
     public filterOptionsForUpdateOrCreateOnOneToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
+    public _type: string = OneToManyReferenceDatatableFieldVO.API_TYPE_ID;
+
     public _dest_field_id: string;
 
     get dest_field_id(): string {

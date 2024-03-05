@@ -1018,7 +1018,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             for (const i in params) {
                 const param = params[i];
 
@@ -1075,7 +1075,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.register_sub(uid, client_tab_id, params_indexes);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             for (const i in params) {
                 const param = params[i];
 
@@ -1098,7 +1098,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', notifyable_vars.length);
 
-            // if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            // if (ConfigurationService.node_configuration.debug_vars) {
             //     for (let i in notifyable_vars) {
             //         let param = notifyable_vars[i];
 
@@ -1164,7 +1164,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         const client_tab_id = StackContext.get('CLIENT_TAB_ID');
         VarsTabsSubsController.unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             for (const i in params) {
                 const param = params[i];
 
@@ -1359,7 +1359,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         accept_max_ranges: boolean = false
     ): Promise<VarDataBaseVO> {
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+        if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':IN');
         }
 
@@ -1392,7 +1392,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
-        const max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
+        const max_concurrent_promises: number = ConfigurationService.node_configuration.max_pool / 2;
 
         /**
          * On fait un cache local pour les requêtes de cet appel
@@ -1449,7 +1449,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 
-                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
                             }
 
@@ -1470,7 +1470,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     ids_db = await cache_local[query_wrapper.query];
                                 });
                             }
-                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }
 
@@ -1529,11 +1529,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                             // et on limite à la limite configurée dans l'application
                             const limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
 
-                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
                             var_param[matroid_field.field_name] = ModuleVar.getInstance().get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_name], limit_nb_range);
-                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
@@ -1570,7 +1570,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await all_promises(field_promises);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+        if (ConfigurationService.node_configuration.debug_vars_db_param_builder) {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 

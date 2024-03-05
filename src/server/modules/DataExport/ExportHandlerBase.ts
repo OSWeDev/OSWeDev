@@ -87,7 +87,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
                 mail_param = {
                     EXPORT_TYPE_ID: exhi.export_type_id,
-                    FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
+                    FILE_URL: envParam.base_url + exported_file.path.replace(/^[.][/]/, '/')
                 };
 
             } else {

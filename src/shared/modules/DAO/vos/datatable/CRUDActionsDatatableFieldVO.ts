@@ -13,6 +13,8 @@ export default class CRUDActionsDatatableFieldVO<T, U> extends DatatableField<T,
         return res;
     }
 
+    public _type: string = CRUDActionsDatatableFieldVO.API_TYPE_ID;
+
     get translatable_title(): string {
         if (!this.vo_type_full_name) {
             return null;

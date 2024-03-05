@@ -31,7 +31,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     public async prepare() {
 
-        if (ConfigurationService.node_configuration.CONSOLE_LOG_TO_FILE) {
+        if (ConfigurationService.node_configuration.console_log_to_file) {
             await FileServerController.getInstance().makeSureThisFolderExists('./nodes_logs');
             this.is_prepared = true;
             this.set_log_file();
@@ -53,7 +53,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
     }
 
     private set_log_file() {
-        if (ConfigurationService.node_configuration.CONSOLE_LOG_TO_FILE && this.is_prepared) {
+        if (ConfigurationService.node_configuration.console_log_to_file && this.is_prepared) {
             this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
         }
     }

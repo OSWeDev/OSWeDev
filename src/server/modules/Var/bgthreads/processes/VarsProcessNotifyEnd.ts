@@ -34,7 +34,7 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
 
         const notifVardatasParams: NotifVardatasParam[] = [];
         const vardatas: VarDataBaseVO[] = [];
-        const DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+        const DEBUG_VARS = ConfigurationService.node_configuration.debug_vars;
 
         for (const i in nodes) {
             const node = nodes[i];

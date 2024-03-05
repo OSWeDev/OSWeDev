@@ -40,7 +40,7 @@ export default class I18nextInit {
         i18next
             .use(LanguageDetector)
             .init({
-                fallbackLng: envParam.DEFAULT_LOCALE,
+                fallbackLng: envParam.default_locale,
                 preload: 'all',
                 resources: ALL_LOCALES,
                 nsSeparator: '¤'

@@ -66,13 +66,13 @@ export default class ModuleGPTServer extends ModuleServerBase {
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
 
-        if (!ConfigurationService.node_configuration.OPEN_API_API_KEY) {
+        if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
             return;
         }
 
         ModuleGPTServer.openai = new OpenAI({
-            apiKey: ConfigurationService.node_configuration.OPEN_API_API_KEY
+            apiKey: ConfigurationService.node_configuration.open_api_api_key
         });
     }
 

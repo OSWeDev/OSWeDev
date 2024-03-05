@@ -83,7 +83,7 @@ export default class VarsServerController {
         VarsController.var_conf_by_id[id] = conf;
         VarsController.var_conf_by_name[conf.name] = conf;
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
         }
     }
@@ -93,7 +93,7 @@ export default class VarsServerController {
         delete VarsController.var_conf_by_id[id];
         delete VarsController.var_conf_by_name[name];
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
         }
     }

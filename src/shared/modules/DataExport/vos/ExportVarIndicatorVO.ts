@@ -23,7 +23,7 @@ export default class ExportVarIndicatorVO implements IDistantVOBase {
     }
 
     public id: number;
-    public _type: string = ExportVarcolumnConfVO.API_TYPE_ID;
+    public _type: string = ExportVarIndicatorVO.API_TYPE_ID;
 
     public ordered_column_list: string[];
     public column_labels: { [column_field_name: string]: string };

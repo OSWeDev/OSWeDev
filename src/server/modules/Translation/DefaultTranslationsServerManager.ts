@@ -30,7 +30,7 @@ export default class DefaultTranslationsServerManager {
             return;
         }
 
-        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         let promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
         const registered_default_translations = this.clean_registered_default_translations();
 

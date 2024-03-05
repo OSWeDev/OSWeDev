@@ -98,7 +98,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             ) {
                 let req_body: any = req.body;
 
-                if (ConfigurationService.node_configuration.COMPRESS) {
+                if (ConfigurationService.node_configuration.compress) {
                     // Si je suis en compresse, je vais recevoir mes POST en gzip (BLOB)
                     // Du coup, il faut que je unzip pour récupérer au bon format
                     if (req.method === 'POST' && req.headers[AjaxCacheController.HEADER_GZIP] === 'true') {

@@ -1,14 +1,13 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import IGeneratorWorker from '../../IGeneratorWorker';
-import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20230427PatchPies implements IGeneratorWorker {
 

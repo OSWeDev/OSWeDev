@@ -23,6 +23,8 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     public filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
+    public _type: string = ManyToManyReferenceDatatableFieldVO.API_TYPE_ID;
+
     public inter_module_table_type_id: string;
     public interTargetRefFieldId: string;
     public interSrcRefFieldId: string;

@@ -174,7 +174,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         const user = await ModuleAccessPolicyServer.getSelfUser();
         const lang = (user && user.lang_id) ?
             await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>() :
-            await ModuleTranslation.getInstance().getLang(ConfigurationService.node_configuration.DEFAULT_LOCALE);
+            await ModuleTranslation.getInstance().getLang(ConfigurationService.node_configuration.default_locale);
         if (!lang) {
             ConsoleHandler.error('add_menu:Failed get lang');
             return;

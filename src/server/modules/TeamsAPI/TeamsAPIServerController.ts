@@ -23,7 +23,7 @@ export default class TeamsAPIServerController {
      */
     public static async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
 
-        if (ConfigurationService.node_configuration.BLOCK_TEAMS_MESSAGES) {
+        if (ConfigurationService.node_configuration.block_teams_messages) {
             ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.title);
             return;
         }
@@ -70,7 +70,7 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static get_throttle_send_teams_level() {
         if (!TeamsAPIServerController.throttle_send_teams) {
-            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.TEAMS_WEBHOOK__THROTTLE_MS);
+            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_webhook__throttle_ms);
         }
         return TeamsAPIServerController.throttle_send_teams;
     }
@@ -132,30 +132,30 @@ export default class TeamsAPIServerController {
 
             let message: string = key_params.map((p) => p.message).join('<br><br>');
 
-            if (message.length > ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE) {
+            if (message.length > ConfigurationService.node_configuration.teams_webhook__message_max_size) {
 
-                if (ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE) {
+                if (ConfigurationService.node_configuration.teams_webhook__message_max_size_auto_summarize) {
                     try {
 
                         const response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
                             GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                             null,
-                            'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
+                            'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.teams_webhook__message_max_size * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
                         ));
                         message = response.content;
                     } catch (error) {
                         ConsoleHandler.error('Impossible de résumer le message trop long pour Teams via GPT:' + error);
-                        message = message.substring(0, ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE - 3) + '...';
+                        message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
                     }
                 } else {
-                    message = message.substring(0, ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE - 3) + '...';
+                    message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
                 }
             }
 
             m.summary = message;
             m.sections.push(
                 new TeamsWebhookContentSectionVO().set_text(message)
-                    .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
+                    .set_activityImage(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
             );
 
             await TeamsAPIServerController.send_to_teams_webhook(webhook, m);

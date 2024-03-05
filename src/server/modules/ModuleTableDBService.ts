@@ -476,6 +476,16 @@ export default class ModuleTableDBService {
 
                 console.error('-');
                 console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
+
+                // On rajoute une contrôle de cohérence  :
+                //  Si le nom existe mais pas en minuscule, on considère que c'est une erreur, mais on ne supprime pas automatiquement
+                let obj_field_names = Object.keys(fields_by_field_id);
+                if (obj_field_names.find((e) => e.toLowerCase() == index)) {
+                    console.error('Le champ existe en majuscule, mais pas en minuscule, c\'est une erreur de nommage, mais on ne supprime pas automatiquement il faut corriger manuellement.');
+                    console.error('---');
+                    continue;
+                }
+
                 console.error('ACTION: Suppression automatique...');
 
                 try {

@@ -9,11 +9,8 @@ import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import VarsServerController from '../server/modules/Var/VarsServerController';
-import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from '../shared/modules/Stats/StatsController';
-import VarConfVO from '../shared/modules/Var/vos/VarConfVO';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import IGeneratorWorker from './IGeneratorWorker';
@@ -57,6 +54,7 @@ import Patch20230519AddRightsFeedbackStateVO from './patchs/postmodules/Patch202
 import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
 import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
 import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
+import Patch20240305MigrationCodesTradsMinusculesENV from './patchs/postmodules/Patch20240305MigrationCodesTradsMinusculesENV';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -78,10 +76,10 @@ import Patch20231116AddUniqPhoneUserConstraint from './patchs/premodules/Patch20
 import Patch20231117AddUniqCookieNamePopup from './patchs/premodules/Patch20231117AddUniqCookieNamePopup';
 import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch20231120AddUniqCronPlanificationUID';
 import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
-import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
-import { field_names } from '../shared/tools/ObjectHandler';
 import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20240222MoveModuleFieldsToParamVOs';
+import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
+import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
 
@@ -161,7 +159,8 @@ export default abstract class GeneratorBase {
             Patch20231117AddUniqCookieNamePopup.getInstance(),
             Patch20231120AddUniqCronPlanificationUID.getInstance(),
             Patch20240206InitNullFieldsFromWidgets.getInstance(),
-            Patch20240222MoveModuleFieldsToParamVOs.getInstance()
+            Patch20240222MoveModuleFieldsToParamVOs.getInstance(),
+            Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -182,7 +181,8 @@ export default abstract class GeneratorBase {
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
-            Patch20231123AddRightsSharedFilters.getInstance()
+            Patch20231123AddRightsSharedFilters.getInstance(),
+            Patch20240305MigrationCodesTradsMinusculesENV.getInstance()
         ];
     }
 
@@ -191,7 +191,7 @@ export default abstract class GeneratorBase {
     public async generate() {
 
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
-        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -203,12 +203,12 @@ export default abstract class GeneratorBase {
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 
-        const connectionString = envParam.CONNECTION_STRING;
+        const connectionString = envParam.connection_string;
 
         const pgp: pg_promise.IMain = pg_promise({});
         const db: IDatabase<any> = pgp(connectionString);
 
-        if (envParam.LAUNCH_INIT) {
+        if (envParam.launch_init) {
             console.log("INIT pre modules initialization workers...");
             if (this.init_pre_modules_workers) {
                 if (!await this.execute_workers(this.init_pre_modules_workers, db)) {
@@ -246,7 +246,7 @@ export default abstract class GeneratorBase {
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null, true);
 
-        if (envParam.LAUNCH_INIT) {
+        if (envParam.launch_init) {
             console.log("INIT post modules initialization workers...");
             if (this.init_post_modules_workers) {
                 if (!await this.execute_workers(this.init_post_modules_workers, db)) {
@@ -292,7 +292,7 @@ export default abstract class GeneratorBase {
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
 
         const workers_to_execute: { [id: number]: IGeneratorWorker } = {};
-        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'GeneratorBase.execute_workers');
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'GeneratorBase.execute_workers');
         for (const i in workers) {
             const worker = workers[i];
 

@@ -64,7 +64,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        const limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        const limit = ConfigurationService.node_configuration.max_pool / 2;
         const promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
 
         for (const i in requests) {

@@ -52,13 +52,13 @@ export default class VarsProcessInvalidator {
             return false;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
             ConsoleHandler.log('VarsProcessInvalidator:has_vos_cud_or_intersectors');
         }
 
         await VarsComputationHole.exec_in_computation_hole(async () => {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:IN');
             }
 
@@ -71,7 +71,7 @@ export default class VarsProcessInvalidator {
             VarsDatasVoUpdateHandler.invalidators = [];
 
             let has_first_invalidator = false;
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length);
                 if (invalidators && invalidators.length) {
                     ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
@@ -93,7 +93,7 @@ export default class VarsProcessInvalidator {
             if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
                 invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                     ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators post VarsDatasVoUpdateHandler.handle_buffer:' + invalidators.length);
                     if (invalidators && invalidators.length) {
                         if (!has_first_invalidator) {
@@ -115,7 +115,7 @@ export default class VarsProcessInvalidator {
                 await VarsDatasVoUpdateHandler.handle_invalidators(deployed_invalidators);
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:OUT');
             }
         });

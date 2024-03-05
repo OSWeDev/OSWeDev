@@ -76,17 +76,17 @@ export default class ModulesClientInitializationDatasGenerator {
         }
 
         // Initialiser directement l'env param
-        fileContent += "    EnvHandler.NODE_VERBOSE = " + ((ConfigurationService.node_configuration.NODE_VERBOSE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.IS_DEV = " + ((ConfigurationService.node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_VARS = " + ((ConfigurationService.node_configuration.DEBUG_VARS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_PROMISE_PIPELINE = " + ((ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.COMPRESS = " + ((ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.BASE_URL = '" + ConfigurationService.node_configuration.BASE_URL + "';\n";
-        fileContent += "    EnvHandler.CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
-        fileContent += "    EnvHandler.VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
-        fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.MAX_POOL = " + ConfigurationService.node_configuration.MAX_POOL + ";\n";
-        fileContent += "    EnvHandler.ZOOM_AUTO = " + ((ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.node_verbose = " + ((ConfigurationService.node_configuration.node_verbose) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.is_dev = " + ((ConfigurationService.node_configuration.isdev) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_vars = " + ((ConfigurationService.node_configuration.debug_vars) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_promise_pipeline = " + ((ConfigurationService.node_configuration.debug_promise_pipeline) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.compress = " + ((ConfigurationService.node_configuration.compress) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.base_url = '" + ConfigurationService.node_configuration.base_url + "';\n";
+        fileContent += "    EnvHandler.code_google_analytics = '" + ConfigurationService.node_configuration.code_google_analytics + "';\n";
+        fileContent += "    EnvHandler.version = '" + GeneratorBase.getInstance().getVersion() + "';\n";
+        fileContent += "    EnvHandler.activate_pwa = " + ((ConfigurationService.node_configuration.activate_pwa) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.max_pool = " + ConfigurationService.node_configuration.max_pool + ";\n";
+        fileContent += "    EnvHandler.zoom_auto = " + ((ConfigurationService.node_configuration.zoom_auto) ? 'true' : 'false') + ';\n';
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);

@@ -21,6 +21,8 @@ export default class VarDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return res;
     }
 
+    public _type: string = VarDatatableFieldVO.API_TYPE_ID;
+
     public var_id: number;
     public filter_type: string;
     public filter_additional_params: string;

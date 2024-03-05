@@ -394,6 +394,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async get_app_version(): Promise<string> {
-        return EnvHandler.VERSION;
+        return EnvHandler.version;
     }
 }

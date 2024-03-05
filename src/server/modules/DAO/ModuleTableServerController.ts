@@ -167,7 +167,7 @@ export default class ModuleTableServerController {
      * Dans cette fonction on ne pense qu'à mettre à jour la base pour le ModuleTableVO, pas la table du vo_type en elle-même
      */
     public static async push_ModuleTableVO_conf_to_db() {
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTableController.push_ModuleTableVOs_to_db');
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleTableController.push_ModuleTableVOs_to_db');
 
         for (const vo_type in ModuleTableController.module_tables_by_vo_type) {
             const table = ModuleTableController.module_tables_by_vo_type[vo_type];

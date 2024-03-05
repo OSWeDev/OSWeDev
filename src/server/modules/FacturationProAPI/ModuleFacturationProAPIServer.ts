@@ -111,7 +111,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         }
 
         // On retourne l'URL du fichier créé en supprimant les 2 premiers caractères (./)
-        return ConfigurationService.node_configuration.BASE_URL + file_name.substring(2);
+        return ConfigurationService.node_configuration.base_url + file_name.substring(2);
     }
 
     private async send_email_facture(firm_id: number, bill_id: number, params: FactuProInvoicesEmailParams) {

@@ -43,7 +43,7 @@ export default class VarsDatasProxy {
         not_found_indexes: string[]) {
 
         const res: T[] = [];
-        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.get_exact_params_from_bdd');
 
         for (const api_type_id in var_datas_indexes_by_type) {
             const var_data_indexes = var_datas_indexes_by_type[api_type_id];
@@ -217,7 +217,7 @@ export default class VarsDatasProxy {
                 return null;
             }
 
-            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
+            const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification');
             for (const i in indexs) {
                 const index = indexs[i];
 

@@ -36,16 +36,16 @@ export default abstract class VarsProcessBase {
         // // On initialise le fait qu'on est pas en train d'attendre une invalidation
         VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
 
-        const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.MAX_VarsProcessDeployDeps, 'VarsProcessBase.' + this.name, true);
+        const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.max_varsprocessdeploydeps, 'VarsProcessBase.' + this.name, true);
         let waiting_for_invalidation_time_in = null;
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
         }
 
         while (true) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:IN:');
             }
 
@@ -84,7 +84,7 @@ export default abstract class VarsProcessBase {
                 const updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
                 if (updated_waiting_for_invalidation_time_in) {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    if (ConfigurationService.node_configuration.debug_vars_processes) {
                         ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
                     }
                     waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
@@ -100,7 +100,7 @@ export default abstract class VarsProcessBase {
 
             if (!did_something) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
                 }
 
@@ -112,7 +112,7 @@ export default abstract class VarsProcessBase {
                 await promise_pipeline.await_free_slot();
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:true');
             }
         }
@@ -129,7 +129,7 @@ export default abstract class VarsProcessBase {
         if (VarsComputationHole.waiting_for_computation_hole) {
             if (!VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                     ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:IN');
                 }
 
@@ -154,7 +154,7 @@ export default abstract class VarsProcessBase {
         //     VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
         //     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
 
-        //     if (ConfigurationService.node_configuration.DEBUG_VARS_INVALIDATION) {
+        //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
         //         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
         //     }
         // }
@@ -179,7 +179,7 @@ export default abstract class VarsProcessBase {
             // Si on a plus de free_slot, et qu'on a fait plus de 2 secondes de travail - totalement arbitraire -, on attend le prochain run
             if ((!!promise_pipeline) && (!promise_pipeline.has_free_slot()) && ((Dates.now_ms() - time_in) > 2000)) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_individual_worker:break:!has_free_slot:' + node.var_data.index + ':' + node.var_data.value + ':' + ((Dates.now_ms() - time_in) / 1000));
                 }
 
@@ -193,7 +193,7 @@ export default abstract class VarsProcessBase {
             if (this.MAX_Workers) {
                 await promise_pipeline.push(async () => {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    if (ConfigurationService.node_configuration.debug_vars_processes) {
                         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:ASYNC:IN:' + node.var_data.index + ':' + node.var_data.value);
                     }
 
@@ -202,7 +202,7 @@ export default abstract class VarsProcessBase {
                     did_something = did_something || res;
                     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                    if (ConfigurationService.node_configuration.debug_vars_processes) {
                         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:ASYNC:OUT:' + node.var_data.index + ':' + node.var_data.value);
                     }
 
@@ -211,7 +211,7 @@ export default abstract class VarsProcessBase {
                 });
             } else {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:SYNC:IN:' + node.var_data.index + ':' + node.var_data.value);
                 }
 
@@ -220,7 +220,7 @@ export default abstract class VarsProcessBase {
                 did_something = did_something || res;
                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_individual_worker:SYNC:OUT:' + node.var_data.index + ':' + node.var_data.value);
                 }
 
@@ -229,7 +229,7 @@ export default abstract class VarsProcessBase {
             }
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_individual_worker:OUT');
         }
 
@@ -255,7 +255,7 @@ export default abstract class VarsProcessBase {
             return null;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:IN');
         }
 
@@ -267,7 +267,7 @@ export default abstract class VarsProcessBase {
 
         if ((!nodes) || (!Object.keys(nodes).length)) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:OUT:pas de nodes');
             }
 
@@ -277,7 +277,7 @@ export default abstract class VarsProcessBase {
         const subbed_nodes = this.filter_by_subs(nodes);
         if (subbed_nodes && Object.keys(subbed_nodes).length) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:subbed_nodes');
             }
 
@@ -293,7 +293,7 @@ export default abstract class VarsProcessBase {
                 continue;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.log('VarsProcessBase:' + this.name + ':get_valid_nodes:node:' + node.var_data.index + ':' + node.var_data.value);
             }
 
@@ -316,7 +316,7 @@ export default abstract class VarsProcessBase {
             valid_nodes[node.var_data.index] = node;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:OUT:' + Object.keys(valid_nodes).length);
         }
 
@@ -327,13 +327,13 @@ export default abstract class VarsProcessBase {
 
         const has_something_to_do = batch_nodes ? Object.keys(batch_nodes).length > 0 : false;
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_batch_worker:IN:');
         }
 
         if (has_something_to_do) {
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_batch_worker:worker_async_batch:IN:');
             }
 
@@ -342,7 +342,7 @@ export default abstract class VarsProcessBase {
             const res = await this.worker_async_batch(batch_nodes);
             StatsController.register_stat_DUREE('VarsProcessBase', this.name, "worker", Dates.now_ms() - worker_time_in);
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
                 ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_batch_worker:worker_async_batch:OUT:' + res);
             }
 
@@ -363,7 +363,7 @@ export default abstract class VarsProcessBase {
             }
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+        if (ConfigurationService.node_configuration.debug_vars_processes) {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_batch_worker:OUT:');
         }
 
@@ -390,7 +390,7 @@ export default abstract class VarsProcessBase {
             const is_client_sub = !!VarsClientsSubsCacheHolder.clients_subs_indexes_cache[node.var_data.index];
             if (node.is_client_sub != is_client_sub) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_PROCESSES) {
+                if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.log('VarsProcessBase:' + this.name + ':filter_by_subs:node:' + node.var_data.index + ':' + node.var_data.value + ':updated is_client_sub:' + is_client_sub);
                 }
 

@@ -782,9 +782,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         promises.push((async () => {
             lang_translations = await this.get_translations(code_lang);
         })());
-        if (code_lang != ConfigurationService.node_configuration.DEFAULT_LOCALE) {
+        if (code_lang != ConfigurationService.node_configuration.default_locale) {
             promises.push((async () => {
-                default_translations = await this.get_translations(ConfigurationService.node_configuration.DEFAULT_LOCALE);
+                default_translations = await this.get_translations(ConfigurationService.node_configuration.default_locale);
             })());
         }
 
@@ -942,7 +942,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let res = true;
 
-        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 2, 'ModuleTranslationServer.isCodeOk');
+        const promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2, 'ModuleTranslationServer.isCodeOk');
         while ((!!segments) && (segments.length > 1)) {
 
             segments.pop();

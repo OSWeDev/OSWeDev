@@ -87,7 +87,7 @@ export default class PromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -97,7 +97,7 @@ export default class PromisePipeline {
 
         if (this.has_free_slot()) {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -110,7 +110,7 @@ export default class PromisePipeline {
 
         } else {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():!has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -133,7 +133,7 @@ export default class PromisePipeline {
                 StatsController.register_stat_DUREE('PromisePipeline', this.stat_name, 'WAIT_FOR_PUSH', Dates.now_ms() - time_in);
             }
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():RACE END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -145,7 +145,7 @@ export default class PromisePipeline {
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -160,18 +160,18 @@ export default class PromisePipeline {
      */
     public async end(): Promise<void> {
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.end():START:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (this.nb_running_promises === 0) {
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.end():END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             return;
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -185,7 +185,7 @@ export default class PromisePipeline {
 
         await wait_for_end;
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -197,7 +197,7 @@ export default class PromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.do_cb():BEFORECB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -207,7 +207,7 @@ export default class PromisePipeline {
             ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + error + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.do_cb():AFTERCB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -229,7 +229,7 @@ export default class PromisePipeline {
 
         if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 

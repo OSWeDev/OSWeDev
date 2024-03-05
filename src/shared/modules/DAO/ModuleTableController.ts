@@ -79,6 +79,17 @@ export default class ModuleTableController {
         const res: ModuleTableVO = new ModuleTableVO();
         const vo_type: string = new vo_constructor()._type;
 
+        // Check de cohérence : le vo_type doit être unique et en minuscules
+        if (ModuleTableController.module_tables_by_vo_type[vo_type]) {
+            ConsoleHandler.error('create_new: vo_type déjà déclaré: ' + vo_type);
+            throw new Error('create_new: vo_type déjà déclaré: ' + vo_type);
+        }
+
+        if (vo_type != vo_type.toLowerCase()) {
+            ConsoleHandler.error('create_new: vo_type doit être en minuscules: ' + vo_type);
+            throw new Error('create_new: vo_type doit être en minuscules: ' + vo_type);
+        }
+
         ModuleTableController.vo_constructor_by_vo_type[vo_type] = vo_constructor;
 
         res.default_label_field = label_field;
@@ -125,11 +136,12 @@ export default class ModuleTableController {
         table_label_function: (vo: IDistantVOBase) => string,
         table_label_function_field_ids_deps: string[]) {
 
-        // Petit check de cohérence, avec la nouvelle version, si on a un default_label_field, on ne devrait pas avoir de table_label_function
-        if (ModuleTableController.module_tables_by_vo_type[vo_type].default_label_field && table_label_function) {
-            ConsoleHandler.error('set_label_function: Incohérence entre default_label_field et table_label_function, on ne doit pas avoir les 2 en même temps');
-            return;
-        }
+        // Pas si sûr en fait... si on fait une requete en base on pourra pas appliquer pour le moment la fonction, donc on se rabat sur le default_label_field, du coup c'est pas forcément incohérent de définir les 2
+        // // Petit check de cohérence, avec la nouvelle version, si on a un default_label_field, on ne devrait pas avoir de table_label_function
+        // if (ModuleTableController.module_tables_by_vo_type[vo_type].default_label_field && table_label_function) {
+        //     ConsoleHandler.error('set_label_function: Incohérence entre default_label_field et table_label_function, on ne doit pas avoir les 2 en même temps');
+        //     return;
+        // }
 
         ModuleTableController.table_label_function_by_vo_type[vo_type] = table_label_function;
         ModuleTableController.table_label_function_field_ids_deps_by_vo_type[vo_type] = table_label_function_field_ids_deps;

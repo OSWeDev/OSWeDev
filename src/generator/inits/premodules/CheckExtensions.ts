@@ -37,7 +37,7 @@ export default class CheckExtensions implements IGeneratorWorker {
             alter_role += (await this.add_extension_if_not_exists(db, "earthdistance"));
 
             if (alter_role > 0) {
-                await db.query("ALTER ROLE " + ConfigurationService.node_configuration.BDD_OWNER + " NOSUPERUSER;");
+                await db.query("ALTER ROLE " + ConfigurationService.node_configuration.bdd_owner + " NOSUPERUSER;");
             }
 
         } catch (error) {

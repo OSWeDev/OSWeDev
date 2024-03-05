@@ -32,6 +32,8 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
     public filterOptionsForUpdateOrCreateOnManyToOne: (vo: Target, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
+    public _type: string = ManyToOneReferenceDatatableFieldVO.API_TYPE_ID;
+
     public _src_field_id: string;
 
     public setFilterOptionsForUpdateOrCreateOnManyToOne(filterOptionsForUpdateOrCreateOnManyToOne: (vo: Target, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToOneReferenceDatatableFieldVO<Target> {

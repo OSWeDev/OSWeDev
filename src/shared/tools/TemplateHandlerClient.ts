@@ -74,7 +74,8 @@ export default class TemplateHandlerClient {
         const regExp = new RegExp('%%ENV%%([^% ]+)%%', 'i');
         while (regExp.test(template)) {
             const regexpres: string[] = regExp.exec(template);
-            const varname: string = regexpres[1];
+            let varname: string = regexpres[1];
+            varname = varname ? varname.toLowerCase() : varname;
 
             if (varname && env[varname]) {
                 template = template.replace(regExp, env[varname]);

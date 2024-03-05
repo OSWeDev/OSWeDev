@@ -310,7 +310,7 @@ export default class ContextQueryServerController {
             return [];
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_SELECT_DATATABLE_ROWS_query_res) {
+        if (ConfigurationService.node_configuration.debug_select_datatable_rows_query_res) {
             for (const i in query_res) {
                 ConsoleHandler.log('DEBUG_SELECT_DATATABLE_ROWS_query_res:data_i:' + i + ':' + JSON.stringify(query_res[i]));
             }
@@ -330,7 +330,7 @@ export default class ContextQueryServerController {
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
          */
-        const limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        const limit = ConfigurationService.node_configuration.max_pool / 2;
         const promise_pipeline = new PromisePipeline(limit, 'ContextQueryServerController.select_datatable_rows');
         for (const i in query_res) {
             const row = query_res[i];
@@ -728,7 +728,7 @@ export default class ContextQueryServerController {
                     }
                 }
 
-                const promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)), 'ContextQueryServerController.update_vos');
+                const promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2)), 'ContextQueryServerController.update_vos');
 
                 for (const i in vos_to_update) {
                     const vo_to_update = vos_to_update[i];
@@ -846,7 +846,7 @@ export default class ContextQueryServerController {
             StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'select_vos', vos_to_delete.length);
             has_more_to_delete = (vos_to_delete.length >= context_query.query_limit);
 
-            const deleted_vos_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3, 'ContextQueryServerController.delete_vos');
+            const deleted_vos_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 3, 'ContextQueryServerController.delete_vos');
             for (const i in vos_to_delete) {
                 const vo_to_delete = vos_to_delete[i];
 
@@ -873,7 +873,7 @@ export default class ContextQueryServerController {
                     //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
                     //  deps sont définitivement perdues...
                     const deps_to_delete: IDistantVOBase[] = [];
-                    const deps_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL / 3, 'ContextQueryServerController.delete_vos_deps');
+                    const deps_promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 3, 'ContextQueryServerController.delete_vos_deps');
 
                     for (const dep_i in deps) {
                         const dep = deps[dep_i];
@@ -926,7 +926,7 @@ export default class ContextQueryServerController {
 
                     ContextQueryInjectionCheckHandler.assert_numeric(vo_to_delete.id);
                     const sql = "DELETE FROM " + full_name + " where id = " + vo_to_delete.id + " RETURNING id";
-                    if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                    if (ConfigurationService.node_configuration.debug_deletevos) {
                         ConsoleHandler.log('DELETEVOS:oneOrNone:' + sql + ':' + JSON.stringify(vo_to_delete));
                     }
 
@@ -979,10 +979,10 @@ export default class ContextQueryServerController {
                 }
 
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
-                if (has_trigger_post_delete || ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                if (has_trigger_post_delete || ConfigurationService.node_configuration.debug_deletevos) {
                     for (const i in really_deleted_vos) {
                         const deleted_vo = really_deleted_vos[i];
-                        if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
+                        if (ConfigurationService.node_configuration.debug_deletevos) {
                             ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                         }
 
@@ -1245,7 +1245,7 @@ export default class ContextQueryServerController {
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT');
         StatsController.register_stat_DUREE('ContextQueryServerController', 'build_select_query_not_count', 'OUT', Dates.now_ms() - time_in);
 
-        if (ConfigurationService.node_configuration.DEBUG_CONTEXT_QUERY_build_select_query_not_count) {
+        if (ConfigurationService.node_configuration.debug_context_query_build_select_query_not_count) {
             ConsoleHandler.log('build_select_query_not_count:' + res.query);
         }
 
@@ -2674,7 +2674,7 @@ export default class ContextQueryServerController {
             if (!has_inactive_relation) {
                 context_query.active_api_type_ids.push(nn_table.vo_type);
 
-                if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_add_activated_many_to_many) {
+                if (ConfigurationService.node_configuration.debug_db_query_add_activated_many_to_many) {
                     ConsoleHandler.warn('add_activated_many_to_many:Ajout de :' + nn_table.vo_type + ': à la requête :');
                     context_query.log();
                 }

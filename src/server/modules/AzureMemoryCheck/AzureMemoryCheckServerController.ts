@@ -36,13 +36,13 @@ export default class AzureMemoryCheckServerController {
 
         let log = false;
         if (augmentation > 0) {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && (augmentation > 1)) {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check && (augmentation > 1)) {
                 ConsoleHandler.warn('Acceleration de la consommation de mémoire détectée: +' + augmentation + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
                 log = true;
             }
             AzureMemoryCheckServerController.dao_server_coef = 1 - (1 / ((90 - last_usage) / (augmentation * 10)));
         } else if (augmentation < 0) {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && (augmentation < -1)) {
+            if (ConfigurationService.node_configuration.debug_azure_memory_check && (augmentation < -1)) {
                 ConsoleHandler.log('Ralentissement de la consommation de mémoire détectée: -' + (-augmentation) + '%/min :last_usage: ' + last_usage + '% :AzureMemoryCheckServerController.dao_server_coef AVANT: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
                 log = true;
             }
@@ -57,7 +57,7 @@ export default class AzureMemoryCheckServerController {
             AzureMemoryCheckServerController.dao_server_coef = 0;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK && log) {
+        if (ConfigurationService.node_configuration.debug_azure_memory_check && log) {
             ConsoleHandler.log('--     AzureMemoryCheckServerController.dao_server_coef APRES: ' + AzureMemoryCheckServerController.dao_server_coef + ' :');
             ConsoleHandler.log('--     les dernières valeurs de memory_usage_datas sont : ' + AzureMemoryCheckServerController.memory_usage_datas.join(', '));
         }

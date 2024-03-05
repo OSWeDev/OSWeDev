@@ -314,7 +314,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return;
         }
 
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
             return;
         }
 
@@ -328,17 +328,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-        message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Nouvelle ERREUR';
+        message.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
-                .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "vuejsclient/public/img/error.png"));
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.node_configuration.base_url + "vuejsclient/public/img/error.png"));
 
         // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
         if (supervised_item.id) {
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                    ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                    ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
         }
 
         const urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
@@ -359,7 +359,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return;
         }
 
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
             return;
         }
 
@@ -373,14 +373,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-        message.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Supervision - Retour a la normale';
+        message.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Supervision - Retour a la normale';
         message.summary = 'OK : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
-                .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "vuejsclient/public/img/ok.png"));
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.node_configuration.base_url + "vuejsclient/public/img/ok.png"));
         message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
             new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                ConfigurationService.node_configuration.base_url + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
 
         const urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
         for (const i in urls) {

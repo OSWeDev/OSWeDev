@@ -21,7 +21,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
     private static instance: VarsProcessLoadDatas = null;
 
     private constructor() {
-        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.MAX_VarsProcessLoadDatas);
+        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
@@ -55,7 +55,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
 
         await DataSourcesController.load_node_datas(dss, node);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
         }
 

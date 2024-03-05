@@ -103,10 +103,10 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
             // Si on a quelque chose et qu'on est pas en DEV, on met un message sur Teams et on invalide la session
             if (to_invalidate.length > 0) {
                 // On ne met pas de message sur Teams si on est en DEV
-                if (!ConfigurationService.node_configuration.ISDEV) {
+                if (!ConfigurationService.node_configuration.isdev) {
 
                     await TeamsAPIServerController.send_teams_info(
-                        'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.APP_TITLE + " - " + ConfigurationService.node_configuration.BASE_URL,
+                        'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.app_title + " - " + ConfigurationService.node_configuration.base_url,
                         'SID : <ul><li>' + to_invalidate.map((m) => m.id).join('</li><li>') + '</li></ul>' +
                         'Requêtes : <ul><li>' + api_reqs.join('</li><li>') + '</li></ul>'
                     );

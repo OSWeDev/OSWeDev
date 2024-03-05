@@ -13,6 +13,8 @@ export default class SelectBoxDatatableFieldVO<T, U> extends DatatableField<T, U
         return res;
     }
 
+    public _type: string = SelectBoxDatatableFieldVO.API_TYPE_ID;
+
     get translatable_title(): string {
         if (!this.vo_type_full_name) {
             return null;

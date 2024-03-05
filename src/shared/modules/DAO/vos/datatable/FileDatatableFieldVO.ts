@@ -16,6 +16,8 @@ export default class FileDatatableFieldVO<T, U> extends DatatableField<T, U> {
         return res;
     }
 
+    public _type: string = FileDatatableFieldVO.API_TYPE_ID;
+
     public parameter_datatable_field_uid: string;
 
     public dataToReadIHM(e: T, vo: IDistantVOBase): U {

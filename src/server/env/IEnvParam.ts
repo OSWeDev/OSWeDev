@@ -1,101 +1,101 @@
 /* istanbul ignore file: no usefull tests to build */
 
 export default interface IEnvParam {
-    APP_TITLE: string;
-    CONNECTION_STRING: string;
-    PORT: string;
-    ISDEV: boolean;
-    DEFAULT_LOCALE: string;
-    CODE_PAYS: string;
-    COMPRESS: boolean;
-    URL_RECOVERY_CHALLENGE: string;
-    URL_RECOVERY: string;
-    BASE_URL: string;
-    BLOCK_MAIL_DELIVERY: boolean;
-    MAIL_DELIVERY_WHITELIST: string;
-    BDD_OWNER: string;
-    NODE_VERBOSE: boolean;
-    ACTIVATE_LONG_JOHN: boolean;
-    MAX_POOL: number;
-    MAX_NB_AUTO_UNION_IN_SELECT?: number;
-    SERVER_START_BOOSTER: boolean;
-    SERVER_ENCODING: string;
-    CONSOLE_LOG_TO_FILE: boolean;
+    app_title: string;
+    connection_string: string;
+    port: string;
+    isdev: boolean;
+    default_locale: string;
+    code_pays: string;
+    compress: boolean;
+    url_recovery_challenge: string;
+    url_recovery: string;
+    base_url: string;
+    block_mail_delivery: boolean;
+    mail_delivery_whitelist: string;
+    bdd_owner: string;
+    node_verbose: boolean;
+    activate_long_john: boolean;
+    max_pool: number;
+    max_nb_auto_union_in_select?: number;
+    server_start_booster: boolean;
+    server_encoding: string;
+    console_log_to_file: boolean;
 
-    MAX_VarsProcessDeployDeps?: number;
-    MAX_VarsProcessLoadDatas?: number;
-    MAX_Vars_invalidators?: number;
+    max_varsprocessdeploydeps?: number;
+    max_varsprocessloaddatas?: number;
+    max_vars_invalidators?: number;
 
-    MAX_SIZE_PER_QUERY?: number;
-    MAX_UNION_ALL_PER_QUERY?: number;
+    max_size_per_query?: number;
+    max_union_all_per_query?: number;
 
-    MUTE__NO_SORT_BY_BUT_QUERY_LIMIT?: boolean;
+    mute__no_sort_by_but_query_limit?: boolean;
 
-    DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
-    DEBUG_SLOW_QUERIES?: boolean;
-    DEBUG_PARAM_QUERIES?: boolean;
-    DEBUG_DB_QUERY_PERF?: boolean;
-    DEBUG_DB_QUERY_add_activated_many_to_many?: boolean;
-    DEBUG_convert_varparamfields_to_vardatas?: boolean;
-    DEBUG_FORKS?: boolean;
-    DEBUG_VARS?: boolean;
-    DEBUG_VARS_PROCESSES?: boolean;
-    DEBUG_VARS_INVALIDATION?: boolean;
-    DEBUG_VARS_CURRENT_TREE?: boolean;
-    DEBUG_VARS_DB_PARAM_BUILDER?: boolean;
-    DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
-    DEBUG_START_SERVER?: boolean;
-    DEBUG_IMPORTS?: boolean;
-    DEBUG_EXPORTS?: boolean;
-    DEBUG_DELETEVOS?: boolean;
-    DEBUG_THROTTLED_SELECT?: boolean;
-    DEBUG_SELECT_DATATABLE_ROWS_query_res?: boolean;
-    DEBUG_DB_FULL_QUERY_PERF?: boolean;
-    DEBUG_INTERTHREADS_MESSAGES?: boolean;
-    DEBUG_IO_ROOMS?: boolean;
-    DEBUG_VO_EVENTS?: boolean;
+    debug_slow_queries_ms_limit?: number;
+    debug_slow_queries?: boolean;
+    debug_param_queries?: boolean;
+    debug_db_query_perf?: boolean;
+    debug_db_query_add_activated_many_to_many?: boolean;
+    debug_convert_varparamfields_to_vardatas?: boolean;
+    debug_forks?: boolean;
+    debug_vars?: boolean;
+    debug_vars_processes?: boolean;
+    debug_vars_invalidation?: boolean;
+    debug_vars_current_tree?: boolean;
+    debug_vars_db_param_builder?: boolean;
+    debug_vars_server_subs_cbs?: boolean;
+    debug_start_server?: boolean;
+    debug_imports?: boolean;
+    debug_exports?: boolean;
+    debug_deletevos?: boolean;
+    debug_throttled_select?: boolean;
+    debug_select_datatable_rows_query_res?: boolean;
+    debug_db_full_query_perf?: boolean;
+    debug_interthreads_messages?: boolean;
+    debug_io_rooms?: boolean;
+    debug_vo_events?: boolean;
 
-    DEBUG_var_insert_with_copy?: boolean;
+    debug_var_insert_with_copy?: boolean;
 
-    DEBUG_var_get_instance_semaphored_db_loaded_var_data?: boolean;
+    debug_var_get_instance_semaphored_db_loaded_var_data?: boolean;
 
-    DEBUG_waiting_registered_task_result_wrappers?: boolean;
-    DEBUG_waiting_registered_task_result_wrappers_threshold?: number;
-    DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean;
+    debug_waiting_registered_task_result_wrappers?: boolean;
+    debug_waiting_registered_task_result_wrappers_threshold?: number;
+    debug_waiting_registered_task_result_wrappers_verbose_result_task_uid?: boolean;
 
-    DEBUG_PROMISE_PIPELINE?: boolean;
-    DEBUG_PROMISE_PIPELINE_WORKER_STATS?: boolean;
+    debug_promise_pipeline?: boolean;
+    debug_promise_pipeline_worker_stats?: boolean;
 
-    DEBUG_AZURE_MEMORY_CHECK?: boolean;
+    debug_azure_memory_check?: boolean;
 
-    DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
-    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS?: boolean;
-    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS?: boolean;
-    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS?: boolean;
-    DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS?: boolean;
+    debug_context_query_build_select_query_not_count?: boolean;
+    debug_export_context_query_to_xlsx_datas?: boolean;
+    debug_export_context_query_to_xlsx_datas_with_vars?: boolean;
+    debug_export_context_query_to_xlsx_translated_datas?: boolean;
+    debug_export_context_query_to_xlsx_xlsx_datas?: boolean;
 
-    START_MAINTENANCE_ACCEPTATION_CODE: string;
-    AUTO_END_MAINTENANCE_ON_START: boolean;
-    CODE_GOOGLE_ANALYTICS: string;
-    LAUNCH_INIT?: boolean;
-    ACTIVATE_PWA: boolean;
-    RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean;
-    ZOOM_AUTO?: boolean;
+    start_maintenance_acceptation_code: string;
+    auto_end_maintenance_on_start: boolean;
+    code_google_analytics: string;
+    launch_init?: boolean;
+    activate_pwa: boolean;
+    retry_failed_fast_track_imports_with_normal_importation?: boolean;
+    zoom_auto?: boolean;
 
-    IS_MAIN_PROD_ENV: boolean;
+    is_main_prod_env: boolean;
 
-    OPEN_API_API_KEY?: string;
+    open_api_api_key?: string;
 
-    TEAMS_WEBHOOK__TECH_ERROR?: string;
-    TEAMS_WEBHOOK__TECH_WARN?: string;
-    TEAMS_WEBHOOK__TECH_INFO?: string;
-    TEAMS_WEBHOOK__TECH_SUCCESS?: string;
+    teams_webhook__tech_error?: string;
+    teams_webhook__tech_warn?: string;
+    teams_webhook__tech_info?: string;
+    teams_webhook__tech_success?: string;
 
-    TEAMS_WEBHOOK__THROTTLE_MS?: number;
-    TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number;
-    TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
+    teams_webhook__throttle_ms?: number;
+    teams_webhook__message_max_size?: number;
+    teams_webhook__message_max_size_auto_summarize?: boolean;
 
-    BLOCK_TEAMS_MESSAGES?: boolean;
+    block_teams_messages?: boolean;
 
-    EXPRESS_SECRET: string;
+    express_secret: string;
 }

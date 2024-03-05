@@ -1,8 +1,8 @@
-import ConfigurationService from '../../env/ConfigurationService';
-import EnvParam from '../../env/EnvParam';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import ConfigurationService from '../../env/ConfigurationService';
+import EnvParam from '../../env/EnvParam';
 
 export default class TemplateHandlerServer {
 
@@ -43,7 +43,8 @@ export default class TemplateHandlerServer {
         const env: EnvParam = ConfigurationService.node_configuration;
         while (regExp.test(template)) {
             const regexpres: string[] = regExp.exec(template);
-            const varname: string = regexpres[1];
+            let varname: string = regexpres[1];
+            varname = varname ? varname.toLowerCase() : varname;
             const then_: string = regexpres[2];
             const else_: string = regexpres[3];
 
@@ -118,7 +119,8 @@ export default class TemplateHandlerServer {
         const env: EnvParam = ConfigurationService.node_configuration;
         while (regExp.test(template)) {
             const regexpres: string[] = regExp.exec(template);
-            const varname: string = regexpres[1];
+            let varname: string = regexpres[1];
+            varname = varname ? varname.toLowerCase() : varname;
 
             if (varname && env[varname]) {
                 template = template.replace(regExp, env[varname]);

@@ -34,6 +34,8 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
     public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
+    public _type: string = RefRangesReferenceDatatableFieldVO.API_TYPE_ID;
+
     public _src_field_id: string;
 
     get src_field_id(): string {

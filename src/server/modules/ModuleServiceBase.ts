@@ -178,7 +178,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.node_configuration.BDD_OWNER;
+        return ConfigurationService.node_configuration.bdd_owner;
     }
 
     get sharedModules(): Module[] {
@@ -231,7 +231,7 @@ export default abstract class ModuleServiceBase {
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db_ = db;
 
-        db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
+        db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         db.$pool.options.idleTimeoutMillis = 120000;
 
         this.registered_base_modules = this.getBaseModules();
@@ -246,12 +246,16 @@ export default abstract class ModuleServiceBase {
         this.server_child_modules = this.getServerChildModules();
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
+        ModuleTableController.init_field_name_to_api_map();
+        ModuleTableController.init_readonly_fields_by_ids();
+        ModuleTableController.init_unique_fields_by_voType();
+
         // On init le lien de db dans ces modules
         ModuleDBService.getInstance(ModuleServiceBase.db);
         ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
-        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
 
             await this.create_modules_base_structure_in_db();
 
@@ -259,7 +263,7 @@ export default abstract class ModuleServiceBase {
             await this.install_modules();
         } else {
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (const i in this.registered_modules) {
@@ -267,31 +271,31 @@ export default abstract class ModuleServiceBase {
 
                 await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
             }
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
         await this.configure_server_modules_apis();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
-        // if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+        // if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
 
         //     // On appelle le hook de configuration
         //     await this.configure_modules();
@@ -362,7 +366,7 @@ export default abstract class ModuleServiceBase {
         for (const i in this.server_modules) {
             const server_module: ModuleServerBase = this.server_modules[i];
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
@@ -374,26 +378,26 @@ export default abstract class ModuleServiceBase {
                     server_module.registerImport(),
                 ]);
 
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.debug_start_server) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.debug_start_server) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
-                    if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                    if (ConfigurationService.node_configuration.debug_start_server) {
                         ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
@@ -728,28 +732,28 @@ export default abstract class ModuleServiceBase {
             //  en les appliquant surtout en amont dans la création de la requete pour bloquer la création d'une requete trop grosse et qui ferait une erreur.
             //  Si la requete ne passe pas sur les vars, c'est pas une var interdite aujourd'hui, c'est un 0. il faut peut-etre réintroduire une var interdite pour les requetes trop grosses
 
-            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+            if (ConfigurationService.node_configuration.max_size_per_query && (query.length > ConfigurationService.node_configuration.max_size_per_query)) {
 
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
                 const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
-                ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
+                ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
-                //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+                //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ')');
             }
 
-            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+            if (ConfigurationService.node_configuration.max_union_all_per_query && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.max_union_all_per_query)) {
 
                 // export query to txt file for debug
                 const fs = require('fs');
                 const path = require('path');
                 const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
-                ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
+                ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 
-                //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+                //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ')');
             }
 
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
@@ -796,13 +800,13 @@ export default abstract class ModuleServiceBase {
     private debug_slow_queries(query: string, values: any[], duration: number) {
         duration = Math.round(duration);
         let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
-        query_s = (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_s : query_s.substring(0, 1000));
+        query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
 
-        if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
-            (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+        if (ConfigurationService.node_configuration.debug_slow_queries &&
+            (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
-        } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
-            (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+        } else if (ConfigurationService.node_configuration.debug_slow_queries &&
+            (duration > ConfigurationService.node_configuration.debug_slow_queries_ms_limit)) {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
         }
     }

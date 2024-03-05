@@ -2,17 +2,17 @@
 
 export default class EnvHandler {
 
-    public static IS_DEV: boolean = false;
-    public static DEBUG_VARS: boolean = false;
-    public static NODE_VERBOSE: boolean = true;
-    public static COMPRESS: boolean = false;
-    public static BASE_URL: string = null;
-    public static CODE_GOOGLE_ANALYTICS: string = null;
-    public static VERSION: string = null;
-    public static ACTIVATE_PWA: boolean = false;
-    public static MAX_POOL: number = null;
-    public static DEBUG_PROMISE_PIPELINE: boolean = false;
-    public static ZOOM_AUTO: boolean = false;
+    public static is_dev: boolean = false;
+    public static debug_vars: boolean = false;
+    public static node_verbose: boolean = true;
+    public static compress: boolean = false;
+    public static base_url: string = null;
+    public static code_google_analytics: string = null;
+    public static version: string = null;
+    public static activate_pwa: boolean = false;
+    public static max_pool: number = null;
+    public static debug_promise_pipeline: boolean = false;
+    public static zoom_auto: boolean = false;
 
     private constructor() { }
 }
