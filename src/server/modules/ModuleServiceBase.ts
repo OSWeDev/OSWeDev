@@ -113,6 +113,7 @@ import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
+import PreloadedModuleServerController from './PreloadedModuleServerController';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
@@ -233,6 +234,11 @@ export default abstract class ModuleServiceBase {
         db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
         db.$pool.options.idleTimeoutMillis = 120000;
 
+        // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
+        // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
+        PreloadedModuleServerController.db = db;
+        await PreloadedModuleServerController.preload_modules_is_actif();
+
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
         this.registered_modules = [].concat(this.registered_base_modules, this.registered_child_modules);
@@ -245,8 +251,6 @@ export default abstract class ModuleServiceBase {
         this.server_child_modules = this.getServerChildModules();
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
-        // On init le lien de db dans ces modules
-        ModuleDBService.getInstance(ModuleServiceBase.db);
         ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
@@ -264,7 +268,7 @@ export default abstract class ModuleServiceBase {
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
-                await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
+                await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
@@ -312,9 +316,9 @@ export default abstract class ModuleServiceBase {
             // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
             if (registered_module.fields && (registered_module.fields.length > 0)) {
 
-                await ModuleDBService.getInstance(ModuleServiceBase.db).loadParams(registered_module);
+                await ModuleDBService.getInstance().loadParams(registered_module);
 
-                ModuleDBService.getInstance(ModuleServiceBase.db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
+                ModuleDBService.getInstance().reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
             }
 
             // On appelle le hook de fin d'installation
@@ -504,7 +508,7 @@ export default abstract class ModuleServiceBase {
             let registered_module = this.registered_modules[i];
 
             try {
-                await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
+                await ModuleDBService.getInstance().module_install(
                     registered_module
                 );
             } catch (e) {
@@ -528,7 +532,7 @@ export default abstract class ModuleServiceBase {
 
             try {
                 if (registered_module.actif) {
-                    await ModuleDBService.getInstance(ModuleServiceBase.db).module_configure(
+                    await ModuleDBService.getInstance().module_configure(
                         registered_module
                     );
                 }
