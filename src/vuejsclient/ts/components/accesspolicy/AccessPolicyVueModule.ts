@@ -11,6 +11,7 @@ import AccessPolicyVueController from './AccessPolicyVueController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class AccessPolicyVueModule extends VueModuleBase {
     public static getInstance(): AccessPolicyVueModule {

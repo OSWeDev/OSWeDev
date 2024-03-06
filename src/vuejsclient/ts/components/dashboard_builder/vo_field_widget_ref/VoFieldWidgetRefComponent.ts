@@ -6,6 +6,7 @@ import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesMa
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import './VoFieldWidgetRefComponent.scss';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VoFieldWidgetRefComponent.pug'),

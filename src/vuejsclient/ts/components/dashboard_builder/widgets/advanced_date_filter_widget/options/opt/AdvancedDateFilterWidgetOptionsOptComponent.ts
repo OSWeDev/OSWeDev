@@ -10,6 +10,7 @@ import VueComponentBase from '../../../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import AdvancedDateFilterWidgetOptions from '../AdvancedDateFilterWidgetOptions';
 import './AdvancedDateFilterWidgetOptionsOptComponent.scss';
+import ModuleTableController from '../../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetOptionsOptComponent.pug'),

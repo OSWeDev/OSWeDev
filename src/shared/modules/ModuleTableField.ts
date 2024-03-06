@@ -8,7 +8,7 @@
 // import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 // import DefaultTranslationVO from './Translation/vos/DefaultTranslationVO';
 
-// export default class ModuleTableFieldVO<T> {
+// export default class ModuleTableFieldVO {
 
 //     public static VALIDATION_CODE_TEXT_BASE: string = "validation.ko.";
 //     public static VALIDATION_CODE_TEXT_required: string = ModuleTableFieldVO.VALIDATION_CODE_TEXT_BASE + "required";
@@ -219,22 +219,22 @@
 //         }
 //     }
 
-//     public set_translatable_params_field_id(translatable_params_field_id: string): ModuleTableFieldVO<T> {
+//     public set_translatable_params_field_id(translatable_params_field_id: string): ModuleTableFieldVO {
 //         this.translatable_params_field_id = translatable_params_field_id;
 //         return this;
 //     }
 
-//     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableFieldVO<T> {
+//     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableFieldVO {
 //         this.validate_input = validate_input;
 //         return this;
 //     }
 
-//     public set_format_localized_time(format_localized_time: boolean): ModuleTableFieldVO<T> {
+//     public set_format_localized_time(format_localized_time: boolean): ModuleTableFieldVO {
 //         this.format_localized_time = format_localized_time;
 //         return this;
 //     }
 
-//     public set_segmentation_type(segmentation_type: number): ModuleTableFieldVO<T> {
+//     public set_segmentation_type(segmentation_type: number): ModuleTableFieldVO {
 //         this.segmentation_type = segmentation_type;
 //         return this;
 //     }
@@ -245,7 +245,7 @@
 //      * @param boolean_icon_false FontAwesome icon name pour false
 //      * @returns
 //      */
-//     public set_boolean_default_icons(boolean_icon_true: string, boolean_icon_false: string): ModuleTableFieldVO<T> {
+//     public set_boolean_default_icons(boolean_icon_true: string, boolean_icon_false: string): ModuleTableFieldVO {
 //         this.boolean_icon_true = boolean_icon_true;
 //         this.boolean_icon_false = boolean_icon_false;
 //         return this;
@@ -255,95 +255,95 @@
 //      * Permet de définir si les couleurs doivent être inversées pour les booleans
 //      * @returns
 //      */
-//     public set_boolean_invert_colors(): ModuleTableFieldVO<T> {
+//     public set_boolean_invert_colors(): ModuleTableFieldVO {
 //         this.boolean_invert_colors = true;
 //         return this;
 //     }
 
-//     public set_return_max_value(return_max_value: boolean): ModuleTableFieldVO<T> {
+//     public set_return_max_value(return_max_value: boolean): ModuleTableFieldVO {
 //         this.return_max_value = return_max_value;
 //         return this;
 //     }
 
-//     public set_max_range_offset(max_range_offset: number): ModuleTableFieldVO<T> {
+//     public set_max_range_offset(max_range_offset: number): ModuleTableFieldVO {
 //         this.max_range_offset = max_range_offset;
 //         return this;
 //     }
 
-//     public set_return_min_value(return_min_value: boolean): ModuleTableFieldVO<T> {
+//     public set_return_min_value(return_min_value: boolean): ModuleTableFieldVO {
 //         this.return_min_value = return_min_value;
 //         return this;
 //     }
 
-//     public readonly(): ModuleTableFieldVO<T> {
+//     public readonly(): ModuleTableFieldVO {
 //         this.is_readonly = true;
 //         return this;
 //     }
 
-//     public unique(replace_if_unique: boolean = false): ModuleTableFieldVO<T> {
+//     public unique(replace_if_unique: boolean = false): ModuleTableFieldVO {
 //         this.is_unique = true;
 //         this.replace_if_unique = replace_if_unique;
 //         return this;
 //     }
 
-//     public not_add_to_crud(): ModuleTableFieldVO<T> {
+//     public not_add_to_crud(): ModuleTableFieldVO {
 //         this.do_not_add_to_crud = true;
 //         return this;
 //     }
 
-//     public index(): ModuleTableFieldVO<T> {
+//     public index(): ModuleTableFieldVO {
 //         this.is_indexed = true;
 //         return this;
 //     }
 
-//     public do_not_index(): ModuleTableFieldVO<T> {
+//     public do_not_index(): ModuleTableFieldVO {
 //         this.is_indexed = false;
 //         return this;
 //     }
 
-//     public hide_print(): ModuleTableFieldVO<T> {
+//     public hide_print(): ModuleTableFieldVO {
 //         this.hidden_print = true;
 
 //         return this;
 //     }
 
-//     public set_max_values(max_values: number): ModuleTableFieldVO<T> {
+//     public set_max_values(max_values: number): ModuleTableFieldVO {
 
 //         this.max_values = max_values;
 //         return this;
 //     }
 
-//     public set_min_values(min_values: number): ModuleTableFieldVO<T> {
+//     public set_min_values(min_values: number): ModuleTableFieldVO {
 
 //         this.min_values = min_values;
 //         return this;
 //     }
 
-//     public hide_from_datatable(): ModuleTableFieldVO<T> {
+//     public hide_from_datatable(): ModuleTableFieldVO {
 //         this.is_visible_datatable = false;
 
 //         return this;
 //     }
 
-//     public set_custom_translate_to_xlsx(custom_translate_to_xlsx: (value: any) => any): ModuleTableFieldVO<T> {
+//     public set_custom_translate_to_xlsx(custom_translate_to_xlsx: (value: any) => any): ModuleTableFieldVO {
 //         this.custom_translate_to_xlsx = custom_translate_to_xlsx;
 
 //         return this;
 //     }
 
-//     public set_custom_translate_to_api(custom_translate_to_api: (value: any) => any): ModuleTableFieldVO<T> {
+//     public set_custom_translate_to_api(custom_translate_to_api: (value: any) => any): ModuleTableFieldVO {
 //         this.custom_translate_to_api = custom_translate_to_api;
 
 //         return this;
 //     }
 
-//     public set_custom_translate_from_api(custom_translate_from_api: (value: any) => any): ModuleTableFieldVO<T> {
+//     public set_custom_translate_from_api(custom_translate_from_api: (value: any) => any): ModuleTableFieldVO {
 //         this.custom_translate_from_api = custom_translate_from_api;
 
 //         return this;
 //     }
 
-//     public setModuleTable(moduleTable: ModuleTableVO): ModuleTableFieldVO<T> {
+//     public setModuleTable(moduleTable: ModuleTableVO): ModuleTableFieldVO {
 //         this.module_table = moduleTable;
 
 //         this.setLabelCodeText();
@@ -351,31 +351,31 @@
 //         return this;
 //     }
 
-//     public setIsArray(): ModuleTableFieldVO<T> {
+//     public setIsArray(): ModuleTableFieldVO {
 //         this.is_array = true;
 
 //         return this;
 //     }
 
-//     public setInclusiveData(): ModuleTableFieldVO<T> {
+//     public setInclusiveData(): ModuleTableFieldVO {
 //         this.is_inclusive_data = true;
 
 //         return this;
 //     }
 
-//     public donotCascadeOnDelete(): ModuleTableFieldVO<T> {
+//     public donotCascadeOnDelete(): ModuleTableFieldVO {
 //         this.cascade_on_delete = false;
 
 //         return this;
 //     }
 
-//     public forceCascadeOnDelete(): ModuleTableFieldVO<T> {
+//     public forceCascadeOnDelete(): ModuleTableFieldVO {
 //         this.cascade_on_delete = true;
 
 //         return this;
 //     }
 
-//     public setInclusiveIHM(): ModuleTableFieldVO<T> {
+//     public setInclusiveIHM(): ModuleTableFieldVO {
 //         this.is_inclusive_ihm = true;
 
 //         return this;
@@ -384,7 +384,7 @@
 //     /**
 //      * @param validator Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
 //      */
-//     public setValidator(validator: (data: any) => string): ModuleTableFieldVO<T> {
+//     public setValidator(validator: (data: any) => string): ModuleTableFieldVO {
 //         this.validate = validator;
 
 //         return this;
@@ -397,7 +397,7 @@
 //     /**
 //      * @param enum_values An obj which for each key has as a value the code_text used for translation
 //      */
-//     public setEnumValues(enum_values: { [value: number]: string }): ModuleTableFieldVO<T> {
+//     public setEnumValues(enum_values: { [value: number]: string }): ModuleTableFieldVO {
 //         this.field_type = ModuleTableFieldVO.FIELD_TYPE_enum;
 //         this.enum_values = enum_values;
 
@@ -407,7 +407,7 @@
 //     /**
 //      * @param enum_image_values An obj which for each key has as a value the code_text used for translation
 //      */
-//     public setEnumImageValues(enum_image_values: { [value: number]: string }): ModuleTableFieldVO<T> {
+//     public setEnumImageValues(enum_image_values: { [value: number]: string }): ModuleTableFieldVO {
 //         this.field_type = ModuleTableFieldVO.FIELD_TYPE_enum;
 //         this.enum_image_values = enum_image_values;
 
@@ -417,14 +417,14 @@
 //     /**
 //      * @param enum_color_values An obj which for each key has as a value the code_text used for translation
 //      */
-//     public setEnumColorValues(enum_color_values: { [value: number]: string }): ModuleTableFieldVO<T> {
+//     public setEnumColorValues(enum_color_values: { [value: number]: string }): ModuleTableFieldVO {
 //         this.field_type = ModuleTableFieldVO.FIELD_TYPE_enum;
 //         this.enum_color_values = enum_color_values;
 
 //         return this;
 //     }
 
-//     public setTargetDatatable(module_table: ModuleTableVO): ModuleTableFieldVO<T> {
+//     public setTargetDatatable(module_table: ModuleTableVO): ModuleTableFieldVO {
 //         this.module_table = module_table;
 
 //         this.setLabelCodeText();
@@ -432,7 +432,7 @@
 //         return this;
 //     }
 
-//     public setLabelCodeText(module_name: string = null): ModuleTableFieldVO<T> {
+//     public setLabelCodeText(module_name: string = null): ModuleTableFieldVO {
 //         if (this.module_table) {
 //             this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 //         } else {
@@ -504,7 +504,7 @@
 //         }
 //     }
 
-//     public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTableVO<U>): ModuleTableFieldVO<T> {
+//     public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTableVO<U>): ModuleTableFieldVO {
 //         this.manyToOne_target_moduletable = target_database;
 //         this.target_database = target_database.database;
 //         this.target_table = target_database.name;

@@ -30,6 +30,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import './SupervisionWidgetComponent.scss';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),

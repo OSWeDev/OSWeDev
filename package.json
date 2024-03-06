@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.31.8",
+    "version": "0.32.0-pre.0",
     "description": "",
     "repository": {
         "type": "git",
@@ -43,7 +43,7 @@
         "@types/express-session": "1.17.0",
         "@types/jquery": "3.3.31",
         "@types/jqueryui": "1.12.2",
-        "@types/lodash": "4.14.149",
+        "@types/lodash": "4.14.202",
         "@types/node": "13.1.1",
         "@types/socket.io": "3.0.2",
         "@vue/composition-api": "1.7.2",
@@ -164,8 +164,8 @@
         "playwright-test-coverage": "^1.2.12",
         "source-map-support": "0.5.16",
         "ts-node": "8.8.2",
-        "tsc-watch": "1.0.27",
-        "typescript": "4.7.4",
+        "tsc-watch": "6.0.4",
+        "typescript": "5.3.3",
         "vue-i18n": "7.4.0",
         "vue-photo-collage": "1.0.5",
         "vue-resource": "1.5.3",

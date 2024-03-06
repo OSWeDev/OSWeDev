@@ -8,6 +8,7 @@ import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
 import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./DroppableVoFieldsComponent.pug'),

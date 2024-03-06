@@ -10,6 +10,7 @@ import IArchivedVOBase from '../../IArchivedVOBase';
 import IDistantVOBase from '../../IDistantVOBase';
 import DefaultTranslationManager from '../../Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../Translation/vos/DefaultTranslationVO';
+import ModuleTableController from '../ModuleTableController';
 import ModuleTableFieldController from '../ModuleTableFieldController';
 import ModuleTableFieldVO from './ModuleTableFieldVO';
 
@@ -154,6 +155,7 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     /**
      * @deprecated use ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name] instead
+     * Or it needs to be optimized for recurring calls
      */
     public getFieldFromId(field_name: string): ModuleTableFieldVO {
         return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type][field_name];
@@ -161,6 +163,7 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     /**
      * @deprecated use ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type] instead. WARN it is a map not an array
+     * Or it needs to be optimized for recurring calls
      */
     public get_fields(): ModuleTableFieldVO[] {
         return ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.vo_type] ?
@@ -396,5 +399,21 @@ export default class ModuleTableVO implements IDistantVOBase {
         ModuleTableFieldController.create_new(this._type, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false);
 
         return this;
+    }
+
+    /**
+     * @deprecated use ModuleTableController.vo_constructor_by_vo_type instead
+     * Or it needs to be optimized for recurring calls
+     */
+    public voConstructor(): IDistantVOBase {
+        return new ModuleTableController.vo_constructor_by_vo_type[this.vo_type]();
+    }
+
+    /**
+     * @deprecated use ModuleTableController.table_label_function_by_vo_type instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get table_label_function(): <T extends IDistantVOBase>(vo: T) => string {
+        return ModuleTableController.table_label_function_by_vo_type[this.vo_type];
     }
 }

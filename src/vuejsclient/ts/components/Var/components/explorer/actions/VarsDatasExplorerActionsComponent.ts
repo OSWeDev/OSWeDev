@@ -10,6 +10,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerActionsComponent.scss';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VarsDatasExplorerActionsComponent.pug'),

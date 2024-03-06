@@ -1,17 +1,16 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
-import TablesGraphItemFieldComponent from './field/TablesGraphItemFieldComponent';
 import './TablesGraphItemComponent.scss';
+import TablesGraphItemFieldComponent from './field/TablesGraphItemFieldComponent';
 
 @Component({
     template: require('./TablesGraphItemComponent.pug'),
     components: {
-        Tablesgraphitemfieldcomponent: TablesGraphItemFieldComponent
-    }
+        Tablesgraphitemfieldcomponent: TablesGraphItemFieldComponent,
+    },
 })
 export default class TablesGraphItemComponent extends VueComponentBase {
 

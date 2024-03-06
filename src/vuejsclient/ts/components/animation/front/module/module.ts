@@ -30,6 +30,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
 import VueAnimationQrComponent from "../qr/qr";
 import { field_names } from "../../../../../../shared/tools/ObjectHandler";
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 
 @Component({
     template: require("./module.pug"),

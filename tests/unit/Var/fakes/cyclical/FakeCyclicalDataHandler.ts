@@ -1,13 +1,13 @@
 
 import moment from 'moment';
+import ModuleTableFieldController from '../../../../../src/shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import NumRange from '../../../../../src/shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../src/shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../src/shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidCutResult from '../../../../../src/shared/modules/Matroid/vos/MatroidCutResult';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
 import ConsoleHandler from '../../../../../src/shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';
@@ -26,11 +26,11 @@ export default class FakeCyclicalDataHandler {
     public static initializeFakeEmpDayDataVO() {
 
         const datatable_fields = [
-            ModuleTableFieldController.create_new('employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employes').set_segmentation_type(NumSegment.TYPE_INT),
-            ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new(FakeEmpDayDataVO.API_TYPE_ID, 'employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employes').set_segmentation_type(NumSegment.TYPE_INT),
+            ModuleTableFieldController.create_new(FakeEmpDayDataVO.API_TYPE_ID, 'ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        VarsInitController.getInstance().register_var_data(FakeEmpDayDataVO.API_TYPE_ID, () => new FakeEmpDayDataVO(), datatable_fields, null, true);
+        VarsInitController.getInstance().register_var_data(FakeEmpDayDataVO.API_TYPE_ID, FakeEmpDayDataVO, datatable_fields, null, true);
     }
 
     public static matroid_1_2_moins1_zero(): FakeEmpDayDataVO {

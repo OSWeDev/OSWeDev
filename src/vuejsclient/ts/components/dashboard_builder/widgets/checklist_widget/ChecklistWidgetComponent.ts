@@ -448,7 +448,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
             // Create context_filter for checklist_id (checklist items that are in this checklist)
             let context_filter = new ContextFilterVO();
-            context_filter.field_id = 'checklist_id';
+            context_filter.field_name = 'checklist_id';
             context_filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
             context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             context_filter.param_numeric = self.checklist.id;
@@ -461,7 +461,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
             // Create context_filter for archived (checklist items that are not archived)
             context_filter = new ContextFilterVO();
-            context_filter.field_id = 'archived';
+            context_filter.field_name = 'archived';
             context_filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
             context_filter.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
 

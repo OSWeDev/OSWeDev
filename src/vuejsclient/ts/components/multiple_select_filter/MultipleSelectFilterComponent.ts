@@ -1,16 +1,16 @@
 import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
 import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ArrayHandler from '../../../../shared/tools/ArrayHandler';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./MultipleSelectFilterComponent.pug'),

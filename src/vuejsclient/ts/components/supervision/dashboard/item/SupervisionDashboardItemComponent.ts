@@ -10,6 +10,7 @@ import { ModuleSupervisionAction, ModuleSupervisionGetter } from '../Supervision
 import './SupervisionDashboardItemComponent.scss';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./SupervisionDashboardItemComponent.pug'),

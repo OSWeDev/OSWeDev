@@ -24,6 +24,7 @@ import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
 import AccessPolicyVueController from './AccessPolicyVueController';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 

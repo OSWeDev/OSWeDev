@@ -26,13 +26,13 @@ import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 import Module from '../shared/modules/Module';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from "../shared/modules/Stats/StatsController";
-import VOsTypesManager from "../shared/modules/VO/manager/VOsTypesManager";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -82,7 +82,7 @@ export default abstract class VueAppBase {
 
     protected constructor(
         public appController: VueAppController,
-        private initializeModulesDatas: () => {}
+        private initializeModulesDatas: () => Promise<unknown>,
     ) {
         VueAppBase.instance_ = this;
     }
@@ -100,7 +100,7 @@ export default abstract class VueAppBase {
         let promises = [];
 
         Vue.config.devtools = false;
-        if (EnvHandler.IS_DEV) {
+        if (EnvHandler.is_dev) {
             Vue.config.devtools = true;
         }
 
@@ -121,7 +121,7 @@ export default abstract class VueAppBase {
         const types = Object.keys(ModuleTableController.module_tables_by_vo_type);
         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
         types.forEach((type) =>
-            DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
+            DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null,
         );
 
         const modules_by_name = ModulesManager.getInstance().modules_by_name;
@@ -131,7 +131,7 @@ export default abstract class VueAppBase {
         for (const module_name in modules_by_name) {
             const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
-                VueModuleBase.IVueModuleRoleName
+                VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
 
             /**
@@ -160,7 +160,7 @@ export default abstract class VueAppBase {
         for (const module_name in modules_by_name) {
             const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
-                VueModuleBase.IVueModuleRoleName
+                VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
 
             if (module_) {
@@ -197,10 +197,10 @@ export default abstract class VueAppBase {
             missing: (locale, key, vm) => {
                 VueAppController.getInstance().throttled_register_translation({
                     translation_code: key,
-                    missing: true
+                    missing: true,
                 });
             },
-            silentTranslationWarn: true
+            silentTranslationWarn: true,
         });
         // TODO : il faudrait probablement forcer ce param côté client non ? LocaleManager.getInstance().i18n.nsSeparator = '¤';
         Vue.config['lang'] = default_locale;
@@ -210,17 +210,17 @@ export default abstract class VueAppBase {
         Vue['http'].interceptors.push(
             function (request, next) {
                 request.xhr = {
-                    withCredentials: true
+                    withCredentials: true,
                 };
                 next();
-            }
+            },
         );
 
         // Vu avec MDE -> on laisse le script en load public pour le moment sinon il faut faire la modification dans tous les projets
         const fontawesome = document.createElement("script");
         fontawesome.setAttribute(
             "src",
-            "//kit.fontawesome.com/26085407f2.js"
+            "//kit.fontawesome.com/26085407f2.js",
         );
         document.head.appendChild(fontawesome);
 
@@ -237,7 +237,7 @@ export default abstract class VueAppBase {
             },
             write: (value) => {
                 return value.toString().replace("h", ".");
-            }
+            },
         } as any);
 
         Vue.filter('hourCalcul', {
@@ -258,11 +258,11 @@ export default abstract class VueAppBase {
             },
             write: (value) => {
                 return value.toString().replace("h", ".");
-            }
+            },
         } as any);
 
         const routerOptions: RouterOptions = {
-            linkActiveClass: "active"
+            linkActiveClass: "active",
         };
 
         /* Test suppression baseApiUrl var normalMode = baseApiUrl == '';
@@ -297,14 +297,14 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent')
+                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent'),
             });
         }
 
         routerOptions.routes.push({
             path: '/me',
             name: 'MyAccount',
-            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent'),
         });
 
         routerOptions.routes.push({
@@ -313,13 +313,13 @@ export default abstract class VueAppBase {
             component: () => import('./ts/components/action_url_cr/ActionURLCRComponent'),
             props: (route) => ({
                 action_url_id: route.params.action_url_id,
-            })
+            }),
         });
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: () => import('./ts/components/Error404/component/Error404Component')
+            component: () => import('./ts/components/Error404/component/Error404Component'),
         });
 
         this.vueRouter = new VueRouter(routerOptions);
@@ -355,7 +355,7 @@ export default abstract class VueAppBase {
             }
         }
 
-        const code_google_analytics: string = EnvHandler.CODE_GOOGLE_ANALYTICS;
+        const code_google_analytics: string = EnvHandler.code_google_analytics;
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
@@ -370,7 +370,7 @@ export default abstract class VueAppBase {
                 route.name,
                 route.fullPath,
                 route.fullPath,
-                code_google_analytics
+                code_google_analytics,
             );
 
             if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
@@ -402,7 +402,7 @@ export default abstract class VueAppBase {
                     document.body.className = document.body.className.replace(/ sidebar-collaps[^ ]+/ig, '');
                 }
                 document.body.className += " sidebar-collapse";
-            } else { }
+            }
 
             if (route.name && (route.name != 'home')) {
                 document.body.className += " page-" + route.name;
@@ -425,7 +425,7 @@ export default abstract class VueAppBase {
         // Use v-calendar, v-date-picker & v-popover components
         Vue.use(VCalendar, {
             firstDayOfWeek: 2,
-            locale: default_locale
+            locale: default_locale,
         });
 
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
@@ -464,7 +464,7 @@ export default abstract class VueAppBase {
         AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
 
         // On applique un zoom auto si param à TRUE
-        // if (EnvHandler.ZOOM_AUTO) {
+        // if (EnvHandler.zoom_auto) {
         //     let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
 
         //     if (zoom <= 1) {
@@ -479,17 +479,17 @@ export default abstract class VueAppBase {
 
         const app_name: "client" | "admin" | "login" = this.appController.app_name;
 
-        if (EnvHandler.ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
+        if (EnvHandler.activate_pwa && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
                 $,
                 app_name,
-                '/public/client-sw.' + EnvHandler.VERSION + '.js'
+                '/public/client-sw.' + EnvHandler.version + '.js',
             );
         }
         // this.registerPushWorker();
 
         window.onbeforeunload = (e) => {
-            var e = e || window.event;
+            e = e || window.event;
 
             // ConsoleHandler.log('onbeforeunload');
 

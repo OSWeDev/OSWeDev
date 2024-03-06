@@ -26,7 +26,7 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
@@ -68,7 +68,7 @@ const debounce = require('lodash/debounce');
         Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
-    }
+    },
 })
 export default class CRUDComponentField extends VueComponentBase
     implements ICRUDComponentField {
@@ -1321,15 +1321,15 @@ export default class CRUDComponentField extends VueComponentBase
                         self.$snotify.remove(toast.id);
                         await self.inline_clear_value_confirmed();
                     },
-                    bold: false
+                    bold: false,
                 },
                 {
                     text: self.t('NO'),
                     action: (toast) => {
                         self.$snotify.remove(toast.id);
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         });
     }
 
@@ -1450,7 +1450,7 @@ export default class CRUDComponentField extends VueComponentBase
                 timeout: 500,
                 showProgressBar: false,
                 closeOnClick: true,
-                pauseOnHover: true
+                pauseOnHover: true,
             });
         }
     }
@@ -1536,7 +1536,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.replace_alerts({
             alert_path: this.field.alert_path,
-            alerts: null
+            alerts: null,
         });
     }
 
@@ -1565,9 +1565,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let keynum;
-
-        keynum = e.key;
+        const keynum = e.key;
 
         if (keynum == 'Enter') {
 

@@ -5,6 +5,7 @@ import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import MenuController from '../menu/MenuController';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class CRUDComponentManager {
 

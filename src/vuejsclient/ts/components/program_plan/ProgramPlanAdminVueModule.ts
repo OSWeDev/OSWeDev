@@ -1,3 +1,4 @@
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComputedDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';

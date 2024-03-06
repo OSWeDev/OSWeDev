@@ -14,8 +14,11 @@ import ContextQueryVO, { query } from '../../../../../../../shared/modules/Conte
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../../../shared/modules/DAO/vos/CRUD';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import Datatable from '../../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
@@ -38,9 +41,6 @@ import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
@@ -70,7 +70,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -578,7 +578,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             for (const i in fields) {
                 const field = fields[i];
 
-                if (field.manyToOne_target_moduletable && (field.foreign_ref_vo_type == self.kanban_column.api_type_id)) {
+                if (field.foreign_ref_vo_type && (field.foreign_ref_vo_type == self.kanban_column.api_type_id)) {
                     if (!data_field) {
                         data_field = field;
                     } else {
@@ -832,8 +832,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private is_filtering_by_col(column: TableColumnDescVO): boolean {
         return this.is_filtering_by &&
             this.filtering_by_active_field_filter && (
-                (this.filtering_by_active_field_filter.field_id == column.field_id) ||
-                ((!column.field_id) && (this.filtering_by_active_field_filter.field_id == 'id'))
+                (this.filtering_by_active_field_filter.field_name == column.field_id) ||
+                ((!column.field_id) && (this.filtering_by_active_field_filter.field_name == 'id'))
             ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
@@ -854,7 +854,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.is_filtering_by = true;
         const filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
         filtering_by_active_field_filter.vo_type = column.api_type_id;
-        filtering_by_active_field_filter.field_id = column.field_id;
+        filtering_by_active_field_filter.field_name = column.field_id;
 
         // cas de l'id
         if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
@@ -980,9 +980,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         const columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
-            (c.field_id == this.filtering_by_active_field_filter.field_id) ||
-            ((!c.field_id) && (this.filtering_by_active_field_filter.field_id == 'id')) ||
-            ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_id == 'id'))
+            (c.field_id == this.filtering_by_active_field_filter.field_name) ||
+            ((!c.field_id) && (this.filtering_by_active_field_filter.field_name == 'id')) ||
+            ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_name == 'id'))
         ));
         const column = columns ? columns[0] : null;
         if (!column) {
@@ -1763,12 +1763,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         if (this.is_filtering_by && this.filtering_by_active_field_filter) {
 
             if ((!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type]) ||
-                (!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id]) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].filter_type != this.filtering_by_active_field_filter.filter_type) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].field_id != this.filtering_by_active_field_filter.field_id) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
-                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].param_text != this.filtering_by_active_field_filter.param_text)) {
+                (!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name]) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].filter_type != this.filtering_by_active_field_filter.filter_type) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].vo_type != this.filtering_by_active_field_filter.vo_type) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].field_name != this.filtering_by_active_field_filter.field_name) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name].param_text != this.filtering_by_active_field_filter.param_text)) {
                 this.is_filtering_by = false;
                 this.filtering_by_active_field_filter = null;
             }
@@ -1809,7 +1809,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             query_.filters = query_.filters.filter((f) =>
                 (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
                 (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (f.field_id != this.filtering_by_active_field_filter.field_id) ||
+                (f.field_name != this.filtering_by_active_field_filter.field_name) ||
                 (f.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
                 (f.param_text != this.filtering_by_active_field_filter.param_text));
         }
@@ -1817,7 +1817,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // Si on est sur un kanban, on ordonne par weight si c'est activé
         const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[this.kanban_column.api_type_id];
 
-        if (this.kanban_column && this.kanban_column.kanban_use_weight && kanban_moduletable.has_field_id(field_names<IWeightedItem & IDistantVOBase>().weight)) {
+        if (this.kanban_column && this.kanban_column.kanban_use_weight &&
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.kanban_column.api_type_id][field_names<IWeightedItem & IDistantVOBase>().weight]) {
             query_.set_sort(new SortByVO(this.kanban_column.api_type_id, field_names<IWeightedItem & IDistantVOBase>().weight, true));
         } else {
             if (this.fields && (
@@ -1830,7 +1831,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        if (this.widget_options.use_kanban_card_archive_if_exists && kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived)) {
+        if (this.widget_options.use_kanban_card_archive_if_exists &&
+            ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[this.kanban_column.api_type_id][field_names<IArchivedVOBase>().archived]) {
             query_.filter_is_false(field_names<IArchivedVOBase>().archived);
         }
 
@@ -1904,7 +1906,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         ) {
             if (
                 !base_table.table_segmented_field ||
-                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !base_table.table_segmented_field.foreign_ref_vo_type ||
                 !this.get_active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
                 !Object.keys(this.get_active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
             ) {
@@ -2895,7 +2897,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
                 const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
                 const item_id = elt.getAttribute('item_id');
-                return (!item_id) || !kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived);
+                return (!item_id) || !ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived];
             },
             callback: async (key, opt) => {
                 const elt = opt.$trigger[0];
@@ -2918,7 +2920,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 const kanban_api_type_id = elt.getAttribute('kanban_api_type_id');
                 const kanban_moduletable = ModuleTableController.module_tables_by_vo_type[kanban_api_type_id];
 
-                if (!kanban_moduletable.has_field_id(field_names<IArchivedVOBase>().archived)) {
+                if (!ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[kanban_api_type_id][field_names<IArchivedVOBase>().archived]) {
                     return;
                 }
 

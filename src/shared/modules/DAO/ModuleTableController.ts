@@ -343,7 +343,7 @@ export default class ModuleTableController {
         for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
             const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
-            const n = 0;
+            let n = 0;
             const sortedFields = Object.values(fields).sort((a, b) => a.id - b.id);
 
             if ((!sortedFields) || (!sortedFields.length)) {
@@ -355,7 +355,7 @@ export default class ModuleTableController {
             for (const field_name in sortedFields) {
                 const field = sortedFields[field_name];
 
-                ModuleTableController.field_name_to_api_map[vo_type][field.field_name] = ModuleTableController.OFFUSC_IDs[n];
+                ModuleTableController.field_name_to_api_map[vo_type][field.field_name] = ModuleTableController.OFFUSC_IDs[n++];
             }
         }
     }

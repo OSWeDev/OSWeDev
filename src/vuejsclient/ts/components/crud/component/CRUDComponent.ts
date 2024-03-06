@@ -18,7 +18,7 @@ import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldController from '../../../../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
@@ -36,11 +36,12 @@ import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import CRUDFormServices from './CRUDFormServices';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        Datatable: DatatableComponent
+        Datatable: DatatableComponent,
     },
 })
 export default class CRUDComponent extends VueComponentBase {
@@ -303,7 +304,7 @@ export default class CRUDComponent extends VueComponentBase {
     // Handle Loading of stored data
 
     private loadDatasFromDatatable(
-        datatable: Datatable<IDistantVOBase>
+        datatable: Datatable<IDistantVOBase>,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
         const self = this;
@@ -316,9 +317,9 @@ export default class CRUDComponent extends VueComponentBase {
                     const vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                     self.storeDatas({
                         API_TYPE_ID: datatable.API_TYPE_ID,
-                        vos: vos
+                        vos: vos,
                     });
-                })()
+                })(),
             );
 
             for (const i in datatable.fields) {
@@ -351,14 +352,14 @@ export default class CRUDComponent extends VueComponentBase {
                         const vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
             for (const i in reference.sortedTargetFields) {
                 res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
+                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i]),
                 );
             }
         }
@@ -374,9 +375,9 @@ export default class CRUDComponent extends VueComponentBase {
                         const vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
         }
@@ -401,7 +402,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         let obj = {
             _type: this.crud.readDatatable.API_TYPE_ID,
-            id: null
+            id: null,
         };
 
         // Si on a un VO à init, on le fait
@@ -453,7 +454,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         return this.label('crud.read.title', {
             datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text),
         });
     }
 
@@ -775,7 +776,7 @@ export default class CRUDComponent extends VueComponentBase {
                         pauseOnHover: true,
                     },
                 });
-            })
+            }),
         );
     }
 
@@ -895,7 +896,7 @@ export default class CRUDComponent extends VueComponentBase {
                 const sample_vo: IDistantVOBase = {
                     id: undefined,
                     _type: field.interModuleTable.vo_type,
-                    [interSrcRefField.field_id]: db_vo.id
+                    [interSrcRefField.field_id]: db_vo.id,
                 };
 
                 if (new_links_target_ids) {
@@ -939,7 +940,7 @@ export default class CRUDComponent extends VueComponentBase {
                     for (const linki in need_delete_links) {
                         this.removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
-                            id: need_delete_links[linki].id
+                            id: need_delete_links[linki].id,
                         });
                     }
                 }
@@ -1085,7 +1086,7 @@ export default class CRUDComponent extends VueComponentBase {
                         pauseOnHover: true,
                     },
                 });
-            })
+            }),
         );
     }
 
@@ -1135,7 +1136,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                     this.removeData({
                         API_TYPE_ID: this.selectedVO._type,
-                        id: this.selectedVO.id
+                        id: this.selectedVO.id,
                     });
                     if (this.crud.postDelete) {
                         await this.crud.postDelete(this.selectedVO);
@@ -1171,7 +1172,7 @@ export default class CRUDComponent extends VueComponentBase {
                         pauseOnHover: true,
                     },
                 });
-            })
+            }),
         );
     }
 
@@ -1304,15 +1305,15 @@ export default class CRUDComponent extends VueComponentBase {
                         await ModuleDAO.getInstance().truncate(self.api_type_id);
                         await self.reload_datas();
                     },
-                    bold: false
+                    bold: false,
                 },
                 {
                     text: self.t('NO'),
                     action: (toast) => {
                         self.$snotify.remove(toast.id);
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         });
     }
 }

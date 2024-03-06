@@ -91,10 +91,10 @@ export default class PushDataVueModule extends VueModuleBase {
             transportOptions: {
                 polling: {
                     extraHeaders: {
-                        client_tab_id: AjaxCacheClientController.getInstance().client_tab_id
-                    }
-                }
-            }
+                        client_tab_id: AjaxCacheClientController.getInstance().client_tab_id,
+                    },
+                },
+            },
         });
         this.socket.on('disconnect', () => {
             setTimeout(() => {
@@ -220,7 +220,7 @@ export default class PushDataVueModule extends VueModuleBase {
     private async check_version_app() {
         const server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
-        if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
+        if (server_app_version && (EnvHandler.version != server_app_version)) {
 
             /**
              * Cas du dev local, on checke le timestamp server vs local, si le local est plus récent inutile de recharger
@@ -228,7 +228,7 @@ export default class PushDataVueModule extends VueModuleBase {
             const server_app_version_timestamp_str: string = server_app_version.split('-')[1];
             const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
 
-            const local_app_version_timestamp_str: string = EnvHandler.VERSION.split('-')[1];
+            const local_app_version_timestamp_str: string = EnvHandler.version.split('-')[1];
             const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
 
             if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
@@ -238,7 +238,7 @@ export default class PushDataVueModule extends VueModuleBase {
             if (VueAppBase.instance_.vueInstance && VueAppBase.instance_.vueInstance.snotify) {
                 VueAppBase.instance_.vueInstance.snotify.warning(
                     VueAppBase.instance_.vueInstance.label("app_version_changed"),
-                    { timeout: 3000 }
+                    { timeout: 3000 },
                 );
             }
 
@@ -433,15 +433,15 @@ export default class PushDataVueModule extends VueModuleBase {
                             VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
                             notification.prompt_result = toast.value;
                             await ModulePushData.getInstance().set_prompt_result(notification);
-                        }, bold: true
+                        }, bold: true,
                     },
                     {
                         text: LocaleManager.getInstance().i18n.t('snotify.prompt.cancel.___LABEL___'), action: async (toast: SnotifyToast) => {
                             VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
                             await ModulePushData.getInstance().set_prompt_result(notification);
-                        }
+                        },
                     },
-                ]
+                ],
             });
 
             if (!notification.read) {
@@ -552,7 +552,7 @@ export default class PushDataVueModule extends VueModuleBase {
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                     await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
                         API_TYPE_ID: notification.api_type_id,
-                        id: notification.dao_notif_vo_id
+                        id: notification.dao_notif_vo_id,
                     });
                     console.debug("NotificationVO.DAO_REMOVE_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
                     break;
@@ -587,7 +587,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 'value_type:' + e.value_type + ':' +
                                 'value_ts:' + e.value_ts + ':' +
                                 'is_computing:' + e.is_computing + ':' +
-                                'index:' + e.index + ':'
+                                'index:' + e.index + ':',
                             );
                         }
 
@@ -699,7 +699,7 @@ export default class PushDataVueModule extends VueModuleBase {
                             case NotificationVO.TECH_RELOAD:
                                 const content_reload = LocaleManager.getInstance().i18n.t('PushDataServerController.reload.___LABEL___');
                                 VueAppBase.instance_.vueInstance.snotify.warning(content_reload, {
-                                    timeout: 3000
+                                    timeout: 3000,
                                 });
                                 setTimeout(() => {
                                     window.location.reload();

@@ -14,6 +14,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./BulkOpsWidgetOptionsComponent.pug'),

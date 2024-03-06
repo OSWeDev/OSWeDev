@@ -21,6 +21,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import './FieldValueFilterDateWidgetComponent.scss';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./FieldValueFilterDateWidgetComponent.pug'),

@@ -13,6 +13,7 @@ import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsType
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 @Component({
     template: require("./feedback.pug"),
     components: {}

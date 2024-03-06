@@ -1,6 +1,10 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import IRange from '../../../../../../../shared/modules/DataRender/interfaces/IRange';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import MainAggregateOperatorsHandlers from '../../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
@@ -9,21 +13,16 @@ import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
+import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./VarDescExplainComponent.pug'),

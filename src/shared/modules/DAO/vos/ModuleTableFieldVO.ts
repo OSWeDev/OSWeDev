@@ -4,6 +4,7 @@ import IDistantVOBase from "../../IDistantVOBase";
 import TableFieldTypesManager from "../../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "../ModuleTableController";
+import ModuleTableFieldController from "../ModuleTableFieldController";
 import ModuleTableVO from "./ModuleTableVO";
 
 
@@ -264,7 +265,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     /**
-     * @deprecated
+     * @deprecated use field_name instead
      */
     get field_id(): string {
         return this.field_name;
@@ -535,6 +536,27 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                     }
                 }
         }
+    }
+
+    /**
+     * @deprecated use ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type]; instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get module_table(): ModuleTableVO {
+        return ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
+    }
+
+    /**
+     * @deprecated use ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name]; instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get field_label(): DefaultTranslationVO {
+        return ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type] ?
+            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name] : null;
+    }
+
+    get field_default(): any {
+        return this.field_default_value ? this.field_default_value.value : null;
     }
 
     public getPGSqlFieldType() {

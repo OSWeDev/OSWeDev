@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TablesGraphItemFieldComponent.scss';

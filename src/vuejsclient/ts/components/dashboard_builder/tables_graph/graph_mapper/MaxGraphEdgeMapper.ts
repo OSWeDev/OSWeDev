@@ -1,5 +1,4 @@
 import { Cell, Graph } from "@maxgraph/core";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 

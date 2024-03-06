@@ -9,6 +9,9 @@ import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/v
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -17,10 +20,6 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -189,7 +188,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         if (has_null_value) {
             const cf_null_value: ContextFilterVO = new ContextFilterVO();
-            cf_null_value.field_id = this.vo_field_ref.field_id;
+            cf_null_value.field_name = this.vo_field_ref.field_id;
             cf_null_value.vo_type = this.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -255,7 +254,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             } else {
 
                 const link_ = new ContextFilterVO();
-                link_.field_id = context_filter.field_id;
+                link_.field_name = context_filter.field_name;
                 link_.vo_type = context_filter.vo_type;
 
                 if (previous_filter.link_type == AdvancedNumberFilter.LINK_TYPE_ET) {
@@ -444,7 +443,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             ) {
                 if (
                     !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                    !base_table.table_segmented_field.foreign_ref_vo_type ||
                     !active_field_filters_query[base_table.table_segmented_field.foreign_ref_vo_type] ||
                     !Object.keys(active_field_filters_query[base_table.table_segmented_field.foreign_ref_vo_type]).length
                 ) {
@@ -565,7 +564,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableFieldVO): ContextFilterVO {
         const context_filter = new ContextFilterVO();
 
-        context_filter.field_id = this.vo_field_ref.field_id;
+        context_filter.field_name = this.vo_field_ref.field_id;
         context_filter.vo_type = this.vo_field_ref.api_type_id;
 
         let field_type = null;

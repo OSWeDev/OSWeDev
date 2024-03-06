@@ -10,6 +10,7 @@ import TableWidgetKanbanComponent from './kanban/TableWidgetKanbanComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
 import TableWidgetTableComponent from './table/TableWidgetTableComponent';
 import './TableWidgetComponent.scss';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -91,7 +92,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     for (const i in fields) {
                         const field = fields[i];
 
-                        if (field.manyToOne_target_moduletable && (field.foreign_ref_vo_type == kanban_column.api_type_id)) {
+                        if (field.foreign_ref_vo_type && (field.foreign_ref_vo_type == kanban_column.api_type_id)) {
                             found++;
                         }
                     }

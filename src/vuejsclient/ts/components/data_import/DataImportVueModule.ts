@@ -7,6 +7,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import ReimportComponent from './reimport_component/reimport_component';
 import './scss/data_import.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class DataImportVueModule extends VueModuleBase {
 

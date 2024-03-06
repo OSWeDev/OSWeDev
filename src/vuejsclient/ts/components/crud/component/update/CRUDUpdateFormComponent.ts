@@ -22,6 +22,7 @@ import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CRUDUpdateFormComponent.pug'),

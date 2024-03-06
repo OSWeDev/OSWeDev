@@ -9,6 +9,7 @@ import VocusInfoVO from '../../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../VueComponentBase';
 import './VocusComponent.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VocusComponent.pug'),

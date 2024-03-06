@@ -1,17 +1,18 @@
-import { test, expect } from "playwright-test-coverage";
+import { expect, test } from "playwright-test-coverage";
 
-import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-import ModuleTableVO from '../../../src/shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from "../../../src/shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldVO from '../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
-import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
-import MatroidBaseController from '../../../src/shared/modules/Matroid/MatroidBaseController';
 import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
-import MatroidBaseCutResult from '../../../src/shared/modules/Matroid/vos/MatroidBaseCutResult';
-import Dates from '../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
+import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../src/shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from "../../../src/shared/modules/IDistantVOBase";
+import MatroidBaseController from '../../../src/shared/modules/Matroid/MatroidBaseController';
+import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
+import MatroidBaseCutResult from '../../../src/shared/modules/Matroid/vos/MatroidBaseCutResult';
+import VOsTypesManager from "../../../src/shared/modules/VO/manager/VOsTypesManager";
+import ModuleTableFieldController from "../../../src/shared/modules/DAO/ModuleTableFieldController";
 
 const zero = Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY), 1, TimeSegment.TYPE_HOUR);
 const zero_cinq = Dates.add(zero, 12, TimeSegment.TYPE_HOUR);
@@ -23,17 +24,15 @@ const moins_deux = Dates.add(zero, -2, TimeSegment.TYPE_DAY);
 
 const matroid_type = 'matroid_type';
 
-const employee_id_ranges = ModuleTableFieldController.create_new('employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
-const ts_ranges = ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
+const employee_id_ranges = ModuleTableFieldController.create_new(matroid_type, 'employee_id_ranges', ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
+const ts_ranges = ModuleTableFieldController.create_new(matroid_type, 'ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
 
-VOsTypesManager.registerModuleTable(new ModuleTableVO(
+VOsTypesManager.registerModuleTable(ModuleTableController.create_new(
     null,
-    matroid_type,
-    () => ({} as any),
-    [
-        employee_id_ranges,
-        ts_ranges
-    ],
+    class implements IDistantVOBase {
+        public _type: string = matroid_type;
+        public id: number;
+    },
     null));
 
 test('MatroidBaseController: test matroidbase_intersects_matroidbase', () => {

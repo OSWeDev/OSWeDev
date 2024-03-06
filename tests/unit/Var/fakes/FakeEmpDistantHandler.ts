@@ -1,23 +1,23 @@
 
 import moment from 'moment';
 import DAOUpdateVOHolder from '../../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
-import ModuleTableVO from '../../../../src/shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../../src/shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../src/shared/modules/VO/manager/VOsTypesManager';
 import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
+import ModuleTableFieldController from '../../../../src/shared/modules/DAO/ModuleTableFieldController';
 
 export default class FakeEmpDistantHandler {
 
     public static initializeFakeEmpDistantVO() {
 
         const datatable_fields = [
-            ModuleTableFieldController.create_new('date', ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date'),
-            ModuleTableFieldController.create_new('employee_id', ModuleTableFieldVO.FIELD_TYPE_int, 'Employee'),
-            ModuleTableFieldController.create_new('value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'date', ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date'),
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'employee_id', ModuleTableFieldVO.FIELD_TYPE_int, 'Employee'),
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
         ];
 
-        VOsTypesManager.registerModuleTable(ModuleTableController.create_new(null.name, FakeEmpDistantVO, null), null.name);
+        VOsTypesManager.registerModuleTable(ModuleTableController.create_new(FakeEmpDistantVO.API_TYPE_ID, FakeEmpDistantVO, null));
     }
 
     public static get_distant_A(): FakeEmpDistantVO {

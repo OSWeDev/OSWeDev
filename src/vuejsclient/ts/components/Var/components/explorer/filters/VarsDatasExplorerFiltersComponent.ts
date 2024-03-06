@@ -5,7 +5,6 @@ import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSe
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -24,7 +23,7 @@ import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
         Tsrangeinputcomponent: () => import('../../../../tsrangeinput/TSRangeInputComponent'),
         Hourrangeinputcomponent: () => import('../../../../hourrangeinput/HourrangeInputComponent'),
         Numrangeinputcomponent: () => import('../../../../numrangeinput/NumRangeInputComponent'),
-    }
+    },
 })
 export default class VarsDatasExplorerFiltersComponent extends VueComponentBase {
 
@@ -46,7 +45,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     /**
      * Utilisé pour trouver la trad du champ. on prend le premier vo_type qui contient ce champ
      */
-    private fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
+    private fields: { [field_id: string]: ModuleTableFieldVO } = {};
 
     private fields_filters_is_valid: { [field_id: string]: boolean } = {};
     private filtered_vo_types: { [vo_type: string]: boolean } = {};
@@ -71,7 +70,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         const filtered_vo_types: { [vo_type: string]: boolean } = {};
         const fields_filters_is_valid: { [field_id: string]: boolean } = {};
         const valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
-        const fields: { [field_id: string]: ModuleTableFieldVO<IRange> } = {};
+        const fields: { [field_id: string]: ModuleTableFieldVO } = {};
         const empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
         const enum_initial_options_promises: { [field_id: string]: Promise<void> } = {};
@@ -380,18 +379,18 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.set_params();
     }
 
-    private is_ts_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+    private is_ts_range_type(field: ModuleTableFieldVO): boolean {
         return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tsrange) ||
             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_daterange);
     }
 
-    private is_hour_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+    private is_hour_range_type(field: ModuleTableFieldVO): boolean {
         return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange) ||
             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array);
     }
 
-    private is_num_range_type(field: ModuleTableFieldVO<IRange>): boolean {
+    private is_num_range_type(field: ModuleTableFieldVO): boolean {
         return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange) ||
             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_numrange_array) ||
             (field.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array);

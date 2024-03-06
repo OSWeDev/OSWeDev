@@ -16,7 +16,6 @@ import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
@@ -60,7 +59,7 @@ export default class CRUDFormServices {
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
-        only_fields: boolean = false
+        only_fields: boolean = false,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
 
@@ -74,9 +73,9 @@ export default class CRUDFormServices {
                         const vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                         storeDatas({
                             API_TYPE_ID: datatable.API_TYPE_ID,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
 
@@ -93,7 +92,7 @@ export default class CRUDFormServices {
     public loadDatasFromDatatableField(
         load_from_datatable_field: DatatableField<any, any>,
         api_types_involved: string[],
-        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
         const self = this;
@@ -114,14 +113,14 @@ export default class CRUDFormServices {
                         const vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
             for (const i in reference.sortedTargetFields) {
                 res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i], api_types_involved, storeDatas)
+                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i], api_types_involved, storeDatas),
                 );
             }
         }
@@ -137,9 +136,9 @@ export default class CRUDFormServices {
                         const vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
         }
@@ -154,7 +153,7 @@ export default class CRUDFormServices {
 
         let obj = {
             _type: crud.readDatatable.API_TYPE_ID,
-            id: null
+            id: null,
         };
 
         // On peut init soit en passant par le CRUDComponentManager soit via une prop
@@ -357,7 +356,7 @@ export default class CRUDFormServices {
     public async updateOneToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
-        updateData: (vo: IDistantVOBase) => void
+        updateData: (vo: IDistantVOBase) => void,
     ) {
         try {
 
@@ -450,7 +449,7 @@ export default class CRUDFormServices {
     public async updateManyToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         removeData: (infos: { API_TYPE_ID: string, id: number }) => void,
-        storeData: (vo: IDistantVOBase) => void, component: VueComponentBase
+        storeData: (vo: IDistantVOBase) => void, component: VueComponentBase,
     ) {
         try {
 
@@ -472,7 +471,7 @@ export default class CRUDFormServices {
                 const sample_vo: IDistantVOBase = {
                     id: undefined,
                     _type: field.interModuleTable.vo_type,
-                    [interSrcRefField.field_id]: db_vo.id
+                    [interSrcRefField.field_id]: db_vo.id,
                 };
 
                 if (new_links_target_ids) {
@@ -516,7 +515,7 @@ export default class CRUDFormServices {
                     for (const linki in need_delete_links) {
                         removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
-                            id: need_delete_links[linki].id
+                            id: need_delete_links[linki].id,
                         });
                     }
                 }

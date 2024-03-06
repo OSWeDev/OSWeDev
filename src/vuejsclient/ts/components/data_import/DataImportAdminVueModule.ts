@@ -12,6 +12,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
 import MenuController from '../menu/MenuController';
 import './scss/data_import.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 

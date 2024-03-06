@@ -1,7 +1,9 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
@@ -11,16 +13,15 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
+import VueAppController from '../../../../../../VueAppController';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import './TableWidgetOptionsComponent.scss';
 import TableWidgetController from '../TableWidgetController';
-import { cloneDeep } from 'lodash';
-import VueAppController from '../../../../../../VueAppController';
+import './TableWidgetOptionsComponent.scss';
+import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),

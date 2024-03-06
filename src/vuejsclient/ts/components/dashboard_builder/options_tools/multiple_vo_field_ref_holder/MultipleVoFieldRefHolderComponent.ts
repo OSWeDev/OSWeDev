@@ -1,19 +1,18 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesHandler from '../../../../../../shared/modules/VO/handler/VOsTypesHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import './MultipleVoFieldRefHolderComponent.scss';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./MultipleVoFieldRefHolderComponent.pug'),
     components: {
-        Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent
-    }
+        Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent,
+    },
 })
 export default class MultipleVoFieldRefHolderComponent extends VueComponentBase {
 

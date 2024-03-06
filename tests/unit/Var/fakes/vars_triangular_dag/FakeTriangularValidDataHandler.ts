@@ -1,11 +1,11 @@
 
 import moment from 'moment';
-import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
-import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
 import VarDAG from '../../../../../src/server/modules/Var/vos/VarDAG';
 import VarDAGNode from '../../../../../src/server/modules/Var/vos/VarDAGNode';
+import ModuleTableFieldController from '../../../../../src/shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
+import TimeSegment from '../../../../../src/shared/modules/DataRender/vos/TimeSegment';
+import VarsInitController from '../../../../../src/shared/modules/Var/VarsInitController';
 import RangeHandler from '../../../../../src/shared/tools/RangeHandler';
 import FakeDataVO from './vos/FakeDataVO';
 
@@ -14,10 +14,10 @@ export default class FakeTriangularValidDataHandler {
     public static initializeFakeDataVO() {
 
         const datatable_fields = [
-            ModuleTableFieldController.create_new('ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new(FakeDataVO.API_TYPE_ID, 'ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, () => new FakeDataVO(), datatable_fields, null, true);
+        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, FakeDataVO, datatable_fields, null, true);
     }
 
     /**

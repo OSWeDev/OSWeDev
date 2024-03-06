@@ -4,6 +4,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsType
 import VueComponentBase from '../../../VueComponentBase';
 import './DroppableVoFieldComponent.scss';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from '../DroppableVoFieldsStore';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./DroppableVoFieldComponent.pug'),

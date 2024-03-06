@@ -239,7 +239,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
             const boolean_filter_type = this.boolean_filter_types[i];
 
             const this_filter = new ContextFilterVO();
-            this_filter.field_id = this.vo_field_ref.field_id;
+            this_filter.field_name = this.vo_field_ref.field_id;
             this_filter.vo_type = this.vo_field_ref.api_type_id;
 
             if (boolean_filter_type == BooleanFilter.FILTER_TYPE_TRUE) {
@@ -255,7 +255,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                 filter = this_filter;
             } else {
                 const or = new ContextFilterVO();
-                or.field_id = this.vo_field_ref.field_id;
+                or.field_name = this.vo_field_ref.field_id;
                 or.vo_type = this.vo_field_ref.api_type_id;
                 or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
                 or.left_hook = filter;

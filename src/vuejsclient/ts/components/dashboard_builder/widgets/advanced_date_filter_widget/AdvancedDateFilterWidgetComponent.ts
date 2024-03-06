@@ -24,6 +24,7 @@ import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWi
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
 import e from 'express';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
@@ -185,10 +186,10 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
             if (this.is_vo_field_ref) {
                 context_filter.vo_type = this.vo_field_ref.api_type_id;
-                context_filter.field_id = this.vo_field_ref.field_id;
+                context_filter.field_name = this.vo_field_ref.field_id;
             } else {
                 context_filter.vo_type = ContextFilterVO.CUSTOM_FILTERS_TYPE;
-                context_filter.field_id = this.custom_filter_name;
+                context_filter.field_name = this.custom_filter_name;
             }
 
             const new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);

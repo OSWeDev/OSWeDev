@@ -10,6 +10,7 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from "../../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 
 @Component({
     template: require("./qr.pug"),

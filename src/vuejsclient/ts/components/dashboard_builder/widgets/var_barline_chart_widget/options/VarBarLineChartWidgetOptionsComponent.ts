@@ -1,26 +1,10 @@
-import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import './VarBarLineChartWidgetOptionsComponent.scss';
-import VarBarLineChartWidgetOptions from './VarBarLineChartWidgetOptions';
 import VarBarLineDatasetChartWidgetOptionsComponent from './dataset/VarBarLineDatasetChartWidgetOptionsComponent';
-import VarBarLineDatasetChartWidgetOptions from './dataset/VarBarLineDatasetChartWidgetOptions';
 
 @Component({
     template: require('./VarBarLineChartWidgetOptionsComponent.pug'),

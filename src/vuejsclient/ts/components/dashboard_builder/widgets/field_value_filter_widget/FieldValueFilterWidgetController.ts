@@ -1,12 +1,10 @@
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
-import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
-import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
@@ -102,7 +100,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
             const fields = segmented_moduletable.get_fields();
             for (const i in fields) {
                 const field: ModuleTableFieldVO = fields[i];
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
                 query_.discard_field_path(has_segmented_too_much_options_api_type_id, field.field_id);

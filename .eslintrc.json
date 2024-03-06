@@ -29,12 +29,12 @@
         "no-case-declarations": "warn",
         "no-unused-vars": "off",
         "@stylistic/comma-dangle": [
-            "error",
-            "always-multiline"
+            "warn",
+            "only-multiline"
         ],
         "@stylistic/no-trailing-spaces": "error",
         "@stylistic/indent": [
-            "error",
+            "warn",
             4
         ],
         "@stylistic/semi": [
@@ -50,6 +50,12 @@
                 "args": "none"
             }
         ],
-        "vue/multi-word-component-names": "off"
+        "vue/multi-word-component-names": "off",
+        "@typescript-eslint/no-this-alias": "warn",
+        "@typescript-eslint/no-var-requires": "warn",
+        "vue/no-deprecated-vue-config-keycodes": "warn",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "no-async-promise-executor": "off",
+        "prefer-const": "warn"
     }
 }

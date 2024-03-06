@@ -10,6 +10,9 @@ import ContextFilterVO, { filter } from '../../../../../../../shared/modules/Con
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import FieldFiltersVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/FieldFiltersVOHandler';
 import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
@@ -21,9 +24,6 @@ import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder
 import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
@@ -618,7 +618,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         } else {
 
             const link_ = new ContextFilterVO();
-            link_.field_id = context_filter.field_id;
+            link_.field_name = context_filter.field_name;
             link_.vo_type = context_filter.vo_type;
 
             if (previous_filter.link_type == AdvancedStringFilter.LINK_TYPE_ET) {
@@ -926,7 +926,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             ) {
                 if (
                     !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                    !base_table.table_segmented_field.foreign_ref_vo_type ||
                     !active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
                     !Object.keys(active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
                 ) {
@@ -975,7 +975,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             // Si on cherche à faire du multi-filtrage, on charge toutes les données
             if (this.vo_field_ref_multiple?.length > 0) {
 
-                const limit = EnvHandler.MAX_POOL / 2;
+                const limit = EnvHandler.max_pool / 2;
                 const promise_pipeline = new PromisePipeline(limit, 'FieldValueFilterWidgetController.update_visible_options');
 
                 for (const i in this.vo_field_ref_multiple) {

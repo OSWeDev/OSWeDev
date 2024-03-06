@@ -13,6 +13,7 @@ import RoleVO from '../../../src/shared/modules/AccessPolicy/vos/RoleVO';
 import AnonymizationUserConfVO from '../../../src/shared/modules/Anonymization/vos/AnonymizationUserConfVO';
 import AnonymizationFieldConfVO from '../../../src/shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
 import FieldPathWrapper from '../../../src/shared/modules/ContextFilter/vos/FieldPathWrapper';
+import ModuleTableController from '../../../src/shared/modules/DAO/ModuleTableController';
 
 ContextFilterTestsTools.getInstance().declare_modultables();
 

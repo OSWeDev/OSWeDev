@@ -264,7 +264,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
 
             if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
-                if ((EnvHandler.COMPRESS) && (typeof cache.postdatas == 'string')) {
+                if ((EnvHandler.compress) && (typeof cache.postdatas == 'string')) {
                     options.data = JSON.stringify(zlib.gzipSync(cache.postdatas));
                     options.headers[AjaxCacheController.HEADER_GZIP] = 'true';
                 } else {
@@ -291,8 +291,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 options.headers['X-CSRF-Token'] = self.csrf_token;
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
             }
-            if (EnvHandler.VERSION) {
-                options.headers['version'] = EnvHandler.VERSION;
+            if (EnvHandler.version) {
+                options.headers['version'] = EnvHandler.version;
             }
             self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
 
@@ -761,7 +761,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     $.ajaxSetup({
                         timeout: 120000,
                         headers: {
-                            version: EnvHandler.VERSION
+                            version: EnvHandler.version
                         }
                     }); // in milliseconds
                 }

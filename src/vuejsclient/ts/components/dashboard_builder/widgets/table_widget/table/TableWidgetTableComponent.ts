@@ -15,8 +15,11 @@ import ContextQueryVO, { query } from '../../../../../../../shared/modules/Conte
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../../../shared/modules/DAO/vos/CRUD';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import Datatable from '../../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
@@ -43,9 +46,6 @@ import ExportVarcolumnConfVO from '../../../../../../../shared/modules/DataExpor
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
-import ModuleTableVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -70,6 +70,7 @@ import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsCont
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
+import ValidationFiltersWidgetOptions from '../../validation_filters_widget/options/ValidationFiltersWidgetOptions';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
@@ -77,7 +78,6 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
-import ValidationFiltersWidgetOptions from '../../validation_filters_widget/options/ValidationFiltersWidgetOptions';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -244,8 +244,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private is_filtering_by_col(column: TableColumnDescVO): boolean {
         return this.is_filtering_by &&
             this.filtering_by_active_field_filter && (
-                (this.filtering_by_active_field_filter.field_id == column.field_id) ||
-                ((!column.field_id) && (this.filtering_by_active_field_filter.field_id == 'id'))
+                (this.filtering_by_active_field_filter.field_name == column.field_id) ||
+                ((!column.field_id) && (this.filtering_by_active_field_filter.field_name == 'id'))
             ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
@@ -271,7 +271,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         const context_filter: ContextFilterVO = new ContextFilterVO();
         context_filter.vo_type = column.api_type_id;
-        context_filter.field_id = column.field_id;
+        context_filter.field_name = column.field_id;
 
         // case when field_id is "id" or datatable_field_uid is crud action
         if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
@@ -410,9 +410,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // Search for column with the active filter field_id
         // must return with length 1
         const columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
-            (c.field_id == this.filtering_by_active_field_filter.field_id) ||
-            ((!c.field_id) && (this.filtering_by_active_field_filter.field_id == 'id')) ||
-            ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_id == 'id'))
+            (c.field_id == this.filtering_by_active_field_filter.field_name) ||
+            ((!c.field_id) && (this.filtering_by_active_field_filter.field_name == 'id')) ||
+            ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_name == 'id'))
         ));
 
         const column = columns ? columns[0] : null;
@@ -1499,24 +1499,24 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
             let context_filter: ContextFilterVO = null;
 
-            const is_valid_filtering = this.filtering_by_active_field_filter.vo_type && this.filtering_by_active_field_filter.field_id;
+            const is_valid_filtering = this.filtering_by_active_field_filter.vo_type && this.filtering_by_active_field_filter.field_name;
 
             const is_field_filters_empty = is_valid_filtering ? FieldFiltersVOHandler.is_field_filters_empty(
                 {
                     api_type_id: this.filtering_by_active_field_filter.vo_type,
-                    field_id: this.filtering_by_active_field_filter.field_id
+                    field_id: this.filtering_by_active_field_filter.field_name
                 },
                 this.get_active_field_filters,
             ) : true;
 
             if (!is_field_filters_empty) {
-                context_filter = this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id];
+                context_filter = this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_name];
             }
 
             if ((is_field_filters_empty) ||
                 (context_filter.filter_type != this.filtering_by_active_field_filter.filter_type) ||
                 (context_filter.vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (context_filter.field_id != this.filtering_by_active_field_filter.field_id) ||
+                (context_filter.field_name != this.filtering_by_active_field_filter.field_name) ||
                 (context_filter.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
                 (context_filter.param_text != this.filtering_by_active_field_filter.param_text)) {
 
@@ -1562,7 +1562,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             context_query.filters = context_query.filters.filter((f) =>
                 (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
                 (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
-                (f.field_id != this.filtering_by_active_field_filter.field_id) ||
+                (f.field_name != this.filtering_by_active_field_filter.field_name) ||
                 (f.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
                 (f.param_text != this.filtering_by_active_field_filter.param_text));
         }
@@ -1654,7 +1654,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         ) {
             if (
                 !base_table.table_segmented_field ||
-                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !base_table.table_segmented_field.foreign_ref_vo_type ||
                 !this.get_active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
                 !Object.keys(this.get_active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
             ) {

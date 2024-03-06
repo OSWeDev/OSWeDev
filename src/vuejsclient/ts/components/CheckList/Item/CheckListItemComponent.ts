@@ -4,11 +4,10 @@ import ICheckListItem from '../../../../../shared/modules/CheckList/interfaces/I
 import ICheckPoint from '../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPointVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
@@ -16,8 +15,7 @@ import './CheckListItemComponent.scss';
 
 @Component({
     template: require('./CheckListItemComponent.pug'),
-    components: {
-    }
+    components: {},
 })
 export default class CheckListItemComponent extends VueComponentBase {
 
@@ -87,7 +85,7 @@ export default class CheckListItemComponent extends VueComponentBase {
                 res = this.label("crud.field.boolean.false");
             }
         }
-        return '<li>' + this.t(table_field.field_label.code_text) + ' : <strong>' +
+        return '<li>' + (table_field.field_label ? this.t(table_field.field_label.code_text) : table_field.field_name) + ' : <strong>' +
             res + '</strong></li>';
     }
 

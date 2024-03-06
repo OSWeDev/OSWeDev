@@ -9,6 +9,7 @@ import { field_names } from "../../../../../../shared/tools/ObjectHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 import MaxGraphEdgeMapper from "./MaxGraphEdgeMapper";
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 
 export default class MaxGraphMapper {
 
@@ -102,7 +103,7 @@ export default class MaxGraphMapper {
             for (const j in fields) {
                 const field = fields[j];
 
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
 

@@ -35,6 +35,7 @@ import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
 import ModuleTableVO from '../../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),

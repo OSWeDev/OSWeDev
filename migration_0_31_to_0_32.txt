@@ -205,6 +205,15 @@ FROM :
 TO :
 'ConfigurationService.node_configuration.\L$1'
 
+=== REGEXP
+
+FROM :
+'EnvHandler\.([A-Z_]+)'
+TO :
+'EnvHandler.\L$1'
+
+
+
 
 
 == Modifications restantes (principales)

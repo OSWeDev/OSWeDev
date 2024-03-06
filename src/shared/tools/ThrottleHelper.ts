@@ -1,4 +1,4 @@
-import { Cancelable, isArray, throttle, ThrottleSettings } from 'lodash';
+import { isArray, throttle, ThrottleSettings } from 'lodash';
 
 export default class ThrottleHelper {
 
@@ -56,7 +56,7 @@ export default class ThrottleHelper {
     }
 
     protected static UID: number = 0;
-    protected static throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
+    protected static throttles: { [throttle_id: number]: ((...args: any) => any) } = {};
     protected static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
     protected static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
     protected static throttles_semaphore: { [throttle_id: number]: boolean } = {};

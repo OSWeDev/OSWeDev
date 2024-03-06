@@ -1,4 +1,5 @@
-import { cloneDeep, isArray } from "lodash";
+import { cloneDeep } from "lodash";
+import ModuleTableFieldVO from "../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import Datatable from "../../../../../shared/modules/DAO/vos/datatable/Datatable";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
 import ManyToManyReferenceDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO";
@@ -7,8 +8,6 @@ import OneToManyReferenceDatatableFieldVO from "../../../../../shared/modules/DA
 import RefRangesReferenceDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO";
 import SimpleDatatableFieldVO from "../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
-import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from "../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import TableFieldTypesManager from "../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
