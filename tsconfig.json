@@ -21,7 +21,8 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "removeComments": false,
-        "declaration": true
+        "declaration": true,
+        "skipLibCheck": true
     },
     "include": [
         "src/server/**/*.ts",

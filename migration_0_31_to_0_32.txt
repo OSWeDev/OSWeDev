@@ -218,6 +218,10 @@ TO :
 
 == Modifications restantes (principales)
 
+=== esbuild.mjs à la racine
+en REGEXP, rechercher : "\.[A-Z_]+[^A-Za-z0-9_-]"
+Passer en minuscule tout ce qui concerne des STATIC_ENV_PARAMS, mais pas les variables d'environnement (exemple NODE_ENV)
+
 === XXXfieldXXX.field_id
 a été renommé en field_name pour éviter les confusions avec XXXfieldXXX.id sur plein de vos (principalement sur les vos de contextquerys et moduletables)
 Pour identifier les occurrences facilement : '.field_id' en recherche [Mot entier] + [Respecter la casse]

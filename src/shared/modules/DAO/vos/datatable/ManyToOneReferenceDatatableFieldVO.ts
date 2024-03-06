@@ -77,7 +77,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        const defaulttrad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name][this.src_field_id] : null;
+        const defaulttrad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type][this.src_field_id] : null;
         const e = defaulttrad ? defaulttrad.code_text : null;
 
         if (!e) {

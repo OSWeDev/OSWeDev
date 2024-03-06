@@ -486,16 +486,22 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         switch (this.segmentation_type) {
                             case TimeSegment.TYPE_MONTH:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_MONTH) : null);
+                                break;
                             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), false) : null);
+                                break;
                             case TimeSegment.TYPE_WEEK:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), false) : null);
+                                break;
                             case TimeSegment.TYPE_YEAR:
                                 res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_YEAR) : null);
+                                break;
                             case TimeSegment.TYPE_DAY:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), false) : null);
+                                break;
                             default:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(v, false) : null);
+                                break;
                         }
                     }
 
@@ -577,7 +583,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
             return this.translatable_title_custom;
         }
 
-        const trad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.vo_type_full_name][this.moduleTableField.field_name] : null;
+        const trad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type][this.moduleTableField.field_name] : null;
         const e = trad ? trad.code_text : null;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;

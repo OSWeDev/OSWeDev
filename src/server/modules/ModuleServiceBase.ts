@@ -246,9 +246,7 @@ export default abstract class ModuleServiceBase {
         this.server_child_modules = this.getServerChildModules();
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
-        ModuleTableController.init_field_name_to_api_map();
-        ModuleTableController.init_readonly_fields_by_ids();
-        ModuleTableController.init_unique_fields_by_voType();
+        ModuleTableController.initialize();
 
         // On init le lien de db dans ces modules
         ModuleDBService.getInstance(ModuleServiceBase.db);
@@ -557,11 +555,13 @@ export default abstract class ModuleServiceBase {
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
+            ModuleContextFilter.getInstance(),
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
             ModuleBGThread.getInstance(),
-            ModuleAnonymization.getInstance()
+            ModuleParams.getInstance(),
+            ModuleAnonymization.getInstance(),
         ];
     }
 

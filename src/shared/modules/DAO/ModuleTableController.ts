@@ -61,10 +61,10 @@ export default class ModuleTableController {
     public static vo_type_by_module_name: { [module_name: string]: { [vo_type: string]: boolean } } = {};
 
     /**
-     * 
+     *
      * @param module_name Le nom du module qui initialise cette table
      * @param vo_type l'API_TYPE_ID de la table
-     * @param voConstructor 
+     * @param voConstructor
      * @param label_field Le nom du champ qui sert de label pour la table. Inutile et à proscrire si on utilise une fonction pour le label
      * @param table_label La trad par défaut pour cette table
      * @returns une nouvelle instance de ModuleTableVO
@@ -171,7 +171,7 @@ export default class ModuleTableController {
 
         const res: T = {
             _type: e._type,
-            id: e.id
+            id: e.id,
         } as T;
 
         // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
@@ -333,6 +333,32 @@ export default class ModuleTableController {
         for (const i in db_tables) {
             const db_table = db_tables[i];
             ModuleTableController.module_tables_by_vo_type[db_table.vo_type] = db_table;
+        }
+    }
+
+    public static initialize() {
+        ModuleTableController.init_unique_fields_by_voType();
+        ModuleTableController.init_field_name_to_api_map();
+        ModuleTableController.init_readonly_fields_by_ids();
+        ModuleTableController.init_default_trad_field_label_translatable_code();
+    }
+
+    public static init_default_trad_field_label_translatable_code() {
+        for (const vo_type in ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type];
+
+            for (const field_name in fields) {
+                const default_translation = fields[field_name];
+                const field = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type][field_name];
+
+                if (!field) {
+                    continue;
+                }
+
+                if (!default_translation.code_text) {
+                    default_translation.code_text = field.field_label_translatable_code;
+                }
+            }
         }
     }
 

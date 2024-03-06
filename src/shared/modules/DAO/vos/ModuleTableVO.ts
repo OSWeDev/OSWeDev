@@ -396,7 +396,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     public set_is_archived(): ModuleTableVO {
         this.is_archived = true;
 
-        ModuleTableFieldController.create_new(this._type, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false);
+        ModuleTableFieldController.create_new(this.vo_type, field_names<IArchivedVOBase>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true, true, false);
 
         return this;
     }
