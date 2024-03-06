@@ -1,3 +1,4 @@
+import PreloadedModuleServerController from '../../server/modules/PreloadedModuleServerController';
 import IDistantVOBase from './IDistantVOBase';
 import IModuleBase from "./IModuleBase";
 import Module from './Module';
@@ -55,6 +56,13 @@ export default class ModulesManager {
             this.modules_by_name[moduleObj.name] = new ModuleWrapper(moduleObj.name);
         }
         this.modules_by_name[moduleObj.name].addModuleComponent(role, moduleObj);
+
+        // Si on a un actif en base, on le charge, mais uniquement sur le shared
+        if ((role == Module.SharedModuleRoleName) &&
+            (typeof PreloadedModuleServerController.preloaded_modules_is_actif[moduleObj.name] != "undefined")) {
+            moduleObj.actif = PreloadedModuleServerController.preloaded_modules_is_actif[moduleObj.name];
+        }
+
         moduleObj.initialize();
         moduleObj.registerApis();
 
