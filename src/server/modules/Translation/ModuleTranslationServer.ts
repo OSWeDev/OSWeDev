@@ -891,7 +891,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async t(code_text: string, lang_id: number): Promise<string> {
-        let translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq('code_text', code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+        if (!code_text || !lang_id) {
+            return null;
+        }
+
+        let translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
         if (!translation) {
             return null;
         }
@@ -900,6 +904,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async label(code_text: string, lang_id: number): Promise<string> {
+        if (!code_text || !lang_id) {
+            return null;
+        }
+
         code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         return await this.t(code_text, lang_id);
     }
