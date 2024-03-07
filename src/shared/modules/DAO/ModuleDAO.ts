@@ -311,8 +311,9 @@ export default class ModuleDAO extends Module {
 
     public initialize() {
         this.init_ModuleTableCompositeUniqueKeyVO();
-
         this.init_CRUDFieldRemoverConfVO();
+        this.init_ModuleTableVO();
+        this.init_ModuleTableFieldVO();
     }
 
     public get_compute_function_uid(vo_type: string) {
@@ -347,30 +348,93 @@ export default class ModuleDAO extends Module {
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 
-    private init_CRUDFieldRemoverConfVO(): ModuleTableVO {
+    private init_CRUDFieldRemoverConfVO() {
 
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Vo Type', true, false),
-            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Types', false),
-            ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
-        ];
+        ModuleTableController.create_new(this.name, CRUDFieldRemoverConfVO, null, "Champs supprimés du CRUD");
 
-        const res = ModuleTableController.create_new(this.name, CRUDFieldRemoverConfVO, null, "Champs supprimés du CRUD");
-        return res;
+        ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Vo Type', true, false);
+        ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().module_table_field_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Types', false);
+        ModuleTableFieldController.create_new(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().is_update, ModuleTableFieldVO.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true);
     }
 
-    private init_ModuleTableCompositeUniqueKeyVO(): ModuleTableVO {
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_names, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Champs - Noms', true),
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_id_num_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Champs - Liens', true)
-                .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID),
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Table - Nom', true),
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table - Lien', true)
-                .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID),
-            ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly(),
-        ];
+    private init_ModuleTableCompositeUniqueKeyVO() {
+        ModuleTableController.create_new(this.name, ModuleTableCompositeUniqueKeyVO, null, "Clés uniques composites");
 
-        const res = ModuleTableController.create_new(this.name, ModuleTableCompositeUniqueKeyVO, null, "Clés uniques composites");
-        return res;
+        ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_names, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Champs - Noms', true);
+        ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().field_id_num_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Champs - Liens', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableFieldVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Table - Nom', true);
+        ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>().table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table - Lien', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ModuleTableCompositeUniqueKeyVO.API_TYPE_ID, field_names<ModuleTableCompositeUniqueKeyVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly();
+    }
+
+    private init_ModuleTableFieldVO() {
+
+        const label_field = ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableController.create_new(this.name, ModuleTableFieldVO, label_field, "Format des champs de table");
+
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().secure_boolean_switch_only_server_side, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sécurisé côté serveur', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_moduletable_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table liée', false).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType lié', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table', true).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType', true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().cascade_on_delete, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Cascade on delete', true, true, true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().do_not_add_to_crud, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas ajouter au CRUD', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().min_values, ModuleTableFieldVO.FIELD_TYPE_int, 'Valeurs min', true, true, 0);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().max_values, ModuleTableFieldVO.FIELD_TYPE_int, 'Valeurs max', true, true, 999);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().force_index, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Toujours indexer', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_readonly, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Lecture seule', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().format_localized_time, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Date localisée', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().translatable_params_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Champ contenant les paramètres de traduction', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_inclusive_data, ModuleTableFieldVO.FIELD_TYPE_boolean, 'La donnée est inclusive - [] vs ()', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_inclusive_ihm, ModuleTableFieldVO.FIELD_TYPE_boolean, 'L\'affichage est inclusif - [] vs ()', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_visible_datatable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Visible dans les datatable', true, true, true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().enum_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Valeurs enum', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().enum_image_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Valeurs enum - images', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().enum_color_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Valeurs enum - couleurs', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().hidden_print, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masqué pour l\'impression', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_array, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est un tableau', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type de segmentation', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().boolean_icon_true, ModuleTableFieldVO.FIELD_TYPE_string, 'Icone pour true', true, true, "fa-check-circle");
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().boolean_icon_false, ModuleTableFieldVO.FIELD_TYPE_string, 'Icone pour false', true, true, "fa-times-circle");
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().boolean_invert_colors, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Inverser les couleurs', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().return_min_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Retourner la valeur min', true, true, true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().return_max_value, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Retourner la valeur max', true, true, true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().max_range_offset, ModuleTableFieldVO.FIELD_TYPE_int, 'Offset de la valeur max', true, true, 0);
+        // ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom en base', true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Type', true);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Obligatoire', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().has_default, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Possède une valeur par défaut', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_default_value, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Valeur par défaut', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().default_translation, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traduction par défaut', false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_unique, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Unique', true, true, false);
+    }
+
+    private init_ModuleTableVO() {
+        const label_field = ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().table_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableController.create_new(this.name, ModuleTableVO, label_field, "Format tables");
+
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().full_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom complet', true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().uid, ModuleTableFieldVO.FIELD_TYPE_string, 'UID', true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_segmented, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Segmenté', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_versioned, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Versionné', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().table_segmented_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de segmentation', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().table_segmented_field_range_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type de range', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().table_segmented_field_segment_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type de segment', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().module_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du module', true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().suffix, ModuleTableFieldVO.FIELD_TYPE_string, 'Suffixe', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().prefix, ModuleTableFieldVO.FIELD_TYPE_string, 'Préfixe', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().database, ModuleTableFieldVO.FIELD_TYPE_string, 'Base de données', true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType', true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().label, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Label', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().default_label_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de label par défaut', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().importable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Importable', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().isModuleParamTable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de paramètres', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().inherit_rights_from_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Hérite des droits de', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().isMatroidTable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de matroids', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().any_to_many_default_behaviour_show, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher par défaut les relations many to many', true, true, true);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().mapping_by_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Mapping des champs par APIType', false);
     }
 }

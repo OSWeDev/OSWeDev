@@ -60,6 +60,45 @@ export default class ModuleTableController {
      */
     public static vo_type_by_module_name: { [module_name: string]: { [vo_type: string]: boolean } } = {};
 
+    private static OFFUSC_IDs = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
+        'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        'w', 'x', 'y', 'z',
+        'a0', 'b0', 'c0', 'd0', 'e0', 'f0', 'g0', 'h0', 'i0', 'j0', 'k0',
+        'l0', 'm0', 'n0', 'o0', 'p0', 'q0', 'r0', 's0', 't0', 'u0', 'v0',
+        'w0', 'x0', 'y0', 'z0',
+        'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1', 'i1', 'j1', 'k1',
+        'l1', 'm1', 'n1', 'o1', 'p1', 'q1', 'r1', 's1', 't1', 'u1', 'v1',
+        'w1', 'x1', 'y1', 'z1',
+        'a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2', 'i2', 'j2', 'k2',
+        'l2', 'm2', 'n2', 'o2', 'p2', 'q2', 'r2', 's2', 't2', 'u2', 'v2',
+        'w2', 'x2', 'y2', 'z2',
+        'a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3', 'i3', 'j3', 'k3',
+        'l3', 'm3', 'n3', 'o3', 'p3', 'q3', 'r3', 's3', 't3', 'u3', 'v3',
+        'w3', 'x3', 'y3', 'z3',
+        'a4', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'h4', 'i4', 'j4', 'k4',
+        'l4', 'm4', 'n4', 'o4', 'p4', 'q4', 'r4', 's4', 't4', 'u4', 'v4',
+        'w4', 'x4', 'y4', 'z4',
+        'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5', 'i5', 'j5', 'k5',
+        'l5', 'm5', 'n5', 'o5', 'p5', 'q5', 'r5', 's5', 't5', 'u5', 'v5',
+        'w5', 'x5', 'y5', 'z5',
+        'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6', 'i6', 'j6', 'k6',
+        'l6', 'm6', 'n6', 'o6', 'p6', 'q6', 'r6', 's6', 't6', 'u6', 'v6',
+        'w6', 'x6', 'y6', 'z6',
+        'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7', 'i7', 'j7', 'k7',
+        'l7', 'm7', 'n7', 'o7', 'p7', 'q7', 'r7', 's7', 't7', 'u7', 'v7',
+        'w7', 'x7', 'y7', 'z7',
+        'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8', 'i8', 'j8', 'k8',
+        'l8', 'm8', 'n8', 'o8', 'p8', 'q8', 'r8', 's8', 't8', 'u8', 'v8',
+        'w8', 'x8', 'y8', 'z8',
+        'a9', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9', 'h9', 'i9', 'j9', 'k9',
+        'l9', 'm9', 'n9', 'o9', 'p9', 'q9', 'r9', 's9', 't9', 'u9', 'v9',
+        'w9', 'x9', 'y9', 'z9',
+        'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',
+        'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_',
+        'w_', 'x_', 'y_', 'z_',
+    ];
+
     /**
      *
      * @param module_name Le nom du module qui initialise cette table
@@ -90,7 +129,7 @@ export default class ModuleTableController {
             throw new Error('create_new: vo_type doit être en minuscules: ' + vo_type);
         }
 
-        ModuleTableController.vo_constructor_by_vo_type[vo_type] = vo_constructor;
+        ModuleTableController.vo_constructor_by_vo_type[vo_type] = ModuleTableController.vo_constructor_wrapper(vo_constructor);
 
         res.default_label_field = label_field;
 
@@ -278,10 +317,67 @@ export default class ModuleTableController {
     }
 
     /**
+     * On encapsule pour appliquer les valeurs par défaut définie dans le moduletablefield
+     * @param vo_constructor
+     */
+    public static vo_constructor_wrapper<T extends IDistantVOBase>(
+        vo_constructor: { new(): T }
+    ): { new(): T } {
+        return class implements IDistantVOBase {
+            public id: number;
+            public _type: string;
+
+            public constructor() {
+                let res = new vo_constructor();
+
+                return ModuleTableController.apply_default_fields(res);
+            }
+
+        } as { new(): T };
+    }
+
+    public static apply_default_fields<T extends IDistantVOBase>(vo: T): T {
+
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo._type];
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if ((typeof vo[field.field_name] == 'undefined') && field.has_default && !!field.field_default_value) {
+                vo[field.field_name] = field.field_default_value.value;
+            }
+        }
+
+        return vo;
+    }
+
+    /**
+     * On récupère la version en base. Elle a été modifiée juste avant si on est sur le générateur
+     */
+    public static async load_ModuleTableVOs_from_db() {
+
+        const db_tables = await query(ModuleTableVO.API_TYPE_ID).select_vos<ModuleTableVO>();
+
+        for (const i in db_tables) {
+            const db_table = db_tables[i];
+            ModuleTableController.module_tables_by_vo_type[db_table.vo_type] = db_table;
+        }
+    }
+
+    public static initialize() {
+        ModuleTableController.init_default_fields_to_moduletable_and_moduletablefield();
+
+        ModuleTableController.init_unique_fields_by_voType();
+        ModuleTableController.init_field_name_to_api_map();
+        ModuleTableController.init_readonly_fields_by_ids();
+        ModuleTableController.init_default_trad_field_label_translatable_code();
+    }
+
+    /**
      * On init le cache des clés uniques, en réunissant les fields uniques (clé unique simple)
      *  et les index uniques (clé unique composite)
      */
-    public static init_unique_fields_by_voType() {
+    private static init_unique_fields_by_voType() {
 
         ModuleTableController.unique_fields_by_vo_type = {};
 
@@ -323,27 +419,26 @@ export default class ModuleTableController {
         }
     }
 
-    /**
-     * On récupère la version en base. Elle a été modifiée juste avant si on est sur le générateur
-     */
-    public static async load_ModuleTableVOs_from_db() {
+    private static init_default_fields_to_moduletable_and_moduletablefield() {
 
-        const db_tables = await query(ModuleTableVO.API_TYPE_ID).select_vos<ModuleTableVO>();
+        for (const vo_type in ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[vo_type];
 
-        for (const i in db_tables) {
-            const db_table = db_tables[i];
-            ModuleTableController.module_tables_by_vo_type[db_table.vo_type] = db_table;
+            for (const i in fields) {
+                const field = fields[i];
+
+                ModuleTableController.apply_default_fields(field);
+            }
+        }
+
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const table = ModuleTableController.module_tables_by_vo_type[i];
+
+            ModuleTableController.apply_default_fields(table);
         }
     }
 
-    public static initialize() {
-        ModuleTableController.init_unique_fields_by_voType();
-        ModuleTableController.init_field_name_to_api_map();
-        ModuleTableController.init_readonly_fields_by_ids();
-        ModuleTableController.init_default_trad_field_label_translatable_code();
-    }
-
-    public static init_default_trad_field_label_translatable_code() {
+    private static init_default_trad_field_label_translatable_code() {
         for (const vo_type in ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name) {
             const fields = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type];
 
@@ -362,7 +457,7 @@ export default class ModuleTableController {
         }
     }
 
-    public static init_field_name_to_api_map() {
+    private static init_field_name_to_api_map() {
 
         ModuleTableController.field_name_to_api_map = {};
 
@@ -386,7 +481,7 @@ export default class ModuleTableController {
         }
     }
 
-    public static init_readonly_fields_by_ids() {
+    private static init_readonly_fields_by_ids() {
 
         ModuleTableController.readonly_fields_by_ids = {};
 
@@ -410,43 +505,4 @@ export default class ModuleTableController {
             }
         }
     }
-
-    private static OFFUSC_IDs = [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
-        'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-        'w', 'x', 'y', 'z',
-        'a0', 'b0', 'c0', 'd0', 'e0', 'f0', 'g0', 'h0', 'i0', 'j0', 'k0',
-        'l0', 'm0', 'n0', 'o0', 'p0', 'q0', 'r0', 's0', 't0', 'u0', 'v0',
-        'w0', 'x0', 'y0', 'z0',
-        'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1', 'i1', 'j1', 'k1',
-        'l1', 'm1', 'n1', 'o1', 'p1', 'q1', 'r1', 's1', 't1', 'u1', 'v1',
-        'w1', 'x1', 'y1', 'z1',
-        'a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2', 'i2', 'j2', 'k2',
-        'l2', 'm2', 'n2', 'o2', 'p2', 'q2', 'r2', 's2', 't2', 'u2', 'v2',
-        'w2', 'x2', 'y2', 'z2',
-        'a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3', 'i3', 'j3', 'k3',
-        'l3', 'm3', 'n3', 'o3', 'p3', 'q3', 'r3', 's3', 't3', 'u3', 'v3',
-        'w3', 'x3', 'y3', 'z3',
-        'a4', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'h4', 'i4', 'j4', 'k4',
-        'l4', 'm4', 'n4', 'o4', 'p4', 'q4', 'r4', 's4', 't4', 'u4', 'v4',
-        'w4', 'x4', 'y4', 'z4',
-        'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5', 'i5', 'j5', 'k5',
-        'l5', 'm5', 'n5', 'o5', 'p5', 'q5', 'r5', 's5', 't5', 'u5', 'v5',
-        'w5', 'x5', 'y5', 'z5',
-        'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6', 'i6', 'j6', 'k6',
-        'l6', 'm6', 'n6', 'o6', 'p6', 'q6', 'r6', 's6', 't6', 'u6', 'v6',
-        'w6', 'x6', 'y6', 'z6',
-        'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7', 'i7', 'j7', 'k7',
-        'l7', 'm7', 'n7', 'o7', 'p7', 'q7', 'r7', 's7', 't7', 'u7', 'v7',
-        'w7', 'x7', 'y7', 'z7',
-        'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8', 'i8', 'j8', 'k8',
-        'l8', 'm8', 'n8', 'o8', 'p8', 'q8', 'r8', 's8', 't8', 'u8', 'v8',
-        'w8', 'x8', 'y8', 'z8',
-        'a9', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9', 'h9', 'i9', 'j9', 'k9',
-        'l9', 'm9', 'n9', 'o9', 'p9', 'q9', 'r9', 's9', 't9', 'u9', 'v9',
-        'w9', 'x9', 'y9', 'z9',
-        'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',
-        'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_',
-        'w_', 'x_', 'y_', 'z_',
-    ];
 }

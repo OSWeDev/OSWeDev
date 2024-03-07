@@ -21,7 +21,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableFieldVO.VALIDATION_CODE_TEXT_BASE + "need_h" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     public static VALIDATION_CODE_TEXT_format_unix_timestamp_invalid: string = ModuleTableFieldVO.VALIDATION_CODE_TEXT_BASE + "format_unix_timestamp_invalid";
 
-
     public static FIELD_TYPE_file_ref: string = 'file_ref';
     public static FIELD_TYPE_image_field: string = 'image';
     public static FIELD_TYPE_image_ref: string = 'image_ref';
@@ -351,7 +350,9 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             return null;
         }
 
-        return "fields.labels." + this.module_table_vo_type + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        let moduletable = ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
+
+        return "fields.labels." + moduletable.full_name + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public getPGSqlFieldDescription() {

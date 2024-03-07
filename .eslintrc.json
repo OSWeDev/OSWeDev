@@ -55,7 +55,9 @@
         "@typescript-eslint/no-var-requires": "warn",
         "vue/no-deprecated-vue-config-keycodes": "warn",
         "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/member-ordering": "error",
         "no-async-promise-executor": "off",
+        "no-useless-escape": "warn",
         "prefer-const": "warn"
     }
 }

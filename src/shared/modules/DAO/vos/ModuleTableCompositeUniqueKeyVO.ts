@@ -5,7 +5,7 @@ import ModuleTableCompositeUniqueKeyController from "../ModuleTableCompositeUniq
 
 export default class ModuleTableCompositeUniqueKeyVO implements IDistantVOBase {
 
-    public static API_TYPE_ID: string = "module_table_field";
+    public static API_TYPE_ID: string = "module_table_composite_unique_key";
 
     public id: number;
     public _type: string = ModuleTableCompositeUniqueKeyVO.API_TYPE_ID;

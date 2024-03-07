@@ -102,7 +102,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     for (const i in daterange_array) {
                         const daterange = daterange_array[i];
 
-                        const parts: string[] = daterange.replace(/[\(\)\[\]]/g, '').split(',');
+                        const parts: string[] = daterange.replace(/[()[\]]/g, '').split(',');
                         if ((!parts) || (parts.length <= 0)) {
                             continue;
                         }
@@ -593,24 +593,20 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
     }
 
     public enumIdToHumanReadable: (id: number) => string = (id: number) => {
-        const res: string = "";
-
         if ((typeof id === 'undefined') || (id === null)) {
             return null;
         }
 
         return LocaleManager.getInstance().i18n.t(this.enum_values[id]);
-    }
+    };
 
     public enumIdToHumanReadableImage: (id: number) => string = (id: number) => {
-        const res: string = "";
-
         if ((typeof id === 'undefined') || (id === null)) {
             return null;
         }
 
         return this.moduleTableField.enum_image_values ? this.moduleTableField.enum_image_values[id] : null;
-    }
+    };
 
     public getValidationTextCodeBase(): string {
         return this.moduleTableField.getValidationTextCodeBase();

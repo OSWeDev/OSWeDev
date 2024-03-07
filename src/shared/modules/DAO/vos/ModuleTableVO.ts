@@ -20,11 +20,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "module_table";
 
     public id: number;
-    public _type: string = ModuleTableFieldVO.API_TYPE_ID;
-
-    /**
-     * Local thread cache -----
-     */
+    public _type: string = ModuleTableVO.API_TYPE_ID;
 
     public table_name: string;
     public full_name: string;
@@ -37,12 +33,12 @@ export default class ModuleTableVO implements IDistantVOBase {
      *  En revanche en théorie le range_type se déduit du type du field sur lequel on segmente, donc on le set automatiquement et
      *      on garde lisible juste pour trace et éviter de refaire le switch en permanence.
      */
-    public is_segmented: boolean = false;
-    public is_versioned: boolean = false;
-    public is_archived: boolean = false;
-    public table_segmented_field: ModuleTableFieldVO = null;
-    public table_segmented_field_range_type: number = null;
-    public table_segmented_field_segment_type: number = null;
+    public is_segmented: boolean;
+    public is_versioned: boolean;
+    public is_archived: boolean;
+    public table_segmented_field: ModuleTableFieldVO;
+    public table_segmented_field_range_type: number;
+    public table_segmented_field_segment_type: number;
 
     public module_name: string;
     // public module: Module;
@@ -51,17 +47,17 @@ export default class ModuleTableVO implements IDistantVOBase {
     public prefix: string;
     public database: string;
     public vo_type: string;
-    public label: DefaultTranslationVO = null;
+    public label: DefaultTranslationVO;
 
-    public default_label_field: ModuleTableFieldVO = null;
-    public importable: boolean = false;
-    public isModuleParamTable: boolean = false;
+    public default_label_field: ModuleTableFieldVO;
+    public importable: boolean;
+    public isModuleParamTable: boolean;
 
-    public inherit_rights_from_vo_type: string = null;
+    public inherit_rights_from_vo_type: string;
 
-    public isMatroidTable: boolean = false;
+    public isMatroidTable: boolean;
 
-    public any_to_many_default_behaviour_show: boolean = true;
+    public any_to_many_default_behaviour_show: boolean;
 
     /**
      * Mappings de traduction d'un Vo de ce type vers un Vo du type b
@@ -69,15 +65,9 @@ export default class ModuleTableVO implements IDistantVOBase {
      *  et si on veut rien mapper de particulier mais permettre le mapping, mettre {}
      *  le mapping sera fait à l'identique
      */
-    public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } } = {};
-
-    private vo_interfaces: { [interface_name: string]: boolean } = {};
-    /**
-     * ----- Local thread cache
-     */
+    public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_name_a: string]: string } };
 
     public constructor() { }
-
 
     /**
      * On ne peut segmenter que sur un field de type range ou ranges pour le moment

@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -147,6 +148,7 @@ export default class ModuleDataImport extends Module {
                             }
                         }
                     } catch (error) {
+                        ConsoleHandler.error('Error parsing importJSON', error);
                     }
                 }
 
@@ -227,15 +229,17 @@ export default class ModuleDataImport extends Module {
         ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().not_imported_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg import", false);
         ModuleTableFieldController.create_new(imported_vo_type, field_names<IImportedData>().not_posttreated_msg, ModuleTableFieldVO.FIELD_TYPE_string, "Msg post-traitement", false);
 
-        let import_vo_constructor = class implements IDistantVOBase {
+        let import_vo_constructor = ModuleTableController.vo_constructor_wrapper(class implements IDistantVOBase {
+
             public constructor() {
                 let res = new vo_constructor();
                 res._type = imported_vo_type;
                 return res;
-            };
+            }
+
             public id: number;
             public _type: string;
-        };
+        });
         const importTable: ModuleTableVO = ModuleTableController.create_new(
             targetModuleTable.module_name,
             import_vo_constructor,
