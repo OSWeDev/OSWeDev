@@ -80,6 +80,7 @@ import Patch20231120AddUniqCronPlanificationUID from './patchs/premodules/Patch2
 import Patch20240123ForceUnicityOnGeneratorWorkersUID from './patchs/premodules/Patch20240123ForceUnicityOnGeneratorWorkersUID';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch20240206InitNullFieldsFromWidgets';
+import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
 
 export default abstract class GeneratorBase {
 
@@ -179,7 +180,8 @@ export default abstract class GeneratorBase {
             Patch20230519AddRightsFeedbackStateVO.getInstance(),
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
-            Patch20231123AddRightsSharedFilters.getInstance()
+            Patch20231123AddRightsSharedFilters.getInstance(),
+            Patch20240307DuplicateRightsSupervision.getInstance()
         ];
     }
 
