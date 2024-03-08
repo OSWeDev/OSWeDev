@@ -139,7 +139,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             await promise_pipeline.push(async () => {
 
-                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     {
@@ -389,7 +389,7 @@ export default class FieldValueFilterEnumWidgetManager {
             await promise_pipeline.push(async () => {
 
                 // Check access on each api_type_id
-                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     {
@@ -498,6 +498,8 @@ export default class FieldValueFilterEnumWidgetManager {
 
             await promise_pipeline.push(async () => {
                 const count: number = await context_query.select_count();
+
+                console.log(await context_query.get_select_query_str());
 
                 if (count >= 0) {
                     count_by_enum_data_filter[filter_opt.numeric_value] = count;
