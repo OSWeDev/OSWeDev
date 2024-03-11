@@ -12,6 +12,8 @@ import MatroidCutResult from './vos/MatroidCutResult';
 
 export default class MatroidController {
 
+    private constructor() { }
+
     public static async initialize() {
     }
 
@@ -130,7 +132,7 @@ export default class MatroidController {
                 continue;
             }
 
-            res.push(this.cloneFrom(tested_matroid));
+            res.push(this.cloneFrom<T, T, null>(tested_matroid));
         }
 
         for (const i in ranges_need_union) {
@@ -460,7 +462,7 @@ export default class MatroidController {
         const matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
-        const chopped_matroid = this.cloneFrom<T, T>(matroid_to_cut);
+        const chopped_matroid = this.cloneFrom(matroid_to_cut);
 
         // On coupe sur chaque base, si elle a une intersection
         for (const i in matroid_to_cut_bases) {
@@ -490,18 +492,18 @@ export default class MatroidController {
             if (cut_result.remaining_items) {
 
                 // Le but est de créer le matroid lié à la coupe sur cette dimension
-                const this_base_remaining_matroid = this.cloneFrom<T, T>(chopped_matroid);
+                const this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
 
                 this_base_remaining_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.remaining_items.ranges);
 
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
                 for (const k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
                     const range = this_base_remaining_matroid[matroid_to_cut_base.field_id][k];
-                    delete range.field_id;
-                    delete range.api_type_id;
+                    // delete range.field_id; ??????
+                    // delete range.api_type_id; ???????
                 }
 
-                res.remaining_items.push(this_base_remaining_matroid);
+                res.remaining_items.push(this_base_remaining_matroid as unknown as T);
             }
 
             if (cut_result.chopped_items) {
@@ -511,13 +513,13 @@ export default class MatroidController {
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
                 for (const k in chopped_matroid[matroid_to_cut_base.field_id]) {
                     const range = chopped_matroid[matroid_to_cut_base.field_id][k];
-                    delete range.field_id;
-                    delete range.api_type_id;
+                    // delete range.field_id; ??????
+                    // delete range.api_type_id; ???????
                 }
 
             }
         }
-        res.chopped_items.push(chopped_matroid);
+        res.chopped_items.push(chopped_matroid as unknown as T);
 
         return res;
     }
@@ -539,7 +541,11 @@ export default class MatroidController {
      * Clones all but id and value, value_type, value_ts for vars
      * @param from
      */
-    public static cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
+    public static cloneFrom<T extends U, U extends IMatroid, V extends { [field_id: string]: IRange[] }>(
+        from: T,
+        to_type: string = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): U & V {
 
         if (!from) {
             return null;
@@ -549,12 +555,12 @@ export default class MatroidController {
         const moduletable_from = ModuleTableController.module_tables_by_vo_type[from._type];
         const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
-        const res: U = new ModuleTableController.vo_constructor_by_vo_type[_type]() as U;
+        const res: U & V = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
         res._type = _type;
 
         // Compatibilité avec les vars
         if (typeof from['var_id'] !== 'undefined') {
-            res['var_id'] = from['var_id'];
+            (res as U)['var_id'] = from['var_id'];
         }
         // if (typeof from['value'] !== 'undefined') {
         //     res['value'] = from['value'];
@@ -577,7 +583,7 @@ export default class MatroidController {
         for (const to_fieldi in to_fields) {
             const to_field = to_fields[to_fieldi];
 
-            let from_field_id = to_field.field_id;
+            let from_field_id = to_field.field_name;
             if (needs_mapping) {
                 /**
                  * Si on a un mapping predef on l'utilise
@@ -585,7 +591,7 @@ export default class MatroidController {
                 if (typeof mappings !== 'undefined') {
                     for (const mappingi in mappings) {
 
-                        if (mappings[mappingi] == to_field.field_id) {
+                        if (mappings[mappingi] == to_field.field_name) {
                             from_field_id = mappingi;
                         }
                     }
@@ -593,34 +599,34 @@ export default class MatroidController {
                     /**
                      * Sinon on check que le champ existait dans le type from
                      */
-                    const from_field = moduletable_from.get_field_by_id(to_field.field_id);
-                    from_field_id = from_field ? to_field.field_id : null;
+                    const from_field = moduletable_from.get_field_by_id(to_field.field_name);
+                    from_field_id = from_field ? to_field.field_name : null;
                 }
             }
 
             if (from_field_id) {
-                res[to_field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
+                (res as U)[to_field.field_name] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
             } else {
                 switch (to_field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
-                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
+                        (res as U)[to_field.field_name] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_hourrange:
                     case ModuleTableFieldVO.FIELD_TYPE_daterange:
-                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
+                        (res as U)[to_field.field_name] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     default:
                 }
             }
         }
 
-        if (res['_index']) {
-            res['rebuild_index']();
+        if ((res as U)['_index']) {
+            (res as U)['rebuild_index']();
         }
         return res;
     }
@@ -639,11 +645,9 @@ export default class MatroidController {
         const res: T[] = [];
 
         for (const i in from) {
-            res[i] = this.cloneFrom(from[i]);
+            res[i] = this.cloneFrom<T, T, null>(from[i]);
         }
 
         return res;
     }
-
-    private constructor() { }
 }

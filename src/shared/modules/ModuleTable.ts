@@ -128,7 +128,7 @@
 //                 let ignore_field_ = ignore_fields_[i];
 //                 ignore_fields[ignore_field_.field_name] = true;
 //             }
-//             res['_api_only_index'] = (e as any as VarDataBaseVO).index;
+//             res['_api_only_index'] = (e as unknown as VarDataBaseVO).index;
 //         }
 
 //         for (let i in table.fields_) {
@@ -181,7 +181,7 @@
 //          */
 //         let ignore_fields: { [field_name: string]: boolean } = {};
 //         if (table.isMatroidTable && !!e['_api_only_index']) {
-//             let a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as any as T;
+//             let a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as unknown as T;
 //             a._type = res._type;
 //             a.id = res.id;
 //             res = a;

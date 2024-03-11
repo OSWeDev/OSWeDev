@@ -13,10 +13,6 @@ import ICheckPoint from './interfaces/ICheckPoint';
 
 export default abstract class ModuleCheckListBase extends Module {
 
-    get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
-    get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
-    get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
-
     public checklist_name: string = null;
 
     protected constructor(
@@ -35,6 +31,10 @@ export default abstract class ModuleCheckListBase extends Module {
         this.initialize_later();
     }
 
+    get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
+    get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
+    get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
+
     public initialize_later() {
         this.callInitializeCheckList();
         this.callInitializeCheckListItem();
@@ -43,7 +43,6 @@ export default abstract class ModuleCheckListBase extends Module {
         // this.callInitializeCheckPointDep();
     }
 
-    protected abstract callInitializeCheckList();
     protected initializeCheckList(additional_fields: ModuleTableFieldVO[], constructor: { new(): ICheckList }) {
         if (!this.checklist_type_id) {
             return;
@@ -66,7 +65,6 @@ export default abstract class ModuleCheckListBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, constructor, label_field, "CheckLists");
     }
 
-    protected abstract callInitializeCheckListItem();
     protected initializeCheckListItem(additional_fields: ModuleTableFieldVO[], constructor: { new(): ICheckListItem }) {
         if (!this.checklistitem_type_id) {
             return;
@@ -92,7 +90,6 @@ export default abstract class ModuleCheckListBase extends Module {
         VersionedVOController.getInstance().registerModuleTable(datatable);
     }
 
-    protected abstract callInitializeCheckListItemCheckPoints();
     protected initializeCheckListItemCheckPoints(additional_fields: ModuleTableFieldVO[], constructor: { new(): ICheckListItemCheckPoints }) {
         if (!this.checklistitemcheckpoints_type_id) {
             return;
@@ -110,12 +107,11 @@ export default abstract class ModuleCheckListBase extends Module {
             checkpoint_id
         );
 
-        const datatable = ModuleTableController.create_new(this.name, constructor, null, "CheckListItemCheckPoints");
+        ModuleTableController.create_new(this.name, constructor, null, "CheckListItemCheckPoints");
         checklistitem_id.set_many_to_one_target_moduletable_name(this.checklistitem_type_id);
         checkpoint_id.set_many_to_one_target_moduletable_name(this.checkpoint_type_id);
     }
 
-    protected abstract callInitializeCheckPoint();
     protected initializeCheckPoint(additional_fields: ModuleTableFieldVO[], constructor: { new(): ICheckPoint }) {
         if (!this.checkpoint_type_id) {
             return;
@@ -137,7 +133,12 @@ export default abstract class ModuleCheckListBase extends Module {
             ModuleTableFieldController.create_new(this.checkpoint_type_id, field_names<ICheckPoint>().item_fields_tooltip, ModuleTableFieldVO.FIELD_TYPE_string, 'item_fields_tooltip', false),
         );
 
-        const datatable = ModuleTableController.create_new(this.name, constructor, label_field, "CheckPoints");
+        ModuleTableController.create_new(this.name, constructor, label_field, "CheckPoints");
         checklist_id.set_many_to_one_target_moduletable_name(this.checklist_type_id);
     }
+
+    protected abstract callInitializeCheckList(): void;
+    protected abstract callInitializeCheckListItem();
+    protected abstract callInitializeCheckListItemCheckPoints();
+    protected abstract callInitializeCheckPoint();
 }

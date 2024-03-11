@@ -48,7 +48,7 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
 
         switch (dep_id) {
             case FakeVarControllerCyclB.DEP_CyclA:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
         }
 
         return null;

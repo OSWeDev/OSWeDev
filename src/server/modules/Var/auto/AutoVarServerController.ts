@@ -1,18 +1,18 @@
-import ContextFilterVO, { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
+import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import FieldFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
 import ModuleVar from "../../../../shared/modules/Var/ModuleVar";
 import VarConfAutoDepVO from "../../../../shared/modules/Var/vos/VarConfAutoDepVO";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VarParamFieldTransformStrategyVO from "../../../../shared/modules/Var/vos/VarParamFieldTransformStrategyVO";
-import FieldFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DAOUpdateVOHolder from "../../DAO/vos/DAOUpdateVOHolder";
-import DataSourceControllerBase from "../datasource/DataSourceControllerBase";
 import VarServerControllerBase from "../VarServerControllerBase";
 import VarsServerController from "../VarsServerController";
+import DataSourceControllerBase from "../datasource/DataSourceControllerBase";
 import AutoVarCalculationHandler from "./AutoVarCalculationHandler";
 import AutoVarDatasourceController from "./AutoVarDatasourceController";
 
@@ -220,8 +220,8 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             return null;
         }
 
-        const res: VarDataBaseVO[] = VarDataBaseVO.cloneArrayFrom<VarDataBaseVO, VarDataBaseVO>(
-            intersectors as any as VarDataBaseVO[], this.varConf.name);
+        const res: VarDataBaseVO[] = VarDataBaseVO.cloneArrayFrom(
+            intersectors as unknown as VarDataBaseVO[], this.varConf.name);
 
         for (const param_field_id in dep.params_transform_strategies) {
             const field_transform_strategies = dep.params_transform_strategies[param_field_id];
@@ -264,7 +264,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         const target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
 
         const res: VarDataBaseVO[] = [];
-        const cloned = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(
+        const cloned: VarDataBaseVO = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO, null>(
             varDAGNode.var_data as VarDataBaseVO, target_varconf.name, true);
         res.push(cloned);
 

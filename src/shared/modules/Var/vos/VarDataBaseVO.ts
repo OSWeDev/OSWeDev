@@ -20,6 +20,93 @@ export default class VarDataBaseVO implements IMatroid {
     public static VALUE_TYPE_COMPUTED: number = 1;
     public static VALUE_TYPE_DENIED: number = 2;
 
+    public _type: string;
+    public id: number;
+
+    public _var_id: number;
+
+    /**
+     * La valeur calculée du noeud :
+     *  - undefined indique une valeur non calculée
+     *  - null indique une valeur calculée, dont le résultat est : null
+     */
+    public value: number;
+    public value_type: number;
+    public value_ts: number;
+
+    private _index: string;
+    private _is_pixel: boolean;
+
+    private rebuilding_index: boolean = false;
+
+    public constructor() { }
+
+    get var_id(): number { return this._var_id; }
+    get is_pixel(): boolean {
+
+        if (this._is_pixel == null) {
+            const a = this.index;
+        }
+
+        return this._is_pixel;
+    }
+
+    get _bdd_only_is_pixel(): boolean {
+
+        return this.is_pixel;
+    }
+
+    /**
+     * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.
+     *
+     * Suite discussion avec chatgpt... pour booster les perfs de ce truc, on passe par un getter pour le premier appel,
+     * par ce que c'est quand même de loin le plus simple, mais lorsque le getter est appelé, on le remplace par une propriété
+     *
+     *
+     * class A {
+     *   constructor() {}
+     *
+     *   get b() {
+     *     console.log("IN B");
+     *     // Suppression du getter et définition de la propriété avec une valeur fixe
+     *     Object.defineProperty(this, 'b', {
+     *       value: "f",
+     *       writable: true, // Permet de réassigner la valeur plus tard si nécessaire
+     *       configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+     *     });
+     *     return this.b;
+     *   }
+     *
+     *   public e() {
+     *     this.b = "g"; // Réaffectation directe sans supprimer, car 'b' n'est plus un getter
+     *     console.log("IN E");
+     *   }
+     * }
+     *
+     * let a_ = new A();
+     * console.log(a_.b); // Premier appel, affichera "IN B" puis "f"
+     * a_.e(); // Modification de la valeur de 'b'
+     * console.log(a_.b); // Affichera "g" sans passer par le getter
+     */
+    get index(): string {
+
+        return this.initial_getter_index();
+    }
+
+    /**
+     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
+     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
+     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
+     */
+    get _bdd_only_index(): string {
+
+        return this.index;
+    }
+
+    set var_id(var_id: number) {
+        this.set_field('var_id', var_id);
+    }
+
     public static from_index(index: string): VarDataBaseVO {
 
         return MatroidIndexHandler.from_normalized_vardata(index);
@@ -91,7 +178,7 @@ export default class VarDataBaseVO implements IMatroid {
         const field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
 
         /**
-         * Si on change le type se segmentation on adapte aussi le param
+         * Si on change le type de segmentation on adapte aussi le param
          */
         this.adapt_param_to_varconf_segmentations(res, field_segmentations);
         return res;
@@ -139,9 +226,13 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarName<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
+    public static cloneFromVarName<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T,
+        var_name: string = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
-        return this.cloneFieldsFromVarName<T, U>(param_to_clone, var_name, clone_fields);
+        return this.cloneFieldsFromVarName<T, U, V>(param_to_clone, var_name, clone_fields, static_fields);
     }
 
     /**
@@ -150,9 +241,13 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_id Identifiant de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarId<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
+    public static cloneFromVarId<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T,
+        var_id: number = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
-        return this.cloneFieldsFromVarId<T, U>(param_to_clone, var_id, clone_fields);
+        return this.cloneFieldsFromVarId<T, U, V>(param_to_clone, var_id, clone_fields, static_fields);
     }
 
     /**
@@ -161,9 +256,13 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_conf La conf de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarConf<T extends U, U extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): U {
+    public static cloneFromVarConf<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T,
+        var_conf: VarConfVO = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, var_conf, clone_fields);
+        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, var_conf, clone_fields, static_fields);
     }
 
     /**
@@ -172,19 +271,24 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneArrayFrom<T extends VarDataBaseVO, U extends VarDataBaseVO>(params_to_clone: T[], var_name: string = null, clone_fields: boolean = true): U[] {
+
+    public static cloneArrayFrom<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        params_to_clone: T[],
+        var_name: string = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): Array<U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] }> {
 
         if (!params_to_clone) {
             return null;
         }
 
-        const res: U[] = [];
+        const res: Array<U & V> = [];
 
         for (const i in params_to_clone) {
             const param_to_clone = params_to_clone[i];
 
             // On surcharge volontairement le typage, car ici on veut bien avoir U extends T au lieu de l'inverse, ça pose pas de soucis a priori dans l'usage qui est plutôt pour des invalidators
-            res.push(this.cloneFromVarName<any, any>(param_to_clone as any, var_name, clone_fields) as U);
+            res.push(this.cloneFromVarName<T, U, V>(param_to_clone, var_name, clone_fields, static_fields));
         }
 
         return res;
@@ -197,9 +301,14 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
+    public static cloneFieldsFromVarName<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T,
+        var_name: string = null,
+        clone_fields: boolean = true,
+        static_fields: V = null
+    ): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields, static_fields);
     }
 
     /**
@@ -208,9 +317,10 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
+    public static cloneFieldsFromVarId<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T, var_id: number = null, clone_fields: boolean = true, static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
-        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields, static_fields);
     }
 
     /**
@@ -219,7 +329,11 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, varConf: VarConfVO = null, clone_fields: boolean = true): U {
+    public static cloneFieldsFromVarConf<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+        param_to_clone: T,
+        varConf: VarConfVO = null,
+        clone_fields: boolean = true,
+        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
 
         if (!param_to_clone) {
             return null;
@@ -228,7 +342,7 @@ export default class VarDataBaseVO implements IMatroid {
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
         varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
-        const res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
+        const res: U & V = MatroidController.cloneFrom<T, U, V>(param_to_clone, varConf.var_data_vo_type, clone_fields, static_fields);
         if (!res) {
             return null;
         }
@@ -245,33 +359,11 @@ export default class VarDataBaseVO implements IMatroid {
             ConsoleHandler.error("VarDataBaseVO.cloneFieldsFromVarConf param_to_clone:: " + JSON.stringify(param_to_clone));
         }
 
+        for (const field_name in static_fields) {
+            (res as V)[field_name] = static_fields[field_name];
+        }
+
         return res;
-    }
-
-    public _type: string;
-    public id: number;
-
-    public _var_id: number;
-
-    /**
-     * La valeur calculée du noeud :
-     *  - undefined indique une valeur non calculée
-     *  - null indique une valeur calculée, dont le résultat est : null
-     */
-    public value: number;
-    public value_type: number;
-    public value_ts: number;
-
-    private _index: string;
-    private _is_pixel: boolean;
-
-    private rebuilding_index: boolean = false;
-
-    public constructor() { }
-
-    get var_id(): number { return this._var_id; }
-    set var_id(var_id: number) {
-        this.set_field('var_id', var_id);
     }
 
     /**
@@ -335,43 +427,6 @@ export default class VarDataBaseVO implements IMatroid {
         }
     }
 
-    /**
-     * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.
-     *
-     * Suite discussion avec chatgpt... pour booster les perfs de ce truc, on passe par un getter pour le premier appel,
-     * par ce que c'est quand même de loin le plus simple, mais lorsque le getter est appelé, on le remplace par une propriété
-     *
-     *
-     * class A {
-     *   constructor() {}
-     *
-     *   get b() {
-     *     console.log("IN B");
-     *     // Suppression du getter et définition de la propriété avec une valeur fixe
-     *     Object.defineProperty(this, 'b', {
-     *       value: "f",
-     *       writable: true, // Permet de réassigner la valeur plus tard si nécessaire
-     *       configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
-     *     });
-     *     return this.b;
-     *   }
-     *
-     *   public e() {
-     *     this.b = "g"; // Réaffectation directe sans supprimer, car 'b' n'est plus un getter
-     *     console.log("IN E");
-     *   }
-     * }
-     *
-     * let a_ = new A();
-     * console.log(a_.b); // Premier appel, affichera "IN B" puis "f"
-     * a_.e(); // Modification de la valeur de 'b'
-     * console.log(a_.b); // Affichera "g" sans passer par le getter
-     */
-    get index(): string {
-
-        return this.initial_getter_index();
-    }
-
     private initial_getter_index(): string {
 
         if (!this._index) {
@@ -385,29 +440,5 @@ export default class VarDataBaseVO implements IMatroid {
         });
 
         return this._index;
-    }
-
-    get is_pixel(): boolean {
-
-        if (this._is_pixel == null) {
-            const a = this.index;
-        }
-
-        return this._is_pixel;
-    }
-
-    get _bdd_only_is_pixel(): boolean {
-
-        return this.is_pixel;
-    }
-
-    /**
-     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
-     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
-     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
-     */
-    get _bdd_only_index(): string {
-
-        return this.index;
     }
 }

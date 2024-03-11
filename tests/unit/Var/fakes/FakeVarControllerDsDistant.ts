@@ -49,7 +49,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
     public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<FakeDataVO[]> {
 
-        const typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeDistantVO>;
+        const typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as unknown as DAOUpdateVOHolder<FakeDistantVO>;
 
         if (((typed.pre_update_vo as FakeDistantVO).date == (typed.post_update_vo as FakeDistantVO).date) &&
             ((typed.pre_update_vo as FakeDistantVO).value == (typed.post_update_vo as FakeDistantVO).value)) {

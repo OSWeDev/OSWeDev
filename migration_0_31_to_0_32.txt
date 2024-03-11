@@ -2,11 +2,42 @@
 
 L'ordre est important
 
-PREMIERE ETAPE : remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
-Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
- - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
-    - "\.filter_((by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf|ranges))|(is_(true|false)))\(('|")"
-    - "\.field\(('|")"
+
+Package.json => 
+
+REMPLACER les scripts lint et lint-global par 
+        "lint": "eslint . --ext .ts,.tsx,.vue",
+        "lint-fix": "eslint . --ext .ts,.tsx,.vue --fix",
+
+REMPLACER / AJOUTER
+    "dependencies": {
+        "@types/estree": "^1.0.5",
+        "oswedev": "0.32.0-pre.0",
+        "vue-tables-2": "2.3.5",
+        "lodash": "4.17.21",
+    "devDependencies": {
+        "@stylistic/eslint-plugin": "^1.6.3",
+        "@types/lodash": "4.14.202",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^7.1.0",
+        "eslint": "^8.57.0",
+        "eslint-config-standard-with-typescript": "^43.0.1",
+        "eslint-plugin-import": "^2.29.1",
+        "eslint-plugin-n": "^16.6.2",
+        "eslint-plugin-promise": "^6.1.1",
+        "eslint-plugin-vue": "^9.22.0",
+        "tsc-watch": "6.0.4",
+        "typescript": "5.3.3",
+
+Copier le .eslintrc.json à la racine d'un projet de même type
+
+npm i
+npm run lint-fix
+
+Remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
+Pour les trouver facilement, en recherche globale REGEXP : "new ModuleTableField\(('|")"
+pour copier coller facilement :
+field_names<>().
 
 
 == REPLACE ALL
@@ -66,15 +97,15 @@ FROM :
 TO:
 '.set_many_to_one_target_moduletable_name($1.vo_type);'
 
-=== Mot Entier
+=== REGEXP
 FROM :
-'ModuleTableFieldVO<any>'
+'ModuleTableFieldVO<[a-zA-Z0-9_]+>'
 TO :
 'ModuleTableFieldVO'
 
-=== Mot Entier
+=== REGEXP
 FROM :
-'ModuleTableVO<any>'
+'ModuleTableVO<[a-zA-Z0-9_]+>'
 TO :
 'ModuleTableVO'
 
@@ -212,12 +243,63 @@ FROM :
 TO :
 'EnvHandler.\L$1'
 
+=== REGEXP
+FROM :
+'query\(([A-Za-z0-9_]+)\.API_TYPE_ID\)\.field\(('|")([A-Za-z0-9_]+)('|")\)'
+TO :
+'query($1.API_TYPE_ID).field(field_names<$1>().$3)'
 
+=== REGEXP
+FROM :
+'ModuleTableController\.module_tables_by_vo_type\[([A-Za-z0-9_]+)\.API_TYPE_ID\]\.define_default_label_function\('
+TO :
+'ModuleTableController.set_label_function($1.API_TYPE_ID, '
+
+=== REGEXP
+FROM :
+'VarDataBaseVO\.cloneFromVarName<([^,>]+), ([^,>]+)>'
+TO :
+'VarDataBaseVO.cloneFromVarName<$1, $2, null>'
+
+=== REGEXP
+FROM :
+'\.cloneFromVarConf<([^,>]+), ([^,>]+)>\('
+TO :
+'.cloneFromVarConf<$1, $2, null>('
+
+=== REGEXP
+FROM :
+'\.cloneArrayFrom<([^,>]+), ([^,>]+)>\('
+TO :
+'.cloneArrayFrom<$1, $2, null>('
+
+=== REGEXP
+FROM :
+' as any as '
+TO :
+' as unknown as '
+
+=== Mot Entier
+FROM :
+'Promise<any>'
+TO :
+'Promise<unknown>'
 
 
 
 == Modifications restantes (principales)
 
+=== Identifier les fichiers nécessitant un import de ModuleTableController / ModuleTableFieldController / field_names
+Faire une recherche exacte sur "ModuleTableController" et pour chaque fichier s'assurer dans les résultats que la première ligne de résultat pour le fichier est "import ModuleTableController ..."
+Sinon il manque un import dans ce fichier.
+
+=== Continuer de modifier les query
+Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
+ - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
+    - "\.filter_((by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf|ranges|starting_with))|(is_(true|false)))\(('|")"
+    - "\.field\(('|")"
+    
+    
 === esbuild.mjs à la racine
 en REGEXP, rechercher : "\.[A-Z_]+[^A-Za-z0-9_-]"
 Passer en minuscule tout ce qui concerne des STATIC_ENV_PARAMS, mais pas les variables d'environnement (exemple NODE_ENV)

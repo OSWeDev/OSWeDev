@@ -54,10 +54,10 @@ export default class FakeBVarController extends VarServerControllerBase<FakeData
 
         switch (dep_id) {
             case FakeBVarController.DEP_F:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name);
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name);
 
             case FakeBVarController.DEP_E:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeDataVO[];
         }
 
         return null;
