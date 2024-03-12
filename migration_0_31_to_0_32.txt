@@ -257,24 +257,6 @@ TO :
 
 === REGEXP
 FROM :
-'VarDataBaseVO\.cloneFromVarName<([^,>]+), ([^,>]+)>'
-TO :
-'VarDataBaseVO.cloneFromVarName<$1, $2, null>'
-
-=== REGEXP
-FROM :
-'\.cloneFromVarConf<([^,>]+), ([^,>]+)>\('
-TO :
-'.cloneFromVarConf<$1, $2, null>('
-
-=== REGEXP
-FROM :
-'\.cloneArrayFrom<([^,>]+), ([^,>]+)>\('
-TO :
-'.cloneArrayFrom<$1, $2, null>('
-
-=== REGEXP
-FROM :
 ' as any as '
 TO :
 ' as unknown as '
@@ -285,7 +267,19 @@ FROM :
 TO :
 'Promise<unknown>'
 
+=== REGEXP
+FROM :
+'\.cloneArrayFrom\(intersectors as unknown as [^,]+, this\.varConf\.name\);'
+TO :
+'.get_cloned_invalidators_from_dep_controller(intersectors, this.self_instance);'
 
+=== REGEXP !!!! A VERIFIER
+FROM :
+'VarDataBaseVO\.cloneFromVarName\(
+?[ ]*varDAGNode.var_data( as [^, ]+),
+?[ ]*([^.]+\.getInstance\(\))\.varConf\.name(, true)?\)( as [a-zA-Z0-9_]+)'
+TO :
+'VarDataBaseVO.get_cloned_param_for_dep_controller(varDAGNode.var_data$1, $2)'
 
 == Modifications restantes (principales)
 

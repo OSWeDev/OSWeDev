@@ -12,14 +12,6 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
 
     public static DEP_CyclA: string = 'CyclA' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeVarControllerCyclB {
-        if (!FakeVarControllerCyclB.instance) {
-            FakeVarControllerCyclB.instance = new FakeVarControllerCyclB();
-        }
-        return FakeVarControllerCyclB.instance;
-    }
-
     protected static instance: FakeVarControllerCyclB = null;
 
     protected constructor() {
@@ -27,6 +19,14 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
             new VarConfVO('FakeVarControllerCyclB', FakeEmpDayDataVO.API_TYPE_ID, null, 11),
             {}, {}, {}, {}
         );
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeVarControllerCyclB {
+        if (!FakeVarControllerCyclB.instance) {
+            FakeVarControllerCyclB.instance = new FakeVarControllerCyclB();
+        }
+        return FakeVarControllerCyclB.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {

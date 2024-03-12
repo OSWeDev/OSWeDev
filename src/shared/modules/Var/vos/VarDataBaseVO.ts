@@ -1,4 +1,5 @@
 
+import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
@@ -9,6 +10,8 @@ import MatroidController from '../../Matroid/MatroidController';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
+
+type ExtractVarServerControllerBaseType<T> = T extends VarServerControllerBase<infer U> ? U : never;
 
 /**
  * Paramètre le calcul de variables
@@ -222,73 +225,153 @@ export default class VarDataBaseVO implements IMatroid {
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param param_to_clone Le param que l'on doit cloner
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarName<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         param_to_clone: T,
         var_name: string = null,
         clone_fields: boolean = true,
-        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
-        return this.cloneFieldsFromVarName<T, U, V>(param_to_clone, var_name, clone_fields, static_fields);
+        return this.cloneFieldsFromVarName<T, U>(param_to_clone, var_name, clone_fields, static_fields);
     }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param param_to_clone Le param que l'on doit cloner
      * @param var_id Identifiant de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarId<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         param_to_clone: T,
         var_id: number = null,
         clone_fields: boolean = true,
-        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
-        return this.cloneFieldsFromVarId<T, U, V>(param_to_clone, var_id, clone_fields, static_fields);
+        return this.cloneFieldsFromVarId<T, U>(param_to_clone, var_id, clone_fields, static_fields);
+    }
+
+    /**
+     * Méthode pour créer un nouveau paramètre de var, avec un contrôle fort sur le type de retour vs le type de la var
+     * On ajoute les champs additionnels à la volée, et donc le type de retour est étendu
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param controller_type Le controller cible
+     * @param static_fields Les champs additionnels à ajouter
+     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
+     * @returns le paramètre cloné
+     */
+    public static get_cloned_param_for_dep_controller_with_additional_fields<
+        InputType extends VarDataBaseVO,
+        AdditionalFieldsType extends { [field_id: string]: IRange[] },
+        OutputType extends InputType & { [key in keyof AdditionalFieldsType as `_${Extract<key, string>}`]: IRange[] } & ExtractVarServerControllerBaseType<ControllerType>,
+        ControllerParamType extends VarDataBaseVO,
+        ControllerType extends VarServerControllerBase<ControllerParamType>
+    >(
+        param_to_clone: InputType,
+        controller_type: ControllerType,
+        static_fields: AdditionalFieldsType = null,
+        clone_fields: boolean = true,
+    ): OutputType {
+
+        return this.cloneFieldsFromVarName<InputType, OutputType>(param_to_clone, controller_type.varConf.name, clone_fields, static_fields);
+    }
+
+    /**
+     * Méthode pour créer un nouveau paramètre de var, avec un contrôle fort sur le type de retour vs le type de la var
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param controller_type Le controller cible
+     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
+     * @returns le paramètre cloné
+     */
+    public static get_cloned_param_for_dep_controller<
+        InputType extends ExtractVarServerControllerBaseType<ControllerType>,
+        ControllerParamType extends VarDataBaseVO,
+        ControllerType extends VarServerControllerBase<ControllerParamType>
+    >(
+        param_to_clone: InputType,
+        controller_type: ControllerType,
+        clone_fields: boolean = true): ExtractVarServerControllerBaseType<ControllerType> {
+
+        return this.cloneFieldsFromVarName<InputType, ExtractVarServerControllerBaseType<ControllerType>>(param_to_clone, controller_type.varConf.name, clone_fields);
+    }
+
+    /**
+     * Méthode pour créer un nouveau paramètre de var, quelque soit le type, utilisé pour la remontée des invalidateurs
+     *  puisqu'ils peuvent avoir des maxranges. Ne pas utiliser pour descendre/définir des deps.
+     * @param params_to_clone Les params que l'on doit cloner
+     * @param controller_type Le controller cible (souvent le controller de la var courante - on ne peut pas utiliser this pour permettre l'inférence de type. Utiliser le nom de la var à la place + '.getInstance()'
+     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
+     * @returns les params clonés
+     */
+    public static get_cloned_invalidators_from_dep_controller<
+        InputType extends VarDataBaseVO,
+        ControllerParamType extends VarDataBaseVO,
+        ControllerType extends VarServerControllerBase<ControllerParamType>
+    >(
+        params_to_clone: InputType[],
+        controller_type: ControllerType,
+        clone_fields: boolean = true): Array<ExtractVarServerControllerBaseType<ControllerType>> {
+
+        return this.cloneArrayFrom<InputType, ExtractVarServerControllerBaseType<ControllerType>>(params_to_clone, controller_type.varConf.name, clone_fields);
     }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
+     *     public static cloneFromVarConf<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+     *       param_to_clone: T,
+     *        var_conf: VarConfVO = null,
+     *        clone_fields: boolean = true,
+     *        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+     *
+     *        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, var_conf, clone_fields, static_fields);
+     *    }
+
      * @param param_to_clone Le param que l'on doit cloner
      * @param var_conf La conf de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarConf<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         param_to_clone: T,
         var_conf: VarConfVO = null,
         clone_fields: boolean = true,
-        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
-        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, var_conf, clone_fields, static_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, var_conf, clone_fields, static_fields);
     }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param param_to_clone Le param que l'on doit cloner
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-
-    public static cloneArrayFrom<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneArrayFrom<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         params_to_clone: T[],
         var_name: string = null,
         clone_fields: boolean = true,
-        static_fields: V = null): Array<U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] }> {
+        static_fields: { [field_id: string]: IRange[] } = null): Array<U> {
 
         if (!params_to_clone) {
             return null;
         }
 
-        const res: Array<U & V> = [];
+        const res: Array<U> = [];
 
         for (const i in params_to_clone) {
             const param_to_clone = params_to_clone[i];
 
             // On surcharge volontairement le typage, car ici on veut bien avoir U extends T au lieu de l'inverse, ça pose pas de soucis a priori dans l'usage qui est plutôt pour des invalidators
-            res.push(this.cloneFromVarName<T, U, V>(param_to_clone, var_name, clone_fields, static_fields));
+            res.push(this.cloneFromVarName<T, U>(param_to_clone, var_name, clone_fields, static_fields));
         }
 
         return res;
@@ -298,42 +381,48 @@ export default class VarDataBaseVO implements IMatroid {
     /**
      * Perf : préférer cloneFieldsFromVarConf si on a déjà la conf à dispo, sinon aucun impact
      * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarName<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFieldsFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         param_to_clone: T,
         var_name: string = null,
         clone_fields: boolean = true,
-        static_fields: V = null
-    ): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+        static_fields: { [field_id: string]: IRange[] } = null
+    ): U {
 
-        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields, static_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_name[var_name], clone_fields, static_fields);
     }
 
     /**
      * Perf : préférer cloneFieldsFromVarConf si on a déjà la conf à dispo, sinon aucun impact
      * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarId<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
-        param_to_clone: T, var_id: number = null, clone_fields: boolean = true, static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+    public static cloneFieldsFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(
+        param_to_clone: T, var_id: number = null, clone_fields: boolean = true, static_fields: { [field_id: string]: IRange[] } = null): U {
 
-        return this.cloneFieldsFromVarConf<T, U, V>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields, static_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.var_conf_by_id[var_id], clone_fields, static_fields);
     }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param varConf Si on passe un varConf on applique une conversion sinon on fait un simple clone vers la même var et type d'objet
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarConf<T extends U, U extends VarDataBaseVO, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFieldsFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(
         param_to_clone: T,
         varConf: VarConfVO = null,
         clone_fields: boolean = true,
-        static_fields: V = null): U & V & { [key in keyof V as `_${Extract<key, string>}`]: IRange[] } {
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
         if (!param_to_clone) {
             return null;
@@ -342,7 +431,7 @@ export default class VarDataBaseVO implements IMatroid {
         clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
         varConf = varConf ? varConf : VarsController.var_conf_by_id[param_to_clone.var_id];
 
-        const res: U & V = MatroidController.cloneFrom<T, U, V>(param_to_clone, varConf.var_data_vo_type, clone_fields, static_fields);
+        const res: U = MatroidController.cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields, static_fields);
         if (!res) {
             return null;
         }
@@ -360,7 +449,7 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         for (const field_name in static_fields) {
-            (res as V)[field_name] = static_fields[field_name];
+            res[field_name] = static_fields[field_name];
         }
 
         return res;

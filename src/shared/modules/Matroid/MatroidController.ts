@@ -132,7 +132,7 @@ export default class MatroidController {
                 continue;
             }
 
-            res.push(this.cloneFrom<T, T, null>(tested_matroid));
+            res.push(this.cloneFrom<T, T>(tested_matroid));
         }
 
         for (const i in ranges_need_union) {
@@ -539,13 +539,15 @@ export default class MatroidController {
 
     /**
      * Clones all but id and value, value_type, value_ts for vars
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param from
      */
-    public static cloneFrom<T extends U, U extends IMatroid, V extends { [field_id: string]: IRange[] }>(
+    public static cloneFrom<T extends IMatroid, U extends IMatroid>(
         from: T,
         to_type: string = null,
         clone_fields: boolean = true,
-        static_fields: V = null): U & V {
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
         if (!from) {
             return null;
@@ -555,7 +557,7 @@ export default class MatroidController {
         const moduletable_from = ModuleTableController.module_tables_by_vo_type[from._type];
         const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
-        const res: U & V = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
+        const res: U = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
         res._type = _type;
 
         // Compatibilité avec les vars
@@ -645,7 +647,7 @@ export default class MatroidController {
         const res: T[] = [];
 
         for (const i in from) {
-            res[i] = this.cloneFrom<T, T, null>(from[i]);
+            res[i] = this.cloneFrom<T, T>(from[i]);
         }
 
         return res;

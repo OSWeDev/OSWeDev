@@ -18,13 +18,6 @@ import AutoVarDatasourceController from "./AutoVarDatasourceController";
 
 export default class AutoVarServerController extends VarServerControllerBase<VarDataBaseVO> {
 
-    public static getInstance(varconf: VarConfVO): AutoVarServerController {
-        if (!AutoVarServerController.instances[varconf.id]) {
-            AutoVarServerController.instances[varconf.id] = new AutoVarServerController(varconf);
-        }
-        return AutoVarServerController.instances[varconf.id];
-    }
-
     protected static instances: { [varconf_id: number]: AutoVarServerController } = {};
 
     private static DEP_PREFIX: string = 'DEP';
@@ -32,6 +25,13 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
     private constructor(varconf: VarConfVO) {
         super(varconf, null, null, null, null);
+    }
+
+    public static getInstance(varconf: VarConfVO): AutoVarServerController {
+        if (!AutoVarServerController.instances[varconf.id]) {
+            AutoVarServerController.instances[varconf.id] = new AutoVarServerController(varconf);
+        }
+        return AutoVarServerController.instances[varconf.id];
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
@@ -264,7 +264,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         const target_varconf: VarConfVO = VarsServerController.getVarConfById(dep.var_id);
 
         const res: VarDataBaseVO[] = [];
-        const cloned: VarDataBaseVO = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO, null>(
+        const cloned: VarDataBaseVO = VarDataBaseVO.cloneFromVarName<VarDataBaseVO, VarDataBaseVO>(
             varDAGNode.var_data as VarDataBaseVO, target_varconf.name, true);
         res.push(cloned);
 

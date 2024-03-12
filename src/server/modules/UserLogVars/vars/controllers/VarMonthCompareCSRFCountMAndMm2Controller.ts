@@ -46,15 +46,15 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
     public getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: UserMinDataRangesVO } {
 
-        const DEP_CSRFCountMm2: UserMinDataRangesVO = UserMinDataRangesVO.cloneFromVarName<UserMinDataRangesVO, UserMinDataRangesVO, null>(
-            varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance().varConf.name, true);
+        const DEP_CSRFCountMm2 = UserMinDataRangesVO.get_cloned_param_for_dep_controller(
+            varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance(), true);
         DEP_CSRFCountMm2.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(
             DEP_CSRFCountMm2.ts_ranges, -2, TimeSegment.TYPE_MONTH);
         DEP_CSRFCountMm2.rebuild_index();
 
         return {
-            [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount]: UserMinDataRangesVO.cloneFromVarName<UserMinDataRangesVO, UserMinDataRangesVO, null>(
-                varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance().varConf.name, true),
+            [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount]: UserMinDataRangesVO.get_cloned_param_for_dep_controller(
+                varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance(), true),
             [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2]: DEP_CSRFCountMm2
         };
     }
@@ -63,17 +63,18 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
         switch (dep_id) {
             case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount:
-                return UserMinDataRangesVO.cloneArrayFrom<UserMinDataRangesVO, UserMinDataRangesVO, null>(intersectors as unknown as UserMinDataRangesVO[], this.varConf.name);
+                return UserMinDataRangesVO.get_cloned_invalidators_from_dep_controller(intersectors as unknown as UserMinDataRangesVO[], this.self_instance);
 
-            case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2:
-                const DEP_VolumeRealiseAM1s: UserMinDataRangesVO[] = UserMinDataRangesVO.cloneArrayFrom<UserMinDataRangesVO, UserMinDataRangesVO, null>(
-                    intersectors as unknown as UserMinDataRangesVO[], this.varConf.name, true);
+            case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2: {
+                const DEP_VolumeRealiseAM1s: UserMinDataRangesVO[] = UserMinDataRangesVO.get_cloned_invalidators_from_dep_controller(
+                    intersectors as unknown as UserMinDataRangesVO[], VarMonthCompareCSRFCountMAndMm2Controller.getInstance(), true);
                 DEP_VolumeRealiseAM1s.forEach((DEP_VolumeRealiseAM1) => {
                     DEP_VolumeRealiseAM1.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(DEP_VolumeRealiseAM1.ts_ranges, 2, TimeSegment.TYPE_MONTH);
                     DEP_VolumeRealiseAM1.rebuild_index();
                 });
 
                 return DEP_VolumeRealiseAM1s;
+            }
         }
 
         return null;

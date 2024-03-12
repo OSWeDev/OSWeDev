@@ -14,14 +14,6 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
     public static DEP_G: string = 'G' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_H: string = 'H' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeCVarController {
-        if (!FakeCVarController.instance) {
-            FakeCVarController.instance = new FakeCVarController();
-        }
-        return FakeCVarController.instance;
-    }
-
     protected static instance: FakeCVarController = null;
 
     protected constructor() {
@@ -31,6 +23,14 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
             }, 3),
             {}, {}, {}, {}
         );
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeCVarController {
+        if (!FakeCVarController.instance) {
+            FakeCVarController.instance = new FakeCVarController();
+        }
+        return FakeCVarController.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
