@@ -486,11 +486,11 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
             ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().sorted_target_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sorted_target_fields'),
 
             ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().inter_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'inter_module_table_type_id'),
-            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interTargetRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interTargetRefFieldId'),
-            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().interSrcRefFieldId, ModuleTableFieldVO.FIELD_TYPE_string, 'interSrcRefFieldId'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().inter_target_ref_field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'inter_target_ref_field_id'),
+            ModuleTableFieldController.create_new(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToManyReferenceDatatableFieldVO<any, any>>().inter_src_ref_field_id, ModuleTableFieldVO.FIELD_TYPE_string, 'inter_src_ref_field_id'),
         ];
 
         ModuleTableController.create_new(
@@ -520,7 +520,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
             ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>().sorted_target_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sorted_target_fields'),
 
             ModuleTableFieldController.create_new(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, field_names<ManyToOneReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
         ];
@@ -547,7 +547,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
             ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>().sorted_target_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sorted_target_fields'),
 
             ModuleTableFieldController.create_new(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, field_names<OneToManyReferenceDatatableFieldVO<any>>()._dest_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_dest_field_id'),
         ];
@@ -579,7 +579,7 @@ export default class ModuleDashboardBuilder extends Module {
             ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid'),
 
             ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().target_module_table_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'target_module_table_type_id'),
-            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().sortedTargetFields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sortedTargetFields'),
+            ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>().sorted_target_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'sorted_target_fields'),
 
             ModuleTableFieldController.create_new(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, field_names<RefRangesReferenceDatatableFieldVO<any>>()._src_field_id, ModuleTableFieldVO.FIELD_TYPE_string, '_src_field_id'),
         ];

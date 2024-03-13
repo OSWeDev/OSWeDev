@@ -1,18 +1,15 @@
 import Component from 'vue-class-component';
+import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
-import './ValidationFiltersWidgetOptionsComponent.scss';
-import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import ValidationFiltersWidgetOptions from './ValidationFiltersWidgetOptions';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import { cloneDeep } from 'lodash';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import ValidationFiltersWidgetOptions from './ValidationFiltersWidgetOptions';
+import './ValidationFiltersWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./ValidationFiltersWidgetOptionsComponent.pug'),

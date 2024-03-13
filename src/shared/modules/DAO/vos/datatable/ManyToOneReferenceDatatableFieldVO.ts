@@ -13,7 +13,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
     public static createNew(
         datatable_field_uid: string,
         targetModuleTable: ModuleTableVO,
-        sortedTargetFields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
+        sorted_target_fields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
 
         const res = new ManyToOneReferenceDatatableFieldVO();
 
@@ -22,7 +22,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
             DatatableField.MANY_TO_ONE_FIELD_TYPE,
             datatable_field_uid,
             targetModuleTable,
-            sortedTargetFields
+            sorted_target_fields
         );
 
         res.src_field_id = datatable_field_uid;

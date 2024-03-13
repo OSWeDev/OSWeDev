@@ -357,9 +357,9 @@ export default class CRUDComponent extends VueComponentBase {
                     })(),
                 );
             }
-            for (const i in reference.sortedTargetFields) {
+            for (const i in reference.sorted_target_fields) {
                 res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i]),
+                    this.loadDatasFromDatatableField(reference.sorted_target_fields[i]),
                 );
             }
         }
@@ -885,9 +885,9 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 const field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
-                const interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                const interSrcRefField = field.inter_src_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_src_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
                 const actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
-                const interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                const interDestRefField = field.inter_target_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_target_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 const new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 
                 const need_add_links: IDistantVOBase[] = [];
@@ -1260,9 +1260,9 @@ export default class CRUDComponent extends VueComponentBase {
         return callback;
     }
 
-    get isModuleParamTable() {
+    get is_module_param_table() {
         return ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID] ?
-            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
+            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].is_module_param_table : false;
     }
 
     get is_archived_moduletable() {

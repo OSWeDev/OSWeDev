@@ -7,7 +7,7 @@ export default class DAOController {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].isModuleParamTable;
+        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].is_module_param_table;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 

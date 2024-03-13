@@ -106,7 +106,7 @@ export default class CRUDComponentManager {
                 meta: routes_meta ? routes_meta : undefined
             });
 
-            if (!ModuleTableController.module_tables_by_vo_type[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
+            if (!ModuleTableController.module_tables_by_vo_type[crud.readDatatable.API_TYPE_ID].is_module_param_table) {
                 routes.push({
                     path: url + "/create",
                     name: route_name + " --CREATE",

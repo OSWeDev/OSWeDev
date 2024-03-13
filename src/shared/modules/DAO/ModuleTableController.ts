@@ -222,7 +222,7 @@ export default class ModuleTableController {
          *  et par contre on crée un field fictif _api_only_index avec l'index dedans
          */
         const ignore_fields: { [field_id: string]: boolean } = {};
-        if (table.isMatroidTable) {
+        if (table.is_matroid_table) {
             const ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
             for (const i in ignore_fields_) {
                 const ignore_field_ = ignore_fields_[i];
@@ -281,7 +281,7 @@ export default class ModuleTableController {
          * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
          */
         const ignore_fields: { [field_name: string]: boolean } = {};
-        if (table.isMatroidTable && !!e['_api_only_index']) {
+        if (table.is_matroid_table && !!e['_api_only_index']) {
             const a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as unknown as T;
             a._type = res._type;
             a.id = res.id;

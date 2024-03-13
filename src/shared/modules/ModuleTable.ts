@@ -122,7 +122,7 @@
 //          *  et par contre on crée un field fictif _api_only_index avec l'index dedans
 //          */
 //         let ignore_fields: { [field_name: string]: boolean } = {};
-//         if (table.isMatroidTable) {
+//         if (table.is_matroid_table) {
 //             let ignore_fields_ = MatroidController.getMatroidFields(table.vo_type);
 //             for (let i in ignore_fields_) {
 //                 let ignore_field_ = ignore_fields_[i];
@@ -180,7 +180,7 @@
 //          * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
 //          */
 //         let ignore_fields: { [field_name: string]: boolean } = {};
-//         if (table.isMatroidTable && !!e['_api_only_index']) {
+//         if (table.is_matroid_table && !!e['_api_only_index']) {
 //             let a: T = MatroidIndexHandler.from_normalized_vardata(e['_api_only_index']) as any as T;
 //             a._type = res._type;
 //             a.id = res.id;
@@ -313,11 +313,11 @@
 //     public table_label_function: (vo: T) => string = null;
 //     public table_label_function_field_names_deps: string[] = null;
 //     public importable: boolean = false;
-//     public isModuleParamTable: boolean = false;
+//     public is_module_param_table: boolean = false;
 
 //     public inherit_rights_from_vo_type: string = null;
 
-//     public isMatroidTable: boolean = false;
+//     public is_matroid_table: boolean = false;
 
 //     public any_to_many_default_behaviour_show: boolean = true;
 
@@ -684,7 +684,7 @@
 //     }
 
 //     public defineAsMatroid(): ModuleTableVO {
-//         this.isMatroidTable = true;
+//         this.is_matroid_table = true;
 //         return this;
 //     }
 
@@ -739,7 +739,7 @@
 //     }
 
 //     public defineAsModuleParamTable(): ModuleTableVO {
-//         this.isModuleParamTable = true;
+//         this.is_module_param_table = true;
 //         return this;
 //     }
 

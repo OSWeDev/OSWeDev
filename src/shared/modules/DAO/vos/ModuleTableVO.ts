@@ -51,11 +51,11 @@ export default class ModuleTableVO implements IDistantVOBase {
 
     public default_label_field: ModuleTableFieldVO;
     public importable: boolean;
-    public isModuleParamTable: boolean;
+    public is_module_param_table: boolean;
 
     public inherit_rights_from_vo_type: string;
 
-    public isMatroidTable: boolean;
+    public is_matroid_table: boolean;
 
     public any_to_many_default_behaviour_show: boolean;
 
@@ -296,7 +296,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
     public defineAsMatroid(): ModuleTableVO {
-        this.isMatroidTable = true;
+        this.is_matroid_table = true;
         return this;
     }
 
@@ -311,7 +311,7 @@ export default class ModuleTableVO implements IDistantVOBase {
     }
 
     public defineAsModuleParamTable(): ModuleTableVO {
-        this.isModuleParamTable = true;
+        this.is_module_param_table = true;
         return this;
     }
 

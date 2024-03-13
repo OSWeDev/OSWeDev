@@ -7,7 +7,7 @@ import ModuleTableController from '../../ModuleTableController';
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 
     public _target_module_table_type_id: string;
-    public sortedTargetFields: Array<DatatableField<any, any>>;
+    public sorted_target_fields: Array<DatatableField<any, any>>;
 
     get target_module_table_type_id(): string {
         return this._target_module_table_type_id;
@@ -42,8 +42,8 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return '';
         }
 
-        for (const i in this.sortedTargetFields) {
-            const sortedTargetField = this.sortedTargetFields[i];
+        for (const i in this.sorted_target_fields) {
+            const sortedTargetField = this.sorted_target_fields[i];
 
             let field_value: string = sortedTargetField.dataToHumanReadableField(e);
             field_value = field_value ? field_value : "";
@@ -58,16 +58,16 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         type: string,
         datatable_field_uid: string,
         targetModuleTable: ModuleTableVO,
-        sortedTargetFields: Array<DatatableField<any, any>>
+        sorted_target_fields: Array<DatatableField<any, any>>
     ) {
         this.init(_type, type, datatable_field_uid);
 
         this.target_module_table_type_id = targetModuleTable.vo_type;
-        for (const i in sortedTargetFields) {
-            sortedTargetFields[i].vo_type_full_name = targetModuleTable.full_name;
-            sortedTargetFields[i].vo_type_id = targetModuleTable.vo_type;
+        for (const i in sorted_target_fields) {
+            sorted_target_fields[i].vo_type_full_name = targetModuleTable.full_name;
+            sorted_target_fields[i].vo_type_id = targetModuleTable.vo_type;
         }
-        this.sortedTargetFields = sortedTargetFields;
+        this.sorted_target_fields = sorted_target_fields;
 
         let has_weight: boolean = false;
 

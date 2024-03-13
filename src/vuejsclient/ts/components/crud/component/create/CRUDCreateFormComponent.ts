@@ -518,9 +518,9 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         return callback;
     }
 
-    get isModuleParamTable() {
+    get is_module_param_table() {
         return ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID] ?
-            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
+            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].is_module_param_table : false;
     }
 
     get has_createDatatable(): boolean {

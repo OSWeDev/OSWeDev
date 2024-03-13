@@ -117,9 +117,9 @@ export default class DatatableComponent extends VueComponentBase {
         return this.datatable ? this.datatable.API_TYPE_ID : null;
     }
 
-    get isModuleParamTable() {
+    get is_module_param_table() {
         return ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID] ?
-            ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID].isModuleParamTable : false;
+            ModuleTableController.module_tables_by_vo_type[this.datatable.API_TYPE_ID].is_module_param_table : false;
     }
 
     get is_archived_api_type_id() {
@@ -827,8 +827,8 @@ export default class DatatableComponent extends VueComponentBase {
                     const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
                     const dest_ids: number[] = [];
-                    const interTargetRefField = manyToManyField.interTargetRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interTargetRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                    const interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
+                    const interTargetRefField = manyToManyField.inter_target_ref_field_id ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.inter_target_ref_field_id) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                    const interSrcRefField = manyToManyField.inter_src_ref_field_id ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.inter_src_ref_field_id) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
 
                     for (const interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
                         const intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
@@ -976,7 +976,7 @@ export default class DatatableComponent extends VueComponentBase {
         const res: string[] = [];
 
         // On ajoute les colonnes de contrôle
-        if (this.multiselectable && !this.isModuleParamTable) {
+        if (this.multiselectable && !this.is_module_param_table) {
             res.push(DatatableRowController.MULTISELECT_COLUMN_ID);
         }
         if (this.vocus_button || this.update_button || this.delete_button || this.archive_button) {
@@ -1011,7 +1011,7 @@ export default class DatatableComponent extends VueComponentBase {
         const customFilters: any[] = [];
         const self = this;
 
-        if (this.isModuleParamTable) {
+        if (this.is_module_param_table) {
             return customFilters;
         }
 

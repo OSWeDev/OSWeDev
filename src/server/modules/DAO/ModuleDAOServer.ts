@@ -239,7 +239,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     isAccessConfVoType = true;
                 }
 
-                let group = moduleTable.isModuleParamTable ? group_modules_conf : group_datas;
+                let group = moduleTable.is_module_param_table ? group_modules_conf : group_datas;
                 let module_ = await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module_name);
 
                 // On déclare les 4 policies et leurs dépendances
@@ -1313,7 +1313,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
                 //  *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
                 //  */
-                // if (ModuleTableController.module_tables_by_vo_type[vo._type].isMatroidTable) {
+                // if (ModuleTableController.module_tables_by_vo_type[vo._type].is_matroid_table) {
                 //     let conf = VarsController.var_conf_by_id[vo['var_id']];
                 //     if (conf && conf.pixel_activated && conf.pixel_never_delete) {
 
@@ -1565,7 +1565,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let line: string = lines[i];
 
                     if (ConfigurationService.node_configuration.debug_var_insert_with_copy) {
-                        if (moduleTable.isMatroidTable) {
+                        if (moduleTable.is_matroid_table) {
                             ConsoleHandler.log('insert_without_triggers_using_COPY:DEBUG_var_insert_with_copy:line:' + line);
                         }
                     }
