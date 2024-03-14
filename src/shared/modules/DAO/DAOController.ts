@@ -1,14 +1,14 @@
 import ModuleDAO from './ModuleDAO';
-import ModuleTableController from './ModuleTableController';
 
 export default class DAOController {
+
+    private static instance: DAOController = null;
 
     public static getAccessPolicyName(access_type: string, vo_type: string): string {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].isModuleParamTable;
-        return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
+        return ModuleDAO.POLICY_GROUP_DATAS + '.' + access_type + "." + vo_type;
     }
 
     // istanbul ignore next: nothing to test : getInstance
@@ -18,6 +18,4 @@ export default class DAOController {
         }
         return DAOController.instance;
     }
-
-    private static instance: DAOController = null;
 }

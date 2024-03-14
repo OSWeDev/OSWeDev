@@ -14,14 +14,6 @@ export default class ModulesManager {
 
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModulesManager {
-        if (!ModulesManager.instance) {
-            ModulesManager.instance = new ModulesManager();
-        }
-        return ModulesManager.instance;
-    }
-
     private static instance: ModulesManager = null;
 
     /**
@@ -38,13 +30,18 @@ export default class ModulesManager {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
         const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true);
-        const fields = [
-            label_field,
-            ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true),
-        ];
+        ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true);
         const moduleTable = ModuleTableController.create_new(
             null, ModuleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }));
         moduleTable.set_bdd_ref('admin', 'modules');
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModulesManager {
+        if (!ModulesManager.instance) {
+            ModulesManager.instance = new ModulesManager();
+        }
+        return ModulesManager.instance;
     }
 
     public registerModule(role: string, moduleObj: IModuleBase) {

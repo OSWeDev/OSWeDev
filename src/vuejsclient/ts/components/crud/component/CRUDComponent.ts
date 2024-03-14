@@ -3,40 +3,38 @@ import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/Modul
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
-import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableFieldController from '../../../../../shared/modules/DAO/ModuleTableFieldController';
-import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
+import VueComponentBase from '../../VueComponentBase';
 import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
-import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import CRUDFormServices from './CRUDFormServices';
-import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -150,23 +148,78 @@ export default class CRUDComponent extends VueComponentBase {
     //     return res;
     // }
 
-    public async mounted() {
-        if (this.read_query) {
-            this.$router.replace({ query: this.read_query });
+    get callback_route(): string {
+        let callback: string = this.getCRUDLink(this.api_type_id);
+        if (CRUDComponentManager.getInstance().getCallbackRoute(false)) {
+            callback = CRUDComponentManager.getInstance().getCallbackRoute();
         }
-        await this.reload_datas();
-        await this.handle_modal_show_hide();
+
+        return callback;
+    }
+
+    get is_archived_moduletable() {
+        return ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID] ?
+            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].is_archived : false;
+    }
+
+    get api_type_id(): string {
+        if (!this.crud) {
+            return null;
+        }
+        return this.crud.readDatatable.API_TYPE_ID;
+    }
+
+    get has_createDatatable(): boolean {
+        if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    get CRUDTitle(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.label('crud.read.title', {
+            datatable_title:
+                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text),
+        });
+    }
+
+    get selectedVO(): IDistantVOBase {
+        if ((!this.getSelectedVOs) || (!this.getSelectedVOs[0])) {
+            return null;
+        }
+
+        return this.getSelectedVOs[0];
+    }
+
+    @Watch("selectedVO")
+    private updateSelectedVO() {
+        if (!this.selectedVO) {
+            this.editableVO = null;
+            return;
+        }
+
+        // On passe la traduction en IHM sur les champs
+        this.editableVO = this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
+        this.onChangeVO(this.editableVO);
     }
 
     @Watch("vo_init")
     private async on_change_vo_init() {
         await this.prepareNewVO();
     }
-    // @Watch("embed_filter")
-    // private on_change_filter() {
-    //     console.log('CRUDComponent');
-    //     console.dir(this.embed_filter);
-    // }
+
+    @Watch("crud")
+    private async updatedCRUD() {
+        await this.reload_datas();
+    }
+
     @Watch("$route")
     @Watch("modal_show_create")
     @Watch("modal_show_update")
@@ -270,6 +323,15 @@ export default class CRUDComponent extends VueComponentBase {
             modal_type = 'delete';
             return;
         }
+    }
+
+
+    public async mounted() {
+        if (this.read_query) {
+            this.$router.replace({ query: this.read_query });
+        }
+        await this.reload_datas();
+        await this.handle_modal_show_hide();
     }
 
     private async loaddatas() {
@@ -385,11 +447,6 @@ export default class CRUDComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch("crud")
-    private async updatedCRUD() {
-        await this.reload_datas();
-    }
-
     private showCrudModal(vo_type: string, action: string) {
         this.$emit('show-crud-modal', vo_type, action);
     }
@@ -445,37 +502,6 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.onChangeVO(this.newVO);
-    }
-
-    get CRUDTitle(): string {
-        if (!this.crud) {
-            return null;
-        }
-
-        return this.label('crud.read.title', {
-            datatable_title:
-                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text),
-        });
-    }
-
-    get selectedVO(): IDistantVOBase {
-        if ((!this.getSelectedVOs) || (!this.getSelectedVOs[0])) {
-            return null;
-        }
-
-        return this.getSelectedVOs[0];
-    }
-
-    @Watch("selectedVO")
-    private updateSelectedVO() {
-        if (!this.selectedVO) {
-            this.editableVO = null;
-            return;
-        }
-
-        // On passe la traduction en IHM sur les champs
-        this.editableVO = this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
-        this.onChangeVO(this.editableVO);
     }
 
     private dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
@@ -1249,40 +1275,6 @@ export default class CRUDComponent extends VueComponentBase {
         if (this.crud && this.crud.callback_function_update) {
             await this.crud.callback_function_update(this.editableVO);
         }
-    }
-
-    get callback_route(): string {
-        let callback: string = this.getCRUDLink(this.api_type_id);
-        if (CRUDComponentManager.getInstance().getCallbackRoute(false)) {
-            callback = CRUDComponentManager.getInstance().getCallbackRoute();
-        }
-
-        return callback;
-    }
-
-    get isModuleParamTable() {
-        return ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID] ?
-            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
-    }
-
-    get is_archived_moduletable() {
-        return ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID] ?
-            ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].is_archived : false;
-    }
-
-    get api_type_id(): string {
-        if (!this.crud) {
-            return null;
-        }
-        return this.crud.readDatatable.API_TYPE_ID;
-    }
-
-    get has_createDatatable(): boolean {
-        if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
-            return true;
-        }
-
-        return false;
     }
 
     private async delete_all() {

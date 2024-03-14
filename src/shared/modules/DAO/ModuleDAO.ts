@@ -344,8 +344,7 @@ export default class ModuleDAO extends Module {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].isModuleParamTable;
-        return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
+        return ModuleDAO.POLICY_GROUP_DATAS + '.' + access_type + "." + vo_type;
     }
 
     private init_CRUDFieldRemoverConfVO() {
@@ -431,9 +430,8 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().label, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Label', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().default_label_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de label par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().importable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Importable', true, true, false);
-        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().isModuleParamTable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de paramètres', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().inherit_rights_from_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Hérite des droits de', false);
-        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().isMatroidTable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de matroids', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_matroid_table, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de matroids', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().any_to_many_default_behaviour_show, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher par défaut les relations many to many', true, true, true);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().mapping_by_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Mapping des champs par APIType', false);
     }
