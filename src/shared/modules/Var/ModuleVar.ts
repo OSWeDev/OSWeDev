@@ -20,7 +20,6 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
 import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
@@ -37,6 +36,7 @@ import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import VarConfAutoDepVO from './vos/VarConfAutoDepVO';
+import VarConfAutoParamFieldVO from './vos/VarConfAutoParamFieldVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -90,14 +90,6 @@ export default class ModuleVar extends Module {
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
     public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleVar {
-        if (!ModuleVar.instance) {
-            ModuleVar.instance = new ModuleVar();
-        }
-        return ModuleVar.instance;
-    }
 
     private static instance: ModuleVar = null;
 
@@ -176,11 +168,20 @@ export default class ModuleVar extends Module {
         this.forceActivationOnInstallation();
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleVar {
+        if (!ModuleVar.instance) {
+            ModuleVar.instance = new ModuleVar();
+        }
+        return ModuleVar.instance;
+    }
+
     public initialize() {
         this.initializeVarPixelFieldConfVO();
         this.initializeVarConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarDataInvalidatorVO();
+        this.initializeVarConfAutoParamFieldVO();
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }
@@ -795,29 +796,31 @@ export default class ModuleVar extends Module {
 
     private initializeVarDataValueResVO() {
 
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index', true),
-            ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur', false),
-            ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type', true),
-            ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', false),
-            ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().is_computing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
-        ];
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index', true);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur', false);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type', true);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', false);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().is_computing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false);
 
-        const datatable = ModuleTableController.create_new(this.name, VarDataValueResVO, null, VarDataValueResVO.API_TYPE_ID);
+        ModuleTableController.create_new(this.name, VarDataValueResVO, null, VarDataValueResVO.API_TYPE_ID);
     }
 
     private initializeVarDataInvalidatorVO() {
 
-        const datatable_fields = [
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().var_data, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidator_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().propagate_to_parents, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_denied, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false);
 
-            ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().var_data, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true),
+        ModuleTableController.create_new(this.name, VarDataInvalidatorVO, null, VarDataInvalidatorVO.API_TYPE_ID);
+    }
 
-            ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidator_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS),
-            ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().propagate_to_parents, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true),
-            ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_denied, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
-            ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
-        ];
-        const datatable = ModuleTableController.create_new(this.name, VarDataInvalidatorVO, null, VarDataInvalidatorVO.API_TYPE_ID);
+    private initializeVarConfAutoParamFieldVO() {
+        ModuleTableController.create_new(this.name, VarConfAutoParamFieldVO, null, VarConfAutoParamFieldVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(VarConfAutoParamFieldVO.API_TYPE_ID, field_names<VarConfAutoParamFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID', true);
+        ModuleTableFieldController.create_new(VarConfAutoParamFieldVO.API_TYPE_ID, field_names<VarConfAutoParamFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du champs', true);
     }
 
     /**

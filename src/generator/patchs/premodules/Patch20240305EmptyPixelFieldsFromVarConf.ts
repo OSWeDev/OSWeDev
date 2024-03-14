@@ -6,6 +6,14 @@ import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20240305EmptyPixelFieldsFromVarConf implements IGeneratorWorker {
 
+    private static instance: Patch20240305EmptyPixelFieldsFromVarConf = null;
+
+    private constructor() { }
+
+    get uid(): string {
+        return 'Patch20240305EmptyPixelFieldsFromVarConf';
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): Patch20240305EmptyPixelFieldsFromVarConf {
         if (!Patch20240305EmptyPixelFieldsFromVarConf.instance) {
@@ -13,14 +21,6 @@ export default class Patch20240305EmptyPixelFieldsFromVarConf implements IGenera
         }
         return Patch20240305EmptyPixelFieldsFromVarConf.instance;
     }
-
-    private static instance: Patch20240305EmptyPixelFieldsFromVarConf = null;
-
-    get uid(): string {
-        return 'Patch20240305EmptyPixelFieldsFromVarConf';
-    }
-
-    private constructor() { }
 
     public async work(db: IDatabase<unknown>) {
         try {

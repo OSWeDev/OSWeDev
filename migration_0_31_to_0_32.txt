@@ -281,7 +281,19 @@ FROM :
 TO :
 'VarDataBaseVO.get_cloned_param_for_dep_controller(varDAGNode.var_data$1, $2)'
 
+
+
+
+
 == Modifications restantes (principales)
+
+== Le module de chacklist n'a plus besoin des champs additionnels en param pour l'init :
+Pour les appels à :
+initializeCheckList
+initializeCheckListItem
+initializeCheckListItemCheckPoints
+initializeCheckPoint
+Supprimer le premier paramètre. Les champs sont déclarés directement lors de l'instanciation donc inutile de les transmettre ensuite aux fonctions qui n'agissent pas sur ces champs, mais en ajoute et déclare la table
 
 === Identifier les fichiers nécessitant un import de ModuleTableController / ModuleTableFieldController / field_names
 Faire une recherche exacte sur "ModuleTableController" et pour chaque fichier s'assurer dans les résultats que la première ligne de résultat pour le fichier est "import ModuleTableController ..."

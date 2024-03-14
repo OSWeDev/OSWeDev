@@ -80,13 +80,9 @@ import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch202
 import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20240222MoveModuleFieldsToParamVOs';
 import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240222RenameFieldIdsToFieldNames from './patchs/premodules/Patch20240222RenameFieldIdsToFieldNames';
 
 export default abstract class GeneratorBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): GeneratorBase {
-        return GeneratorBase.instance;
-    }
 
     protected static instance: GeneratorBase;
 
@@ -160,6 +156,7 @@ export default abstract class GeneratorBase {
             Patch20231120AddUniqCronPlanificationUID.getInstance(),
             Patch20240206InitNullFieldsFromWidgets.getInstance(),
             Patch20240222MoveModuleFieldsToParamVOs.getInstance(),
+            Patch20240222RenameFieldIdsToFieldNames.getInstance(),
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
         ];
 
@@ -186,7 +183,10 @@ export default abstract class GeneratorBase {
         ];
     }
 
-    public abstract getVersion();
+    // istanbul ignore next: nothing to test
+    public static getInstance(): GeneratorBase {
+        return GeneratorBase.instance;
+    }
 
     public async generate() {
 
@@ -340,4 +340,6 @@ export default abstract class GeneratorBase {
 
         return true;
     }
+
+    public abstract getVersion();
 }

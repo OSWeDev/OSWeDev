@@ -28,11 +28,6 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         await this.do_policies_activations(roles_ids_by_name, policies_ids_by_name);
     }
 
-    protected abstract do_policies_activations(
-        roles_ids_by_name: { [role_name: string]: number },
-        policies_ids_by_name: { [policy_name: string]: number }
-    );
-
     protected async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
         const roles_ids_by_name: { [role_name: string]: number } = {};
         const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
@@ -133,4 +128,9 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
 
         await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(rights_role_destination);
     }
+
+    protected abstract do_policies_activations(
+        roles_ids_by_name: { [role_name: string]: number },
+        policies_ids_by_name: { [policy_name: string]: number }
+    );
 }
