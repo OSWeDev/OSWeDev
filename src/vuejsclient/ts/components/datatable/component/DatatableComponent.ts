@@ -1224,8 +1224,8 @@ export default class DatatableComponent extends VueComponentBase {
                     const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
                     const dest_ids: number[] = [];
-                    const interTargetRefField = manyToManyField.interTargetRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interTargetRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                    const interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
+                    const interTargetRefField = manyToManyField.inter_target_ref_field_id ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.inter_target_ref_field_id) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                    const interSrcRefField = manyToManyField.inter_src_ref_field_id ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.inter_src_ref_field_id) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
 
                     for (const interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
                         const intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];

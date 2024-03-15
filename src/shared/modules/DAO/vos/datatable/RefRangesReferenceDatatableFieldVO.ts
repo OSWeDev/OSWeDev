@@ -14,7 +14,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     public static createNew(
         datatable_field_uid: string,
         targetModuleTable: ModuleTableVO,
-        sortedTargetFields: Array<DatatableField<any, any>>
+        sorted_target_fields: Array<DatatableField<any, any>>
     ): RefRangesReferenceDatatableFieldVO<any> {
 
         const res = new RefRangesReferenceDatatableFieldVO();
@@ -24,7 +24,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             DatatableField.REF_RANGES_FIELD_TYPE,
             datatable_field_uid,
             targetModuleTable,
-            sortedTargetFields
+            sorted_target_fields
         );
 
         res.src_field_id = datatable_field_uid;

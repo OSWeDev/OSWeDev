@@ -17,10 +17,10 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         datatable_field_uid: string,
         targetModuleTable: ModuleTableVO,
         destField: ModuleTableFieldVO,
-        sortedTargetFields: Array<DatatableField<any, any>>): OneToManyReferenceDatatableFieldVO<any> {
+        sorted_target_fields: Array<DatatableField<any, any>>): OneToManyReferenceDatatableFieldVO<any> {
 
         const res = new OneToManyReferenceDatatableFieldVO();
-        res.init_ref_dtf(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.ONE_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+        res.init_ref_dtf(OneToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.ONE_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sorted_target_fields);
         res.dest_field_id = destField.field_id;
         return res;
     }

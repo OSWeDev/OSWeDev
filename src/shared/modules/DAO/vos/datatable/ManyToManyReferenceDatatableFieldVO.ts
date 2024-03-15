@@ -9,40 +9,13 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     public static API_TYPE_ID: string = "mtm_dtf";
 
-    public static createNew(
-        datatable_field_uid: string,
-        targetModuleTable: ModuleTableVO,
-        interModuleTable: ModuleTableVO,
-        sortedTargetFields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
-
-        const res = new ManyToManyReferenceDatatableFieldVO();
-        res.init_ref_dtf(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
-        res.inter_module_table_type_id = interModuleTable.vo_type;
-        return res;
-    }
-
     public filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
     public _type: string = ManyToManyReferenceDatatableFieldVO.API_TYPE_ID;
 
     public inter_module_table_type_id: string;
-    public interTargetRefFieldId: string;
-    public interSrcRefFieldId: string;
-
-    public setFilterOptionsForUpdateOrCreateOnManyToMany(filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.filterOptionsForUpdateOrCreateOnManyToMany = filterOptionsForUpdateOrCreateOnManyToMany;
-        return this;
-    }
-
-    public set_interTargetRefFieldId(interTargetRefFieldId: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.interTargetRefFieldId = interTargetRefFieldId;
-        return this;
-    }
-
-    public set_interSrcRefFieldId(interSrcRefFieldId: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.interSrcRefFieldId = interSrcRefFieldId;
-        return this;
-    }
+    public inter_target_ref_field_id: string;
+    public inter_src_ref_field_id: string;
 
     get translatable_title(): string {
         if ((!this.vo_type_full_name) || (!this.targetModuleTable)) {
@@ -65,12 +38,39 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
         return this.inter_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.inter_module_table_type_id] : null;
     }
 
+    public static createNew(
+        datatable_field_uid: string,
+        targetModuleTable: ModuleTableVO,
+        interModuleTable: ModuleTableVO,
+        sorted_target_fields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
+
+        const res = new ManyToManyReferenceDatatableFieldVO();
+        res.init_ref_dtf(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sorted_target_fields);
+        res.inter_module_table_type_id = interModuleTable.vo_type;
+        return res;
+    }
+
+    public setFilterOptionsForUpdateOrCreateOnManyToMany(filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.filterOptionsForUpdateOrCreateOnManyToMany = filterOptionsForUpdateOrCreateOnManyToMany;
+        return this;
+    }
+
+    public set_interTargetRefFieldId(inter_target_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.inter_target_ref_field_id = inter_target_ref_field_id;
+        return this;
+    }
+
+    public set_interSrcRefFieldId(inter_src_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.inter_src_ref_field_id = inter_src_ref_field_id;
+        return this;
+    }
+
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
         const dest_ids: number[] = [];
-        const interTargetRefField = this.interTargetRefFieldId ? this.interModuleTable.getFieldFromId(this.interTargetRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
-        const interSrcRefField = this.interSrcRefFieldId ? this.interModuleTable.getFieldFromId(this.interSrcRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
+        const interTargetRefField = this.inter_target_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_target_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
+        const interSrcRefField = this.inter_src_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_src_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
         const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (const interi in vos[this.interModuleTable.vo_type]) {
@@ -96,8 +96,8 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
             return dest_ids;
         }
 
-        const interTargetRefField = this.interTargetRefFieldId ? this.interModuleTable.getFieldFromId(this.interTargetRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
-        const interSrcRefField = this.interSrcRefFieldId ? this.interModuleTable.getFieldFromId(this.interSrcRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
+        const interTargetRefField = this.inter_target_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_target_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.target_module_table_type_id);
+        const interSrcRefField = this.inter_src_ref_field_id ? this.interModuleTable.getFieldFromId(this.inter_src_ref_field_id) : this.interModuleTable.getRefFieldFromTargetVoType(this.vo_type_id);
         const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (const interi in vos[this.interModuleTable.vo_type]) {

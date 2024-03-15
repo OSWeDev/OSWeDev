@@ -103,7 +103,7 @@ export default class ModuleStats extends Module {
             ModuleTableFieldController.create_new(StatsGroupSecDataRangesVO.API_TYPE_ID, field_names<StatsGroupSecDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(false),
         ];
 
-        VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, StatsGroupSecDataRangesVO, datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(StatsGroupSecDataRangesVO.API_TYPE_ID, StatsGroupSecDataRangesVO, this);
         stats_groupe_id_ranges.set_many_to_one_target_moduletable_name(StatsGroupVO.API_TYPE_ID);
     }
 

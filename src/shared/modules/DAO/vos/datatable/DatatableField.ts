@@ -36,7 +36,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public vue_component: ICRUDComponentField = null;
 
     public id: number;
-    public abstract _type: string;
 
     public _vo_type_id: string;
 
@@ -96,14 +95,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     public select_options_enabled: number[] = null;
 
-    /**
-     * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
-     * On create or update tables, let it same as datatable_field_uid
-     */
-    public _module_table_field_id: string;
-
-    abstract get translatable_title(): string;
-
     public validate: (data: any) => string;
     /**
      * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
@@ -138,34 +129,23 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public type: string;
     public datatable_field_uid: string;
 
-    get module_table_field_id(): string {
-        return this._module_table_field_id;
-    }
+    /**
+     * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
+     * On create or update tables, let it same as datatable_field_uid
+     */
+    public _module_table_field_id: string;
 
-    set module_table_field_id(module_table_field_id: string) {
-        this._module_table_field_id = module_table_field_id;
+    public abstract _type: string;
 
-        this.update_moduleTableField();
-    }
-
-    public setModuleTable(moduleTable: ModuleTableVO): this {
-        this.vo_type_full_name = moduleTable.full_name;
-        this.vo_type_id = moduleTable.vo_type;
-        return this;
+    get alert_path(): string {
+        if (!this.vo_type_full_name) {
+            return this.datatable_field_uid;
+        }
+        return this.vo_type_full_name + '.' + this.datatable_field_uid;
     }
 
     get vo_type_id(): string {
         return this._vo_type_id;
-    }
-
-    set vo_type_id(vo_type_id: string) {
-        if (!vo_type_id) {
-            return;
-        }
-
-        this._vo_type_id = vo_type_id;
-
-        this.update_moduleTableField();
     }
 
     get moduleTable(): ModuleTableVO {
@@ -183,6 +163,35 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
         return this.moduleTable.getFieldFromId(this.module_table_field_id);
     }
+
+    get module_table_field_id(): string {
+        return this._module_table_field_id;
+    }
+
+    abstract get translatable_title(): string;
+
+    set vo_type_id(vo_type_id: string) {
+        if (!vo_type_id) {
+            return;
+        }
+
+        this._vo_type_id = vo_type_id;
+
+        this.update_moduleTableField();
+    }
+
+    set module_table_field_id(module_table_field_id: string) {
+        this._module_table_field_id = module_table_field_id;
+
+        this.update_moduleTableField();
+    }
+
+    public setModuleTable(moduleTable: ModuleTableVO): this {
+        this.vo_type_full_name = moduleTable.full_name;
+        this.vo_type_id = moduleTable.vo_type;
+        return this;
+    }
+
 
     public auto_update_datatable_field_uid_with_vo_type() {
         if (!this.semaphore_auto_update_datatable_field_uid_with_vo_type) {
@@ -390,13 +399,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public setTranslatableTitle(code_text: string): this {
         this.translatable_title_custom = code_text;
         return this;
-    }
-
-    get alert_path(): string {
-        if (!this.vo_type_full_name) {
-            return this.datatable_field_uid;
-        }
-        return this.vo_type_full_name + '.' + this.datatable_field_uid;
     }
 
     /**

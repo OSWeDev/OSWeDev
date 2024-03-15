@@ -55,7 +55,6 @@ export default class VarsInitController {
     public register_var_data<T extends VarDataBaseVO>(
         api_type_id: string,
         vo_constructor: { new(): T },
-        var_fields: ModuleTableFieldVO[],
         module: Module = null,
         is_test: boolean = false): ModuleTableVO {
         const var_id = ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Var conf');
@@ -74,6 +73,7 @@ export default class VarsInitController {
         /**
          * On ajoute un index automatiquement sur tous les champs ranges des vars
          */
+        const var_fields: { [field_name: string]: ModuleTableFieldVO } = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id];
         for (const i in var_fields) {
             const var_field = var_fields[i];
 
@@ -86,14 +86,11 @@ export default class VarsInitController {
             }
         }
 
-        var_fields.unshift(var_id);
-        var_fields = var_fields.concat([
-            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
-            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
-            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly(),
-            ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly(),
-        ]);
+        ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur');
+        ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index();
+        ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly();
+        ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly();
 
         const datatable = ModuleTableController.create_new(module.name, vo_constructor, null, module.name).defineAsMatroid();
         if (!is_test) {

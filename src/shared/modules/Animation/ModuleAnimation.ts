@@ -268,13 +268,7 @@ export default class ModuleAnimation extends Module {
         const module_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().module_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Modules', true);
         const user_id_ranges = ModuleTableFieldController.create_new(ThemeModuleDataRangesVO.API_TYPE_ID, field_names<ThemeModuleDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Users', true);
 
-        const datatable_fields = [
-            theme_id_ranges,
-            module_id_ranges,
-            user_id_ranges
-        ];
-
-        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, ThemeModuleDataRangesVO, datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, ThemeModuleDataRangesVO, this);
 
         theme_id_ranges.set_many_to_one_target_moduletable_name(AnimationThemeVO.API_TYPE_ID);
         module_id_ranges.set_many_to_one_target_moduletable_name(AnimationModuleVO.API_TYPE_ID);

@@ -118,9 +118,9 @@ export default class CRUDFormServices {
                     })(),
                 );
             }
-            for (const i in reference.sortedTargetFields) {
+            for (const i in reference.sorted_target_fields) {
                 res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i], api_types_involved, storeDatas),
+                    this.loadDatasFromDatatableField(reference.sorted_target_fields[i], api_types_involved, storeDatas),
                 );
             }
         }
@@ -460,9 +460,9 @@ export default class CRUDFormServices {
                 }
 
                 const field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
-                const interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                const interSrcRefField = field.inter_src_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_src_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
                 const actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
-                const interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                const interDestRefField = field.inter_target_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_target_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
                 const need_add_links: IDistantVOBase[] = [];
