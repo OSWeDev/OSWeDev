@@ -23,6 +23,9 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
 import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -98,9 +101,18 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
-        // Si j'ai un token et que il est encore ACTIF, je ne fais rien
-        if (this.token && this.token.expires_at.isBefore(moment())) {
-            return this.token;
+        // Si j'ai un token et qu'il est encore ACTIF, je ne fais rien
+        if (this.token && this.token.expires_at) {
+
+            let evoliz_time = this.token.expires_at.valueOf() / 1000;
+            let now = Dates.now();
+            let expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
+            if (expiration) {
+
+                ConsoleHandler.log('Temps actuel: ' + now + ' - Temps expiration: ' + evoliz_time);
+                ConsoleHandler.log('Token EvolizAPI encore valide. Token = ' + this.token.access_token.substring(0, 10) + '...');
+                return this.token;
+            }
         }
 
         // Sinon, je me connecte
@@ -133,8 +145,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
         } else {
             console.error("Erreur connexion à l'API Evoliz (demande de token).");
-            // console.error("Erreur connexion à l'API Evoliz. Relancement de la demande de token.");
-            // await this.connexion_to_api();
         }
     }
 
