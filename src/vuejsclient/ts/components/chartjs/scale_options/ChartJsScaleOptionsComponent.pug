@@ -1,0 +1,33 @@
+.chart_js_scale_options_component
+    .types_options_selector 
+        .input_label {{ label('chart_js_scale_options_component.types_options_selector') }}
+        .input_wrapper
+            multiselect.types_options_selector(
+                :preselect-first="false"
+                :options="types_options"
+                :allow-empty="false"
+                :multiple="false"
+
+                :searchable="true"
+                :internal-search="true"
+                
+                v-model="type"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="scale_types_options"
+            )
+    
+    .time_options_selector(v-if="type === 'time'")
+        .input_label {{ label('chart_js_scale_options_component.time_options_selector') }}
+        .input_wrapper
+            Chartjsscaletimeoptionscomponent(
+                @on_change="handle_time_options_change"
+                :options="time"
+            )

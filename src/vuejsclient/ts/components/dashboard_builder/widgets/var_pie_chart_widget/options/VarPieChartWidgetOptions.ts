@@ -12,7 +12,7 @@ import IExportableWidgetOptions from "../../IExportableWidgetOptions";
  *  - Soit 2 vars sans dimension :
  *      - exemple on veut un donut à 50% de circonférence et on compare la part de la var 1 dans le max == var 2 (ou max = var 1 + var 2)
  */
-export default class VarPieChartWidgetOptions implements IExportableWidgetOptions {
+export default class VarPieChartWidgetOptions extends VarPieChartWidgetOptionsVO implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarPieChartWidgetOptions.title.";
 

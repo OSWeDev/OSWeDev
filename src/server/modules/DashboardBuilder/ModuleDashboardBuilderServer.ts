@@ -2675,7 +2675,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'filters.names.__tstz__.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': "Arrondi minutes" },
+            { 'fr-fr': "Arrondi misnutes" },
             'hour_filter_options.arrondiMinutes.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
