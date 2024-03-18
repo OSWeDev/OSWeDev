@@ -130,15 +130,17 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
         if (return_connect) {
             this.token = return_connect;
+            console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
+        } else {
+            console.error("Erreur connexion à l'API Evoliz (demande de token).");
+            // console.error("Erreur connexion à l'API Evoliz. Relancement de la demande de token.");
+            // await this.connexion_to_api();
         }
     }
 
     // DEVIS
     public async list_devis(): Promise<EvolizDevisVO[]> {
         try {
-            // let devis: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
-
-            // return devis;
             let token: EvolizAPIToken = await this.getToken();
 
             let res: EvolizDevisVO[] = [];
