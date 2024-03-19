@@ -95,14 +95,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
     public static TASK_NAME_invalidate_imports_for_d = 'VarsDatasProxy.invalidate_imports_for_d';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleVarServer.instance) {
-            ModuleVarServer.instance = new ModuleVarServer();
-        }
-        return ModuleVarServer.instance;
-    }
-
     private static instance: ModuleVarServer = null;
 
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
@@ -118,6 +110,14 @@ export default class ModuleVarServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVar.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleVarServer.instance) {
+            ModuleVarServer.instance = new ModuleVarServer();
+        }
+        return ModuleVarServer.instance;
     }
 
     /**

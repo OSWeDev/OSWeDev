@@ -9,6 +9,7 @@ import ClockifyProjetVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyPr
 import ClockifyTacheVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyTacheVO';
 import ClockifyTimeEntryVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyTimeEntryVO';
 import ClockifyUserVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyUserVO';
+import TimeParamClockifyTimeEntry from '../../../shared/modules/ClockifyAPI/vos/TimeParamClockifyTimeEntry';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -20,9 +21,15 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import TimeParamClockifyTimeEntry from './vos/TimeParamClockifyTimeEntry';
 
 export default class ModuleClockifyAPIServer extends ModuleServerBase {
+
+    private static instance: ModuleClockifyAPIServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleClockifyAPI.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -30,13 +37,6 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
             ModuleClockifyAPIServer.instance = new ModuleClockifyAPIServer();
         }
         return ModuleClockifyAPIServer.instance;
-    }
-
-    private static instance: ModuleClockifyAPIServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleClockifyAPI.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies

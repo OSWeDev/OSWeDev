@@ -7,6 +7,7 @@ import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VarServerControllerBase from '../../../Var/VarServerControllerBase';
+import VarDataParamServerController from '../../../Var/vos/VarDataParamServerController';
 import VarMinCSRFCountController from './VarMinCSRFCountController';
 
 export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServerControllerBase<UserMinDataRangesVO> {
@@ -46,14 +47,14 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
     public getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: UserMinDataRangesVO } {
 
-        const DEP_CSRFCountMm2 = UserMinDataRangesVO.get_cloned_param_for_dep_controller(
+        const DEP_CSRFCountMm2 = VarDataParamServerController.get_cloned_param_for_dep_controller(
             varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance(), true);
         DEP_CSRFCountMm2.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(
             DEP_CSRFCountMm2.ts_ranges, -2, TimeSegment.TYPE_MONTH);
         DEP_CSRFCountMm2.rebuild_index();
 
         return {
-            [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount]: UserMinDataRangesVO.get_cloned_param_for_dep_controller(
+            [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount]: VarDataParamServerController.get_cloned_param_for_dep_controller(
                 varDAGNode.var_data as UserMinDataRangesVO, VarMinCSRFCountController.getInstance(), true),
             [VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2]: DEP_CSRFCountMm2
         };
@@ -63,10 +64,10 @@ export default class VarMonthCompareCSRFCountMAndMm2Controller extends VarServer
 
         switch (dep_id) {
             case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCount:
-                return UserMinDataRangesVO.get_cloned_invalidators_from_dep_controller(intersectors as unknown as UserMinDataRangesVO[], this.self_instance);
+                return VarDataParamServerController.get_cloned_invalidators_from_dep_controller(intersectors as unknown as UserMinDataRangesVO[], this.self_instance);
 
             case VarMonthCompareCSRFCountMAndMm2Controller.DEP_CSRFCountMm2: {
-                const DEP_VolumeRealiseAM1s: UserMinDataRangesVO[] = UserMinDataRangesVO.get_cloned_invalidators_from_dep_controller(
+                const DEP_VolumeRealiseAM1s: UserMinDataRangesVO[] = VarDataParamServerController.get_cloned_invalidators_from_dep_controller(
                     intersectors as unknown as UserMinDataRangesVO[], VarMonthCompareCSRFCountMAndMm2Controller.getInstance(), true);
                 DEP_VolumeRealiseAM1s.forEach((DEP_VolumeRealiseAM1) => {
                     DEP_VolumeRealiseAM1.ts_ranges = RangeHandler.get_ranges_shifted_by_x_segments(DEP_VolumeRealiseAM1.ts_ranges, 2, TimeSegment.TYPE_MONTH);
