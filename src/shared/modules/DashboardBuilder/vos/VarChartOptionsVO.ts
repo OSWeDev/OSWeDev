@@ -18,6 +18,7 @@ export default class VarChartOptionsVO extends AbstractVO {
         public bg_color?: string,
         public border_color?: string,
         public border_width?: number,
+        public has_gradient?: boolean,
     ) {
         super();
     }

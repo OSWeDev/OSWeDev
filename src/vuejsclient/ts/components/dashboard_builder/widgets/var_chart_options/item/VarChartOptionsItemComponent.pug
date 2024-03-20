@@ -74,6 +74,17 @@
             .explication {{ label("var_chart_options_item_component.bg_color") }}
             color-picker(v-model="bg_color")
 
+        .has_gradient 
+            .explication {{ label("var_chart_options_item_component.has_gradient") }}
+            .input_wrapper
+                    toggle-button(
+                        @change="on_change_gradient" 
+                        :value="has_gradient" 
+                        :sync="true"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+
         .border_color
             .explication {{ label("var_chart_options_item_component.border_color") }}
             color-picker(v-model="border_color")

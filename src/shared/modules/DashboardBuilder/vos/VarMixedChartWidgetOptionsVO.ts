@@ -17,7 +17,6 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
             let options = JSON.parse(page_widget.json_options) as VarMixedChartWidgetOptionsVO;
-
             if (options && options.has_dimension && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
                     [options.dimension_vo_field_ref.api_type_id]: {

@@ -218,7 +218,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         for (const key in this.widget_options.var_charts_options) {
             const var_chart_options = this.widget_options.var_charts_options[key];
-
             const var_chart_id = var_chart_options.chart_id;
 
             for (const i in dimensions) {
@@ -584,8 +583,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 title: {
                     display: this.get_bool_option('title_display', true),
                     text: this.translated_title ? this.translated_title : '',
-                    fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
-                    fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    color: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
+                    font: {
+                        size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    },
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
                 },
 
@@ -618,17 +619,32 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
                     labels: {
-                        fontColor: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
-                        fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
+                        color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
                         boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
                         padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
-                        usePointStyle: this.get_bool_option('legend_use_point_style', false)
+                        usePointStyle: this.get_bool_option('legend_use_point_style', false),
+                        font: {
+                            size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 12
+                        },
                     },
                 },
             },
 
             scales: scales
         };
+    }
+
+    private hexToRgbA(hex){
+        var c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){
+                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',');
+        }
+        throw new Error('Bad Hex');
     }
 
     /**
@@ -667,6 +683,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     VarsController.var_conf_by_id[var_chart_options.var_id].name, // ?? flou le var_name à utiliser ici
                     this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id))) // ?? flou le label à utiliser ici
                     .set_backgrounds([var_chart_options.bg_color])
+                    .set_gradients([var_chart_options.has_gradient])
                     .set_bordercolors([var_chart_options.border_color])
                     .set_borderwidths([var_chart_options.border_width])
                     .set_type(var_chart_options.type);
@@ -686,36 +703,47 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             if (!var_chart_options.var_id || !VarsController.var_conf_by_id[var_chart_options.var_id]) {
                 return null;
             }
-
-            // tentative de faire un dégradé automatique de couleur pour les dimensions.
-            // à voir comment on peut proposer de paramétrer cette partie
             let base_color = null;
-            let is_rbga = false;
+            let is_rbga = true;
             let colors = [];
 
-            if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
-                base_color = var_chart_options.bg_color;
-            } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgb(')) {
-                base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
-                is_rbga = true;
-            }
-
-            if (!base_color) {
-                base_color = 'rgba(0,0,0';
-                is_rbga = true;
-            }
-
-            for (let i in this.ordered_dimension) {
-                let nb = parseInt(i);
-                let color = base_color;
-                if (is_rbga) {
-                    color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
-                } else {
-                    color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+            if(var_chart_options.has_gradient){
+                // tentative de faire un dégradé automatique de couleur pour les dimensions.
+                // à voir comment on peut proposer de paramétrer cette partie
+            
+                if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
+                    base_color = this.hexToRgbA(var_chart_options.bg_color);
+                    is_rbga = true;
+                } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgb(')) {
+                    base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
+                    is_rbga = true;
+                } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgba(')) {
+                    base_color = var_chart_options.bg_color.slice(0,var_chart_options.bg_color.lastIndexOf(','))
+                    is_rbga = true;
                 }
-                colors.push(color);
-            }
 
+                console.log(base_color)
+                if (!base_color) {
+                    base_color = 'rgba(0,0,0';
+                    is_rbga = true;
+                }
+
+                for (let i in this.ordered_dimension) {
+                    let nb = parseInt(i);
+                    let color = base_color;
+                    if (is_rbga) {
+                        color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                    } else {
+                        color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                    }
+                    colors.push(color);
+                }
+            } else {
+                let color = var_chart_options.bg_color;
+                for (let i in this.ordered_dimension) {
+                    colors.push(color);
+                }
+            }
             mixed_charts_dataset_descriptor[var_chart_options.chart_id] = new VarMixedChartDataSetDescriptor(
                 VarsController.var_conf_by_id[var_chart_options.var_id].name,
                 this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_chart_options.var_id)))

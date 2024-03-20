@@ -55,6 +55,9 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private border_color: string = null;
     private border_width: number = null;
 
+    // for gradient color
+    private has_gradient: boolean = false;
+
 
     private graphe_types: string[] = [
         'line',     // many lines on the same graph or line chart with bars
@@ -141,6 +144,11 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.emit_change();
     }
 
+    private async on_change_gradient() {
+        this.has_gradient = !this.has_gradient;
+        this.emit_change();
+    }
+
     @Watch('border_width')
     private async on_changborder_width() {
         this.emit_change();
@@ -212,7 +220,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.border_color = this.border_color;
         this.options_props.border_width = this.border_width;
         this.options_props.custom_filter_names = this.custom_filter_names;
-
+        this.options_props.has_gradient = this.has_gradient;
+        
         this.$emit('on_change', this.options_props);
     }
 

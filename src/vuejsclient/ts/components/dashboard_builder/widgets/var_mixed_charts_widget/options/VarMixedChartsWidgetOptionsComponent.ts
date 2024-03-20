@@ -552,7 +552,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         this.var_charts_options = var_charts_options;
         this.next_update_options.var_charts_options = this.var_charts_options;
-
         this.throttled_update_options();
     }
 

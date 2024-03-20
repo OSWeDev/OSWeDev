@@ -17,12 +17,19 @@ export default class VarMixedChartDataSetDescriptor extends VarDataSetDescriptor
     public backgroundColor: string[] = [];
     public borderColor: string[] = [];
     public borderWidth: number[] = [];
+    public gradients: boolean[] = [];
 
     public constructor(
         public var_name: string,
         public label_translatable_code: string = null,
     ) {
         super(var_name, label_translatable_code);
+    }
+
+    public set_gradients(gradients: boolean[]): VarMixedChartDataSetDescriptor {
+        this.gradients = gradients;
+
+        return this;
     }
 
     public set_type(type: string | 'line' | 'bar' | 'radar'): VarMixedChartDataSetDescriptor {
