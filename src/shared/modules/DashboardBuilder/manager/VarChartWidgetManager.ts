@@ -17,6 +17,7 @@ import { all_promises } from "../../../tools/PromiseTools";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
+import ModuleTableController from "../../DAO/ModuleTableController";
 
 
 export default class VarChartWidgetManager {
@@ -77,7 +78,7 @@ export default class VarChartWidgetManager {
         const promises = [];
 
         const dimension_table = (widget_options.dimension_is_vo_field_ref && widget_options.dimension_vo_field_ref.api_type_id) ?
-            VOsTypesManager.moduleTables_by_voType[widget_options.dimension_vo_field_ref.api_type_id] : null;
+            ModuleTableController.module_tables_by_vo_type[widget_options.dimension_vo_field_ref.api_type_id] : null;
 
         for (let i in dimensions) {
             const dimension: any = dimensions[i];

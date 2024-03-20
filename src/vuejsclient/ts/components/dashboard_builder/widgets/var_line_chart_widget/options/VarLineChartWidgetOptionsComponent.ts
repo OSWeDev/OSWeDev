@@ -6,9 +6,7 @@ import VarLineChartWidgetOptionsVO from '../../../../../../../shared/modules/Das
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -20,6 +18,8 @@ import WidgetFilterOptionsComponent from '../../var_widget/options/filters/Widge
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './VarLineChartWidgetOptionsComponent.scss';
 import { Scale } from 'chart.js';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
     template: require('./VarLineChartWidgetOptionsComponent.pug'),
@@ -291,23 +291,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         await this.throttled_update_options();
     }
 
-    private async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-        this.next_update_options.bg_color_1 = this.bg_color_1;
-        this.next_update_options.bg_color_2 = this.bg_color_2;
-        this.next_update_options.border_color_1 = this.border_color_1;
-        this.next_update_options.border_color_2 = this.border_color_2;
-        this.next_update_options.bg_color = this.bg_color;
-        this.next_update_options.legend_font_color = this.legend_font_color;
-        this.next_update_options.title_font_color = this.title_font_color;
-        await this.throttled_update_options();
-    }
 
     private async change_custom_filter_1(field_id: string, custom_filter: string) {
         if (!this.widget_options) {
@@ -398,12 +381,12 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.custom_filter_names_1 = {};
         }
 
-        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+        let fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
         for (let i in fields) {
             let field = fields[i];
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
                 res.push(field.field_id);
                 if (typeof this.custom_filter_names_1[field.field_id] === "undefined") {
                     this.custom_filter_names_1[field.field_id] = null;
@@ -430,12 +413,12 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.custom_filter_names_2 = {};
         }
 
-        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+        let fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
         for (let i in fields) {
             let field = fields[i];
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
                 res.push(field.field_id);
                 if (typeof this.custom_filter_names_2[field.field_id] === "undefined") {
                     this.custom_filter_names_2[field.field_id] = null;
@@ -1171,7 +1154,23 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             ConsoleHandler.error(error);
         }
     }
+    private async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
 
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+        this.next_update_options.bg_color_1 = this.bg_color_1;
+        this.next_update_options.bg_color_2 = this.bg_color_2;
+        this.next_update_options.border_color_1 = this.border_color_1;
+        this.next_update_options.border_color_2 = this.border_color_2;
+        this.next_update_options.bg_color = this.bg_color;
+        this.next_update_options.legend_font_color = this.legend_font_color;
+        this.next_update_options.title_font_color = this.title_font_color;
+        await this.throttled_update_options();
+    }
 
     private async update_options() {
         try {

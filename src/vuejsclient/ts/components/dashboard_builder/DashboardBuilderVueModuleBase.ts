@@ -24,6 +24,8 @@ import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/opti
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 

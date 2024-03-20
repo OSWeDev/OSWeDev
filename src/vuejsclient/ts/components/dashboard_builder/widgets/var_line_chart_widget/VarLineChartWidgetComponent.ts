@@ -15,7 +15,6 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarLineDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarLineDataSetDescriptor';
@@ -32,6 +31,8 @@ import ValidationFiltersWidgetController from '../validation_filters_widget/Vali
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 
 import './VarLineChartWidgetComponent.scss';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./VarLineChartWidgetComponent.pug')
@@ -136,7 +137,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         if (this.widget_options.scale_options_r_1) {
             scales['r'] = this.widget_options.scale_options_r_1;
         }
-
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -147,9 +147,11 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                 title: {
                     display: this.get_bool_option('title_display', true),
                     text: this.translated_title ? this.translated_title : '',
-                    fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
-                    fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    color: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
+                    font: {
+                        size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    }
                 },
 
                 tooltips: {
@@ -181,11 +183,13 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
                     labels: {
-                        fontColor: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
-                        fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
+                        color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
                         boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
                         padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
-                        usePointStyle: this.get_bool_option('legend_use_point_style', false)
+                        usePointStyle: this.get_bool_option('legend_use_point_style', false),
+                        font: {
+                            size: this.widget_options.legend_font_size ? this.widget_options.legend_font_size : 12,
+                        }
                     },
                 },
             },
@@ -216,6 +220,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
+                // TODO : à voir si on peut proposer de paramétrer cette partie
                 let base_color = null;
                 let is_rbga = false;
                 let colors = [];
@@ -244,8 +249,9 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                 }
 
                 return new VarLineDataSetDescriptor(
-                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                        VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))
+                    )
                     .set_backgrounds(colors)
                     .set_bordercolors([this.widget_options.border_color_1])
                     .set_borderwidths([this.widget_options.border_width_1]);
@@ -412,7 +418,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         let ordered_dimension: number[] = [];
         let label_by_index: { [index: string]: string } = {};
         let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
-            VOsTypesManager.moduleTables_by_voType[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+            ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
             let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
@@ -592,7 +598,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * A voir si c'est la bonne méthode pas évident.
+     *  A voir si c'est la bonne méthode pas évident.
      *  Pour le moment on prend les filtres potentiels en diminuant la granularité petit à petit
      *  on est sur du custom filter
      * @returns
@@ -612,6 +618,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         if (!root_context_filter) {
             return null;
         }
+
 
         let ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
             root_context_filter,

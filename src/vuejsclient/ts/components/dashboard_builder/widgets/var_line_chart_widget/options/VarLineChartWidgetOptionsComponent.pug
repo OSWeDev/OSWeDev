@@ -116,32 +116,6 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.chart_render_options') }}
-        .cutout_percentage
-            .input_label {{ label('var_line_chart_widget_options_component.cutout_percentage') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="cutout_percentage"
-                    v-tooltip="label('var_line_chart_widget_options_component.cutout_percentage.tooltip')"
-                )
-        .rotation
-            .input_label {{ label('var_line_chart_widget_options_component.rotation') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="rotation"
-                    v-tooltip="label('var_line_chart_widget_options_component.rotation.tooltip')"
-                )
-        .circumference
-            .input_label {{ label('var_line_chart_widget_options_component.circumference') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="circumference"
-                    v-tooltip="label('var_line_chart_widget_options_component.circumference.tooltip')"
-                )
-
         .options_separator_lvl1 {{ label('var_line_chart_widget_options_component.separator.datas_options') }}
 
         .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.datas_dimension_options') }}

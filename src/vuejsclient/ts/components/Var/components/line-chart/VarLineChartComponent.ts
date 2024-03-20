@@ -263,12 +263,38 @@ export default class VarLineChartComponent extends VueComponentBase {
 
     get chart_options() {
         let self = this;
+        console.log("chart options :::")
+        console.dir(Object.assign(
+            {
+                options: {
+                },
+                plugins: {
+                    labels: false
+                },
+                onClick: (point, event) => {
+                    if (!self.isDescMode) {
+                        return;
+                    }
+
+                    self.$modal.show(
+                        VarDatasRefsParamSelectComponent,
+                        { var_params: this.var_params },
+                        {
+                            width: 465,
+                            height: 'auto',
+                            scrollable: true
+                        }
+                    );
+                }
+            },
+            this.options
+        ))
         return Object.assign(
             {
                 options: {
                 },
                 plugins: {
-                    labels: false,
+                    labels: false
                 },
                 onClick: (point, event) => {
                     if (!self.isDescMode) {

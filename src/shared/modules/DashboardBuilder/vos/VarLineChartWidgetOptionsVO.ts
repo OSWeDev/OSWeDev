@@ -1,4 +1,4 @@
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
@@ -191,7 +191,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
@@ -200,7 +200,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -212,7 +212,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             res[placeholder_name_code_text] =
                 VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
 
         if (this.var_id_1) {
@@ -225,7 +225,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
                     '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_1 + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             }
         }
 
@@ -239,7 +239,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
                     '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_2 + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             }
         }
 

@@ -1,5 +1,5 @@
 import { Scale } from "chart.js";
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarChartOptionsVO from "./VarChartOptionsVO";
@@ -148,7 +148,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
@@ -157,7 +157,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -169,7 +169,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             res[placeholder_name_code_text] =
                 VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
 
         for (const key in this.var_charts_options) {
@@ -186,7 +186,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
                     '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + var_chart_options.var_id + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                    DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                    DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
             }
         }
 

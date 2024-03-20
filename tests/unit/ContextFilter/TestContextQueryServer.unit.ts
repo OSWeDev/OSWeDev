@@ -16,6 +16,7 @@ import LangVO from '../../../src/shared/modules/Translation/vos/LangVO';
 import ContextFilterTestsTools from './tools/ContextFilterTestsTools';
 import ConsoleHandler from '../../../src/shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../src/server/env/ConfigurationService';
+import { field_names } from "../../../src/shared/tools/ObjectHandler";
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 ConsoleHandler.init();
@@ -194,8 +195,9 @@ test('ContextQueryServer: test .build_select_query - RoleVO => AnonymizationFiel
  */
 test('ContextQueryServer: test .build_select_query AND OR combinaison', async () => {
 
-    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
-        .field('firstname').field('lastname')
+    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)    
+        .field(field_names<UserVO>().firstname)
+        .field(field_names<UserVO>().lastname)
         .add_filters([
             filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
                 .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('b').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a')))
@@ -216,7 +218,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison', async ()
 test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async () => {
 
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
-        .field('firstname').field('lastname')
+        .field(field_names<UserVO>().firstname).field(field_names<UserVO>().lastname)
         .add_filters([
 
             ContextFilterVO.or([
@@ -250,7 +252,7 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++', async
 test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', async () => {
 
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
-        .field('firstname').field('lastname')
+        .field(field_names<UserVO>().firstname).field(field_names<UserVO>().lastname)
         .add_filters([
 
             ContextFilterVO.and([
@@ -283,10 +285,10 @@ test('ContextQueryServer: test .build_select_query AND OR combinaison ++2', asyn
  */
 test('ContextQueryServer: test .build_select_query having auto', async () => {
 
-    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field('id');
+    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field(field_names<UserVO>().id);
     context_query.add_filters([
-        filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id'), context_query).or(
-            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').exec_as_server(), context_query)
+        filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field(field_names<RoleVO>().id), context_query).or(
+            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field(field_names<UserRoleVO>().user_id).exec_as_server(), context_query)
         )
     ]).exec_as_server();
 
@@ -321,17 +323,17 @@ test('ContextQueryServer: test .build_select_query chained OR', async () => {
     const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID);
 
     const f1 = ContextFilterVO.or([
-        filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').exec_as_server(), context_query),
-        filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').exec_as_server(), context_query),
+        filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field(field_names<RoleVO>().id).exec_as_server(), context_query),
+        filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field(field_names<UserRoleVO>().user_id).exec_as_server(), context_query),
         filter(UserVO.API_TYPE_ID).by_id(15)
     ]);
 
     let filter_ = filter(UserVO.API_TYPE_ID).by_id(15);
     const compl = ContextFilterVO.or([
         filter(UserVO.API_TYPE_ID).by_id_in(
-            query(UserVO.API_TYPE_ID).field('id').exec_as_server(), context_query),
+            query(UserVO.API_TYPE_ID).field(field_names<UserRoleVO>().id).exec_as_server(), context_query),
         filter(UserVO.API_TYPE_ID).by_id_in(
-            query(UserVO.API_TYPE_ID).field('id').exec_as_server(), context_query)
+            query(UserVO.API_TYPE_ID).field(field_names<UserRoleVO>().user_id).exec_as_server(), context_query)
     ]);
     filter_ = filter_.or(compl);
 

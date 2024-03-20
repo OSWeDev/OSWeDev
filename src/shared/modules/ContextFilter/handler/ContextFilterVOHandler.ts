@@ -489,7 +489,6 @@ export default class ContextFilterVOHandler {
 
     public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
         const res: FieldFiltersVO = {};
-
         for (const i in filters) {
             const filter = filters[i];
 

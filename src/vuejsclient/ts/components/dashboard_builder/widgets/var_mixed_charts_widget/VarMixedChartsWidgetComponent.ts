@@ -15,7 +15,6 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
@@ -32,6 +31,8 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import './VarMixedChartsWidgetComponent.scss';
 import { IChartOptions } from '../../../Var/components/mixed-chart/VarMixedChartComponent';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 
 @Component({
     template: require('./VarMixedChartsWidgetComponent.pug')
@@ -213,7 +214,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         const promises = [];
 
         const dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
-            VOsTypesManager.moduleTables_by_voType[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+            ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
 
         for (const key in this.widget_options.var_charts_options) {
             const var_chart_options = this.widget_options.var_charts_options[key];

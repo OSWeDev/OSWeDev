@@ -411,7 +411,7 @@
 //         let ordered_dimension: number[] = [];
 //         let label_by_index: { [index: string]: string } = {};
 //         let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
-//             VOsTypesManager.moduleTables_by_voType[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+//             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
 //         for (let i in dimensions) {
 //             let dimension: any = dimensions[i];
 //             let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];

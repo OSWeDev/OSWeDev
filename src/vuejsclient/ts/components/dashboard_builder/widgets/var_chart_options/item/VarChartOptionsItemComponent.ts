@@ -10,9 +10,10 @@ import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_fi
 import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './VarChartOptionsItemComponent.scss';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VarChartOptionsItemComponent.pug'),
@@ -182,13 +183,13 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
             this.custom_filter_names = {};
         }
 
-        const fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
+        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
         for (const i in fields) {
             const field = fields[i];
 
             if (
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)
             ) {
 
                 res.push(field.field_id);
