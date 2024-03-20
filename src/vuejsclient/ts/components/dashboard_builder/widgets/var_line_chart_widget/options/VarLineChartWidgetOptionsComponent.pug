@@ -276,6 +276,9 @@
                     v-model="border_width_1"
                 )
         
+        .scale_x_color 
+            .explication {{ label("var_line_chart_widget_options_component.scale_x_axis_color") }}
+            color-picker(v-model="scale_x_color" @change='handle_scale_x_color_change')
         .scale_x_axis_options_1 
             .input_label {{ label('var_line_chart_widget_options_component.scale_x_axis_options_1') }}
             .input_wrapper
@@ -283,7 +286,10 @@
                     :options="scale_options_x_1"
                     @on_change="handle_scale_x_axis_options_1_change"
                 )
-                
+
+        .scale_y_color 
+            .explication {{ label("var_line_chart_widget_options_component.scale_y_axis_color") }}
+            color-picker(v-model="scale_y_color" @change='handle_scale_y_color_change')  
         .scale_y_axis_options_1 
             .input_label {{ label('var_line_chart_widget_options_component.scale_y_axis_options_1') }}
             .input_wrapper

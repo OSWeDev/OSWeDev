@@ -90,7 +90,9 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             null,
 
             // Scale options
+            '#666',
             null,
+            '#666',
             null,
             null,
 
@@ -165,7 +167,10 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         public bg_color_1?: string,
         public border_color_1?: string,
         public border_width_1?: number,
+        public scale_x_color?: string,
         public scale_options_x_1?: Partial<Scale>,
+
+        public scale_y_color?: string,
         public scale_options_y_1?: Partial<Scale>,
         public scale_options_r_1?: Partial<Scale>,
 

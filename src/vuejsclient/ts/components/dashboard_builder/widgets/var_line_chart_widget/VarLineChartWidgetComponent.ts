@@ -128,15 +128,23 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
         if (this.widget_options.scale_options_x_1) {
             scales['x'] = this.widget_options.scale_options_x_1;
+            scales['x']['grid'] = {
+                color:this.widget_options.scale_x_color ? this.widget_options.scale_x_color : '#666'
+            };
         }
 
         if (this.widget_options.scale_options_y_1) {
             scales['y'] = this.widget_options.scale_options_y_1;
+            scales['y']['grid'] = {
+                color:this.widget_options.scale_y_color ? this.widget_options.scale_y_color : '#666'
+            };
         }
 
         if (this.widget_options.scale_options_r_1) {
             scales['r'] = this.widget_options.scale_options_r_1;
         }
+
+
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -152,6 +160,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     font: {
                         size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
                     }
+                    
                 },
 
                 tooltips: {

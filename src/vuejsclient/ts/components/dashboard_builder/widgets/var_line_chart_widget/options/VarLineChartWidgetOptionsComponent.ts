@@ -74,11 +74,11 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     private legend_padding: string = null;
     private title_font_size: string = null;
     private title_padding: string = null;
-    private cutout_percentage: string = null;
-    private rotation: string = null;
-    private circumference: string = null;
     private max_dimension_values: string = null;
     private border_width_1: string = null;
+
+    private scale_x_color?: string = null;
+    private scale_y_color?: string = null;
 
     private scale_options_x_1?: Partial<Scale> = null;
     private scale_options_y_1?: Partial<Scale> = null;
@@ -334,6 +334,33 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         await this.throttled_update_options();
     }
 
+    private handle_scale_x_color_change(color: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_x_color = color;
+        this.throttled_update_colors();
+    }
+
+    private handle_scale_y_color_change(color: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_y_color = color;
+        this.throttled_update_colors();
+    }
+
+
     private handle_scale_x_axis_options_1_change(options: Partial<Scale>) {
         if (!this.widget_options) {
             return;
@@ -511,9 +538,8 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
                         (this.widget_options.title_display == options.title_display) &&
                         (this.widget_options.title_font_size == options.title_font_size) &&
                         (this.widget_options.title_padding == options.title_padding) &&
-                        // (this.widget_options.cutout_percentage == options.cutout_percentage) &&
-                        // (this.widget_options.rotation == options.rotation) &&
-                        // (this.widget_options.circumference == options.circumference) &&
+                        (this.widget_options.scale_x_color == options.scale_x_color) &&
+                        (this.widget_options.scale_y_color == options.scale_y_color) &&
                         (this.widget_options.has_dimension == options.has_dimension) &&
                         (this.widget_options.max_dimension_values == options.max_dimension_values) &&
                         (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
@@ -564,9 +590,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.title_font_color = '#666';
             this.title_font_size = '16';
             this.title_padding = '10';
-            this.cutout_percentage = '50';
-            this.rotation = '270';
-            this.circumference = '180';
 
             this.has_dimension = false;
             this.max_dimension_values = '10';
@@ -586,6 +609,8 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.border_color_2 = null;
             this.border_width_2 = null;
             this.max_is_sum_of_var_1_and_2 = false;
+            this.scale_x_color = "#666";
+            this.scale_y_color = "#666";
 
             return;
         }
@@ -615,18 +640,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         if (((!this.widget_options.title_padding) && this.title_padding) || (this.widget_options.title_padding && (this.title_padding != this.widget_options.title_padding.toString()))) {
             this.title_padding = this.widget_options.title_padding ? this.widget_options.title_padding.toString() : null;
         }
-
-        // if (((!this.widget_options.cutout_percentage) && this.cutout_percentage) || (this.widget_options.cutout_percentage && (this.cutout_percentage != this.widget_options.cutout_percentage.toString()))) {
-        //     this.cutout_percentage = this.widget_options.cutout_percentage ? this.widget_options.cutout_percentage.toString() : null;
-        // }
-
-        // if (((!this.widget_options.rotation) && this.rotation) || (this.widget_options.rotation && (this.rotation != this.widget_options.rotation.toString()))) {
-        //     this.rotation = this.widget_options.rotation ? this.widget_options.rotation.toString() : null;
-        // }
-
-        // if (((!this.widget_options.circumference) && this.circumference) || (this.widget_options.circumference && (this.circumference != this.widget_options.circumference.toString()))) {
-        //     this.circumference = this.widget_options.circumference ? this.widget_options.circumference.toString() : null;
-        // }
 
         if (this.has_dimension != this.widget_options.has_dimension) {
             this.has_dimension = this.widget_options.has_dimension;
@@ -677,6 +690,12 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
 
+        if (this.scale_x_color != this.widget_options.scale_x_color) {
+            this.scale_x_color = this.widget_options.scale_x_color;
+        }
+        if (this.scale_y_color != this.widget_options.scale_y_color) {
+            this.scale_y_color = this.widget_options.scale_y_color;
+        }
         if (this.bg_color_1 != this.widget_options.bg_color_1) {
             this.bg_color_1 = this.widget_options.bg_color_1;
         }
@@ -987,90 +1006,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         }
     }
 
-    @Watch('cutout_percentage')
-    private async onchange_cutout_percentage() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.cutout_percentage) {
-
-            // if (this.widget_options.cutout_percentage) {
-            //     this.widget_options.cutout_percentage = 50;
-            //     await this.throttled_update_options();
-            // }
-            return;
-        }
-
-        try {
-
-            // if (this.widget_options.cutout_percentage != parseInt(this.cutout_percentage)) {
-            //     this.next_update_options = this.widget_options;
-            //     this.next_update_options.cutout_percentage = parseInt(this.cutout_percentage);
-
-            //     await this.throttled_update_options();
-            // }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('rotation')
-    private async onchange_rotation() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.rotation) {
-
-            // if (this.widget_options.rotation) {
-            //     this.widget_options.rotation = 270;
-            //     await this.throttled_update_options();
-            // }
-            return;
-        }
-
-        try {
-
-            // if (this.widget_options.rotation != parseInt(this.rotation)) {
-            //     this.next_update_options = this.widget_options;
-            //     this.next_update_options.rotation = parseInt(this.rotation);
-
-            //     await this.throttled_update_options();
-            // }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('circumference')
-    private async onchange_circumference() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.circumference) {
-
-            // if (this.widget_options.circumference) {
-            //     this.widget_options.circumference = 180;
-            //     await this.throttled_update_options();
-            // }
-            return;
-        }
-
-        try {
-
-            // if (this.widget_options.circumference != parseInt(this.circumference)) {
-            //     this.next_update_options = this.widget_options;
-            //     this.next_update_options.circumference = parseInt(this.circumference);
-
-            //     await this.throttled_update_options();
-            // }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
+    
     @Watch('border_width_1')
     private async onchange_border_width_1() {
         if (!this.widget_options) {
@@ -1169,6 +1105,8 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         this.next_update_options.bg_color = this.bg_color;
         this.next_update_options.legend_font_color = this.legend_font_color;
         this.next_update_options.title_font_color = this.title_font_color;
+        this.next_update_options.scale_x_color = this.scale_x_color;
+        this.next_update_options.scale_y_color = this.scale_y_color;
         await this.throttled_update_options();
     }
 
