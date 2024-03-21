@@ -722,7 +722,6 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     is_rbga = true;
                 }
 
-                console.log(base_color)
                 if (!base_color) {
                     base_color = 'rgba(0,0,0';
                     is_rbga = true;

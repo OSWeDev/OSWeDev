@@ -20,6 +20,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_supervision_type: string = 'supervision_type';
     public static WIDGET_NAME_datatable: string = 'datatable';
     public static WIDGET_NAME_oseliathread: string = 'oseliathread';
+    public static WIDGET_NAME_oseliacreator: string = 'oseliacreator';
     public static WIDGET_NAME_valuetable: string = 'valuetable';
     public static WIDGET_NAME_fieldvaluefilter: string = 'fieldvaluefilter';
     public static WIDGET_NAME_dowfilter: string = 'dowfilter';

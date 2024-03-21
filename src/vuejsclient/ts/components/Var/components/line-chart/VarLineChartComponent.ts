@@ -84,7 +84,6 @@ export default class VarLineChartComponent extends VueComponentBase {
         if (!this.chart_data || !this.chart_options) {
             return;
         }
-
         this.current_chart_data = this.chart_data;
         this.current_chart_options = this.chart_options;
     }
@@ -344,7 +343,6 @@ export default class VarLineChartComponent extends VueComponentBase {
         };
 
         res.push(dataset);
-
         return res;
     }
 
@@ -399,7 +397,6 @@ export default class VarLineChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         let res = [];
-
         for (let i in this.var_params) {
             res.push(
                 this.getlabel ?

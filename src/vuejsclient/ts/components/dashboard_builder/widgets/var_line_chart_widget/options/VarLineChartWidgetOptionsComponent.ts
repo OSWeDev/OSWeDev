@@ -94,9 +94,9 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     private dimension_custom_filter_segment_types: string[] = [
         this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
         this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
         this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
         this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
         this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
@@ -1117,7 +1117,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
-
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
     }

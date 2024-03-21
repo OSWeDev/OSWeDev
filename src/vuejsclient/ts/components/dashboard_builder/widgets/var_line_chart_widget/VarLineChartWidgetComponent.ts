@@ -80,6 +80,8 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
     private current_var_dataset_descriptor = null;
     private current_options = null;
 
+    $snotify: any;
+
     @Watch('options')
     @Watch('var_dataset_descriptor')
     @Watch('var_params')
@@ -97,8 +99,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-
-        return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
+        return this.widget_options.filter_type!="none" ? this.const_filters[this.widget_options.filter_type].read : undefined;
     }
 
     get var_filter_additional_params(): [] {
@@ -144,7 +145,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
             scales['r'] = this.widget_options.scale_options_r_1;
         }
 
-
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -181,7 +181,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                             if (!!self.var_filter_additional_params) {
                                 params = params.concat(self.var_filter_additional_params);
                             }
-
                             return label + self.var_filter.apply(null, params);
                         }
                     }
@@ -205,6 +204,10 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
             scales: scales
         };
+    }
+
+    get snotify() {
+        return this.$snotify;
     }
 
     private getlabel(var_param: VarDataBaseVO) {
@@ -397,6 +400,9 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
         let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
 
+        if(this.widget_options.dimension_vo_field_ref == null) {
+            return
+        }
         /**
          * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
          */
@@ -428,6 +434,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         let label_by_index: { [index: string]: string } = {};
         let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
+        let dimension_correct: boolean = false; // Check if the dimensions are correct
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
             let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
@@ -461,7 +468,8 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
                 if (!var_params_by_dimension[dimension_value]) {
                     // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                    this.snotify.error('Pas de var_params pour la dimension ' + dimension_value);
+                    dimension_correct = false;
                     return;
                 }
 
@@ -478,7 +486,9 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
             })());
         }
         await all_promises(promises);
-
+        if(dimension_correct){
+            this.snotify.success('Les dimensions sont correctes')
+        }
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;
@@ -567,7 +577,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                 ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
 
                 let update_custom_filters_1 = cloneDeep(custom_filters_1);
-
                 if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
                     this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
 
