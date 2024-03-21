@@ -1,18 +1,15 @@
 import Component from 'vue-class-component';
+import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
-import './ValidationFiltersWidgetOptionsComponent.scss';
-import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import ValidationFiltersWidgetOptions from './ValidationFiltersWidgetOptions';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import { cloneDeep } from 'lodash';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import ValidationFiltersWidgetOptions from './ValidationFiltersWidgetOptions';
+import './ValidationFiltersWidgetOptionsComponent.scss';
 
 @Component({
     template: require('./ValidationFiltersWidgetOptionsComponent.pug'),
@@ -35,6 +32,24 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private load_widgets_prevalidation: boolean = false;
+
+    get widget_options(): ValidationFiltersWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ValidationFiltersWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
+                options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
 
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
@@ -84,23 +99,5 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
         return new ValidationFiltersWidgetOptions(
             false,
         );
-    }
-
-    get widget_options(): ValidationFiltersWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ValidationFiltersWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
-                options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

@@ -374,7 +374,6 @@ export default class ModuleDAO extends Module {
         ModuleTableController.create_new(this.name, ModuleTableFieldVO, label_field, "Format des champs de table");
 
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().secure_boolean_switch_only_server_side, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sécurisé côté serveur', true, true, false);
-        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_moduletable_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table liée', false).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType lié', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table', true).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType', true);

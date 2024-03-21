@@ -133,7 +133,6 @@ export default class VersionedVOController implements IVOController {
                     newTableFields[vofield.field_name].set_many_to_one_target_moduletable_name(moduleTable.vo_type);
                 } else if ((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE)) {
                     const newField = newTableFields[vofield.field_name];
-                    newField.foreign_ref_moduletable_id = null;
                     newField.foreign_ref_vo_type = null;
 
                     switch (vofield.field_type) {

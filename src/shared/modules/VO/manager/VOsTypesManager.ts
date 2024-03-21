@@ -79,7 +79,7 @@ export default class VOsTypesManager {
 
     public static isManyToManyModuleTable(moduleTable: ModuleTableVO): boolean {
 
-        let manyToOne1: number = null;
+        let manyToOne1: string = null;
         let field_num: number = 0;
         let isManyToMany: boolean = false;
         for (const j in moduleTable.get_fields()) {
@@ -110,7 +110,7 @@ export default class VOsTypesManager {
             }
 
             // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
-            if (!field.foreign_ref_moduletable_id) {
+            if (!field.foreign_ref_vo_type) {
                 isManyToMany = false;
                 break;
             }
@@ -122,11 +122,11 @@ export default class VOsTypesManager {
             }
 
             if (!manyToOne1) {
-                manyToOne1 = field.foreign_ref_moduletable_id;
+                manyToOne1 = field.foreign_ref_vo_type;
                 continue;
             }
 
-            if (manyToOne1 == field.foreign_ref_moduletable_id) {
+            if (manyToOne1 == field.foreign_ref_vo_type) {
                 isManyToMany = false;
                 break;
             }
@@ -202,11 +202,11 @@ export default class VOsTypesManager {
                 continue;
             }
 
-            if (!field.foreign_ref_moduletable_id) {
+            if (!field.foreign_ref_vo_type) {
                 break;
             }
 
-            if (firstField.foreign_ref_moduletable_id == field.foreign_ref_moduletable_id) {
+            if (firstField.foreign_ref_vo_type == field.foreign_ref_vo_type) {
                 continue;
             }
 

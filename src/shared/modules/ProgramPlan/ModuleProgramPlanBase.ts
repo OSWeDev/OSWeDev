@@ -43,40 +43,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     public static rdv_date_compute_function_uid: string = 'ModuleProgramPlanBase.rdv_date_compute_function_uid';
     public static facilitator_name_compute_function_uid: string = 'ModuleProgramPlanBase.facilitator_name_compute_function_uid';
-
-    get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
-    get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
-    get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
-
-    get POLICY_FO_SEE_FC(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_FC'; }
-    get POLICY_FO_SEE_ALL_TEAMS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_ALL_TEAMS'; }
-    get POLICY_FO_SEE_OWN_TEAM(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_OWN_TEAM'; }
-
-    get POLICY_FO_EDIT(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT'; }
-
-    get POLICY_FO_CAN_ARCHIVE_RDV(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_CAN_ARCHIVE_RDV'; }
-
-    get POLICY_FO_EDIT_OWN_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_RDVS'; }
-    get POLICY_FO_EDIT_OWN_TEAM_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_TEAM_RDVS'; }
-    get POLICY_FO_EDIT_ALL_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_ALL_RDVS'; }
-
-    get APINAME_GET_RDVS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_RDVS_OF_PROGRAM_SEGMENT"; }
-    get APINAME_GET_CRS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_CRS_OF_PROGRAM_SEGMENT"; }
-    get APINAME_GET_PREPS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_PREPS_OF_PROGRAM_SEGMENT"; }
-
-    get RDV_STATE_LABELS(): string[] {
-        return [
-            this.name + '.rdv.states.created',
-            this.name + '.rdv.states.confirmed',
-            this.name + '.rdv.states.prep_ok',
-            this.name + '.rdv.states.cr_ok'
-        ];
-    }
-    get RDV_STATE_CREATED(): number { return 0; }
-    get RDV_STATE_CONFIRMED(): number { return 1; }
-    get RDV_STATE_PREP_OK(): number { return 2; }
-    get RDV_STATE_CR_OK(): number { return 3; }
-
     public getRDVsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDV[]> = APIControllerWrapper.sah(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT);
     public getCRsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVCR[]> = APIControllerWrapper.sah(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT);
     public getPrepsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVPrep[]> = APIControllerWrapper.sah(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT);
@@ -116,6 +82,39 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         this.initialize_later();
     }
+
+    get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
+    get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
+    get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
+
+    get POLICY_FO_SEE_FC(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_FC'; }
+    get POLICY_FO_SEE_ALL_TEAMS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_ALL_TEAMS'; }
+    get POLICY_FO_SEE_OWN_TEAM(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_OWN_TEAM'; }
+
+    get POLICY_FO_EDIT(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT'; }
+
+    get POLICY_FO_CAN_ARCHIVE_RDV(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_CAN_ARCHIVE_RDV'; }
+
+    get POLICY_FO_EDIT_OWN_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_RDVS'; }
+    get POLICY_FO_EDIT_OWN_TEAM_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_TEAM_RDVS'; }
+    get POLICY_FO_EDIT_ALL_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_ALL_RDVS'; }
+
+    get APINAME_GET_RDVS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_RDVS_OF_PROGRAM_SEGMENT"; }
+    get APINAME_GET_CRS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_CRS_OF_PROGRAM_SEGMENT"; }
+    get APINAME_GET_PREPS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_PREPS_OF_PROGRAM_SEGMENT"; }
+
+    get RDV_STATE_LABELS(): string[] {
+        return [
+            this.name + '.rdv.states.created',
+            this.name + '.rdv.states.confirmed',
+            this.name + '.rdv.states.prep_ok',
+            this.name + '.rdv.states.cr_ok'
+        ];
+    }
+    get RDV_STATE_CREATED(): number { return 0; }
+    get RDV_STATE_CONFIRMED(): number { return 1; }
+    get RDV_STATE_PREP_OK(): number { return 2; }
+    get RDV_STATE_CR_OK(): number { return 3; }
 
     public initialize() {
 
@@ -198,7 +197,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         return this.RDV_STATE_CR_OK;
     }
 
-    protected abstract callInitializePlanProgramCategory();
     protected initializePlanProgramCategory(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanProgramCategory }) {
         if (!this.program_category_type_id) {
             return;
@@ -225,7 +223,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, vo_constructor, label_field, "Catégories de programmes");
     }
 
-    protected abstract callInitializePlanContactType();
     protected initializePlanContactType(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanContactType }) {
         if (!this.contact_type_type_id) {
             return;
@@ -240,7 +237,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, vo_constructor, label_field, "Types de contact");
     }
 
-    protected abstract callInitializePlanFacilitatorRegion();
     protected initializePlanFacilitatorRegion(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanFacilitatorRegion }) {
         if (!this.facilitator_region_type_id) {
             return;
@@ -255,7 +251,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, vo_constructor, label_field, "Régions des animateurs");
     }
 
-    protected abstract callInitializePlanTargetGroup();
     protected initializePlanTargetgroup(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetGroup }) {
         if (!this.target_group_type_id) {
             return;
@@ -274,7 +269,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
-    protected abstract callInitializePlanTargetRegion();
     protected initializePlanTargetRegion(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetRegion }) {
         if (!this.target_region_type_id) {
             return;
@@ -295,7 +289,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         region_director_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
-    protected abstract callInitializePlanTargetZone();
     protected initializePlanTargetZone(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetZone }) {
         if (!this.target_zone_type_id) {
             return;
@@ -323,7 +316,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         zone_manager_uid.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
-    protected abstract callInitializePlanContact();
     protected initializePlanContact(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanContact }) {
         if (!this.contact_type_id) {
             return;
@@ -356,7 +348,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
     }
 
-    protected abstract callInitializePlanTargetContact();
     protected initializePlanTargetContact(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetContact }) {
         if (!this.target_contact_type_id) {
             return;
@@ -375,7 +366,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
     }
 
-    protected abstract callInitializePlanProgram();
     protected initializePlanProgram(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanProgram }) {
         if (!this.program_type_id) {
             return;
@@ -404,7 +394,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         category_id.set_many_to_one_target_moduletable_name(this.program_category_type_id);
     }
 
-    protected abstract callInitializePlanFacilitator();
     protected initializePlanFacilitator(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanFacilitator }) {
         if (!this.facilitator_type_id) {
             return;
@@ -457,7 +446,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
 
-    protected abstract callInitializePlanManager();
     protected initializePlanManager(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanManager }) {
         if (!this.manager_type_id) {
             return;
@@ -488,7 +476,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
     }
 
-    protected abstract callInitializePlanEnseigne();
     protected initializePlanEnseigne(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanEnseigne }) {
         if (!this.enseigne_type_id) {
             return;
@@ -503,7 +490,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, vo_constructor, label_field, "Enseignes");
     }
 
-    protected abstract callInitializePlanTaskType();
     protected initializePlanTaskType(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTaskType }) {
         if (!this.task_type_type_id) {
             return;
@@ -523,7 +509,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         const datatable = ModuleTableController.create_new(this.name, vo_constructor, label_field, "Type de tâche");
     }
 
-    protected abstract callInitializePlanTask();
     protected initializePlanTask(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTask }) {
         if (!this.task_type_id) {
             return;
@@ -552,7 +537,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
     }
 
-    protected abstract callInitializePlanTarget();
     protected initializePlanTarget(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTarget }) {
         if (!this.target_type_id) {
             return;
@@ -600,7 +584,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
     }
 
-    protected abstract callInitializePlanRDVPrep();
     protected initializePlanRDVPrep(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanRDVPrep }) {
         if (!this.rdv_prep_type_id) {
             return;
@@ -630,7 +613,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         prep_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
     }
 
-    protected abstract callInitializePlanRDVCR();
     protected initializePlanRDVCR(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanRDVCR }) {
         if (!this.rdv_cr_type_id) {
             return;
@@ -660,7 +642,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         cr_file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
     }
 
-    protected abstract callInitializePlanRDV();
     protected initializePlanRDV(
         states: { [state_id: number]: string },
         additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanRDV },
@@ -736,7 +717,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
     }
 
-    protected abstract callInitializePlanProgramFacilitator();
     protected initializePlanProgramFacilitator(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanProgramFacilitator }) {
         if (!this.program_facilitator_type_id) {
             return;
@@ -755,7 +735,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
     }
 
-    protected abstract callInitializePlanProgramManager();
     protected initializePlanProgramManager(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanProgramManager }) {
         if (!this.program_manager_type_id) {
             return;
@@ -774,7 +753,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
     }
 
-    protected abstract callInitializePlanProgramTarget();
     protected initializePlanProgramTarget(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanProgramTarget }) {
         if (!this.program_target_type_id) {
             return;
@@ -793,7 +771,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         program_id.set_many_to_one_target_moduletable_name(this.program_type_id);
     }
 
-    protected abstract callInitializePlanPartner();
     protected initializePlanPartner(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanPartner }) {
         if (!this.partner_type_id) {
             return;
@@ -810,7 +787,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
 
-    protected abstract callInitializePlanTargetFacilitator();
     protected initializePlanTargetFacilitator(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetFacilitator }) {
         if (!this.target_facilitator_type_id) {
             return;
@@ -829,7 +805,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         facilitator_id.set_many_to_one_target_moduletable_name(this.facilitator_type_id);
     }
 
-    protected abstract callInitializePlanTargetGroupContact();
     protected initializePlanTargetGroupContact(additional_fields: ModuleTableFieldVO[], vo_constructor: { new(): IPlanTargetGroupContact }) {
         if (!this.target_group_contact_type_id) {
             return;
@@ -847,4 +822,29 @@ export default abstract class ModuleProgramPlanBase extends Module {
         target_group_id.set_many_to_one_target_moduletable_name(this.target_group_type_id);
         contact_id.set_many_to_one_target_moduletable_name(this.contact_type_id);
     }
+
+    protected abstract callInitializePlanProgramCategory();
+    protected abstract callInitializePlanContactType();
+    protected abstract callInitializePlanFacilitatorRegion();
+    protected abstract callInitializePlanTargetGroup();
+    protected abstract callInitializePlanTargetRegion();
+    protected abstract callInitializePlanTargetZone();
+    protected abstract callInitializePlanContact();
+    protected abstract callInitializePlanTargetContact();
+    protected abstract callInitializePlanProgram();
+    protected abstract callInitializePlanFacilitator();
+    protected abstract callInitializePlanManager();
+    protected abstract callInitializePlanEnseigne();
+    protected abstract callInitializePlanTaskType();
+    protected abstract callInitializePlanTask();
+    protected abstract callInitializePlanTarget();
+    protected abstract callInitializePlanRDVPrep();
+    protected abstract callInitializePlanRDVCR();
+    protected abstract callInitializePlanRDV();
+    protected abstract callInitializePlanProgramFacilitator();
+    protected abstract callInitializePlanProgramManager();
+    protected abstract callInitializePlanProgramTarget();
+    protected abstract callInitializePlanPartner();
+    protected abstract callInitializePlanTargetFacilitator();
+    protected abstract callInitializePlanTargetGroupContact();
 }
