@@ -726,16 +726,14 @@ export default class ModuleVar extends Module {
 
     private initializeVarPixelFieldConfVO() {
 
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
-            ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_field_name', false),
-            ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_param_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_param_field_name', false),
-            ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_range_type', false),
-            ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_segmentation_type', false)
-        ];
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_api_type_id', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_field_name', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_param_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_param_field_name', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_range_type', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_segmentation_type', false);
 
-        const datatable = ModuleTableController.create_new(this.name, VarPixelFieldConfVO, null, VarPixelFieldConfVO.API_TYPE_ID);
-        ModuleTableController.set_label_function(VarPixelFieldConfVO.API_TYPE_ID, (vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_name, null);
+        ModuleTableController.create_new(this.name, VarPixelFieldConfVO, null, VarPixelFieldConfVO.API_TYPE_ID);
+        ModuleTableController.set_label_function(VarPixelFieldConfVO.API_TYPE_ID, (vo: VarPixelFieldConfVO) => (vo.pixel_vo_api_type_id && vo.pixel_vo_field_name) ? vo.pixel_vo_api_type_id + '.' + vo.pixel_vo_field_name : vo.pixel_param_field_name, null);
     }
 
     private initializeVarConfAutoDepVO(): ModuleTableFieldVO {

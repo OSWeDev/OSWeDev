@@ -575,7 +575,7 @@ export default class MatroidController {
         // }
 
         const needs_mapping: boolean = moduletable_from != moduletable_to;
-        const mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
+        const mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids ? moduletable_from.mapping_by_api_type_ids[_type] : undefined;
 
         // if (needs_mapping && (typeof mappings === 'undefined')) {
         //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");

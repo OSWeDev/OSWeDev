@@ -18,6 +18,7 @@ import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableField
 import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
@@ -189,13 +190,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                             continue;
                         }
 
-                        if (!pixel_field.pixel_vo_api_type_id) {
+                        if ((!pixel_field.pixel_vo_api_type_id) && (pixel_field.pixel_range_type != TSRange.RANGE_TYPE)) {
                             ConsoleHandler.error('Pixel varconf but no pixel_vo_api_type_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
                         }
 
-                        if (!pixel_field.pixel_vo_field_name) {
+                        if ((!pixel_field.pixel_vo_field_name) && (pixel_field.pixel_range_type != TSRange.RANGE_TYPE)) {
                             ConsoleHandler.error('Pixel varconf but no pixel_vo_field_name for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
@@ -1134,7 +1135,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!param[matroid_field.field_name]) || (!(param[matroid_field.field_name] as IRange[]).length) ||
                     ((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0)) {
                     filter_ = true;
-                    ConsoleHandler.error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
+                    ConsoleHandler.error("Registered wrong Matroid:" +
+                        ((!param[matroid_field.field_name]) ? "(!param[matroid_field.field_name]) :" + matroid_field.field_name : (
+                            (!(param[matroid_field.field_name] as IRange[]).length) ? "(!(param[matroid_field.field_name] as IRange[]).length) :" + matroid_field.field_name : (
+                                "((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0) :" + matroid_field.field_name
+                            )))
+                        + "  :  " + JSON.stringify(param) + ':refused');
                     break;
                 }
             }

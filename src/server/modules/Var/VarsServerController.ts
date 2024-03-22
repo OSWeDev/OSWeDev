@@ -407,8 +407,8 @@ export default class VarsServerController {
                             const pixel_field = daoVarConf.pixel_fields[i];
 
                             if ((pixel_field.pixel_param_field_name == null) ||
-                                (pixel_field.pixel_vo_api_type_id == null) ||
-                                (pixel_field.pixel_vo_field_name == null) ||
+                                ((pixel_field.pixel_vo_api_type_id == null) && (varConf.pixel_fields[i].pixel_vo_api_type_id != null)) ||
+                                ((pixel_field.pixel_vo_field_name == null) && (varConf.pixel_fields[i].pixel_vo_field_name != null)) ||
                                 (pixel_field.pixel_range_type == null) ||
                                 (pixel_field.pixel_segmentation_type == null)) {
                                 overwrite_dao = true;
