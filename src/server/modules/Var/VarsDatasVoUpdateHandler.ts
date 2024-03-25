@@ -34,6 +34,7 @@ import VarsServerController from './VarsServerController';
 import VarsClientsSubsCacheHolder from './bgthreads/processes/VarsClientsSubsCacheHolder';
 import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCacheManager';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import ModuleVarServer from './ModuleVarServer';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -42,7 +43,8 @@ import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
  */
 export default class VarsDatasVoUpdateHandler {
 
-    public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    // public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    public static VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.has_ordered_vos_cud';
     public static VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.block_ordered_vos_cud';
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
@@ -188,13 +190,22 @@ export default class VarsDatasVoUpdateHandler {
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
 
         if (!VarsDatasVoUpdateHandler.has_retrieved_vos_cud) {
-            VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
-                VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+            // Si le flag est actif, on invalide tout
+            const current_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+            if (current_tag_value) {
+                await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
+            }
+            await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
+
+            //     VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
+            //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
             VarsDatasVoUpdateHandler.has_retrieved_vos_cud = true;
         }
 
         if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) || (!VarsDatasVoUpdateHandler.ordered_vos_cud.length)) {
+            VarsDatasVoUpdateHandler.throttled_update_param();
             return null;
         }
 
@@ -347,9 +358,19 @@ export default class VarsDatasVoUpdateHandler {
 
     public static async update_param() {
 
-        await ModuleParams.getInstance().setParamValue(
-            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
-            VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
+        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
+        let new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+        let old_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+
+        if (new_tag_value == old_tag_value) {
+            return;
+        }
+
+        await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+
+        // await ModuleParams.getInstance().setParamValue(
+        //     VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
+        //     VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
     }
 
     /**
@@ -478,7 +499,7 @@ export default class VarsDatasVoUpdateHandler {
     private static has_retrieved_vos_cud: boolean = false;
 
 
-    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 30000, { leading: false, trailing: true });
+    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 1000, { leading: false, trailing: true });
     private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
 
 
@@ -1055,58 +1076,58 @@ export default class VarsDatasVoUpdateHandler {
         ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + VarsDatasVoUpdateHandler.ordered_vos_cud.length);
     }
 
-    private static getJSONFrom_ordered_vos_cud(): string {
-        let res: any[] = [];
+    // private static getJSONFrom_ordered_vos_cud(): string {
+    //     let res: any[] = [];
 
-        for (let i in VarsDatasVoUpdateHandler.ordered_vos_cud) {
-            let vo_cud = VarsDatasVoUpdateHandler.ordered_vos_cud[i];
+    //     for (let i in VarsDatasVoUpdateHandler.ordered_vos_cud) {
+    //         let vo_cud = VarsDatasVoUpdateHandler.ordered_vos_cud[i];
 
-            if (!!vo_cud['_type']) {
-                let tmp = APIControllerWrapper.try_translate_vo_to_api(vo_cud);
-                res.push(tmp);
-            } else {
-                let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
-                );
-                res.push(tmp);
-            }
-        }
+    //         if (!!vo_cud['_type']) {
+    //             let tmp = APIControllerWrapper.try_translate_vo_to_api(vo_cud);
+    //             res.push(tmp);
+    //         } else {
+    //             let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
+    //                 APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+    //                 APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+    //             );
+    //             res.push(tmp);
+    //         }
+    //     }
 
-        let res_: string = null;
-        try {
-            res_ = JSON.stringify(res);
-        } catch (error) {
-            console.error('getJSONFrom_ordered_vos_cud ERROR ' + error);
-        }
+    //     let res_: string = null;
+    //     try {
+    //         res_ = JSON.stringify(res);
+    //     } catch (error) {
+    //         console.error('getJSONFrom_ordered_vos_cud ERROR ' + error);
+    //     }
 
-        return res_;
-    }
+    //     return res_;
+    // }
 
-    private static set_ordered_vos_cud_from_JSON(jsoned: string): void {
+    // private static set_ordered_vos_cud_from_JSON(jsoned: string): void {
 
-        try {
+    //     try {
 
-            let res: any[] = JSON.parse(jsoned);
+    //         let res: any[] = JSON.parse(jsoned);
 
-            for (let i in res) {
-                let vo_cud = res[i];
+    //         for (let i in res) {
+    //             let vo_cud = res[i];
 
-                if (!!vo_cud['_type']) {
-                    let tmp = APIControllerWrapper.try_translate_vo_from_api(vo_cud);
-                    VarsDatasVoUpdateHandler.ordered_vos_cud.push(tmp);
-                } else {
-                    let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
-                    );
-                    res.push(tmp);
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.error('Impossible de recharger le ordered_vos_cud from params :' + jsoned + ':');
-        }
-    }
+    //             if (!!vo_cud['_type']) {
+    //                 let tmp = APIControllerWrapper.try_translate_vo_from_api(vo_cud);
+    //                 VarsDatasVoUpdateHandler.ordered_vos_cud.push(tmp);
+    //             } else {
+    //                 let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
+    //                     APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+    //                     APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+    //                 );
+    //                 res.push(tmp);
+    //             }
+    //         }
+    //     } catch (error) {
+    //         ConsoleHandler.error('Impossible de recharger le ordered_vos_cud from params :' + jsoned + ':');
+    //     }
+    // }
 
     private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
 
