@@ -17,6 +17,7 @@ export default class VarDataParamServerController {
      * @param static_fields Les champs additionnels à ajouter
      * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
      * @returns le paramètre cloné
+     * @deprecated Utiliser VarDataBaseVO.new() pour avoir un typage parfait. Cette méthode est un workaround pour le moment pour des cas où l'on ne connait pas le type exacte de la var
      */
     public static get_cloned_param_for_dep_controller_with_additional_fields<
         InputType extends VarDataBaseVO,

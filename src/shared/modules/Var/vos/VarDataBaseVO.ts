@@ -10,6 +10,22 @@ import IMatroid from '../../Matroid/interfaces/IMatroid';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
+
+/**
+ * Généré par ChatGPT :
+ *      Utility type pour filtrer les clés de T qui correspondent à un type de donnée spécifique
+ *          et qui ne commencent pas par '_'.
+ */
+type FilterFields<T, FieldType> = {
+    [Key in keyof T]: T[Key] extends FieldType ? (Key extends string ? (Key extends `_${string}` ? never : Key) : never) : never;
+}[keyof T];
+
+/**
+ * Généré par ChatGPT :
+ *      Utiliser Pick pour sélectionner uniquement les champs filtrés.
+ */
+type MatroidFields<T> = Pick<T, FilterFields<T, IRange[]>>;
+
 /**
  * Paramètre le calcul de variables
  */
@@ -127,6 +143,31 @@ export default class VarDataBaseVO implements IMatroid {
 
         return a.index == b.index;
     }
+
+    /**
+     * Méthode typée pour créer un nouveau paramètre de var, quelque soit le type
+     * @param _type Le vo_type cible
+     * @param var_name Le nom de la var cible
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
+     */
+    public static new<T extends VarDataBaseVO>(
+        var_type: { new(): T },
+        var_name: string,
+        clone_fields: boolean = true,
+        matroid_fields: MatroidFields<T>): T {
+
+        const fields_ordered_as_in_moduletable_definition: IRange[][] = [];
+        const var_conf = VarsController.var_conf_by_name[var_name];
+
+        const fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        for (const i in fields) {
+            const field = fields[i];
+            fields_ordered_as_in_moduletable_definition.push(matroid_fields[field.field_name]);
+        }
+        return this.createNew(var_name, clone_fields, ...fields_ordered_as_in_moduletable_definition);
+    }
+
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
