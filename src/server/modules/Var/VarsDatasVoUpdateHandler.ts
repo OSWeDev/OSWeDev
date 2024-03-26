@@ -1,5 +1,4 @@
 import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -25,6 +24,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
+import ModuleVarServer from './ModuleVarServer';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsCacheController from './VarsCacheController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
@@ -39,7 +39,8 @@ import VarsClientsSubsCacheManager from './bgthreads/processes/VarsClientsSubsCa
  */
 export default class VarsDatasVoUpdateHandler {
 
-    public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    // public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    public static VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.has_ordered_vos_cud';
     public static VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.block_ordered_vos_cud';
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
@@ -63,6 +64,19 @@ export default class VarsDatasVoUpdateHandler {
      * La liste des invalidations en attente de traitement
      */
     public static invalidators: VarDataInvalidatorVO[] = [];
+
+
+    private static last_registration: number = null;
+
+    /**
+     * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
+     */
+    private static has_retrieved_vos_cud: boolean = false;
+
+
+    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 1000, { leading: false, trailing: true });
+    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
+
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
@@ -154,6 +168,7 @@ export default class VarsDatasVoUpdateHandler {
         DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
         let max_sleeps = 100;
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
 
             if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) ||
@@ -185,13 +200,22 @@ export default class VarsDatasVoUpdateHandler {
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
 
         if (!VarsDatasVoUpdateHandler.has_retrieved_vos_cud) {
-            VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
-                VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+            // Si le flag est actif, on invalide tout
+            const current_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+            if (current_tag_value) {
+                await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
+            }
+            await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
+
+            //     VarsDatasVoUpdateHandler.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
+            //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
             VarsDatasVoUpdateHandler.has_retrieved_vos_cud = true;
         }
 
         if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) || (!VarsDatasVoUpdateHandler.ordered_vos_cud.length)) {
+            VarsDatasVoUpdateHandler.throttled_update_param();
             return null;
         }
 
@@ -344,9 +368,19 @@ export default class VarsDatasVoUpdateHandler {
 
     public static async update_param() {
 
-        await ModuleParams.getInstance().setParamValue(
-            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
-            VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
+        // On flag, si c'est pas déjà le cas, le fait que des cuds sont en attente, ou pas
+        let new_tag_value = VarsDatasVoUpdateHandler.ordered_vos_cud && (VarsDatasVoUpdateHandler.ordered_vos_cud.length > 0);
+        let old_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
+
+        if (new_tag_value == old_tag_value) {
+            return;
+        }
+
+        await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, new_tag_value);
+
+        // await ModuleParams.getInstance().setParamValue(
+        //     VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
+        //     VarsDatasVoUpdateHandler.getJSONFrom_ordered_vos_cud());
     }
 
     /**
@@ -465,19 +499,6 @@ export default class VarsDatasVoUpdateHandler {
 
         await all_promises(all_vardagnode_promises);
     }
-
-
-    private static last_registration: number = null;
-
-    /**
-     * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
-     */
-    private static has_retrieved_vos_cud: boolean = false;
-
-
-    private static throttled_update_param = ThrottleHelper.declare_throttle_without_args(VarsDatasVoUpdateHandler.update_param.bind(this), 30000, { leading: false, trailing: true });
-    private static throttle_push_invalidators = ThrottleHelper.declare_throttle_with_stackable_args(VarsDatasVoUpdateHandler.throttled_push_invalidators.bind(this), 100, { leading: false, trailing: true });
-
 
     /**
      * Pour l'union des invalidators, on peut union à condition d'avoir :
@@ -944,59 +965,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         ConsoleHandler.log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + ordered_vos_cud.length);
-    }
-
-    private static getJSONFrom_ordered_vos_cud(): string {
-        const res: any[] = [];
-
-        for (const i in VarsDatasVoUpdateHandler.ordered_vos_cud) {
-            const vo_cud = VarsDatasVoUpdateHandler.ordered_vos_cud[i];
-
-            if (vo_cud['_type']) {
-                const tmp = APIControllerWrapper.try_translate_vo_to_api(vo_cud);
-                res.push(tmp);
-            } else {
-                const tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
-                );
-                res.push(tmp);
-            }
-        }
-
-        let res_: string = null;
-        try {
-            res_ = JSON.stringify(res);
-        } catch (error) {
-            console.error('getJSONFrom_ordered_vos_cud ERROR ' + error);
-        }
-
-        return res_;
-    }
-
-    private static set_ordered_vos_cud_from_JSON(jsoned: string): void {
-
-        try {
-
-            const res: any[] = JSON.parse(jsoned);
-
-            for (const i in res) {
-                const vo_cud = res[i];
-
-                if (vo_cud['_type']) {
-                    const tmp = APIControllerWrapper.try_translate_vo_from_api(vo_cud);
-                    VarsDatasVoUpdateHandler.ordered_vos_cud.push(tmp);
-                } else {
-                    const tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
-                    );
-                    res.push(tmp);
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.error('Impossible de recharger le ordered_vos_cud from params :' + jsoned + ':');
-        }
     }
 
     private static async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {

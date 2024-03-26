@@ -1,59 +1,22 @@
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import Module from '../../shared/modules/Module';
 import ModuleTableDBService from './ModuleTableDBService';
+import PreloadedModuleServerController from './PreloadedModuleServerController';
 
 export default class ModuleDBService {
 
-    public static getInstance(db): ModuleDBService {
-        if (!ModuleDBService.instance) {
-            ModuleDBService.instance = new ModuleDBService(db);
-        }
-        return ModuleDBService.instance;
-    }
     private static instance: ModuleDBService = null;
-
-    /**
-     * Local thread cache -----
-     */
-    private has_preloaded_modules_is_actif: boolean = false;
-    private preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
-    /**
-     * ----- Local thread cache
-     */
-
-    private constructor(private db) {
+    private constructor() {
         ModuleDBService.instance = this;
     }
 
-    public async preload_modules_is_actif() {
-        if (this.has_preloaded_modules_is_actif) {
-            return;
+    public static getInstance(): ModuleDBService {
+        if (!ModuleDBService.instance) {
+            ModuleDBService.instance = new ModuleDBService();
         }
-        this.has_preloaded_modules_is_actif = true;
-
-        const rows = await this.db.query('SELECT "name", "actif" FROM admin.modules;');
-        for (const i in rows) {
-            const row = rows[i];
-
-            this.preloaded_modules_is_actif[row.name] = row.actif;
-        }
+        return ModuleDBService.instance;
     }
 
-    public async load_or_create_module_is_actif(module: Module) {
-
-        if (!this.has_preloaded_modules_is_actif) {
-            await this.preload_modules_is_actif();
-        }
-
-        const is_actif = this.preloaded_modules_is_actif[module.name];
-        if (typeof is_actif === "undefined") {
-            // La ligne n'existe pas, on l'ajoute
-            module.actif = module.activate_on_installation;
-            await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
-        } else {
-            module.actif = is_actif;
-        }
-    }
 
     // Dernière étape : Configure
     public async module_configure(module: Module) {
@@ -61,7 +24,7 @@ export default class ModuleDBService {
 
         // On lance aussi la configuration des tables
         for (const vo_type in ModuleTableController.vo_type_by_module_name[module.name]) {
-            await ModuleTableDBService.getInstance(this.db).datatable_configure(ModuleTableController.module_tables_by_vo_type[vo_type]);
+            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_configure(ModuleTableController.module_tables_by_vo_type[vo_type]);
         }
 
         // On appelle le hook
@@ -98,7 +61,7 @@ export default class ModuleDBService {
     // ETAPE 3 de l'installation
     private async add_module_to_modules_table(module: Module) {
 
-        await this.load_or_create_module_is_actif(module);
+        await PreloadedModuleServerController.load_or_create_module_is_actif(module);
 
         return true;
     }
@@ -120,8 +83,8 @@ export default class ModuleDBService {
             //     promises = [];
             // }
 
-            await ModuleTableDBService.getInstance(this.db).datatable_install(datatable);
-            // promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
+            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable);
+            // promises.push(ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable));
         }
     }
 

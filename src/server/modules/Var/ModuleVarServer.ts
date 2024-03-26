@@ -928,19 +928,21 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await VarsComputationHole.exec_in_computation_hole(async () => {
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole);
+    }
 
-            const promises = [];
-            for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+    public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
 
-                const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-                promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
-            }
-            await all_promises(promises);
+        const promises = [];
+        for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
-            CurrentVarDAGHolder.current_vardag = new VarDAG();
-            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
-        });
+            const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
+            promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+        }
+        await all_promises(promises);
+
+        CurrentVarDAGHolder.current_vardag = new VarDAG();
+        CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
     }
 
     private async onCVarConf(vcc: VarConfVO) {

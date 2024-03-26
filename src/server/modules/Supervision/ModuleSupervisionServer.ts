@@ -195,6 +195,20 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let fo_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_access.group_id = group.id;
+        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_access.translatable_name = ModuleSupervision.POLICY_FO_ACCESS;
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            'fr-fr': 'acces à la Supervision front et MAJ items'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let fo_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        fo_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        fo_access_dependency.src_pol_id = fo_access.id;
+        fo_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        fo_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(fo_access_dependency);
     }
 
     private async onPreU_SUP_ITEM_HISTORIZE(vo_update_handler: DAOUpdateVOHolder<ISupervisedItem>): Promise<boolean> {

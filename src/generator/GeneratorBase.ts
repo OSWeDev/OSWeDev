@@ -81,6 +81,7 @@ import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20
 import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240222RenameFieldIdsToFieldNames from './patchs/premodules/Patch20240222RenameFieldIdsToFieldNames';
+import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
 
 export default abstract class GeneratorBase {
 
@@ -179,7 +180,8 @@ export default abstract class GeneratorBase {
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
             Patch20231123AddRightsSharedFilters.getInstance(),
-            Patch20240305MigrationCodesTradsMinusculesENV.getInstance()
+            Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
+            Patch20240307DuplicateRightsSupervision.getInstance(),
         ];
     }
 
