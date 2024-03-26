@@ -75,14 +75,6 @@ export default class ModuleDAO extends Module {
 
     public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleDAO.instance) {
-            ModuleDAO.instance = new ModuleDAO();
-        }
-        return ModuleDAO.instance;
-    }
-
     private static instance: ModuleDAO = null;
 
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
@@ -170,6 +162,14 @@ export default class ModuleDAO extends Module {
 
         super("dao", ModuleDAO.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleDAO.instance) {
+            ModuleDAO.instance = new ModuleDAO();
+        }
+        return ModuleDAO.instance;
     }
 
     public registerApis() {
