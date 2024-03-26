@@ -200,7 +200,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = ModuleSupervision.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'acces à la Supervision front et MAJ items'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
