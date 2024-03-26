@@ -6,6 +6,7 @@ import { query } from "../ContextFilter/vos/ContextQueryVO";
 import IDistantVOBase from "../IDistantVOBase";
 import IIsServerField from "../IIsServerField";
 import MatroidController from "../Matroid/MatroidController";
+import DefaultTranslationManager from "../Translation/DefaultTranslationManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import VOsTypesManager from "../VO/manager/VOsTypesManager";
 import VarDataBaseVO from "../Var/vos/VarDataBaseVO";
@@ -371,6 +372,7 @@ export default class ModuleTableController {
         ModuleTableController.init_field_name_to_api_map();
         ModuleTableController.init_readonly_fields_by_ids();
         ModuleTableController.init_default_trad_field_label_translatable_code();
+        ModuleTableController.register_default_trads();
     }
 
     /**
@@ -456,6 +458,19 @@ export default class ModuleTableController {
             }
         }
     }
+
+    private static register_default_trads() {
+        for (const vo_type in ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name) {
+            const fields = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[vo_type];
+
+            for (const field_name in fields) {
+                const default_translation = fields[field_name];
+
+                DefaultTranslationManager.registerDefaultTranslation(default_translation);
+            }
+        }
+    }
+
 
     private static init_field_name_to_api_map() {
 

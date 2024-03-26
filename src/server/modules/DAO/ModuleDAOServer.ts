@@ -2890,7 +2890,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     // }
                     vo = ModuleTableController.translate_vos_to_api(vo, false);
 
-                    const update_res = await query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server).update_vos(vo);
+                    const q = query(vo._type).filter_by_id(vo.id).exec_as_server(exec_as_server);
+                    const table = ModuleTableController.module_tables_by_vo_type[vo._type];
+
+                    // Si on est sur une table segmentée, on filtre aussi sur le champ de segmentation
+                    if (table.is_segmented) {
+                        const segment_field = table.table_segmented_field;
+
+                        switch (table.table_segmented_field_range_type) {
+                            case NumRange.RANGE_TYPE:
+                                q.filter_by_num_eq(segment_field.field_name, vo[segment_field.field_name]);
+                                break;
+                            default:
+                                throw new Error('_insertOrUpdateVOs: Unsupported table_segmented_field_range_type : ' + table.table_segmented_field_range_type);
+                        }
+                    }
+
+                    const update_res = await q.update_vos(vo);
                     if (update_res && update_res.length) {
                         res.push(...update_res);
                     }
