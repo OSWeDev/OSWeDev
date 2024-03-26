@@ -135,7 +135,7 @@ export default class EvolizInvoiceVO {
         date: string
     };
     // Document item
-    public items: {
+    public items: Array<{
         // Item id
         itemid: number,
         // Article unique identifier
@@ -179,9 +179,9 @@ export default class EvolizInvoiceVO {
             // Classification id
             id: number,
             // Classification code
-            code: number,
+            code: string,
             // Classification label
             label: string
         }
-    };
+    }>;
 }
