@@ -52,6 +52,7 @@ import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableCon
         Inlinetranslatabletext: InlineTranslatableText,
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
+        Dashboardbuilderoseliachat: DashboardBuilderOseliaChatComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
         Tablesgraphcomponent: TablesGraphComponent,
         Dashboardmenuconfcomponent: DashboardMenuConfComponent,
@@ -143,6 +144,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private selected_widget: DashboardPageWidgetVO = null;
 
     private collapsed_fields_wrapper: boolean = true;
+    private collapsed_fields_wrapper_2: boolean = true;
 
     private can_use_clipboard: boolean = false;
 
@@ -1122,5 +1124,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private reverse_collapse_fields_wrapper() {
         this.collapsed_fields_wrapper = !this.collapsed_fields_wrapper;
+    }
+    private reverse_collapse_fields_2_wrapper() {
+        this.collapsed_fields_wrapper_2 = !this.collapsed_fields_wrapper_2;
     }
 }

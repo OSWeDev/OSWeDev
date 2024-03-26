@@ -7,15 +7,6 @@ import MenuController from '../menu/MenuController';
 
 export default class CRUDComponentManager {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-
-        if (!CRUDComponentManager.instance) {
-            CRUDComponentManager.instance = new CRUDComponentManager();
-        }
-        return CRUDComponentManager.instance;
-    }
-
     private static instance: CRUDComponentManager;
 
     public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
@@ -24,6 +15,15 @@ export default class CRUDComponentManager {
 
     public inline_input_mode_semaphore: boolean = false;
     public inline_input_mode_semaphore_disable_cb: { [ii_id: number]: () => void } = {};
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+
+        if (!CRUDComponentManager.instance) {
+            CRUDComponentManager.instance = new CRUDComponentManager();
+        }
+        return CRUDComponentManager.instance;
+    }
 
     public async registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],

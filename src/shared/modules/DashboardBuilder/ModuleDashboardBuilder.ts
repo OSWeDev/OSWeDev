@@ -44,6 +44,15 @@ export default class ModuleDashboardBuilder extends Module {
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
+    private static instance: ModuleDashboardBuilder = null;
+    public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
+
+    private constructor() {
+
+        super("dashboardbuilder", ModuleDashboardBuilder.MODULE_NAME);
+        this.forceActivationOnInstallation();
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleDashboardBuilder {
 
@@ -52,16 +61,6 @@ export default class ModuleDashboardBuilder extends Module {
         }
 
         return ModuleDashboardBuilder.instance;
-    }
-
-    private static instance: ModuleDashboardBuilder = null;
-
-    public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
-
-    private constructor() {
-
-        super("dashboardbuilder", ModuleDashboardBuilder.MODULE_NAME);
-        this.forceActivationOnInstallation();
     }
 
     public registerApis() {
@@ -177,7 +176,7 @@ export default class ModuleDashboardBuilder extends Module {
             DashboardPageWidgetVO,
             null,
             "Pages de Dashboard"
-        )
+        );
 
         widget_id.set_many_to_one_target_moduletable_name(db_widget.vo_type);
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
@@ -203,7 +202,7 @@ export default class ModuleDashboardBuilder extends Module {
             FavoritesFiltersVO,
             null,
             "Filtres Favoris"
-        )
+        );
         page_id.set_many_to_one_target_moduletable_name(db_page.vo_type);
     }
 
@@ -443,7 +442,7 @@ export default class ModuleDashboardBuilder extends Module {
             ManyToManyReferenceDatatableFieldVO,
             null,
             "ManyToManyReferenceDatatableFieldVO"
-        )
+        );
     }
 
     private initialize_ManyToOneReferenceDatatableFieldVO() {
@@ -498,7 +497,7 @@ export default class ModuleDashboardBuilder extends Module {
             OneToManyReferenceDatatableFieldVO,
             null,
             "OneToManyReferenceDatatableFieldVO"
-        )
+        );
     }
 
     private initialize_RefRangesReferenceDatatableFieldVO() {
@@ -528,7 +527,7 @@ export default class ModuleDashboardBuilder extends Module {
             RefRangesReferenceDatatableFieldVO,
             null,
             "RefRangesReferenceDatatableFieldVO"
-        )
+        );
     }
 
     private initialize_SelectBoxDatatableFieldVO() {

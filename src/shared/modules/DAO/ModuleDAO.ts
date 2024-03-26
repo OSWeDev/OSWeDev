@@ -310,6 +310,7 @@ export default class ModuleDAO extends Module {
     }
 
     public initialize() {
+        this.init_ModuleTableVO();
         this.init_CRUDFieldRemoverConfVO();
         this.init_ModuleTableVO();
         this.init_ModuleTableFieldVO();

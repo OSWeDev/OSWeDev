@@ -59,6 +59,7 @@ export default class ContextFilterVOHandler {
         "label.day.samedi"
     ];
 
+
     /**
      * Objectif retrouver les filtres simples (pas de or / xor ou subquery par exemple) d'un vo_type spécifique
      */
@@ -88,6 +89,8 @@ export default class ContextFilterVOHandler {
 
         return res;
     }
+    
+    
 
     /**
      * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
@@ -489,7 +492,6 @@ export default class ContextFilterVOHandler {
 
     public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
         const res: FieldFiltersVO = {};
-
         for (const i in filters) {
             const filter = filters[i];
 

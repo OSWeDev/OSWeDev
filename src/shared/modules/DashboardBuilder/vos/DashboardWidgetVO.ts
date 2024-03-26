@@ -20,6 +20,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_supervision_type: string = 'supervision_type';
     public static WIDGET_NAME_datatable: string = 'datatable';
     public static WIDGET_NAME_oseliathread: string = 'oseliathread';
+    public static WIDGET_NAME_oseliacreator: string = 'oseliacreator';
     public static WIDGET_NAME_valuetable: string = 'valuetable';
     public static WIDGET_NAME_fieldvaluefilter: string = 'fieldvaluefilter';
     public static WIDGET_NAME_dowfilter: string = 'dowfilter';
@@ -33,6 +34,8 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_var: string = 'var';
     public static WIDGET_NAME_pageswitch: string = 'pageswitch';
     public static WIDGET_NAME_varpiechart: string = 'varpiechart';
+    public static WIDGET_NAME_varlinechart: string = 'varlinechart';
+    public static WIDGET_NAME_varmixedcharts: string = 'varmixedcharts';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;

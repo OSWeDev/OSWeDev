@@ -279,7 +279,7 @@ export default class FieldFiltersVOManager {
 
     /**
      * clean_field_filters_for_request
-     *  - Clone and remove custom_filters
+     *  - Remove __custom_filters__ field value from field_filters
      *
      * @returns {FieldFiltersVO}
      */
@@ -580,7 +580,7 @@ export default class FieldFiltersVOManager {
      * @param {any} widget_options
      * @param {FieldFiltersVO} active_field_filters
      * @param {string[]} api_type_ids_to_exclude  - The api_type_ids to exclude from the active_field_filters
-     * @returns { FieldFiltersVO}
+     * @returns {FieldFiltersVO}
      */
     public static filter_field_filters_by_api_type_ids_to_exlude(
         widget_options: any,

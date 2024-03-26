@@ -30,8 +30,8 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import './VarPieChartWidgetComponent.scss';
 import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
+import './VarPieChartWidgetComponent.scss';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -357,8 +357,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         );
     }
 
-    private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
-        : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
+    private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(
+        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
+    ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
             return null;
@@ -453,8 +454,16 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         return var_params_by_dimension;
     }
 
-    private async get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
-        : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
+    /**
+     * When dimension is a custom filter, we need to get the var params for each dimension value
+     *  - The custom filter is must likely a date filter
+     *
+     * @param {{ [var_param_field_name: string]: ContextFilterVO }} custom_filters_1
+     * @returns {Promise<{[dimension_value: number]: VarDataBaseVO}>}
+     */
+    private async get_var_params_by_dimension_when_dimension_is_custom_filter(
+        custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
+    ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
         if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
             return null;
@@ -578,7 +587,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         if (!this.widget_options.dimension_custom_filter_name) {
             return null;
         }
-        root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] : null;
+
+        root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ?
+            this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] : null;
 
         /** Si on a pas de filtre, on peut pas connaître les bornes, donc on refuse */
         if (!root_context_filter) {

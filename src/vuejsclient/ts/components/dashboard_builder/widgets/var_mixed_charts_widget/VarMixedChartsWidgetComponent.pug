@@ -1,0 +1,14 @@
+div.var_mixed_charts_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit"} : {}')
+
+    template(v-if='current_charts_var_params && current_charts_var_dataset_descriptor && current_options')
+        .chart_wrapper
+            .chart_frame
+                var-mixed-charts(
+                    :charts_var_dataset_descriptor="current_charts_var_dataset_descriptor"
+                    :charts_var_params="current_charts_var_params"
+                    :options="current_options"
+                    :getlabel="getlabel"
+                    :filter='var_filter'
+                    :filter_additional_params='var_filter_additional_params'
+                    :key="'var_mixed_charts_widget_' + page_widget.id"
+                )
