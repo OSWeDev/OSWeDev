@@ -1,4 +1,5 @@
 import { isArray } from "lodash";
+import ConsoleHandler from "../../tools/ConsoleHandler";
 import ConversionHandler from "../../tools/ConversionHandler";
 import MatroidIndexHandler from "../../tools/MatroidIndexHandler";
 import ObjectHandler, { reflect } from "../../tools/ObjectHandler";
@@ -12,7 +13,6 @@ import TableFieldTypesManager from "../TableFieldTypes/TableFieldTypesManager";
 import DefaultTranslationVO from "../Translation/vos/DefaultTranslationVO";
 import ModuleTableController from "./ModuleTableController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
-import ConsoleHandler from "../../tools/ConsoleHandler";
 
 export default class ModuleTableFieldController {
 
@@ -272,7 +272,14 @@ export default class ModuleTableFieldController {
                             }
                             trans_ = new_obj;
                         } else {
-                            trans_ = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[elt_type](), ModuleTableController.translate_vos_from_api(trans_));
+                            const translated_vos_from_api = ModuleTableController.translate_vos_from_api(trans_);
+
+                            // Si on a déjà un vo typé, on le garde - cas des varsdatas où on doit surtout pas utiliser un Object.assign derrière
+                            if (translated_vos_from_api && translated_vos_from_api._type) {
+                                trans_ = translated_vos_from_api;
+                            } else {
+                                trans_ = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[elt_type](), translated_vos_from_api);
+                            }
                         }
                     }
                 }

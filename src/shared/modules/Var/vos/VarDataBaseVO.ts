@@ -485,6 +485,8 @@ export default class VarDataBaseVO implements IMatroid {
             if (Array.isArray(value)) {
                 this.rebuild_index();
             }
+        } else {
+            this.rebuild_index();
         }
     }
 
