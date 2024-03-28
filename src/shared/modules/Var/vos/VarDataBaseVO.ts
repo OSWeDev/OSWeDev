@@ -123,6 +123,30 @@ export default class VarDataBaseVO implements IMatroid {
         this.set_field('var_id', var_id);
     }
 
+    /**
+     * On définit un pixel comme un param qui a un cardinal de 1 sur les champs pixellisés
+     * @param vardata
+     */
+    public static is_pixel(vardata: VarDataBaseVO): boolean {
+
+        const varconf = VarsController.var_conf_by_id[vardata.var_id];
+
+        if (!varconf) {
+            return false;
+        }
+
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
+            const card = RangeHandler.getCardinalFromArray(vardata[pixel_field.pixel_param_field_name]);
+
+            if (card != 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static from_index(index: string): VarDataBaseVO {
 
         return MatroidIndexHandler.from_normalized_vardata(index);
@@ -448,7 +472,7 @@ export default class VarDataBaseVO implements IMatroid {
 
         MatroidIndexHandler.normalize_vardata_fields(this);
         this._index = MatroidIndexHandler.get_normalized_vardata(this);
-        this._is_pixel = MatroidController.get_cardinal(this) == 1;
+        this._is_pixel = VarDataBaseVO.is_pixel(this);
 
         this.rebuilding_index = false;
     }

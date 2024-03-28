@@ -319,6 +319,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'slow_var.type.testing'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ce paramètre de variable est un pixel'
+        }, 'var_desc.var_data_is_pixel.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Matroids calculés'
         }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
