@@ -26,6 +26,11 @@ import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EvolizSalesClassificationVO from '../../../shared/modules/EvolizAPI/vos/sales_classification/EvolizSalesClassificationVO';
+import EvolizUnitCodeVO from '../../../shared/modules/EvolizAPI/vos/unit_codes/EvolizUnitCodeVO';
+import EvolizPayTypeVO from '../../../shared/modules/EvolizAPI/vos/pay_type/EvolizPayTypeVO';
+import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/EvolizCompanyVO';
+import EvolizAnalyticsVO from '../../../shared/modules/EvolizAPI/vos/analytics/EvolizAnalyticsVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -98,6 +103,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_prospects.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_prospect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_payment_terms, this.list_payment_terms.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_sale_classification, this.list_sale_classification.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_unit_code, this.list_unit_code.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_companies, this.list_companies.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_paytypes, this.list_paytypes.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_analytics, this.list_analytics.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -145,6 +155,61 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
         } else {
             console.error("Erreur connexion à l'API Evoliz (demande de token).");
+        }
+    }
+
+    // Analytic Axis
+    public async list_analytics(): Promise<EvolizAnalyticsVO[]> {
+        try {
+            let analytics: EvolizAnalyticsVO[] = await this.get_all_pages('/api/v1/analytics') as EvolizAnalyticsVO[];
+
+            return analytics;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Company
+    public async list_companies(): Promise<EvolizCompanyVO[]> {
+        try {
+            let sales_classification: EvolizCompanyVO[] = await this.get_all_pages('/api/v1/companies') as EvolizCompanyVO[];
+
+            return sales_classification;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Pay Types
+    public async list_paytypes(): Promise<EvolizPayTypeVO[]> {
+        try {
+            let sales_classification: EvolizPayTypeVO[] = await this.get_all_pages('/api/v1/paytypes') as EvolizPayTypeVO[];
+
+            return sales_classification;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Sales Classification
+    public async list_sale_classification(): Promise<EvolizSalesClassificationVO[]> {
+        try {
+            let sales_classification: EvolizSalesClassificationVO[] = await this.get_all_pages('/api/v1/sale-classifications') as EvolizSalesClassificationVO[];
+
+            return sales_classification;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Unit Code
+    public async list_unit_code(): Promise<EvolizUnitCodeVO[]> {
+        try {
+            let unit_codes: EvolizUnitCodeVO[] = await this.get_all_pages('/api/v1/unit-codes') as EvolizUnitCodeVO[];
+
+            return unit_codes;
+        } catch (error) {
+            console.error(error);
         }
     }
 

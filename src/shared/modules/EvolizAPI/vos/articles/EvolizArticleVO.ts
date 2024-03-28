@@ -1,3 +1,5 @@
+import EvolizSalesClassificationVO from "../sales_classification/EvolizSalesClassificationVO";
+
 export default class EvolizArticleVO {
     public static API_TYPE_ID: string = "evoliz_article";
 
@@ -15,14 +17,7 @@ export default class EvolizArticleVO {
     //Article Type: Enum: product, service
     public nature: string;
     //Item sell classification information
-    public sale_classifiaction: {
-        //Classification id
-        id: number,
-        //Classification code
-        code: string,
-        //Classification label
-        label: string
-    };
+    public sale_classification: EvolizSalesClassificationVO;
     //Article designation with html
     public designation: string;
     //Article designation without html
