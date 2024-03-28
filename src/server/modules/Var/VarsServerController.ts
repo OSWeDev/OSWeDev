@@ -42,6 +42,7 @@ export default class VarsServerController {
      * ----- Global application cache - Brocasted CUD - Local R
      */
 
+    protected constructor() { }
 
     /**
      * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
@@ -383,6 +384,44 @@ export default class VarsServerController {
                 }
 
                 /**
+                 * On checke les champs de segmentation pour voir ce qui a pu changer
+                 */
+                if ((!!daoVarConf.pixel_activated) && (!!daoVarConf.pixel_fields) && (!!varConf.pixel_fields)) {
+
+                    let has_diff = false;
+
+                    for (const i in daoVarConf.pixel_fields) {
+                        const dao_pixel_field = daoVarConf.pixel_fields[i];
+                        const pixel_field = varConf.pixel_fields[i];
+
+                        if ((!dao_pixel_field) || (!pixel_field)) {
+                            has_diff = true;
+                            break;
+                        }
+
+                        if ((dao_pixel_field.pixel_param_field_name != pixel_field.pixel_param_field_name) ||
+                            (dao_pixel_field.pixel_vo_api_type_id != pixel_field.pixel_vo_api_type_id) ||
+                            (dao_pixel_field.pixel_vo_field_name != pixel_field.pixel_vo_field_name) ||
+                            (dao_pixel_field.pixel_range_type != pixel_field.pixel_range_type) ||
+                            (dao_pixel_field.pixel_segmentation_type != pixel_field.pixel_segmentation_type)) {
+
+                            has_diff = true;
+                            break;
+                        }
+                    }
+
+                    if (has_diff) {
+                        ConsoleHandler.warn('On écrase les pixel_fields de la bdd par ceux de l\'appli pour la varconf:' +
+                            daoVarConf.id + ':' + daoVarConf.name +
+                            ':daoVarConf.pixel_fields:' + JSON.stringify(daoVarConf.pixel_fields) +
+                            ':varConf.pixel_fields:' + JSON.stringify(varConf.pixel_fields));
+
+                        daoVarConf.pixel_fields = varConf.pixel_fields;
+                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(daoVarConf);
+                    }
+                }
+
+                /**
                  * Si on est pas pixel, on devrait pas avoir de pixel_fields en base
                  */
                 if ((!daoVarConf.pixel_activated) && (!!daoVarConf.pixel_fields)) {
@@ -692,8 +731,5 @@ export default class VarsServerController {
         }
 
         return depth;
-    }
-
-    protected constructor() {
     }
 }

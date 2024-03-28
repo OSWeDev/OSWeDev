@@ -1276,23 +1276,23 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
          */
-        const varconf = VarsController.var_conf_by_id[param.var_id];
-        if (varconf.pixel_activated) {
-            let is_pixel = true;
-            for (const i in varconf.pixel_fields) {
-                const pixel_field = varconf.pixel_fields[i];
+        // const varconf = VarsController.var_conf_by_id[param.var_id];
+        // if (varconf.pixel_activated) {
+        //     let is_pixel = true;
+        //     for (const i in varconf.pixel_fields) {
+        //         const pixel_field = varconf.pixel_fields[i];
 
-                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
-                    is_pixel = false;
-                    break;
-                }
-            }
+        //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
+        //             is_pixel = false;
+        //             break;
+        //         }
+        //     }
 
-            if (!is_pixel) {
-                ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
-                return null;
-            }
-        }
+        //     if (!is_pixel) {
+        //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+        //         return null;
+        //     }
+        // }
 
         /**
          * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
