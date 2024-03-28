@@ -1,0 +1,15 @@
+.container_suivi_competences_indicateurs
+    template(v-for="(suivi_competences_indicateur, index) in field_values")
+        .suivi_competences_indicateur_item(:suivi_competences_indicateur="index")
+            h2 {{ label('crud.container_suivi_competences_indicateurs.numero') }} {{ index + 1 }}
+            template(v-for="field in fields")
+                Crudcomponentfield(
+                    :field="field",
+                    :vo="suivi_competences_indicateur",
+                    :show_insert_or_update_target="false",
+                    @onchangevo="on_edit",
+                    :auto_update_field_value='true',
+                )
+
+            .btn.btn-danger(@click="remove(index)") {{ label('crud.field.custom_field.remove_item') }}
+    .btn.btn-success(@click="add") {{ label('crud.field.custom_field.add') }}

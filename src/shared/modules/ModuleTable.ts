@@ -24,8 +24,9 @@ import VarDataBaseVO from './Var/vos/VarDataBaseVO';
 import cloneDeep from 'lodash/cloneDeep';
 import VOsTypesManager from './VO/manager/VOsTypesManager';
 import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
-import ObjectHandler, { reflect } from '../tools/ObjectHandler';
+import ObjectHandler, { field_names, reflect } from '../tools/ObjectHandler';
 import IIsServerField from './IIsServerField';
+import SortByVO from './ContextFilter/vos/SortByVO';
 
 
 export default class ModuleTable<T extends IDistantVOBase> {
@@ -308,6 +309,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public get_bdd_version: (e: T) => T = null;
 
     public default_label_field: ModuleTableField<any> = null;
+    public sort_by_field: SortByVO = null;
     public table_label_function: (vo: T) => string = null;
     public table_label_function_field_ids_deps: string[] = null;
     public importable: boolean = false;
@@ -348,12 +350,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
         voConstructor: () => T,
         tmp_fields: Array<ModuleTableField<any>>,
         default_label_field: ModuleTableField<any>,
-        label: string | DefaultTranslation = null
+        label: string | DefaultTranslation = null,
+        sort_by_field: string = null,
+        sort_by_asc: boolean = true,
     ) {
 
         this.voConstructor = voConstructor;
 
         this.default_label_field = default_label_field;
+        this.sort_by_field = sort_by_field ? new SortByVO(tmp_vo_type, sort_by_field, sort_by_asc) : null;
         this.forceNumeric = ModuleTable.defaultforceNumeric;
         this.forceNumerics = ModuleTable.defaultforceNumerics;
 
@@ -1369,17 +1374,17 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
 
     private check_unicity_field_names(tmp_fields: Array<ModuleTableField<any>>) {
-        let field_names: { [field_name: string]: boolean } = {};
+        let field_names_: { [field_name: string]: boolean } = {};
 
         for (let i in tmp_fields) {
             let field = tmp_fields[i];
 
-            if (field_names[field.field_id]) {
+            if (field_names_[field.field_id]) {
                 ConsoleHandler.error('Field name ' + field.field_id + ' already exists in table ' + this.name);
                 throw new Error('Field name ' + field.field_id + ' already exists in table ' + this.name);
             }
 
-            field_names[field.field_id] = true;
+            field_names_[field.field_id] = true;
         }
     }
 }

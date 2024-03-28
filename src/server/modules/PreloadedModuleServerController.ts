@@ -11,11 +11,15 @@ export default class PreloadedModuleServerController {
         }
         PreloadedModuleServerController.has_preloaded_modules_is_actif = true;
 
-        let rows = await PreloadedModuleServerController.db.query('SELECT "name", "actif" FROM admin.modules;');
-        for (let i in rows) {
-            let row = rows[i];
+        try {
+            let rows = await PreloadedModuleServerController.db.query('SELECT "name", "actif" FROM admin.modules;');
+            for (let i in rows) {
+                let row = rows[i];
 
-            PreloadedModuleServerController.preloaded_modules_is_actif[row.name] = row.actif;
+                PreloadedModuleServerController.preloaded_modules_is_actif[row.name] = row.actif;
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 

@@ -574,12 +574,12 @@ export default class TableWidgetManager {
                 for (const key in column.children) {
                     const child = column.children[key];
 
-                    label_by_field_uid[child.datatable_field_uid] = LocaleManager.getInstance().t(
+                    label_by_field_uid[child.datatable_field_uid] = child.custom_label ?? LocaleManager.getInstance().t(
                         child.get_translatable_name_code_text(page_widget_id)
                     );
                 }
             } else {
-                label_by_field_uid[column.datatable_field_uid] = LocaleManager.getInstance().t(
+                label_by_field_uid[column.datatable_field_uid] = column.custom_label ?? LocaleManager.getInstance().t(
                     column.get_translatable_name_code_text(page_widget_id)
                 );
             }
@@ -836,6 +836,43 @@ export default class TableWidgetManager {
         }
 
         return columns_by_field_id;
+    }
+
+    public static get_active_field_filters(
+        actual_active_field_filters: FieldFiltersVO,
+        do_not_use_page_widget_ids: number[],
+        all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO },
+        widgets_by_id: { [id: number]: DashboardWidgetVO },
+    ): FieldFiltersVO {
+        if (!do_not_use_page_widget_ids?.length || !all_page_widgets_by_id || !actual_active_field_filters) {
+            return actual_active_field_filters;
+        }
+
+        let new_active_field_filters: FieldFiltersVO = cloneDeep(actual_active_field_filters);
+
+        for (let i in do_not_use_page_widget_ids) {
+            let page_widget: DashboardPageWidgetVO = all_page_widgets_by_id[do_not_use_page_widget_ids[i]];
+
+            if (!page_widget) {
+                continue;
+            }
+
+            let widget: DashboardWidgetVO = widgets_by_id[page_widget.widget_id];
+
+            if (!widget || (widget.name != DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter)) {
+                continue;
+            }
+
+            let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
+
+            if (page_widget_options?.vo_field_ref) {
+                if (new_active_field_filters && new_active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
+                    delete new_active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
+                }
+            }
+        }
+
+        return new_active_field_filters;
     }
 
     // istanbul ignore next: nothing to test

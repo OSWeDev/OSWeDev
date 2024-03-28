@@ -1,0 +1,28 @@
+.suivi_competences_widget_options_component
+    .suivi_competences_widget_options_component_wrapper
+        .niveau_maturite_styles
+            table.table
+                thead
+                    tr 
+                        th {{ label('niveau_maturite_style.min') }}
+                        th {{ label('niveau_maturite_style.max') }}
+                        th {{ label('niveau_maturite_style.background') }}
+                        th {{ label('niveau_maturite_style.color') }}
+                        th
+                tbody
+                    template(v-for="(niveau_maturite_style, index) in niveau_maturite_styles")
+                        tr
+                            td
+                                input.form-control(type="number" v-model="niveau_maturite_style.min" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="number" v-model="niveau_maturite_style.max" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="color" v-model="niveau_maturite_style.background" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="color" v-model="niveau_maturite_style.color" @change="onchange_niveau_maturite_styles")
+                            td
+                                i.fa.fa-trash.btn.btn-danger(@click="delete_niveau_maturite_style(index)")
+
+                    tr
+                        td(colspan="5").text-center
+                            i.fa.fa-circle-plus.btn.btn-success(@click="add_niveau_maturite_style")

@@ -18,6 +18,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
     private on_hidden_initialized: boolean = false;
     private show_insert_or_update_target: boolean = false;
+    private show_delete_button: boolean = false;
 
     private onclose_callback: () => Promise<void> = null;
 
@@ -25,11 +26,13 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         vo: IDistantVOBase,
         onclose_callback: () => Promise<void>,
         show_insert_or_update_target: boolean = true,
+        show_delete_button: boolean = false,
     ) {
         let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
         this.api_type_id = vo._type;
 
         this.show_insert_or_update_target = show_insert_or_update_target;
+        this.show_delete_button = show_delete_button;
 
         if (crud) {
             crud.updateDatatable.refresh();

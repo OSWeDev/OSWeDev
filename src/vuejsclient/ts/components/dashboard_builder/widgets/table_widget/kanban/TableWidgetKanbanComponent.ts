@@ -205,7 +205,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
 
             if (row[datatable_field_uid]) {
-                res.push(this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+                res.push(this.columns_by_field_id[datatable_field_uid].custom_label ?? this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
             }
         }
         return res;
@@ -2481,10 +2481,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     let child = column.children[key];
-                    res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.get_translatable_name_code_text(this.page_widget.id));
                 }
             } else {
-                res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.get_translatable_name_code_text(this.page_widget.id));
             }
         }
 

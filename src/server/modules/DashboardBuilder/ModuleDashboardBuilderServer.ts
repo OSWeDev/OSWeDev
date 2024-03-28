@@ -2694,6 +2694,26 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Arrondi" },
             'hour_filter_options.rounded.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Composant à utiliser dans la colonne" },
+            'table_widget_options_component.column_dynamic_component.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtre à utiliser pour les colonnes dynamiques" },
+            'table_widget_options_component.column_dynamic_page_widget_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Segment de date" },
+            'table_widget_options_component.column_dynamic_time_segment.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner les filtres à ne pas utiliser" },
+            'table_widget_options_component.do_not_use_page_widget_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Utiliser un filtre pour avoir des colonnes dynamiques dans le tableau" },
+            'table_widget_options_component.has_column_dynamic.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

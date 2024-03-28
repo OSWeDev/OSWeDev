@@ -1,0 +1,27 @@
+.suivi_competences_widget_options_component {
+
+    >div {
+        margin-bottom: 0.5em;
+
+        .input_label {
+            font-size: small;
+            color: #555;
+        }
+
+        input[type="text"] {
+            padding: 0.3em;
+            border: solid 1px #BBB;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border: none;
+            }
+        }
+    }
+
+    .one-colorpanel {
+        left: inherit !important;
+        right: 0 !important;
+        top: 40px !important;
+    }
+}

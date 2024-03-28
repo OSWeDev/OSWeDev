@@ -1,7 +1,5 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
-import { ClockifyTimeEntryParamStatic } from '../../../server/modules/ClockifyAPI/vos/ClockifyTimeEntryParam';
-import TimeParamClockifyTimeEntry from '../../../server/modules/ClockifyAPI/vos/TimeParamClockifyTimeEntry';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -11,6 +9,8 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
+import { ClockifyTimeEntryParamStatic } from './params/ClockifyTimeEntryParam';
+import TimeParamClockifyTimeEntry from './params/TimeParamClockifyTimeEntry';
 import ClockifyClientVO from './vos/ClockifyClientVO';
 import ClockifyProjetVO from './vos/ClockifyProjetVO';
 import ClockifyTacheVO from './vos/ClockifyTacheVO';

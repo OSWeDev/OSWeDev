@@ -142,7 +142,7 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_limit_selectable.visible'), unchecked: label('table_widget_options_component.show_limit_selectable.hidden')}")
-    
+
     .can_apply_default_field_filters_without_validation
         .input_label {{ label('table_widget_options_component.can_apply_default_field_filters_without_validation') }}
         toggle-button(
@@ -150,9 +150,9 @@
             :value="can_apply_default_field_filters_without_validation" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
         )
-        
+
     template(v-if="show_limit_selectable")
         .limit_selectable
             .input_label {{ label('table_widget_options_component.limit_selectable') }}
@@ -352,7 +352,7 @@
                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
             )
 
-        .cb_bulk_actions 
+        .cb_bulk_actions
             multiselect(
                 :preselect-first="false"
                 :multiple="true"
@@ -374,6 +374,118 @@
                 :deselect-label='label("multiselect.deselectLabel")'
                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
             )
+
+    .has_column_dynamic
+        .input_label {{ label('table_widget_options_component.has_column_dynamic') }}
+        toggle-button(
+            @change="switch_has_column_dynamic" 
+            :value="has_column_dynamic" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+        )
+
+    template(v-if="has_column_dynamic")
+        .column_dynamic_page_widget_id
+            .input_label {{ label('table_widget_options_component.column_dynamic_page_widget_id') }}
+            multiselect(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="column_dynamic_page_widget"
+                :placeholder="label('table_widget_options_component.column_dynamic_page_widget_id')"
+                :options="page_widget_options"
+                :custom-label="page_widget_label"
+                :allow-empty="true",
+                autocomplete="off"
+
+                :searchable="true"
+                :internal-search="true"
+
+                track-by="id"
+
+                id="column_dynamic_page_widget"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            )
+
+        template(v-if="column_dynamic_page_widget_id")
+            template(v-if="column_dynamic_page_widget_is_type_date")
+                .column_dynamic_time_segment 
+                    .input_label {{ label('table_widget_options_component.column_dynamic_time_segment') }}
+                    .input_wrapper
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            :close-on-select="false"
+                            v-model="tmp_column_dynamic_time_segment"
+                            :options="segmentation_type_options"
+                            label="label"
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="false"
+
+                            track-by="id"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
+            .column_dynamic_component
+                .input_label {{ label('table_widget_options_component.column_dynamic_component') }}
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="column_dynamic_component"
+                        :placeholder="label('table_widget_options_component.column_dynamic_component')"
+                        :options="component_options"
+                        :custom-label="component_label"
+                        :allow-empty="false",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+    .do_not_use_page_widget_ids
+        .input_label {{ label('table_widget_options_component.do_not_use_page_widget_ids') }}
+        multiselect(
+            :preselect-first="false"
+            :multiple="true"
+            v-model="do_not_use_page_widgets"
+            :placeholder="label('table_widget_options_component.do_not_use_page_widget_ids')"
+            :options="page_widget_options"
+            :custom-label="page_widget_label"
+            :allow-empty="true",
+            autocomplete="off"
+
+            :searchable="true"
+            :internal-search="true"
+
+            track-by="id"
+
+            id="do_not_use_page_widgets"
+
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}

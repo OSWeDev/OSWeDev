@@ -347,6 +347,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().kanban_column, ModuleTableField.FIELD_TYPE_boolean, "Colonne Kanban", true, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableField.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_label, ModuleTableField.FIELD_TYPE_string, "Label personnalisé"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_values, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
@@ -671,6 +673,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('semaphore_auto_update_datatable_field_uid_with_vo_type', ModuleTableField.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'type'),
             new ModuleTableField('datatable_field_uid', ModuleTableField.FIELD_TYPE_string, 'datatable_field_uid'),
+            new ModuleTableField('max_range_offset', ModuleTableField.FIELD_TYPE_int, 'max_range_offset'),
         ];
 
         this.datatables.push(new ModuleTable(this, SimpleDatatableFieldVO.API_TYPE_ID, () => new SimpleDatatableFieldVO(), datatable_fields, null, "SimpleDatatableFieldVO"));

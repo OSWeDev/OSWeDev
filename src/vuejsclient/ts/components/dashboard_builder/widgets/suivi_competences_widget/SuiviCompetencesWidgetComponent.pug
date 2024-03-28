@@ -1,0 +1,171 @@
+include ../../../../../views/mixins/loading.pug
+
+.suivi_competences_widget_component
+    .text-center.mb-4.row
+        .col-md-3.text-left
+            template(v-if="has_active_filters && selected_rapport")
+                toggle-button(
+                    @change="switch_show_details" 
+                    :value="show_details" 
+                    :sync="false"
+                    :width="150"
+                    :labels="{checked: label('show_details.yes'), unchecked: label('show_details.no')}" 
+                )
+
+        .col-md-6
+            template(v-if="has_active_filters")
+                v-select.text-center.align-center.vselect-form-control.mt-0.select_rapport(
+                    v-model="selected_rapport"
+                    :options="rapports"
+                    label="name"
+                    track-by="id"
+                    :placeholder="label('suivi_competences_widget_component.select_rapport')"
+                    :class="{has_selected_rapport: !!selected_rapport}"
+                )
+                template(v-if="selected_rapport")
+                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
+                    button.btn.btn-sm.btn-success(@click='duplicate_rapport')
+                        i.fa-duotone.fa-copy.fa-lg.btn_icon.ml-2(aria-hidden="true")
+                        | {{ label('suivi_competences_widget_component.duplicate') }}
+
+            template(v-else)
+                .no_has_active_filters.text-center {{ label('suivi_competences_widget_component.no_has_active_filters') }}
+
+        .col-md-3.text-right
+            button.btn.btn-sm.btn-success(@click='open_create')
+                i.fa-duotone.fa-circle-plus.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                | {{ label('suivi_competences_widget_component.create') }}
+
+    template(v-if="selected_rapport && has_active_filters")
+        table.table.table-condensed.table-striped.mb-5
+            caption
+                span {{ label('suivi_competences_widget_component.suivi', {date: formatDate_FullyearMonthDay(selected_rapport.date)}) }}
+            thead                                
+                tr
+                    th.col-md-6 {{ label('suivi_competences_widget_component.points_cles') }}
+                    th.col-md-6 {{ label('suivi_competences_widget_component.objectif_prochaine_visite') }}
+            tbody
+                tr
+                    td
+                        Crudcomponentfield.highlight_editable_input(
+                            :field="points_cles_editable_field"
+                            :vo="selected_rapport"
+                            :show_insert_or_update_target="false",
+                            :auto_update_field_value='true',
+                            :auto_validate_inline_input='true',
+                            :auto_validate_inline_input_delay_sec='0',
+                            :inline_input_mode='true'
+                            :show_pencil_btn='true'
+                        )
+                    td
+                        Crudcomponentfield.highlight_editable_input(
+                            :field="objectif_prochaine_visite_editable_field"
+                            :vo="selected_rapport"
+                            :show_insert_or_update_target="false",
+                            :auto_update_field_value='true',
+                            :auto_validate_inline_input='true',
+                            :auto_validate_inline_input_delay_sec='0',
+                            :inline_input_mode='true'
+                            :show_pencil_btn='true'
+                        )
+        template(v-for="(groupe, index_g) in filtered_groupes")
+            table.table.table-condensed.table-striped.groupe.mb-5
+                caption
+                    .prct_niveau_maturite_tsp.ml-2
+                        var-data(
+                            :var_param="get_niveau_maturite_param(groupe, null)" 
+                            :filter='const_filters.percent.read'
+                            :var_value_callback="var_value_callback"
+                        )
+                    template(v-if="groupe.icon")
+                        i.mr-1(:class="groupe.icon")
+                    span {{ groupe.name }}
+                thead                                
+                    tr
+                        th.col-md-3
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.kpi') }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.indicateur') }}
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.indicateur_detail') }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.commentaires') }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.plan_action') }}
+
+                tbody
+                    template(v-for="sous_groupe in groupe.sous_groupe")
+                        template(v-if="sous_groupe.name")
+                            tr.sous_groupe
+                                td.valign-middle
+                                    .sous_groupe_name.mt-0.mb-0
+                                        .prct_niveau_maturite_tsp.mr-2.ml-1
+                                            var-data(
+                                                :var_param="get_niveau_maturite_param(groupe, sous_groupe.id)" 
+                                                :filter='const_filters.percent.read'
+                                                :var_value_callback="var_value_callback"
+                                            )
+                                        span {{ sous_groupe.name }}
+                                td(:colspan="show_details ? 5 : 3").valign-middle
+
+                        template(v-for="item in sous_groupe.items")
+                            tr
+                                td.valign-middle.item_name
+                                    span(v-tooltip="item.popup") {{ item.name }}
+                                td.valign-middle.details(
+                                    v-if="show_details"
+                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                    v-tooltip=""
+                                )
+                                    .kpis(v-if="item.kpis") {{ item.kpis }}
+
+                                td.valign-middle.indicateur(
+                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                )
+                                    template(v-if="indicateur_options_by_item_ids[item.id]")
+                                        multiselect(
+                                            v-model="indicateur_option_rapport_item_by_ids[item.id]",
+                                            :multiple="false"
+                                            :options="indicateur_options_by_item_ids[item.id]",
+                                            track-by="id"
+                                            :allow-empty="true"
+                                            label="label"
+                                            @input="onchange_indicateur(item)"
+                                            placeholder=""
+                                        )
+                                            template(slot="singleLabel" slot-scope="props")
+                                                span.option__tag.indicateur_value(:class="'indicateur_value_' + props.option.id") {{ props.option.label }}
+                                            template(slot="option" slot-scope="props")
+                                                span.option__tag.indicateur_value(:class="'indicateur_value_' + props.option.id") {{ props.option.label }}
+
+                                td.valign-middle.details(
+                                    v-if="show_details"
+                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                    v-tooltip=""
+                                )
+                                    .desc.mt-1(v-if="indicateur_option_rapport_item_by_ids[item.id]?.desc") {{ indicateur_option_rapport_item_by_ids[item.id]?.desc }}
+
+                                td.valign-middle.etat_des_lieux
+                                    Crudcomponentfield.highlight_editable_input(
+                                        :field="etat_des_lieux_editable_field"
+                                        :vo="all_rapport_item_by_ids[item.id]"
+                                        :show_insert_or_update_target="false",
+                                        :auto_update_field_value='true',
+                                        :auto_validate_inline_input='true',
+                                        :auto_validate_inline_input_delay_sec='0',
+                                        :inline_input_mode='true'
+                                        :show_pencil_btn='true'
+                                    )
+                                td.valign-middle.plan_action
+                                    Crudcomponentfield.highlight_editable_input(
+                                        :field="plan_action_editable_field"
+                                        :vo="all_rapport_item_by_ids[item.id]"
+                                        :show_insert_or_update_target="false",
+                                        :auto_update_field_value='true',
+                                        :auto_validate_inline_input='true',
+                                        :auto_validate_inline_input_delay_sec='0',
+                                        :inline_input_mode='true'
+                                        :show_pencil_btn='true'
+                                    )
+
+            .break-page(v-if="(index_g + 1) < filtered_groupes.length")

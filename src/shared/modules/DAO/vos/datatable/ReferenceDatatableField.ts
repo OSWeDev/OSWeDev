@@ -80,7 +80,22 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
 
         //par defaut on trie par id sauf si on a un champ de weight
         if (!has_weight) {
-            this.setSort((vo1, vo2) => vo1.id - vo2.id);
+            this.setSort((vo1, vo2) => {
+                if (targetModuleTable?.sort_by_field) {
+                    let field_id: string = targetModuleTable.sort_by_field.field_id;
+                    let sort_asc: boolean = targetModuleTable.sort_by_field.sort_asc;
+
+                    if (vo1[field_id] < vo2[field_id]) {
+                        return sort_asc ? -1 : 1;
+                    }
+                    if (vo1[field_id] > vo2[field_id]) {
+                        return sort_asc ? 1 : -1;
+                    }
+                    return 0;
+                }
+
+                return vo1.id - vo2.id;
+            });
         } else {
             this.setSort(WeightHandler.getInstance().get_sort_by_weight_cb.bind(this));
         }

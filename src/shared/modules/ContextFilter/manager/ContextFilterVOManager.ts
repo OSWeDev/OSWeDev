@@ -158,12 +158,12 @@ export default class ContextFilterVOManager {
             for (const key_j in field_filters) {
                 let context_filter = field_filters[key_j];
 
-                if (!(context_filter instanceof ContextFilterVO)) {
-                    context_filter = new ContextFilterVO().from(context_filter);
-                }
-
                 if (!context_filter) {
                     continue;
+                }
+
+                if (!(context_filter instanceof ContextFilterVO)) {
+                    context_filter = new ContextFilterVO().from(context_filter);
                 }
 
                 context_filters.push(context_filter);

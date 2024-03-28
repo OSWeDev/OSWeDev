@@ -52,6 +52,8 @@ import CRUDFormServices from '../CRUDFormServices';
 import './CRUDComponentField.scss';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
+import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 let debounce = require('lodash/debounce');
 
 @Component({
@@ -67,6 +69,8 @@ let debounce = require('lodash/debounce');
         Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
+        Crudupdateformcomponent: CRUDUpdateFormComponent,
+        Crudcreateformcomponent: CRUDCreateFormComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase
@@ -230,6 +234,9 @@ export default class CRUDComponentField extends VueComponentBase
     private select_options_enabled_by_id: { [id: number]: number } = {};
 
     private is_readonly: boolean = false;
+    private show_inline_form_in_crud: boolean = false;
+    private show_inline_form_in_crud_is_create: boolean = false;
+    private vo_of_field_value: IDistantVOBase = null;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 30);
     private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
@@ -1226,6 +1233,11 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+
+        // Si on est en affichage du formulaire inline, on met à jour le vo
+        if (this.show_inline_form_in_crud) {
+            this.set_show_inline_form_in_crud(this.show_inline_form_in_crud_is_create);
+        }
     }
 
     private async inputValue(value: any) {
@@ -1889,5 +1901,47 @@ export default class CRUDComponentField extends VueComponentBase
                 await this.validate_inline_input(event);
             }
         }
+    }
+
+    private set_show_inline_form_in_crud(to_create: boolean) {
+        if ((this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)
+        ) {
+            if (!(this.field as ReferenceDatatableField<any>).targetModuleTable) {
+                return;
+            }
+
+            if (to_create) {
+                if (!(this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor) {
+                    return;
+                }
+
+                this.vo_of_field_value = (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor();
+            } else {
+                if (!this.field_value) {
+                    return;
+                }
+
+                this.vo_of_field_value = this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type][this.field_value];
+            }
+        }
+
+        this.show_inline_form_in_crud_is_create = to_create;
+        this.show_inline_form_in_crud = true;
+    }
+
+    private close_inline_form_in_crud() {
+        this.show_inline_form_in_crud = false;
+    }
+
+    private async create_inline_form_in_crud(vo: IDistantVOBase) {
+        this.field_value = vo.id;
+        await this.onChangeField();
+    }
+
+    private async update_inline_form_in_crud(vo: IDistantVOBase) {
+        await this.onChangeField();
     }
 }

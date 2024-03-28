@@ -63,7 +63,10 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         if (!robot_user_id) {
             let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
             robot_user_id = robot_user ? robot_user.id : null;
-            await ModuleParamsServer.getInstance().setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
+
+            if (robot_user_id) {
+                await ModuleParamsServer.getInstance().setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
+            }
         }
 
         return robot_user_id;

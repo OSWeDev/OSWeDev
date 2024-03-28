@@ -7,7 +7,7 @@
                 i.inline_input_hide_clear.fa.fa-circle-arrow-right.btn-info(:class="{busy: inline_input_is_busy}")
         template(v-else)
             i.inline_input_cancel_input.fa.fa-undo.btn-warning(@click='cancel_input' :class="{busy: inline_input_is_busy}")
-            
+
     Alertcomponent.datatable_field_alert.refranges_datatable_field_alert(:path='alert_path')
     label {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="field.is_required")
@@ -15,7 +15,7 @@
 
     .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
         template(v-if="field_value")
-            a.btn.btn-sm.btn-primary(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
+            a.btn.btn-sm.btn-primary.mr-1(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
                 i.fa-duotone.fa-pencil
 
         a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
@@ -50,5 +50,5 @@
         .text_cliquable.ml-1(@click='select_all') {{ label('select_all') }}
         .inter_text -
         .text_cliquable(@click='select_none') {{ label('select_none') }}
-        
+
     include ./CRUDComponentFieldFooter

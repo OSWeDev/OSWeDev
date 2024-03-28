@@ -432,6 +432,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 self.creating_vo = false;
 
                 self.$emit(createdVO._type + '_create', createdVO);
+                self.$emit('vo_create', createdVO);
                 await self.callCallbackFunctionCreate();
                 if (self.crud.reset_newvo_after_each_creation) {
                     await self.prepareNewVO();

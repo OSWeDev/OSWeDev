@@ -261,6 +261,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Oui'
         }, 'crud.field.boolean.true.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Télécharger'
+        }, 'crud.field.file.download.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Données - {datatable_title}'
         }, 'crud.read.title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

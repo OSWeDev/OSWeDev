@@ -205,6 +205,9 @@ export default abstract class GeneratorBase {
         let pgp: pg_promise.IMain = pg_promise({});
         let db: IDatabase<any> = pgp(connectionString);
 
+        // On va créer la structure de base de la BDD pour les modules
+        await this.modulesService.create_modules_base_structure_in_db(db);
+
         if (envParam.LAUNCH_INIT) {
             console.log("INIT pre modules initialization workers...");
             if (!!this.init_pre_modules_workers) {

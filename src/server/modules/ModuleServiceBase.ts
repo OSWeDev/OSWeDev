@@ -132,6 +132,8 @@ import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
 import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
+import ModuleSuiviCompetences from '../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
+import ModuleSuiviCompetencesServer from './SuiviCompetences/ModuleSuiviCompetencesServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -237,6 +239,13 @@ export default abstract class ModuleServiceBase {
         // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
         // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
         PreloadedModuleServerController.db = db;
+
+        // On va créer la structure de base de la BDD pour les modules
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+
+            await this.create_modules_base_structure_in_db(db);
+        }
+
         await PreloadedModuleServerController.preload_modules_is_actif();
 
         this.registered_base_modules = this.getBaseModules();
@@ -255,8 +264,6 @@ export default abstract class ModuleServiceBase {
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
         if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
-
-            await this.create_modules_base_structure_in_db();
 
             // On lance l'installation des modules.
             await this.install_modules();
@@ -490,18 +497,18 @@ export default abstract class ModuleServiceBase {
         throw error;
     }
 
+    public async create_modules_base_structure_in_db(db: IDatabase<any>) {
+        // On vérifie que la table des modules est disponible, sinon on la crée
+        await db.none('CREATE SCHEMA IF NOT EXISTS admin;');
+        await db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
+    }
+
     protected abstract getChildModules(): Module[];
     protected getLoginChildModules(): Module[] {
         return [];
     }
     protected abstract getServerChildModules(): ModuleServerBase[];
-
-    private async create_modules_base_structure_in_db() {
-        // On vérifie que la table des modules est disponible, sinon on la crée
-        await ModuleServiceBase.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
-        await ModuleServiceBase.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
-        await ModuleServiceBase.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
-    }
 
     private async install_modules() {
         for (let i in this.registered_modules) {
@@ -635,6 +642,7 @@ export default abstract class ModuleServiceBase {
             ModuleActionURL.getInstance(),
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
+            ModuleSuiviCompetences.getInstance(),
         ];
     }
 
@@ -699,6 +707,7 @@ export default abstract class ModuleServiceBase {
             ModuleActionURLServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleSuiviCompetencesServer.getInstance(),
         ];
     }
 
