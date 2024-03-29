@@ -91,32 +91,22 @@ export default class ModuleMailer extends Module {
         const sent_by_id = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().sent_by_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Envoyé par', false);
         const sent_to_id = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().sent_to_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Envoyé à', false);
 
-        const label = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID de suivi', true);
+        const label = ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID de suivi', true).unique();
 
-        const datatable_fields = [
-            category_id,
-            sent_by_id,
-            sent_to_id,
+        ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index();
+        ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().email, ModuleTableFieldVO.FIELD_TYPE_string, 'Email', true).index();
+        ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().send_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
-            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Dernier évènement', true, true, MailEventVO.EVENT_Initie).setEnumValues(MailEventVO.EVENT_NAMES).index(),
-
-            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().email, ModuleTableFieldVO.FIELD_TYPE_string, 'Email', true).index(),
-            label,
-            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().send_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'envoi', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            ModuleTableFieldController.create_new(MailVO.API_TYPE_ID, field_names<MailVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-        ];
-        const datatable = ModuleTableController.create_new(this.name, MailVO, label, "Mails");
+        ModuleTableController.create_new(this.name, MailVO, label, "Mails");
         category_id.set_many_to_one_target_moduletable_name(MailCategoryVO.API_TYPE_ID);
         sent_by_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         sent_to_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
     private initializeMailCategoryVO() {
-        const label = ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
-        const datatable_fields = [
-            label
-        ];
-        const datatable = ModuleTableController.create_new(this.name, MailCategoryVO, label, "Catégories de mail");
+        const label = ModuleTableFieldController.create_new(MailCategoryVO.API_TYPE_ID, field_names<MailCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true).unique();
+        ModuleTableController.create_new(this.name, MailCategoryVO, label, "Catégories de mail");
     }
 
     private initializeMailEventVO() {

@@ -82,6 +82,11 @@ import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch2
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20240222RenameFieldIdsToFieldNames from './patchs/premodules/Patch20240222RenameFieldIdsToFieldNames';
 import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
+import Patch20240329Adduniqlangconstraint from './patchs/premodules/Patch20240329Adduniqlangconstraint';
+import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/Patch20240329Adduniqtranslatabletextconstraint';
+import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
+import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
+import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 
 export default abstract class GeneratorBase {
 
@@ -134,6 +139,11 @@ export default abstract class GeneratorBase {
         ];
 
         this.pre_modules_workers = [
+            Patch20240329CeliaToOseliaDBWidget.getInstance(),
+            Patch20240329Adduniqroleconstraint.getInstance(),
+            Patch20240329Adduniqlangconstraint.getInstance(),
+            Patch20240329Adduniquserconstraints.getInstance(),
+            Patch20240329Adduniqtranslatabletextconstraint.getInstance(),
             Patch20240123ForceUnicityOnGeneratorWorkersUID.getInstance(),
             Patch20231003ForceUnicityCodeText.getInstance(),
             Patch20231010ForceUnicityVarConfName.getInstance(),

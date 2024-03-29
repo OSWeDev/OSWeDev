@@ -31,11 +31,12 @@ export default class ModulesManager {
     private constructor() {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
-        const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true);
+        const label_field = ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true)
+            .unique();
         ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true);
-        const moduleTable = ModuleTableController.create_new(
-            null, ModuleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }));
-        moduleTable.set_bdd_ref('admin', 'modules');
+
+        ModuleTableController.create_new(null, ModuleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }))
+            .set_bdd_ref('admin', 'modules');
     }
 
     // istanbul ignore next: nothing to test

@@ -77,12 +77,11 @@ export default class ModuleSupervision extends Module {
 
     private initializeSupervisedCRONVO() {
 
-        const fields = [
-            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true),
-            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true),
-        ];
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true);
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true);
 
-        const datatable = ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON");
-        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
+        SupervisionController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON"),
+            SupervisedCRONController.getInstance());
     }
 }
