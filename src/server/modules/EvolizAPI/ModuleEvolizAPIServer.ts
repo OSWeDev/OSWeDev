@@ -30,7 +30,6 @@ import EvolizSalesClassificationVO from '../../../shared/modules/EvolizAPI/vos/s
 import EvolizUnitCodeVO from '../../../shared/modules/EvolizAPI/vos/unit_codes/EvolizUnitCodeVO';
 import EvolizPayTypeVO from '../../../shared/modules/EvolizAPI/vos/pay_type/EvolizPayTypeVO';
 import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/EvolizCompanyVO';
-import EvolizAnalyticsVO from '../../../shared/modules/EvolizAPI/vos/analytics/EvolizAnalyticsVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -107,7 +106,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_unit_code, this.list_unit_code.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_companies, this.list_companies.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_paytypes, this.list_paytypes.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_analytics, this.list_analytics.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -155,17 +153,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
         } else {
             console.error("Erreur connexion à l'API Evoliz (demande de token).");
-        }
-    }
-
-    // Analytic Axis
-    public async list_analytics(): Promise<EvolizAnalyticsVO[]> {
-        try {
-            let analytics: EvolizAnalyticsVO[] = await this.get_all_pages('/api/v1/analytics') as EvolizAnalyticsVO[];
-
-            return analytics;
-        } catch (error) {
-            console.error(error);
         }
     }
 

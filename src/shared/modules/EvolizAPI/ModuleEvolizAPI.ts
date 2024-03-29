@@ -23,7 +23,6 @@ import EvolizSalesClassificationVO from './vos/sales_classification/EvolizSalesC
 import EvolizUnitCodeVO from './vos/unit_codes/EvolizUnitCodeVO';
 import EvolizCompanyVO from './vos/company/EvolizCompanyVO';
 import EvolizPayTypeVO from './vos/pay_type/EvolizPayTypeVO';
-import EvolizAnalyticsVO from './vos/analytics/EvolizAnalyticsVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -50,7 +49,6 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_list_unit_code: string = "list_unit_code";
     public static APINAME_list_companies: string = "list_companies";
     public static APINAME_list_paytypes: string = "list_paytypes";
-    public static APINAME_list_analytics: string = "list_analytics";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -87,7 +85,6 @@ export default class ModuleEvolizAPI extends Module {
     public list_unit_code: () => Promise<EvolizUnitCodeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_unit_code);
     public list_companies: () => Promise<EvolizCompanyVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_companies);
     public list_paytypes: () => Promise<EvolizPayTypeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_paytypes);
-    public list_analytics: () => Promise<EvolizAnalyticsVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_analytics);
 
     private constructor() {
 
@@ -213,12 +210,6 @@ export default class ModuleEvolizAPI extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizPayTypeVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_paytypes,
-            []
-        ));
-
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizAnalyticsVO[]>(
-            null,
-            ModuleEvolizAPI.APINAME_list_analytics,
             []
         ));
     }
