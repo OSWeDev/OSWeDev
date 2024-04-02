@@ -41,7 +41,7 @@
 
         .thread_message_body
             template(v-for='message_content in thread_message_contents')
-                .thread_message_body_content
+                .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.content_type')
                     template(v-if='message_content.content_type == message_content_type_text')
                         .thread_message_body_text(v-html='message_content.value')
                     template(v-else-if='message_content.content_type == message_content_type_action_url')

@@ -214,7 +214,7 @@ export default class ModuleTableFieldController {
                     return null;
                 }
 
-                const res: Array<number | string> = ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 2).split(',') : null;
+                const res: Array<number | string> = ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : null;
 
                 if (res && res.length) {
                     for (const i in res) {
@@ -235,7 +235,7 @@ export default class ModuleTableFieldController {
                     return null;
                 }
 
-                return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 2).split(',') : e;
+                return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : e;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj: {
 

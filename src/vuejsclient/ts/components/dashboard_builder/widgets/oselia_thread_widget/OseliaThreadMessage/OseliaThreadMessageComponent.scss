@@ -41,22 +41,35 @@
     }
 
     .thread_message_body {
-        text-align: right;
+
+        text-align: left;
+        padding-left: 3em;
 
         .thread_message_body_content {
-            display: inline-flex;
+
+
+            display: block;
+
+            &.thread_message_body_content_type_2,
+            &.thread_message_body_content_type_3 {
+                display: inline-flex;
+            }
 
             .thread_message_body_text {
-                margin-left: 3em;
                 background: white;
                 padding: 1em;
                 border-radius: 1em;
                 clear: both;
                 text-align: left;
+                width: fit-content;
             }
 
             .thread_message_body_action_url {
-                margin: 1em 0em 1em 1em;
+                margin: 1em 1em 1em 0em;
+
+                button {
+                    border-radius: 1em;
+                }
             }
 
             .thread_message_body_email {

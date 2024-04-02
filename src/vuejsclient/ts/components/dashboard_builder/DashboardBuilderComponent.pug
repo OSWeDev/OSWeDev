@@ -182,19 +182,6 @@
                         @removed_widget_from_page='removed_widget_from_page'
                     )
             
-            .fields_wrapper_2(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper_2}')
-                .collapse_fields_wrapper_2(@click='reverse_collapse_fields_2_wrapper' :class='{"collapsed":collapsed_fields_wrapper_2}')
-                    i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper_2')
-                    i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper_2')
-
-                .collapsible_component_wrapper_2(:class='{"collapsed":collapsed_fields_wrapper_2}')
-                    Dashboardbuilderwidgetscomponent(
-                        :dashboard='dashboard' 
-                        :dashboard_page='page'
-                        :dashboard_pages='pages'   
-                    )
-                    Droppablevofieldscomponent(:dashboard='dashboard')
-            
             .row(v-if='show_menu_conf')
                 .col-sm-12.menu_conf_wrapper 
                     Dashboardmenuconfcomponent(:dashboard='dashboard')

@@ -133,8 +133,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async register_thread() {
 
-        await this.unregister_all_vo_event_callbacks();
-
         // On check qu'on a un thread et un seul
         if (!this.thread) {
             return;
@@ -144,6 +142,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
+        await this.unregister_all_vo_event_callbacks();
         this.current_thread_id = this.thread.id;
 
         await this.set_assistant();
