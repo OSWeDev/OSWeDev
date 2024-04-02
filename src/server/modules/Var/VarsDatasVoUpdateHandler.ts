@@ -196,7 +196,6 @@ export default class VarsDatasVoUpdateHandler {
      */
     public static async handle_buffer(ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>>): Promise<{ [invalidator_id: string]: VarDataInvalidatorVO }> {
 
-        const deployed_invalidators: { [invalidator_id: string]: VarDataInvalidatorVO } = {};
         VarsDatasVoUpdateHandler.last_call_handled_something = false;
 
         if (!VarsDatasVoUpdateHandler.has_retrieved_vos_cud) {
@@ -214,7 +213,7 @@ export default class VarsDatasVoUpdateHandler {
             VarsDatasVoUpdateHandler.has_retrieved_vos_cud = true;
         }
 
-        if ((!VarsDatasVoUpdateHandler.ordered_vos_cud) || (!VarsDatasVoUpdateHandler.ordered_vos_cud.length)) {
+        if ((!ordered_vos_cud) || (!ordered_vos_cud.length)) {
             VarsDatasVoUpdateHandler.throttled_update_param();
             return null;
         }
