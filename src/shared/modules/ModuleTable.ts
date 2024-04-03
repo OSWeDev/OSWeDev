@@ -977,6 +977,16 @@ export default class ModuleTable<T extends IDistantVOBase> {
                             }
                             trans_ = new_obj;
                         } else {
+
+                            // const translated_vos_from_api = ModuleTable.default_from_api_version(trans_);
+
+                            // // Si on a déjà un vo typé, on le garde - cas des varsdatas où on doit surtout pas utiliser un Object.assign derrière
+                            // if (translated_vos_from_api && translated_vos_from_api._type) {
+                            //     trans_ = translated_vos_from_api;
+                            // } else {
+                            //     trans_ = Object.assign(field_table.voConstructor(), translated_vos_from_api);
+                            // }
+
                             trans_ = Object.assign(field_table.voConstructor(), ModuleTable.default_from_api_version(trans_));
                         }
                     }
