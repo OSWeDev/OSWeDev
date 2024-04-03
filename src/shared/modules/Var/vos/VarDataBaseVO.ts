@@ -58,14 +58,12 @@ export default class VarDataBaseVO implements IMatroid {
     public constructor() { }
 
     get var_id(): number { return this._var_id; }
+
     get is_pixel(): boolean {
 
-        if (this._is_pixel == null) {
-            const a = this.index;
-        }
-
-        return this._is_pixel;
+        return this.initial_getter_is_pixel();
     }
+
 
     get _bdd_only_is_pixel(): boolean {
 
@@ -457,13 +455,12 @@ export default class VarDataBaseVO implements IMatroid {
     public rebuild_index() {
 
         this._index = null;
-        Object.defineProperty(this, 'index', {
-            get: this.initial_getter_index,
-            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
-        });
+        this._is_pixel = null;
+
+        this.place_initial_getters();
     }
 
-    public do_rebuild_index() {
+    public do_rebuild_index_and_is_pixel() {
 
         if (this.rebuilding_index) {
             return;
@@ -517,15 +514,46 @@ export default class VarDataBaseVO implements IMatroid {
     private initial_getter_index(): string {
 
         if (!this._index) {
-            this.do_rebuild_index();
+            this.do_rebuild_index_and_is_pixel();
         }
 
+        this.replace_initial_getters();
+
+        return this._index;
+    }
+
+    private replace_initial_getters() {
         Object.defineProperty(this, 'index', {
             value: this._index,
             writable: true, // Permet de réassigner la valeur plus tard si nécessaire
             configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
         });
+        Object.defineProperty(this, 'is_pixel', {
+            value: this._is_pixel,
+            writable: true, // Permet de réassigner la valeur plus tard si nécessaire
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+    }
 
-        return this._index;
+    private place_initial_getters() {
+        Object.defineProperty(this, 'index', {
+            get: this.initial_getter_index,
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+        Object.defineProperty(this, 'is_pixel', {
+            get: this.initial_getter_is_pixel,
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+    }
+
+    private initial_getter_is_pixel(): boolean {
+
+        if (!this._is_pixel) {
+            this.do_rebuild_index_and_is_pixel();
+        }
+
+        this.replace_initial_getters();
+
+        return this._is_pixel;
     }
 }
