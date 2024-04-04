@@ -82,7 +82,7 @@ export default class EvolizArticleVO {
     //Custom field
     public custom_fields: {
         //Hash of the custom field id
-        custom_field_api: {
+        '3c565485bbd2c54bb0ebe05c7ec741fc': {
             label: string,
             value: string
         },
