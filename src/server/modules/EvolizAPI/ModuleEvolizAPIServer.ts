@@ -157,11 +157,26 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     // Company
-    public async list_companies(): Promise<EvolizCompanyVO[]> {
+    public async list_companies(): Promise<EvolizCompanyVO> {
         try {
-            let sales_classification: EvolizCompanyVO[] = await this.get_all_pages('/api/v1/companies') as EvolizCompanyVO[];
+            let token: EvolizAPIToken = await this.getToken();
 
-            return sales_classification;
+            let company_id: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
+
+            let companies: EvolizCompanyVO = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                ('/api/v1/companies/' + company_id),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            return companies;
         } catch (error) {
             console.error(error);
         }

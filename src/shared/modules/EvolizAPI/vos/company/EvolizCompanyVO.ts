@@ -65,8 +65,10 @@ export default class EvolizCompanyVO {
     public mode: string;
     //Determines if the company is in production mode
     public live: boolean;
-    //Payment condition term
-    public payterm: EvolizPaymentTermsVO;
-    //Payment condition type
-    public paytype: EvolizPayTypeVO;
+    public term: {
+        //Payment condition term
+        payterm: EvolizPaymentTermsVO;
+        //Payment condition type
+        paytype: EvolizPayTypeVO;
+    };
 }

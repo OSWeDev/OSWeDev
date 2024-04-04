@@ -28,6 +28,9 @@ export default class ModuleEvolizAPI extends Module {
 
     public static EvolizAPI_PublicKey_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_PublicKey_API';
     public static EvolizAPI_SecretKey_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_SecretKey_API';
+    // Le company id est récupérable sur le tableau de bord de l'entreprise, sur le "?" en haut à droite
+    // C'est le premier numero du numero client
+    public static EvolizAPI_CompanyId_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_CompanyId_API';
 
     public static EvolizAPI_BaseURL: string = 'www.evoliz.io';
     public static APINAME_list_devis: string = "list_devis";
@@ -83,7 +86,7 @@ export default class ModuleEvolizAPI extends Module {
     public list_payment_terms: () => Promise<EvolizPaymentTermsVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_payment_terms);
     public list_sale_classification: () => Promise<EvolizSalesClassificationVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_sale_classification);
     public list_unit_code: () => Promise<EvolizUnitCodeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_unit_code);
-    public list_companies: () => Promise<EvolizCompanyVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_companies);
+    public list_companies: () => Promise<EvolizCompanyVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_companies);
     public list_paytypes: () => Promise<EvolizPayTypeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_paytypes);
 
     private constructor() {
@@ -201,7 +204,7 @@ export default class ModuleEvolizAPI extends Module {
             []
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizCompanyVO[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizCompanyVO>(
             null,
             ModuleEvolizAPI.APINAME_list_companies,
             []
