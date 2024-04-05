@@ -17,14 +17,6 @@ import CountUserLogLogoutDatasourceController from '../datasources/CountUserLogL
 
 export default class VarMinLogoutCountController extends VarServerControllerBase<UserMinDataRangesVO> {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarMinLogoutCountController {
-        if (!VarMinLogoutCountController.instance) {
-            VarMinLogoutCountController.instance = new VarMinLogoutCountController();
-        }
-        return VarMinLogoutCountController.instance;
-    }
-
     protected static instance: VarMinLogoutCountController = null;
 
     protected constructor() {
@@ -45,6 +37,14 @@ export default class VarMinLogoutCountController extends VarServerControllerBase
             },
             {},
             {});
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VarMinLogoutCountController {
+        if (!VarMinLogoutCountController.instance) {
+            VarMinLogoutCountController.instance = new VarMinLogoutCountController();
+        }
+        return VarMinLogoutCountController.instance;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
