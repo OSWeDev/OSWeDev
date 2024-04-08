@@ -30,6 +30,7 @@ import EvolizSalesClassificationVO from '../../../shared/modules/EvolizAPI/vos/s
 import EvolizUnitCodeVO from '../../../shared/modules/EvolizAPI/vos/unit_codes/EvolizUnitCodeVO';
 import EvolizPayTypeVO from '../../../shared/modules/EvolizAPI/vos/pay_type/EvolizPayTypeVO';
 import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/EvolizCompanyVO';
+import EvolizInvoiceEmailVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceEmailVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -106,6 +107,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_unit_code, this.list_unit_code.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_companies, this.list_companies.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_paytypes, this.list_paytypes.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_send_mail_invoice, this.send_mail_invoice.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -354,8 +356,36 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 false,
                 true,
             );
+
+            return create_invoice.invoiceid;
         } catch (error) {
             console.error("Erreur Evoliz: invoice: " + invoice.object + " - Erreur: " + error);
+        }
+    }
+
+    public async send_mail_invoice(invoiceid: number, params: EvolizInvoiceEmailVO): Promise<boolean> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let email = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/invoices/' + invoiceid + '/send',
+                params,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Erreur Evoliz: send mail invoice: " + invoiceid + " - Erreur: " + error);
+            return false;
         }
     }
 

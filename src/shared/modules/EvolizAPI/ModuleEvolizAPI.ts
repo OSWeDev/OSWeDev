@@ -23,6 +23,8 @@ import EvolizSalesClassificationVO from './vos/sales_classification/EvolizSalesC
 import EvolizUnitCodeVO from './vos/unit_codes/EvolizUnitCodeVO';
 import EvolizCompanyVO from './vos/company/EvolizCompanyVO';
 import EvolizPayTypeVO from './vos/pay_type/EvolizPayTypeVO';
+import EvolizInvoiceEmailParam, { EvolizInvoiceEmailParamStatic } from './vos/apis/EvolizInvoiceEmailParam';
+import EvolizInvoiceEmailVO from './vos/invoices/EvolizInvoiceEmailVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -52,6 +54,7 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_list_unit_code: string = "list_unit_code";
     public static APINAME_list_companies: string = "list_companies";
     public static APINAME_list_paytypes: string = "list_paytypes";
+    public static APINAME_send_mail_invoice: string = "send_mail_invoice";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -88,6 +91,7 @@ export default class ModuleEvolizAPI extends Module {
     public list_unit_code: () => Promise<EvolizUnitCodeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_unit_code);
     public list_companies: () => Promise<EvolizCompanyVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_companies);
     public list_paytypes: () => Promise<EvolizPayTypeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_paytypes);
+    public send_mail_invoice: (invoiceid: number, params: EvolizInvoiceEmailVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_send_mail_invoice);
 
     private constructor() {
 
@@ -214,6 +218,13 @@ export default class ModuleEvolizAPI extends Module {
             null,
             ModuleEvolizAPI.APINAME_list_paytypes,
             []
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizInvoiceEmailParam, boolean>(
+            null,
+            ModuleEvolizAPI.APINAME_send_mail_invoice,
+            [],
+            EvolizInvoiceEmailParamStatic
         ));
     }
 
