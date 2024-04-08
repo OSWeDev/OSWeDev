@@ -1,7 +1,7 @@
 import { createReadStream, writeFileSync } from 'fs';
 import { FileObject } from 'openai/resources';
 import { Assistant } from 'openai/resources/beta/assistants/assistants';
-import { MessageCreateParams, ThreadMessage } from 'openai/resources/beta/threads/messages/messages';
+import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages/messages';
 import { Run, RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { Uploadable } from 'openai/uploads';
@@ -14,6 +14,7 @@ import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssis
 import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIRunUsageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunUsageVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
@@ -115,6 +116,142 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
+    public static async update_run_if_needed(run_vo: GPTAssistantAPIRunVO, run_gpt: Run) {
+        /**
+         * On met à jour au besoin le run en base
+         *         run_vo.created_at = run_gpt.created_at;
+         *         run_vo.gpt_thread_id = run_gpt.thread_id;
+         *         run_vo.gpt_assistant_id = run_gpt.assistant_id;
+         *         run_vo.status = run_gpt.status;
+         *         run_vo.required_action = run_gpt.required_action;
+         *         run_vo.last_error = run_gpt.last_error;
+         *         run_vo.expires_at = run_gpt.expires_at;
+         *         run_vo.started_at = run_gpt.started_at;
+         *         run_vo.cancelled_at = run_gpt.cancelled_at;
+         *         run_vo.failed_at = run_gpt.failed_at;
+         *         run_vo.completed_at = run_gpt.completed_at;
+         *         run_vo.model = run_gpt.model;
+         *         run_vo.instructions = run_gpt.instructions;
+         *         run_vo.tools = run_gpt.tools;
+         *         run_vo.file_ids = run_gpt.file_ids;
+         *         run_vo.metadata = run_gpt.metadata;
+         *         run_vo.temperature = run_gpt.temperature;
+         */
+        let has_modifs = false;
+        if (run_vo.created_at != run_gpt.created_at) {
+            run_vo.created_at = run_gpt.created_at;
+            has_modifs = true;
+        }
+        if (run_vo.gpt_thread_id != run_gpt.thread_id) {
+            run_vo.gpt_thread_id = run_gpt.thread_id;
+            has_modifs = true;
+        }
+        if (run_vo.gpt_assistant_id != run_gpt.assistant_id) {
+            run_vo.gpt_assistant_id = run_gpt.assistant_id;
+            has_modifs = true;
+        }
+        if (run_vo.status != run_gpt.status) {
+            run_vo.status = run_gpt.status;
+            has_modifs = true;
+        }
+        if (run_vo.required_action != run_gpt.required_action) {
+            run_vo.required_action = run_gpt.required_action;
+            has_modifs = true;
+        }
+        if (run_vo.last_error != run_gpt.last_error) {
+            run_vo.last_error = run_gpt.last_error;
+            has_modifs = true;
+        }
+        if (run_vo.expires_at != run_gpt.expires_at) {
+            run_vo.expires_at = run_gpt.expires_at;
+            has_modifs = true;
+        }
+        if (run_vo.started_at != run_gpt.started_at) {
+            run_vo.started_at = run_gpt.started_at;
+            has_modifs = true;
+        }
+        if (run_vo.cancelled_at != run_gpt.cancelled_at) {
+            run_vo.cancelled_at = run_gpt.cancelled_at;
+            has_modifs = true;
+        }
+        if (run_vo.failed_at != run_gpt.failed_at) {
+            run_vo.failed_at = run_gpt.failed_at;
+            has_modifs = true;
+        }
+        if (run_vo.completed_at != run_gpt.completed_at) {
+            run_vo.completed_at = run_gpt.completed_at;
+            has_modifs = true;
+        }
+        if (run_vo.model != run_gpt.model) {
+            run_vo.model = run_gpt.model;
+            has_modifs = true;
+        }
+        if (run_vo.instructions != run_gpt.instructions) {
+            run_vo.instructions = run_gpt.instructions;
+            has_modifs = true;
+        }
+        if (run_vo.tools != run_gpt.tools) {
+            run_vo.tools = run_gpt.tools;
+            has_modifs = true;
+        }
+        if (run_vo.file_ids != run_gpt.file_ids) {
+            run_vo.file_ids = run_gpt.file_ids;
+            has_modifs = true;
+        }
+        if (run_vo.metadata != run_gpt.metadata) {
+            run_vo.metadata = run_gpt.metadata;
+            has_modifs = true;
+        }
+        if (run_vo.temperature != run_gpt.temperature) {
+            run_vo.temperature = run_gpt.temperature;
+            has_modifs = true;
+        }
+
+        if (has_modifs) {
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+        }
+
+        if (run_gpt.usage) {
+
+            has_modifs = false;
+            let usage = await query(GPTAssistantAPIRunUsageVO.API_TYPE_ID)
+                .filter_by_id(run_vo.id, GPTAssistantAPIRunVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIRunUsageVO>();
+
+            if (!usage) {
+                usage = new GPTAssistantAPIRunUsageVO();
+                usage.run_id = run_vo.id;
+                usage.completion_tokens = run_gpt.usage.completion_tokens;
+                usage.prompt_tokens = run_gpt.usage.prompt_tokens;
+                usage.total_tokens = run_gpt.usage.total_tokens;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(usage);
+            } else {
+
+                if (usage.completion_tokens != run_gpt.usage.completion_tokens) {
+                    usage.completion_tokens = run_gpt.usage.completion_tokens;
+                    has_modifs = true;
+                }
+
+                if (usage.prompt_tokens != run_gpt.usage.prompt_tokens) {
+                    usage.prompt_tokens = run_gpt.usage.prompt_tokens;
+                    has_modifs = true;
+                }
+
+                if (usage.total_tokens != run_gpt.usage.total_tokens) {
+                    usage.total_tokens = run_gpt.usage.total_tokens;
+                    has_modifs = true;
+                }
+
+                if (has_modifs) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(usage);
+                }
+            }
+        }
+
+        return run_vo;
+    }
+
     /**
      *
      * @param thread_vo
@@ -126,7 +263,7 @@ export default class GPTAssistantAPIServerController {
         thread_vo: GPTAssistantAPIThreadVO,
         content: string,
         files: FileVO[],
-        user_id: number = null): Promise<{ message_gpt: ThreadMessage, message_vo: GPTAssistantAPIThreadMessageVO }> {
+        user_id: number = null): Promise<{ message_gpt: Message, message_vo: GPTAssistantAPIThreadMessageVO }> {
 
         try {
 
@@ -278,7 +415,8 @@ export default class GPTAssistantAPIServerController {
 
         let run_vo = await query(GPTAssistantAPIRunVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIRunVO>().gpt_run_id, run_gpt.id).exec_as_server().select_vo<GPTAssistantAPIRunVO>();
         if (run_vo) {
-            return run_vo;
+
+            return GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
         }
 
         const assistant_vo = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, run_gpt.assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>();
@@ -297,13 +435,41 @@ export default class GPTAssistantAPIServerController {
         run_vo.gpt_run_id = run_gpt.id;
         run_vo.assistant_id = assistant_vo.id;
         run_vo.thread_id = thread_vo.id;
+
+        run_vo.created_at = run_gpt.created_at;
+        run_vo.gpt_thread_id = run_gpt.thread_id;
+        run_vo.gpt_assistant_id = run_gpt.assistant_id;
+        run_vo.status = run_gpt.status;
+        run_vo.required_action = run_gpt.required_action;
+        run_vo.last_error = run_gpt.last_error;
+        run_vo.expires_at = run_gpt.expires_at;
+        run_vo.started_at = run_gpt.started_at;
+        run_vo.cancelled_at = run_gpt.cancelled_at;
+        run_vo.failed_at = run_gpt.failed_at;
+        run_vo.completed_at = run_gpt.completed_at;
+        run_vo.model = run_gpt.model;
+        run_vo.instructions = run_gpt.instructions;
+        run_vo.tools = run_gpt.tools;
+        run_vo.file_ids = run_gpt.file_ids;
+        run_vo.metadata = run_gpt.metadata;
+        run_vo.temperature = run_gpt.temperature;
+
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+        if (run_gpt.usage) {
+            const usage = new GPTAssistantAPIRunUsageVO();
+            usage.run_id = run_vo.id;
+            usage.completion_tokens = run_gpt.usage.completion_tokens;
+            usage.prompt_tokens = run_gpt.usage.prompt_tokens;
+            usage.total_tokens = run_gpt.usage.total_tokens;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(usage);
+        }
 
         return run_vo;
     }
 
     public static async check_or_create_message_vo(
-        message_gpt: ThreadMessage,
+        message_gpt: Message,
         thread_vo: GPTAssistantAPIThreadVO,
         user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO> {
 
@@ -483,7 +649,7 @@ export default class GPTAssistantAPIServerController {
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
 
         const asking_message: {
-            message_gpt: ThreadMessage;
+            message_gpt: Message;
             message_vo: GPTAssistantAPIThreadMessageVO;
         } = await GPTAssistantAPIServerController.push_message(
             thread.thread_vo,
@@ -604,7 +770,7 @@ export default class GPTAssistantAPIServerController {
         const res: GPTAssistantAPIThreadMessageVO[] = [];
 
         for (const i in thread_messages.data) {
-            const thread_message: ThreadMessage = thread_messages.data[i];
+            const thread_message: Message = thread_messages.data[i];
 
             res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread.thread_vo));
         }

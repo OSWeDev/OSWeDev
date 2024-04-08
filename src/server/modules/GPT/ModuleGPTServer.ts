@@ -6,9 +6,11 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
@@ -29,13 +31,6 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
     public static openai: OpenAI = null;
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleGPTServer.instance) {
-            ModuleGPTServer.instance = new ModuleGPTServer();
-        }
-        return ModuleGPTServer.instance;
-    }
 
     private static instance: ModuleGPTServer = null;
 
@@ -44,10 +39,31 @@ export default class ModuleGPTServer extends ModuleServerBase {
         super(ModuleGPT.getInstance().name);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleGPTServer.instance) {
+            ModuleGPTServer.instance = new ModuleGPTServer();
+        }
+        return ModuleGPTServer.instance;
+    }
+
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = this.reload_openai_runs_datas;
+    }
+
+    public async reload_openai_runs_datas() {
+        const run_vos = await query(GPTAssistantAPIRunVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIRunVO>();
+        for (const i in run_vos) {
+            const run_vo = run_vos[i];
+            if (run_vo.gpt_run_id) {
+                const run_gpt = await ModuleGPTServer.openai.beta.threads.runs.retrieve(run_vo.gpt_thread_id, run_vo.gpt_run_id);
+                await GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
+            }
+        }
     }
 
     public async ask_assistant(
