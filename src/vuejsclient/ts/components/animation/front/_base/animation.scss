@@ -304,6 +304,45 @@
                 }
             }
         }
+
+        .reset_theme,
+        .reset_module {
+            cursor: pointer;
+            margin-bottom: 15px;
+            float: right;
+            padding: 2px 4px 1px 4px;
+            margin-bottom: 0;
+            margin-left: 10px;
+            border-radius: 5px;
+            width: 33px;
+            text-align: center;
+            min-height: 34px;
+            min-width: 34px;
+            border: 3px solid $animation_orange;
+            background: none !important;
+
+            // background: $animation_orange;
+            // border: 0;
+            i {
+                color: $animation_orange;
+                // color: white;
+                font-size: 24px;
+                line-height: 28px;
+
+                &:before {
+                    margin-right: 0;
+                }
+            }
+
+            &:hover {
+                // background: $animation_rouge;
+                border: 3px solid $animation_rouge;
+                i {
+                    color: $animation_rouge;
+                }
+            }
+
+        }
     }
 
     .documents {
@@ -329,8 +368,16 @@
         }
     }
 
+    .theme {
+        .theme_name {
+            margin-bottom: 6px;
+            margin-left: 44px;
+            margin-right: 44px;
+        }
+    }
+
     .modules {
-        .module {
+        .module{
             cursor: pointer;
             margin-bottom: 15px;
 
@@ -341,11 +388,13 @@
             .theme_name {
                 margin-bottom: 6px;
                 margin-left: 88px;
+                margin-right: 44px;
             }
 
             .module_name {
                 font-weight: bold;
                 margin-left: 88px;
+                margin-right: 44px;
             }
         }
     }

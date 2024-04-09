@@ -2,8 +2,12 @@
 .rootElt.theme
     template(v-if="is_ready")
 
-        //- display header of theme (title, progress bar with %)
+        //- display header of theme (title, progress bar with %, reset)
+        //- Btn for reset theme action
+        .reset_theme(v-tooltip.top='label("animation.theme.reset.tooltip")' @click='resetTheme(theme)')
+            i.fa-duotone.fa-trash-alt
         .theme_name {{ theme.name }}
+
         .description(v-if="theme.description", v-html="theme.description")
         .prct_avancement
             .barre-total
@@ -30,9 +34,13 @@
                                         a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
                                             i.fa-solid.fa-book
 
+                                //- btn for reset module action
+                                .reset_module(v-tooltip.top='label("animation.module.reset.tooltip")' @click='resetModule(anim_module)')
+                                    i.fa-duotone.fa-trash-alt
+
                                 //- display module line
                                 .theme_container(@click="go_to_route_module(anim_module)")
-                                
+
                                     //- square for progress status
                                     .prct_avancement_module(:class="get_class_prct_avancement_module(anim_module)")
 

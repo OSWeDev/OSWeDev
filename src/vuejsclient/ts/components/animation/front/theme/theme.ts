@@ -7,7 +7,6 @@ import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/An
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
@@ -54,6 +53,10 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     private prct_atteinte_seuil_theme_param: ThemeModuleDataRangesVO = null;
 
     private async mounted() {
+        await this.reloadAsyncDatas();
+    }
+
+    private async reloadAsyncDatas() {
         this.is_ready = false;
 
         let promises = [];
@@ -150,6 +153,80 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             [RangeHandler.create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
             [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
+    }
+
+    private async resetModule(module: AnimationModuleVO) {
+        if (!module?.id || !this.logged_user_id) {
+            return;
+        }
+        this.$snotify.confirm(this.label('animation.module.reset.body'), this.label('animation.module.reset.title'), {
+            timeout: 10000,
+            titleMaxLength: 30,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: async (toast) => {
+                        this.$snotify.remove(toast.id);
+
+                        let error: string = await ModuleAnimation.getInstance().resetThemesOrModules([this.logged_user_id], [], [module.id]);
+                        if (!!error) {
+                            this.snotify.error(this.label(error));
+                            return;
+                        }
+
+                        this.snotify.success(this.label('animation.module.reset.success'));
+                        await this.reloadAsyncDatas();
+                    },
+                    bold: true
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private async resetTheme(theme: AnimationThemeVO) {
+        if (!module?.id || !this.logged_user_id) {
+            return;
+        }
+        this.$snotify.confirm(this.label('animation.theme.reset.body'), this.label('animation.theme.reset.title'), {
+            timeout: 10000,
+            titleMaxLength: 30,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: async (toast) => {
+                        this.$snotify.remove(toast.id);
+
+                        let error: string = await ModuleAnimation.getInstance().resetThemesOrModules([this.logged_user_id], [theme.id], []);
+                        if (!!error) {
+                            this.snotify.error(this.label(error));
+                            return;
+                        }
+
+                        this.snotify.success(this.label('animation.theme.reset.success'));
+                        await this.reloadAsyncDatas();
+                    },
+                    bold: true
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 
     get style_barre_avancement(): any {

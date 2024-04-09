@@ -44,6 +44,7 @@ export default class ModuleAnimation extends Module {
     public static APINAME_getQRsByThemesAndModules: string = "getQRsByThemesAndModules";
     public static APINAME_getUQRsByThemesAndModules: string = "getUQRsByThemesAndModules";
     public static APINAME_getAumsFiltered: string = "getAumsFiltered";
+    public static APINAME_resetThemesOrModules: string = "resetThemesOrModules";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAnimation.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".BO_ACCESS";
@@ -75,6 +76,7 @@ export default class ModuleAnimation extends Module {
         filter_module_termine_active_option: DataFilterOption,
         filter_module_valide_active_option: DataFilterOption,
     ) => Promise<AnimationUserModuleVO[]> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getAumsFiltered);
+    public resetThemesOrModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<string> = APIControllerWrapper.sah(ModuleAnimation.APINAME_resetThemesOrModules);
 
     private constructor() {
         super("animation", ModuleAnimation.MODULE_NAME);
@@ -122,6 +124,12 @@ export default class ModuleAnimation extends Module {
             ModuleAnimation.APINAME_getAumsFiltered,
             [AnimationUserModuleVO.API_TYPE_ID],
             AnimationReportingParamVOStatic,
+        ));
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationParamVO, void>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, AnimationUserQRVO.API_TYPE_ID),
+            ModuleAnimation.APINAME_resetThemesOrModules,
+            [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
+            AnimationParamVOStatic,
         ));
     }
 
