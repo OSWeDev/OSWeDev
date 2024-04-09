@@ -193,7 +193,7 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     }
 
     private async resetTheme(theme: AnimationThemeVO) {
-        if (!module?.id || !this.logged_user_id) {
+        if (!theme?.id || !this.logged_user_id) {
             return;
         }
         this.$snotify.confirm(this.label('animation.theme.reset.body'), this.label('animation.theme.reset.title'), {
