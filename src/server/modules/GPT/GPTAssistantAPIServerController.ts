@@ -90,6 +90,27 @@ export default class GPTAssistantAPIServerController {
         return null;
     }
 
+    /**
+     * On cherche l'assistant qui ferait référence à ce prompt chez nous, et on le crée si il n'existe pas
+     * On le crée donc aussi chez OpenAI si il n'existe pas, et on rattache l'assistant au prompt
+     * @returns
+     */
+    public static async get_or_create_assistant_by_prompt(assistant_id: string): Promise<{ assistant_gpt: Assistant, assistant_vo: GPTAssistantAPIAssistantVO }> {
+
+        try {
+
+            const assistant_gpt = await ModuleGPTServer.openai.beta.assistants.retrieve(assistant_id);
+
+            // On crée l'assistant en base si il n'existe pas, sinon on le charge simplement pour faire le lien avec les messages
+            const assistant_vo = await GPTAssistantAPIServerController.check_or_create_assistant_vo(assistant_gpt);
+            return { assistant_gpt, assistant_vo };
+
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.getAssistant: ' + error);
+        }
+        return null;
+    }
+
     public static async get_thread(user_id: number = null, thread_id: string = null, current_default_assistant_id: number = null): Promise<{ thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO }> {
 
         try {

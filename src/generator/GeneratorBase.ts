@@ -87,6 +87,8 @@ import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
+import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
 
@@ -192,6 +194,8 @@ export default abstract class GeneratorBase {
             Patch20231123AddRightsSharedFilters.getInstance(),
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
+            Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
 
@@ -219,11 +223,12 @@ export default abstract class GeneratorBase {
 
         const pgp: pg_promise.IMain = pg_promise({});
         const db: IDatabase<any> = pgp(connectionString);
+        await this.modulesService.init_db(db);
 
         if (envParam.launch_init) {
             console.log("INIT pre modules initialization workers...");
             if (this.init_pre_modules_workers) {
-                if (!await this.execute_workers(this.init_pre_modules_workers, db)) {
+                if (!await this.execute_workers(this.init_pre_modules_workers, ModuleServiceBase.db)) {
                     process.exit(0);
                     return;
                 }
@@ -233,14 +238,14 @@ export default abstract class GeneratorBase {
 
         console.log("pre modules initialization workers...");
         if (this.pre_modules_workers) {
-            if (!await this.execute_workers(this.pre_modules_workers, db)) {
+            if (!await this.execute_workers(this.pre_modules_workers, ModuleServiceBase.db)) {
                 process.exit(0);
                 return;
             }
         }
         console.log("pre modules initialization workers done.");
 
-        await this.modulesService.register_all_modules(db, true);
+        await this.modulesService.register_all_modules(true);
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();
@@ -261,7 +266,7 @@ export default abstract class GeneratorBase {
         if (envParam.launch_init) {
             console.log("INIT post modules initialization workers...");
             if (this.init_post_modules_workers) {
-                if (!await this.execute_workers(this.init_post_modules_workers, db)) {
+                if (!await this.execute_workers(this.init_post_modules_workers, ModuleServiceBase.db)) {
                     process.exit(0);
                     return;
                 }
@@ -271,7 +276,7 @@ export default abstract class GeneratorBase {
 
         console.log("post modules initialization workers...");
         if (this.post_modules_workers) {
-            if (!await this.execute_workers(this.post_modules_workers, db)) {
+            if (!await this.execute_workers(this.post_modules_workers, ModuleServiceBase.db)) {
                 process.exit(0);
                 return;
             }

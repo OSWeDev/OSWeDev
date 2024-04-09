@@ -257,6 +257,7 @@ export default class ModuleGPT extends Module {
         ];
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIFunctionVO() {
@@ -272,6 +273,7 @@ export default class ModuleGPT extends Module {
         ];
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionVO, label, 'GPT Assistant API - Fonction');
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIAssistantFunctionVO() {
@@ -332,6 +334,7 @@ export default class ModuleGPT extends Module {
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionParamVO, null, 'GPT Assistant API - Param de Fonction');
 
         function_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFunctionVO.API_TYPE_ID);
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIThreadVO() {

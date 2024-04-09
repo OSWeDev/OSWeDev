@@ -3,8 +3,9 @@ import { FunctionDefinition, FunctionParameters } from 'openai/resources';
 import IDistantVOBase from '../../IDistantVOBase';
 import GPTAssistantAPIFunctionParamVO from './GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIThreadVO from './GPTAssistantAPIThreadVO';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
-export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
+export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersionedVO {
 
     public static API_TYPE_ID: string = "gpt_assistant_function";
 
@@ -18,6 +19,15 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
     public gpt_function_name: string;
 
     public prepend_thread_vo: boolean;
+
+    // IVersionedVO
+    public parent_id: number;
+    public trashed: boolean;
+    public version_num: number;
+    public version_author_id: number;
+    public version_timestamp: number;
+    public version_edit_author_id: number;
+    public version_edit_timestamp: number;
 
     public to_GPT_FunctionDefinition(params: GPTAssistantAPIFunctionParamVO[]): FunctionDefinition {
 

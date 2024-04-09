@@ -12,6 +12,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
+import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -60,6 +61,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
         for (const i in run_vos) {
             const run_vo = run_vos[i];
             if (run_vo.gpt_run_id) {
+
+                if (!run_vo.gpt_thread_id) {
+                    const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_id(run_vo.thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID).select_vo<GPTAssistantAPIThreadVO>();
+                    run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+                }
+
                 const run_gpt = await ModuleGPTServer.openai.beta.threads.runs.retrieve(run_vo.gpt_thread_id, run_vo.gpt_run_id);
                 await GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
             }

@@ -168,6 +168,7 @@ export default abstract class ModuleServiceBase {
 
         ModuleServiceBase.db = {
             none: this.db_none.bind(this),
+            one: this.db_one.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
             tx: (options, cb) => this.db_.tx(options, cb)
@@ -230,15 +231,18 @@ export default abstract class ModuleServiceBase {
         return false;
     }
 
-    public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
+    public async init_db(db: IDatabase<any>) {
         this.db_ = db;
 
         db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         db.$pool.options.idleTimeoutMillis = 120000;
+    }
+
+    public async register_all_modules(is_generator: boolean = false) {
 
         // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
         // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
-        PreloadedModuleServerController.db = db;
+        PreloadedModuleServerController.db = ModuleServiceBase.db;
         await PreloadedModuleServerController.preload_modules_is_actif();
 
         this.registered_base_modules = this.getBaseModules();
@@ -772,6 +776,30 @@ export default abstract class ModuleServiceBase {
         StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
         StatsController.register_stat_DUREE('db_query', 'time', '-', duration);
 
+        return res;
+    }
+
+    private async db_one(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = null;
+        const time_in = Dates.now_ms();
+
+        try {
+            res = await this.db_.one(query, values);
+        } catch (error) {
+            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+        }
+
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_one', 'ok', '-');
+        StatsController.register_stat_DUREE('db_one', 'time', '-', duration);
         return res;
     }
 
