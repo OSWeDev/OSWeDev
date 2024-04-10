@@ -60,6 +60,10 @@ import ContextQueryFieldServerController from './ContextQueryFieldServerControll
 
 export default class ContextQueryServerController {
 
+    private static SORT_ALIAS_UID: number = 0;
+
+    private static INTERNAL_LABEL_REMPLACEMENT: string = '___internal___label___rplcmt____';
+
     // istanbul ignore next: cannot test configure
     public static async configure() {
     }
@@ -817,8 +821,6 @@ export default class ContextQueryServerController {
 
         // On commence par charger les vos à supprimer pour pouvoir réaliser les triggers
         const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[context_query.base_api_type_id];
-        let vos_to_delete: IDistantVOBase[] = null;
-        const deleted_vos_by_id: { [id: number]: IDistantVOBase } = {};
         let has_more_to_delete: boolean = true;
         const queries: string[] = [];
         const res: InsertOrDeleteQueryResult[] = [];
@@ -836,6 +838,8 @@ export default class ContextQueryServerController {
 
         while (has_more_to_delete) {
             const while_time_in = Dates.now_ms();
+            let vos_to_delete: IDistantVOBase[] = null;
+            const deleted_vos_by_id: { [id: number]: IDistantVOBase } = {};
             vos_to_delete = await context_query.select_vos();
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'select_vos');
             StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'select_vos', Dates.now_ms() - while_time_in);
@@ -946,37 +950,25 @@ export default class ContextQueryServerController {
 
             const db_time_in = Dates.now_ms();
 
-            await ModuleServiceBase.db.tx(async (t) => {
+            const ids_to_delete: number[] = Object.keys(deleted_vos_by_id).map((id) => parseInt(id));
+            try {
 
-                const qs = [];
-                for (const i in queries) {
-                    const sql = queries[i];
-                    qs.push(t.oneOrNone(sql));
-                }
-                return t.batch(qs);
-            }).then(async (value: any) => {
+                await ModuleServiceBase.db.none('DELETE FROM ' + moduletable.full_name + ' WHERE id IN ($1:csv)', [ids_to_delete]);
 
                 StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
                 StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'DB', Dates.now_ms() - db_time_in);
 
                 const really_deleted_vos: IDistantVOBase[] = [];
-                if (value && value.length) {
-                    StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DB_deleted_vos', value.length);
-                    for (const i in value) {
-                        const result = value[i];
-                        const result_id = (result && result.id) ? parseInt(result.id.toString()) : null;
-                        InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(result_id));
-                        if (result_id && deleted_vos_by_id[result_id]) {
-                            really_deleted_vos.push(deleted_vos_by_id[result_id]);
-                        }
-                    }
-                    const expected_nb_deleted_vos = Object.keys(deleted_vos_by_id).length;
-                    if (value.length != expected_nb_deleted_vos) {
-                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED');
-                        StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED', expected_nb_deleted_vos - value.length);
+                for (const i in deleted_vos_by_id) {
+                    const result = deleted_vos_by_id[i];
+                    const result_id = (result && result.id) ? parseInt(result.id.toString()) : null;
+                    InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(result_id));
+                    if (result_id && deleted_vos_by_id[result_id]) {
+                        really_deleted_vos.push(deleted_vos_by_id[result_id]);
                     }
                 }
+                StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DB_deleted_vos', really_deleted_vos.length);
 
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
                 if (has_trigger_post_delete || ConfigurationService.node_configuration.debug_deletevos) {
@@ -989,8 +981,102 @@ export default class ContextQueryServerController {
                         await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
                     }
                 }
-                return value;
-            });
+
+            } catch (error) {
+                ConsoleHandler.error('delete_vos :FAILED fast deletion of those ids:' + error + ":retrying with slow method");
+
+                await ModuleServiceBase.db.tx(async (t) => {
+
+                    const qs = [];
+                    for (const i in queries) {
+                        const sql = queries[i];
+                        qs.push(t.oneOrNone(sql));
+                    }
+                    return t.batch(qs);
+                }).then(async (value: any) => {
+
+                    StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
+                    StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+                    StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'DB', Dates.now_ms() - db_time_in);
+
+                    const really_deleted_vos: IDistantVOBase[] = [];
+                    if (value && value.length) {
+                        StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DB_deleted_vos', value.length);
+                        for (const i in value) {
+                            const result = value[i];
+                            const result_id = (result && result.id) ? parseInt(result.id.toString()) : null;
+                            InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(result_id));
+                            if (result_id && deleted_vos_by_id[result_id]) {
+                                really_deleted_vos.push(deleted_vos_by_id[result_id]);
+                            }
+                        }
+                        const expected_nb_deleted_vos = Object.keys(deleted_vos_by_id).length;
+                        if (value.length != expected_nb_deleted_vos) {
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED');
+                            StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED', expected_nb_deleted_vos - value.length);
+                        }
+                    }
+
+                    StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+                    if (has_trigger_post_delete || ConfigurationService.node_configuration.debug_deletevos) {
+                        for (const i in really_deleted_vos) {
+                            const deleted_vo = really_deleted_vos[i];
+                            if (ConfigurationService.node_configuration.debug_deletevos) {
+                                ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
+                            }
+
+                            await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+                        }
+                    }
+                    return value;
+                });
+
+            }
+            // await ModuleServiceBase.db.tx(async (t) => {
+
+            //     const qs = [];
+            //     for (const i in queries) {
+            //         const sql = queries[i];
+            //         qs.push(t.oneOrNone(sql));
+            //     }
+            //     return t.batch(qs);
+            // }).then(async (value: any) => {
+
+            //     StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'WHILE_IN_TO_DB_OUT', Dates.now_ms() - while_time_in);
+            //     StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+            //     StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'DB', Dates.now_ms() - db_time_in);
+
+            //     const really_deleted_vos: IDistantVOBase[] = [];
+            //     if (value && value.length) {
+            //         StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DB_deleted_vos', value.length);
+            //         for (const i in value) {
+            //             const result = value[i];
+            //             const result_id = (result && result.id) ? parseInt(result.id.toString()) : null;
+            //             InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult(result_id));
+            //             if (result_id && deleted_vos_by_id[result_id]) {
+            //                 really_deleted_vos.push(deleted_vos_by_id[result_id]);
+            //             }
+            //         }
+            //         const expected_nb_deleted_vos = Object.keys(deleted_vos_by_id).length;
+            //         if (value.length != expected_nb_deleted_vos) {
+            //             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED');
+            //             StatsController.register_stat_QUANTITE('ContextQueryServerController', 'delete_vos', 'DIFF_NB_VOS_DELETED', expected_nb_deleted_vos - value.length);
+            //         }
+            //     }
+
+            //     StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'DB_OUT');
+            //     if (has_trigger_post_delete || ConfigurationService.node_configuration.debug_deletevos) {
+            //         for (const i in really_deleted_vos) {
+            //             const deleted_vo = really_deleted_vos[i];
+            //             if (ConfigurationService.node_configuration.debug_deletevos) {
+            //                 ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
+            //             }
+
+            //             await DAOServerController.post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo, context_query.is_server);
+            //         }
+            //     }
+            //     return value;
+            // });
         }
         StatsController.register_stat_DUREE('ContextQueryServerController', 'delete_vos', 'OUT', Dates.now_ms() - time_in);
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'OUT');
@@ -1251,10 +1337,6 @@ export default class ContextQueryServerController {
 
         return res;
     }
-
-    private static SORT_ALIAS_UID: number = 0;
-
-    private static INTERNAL_LABEL_REMPLACEMENT: string = '___internal___label___rplcmt____';
 
     private static async handle_context_query_union_queries(
         context_query: ContextQueryVO,
