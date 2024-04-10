@@ -550,14 +550,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
      * @param module_ids
      * @returns
      */
-    private async resetThemesOrModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<string> {
+    private async resetThemesOrModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ res: boolean, label: string }> {
 
         if (!user_ids || !user_ids.length) {
-            return 'animation.reset.no_user_ids';
+            return { res: false, label: 'animation.reset.no_user_ids' };
 
         }
         if ((!module_ids || !module_ids.length) && (!theme_ids || !theme_ids.length)) {
-            return 'animation.reset.no_module_ids';
+            return { res: false, label: 'animation.reset.no_module_ids' };
         }
 
         // sinon on a des theme on recupere le module_ids des themes
@@ -587,7 +587,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         if (!module_ids || !module_ids.length) {
-            return 'animation.reset.no_module_ids';
+            return { res: false, label: 'animation.reset.no_module_ids' };
         }
 
         let ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
@@ -609,7 +609,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().deleteVOs(toDelete);
 
-        return;
+        return { res: true, label: 'animation.module.reset.success' };
     }
 
     /**
@@ -800,6 +800,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Confirmation', 'en-us': 'Confirmation' }, 'animation.module.reset.title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Remise à zéro du module', 'en-us': 'Reset of the module' }, 'animation.module.reset.body.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OK : Remise à zéro du module', 'en-us': 'OK: Reset of the module' }, 'animation.module.reset.success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OK : Remise à zéro en cours', 'en-us': 'OK: Reset in progress' }, 'animation.module.reset.async.wip.___LABEL___'));
     }
 
     private async configure_vars() {

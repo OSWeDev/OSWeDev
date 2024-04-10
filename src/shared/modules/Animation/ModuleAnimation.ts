@@ -76,7 +76,7 @@ export default class ModuleAnimation extends Module {
         filter_module_termine_active_option: DataFilterOption,
         filter_module_valide_active_option: DataFilterOption,
     ) => Promise<AnimationUserModuleVO[]> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getAumsFiltered);
-    public resetThemesOrModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<string> = APIControllerWrapper.sah(ModuleAnimation.APINAME_resetThemesOrModules);
+    public resetThemesOrModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ res: boolean, label: string }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_resetThemesOrModules);
 
     private constructor() {
         super("animation", ModuleAnimation.MODULE_NAME);
@@ -125,7 +125,7 @@ export default class ModuleAnimation extends Module {
             [AnimationUserModuleVO.API_TYPE_ID],
             AnimationReportingParamVOStatic,
         ));
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationParamVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<AnimationParamVO, { res: boolean, label: string }>(
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, AnimationUserQRVO.API_TYPE_ID),
             ModuleAnimation.APINAME_resetThemesOrModules,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
