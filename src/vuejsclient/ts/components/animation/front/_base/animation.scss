@@ -309,23 +309,21 @@
         .reset_module {
             cursor: pointer;
             margin-bottom: 15px;
-            float: right;
+            float: left;
             padding: 2px 4px 1px 4px;
             margin-bottom: 0;
-            margin-left: 10px;
+            margin-right: 10px;
             border-radius: 5px;
             width: 33px;
             text-align: center;
             min-height: 34px;
             min-width: 34px;
+            border-width: 3px;
             border: 3px solid $animation_secondary;
             background: none !important;
 
-            // background: $animation_orange;
-            // border: 0;
             i {
                 color: $animation_secondary;
-                // color: white;
                 font-size: 24px;
                 line-height: 28px;
 
@@ -335,11 +333,16 @@
             }
 
             &:hover {
-                // background: $animation_rouge;
                 border: 3px solid $animation_rouge;
                 i {
                     color: $animation_rouge;
                 }
+            }
+
+            &.not_resetable,
+            &.not_resetable:hover {
+                border: none !important;
+                cursor: initial;
             }
 
         }
@@ -388,13 +391,11 @@
             .theme_name {
                 margin-bottom: 6px;
                 margin-left: 88px;
-                margin-right: 44px;
             }
 
             .module_name {
                 font-weight: bold;
                 margin-left: 88px;
-                margin-right: 44px;
             }
         }
     }

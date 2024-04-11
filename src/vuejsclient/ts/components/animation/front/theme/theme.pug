@@ -32,19 +32,20 @@
                         .col-sm-12
                             .text-left.module_infos
 
+                                //- btn for reset module action
+                                .reset_module(:class="{not_resetable: !(!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id])}")
+                                    template(
+                                        v-if="!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id]"
+                                        v-tooltip.top='label("animation.module.reset.tooltip")'
+                                        @click='resetModule(anim_module)'
+                                    )
+                                        i.fa-duotone.fa-trash-alt
+
                                 //- button for documentation
                                 .documentation.main(:class="{no_doc: !document_by_module_id[anim_module.id]}")
                                     template(v-if="document_by_module_id[anim_module.id]")
                                         a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
                                             i.fa-solid.fa-book
-
-                                //- btn for reset module action
-                                .reset_module(
-                                    v-if="!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id]"
-                                    v-tooltip.top='label("animation.module.reset.tooltip")'
-                                    @click='resetModule(anim_module)'
-                                )
-                                    i.fa-duotone.fa-trash-alt
 
                                 //- display module line
                                 .theme_container(@click="go_to_route_module(anim_module)")
