@@ -76,6 +76,11 @@ export default class ModuleAnimation extends Module {
         filter_module_termine_active_option: DataFilterOption,
         filter_module_valide_active_option: DataFilterOption,
     ) => Promise<AnimationUserModuleVO[]> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getAumsFiltered);
+    /**
+     * remise à zero des modules et themes pour les utilisateurs
+     * suppression AnimationUserModuleVO (module_id|user_id)
+     * suppression AnimationUserQRVO WHERE (qr_id = QR.module_id) && (user_id in user_ids)
+     */
     public resetThemesOrModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ res: boolean, label: string }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_resetThemesOrModules);
 
     private constructor() {
