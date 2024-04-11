@@ -99,7 +99,11 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.filter_type!="none" ? this.const_filters[this.widget_options.filter_type].read : undefined;
+
+        if(this.widget_options.filter_type == 'none') {
+            return null;
+        }
+        return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
     }
 
     get var_filter_additional_params(): [] {
@@ -437,7 +441,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         let dimension_correct: boolean = false; // Check if the dimensions are correct
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
-            let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+            let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
 
             ordered_dimension.push(dimension_value);
 
@@ -455,9 +459,18 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                 }
 
-                active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                    this.widget_options.dimension_vo_field_ref.api_type_id, this.widget_options.dimension_vo_field_ref.field_id
-                ).by_num_has([dimension_value]);
+                switch (dimension_value) {
+                    case typeof dimension_value == 'string':
+                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                            this.widget_options.dimension_vo_field_ref.api_type_id,
+                            this.widget_options.dimension_vo_field_ref.field_id
+                        ).by_text_has(dimension_value);
+                    case typeof dimension_value == 'number':
+                        active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                            this.widget_options.dimension_vo_field_ref.api_type_id,
+                            this.widget_options.dimension_vo_field_ref.field_id
+                        ).by_num_has([dimension_value]);
+                }
 
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,

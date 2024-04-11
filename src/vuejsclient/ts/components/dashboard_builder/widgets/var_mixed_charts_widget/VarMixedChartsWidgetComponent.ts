@@ -116,6 +116,9 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return null;
         }
 
+        if(this.widget_options.filter_type == 'none') {
+            return null;
+        }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
     }
 
@@ -222,7 +225,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
             for (const i in dimensions) {
                 const dimension: any = dimensions[i];
-                const dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                const dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
 
                 ordered_dimension.push(dimension_value);
 
@@ -239,10 +242,18 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                     }
-
-                    active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
-                        this.widget_options.dimension_vo_field_ref.api_type_id, this.widget_options.dimension_vo_field_ref.field_id
-                    ).by_num_has([dimension_value]);
+                    switch (dimension_value) {
+                        case typeof dimension_value == 'string':
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                this.widget_options.dimension_vo_field_ref.api_type_id,
+                                this.widget_options.dimension_vo_field_ref.field_id
+                            ).by_text_has(dimension_value);
+                        case typeof dimension_value == 'number':
+                            active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
+                                this.widget_options.dimension_vo_field_ref.api_type_id,
+                                this.widget_options.dimension_vo_field_ref.field_id
+                            ).by_num_has([dimension_value]);
+                    }
 
                     if (!charts_var_params_by_dimension[var_chart_id]) {
                         charts_var_params_by_dimension[var_chart_id] = {};

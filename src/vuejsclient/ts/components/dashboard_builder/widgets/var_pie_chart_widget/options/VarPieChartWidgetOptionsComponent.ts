@@ -232,7 +232,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
              * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
              *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
              */
-            null,
+            'none',
             null,
 
             /**
@@ -244,7 +244,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
             null,
             null,
-            null,
+            0,
 
             /**
              * Var 2 si pas de dimension
@@ -255,7 +255,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
             null,
             null,
-            null,
+            0,
 
             false,
         );
