@@ -443,10 +443,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                 if (!var_params_by_dimension[dimension_value]) {
                     // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                    this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
                     ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                     return;
                 }
-                console.dir(var_params_by_dimension)
+                
                 let label = null;
 
                 if (dimension_table && dimension_table.default_label_field) {
@@ -460,6 +461,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             })());
         }
         await all_promises(promises);
+        if(Object.values(var_params_by_dimension).every(x => x === null || x.value === undefined)) {
+            this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
+        } else {
+            this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
+        }
 
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;

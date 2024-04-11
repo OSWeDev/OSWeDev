@@ -438,7 +438,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         let label_by_index: { [index: string]: string } = {};
         let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
-        let dimension_correct: boolean = false; // Check if the dimensions are correct
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
             let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
@@ -481,8 +480,8 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
                 if (!var_params_by_dimension[dimension_value]) {
                     // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                    this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
                     this.snotify.error('Pas de var_params pour la dimension ' + dimension_value);
-                    dimension_correct = false;
                     return;
                 }
 
@@ -499,9 +498,12 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
             })());
         }
         await all_promises(promises);
-        if(dimension_correct){
-            this.snotify.success('Les dimensions sont correctes')
+        if(Object.values(var_params_by_dimension).every(x => x === null || x.value === undefined)) {
+            this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
+        } else {
+            this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
         }
+
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;

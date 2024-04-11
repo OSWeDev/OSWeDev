@@ -268,6 +268,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     );
 
                     if (!charts_var_params_by_dimension[dimension_value]) {
+                        this.snotify.error(this.t('var_mixed_charts_widget.error_charts_var_params_for_dimension_value'));
                         // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
                         ConsoleHandler.log('Pas de charts_var_params pour la dimension ' + dimension_value);
                         return;
