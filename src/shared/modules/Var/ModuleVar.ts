@@ -941,7 +941,7 @@ export default class ModuleVar extends Module {
                         continue;
                     }
 
-                    if ((filter.field_name == page_widget_options.vo_field_ref.field_name) &&
+                    if ((filter.field_name == page_widget_options.vo_field_ref.field_id) &&
                         (filter.vo_type == page_widget_options.vo_field_ref.api_type_id)) {
                         continue;
                     }
