@@ -34,7 +34,7 @@
 
                                 //- btn for reset module action
                                 .reset_module(:class="{not_resetable: !(!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id])}")
-                                    template(
+                                    div(
                                         v-if="!reset_theme_processing && !reset_module_processing[anim_module.id] && !!um_by_module_id && !!um_by_module_id[anim_module.id]"
                                         v-tooltip.top='label("animation.module.reset.tooltip")'
                                         @click='resetModule(anim_module)'
