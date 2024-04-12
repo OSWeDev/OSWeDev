@@ -21,6 +21,53 @@ import SimpleDatatableFieldVO from './datatable/SimpleDatatableFieldVO';
 
 export default class CRUD<T extends IDistantVOBase> {
 
+    public forced_readonly: boolean = false;
+    public forced_updateonly: boolean = false;
+    public reset_newvo_after_each_creation: boolean = false;
+    public api_type_id: string;
+
+    public delete_all_access_right: string = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
+
+    /**
+     * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
+     */
+    public preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
+    public preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
+
+    public postCreate: (dataVO: IDistantVOBase) => Promise<void>;
+    public postUpdate: (dataVO: IDistantVOBase) => Promise<void>;
+    public postDelete: (dataVO: IDistantVOBase) => Promise<void>;
+
+    public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
+
+    public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>;
+
+    public hook_prepare_new_vo_for_creation: (vo: IDistantVOBase) => Promise<void>;
+    public callback_function_create: (vo: IDistantVOBase) => Promise<void>;
+
+    public callback_function_update: (vo: IDistantVOBase) => Promise<void>;
+
+    /**
+     * By default, just the readDatatable is enough for the crud configuration, but the update and create views can be separatly defined.
+     * @param readDatatable Datatable and fieds used to populate the data table itself
+     * @param createDatatable Datatable and fieds used to populate the create data modal. Defaults to the update datatable if not defined, or the read datatable if none defined.
+     * @param updateDatatable Datatable and fieds used to populate the update data modal. Defaults to the create datatable if not defined, or the read datatable if none defined.
+     */
+    public constructor(
+        public readDatatable: Datatable<T>,
+        public createDatatable: Datatable<T> = null,
+        public updateDatatable: Datatable<T> = null) {
+
+        this.createDatatable = this.createDatatable ? this.createDatatable : (this.updateDatatable ? this.updateDatatable : this.readDatatable);
+        this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
+        this.preUpdate = null;
+        this.preCreate = null;
+        this.postCreate = null;
+        this.postUpdate = null;
+        this.postDelete = null;
+        this.api_type_id = this.readDatatable.API_TYPE_ID;
+    }
+
     public static copy_datatable<T extends IDistantVOBase>(datatable: Datatable<T>): Datatable<T> {
         const res: Datatable<T> = new Datatable(datatable.API_TYPE_ID);
 
@@ -251,13 +298,13 @@ export default class CRUD<T extends IDistantVOBase> {
                 }
 
                 let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
-                let foreign_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
 
                 if (except_table_names && (except_table_names.indexOf(table.name) >= 0)) {
                     continue;
                 }
 
                 const otherField: ModuleTableFieldVO = VOsTypesManager.getManyToManyOtherField(table, field);
+                let foreign_table = ModuleTableController.module_tables_by_vo_type[otherField.foreign_ref_vo_type];
 
                 if ((!otherField) || (!foreign_table)) {
                     continue;
@@ -374,53 +421,6 @@ export default class CRUD<T extends IDistantVOBase> {
                 }
             }
         }
-    }
-
-    public forced_readonly: boolean = false;
-    public forced_updateonly: boolean = false;
-    public reset_newvo_after_each_creation: boolean = false;
-    public api_type_id: string;
-
-    public delete_all_access_right: string = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
-
-    /**
-     * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
-     */
-    public preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
-    public preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
-
-    public postCreate: (dataVO: IDistantVOBase) => Promise<void>;
-    public postUpdate: (dataVO: IDistantVOBase) => Promise<void>;
-    public postDelete: (dataVO: IDistantVOBase) => Promise<void>;
-
-    public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
-
-    public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>;
-
-    public hook_prepare_new_vo_for_creation: (vo: IDistantVOBase) => Promise<void>;
-    public callback_function_create: (vo: IDistantVOBase) => Promise<void>;
-
-    public callback_function_update: (vo: IDistantVOBase) => Promise<void>;
-
-    /**
-     * By default, just the readDatatable is enough for the crud configuration, but the update and create views can be separatly defined.
-     * @param readDatatable Datatable and fieds used to populate the data table itself
-     * @param createDatatable Datatable and fieds used to populate the create data modal. Defaults to the update datatable if not defined, or the read datatable if none defined.
-     * @param updateDatatable Datatable and fieds used to populate the update data modal. Defaults to the create datatable if not defined, or the read datatable if none defined.
-     */
-    public constructor(
-        public readDatatable: Datatable<T>,
-        public createDatatable: Datatable<T> = null,
-        public updateDatatable: Datatable<T> = null) {
-
-        this.createDatatable = this.createDatatable ? this.createDatatable : (this.updateDatatable ? this.updateDatatable : this.readDatatable);
-        this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
-        this.preUpdate = null;
-        this.preCreate = null;
-        this.postCreate = null;
-        this.postUpdate = null;
-        this.postDelete = null;
-        this.api_type_id = this.readDatatable.API_TYPE_ID;
     }
 
     public set_delete_all_access_right(delete_all_access_right: string): CRUD<T> {
