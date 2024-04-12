@@ -17,7 +17,6 @@ export default class MatroidController {
 
     public static check_bases_not_max_ranges(matroid: IMatroid): boolean {
         const matroid_bases = this.getMatroidBases(matroid);
-
         for (const i in matroid_bases) {
             const matroid_base = matroid_bases[i];
 

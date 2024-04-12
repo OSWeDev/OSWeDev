@@ -69,7 +69,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     private ordered_dimension: number[] = null;
-    private label_by_index: { [index: string]: string } = null;
+    private label_by_index: { [index: string]: string[] } = null;
     private var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = null;
     private var_params_1_et_2: { [dimension_value: number]: VarDataBaseVO } = null;
 
@@ -188,6 +188,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         if (!this.label_by_index) {
             return null;
         }
+
         return this.label_by_index[var_param.index];
     }
 
@@ -264,16 +265,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 (Object.keys(this.var_params_by_dimension).length != this.ordered_dimension.length)) {
                 return null;
             }
-
             for (const i in this.ordered_dimension) {
                 const dimension = this.ordered_dimension[i];
 
                 if (!this.var_params_by_dimension[dimension]) {
                     return null;
                 }
-
                 res.push(this.var_params_by_dimension[dimension]);
             }
+            
             return res;
         } else {
             if ((!this.var_params_1_et_2) || (!this.ordered_dimension) ||
@@ -316,7 +316,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     }
 
     private async update_visible_options(force: boolean = false) {
-
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
         if ((!force) && this.has_widget_validation_filtres()) {
             return;
@@ -390,7 +389,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             ));
         }
         const dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
-
+        console.dir(dimensions)
         if ((!dimensions) || (!dimensions.length)) {
             this.var_params_by_dimension = null;
             return;
@@ -398,7 +397,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         const promises = [];
         const ordered_dimension: any[] = [];
-        const label_by_index: { [index: string]: string } = {};
+        const label_by_index: { [index: string]: string[]} = {};
         const dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
         for (const i in dimensions) {
@@ -420,7 +419,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
                     active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                 }
-
+                active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                    ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                    this.widget_options.dimension_custom_filter_name
+                ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
+                    
                 switch (dimension_value) {
                     case typeof dimension_value == 'string':
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
@@ -447,17 +450,17 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                     return;
                 }
-                
-                let label = null;
 
+                let label = null;
                 if (dimension_table && dimension_table.default_label_field) {
                     label = dimension[dimension_table.default_label_field.field_id];
                 } else if (dimension_table && dimension_table.table_label_function) {
                     label = dimension_table.table_label_function(dimension);
                 }
-
-                label_by_index[var_params_by_dimension[dimension_value].index] = label;
-
+                if(label_by_index[var_params_by_dimension[dimension_value].index] === undefined) {
+                    label_by_index[var_params_by_dimension[dimension_value].index] = [];
+                }
+                label_by_index[var_params_by_dimension[dimension_value].index].push(label);
             })());
         }
         await all_promises(promises);
@@ -466,7 +469,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         } else {
             this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
         }
-
+        console.dir(var_params_by_dimension)
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;
@@ -538,7 +541,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         this.ordered_dimension = dimension_values;
 
         const promises = [];
-        const label_by_index: { [index: string]: string } = {};
+        const label_by_index: { [index: string]: string[] } = {};
         for (const i in dimension_values) {
             const dimension_value: number = dimension_values[i];
 
@@ -569,22 +572,26 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     }
                 }
 
+                console.dir(dimension_value)
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
                     update_custom_filters_1,
                     this.get_dashboard_api_type_ids,
                     this.get_discarded_field_paths);
-                
+
                 if (!var_params_by_dimension[dimension_value]) {
                     // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
                     ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                     return;
                 }
-
-                label_by_index[var_params_by_dimension[dimension_value].index] = Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type);
+                if (label_by_index[var_params_by_dimension[dimension_value].index]== undefined) {
+                    label_by_index[var_params_by_dimension[dimension_value].index] = [];
+                }
+                label_by_index[var_params_by_dimension[dimension_value].index].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
             })());
         }
+        console.dir(var_params_by_dimension)
 
         await all_promises(promises);
 
@@ -772,8 +779,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         this.ordered_dimension = [0, 1];
         this.label_by_index = {
-            0: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)),
-            1: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))
+            0: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))],
+            1: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))]
         };
         this.var_params_1_et_2 = {
             0: var_1,
@@ -783,7 +790,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
         await this.throttled_update_visible_options();
     }
 

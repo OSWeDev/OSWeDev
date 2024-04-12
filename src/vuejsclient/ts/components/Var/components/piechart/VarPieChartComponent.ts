@@ -32,7 +32,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
-    public getlabel: (var_param: VarDataBaseVO) => string;
+    public getlabel: (var_param: VarDataBaseVO) => string[];
 
     @Prop({ default: null })
     public var_dataset_descriptor: VarPieDataSetDescriptor;
@@ -129,16 +129,17 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     private var_datas_updater() {
-
         if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
             this.var_datas = null;
             return;
         }
+        
         const res: { [index: string]: VarDataValueResVO } = {};
-
-        for (const i in this.var_params) {
-            const var_param = this.var_params[i];
-
+        const unique_var_params =  this.var_params.filter((entry, index, self) =>
+            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
+        );
+        for (const i in unique_var_params) {
+            const var_param = unique_var_params[i];
             res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
         }
         this.var_datas = res;
@@ -205,10 +206,12 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
+            console.log('unregister')
             await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
+            console.log('register')
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
@@ -296,9 +299,10 @@ export default class VarPieChartComponent extends VueComponentBase {
         const backgrounds: string[] = [];
         const bordercolors: string[] = [];
         const borderwidths: number[] = [];
-        for (const j in this.var_params) {
+        for (const j in this.var_params.filter((entry, index, self) =>
+            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
+        )) {
             const var_param: VarDataBaseVO = this.var_params[j];
-
             // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
             dataset_datas.push(this.var_datas[var_param.index].value);
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
@@ -392,11 +396,21 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         const res = [];
-
-        for (const i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+        const unique_var_params =  this.var_params.filter((entry, index, self) =>
+            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
+        );
+        for (const i in unique_var_params) {
+            if(!this.getlabel(unique_var_params[i])){
+                return
+            }
+            if(this.getlabel(unique_var_params[i]).length>0){
+                for (const j in this.getlabel(unique_var_params[i])) {
+                    res.push(this.getlabel(unique_var_params[i])[j]);
+                }
+            } else {
+                res.push(this.getlabel ? this.getlabel(unique_var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(unique_var_params[i].var_id)));
+            }
         }
-
         return res;
     }
 }
