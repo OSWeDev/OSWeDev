@@ -1154,10 +1154,37 @@ export default abstract class ServerBase {
                 return res.status(404).send('Pas de fork trouvé pour uid: ' + uid);
             }
 
-            let msg = new PingForkMessage(fork.uid);
+            let check_process: boolean = false;
 
-            // TODO MDE - JE NE VOIS PAS COMMENT SONT REPARTIS LES BGTHREAD ET COMMENT DIRE QUE TEL OU TEL BGTHREAD DOIT ETRE SUR TEL OU TEL THREAD
-            // await ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg., msg.message_content, resolver, ...msg.message_content_params);
+            for (let i in fork.processes) {
+                let process = fork.processes[i];
+
+                if (process.type != BGThreadServerController.ForkedProcessType) {
+                    continue;
+                }
+
+                let thrower = (error) => {
+                    ConsoleHandler.error('API thread_alive:' + error);
+                    return res.status(500).send(false);
+                };
+                let resolver = async (res_resolver) => {
+                    return res.status(200).send(res_resolver);
+                };
+
+                await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                    thrower, process.name, BGThreadServerController.TASK_NAME_is_alive, resolver
+                );
+
+                check_process = true;
+
+                break;
+            }
+
+            if (check_process) {
+                return;
+            }
+
+            let msg = new PingForkMessage(fork.uid);
 
             let is_alive: boolean = await ForkMessageController.send(msg, fork.child_process, fork);
 
