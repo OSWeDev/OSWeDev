@@ -102,23 +102,14 @@ include ../../../../../views/mixins/loading.pug
                         )
         template(v-for="(groupe, index_g) in filtered_groupes")
             table.table.table-condensed.table-striped.groupe.mb-5
-                caption
-                    .prct_niveau_maturite_tsp.ml-2
-                        var-data(
-                            :var_param="get_niveau_maturite_param(groupe, null)" 
-                            :filter='const_filters.percent.read'
-                            :var_value_callback="var_value_callback"
-                        )
-                    template(v-if="groupe.icon")
-                        i.mr-1(:class="groupe.icon")
-                    span {{ groupe.name }}
                 thead                                
                     tr
-                        th.col-md-3
+                        th.col-md-3.empty
+                        th.col-md-3.empty
                         th.col-md-3(
                             v-if="show_details"
                         ) {{ label('suivi_competences_widget_component.kpi') }}
-                        th.col-md-3 {{ label('suivi_competences_widget_component.indicateur') }}
+                        th.col-md-1 {{ label('suivi_competences_widget_component.indicateur') }}
                         th.col-md-3(
                             v-if="show_details"
                         ) {{ label('suivi_competences_widget_component.indicateur_detail') }}
@@ -126,10 +117,24 @@ include ../../../../../views/mixins/loading.pug
                         th.col-md-3 {{ label('suivi_competences_widget_component.plan_action') }}
 
                 tbody
+                    tr
+                        td.text-center.groupe_name(:rowspan="(groupe.nb_elements + 1)")
+                            template(v-if="groupe.icon")
+                                i.mr-1(:class="groupe.icon")
+
+                            .prct_niveau_maturite_tsp.no_float.d-ib
+                                var-data(
+                                    :var_param="get_niveau_maturite_param(groupe, null)" 
+                                    :filter='const_filters.percent.read'
+                                    :var_value_callback="var_value_callback"
+                                )
+
+                            .mt-2 {{ groupe.name }}
+
                     template(v-for="sous_groupe in groupe.sous_groupe")
                         template(v-if="sous_groupe.name")
                             tr.sous_groupe
-                                td.valign-middle
+                                td.valign-middle(:colspan="(show_details ? 5 : 3) + 1")
                                     .sous_groupe_name.mt-0.mb-0
                                         .prct_niveau_maturite_tsp.mr-2.ml-1
                                             var-data(
@@ -138,7 +143,6 @@ include ../../../../../views/mixins/loading.pug
                                                 :var_value_callback="var_value_callback"
                                             )
                                         span {{ sous_groupe.name }}
-                                td(:colspan="show_details ? 5 : 3").valign-middle
 
                         template(v-for="item in sous_groupe.items")
                             tr

@@ -6,13 +6,16 @@
 }
 
 .suivi_competences_widget_component {
-    caption {
+
+    caption,
+    .groupe_name {
         caption-side: top;
         text-align: center;
-        background: #8f8f93;
+        background: #8f8f93 !important;
         color: white;
         font-weight: bold;
         font-size: 20px;
+        vertical-align: middle;
     }
 
     .item_name {
@@ -99,6 +102,10 @@
 
     .prct_niveau_maturite_tsp {
         float: left;
+
+        &.no_float {
+            float: none;
+        }
 
         .var-data--intersector-wrapper {
             padding: 5px 15px;

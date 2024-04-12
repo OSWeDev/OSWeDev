@@ -229,6 +229,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             groupe_result.name = groupe.name;
             groupe_result.icon = groupe.icon;
             groupe_result.id = groupe.id;
+            groupe_result.nb_elements = 0;
             groupe_result.sous_groupe = [];
 
             // Si on a des sous groupe, on les parcours
@@ -250,6 +251,8 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
                     if (ts_sous_groupe_result.items && (ts_sous_groupe_result.items.length > 0)) {
                         groupe_result.sous_groupe.push(ts_sous_groupe_result);
+                        // on ajoute le nombre d'items + 1 pour le sous groupe
+                        groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
                     }
                 }
             } else if (items_by_groupe_and_sous_groupe_ids[groupe.id]) {
@@ -266,6 +269,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
                 if (ts_sous_groupe_result.items.length > 0) {
                     groupe_result.sous_groupe.push(ts_sous_groupe_result);
+                    groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
                 }
             }
 
