@@ -29,9 +29,11 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import SuiviCompetencesRapportExportHandler from './exports/SuiviCompetencesRapportExportHandler';
 import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
 
@@ -95,6 +97,11 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         await this.configure_vars();
 
         this.registerTranslations();
+
+        DataExportServerController.getInstance().register_export_handler(
+            ModuleSuiviCompetences.EXPORT_SUIVI_COMPETENCES_RAPPORT,
+            SuiviCompetencesRapportExportHandler.getInstance()
+        );
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -398,5 +405,17 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Rapport dupliqué'
         }, 'duplicate_rapport.success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Export en cours...'
+        }, 'export_selected_rapport.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Filtrer par rôles'
+        }, 'suivi_competences_widget_component.filtered_roles.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Filtrer par grilles'
+        }, 'suivi_competences_widget_component.filtered_grilles.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Modifier un suivi de compétences'
+        }, 'suivi_competences_widget_component.edit.___LABEL___'));
     }
 }

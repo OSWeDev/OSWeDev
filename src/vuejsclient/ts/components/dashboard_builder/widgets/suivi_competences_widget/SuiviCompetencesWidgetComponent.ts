@@ -40,6 +40,14 @@ import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataV
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import NiveauMaturiteStyle from '../../../../../../shared/modules/SuiviCompetences/class/NiveauMaturiteStyle';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import GeneratePDFClientController from '../../../../modules/GeneratePDF/GeneratePDFClientController';
+import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
+import ExportHistoricVO from '../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
+import ExportSuiviCompetencesRapportHandlerParam from '../../../../../../shared/modules/SuiviCompetences/exports/ExportSuiviCompetencesRapportHandlerParam';
+import CRUDComponentManager from '../../../crud/CRUDComponentManager';
+import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -80,12 +88,18 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private show_details: boolean = false;
 
     private selected_rapport: SuiviCompetencesRapportVO = null;
+    private start_export_excel: boolean = false;
     private all_groupes: SuiviCompetencesGroupeResult[] = [];
     private filtered_groupes: SuiviCompetencesGroupeResult[] = [];
     private rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
     private all_rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
     private indicateur_option_rapport_item_by_ids: { [item_id: number]: DataFilterOption } = {};
     private indicateur_options_by_item_ids: { [item_id: number]: DataFilterOption[] } = {};
+
+    private action_rapport: number = null;
+    private create_action_rapport: number = 1;
+    private duplicate_action_rapport: number = 2;
+    private edit_action_rapport: number = 3;
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
@@ -100,8 +114,14 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     @Watch('selected_rapport')
+    @Watch('action_rapport')
     private async onchange_selected_rapport() {
         if (!this.selected_rapport) {
+            return;
+        }
+
+        if (this.action_rapport == this.duplicate_action_rapport) {
+            await this.duplicate_rapport_action();
             return;
         }
 
@@ -140,6 +160,52 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         this.has_active_filters = !!context_filters?.length;
 
+        if (this.widget_options.filtered_role_ids?.length || this.widget_options.filtered_grille_ids?.length) {
+            let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[SuiviCompetencesRapportVO.API_TYPE_ID];
+
+            if (!crud) {
+                await CRUDComponentManager.getInstance().registerCRUD(
+                    SuiviCompetencesRapportVO.API_TYPE_ID,
+                    null,
+                    null,
+                    null
+                );
+
+                crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[SuiviCompetencesRapportVO.API_TYPE_ID];
+            }
+
+            if (crud) {
+                // Si on a un filtrage sur le rôle, on va récupérer tous les users qui ont le rôle pour filtrer la liste des users
+
+                if (this.widget_options.filtered_role_ids?.length) {
+                    let select_options_enabled: number[] = [];
+
+                    let users: UserVO[] = await query(UserVO.API_TYPE_ID)
+                        .field(field_names<UserVO>().id)
+                        .filter_by_num_x_ranges(
+                            field_names<UserRoleVO>().role_id,
+                            RangeHandler.create_multiple_NumRange_from_ids(this.widget_options.filtered_role_ids, NumSegment.TYPE_INT),
+                            UserRoleVO.API_TYPE_ID
+                        )
+                        .select_vos();
+
+                    if (users?.length) {
+                        select_options_enabled = users.map((e) => e.id);
+                    }
+
+                    await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().user_id).setSelectOptionsEnabled(select_options_enabled);
+                } else {
+                    await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().user_id).emptySelectOptionsEnabled();
+                }
+
+                if (this.widget_options.filtered_grille_ids?.length) {
+                    await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id).setSelectOptionsEnabled(this.widget_options.filtered_grille_ids);
+                } else {
+                    await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id).emptySelectOptionsEnabled();
+                }
+            }
+        }
+
         if (
             (!this.get_dashboard_api_type_ids?.length) ||
             (!this.has_active_filters)
@@ -163,15 +229,33 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     private async open_create() {
+        this.action_rapport = null;
+        this.selected_rapport = null;
+
         await this.get_Crudcreatemodalcomponent.open_modal(
             SuiviCompetencesRapportVO.API_TYPE_ID,
             this.update_visible_options.bind(this),
             null,
-            false
+            false,
+            this.on_create_rapport.bind(this)
         );
     }
 
-    private async duplicate_rapport() {
+    private async on_create_rapport(rapport: SuiviCompetencesRapportVO) {
+        this.selected_rapport = rapport;
+        this.action_rapport = this.edit_action_rapport;
+    }
+
+    private duplicate_rapport() {
+        this.action_rapport = this.duplicate_action_rapport;
+        this.selected_rapport = null;
+    }
+
+    private edit_rapport() {
+        this.action_rapport = this.edit_action_rapport;
+    }
+
+    private async duplicate_rapport_action() {
         this.snotify.confirm(this.label('confirm_duplicate_rapport.body'), null, {
             timeout: 0,
             showProgressBar: true,
@@ -199,6 +283,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
                         await ModuleSuiviCompetences.getInstance().duplicate_suivi_competences_rapport(res.id, this.selected_rapport.id);
 
+                        this.action_rapport = this.edit_action_rapport;
                         this.throttle_update_visible_options();
                         this.selected_rapport = await query(SuiviCompetencesRapportVO.API_TYPE_ID).filter_by_id(res.id).select_vo();
 
@@ -263,6 +348,36 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+
+    private async export_selected_rapport() {
+        if (!this.selected_rapport || this.start_export_excel) {
+            return;
+        }
+
+        this.start_export_excel = true;
+
+        let exhi: ExportHistoricVO = new ExportHistoricVO();
+
+        exhi.export_file_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, SuiviCompetencesRapportVO.API_TYPE_ID);
+        exhi.export_is_secured = true;
+
+        let export_params: ExportSuiviCompetencesRapportHandlerParam = new ExportSuiviCompetencesRapportHandlerParam();
+        export_params.rapport_id_ranges = [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)];
+
+        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
+        exhi.export_to_uid = this.data_user.id;
+        exhi.export_type_id = ModuleSuiviCompetences.EXPORT_SUIVI_COMPETENCES_RAPPORT;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+
+        this.start_export_excel = false;
+
+        this.snotify.info(this.label('export_selected_rapport.start'));
+    }
+
+    private print_selected_rapport() {
+        window.print();
     }
 
     private switch_show_details() {
@@ -469,7 +584,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
-                options = options ? new SuiviCompetencesWidgetOptionsVO(null).from(options) : null;
+                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

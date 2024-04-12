@@ -15,6 +15,12 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './SuiviCompetencesWidgetOptionsComponent.scss';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { isEqual } from 'lodash';
+import SuiviCompetencesGrilleVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
+import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
+import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 
 @Component({
     template: require('./SuiviCompetencesWidgetOptionsComponent.pug')
@@ -50,6 +56,10 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
     private next_update_options: SuiviCompetencesWidgetOptionsVO = null;
     private niveau_maturite_styles: NiveauMaturiteStyle[] = [];
+    private filtered_roles: RoleVO[] = [];
+    private all_filtered_roles: RoleVO[] = [];
+    private filtered_grilles: SuiviCompetencesGrilleVO[] = [];
+    private all_filtered_grilles: SuiviCompetencesGrilleVO[] = [];
 
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
@@ -60,15 +70,65 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         }
 
         this.niveau_maturite_styles = NiveauMaturiteStyle.get_value(this.widget_options.niveau_maturite_styles);
+
+        let limit = EnvHandler.MAX_POOL / 2;
+        let promise_pipeline: PromisePipeline = new PromisePipeline(limit);
+
+        await promise_pipeline.push(async () => {
+            this.all_filtered_roles = await query(RoleVO.API_TYPE_ID).select_vos();
+        });
+        await promise_pipeline.push(async () => {
+            this.all_filtered_grilles = await query(SuiviCompetencesGrilleVO.API_TYPE_ID).select_vos();
+        });
+
+        await promise_pipeline.end();
+
+        this.filtered_roles = this.widget_options?.filtered_role_ids?.length ? this.all_filtered_roles.filter((e) => this.widget_options.filtered_role_ids.includes(e.id)) : [];
+        this.filtered_grilles = this.widget_options?.filtered_grille_ids?.length ? this.all_filtered_grilles.filter((e) => this.widget_options.filtered_grille_ids.includes(e.id)) : [];
+    }
+
+    @Watch('filtered_roles')
+    private async onchange_filtered_roles() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = this.widget_options;
+
+        let filtered_role_ids: number[] = this.filtered_roles?.length ? this.filtered_roles.map((e) => e.id) : null;
+
+        if (isEqual(this.next_update_options.filtered_role_ids, filtered_role_ids)) {
+            return;
+        }
+
+        this.next_update_options.filtered_role_ids = filtered_role_ids;
+
+        await this.throttled_update_options();
+    }
+
+    @Watch('filtered_grilles')
+    private async onchange_filtered_grilles() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = this.widget_options;
+
+        let filtered_grille_ids: number[] = this.filtered_grilles?.length ? this.filtered_grilles.map((e) => e.id) : null;
+
+        if (isEqual(this.next_update_options.filtered_grille_ids, filtered_grille_ids)) {
+            return;
+        }
+
+        this.next_update_options.filtered_grille_ids = filtered_grille_ids;
+
+        await this.throttled_update_options();
     }
 
     private async mounted() {
-
         if (!this.widget_options) {
-
             this.next_update_options = this.get_default_options();
         } else {
-
             this.next_update_options = this.widget_options;
         }
 
@@ -98,7 +158,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
     }
 
     private get_default_options(): SuiviCompetencesWidgetOptionsVO {
-        return new SuiviCompetencesWidgetOptionsVO(null);
+        return new SuiviCompetencesWidgetOptionsVO(null, null, null);
     }
 
     private async update_options() {
@@ -118,6 +178,14 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         this.$emit('update_layout_widget', this.page_widget);
     }
 
+    private filtered_roles_label(role: RoleVO): string {
+        return this.label(role.translatable_name);
+    }
+
+    private filtered_grilles_label(grille: SuiviCompetencesGrilleVO): string {
+        return grille.name;
+    }
+
     get widget_options(): SuiviCompetencesWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
@@ -127,7 +195,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
-                options = options ? new SuiviCompetencesWidgetOptionsVO(null).from(options) : null;
+                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

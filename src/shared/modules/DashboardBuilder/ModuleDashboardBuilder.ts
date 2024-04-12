@@ -145,6 +145,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<DashboardPageVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField(field_names<DashboardPageVO>().hide_navigation, ModuleTableField.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false),
             new ModuleTableField(field_names<DashboardPageVO>().group_filters, ModuleTableField.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false),
+            new ModuleTableField(field_names<DashboardPageVO>().collapse_filters, ModuleTableField.FIELD_TYPE_boolean, 'Voir les filtres par défaut', false, true, false),
         ];
 
         let res = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");

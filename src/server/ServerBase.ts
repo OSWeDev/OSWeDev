@@ -1154,7 +1154,12 @@ export default abstract class ServerBase {
                 return res.status(404).send('Pas de fork trouvé pour uid: ' + uid);
             }
 
-            let is_alive: boolean = await ForkMessageController.send(new PingForkMessage(fork.uid), fork.child_process, fork);
+            let msg = new PingForkMessage(fork.uid);
+
+            // TODO MDE - JE NE VOIS PAS COMMENT SONT REPARTIS LES BGTHREAD ET COMMENT DIRE QUE TEL OU TEL BGTHREAD DOIT ETRE SUR TEL OU TEL THREAD
+            // await ForkedTasksController.exec_self_on_bgthread_and_return_value(thrower, msg., msg.message_content, resolver, ...msg.message_content_params);
+
+            let is_alive: boolean = await ForkMessageController.send(msg, fork.child_process, fork);
 
             return res.status(200).send(is_alive);
         });

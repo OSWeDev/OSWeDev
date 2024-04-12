@@ -14,29 +14,61 @@ include ../../../../../views/mixins/loading.pug
 
         .col-md-6
             template(v-if="has_active_filters")
-                v-select.text-center.align-center.vselect-form-control.mt-0.select_rapport(
-                    v-model="selected_rapport"
-                    :options="rapports"
-                    label="name"
-                    track-by="id"
-                    :placeholder="label('suivi_competences_widget_component.select_rapport')"
-                    :class="{has_selected_rapport: !!selected_rapport}"
+                .btn.btn-sm.btn-primary.mr-1(
+                    :class="{'btn-success': action_rapport == create_action_rapport}"
+                    @click='open_create'
                 )
-                template(v-if="selected_rapport")
-                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
-                    button.btn.btn-sm.btn-success(@click='duplicate_rapport')
-                        i.fa-duotone.fa-copy.fa-lg.btn_icon.ml-2(aria-hidden="true")
-                        | {{ label('suivi_competences_widget_component.duplicate') }}
+                    i.fa-duotone.fa-circle-plus.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.create') }}
+
+                .btn.btn-sm.btn-primary.mr-1(
+                    :class="{'btn-success': action_rapport == duplicate_action_rapport}"
+                    @click='duplicate_rapport'
+                )
+                    i.fa-duotone.fa-copy.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.duplicate') }}
+
+                .btn.btn-sm.btn-primary.mr-1(
+                    :class="{'btn-success': action_rapport == edit_action_rapport}"
+                    @click='edit_rapport'
+                )
+                    i.fa-duotone.fa-edit.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.edit') }}
+
+                template(v-if="(action_rapport == duplicate_action_rapport) || (action_rapport == edit_action_rapport)")
+                    multiselect.text-center.align-center.vselect-form-control.mt-2.select_rapport(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="selected_rapport"
+                        :placeholder="label('suivi_competences_widget_component.select_rapport')"
+                        :options="rapports"
+                        label="name"
+                        :allow-empty="true",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        track-by="id"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
 
             template(v-else)
                 .no_has_active_filters.text-center {{ label('suivi_competences_widget_component.no_has_active_filters') }}
 
         .col-md-3.text-right
-            button.btn.btn-sm.btn-success(@click='open_create')
-                i.fa-duotone.fa-circle-plus.fa-lg.btn_icon.mr-2(aria-hidden="true")
-                | {{ label('suivi_competences_widget_component.create') }}
+            template(v-if="selected_rapport")
+                .actions
+                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
+                    i.fa.fa-download.fa-duotone.btn.btn-primary.ml-2(@click="export_selected_rapport")
+                    i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(@click="print_selected_rapport")
 
-    template(v-if="selected_rapport && has_active_filters")
+    template(v-if="selected_rapport && has_active_filters && (action_rapport == edit_action_rapport)")
         table.table.table-condensed.table-striped.mb-5
             caption
                 span {{ label('suivi_competences_widget_component.suivi', {date: formatDate_FullyearMonthDay(selected_rapport.date)}) }}

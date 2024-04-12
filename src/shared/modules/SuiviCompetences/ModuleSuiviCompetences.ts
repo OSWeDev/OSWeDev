@@ -43,6 +43,8 @@ export default class ModuleSuiviCompetences extends Module {
     public static APINAME_get_all_suivi_competences_groupe: string = 'get_all_suivi_competences_groupe';
     public static APINAME_duplicate_suivi_competences_rapport: string = 'duplicate_suivi_competences_rapport';
 
+    public static EXPORT_SUIVI_COMPETENCES_RAPPORT: string = "ExportSuiviCompetencesRapport";
+
     public static getInstance(): ModuleSuiviCompetences {
         if (!ModuleSuiviCompetences.instance) {
             ModuleSuiviCompetences.instance = new ModuleSuiviCompetences();

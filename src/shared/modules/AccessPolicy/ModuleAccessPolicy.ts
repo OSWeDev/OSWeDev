@@ -1,6 +1,7 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
@@ -454,7 +455,15 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
+        let datatable: ModuleTable<any> = new ModuleTable(
+            this,
+            UserVO.API_TYPE_ID,
+            () => new UserVO(),
+            datatable_fields,
+            label_field,
+            new DefaultTranslation({ 'fr-fr': "Utilisateurs" }),
+            field_names<UserVO>().name
+        );
         field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
 

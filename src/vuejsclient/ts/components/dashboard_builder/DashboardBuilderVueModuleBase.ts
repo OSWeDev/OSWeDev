@@ -619,7 +619,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             SuiviCompetences,
-            () => new SuiviCompetencesWidgetOptionsVO(null),
+            () => new SuiviCompetencesWidgetOptionsVO(null, null, null),
             null
         );
 

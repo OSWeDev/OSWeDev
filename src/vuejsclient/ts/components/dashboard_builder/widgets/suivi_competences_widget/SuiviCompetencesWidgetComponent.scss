@@ -15,18 +15,6 @@
         font-size: 20px;
     }
 
-    .select_rapport {
-        display: inline-block;
-        width: 60%;
-        vertical-align: middle;
-
-        &.has_selected_rapport {
-            input[type="search"] {
-                display: none;
-            }
-        }
-    }
-
     .item_name {
         min-width: 400px;
     }
@@ -48,15 +36,35 @@
         }
     }
 
-    .multiselect {
-        min-width: inherit;
+    table {
 
-        .multiselect__tags {
-            background: inherit;
-            border: 0;
+        .multiselect {
+            min-width: inherit;
 
-            .multiselect__single {
+            .multiselect__tags {
                 background: inherit;
+                border: 0;
+
+                .multiselect__single {
+                    background: inherit;
+                }
+            }
+
+            .multiselect__option {
+                padding: 0;
+
+                .option__tag {
+                    display: block;
+                    padding: 12px;
+
+                    &:after {
+                        display: none !important;
+                    }
+                }
+
+                &:after {
+                    display: none !important;
+                }
             }
         }
     }
@@ -87,23 +95,6 @@
     .indicateur_value_4 {
         color: #155724;
         background-color: #d4edda;
-    }
-
-    .multiselect__option {
-        padding: 0;
-
-        .option__tag {
-            display: block;
-            padding: 12px;
-
-            &:after {
-                display: none !important;
-            }
-        }
-
-        &:after {
-            display: none !important;
-        }
     }
 
     .prct_niveau_maturite_tsp {

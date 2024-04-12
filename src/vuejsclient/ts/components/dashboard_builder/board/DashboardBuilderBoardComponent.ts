@@ -222,6 +222,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             this.select_widget(page_widget);
         }
 
+        this.is_filtres_deplie = this.dashboard_page?.collapse_filters;
+
         this.editable_dashboard_page = Object.assign({
             layout: this.widgets
         }, this.dashboard_page);

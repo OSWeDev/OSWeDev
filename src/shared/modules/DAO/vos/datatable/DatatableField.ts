@@ -492,6 +492,21 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * Permet de vider les options enabled
+     */
+    public async emptySelectOptionsEnabled(): Promise<DatatableField<T, U>> {
+        this.select_options_enabled = null;
+
+        if (!!this.vue_component) {
+            // on informe
+            this.vue_component.$data.select_options_enabled = null;
+            await this.vue_component.on_reload_field_value();
+        }
+
+        return this;
+    }
+
     public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 

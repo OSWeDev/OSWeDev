@@ -46,12 +46,13 @@
 
     .filters-bloc {
         .header-filters-bloc {
+            padding: 1px 0;
             background-color: lightgrey;
 
             .chevron {
                 position: absolute;
                 right: 5px;
-                top: 15px;
+                top: 12px;
                 cursor: pointer;
             }
 
