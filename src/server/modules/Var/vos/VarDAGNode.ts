@@ -106,6 +106,91 @@ export default class VarDAGNode extends DAGNodeBase {
         VarDAGNode.TAG_7_DELETING
     ];
 
+    private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
+
+    /**
+     * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
+     *  qu'on va switcher sur un mode aggégateur et configurer des aggregated_nodes
+     */
+    public is_aggregator: boolean = false;
+
+    /**
+     * CAS A : On a une noeud de calcul - qui utilise la fonction compute du VarController : Les dépendances descendantes :
+     *  - undefined indique qu'on a pas chargé les deps ou que l'on est en cas B
+     *  - toutes les deps doivent donc être chargées en même temps (c'est le cas dans le fonctionnement actuel des VarsControllers)
+     */
+
+    /**
+     * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés
+     */
+    public aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+
+    /**
+     * Toutes les données chargées pour ce noeud sont disponibles directement ici, classées par datasource
+     */
+    public datasources: { [ds_name: string]: any } = {};
+
+    // public already_tried_loading_data_and_deploy: boolean = false;
+
+    /**
+     * L'étape actuelle du process de calcul du noeud (VarDAGNode.STEP_XXX)
+     */
+    public current_step: number = null;
+
+    /**
+     * On se rajoute un tag pour les noeuds issus d'une demande client à la base, et qui en découlent
+     *  Donc le noeud initial sera is_client_sub == true
+     *  et ses deps is_client_sub_dep == true
+     */
+    public is_client_sub: boolean = false;
+    public is_client_sub_dep: boolean = false;
+
+    /**
+     * On se met l'info d'une demande qui serait initiée par un server sub.
+     *  Donc le noeud initial sera is_server_sub == true
+     *  et ses deps is_server_sub_dep == true
+     */
+    public is_server_sub: boolean = false;
+    public is_server_sub_dep: boolean = false;
+
+    /**
+     * L'usage du constructeur est prohibé, il faut utiliser la factory
+     */
+    private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
+        super();
+    }
+
+
+    /**
+     * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
+     */
+    get is_deletable(): boolean {
+        return !this.hasIncoming;
+    }
+
+    /**
+     * On défini comme computable un noeud dont toutes les dépendances sortantes ont un tag courant >= VarDAGNode.TAG_4_COMPUTED
+     */
+    get is_computable(): boolean {
+
+        // Si on a pas fini de déployer les deps, on peut pas encore savoir si on est computable
+        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
+            return false;
+        }
+
+        for (const i in this.outgoing_deps) {
+            const outgoing_dep = this.outgoing_deps[i];
+
+            if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    get is_notifiable(): boolean {
+        return VarsServerController.has_valid_value(this.var_data);
+    }
 
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
@@ -138,8 +223,6 @@ export default class VarDAGNode extends DAGNodeBase {
 
         return VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
     }
-
-    private static getInstance_semaphores: { [var_dag_uid: number]: { [var_data_index: number]: Promise<VarDAGNode> } } = {};
 
     private static async load_from_db_if_exists(_type: string, index: string): Promise<VarDataBaseVO> {
         const table = ModuleTableController.module_tables_by_vo_type[_type];
@@ -311,59 +394,6 @@ export default class VarDAGNode extends DAGNodeBase {
     // }
 
     /**
-     * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
-     *  qu'on va switcher sur un mode aggégateur et configurer des aggregated_nodes
-     */
-    public is_aggregator: boolean = false;
-
-    /**
-     * CAS A : On a une noeud de calcul - qui utilise la fonction compute du VarController : Les dépendances descendantes :
-     *  - undefined indique qu'on a pas chargé les deps ou que l'on est en cas B
-     *  - toutes les deps doivent donc être chargées en même temps (c'est le cas dans le fonctionnement actuel des VarsControllers)
-     */
-
-    /**
-     * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés
-     */
-    public aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
-
-    /**
-     * Toutes les données chargées pour ce noeud sont disponibles directement ici, classées par datasource
-     */
-    public datasources: { [ds_name: string]: any } = {};
-
-    // public already_tried_loading_data_and_deploy: boolean = false;
-
-    /**
-     * L'étape actuelle du process de calcul du noeud (VarDAGNode.STEP_XXX)
-     */
-    public current_step: number = null;
-
-    /**
-     * On se rajoute un tag pour les noeuds issus d'une demande client à la base, et qui en découlent
-     *  Donc le noeud initial sera is_client_sub == true
-     *  et ses deps is_client_sub_dep == true
-     */
-    public is_client_sub: boolean = false;
-    public is_client_sub_dep: boolean = false;
-
-    /**
-     * On se met l'info d'une demande qui serait initiée par un server sub.
-     *  Donc le noeud initial sera is_server_sub == true
-     *  et ses deps is_server_sub_dep == true
-     */
-    public is_server_sub: boolean = false;
-    public is_server_sub_dep: boolean = false;
-
-    /**
-     * L'usage du constructeur est prohibé, il faut utiliser la factory
-     */
-    private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
-        super();
-    }
-
-
-    /**
      * Pour l'ajout des tags, on veille toujours à vérifier qu'on a pas un tag TO_DELETE, et la possibilité de supprimer le noeud.
      *  Sinon on refuse l'ajout. On a pas non plus le droit de remettre un Tag déjà passé. On peut mettre des tags à venir, mais pas < au current_step
      * @param tag Le tag à ajouter
@@ -473,14 +503,22 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * Ajouter une dépendance descendante sur un noeud, et cabler complètement la dep dans les 2 sens
      * @param dep VarDAGNodeDep dont les outgoings et le name sont défini, le reste n'est pas utile à ce stade
+     * @returns {boolean} true si la dep a été ajoutée, false sinon
      */
-    public addOutgoingDep(dep_name: string, outgoing_node: VarDAGNode) {
+    public addOutgoingDep(dep_name: string, outgoing_node: VarDAGNode): boolean {
 
         /**
          * si la dep est déjà identifiée, ignore
          */
         if (this.outgoing_deps && this.outgoing_deps[dep_name]) {
-            return;
+            return true;
+        }
+
+        /**
+         * Si le noeud de dep est en cours de suppression, on ne peut pas ajouter de dep
+         */
+        if (outgoing_node.tags[VarDAGNode.TAG_7_DELETING] || !outgoing_node.var_dag) {
+            return false;
         }
 
         const dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
@@ -510,6 +548,8 @@ export default class VarDAGNode extends DAGNodeBase {
         // On ajoute la logique de is_client_sub_dep
         outgoing_node.is_client_sub_dep = outgoing_node.is_client_sub_dep || this.is_client_sub || this.is_client_sub_dep;
         outgoing_node.is_server_sub_dep = outgoing_node.is_server_sub_dep || this.is_server_sub || this.is_server_sub_dep;
+
+        return true;
     }
 
     /**
@@ -659,33 +699,6 @@ export default class VarDAGNode extends DAGNodeBase {
         }
     }
 
-    /**
-     * On peut supprimer un noeud à condition qu'il n'ait pas de dépendances entrantes
-     */
-    get is_deletable(): boolean {
-        return !this.hasIncoming;
-    }
-
-    /**
-     * On défini comme computable un noeud dont toutes les dépendances sortantes ont un tag courant >= VarDAGNode.TAG_4_COMPUTED
-     */
-    get is_computable(): boolean {
-
-        // Si on a pas fini de déployer les deps, on peut pas encore savoir si on est computable
-        if (this.current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_2_DEPLOYED]) {
-            return false;
-        }
-
-        for (const i in this.outgoing_deps) {
-            const outgoing_dep = this.outgoing_deps[i];
-
-            if ((outgoing_dep.outgoing_node as VarDAGNode).current_step < VarDAGNode.STEP_TAGS_INDEXES[VarDAGNode.TAG_4_COMPUTED]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private update_current_step_tag() {
         let updated_current_step: number = null;
         let updated_current_step_tag_name: string = null;
@@ -773,9 +786,5 @@ export default class VarDAGNode extends DAGNodeBase {
             // On impacte les parents sur un potentiel is_computable
             this.update_parent_is_computable_if_needed();
         }
-    }
-
-    get is_notifiable(): boolean {
-        return VarsServerController.has_valid_value(this.var_data);
     }
 }

@@ -19,6 +19,7 @@ import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
 import { field_names } from "../../../shared/tools/ObjectHandler";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -550,7 +551,11 @@ export default class VarsDeployDepsHandler {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                }
                 continue;
             }
 
@@ -568,7 +573,11 @@ export default class VarsDeployDepsHandler {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, dep_node);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, dep_node)) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
+                }
             })());
         }
 

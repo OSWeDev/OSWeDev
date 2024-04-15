@@ -183,6 +183,7 @@ export default class ModuleTableController {
         //     return;
         // }
 
+        ModuleTableController.module_tables_by_vo_type[vo_type].default_label_field = null;
         ModuleTableController.table_label_function_by_vo_type[vo_type] = table_label_function;
         ModuleTableController.table_label_function_field_ids_deps_by_vo_type[vo_type] = table_label_function_field_ids_deps;
     }

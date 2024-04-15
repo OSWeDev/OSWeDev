@@ -88,6 +88,7 @@ import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch202403
 import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -171,6 +172,7 @@ export default abstract class GeneratorBase {
             Patch20240222MoveModuleFieldsToParamVOs.getInstance(),
             Patch20240222RenameFieldIdsToFieldNames.getInstance(),
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
+            Patch20240415Adduniqmail_id.getInstance(),
         ];
 
         this.post_modules_workers = [

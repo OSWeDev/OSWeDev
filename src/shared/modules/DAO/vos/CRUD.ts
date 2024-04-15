@@ -322,7 +322,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let label_function = ModuleTableController.table_label_function_by_vo_type[field.foreign_ref_vo_type];
+                let label_function = ModuleTableController.table_label_function_by_vo_type[otherField.foreign_ref_vo_type];
                 if (label_function) {
                     crud.readDatatable.pushField(ManyToManyReferenceDatatableFieldVO.createNew(
                         table.full_name + '_' + field.field_id,

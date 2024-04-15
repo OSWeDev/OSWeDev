@@ -51,7 +51,7 @@ export default class ModuleTableServerController {
 
         const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[e._type];
         if (!fields) {
-            return res as any; // Le typage de Typescript ne comprend pas que si !isArray(e) alors e est de type T et non de type T | T[]
+            return res as U;
         }
         for (const i in fields) {
             const field = fields[i];
@@ -59,7 +59,7 @@ export default class ModuleTableServerController {
             ModuleTableFieldServerController.translate_field_from_db(field, e, res);
         }
 
-        return res as any; // Le typage de Typescript ne comprend pas que si !isArray(e) alors e est de type T et non de type T | T[]
+        return res as U;
     }
 
     /**
