@@ -13,14 +13,6 @@ import VarsComputationHole from './VarsComputationHole';
 
 export default class VarsProcessInvalidator {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!VarsProcessInvalidator.instance) {
-            VarsProcessInvalidator.instance = new VarsProcessInvalidator();
-        }
-        return VarsProcessInvalidator.instance;
-    }
-
     private static instance: VarsProcessInvalidator = null;
 
     private last_clear_datasources_cache: number = null;
@@ -29,8 +21,17 @@ export default class VarsProcessInvalidator {
         protected name: string = 'VarsProcessInvalidator',
         protected thread_sleep: number = 1000) { } // Le push invalidator est fait toutes les secondes de toutes manières
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!VarsProcessInvalidator.instance) {
+            VarsProcessInvalidator.instance = new VarsProcessInvalidator();
+        }
+        return VarsProcessInvalidator.instance;
+    }
+
     public async work(): Promise<void> {
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
 
             let did_something = false;

@@ -75,14 +75,6 @@ export default class ModuleDAO extends Module {
 
     public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleDAO.instance) {
-            ModuleDAO.instance = new ModuleDAO();
-        }
-        return ModuleDAO.instance;
-    }
-
     private static instance: ModuleDAO = null;
 
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
@@ -170,6 +162,14 @@ export default class ModuleDAO extends Module {
 
         super("dao", ModuleDAO.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleDAO.instance) {
+            ModuleDAO.instance = new ModuleDAO();
+        }
+        return ModuleDAO.instance;
     }
 
     public registerApis() {
@@ -310,10 +310,10 @@ export default class ModuleDAO extends Module {
     }
 
     public initialize() {
-        this.init_ModuleTableVO();
-        this.init_ModuleTableCompositeUniqueKeyVO();
         this.init_CRUDFieldRemoverConfVO();
+        this.init_ModuleTableVO();
         this.init_ModuleTableFieldVO();
+        this.init_ModuleTableCompositeUniqueKeyVO();
     }
 
     public get_compute_function_uid(vo_type: string) {
@@ -344,8 +344,7 @@ export default class ModuleDAO extends Module {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        const isModulesParams: boolean = ModuleTableController.module_tables_by_vo_type[vo_type].is_module_param_table;
-        return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
+        return ModuleDAO.POLICY_GROUP_DATAS + '.' + access_type + "." + vo_type;
     }
 
     private init_CRUDFieldRemoverConfVO() {
@@ -375,7 +374,6 @@ export default class ModuleDAO extends Module {
         ModuleTableController.create_new(this.name, ModuleTableFieldVO, label_field, "Format des champs de table");
 
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().secure_boolean_switch_only_server_side, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Sécurisé côté serveur', true, true, false);
-        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_moduletable_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table liée', false).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().foreign_ref_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType lié', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Table', true).set_many_to_one_target_moduletable_name(ModuleTableVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().module_table_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VOType', true);
@@ -431,7 +429,6 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().label, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Label', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().default_label_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de label par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().importable, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Importable', true, true, false);
-        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_module_param_table, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de paramètres', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().inherit_rights_from_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'Hérite des droits de', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_matroid_table, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de matroids', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().any_to_many_default_behaviour_show, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher par défaut les relations many to many', true, true, true);

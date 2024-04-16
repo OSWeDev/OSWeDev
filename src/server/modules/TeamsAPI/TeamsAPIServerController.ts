@@ -134,22 +134,23 @@ export default class TeamsAPIServerController {
 
             if (message.length > ConfigurationService.node_configuration.teams_webhook__message_max_size) {
 
-                if (ConfigurationService.node_configuration.teams_webhook__message_max_size_auto_summarize) {
-                    try {
+                // if (ConfigurationService.node_configuration.teams_webhook__message_max_size_auto_summarize) {
+                //     try {
 
-                        const response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
-                            GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
-                            null,
-                            'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.teams_webhook__message_max_size * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
-                        ));
-                        message = response.content;
-                    } catch (error) {
-                        ConsoleHandler.error('Impossible de résumer le message trop long pour Teams via GPT:' + error);
-                        message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
-                    }
-                } else {
-                    message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
-                }
+                //         // TODO FIXME Passer en assistant et ATTENTION au coût potentiel de cet appel à l'API
+                //         const response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                //             GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
+                //             null,
+                //             'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.teams_webhook__message_max_size * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
+                //         ));
+                //         message = response.content;
+                //     } catch (error) {
+                //         ConsoleHandler.error('Impossible de résumer le message trop long pour Teams via GPT:' + error);
+                //         message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+                //     }
+                // } else {
+                message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+                // }
             }
 
             m.summary = message;

@@ -31,6 +31,8 @@ export default class Datatable<T extends IDistantVOBase> {
                 return field;
             }
         }
+
+        return null;
     }
 
     public set_conditional_show(conditional_show: (dataVO: IDistantVOBase) => boolean): Datatable<T> {

@@ -19,6 +19,7 @@ import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
 import { field_names } from "../../../shared/tools/ObjectHandler";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -168,9 +169,10 @@ export default class VarsDeployDepsHandler {
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        const pixel_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+        const pixel_query_indexes = [];
+        MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data, pixel_query_indexes);
 
-        if (!pixel_query_indexes) {
+        if ((!pixel_query_indexes) || (!pixel_query_indexes.length)) {
             ConsoleHandler.error('No pixel_query_indexes for node:' + node.var_data.index);
             throw new Error('No pixel_query_indexes for node:' + node.var_data.index);
         }
@@ -315,9 +317,10 @@ export default class VarsDeployDepsHandler {
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        const known_pixels_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+        const known_pixels_query_indexes = [];
+        MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data, known_pixels_query_indexes);
 
-        if (!known_pixels_query_indexes) {
+        if ((!known_pixels_query_indexes) || (!known_pixels_query_indexes.length)) {
             ConsoleHandler.error('No iknown_pixels_query_indexes for node:' + node.var_data.index);
             throw new Error('No known_pixels_query_indexes for node:' + node.var_data.index);
         }
@@ -397,7 +400,7 @@ export default class VarsDeployDepsHandler {
     /**
      * On génère tous les pixels nécessaires, et à chaque fois, si on le trouve dans la liste des pixels connus, on ne crée pas le noeuds
      *  puisque le résultat est déjà connu/inclut dans le aggregated_value
-     * On part en récursif, et à chaque fois on cherche un champs à pixellisé.
+     * On part en récursif, et à chaque fois on cherche un champs à pixelliser.
      *      Si on en trouve plus (après le dernier champ pixellisé), on ajoute le pixel dans le aggregated_datas
      *      Si on en trouve => on déploie cette dimension, et pour chaque valeur, si on la trouve dans le aggregated, on ignore,
      *          sinon on recurse en clonant le var_data et en settant le field déployé
@@ -417,12 +420,12 @@ export default class VarsDeployDepsHandler {
             if (!can_check_field) {
                 if (i == current_pixellised_field_name) {
                     can_check_field = true;
-                    continue;
                 }
+                continue;
             }
 
             const field = ModuleTableController.module_tables_by_vo_type[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_name);
-            const segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_name]) ? var_conf.segment_types[field.field_name] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+            const segment_type = (var_conf.segment_types && (var_conf.segment_types[field.field_name] != null)) ? var_conf.segment_types[field.field_name] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
 
             RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_name], (pixel_value: number) => {
 
@@ -548,7 +551,11 @@ export default class VarsDeployDepsHandler {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                }
                 continue;
             }
 
@@ -566,7 +573,11 @@ export default class VarsDeployDepsHandler {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, dep_node);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, dep_node)) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
+                }
             })());
         }
 

@@ -15,6 +15,8 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
@@ -36,6 +38,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -49,6 +52,8 @@ const { parse } = require('flatted/cjs');
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
+    public static FEEDBACK_ASSISTANT_ID: string = 'FEEDBACK_ASSISTANT_ID';
+    public static FEEDBACK_ASSISTANT_NAME: string = 'Feedback - Assistant pour résumer';
 
     public static FEEDBACK_TRELLO_LIST_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_LIST_ID';
     public static TEAMS_WEBHOOK_PARAM_NAME: string = 'ModuleFeedbackServer.TEAMS_WEBHOOK';
@@ -64,14 +69,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     public static FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT';
     public static FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_ROUTE_LIMIT';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleFeedbackServer.instance) {
-            ModuleFeedbackServer.instance = new ModuleFeedbackServer();
-        }
-        return ModuleFeedbackServer.instance;
-    }
-
     private static TRELLO_LINE_SEPARATOR: string = '\x0A';
     private static TRELLO_SECTION_SEPARATOR: string = ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '---' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
 
@@ -80,6 +77,14 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleFeedback.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleFeedbackServer.instance) {
+            ModuleFeedbackServer.instance = new ModuleFeedbackServer();
+        }
+        return ModuleFeedbackServer.instance;
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -465,21 +470,29 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
-            // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
-            // let gtp_4_brief_msg = await GPTServerController.ask_assistant(
-            //     'g-4dPuTN6RY-celia-c-dms-mail-writer',
-            //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
-            //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-            //     'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
-            //     'Ci-après les éléments constituant le formulaire de contact client : {' +
+            // const gpt_assistant_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
+
+            // if (!gpt_assistant_id) {
+            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: Le paramètre ' + ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID + ' doit être renseigné pour envoyer les réponses GPT aux équipes');
+            //     return;
+            // }
+
+            // const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_id(gpt_assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>();
+
+            // if (!assistant) {
+            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: L\'assistant GPT ' + gpt_assistant_id + ' n\'existe pas');
+            //     return;
+            // }
+
+            // const gtp_4_brief: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
+            //     assistant.gpt_assistant_id,
+            //     null,
             //     ' - Titre du formulaire : ' + feedback.title + ' ' +
             //     ' - Message : ' + feedback.message + ' ' +
             //     ' - Infos de l\'utilisateur : ' + user_infos +
-            //     ' - feedback_infos : ' + feedback_infos +
-            //     ' - console_logs_errors : ' + console_logs_errors);
-            // let gtp_4_brief = {
-            //     content: gtp_4_brief_msg
-            // };
+            //     ' - feedback_infos : ' + feedback_infos,
+            //     null,
+            //     uid);
 
 
             const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(

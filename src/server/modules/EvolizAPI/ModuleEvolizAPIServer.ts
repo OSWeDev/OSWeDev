@@ -1,9 +1,9 @@
-import moment from 'moment';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
@@ -14,10 +14,12 @@ import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
 import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
 import EvolizProspectVO from '../../../shared/modules/EvolizAPI/vos/prospects/EvolizProspectVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -26,14 +28,6 @@ import EvolizAPIToken from './vos/EvolizAPIToken';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleEvolizAPIServer.instance) {
-            ModuleEvolizAPIServer.instance = new ModuleEvolizAPIServer();
-        }
-        return ModuleEvolizAPIServer.instance;
-    }
-
     private static instance: ModuleEvolizAPIServer = null;
 
     private token: EvolizAPIToken = null;
@@ -41,6 +35,14 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleEvolizAPI.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleEvolizAPIServer.instance) {
+            ModuleEvolizAPIServer.instance = new ModuleEvolizAPIServer();
+        }
+        return ModuleEvolizAPIServer.instance;
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -98,9 +100,18 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
-        // Si j'ai un token et que il est encore ACTIF, je ne fais rien
-        if (this.token && this.token.expires_at.isBefore(moment())) {
-            return this.token;
+        // Si j'ai un token et qu'il est encore ACTIF, je ne fais rien
+        if (this.token && this.token.expires_at) {
+
+            let evoliz_time = this.token.expires_at.valueOf() / 1000;
+            let now = Dates.now();
+            let expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
+            if (expiration) {
+
+                ConsoleHandler.log('Temps actuel: ' + now + ' - Temps expiration: ' + evoliz_time);
+                ConsoleHandler.log('Token EvolizAPI encore valide. Token = ' + this.token.access_token.substring(0, 10) + '...');
+                return this.token;
+            }
         }
 
         // Sinon, je me connecte
@@ -130,15 +141,15 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
         if (return_connect) {
             this.token = return_connect;
+            console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
+        } else {
+            console.error("Erreur connexion à l'API Evoliz (demande de token).");
         }
     }
 
     // DEVIS
     public async list_devis(): Promise<EvolizDevisVO[]> {
         try {
-            // let devis: EvolizDevisVO[] = await this.get_all_pages('/api/v1/quotes') as EvolizDevisVO[];
-
-            // return devis;
             const token: EvolizAPIToken = await this.getToken();
 
             let res: EvolizDevisVO[] = [];

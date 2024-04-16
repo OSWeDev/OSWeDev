@@ -4,6 +4,7 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ActionURLVO from '../ActionURL/vos/ActionURLVO';
+import ManualTasksController from '../Cron/ManualTasksController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
@@ -22,6 +23,7 @@ import GPTAssistantAPIAssistantVO from './vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIFileVO from './vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from './vos/GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIFunctionVO from './vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIRunUsageVO from './vos/GPTAssistantAPIRunUsageVO';
 import GPTAssistantAPIRunVO from './vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageContentVO from './vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageFileVO from './vos/GPTAssistantAPIThreadMessageFileVO';
@@ -39,26 +41,15 @@ export default class ModuleGPT extends Module {
     public static APINAME_generate_response: string = "modulegpt_generate_response";
     public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
 
+    public static MANUAL_TASK_NAME_reload_openai_runs_datas: string = ModuleGPT.MODULE_NAME + ".reload_openai_runs_datas";
+
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".FO_ACCESS";
 
     public static POLICY_ASSISTANT_FILES_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ASSISTANT_FILES_ACCESS";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleGPT {
-        if (!ModuleGPT.instance) {
-            ModuleGPT.instance = new ModuleGPT();
-        }
-        return ModuleGPT.instance;
-    }
-
     private static instance: ModuleGPT = null;
-
-    public generate_response: (
-        conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO
-    ) => Promise<GPTCompletionAPIMessageVO> = APIControllerWrapper.sah<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(
-        ModuleGPT.APINAME_generate_response);
 
     /**
      * Demander un run d'un assistant suite à un nouveau message
@@ -77,11 +68,23 @@ export default class ModuleGPT extends Module {
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(
         ModuleGPT.APINAME_ask_assistant);
 
+    public generate_response: (
+        conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO
+    ) => Promise<GPTCompletionAPIMessageVO> = APIControllerWrapper.sah<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(
+        ModuleGPT.APINAME_generate_response);
 
     private constructor() {
 
         super("gpt", ModuleGPT.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleGPT {
+        if (!ModuleGPT.instance) {
+            ModuleGPT.instance = new ModuleGPT();
+        }
+        return ModuleGPT.instance;
     }
 
     public registerApis() {
@@ -110,6 +113,8 @@ export default class ModuleGPT extends Module {
 
     public initialize() {
 
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = null;
+
         this.initializeGPTCompletionAPIConversationVO();
         this.initializeGPTCompletionAPIMessageVO();
 
@@ -125,6 +130,7 @@ export default class ModuleGPT extends Module {
         this.initializeGPTAssistantAPIFunctionParamVO();
         this.initializeGPTAssistantAPIThreadVO();
         this.initializeGPTAssistantAPIRunVO();
+        this.initializeGPTAssistantAPIRunUsageVO();
         this.initializeGPTAssistantAPIThreadMessageVO();
         this.initializeGPTAssistantAPIThreadMessageFileVO();
         this.initializeGPTAssistantAPIThreadMessageContentVO();
@@ -251,6 +257,7 @@ export default class ModuleGPT extends Module {
         ];
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIAssistantVO, label, 'GPT Assistant API - Assistant');
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIFunctionVO() {
@@ -266,6 +273,7 @@ export default class ModuleGPT extends Module {
         ];
 
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionVO, label, 'GPT Assistant API - Fonction');
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIAssistantFunctionVO() {
@@ -326,6 +334,7 @@ export default class ModuleGPT extends Module {
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionParamVO, null, 'GPT Assistant API - Param de Fonction');
 
         function_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIFunctionVO.API_TYPE_ID);
+        VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeGPTAssistantAPIThreadVO() {
@@ -362,18 +371,41 @@ export default class ModuleGPT extends Module {
         const assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true);
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
-        const fields = [
-            thread_id,
-            assistant_id,
-            label
-        ];
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_thread_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Thread ID', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Assistant ID', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().status, ModuleTableFieldVO.FIELD_TYPE_string, 'Status', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().required_action, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Action requise', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().last_error, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dernière erreur', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().expires_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().started_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().cancelled_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'annulation', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().failed_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'échec', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().completed_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().tools, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Outils', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().file_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fichiers', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().temperature, ModuleTableFieldVO.FIELD_TYPE_float, 'Température', false);
 
-        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIRunVO, label, 'GPT Assistant API - Tâche');
+        ModuleTableController.create_new(this.name, GPTAssistantAPIRunVO, label, 'GPT Assistant API - Tâche');
 
         thread_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
     }
 
+    private initializeGPTAssistantAPIRunUsageVO() {
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run', true)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().completion_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Output', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().prompt_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Input', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().total_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens total', false, true, 0);
+
+        ModuleTableController.create_new(this.name, GPTAssistantAPIRunUsageVO, null, 'GPT Assistant API - Tâche - Consommation');
+    }
 
     private initializeGPTAssistantAPIThreadMessageVO() {
 

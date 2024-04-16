@@ -20,6 +20,7 @@ export default class ModuleSupervision extends Module {
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleSupervision.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".FO_ACCESS";
 
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
@@ -45,13 +46,13 @@ export default class ModuleSupervision extends Module {
 
     public registerApis() {
         APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
-            ModuleSupervision.POLICY_BO_ACCESS,
+            ModuleSupervision.POLICY_FO_ACCESS,
             ModuleSupervision.APINAME_execute_manually,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<String2ParamVO, void>(
-            ModuleSupervision.POLICY_BO_ACCESS,
+            ModuleSupervision.POLICY_FO_ACCESS,
             ModuleSupervision.APINAME_refresh_one_manually,
             (param: String2ParamVO) => [param.text],
             String2ParamVOStatic
@@ -76,12 +77,11 @@ export default class ModuleSupervision extends Module {
 
     private initializeSupervisedCRONVO() {
 
-        const fields = [
-            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true),
-            ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true),
-        ];
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true);
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true);
 
-        const datatable = ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON");
-        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
+        SupervisionController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON"),
+            SupervisedCRONController.getInstance());
     }
 }

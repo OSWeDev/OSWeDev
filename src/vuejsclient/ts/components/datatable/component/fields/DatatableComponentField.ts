@@ -104,26 +104,14 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private is_load: boolean = false;
 
-    get field_type(): string {
-        return this.field?.field_type || ModuleTableFieldVO.FIELD_TYPE_int; // Pour le cas de l'id
-    }
     private var_value: VarDataValueResVO = null;
 
     private custom_style: string = null;
 
     private throttle_init_custom_style = ThrottleHelper.declare_throttle_without_args(this.init_custom_style.bind(this), 50, { leading: false });
 
-    public async mounted() {
-        if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
-            this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                DAOController.getAccessPolicyName(
-                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
-                    (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type
-                )
-            );
-        }
-
-        this.is_load = true;
+    get field_type(): string {
+        return this.field?.field_type || ModuleTableFieldVO.FIELD_TYPE_int; // Pour le cas de l'id
     }
 
     get component_key(): string {
@@ -137,12 +125,122 @@ export default class DatatableComponentField extends VueComponentBase {
         return key + this.vo['__crud_actions'];
     }
 
+    get field_value(): any {
+
+        // if (this.vo[this.field.datatable_field_uid] == null) {
+        //     return this.vo[this.field.datatable_field_uid];
+        // }
+
+        // switch (this.field.type) {
+        //     case DatatableField.SIMPLE_FIELD_TYPE:
+
+        //         switch (this.simple_field.field_type) {
+        //             case ModuleTableFieldVO.FIELD_TYPE_enum:
+
+        //                 let enum_val = this.vo[this.field.datatable_field_uid];
+        //                 return this.t(this.simple_field.enum_values[enum_val]);
+
+        //             default:
+        //                 return this.vo[this.field.datatable_field_uid];
+        //         }
+        //     default:
+
+        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
+        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            if (
+                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
+                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array)
+            ) {
+                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
+            }
+
+            if (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) {
+                if (!this.vo[this.field.datatable_field_uid + '__raw']) {
+                    return null;
+                }
+
+                if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
+
+                    if (this.field.moduleTableField.translatable_params_field_name) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw'], params);
+                    } else {
+                        return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
+                    }
+                }
+
+                if (this.vo[this.field.datatable_field_uid + '__raw'].length == 0) {
+                    return null;
+                }
+
+                const res = [];
+                for (const i in this.vo[this.field.datatable_field_uid + '__raw']) {
+                    const translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
+
+                    if (this.field.moduleTableField.translatable_params_field_name) {
+                        let params = null;
+                        try {
+                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name][i]);
+                        } catch (error) {
+                            ConsoleHandler.error(error);
+                        }
+                        res.push(this.label(translatable_text, params));
+                    } else {
+                        res.push(this.label(translatable_text));
+                    }
+                }
+
+                return res.join(', ');
+            }
+        }
+
+        return this.vo[this.field.datatable_field_uid];
+        // }
+    }
+
+    get simple_field(): SimpleDatatableFieldVO<any, any> {
+        return (this.field as SimpleDatatableFieldVO<any, any>);
+    }
+
+    get transliterate_enum_value_to_class_name(): string {
+        return ((this.field_value !== null && this.field_value !== undefined) ? this.field_value.toString().replace(/[^a-zA-Z0-9-_]/ig, '_') : this.field_value);
+    }
+
+    get is_custom_field_type(): boolean {
+        return !!this.custom_field_types;
+    }
+
+    get custom_field_types(): TableFieldTypeControllerBase {
+        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
+        }
+
+        return null;
+    }
+
     @Watch('with_style', { immediate: true })
     @Watch('var_value')
     private async onchange_var_value() {
         this.throttle_init_custom_style();
     }
 
+    public async mounted() {
+        if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
+            this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
+                DAOController.getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type
+                )
+            );
+        }
+
+        this.is_load = true;
+    }
 
     private get_crud_link(api_type_id: string, vo_id: number) {
         if (!this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE) {
@@ -177,6 +275,58 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private get_filtered_value(val) {
 
+        if (val == null) {
+            return null;
+        }
+
+        /**
+         * Cas spécifique lié à l'aggrégation :
+         *  On peut avoir des tableaux, alors qu'on attend des valeurs simples
+         */
+        switch (this.field_type) {
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                /**
+                 * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
+                 */
+
+                if (Array.isArray(val)) {
+                    let res = null;
+
+                    for (const i in val) {
+                        const this_val = val[i];
+                        const filtered_val = this.get_filtered_value_ungrouped(this_val);
+
+                        if (filtered_val == null) {
+                            continue;
+                        }
+
+                        if (!res) {
+                            res = filtered_val;
+                            continue;
+                        }
+
+                        res += ', ' + filtered_val;
+                    }
+
+                    return res;
+                } else {
+                    return this.get_filtered_value_ungrouped(val);
+                }
+
+            default:
+                return this.get_filtered_value_ungrouped(val);
+        }
+    }
+
+    private get_filtered_value_ungrouped(val) {
         if (val == null) {
             return null;
         }
@@ -260,10 +410,6 @@ export default class DatatableComponentField extends VueComponentBase {
         return var_value.value;
     }
 
-    get simple_field(): SimpleDatatableFieldVO<any, any> {
-        return (this.field as SimpleDatatableFieldVO<any, any>);
-    }
-
     private get_segmented_max(range: IRange) {
         if (!range) {
             return null;
@@ -282,99 +428,5 @@ export default class DatatableComponentField extends VueComponentBase {
 
     private refresh() {
         this.$emit('refresh');
-    }
-
-    get field_value(): any {
-
-        // if (this.vo[this.field.datatable_field_uid] == null) {
-        //     return this.vo[this.field.datatable_field_uid];
-        // }
-
-        // switch (this.field.type) {
-        //     case DatatableField.SIMPLE_FIELD_TYPE:
-
-        //         switch (this.simple_field.field_type) {
-        //             case ModuleTableFieldVO.FIELD_TYPE_enum:
-
-        //                 let enum_val = this.vo[this.field.datatable_field_uid];
-        //                 return this.t(this.simple_field.enum_values[enum_val]);
-
-        //             default:
-        //                 return this.vo[this.field.datatable_field_uid];
-        //         }
-        //     default:
-
-        // Si je suis sur un champ HTML, je cherche à afficher les balises HTML
-        if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-            if (
-                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html) ||
-                (this.simple_field.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array)
-            ) {
-                return this.explicit_html ? this.vo[this.field.datatable_field_uid + '__raw'] : this.vo[this.field.datatable_field_uid];
-            }
-
-            if (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text) {
-                if (!this.vo[this.field.datatable_field_uid + '__raw']) {
-                    return null;
-                }
-
-                if (!isArray(this.vo[this.field.datatable_field_uid + '__raw'])) {
-
-                    if (this.field.moduleTableField.translatable_params_field_name) {
-                        let params = null;
-                        try {
-                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name]);
-                        } catch (error) {
-                            ConsoleHandler.error(error);
-                        }
-                        return this.label(this.vo[this.field.datatable_field_uid + '__raw'], params);
-                    } else {
-                        return this.label(this.vo[this.field.datatable_field_uid + '__raw']);
-                    }
-                }
-
-                if (this.vo[this.field.datatable_field_uid + '__raw'].length == 0) {
-                    return null;
-                }
-
-                const res = [];
-                for (const i in this.vo[this.field.datatable_field_uid + '__raw']) {
-                    const translatable_text = this.vo[this.field.datatable_field_uid + '__raw'][i];
-
-                    if (this.field.moduleTableField.translatable_params_field_name) {
-                        let params = null;
-                        try {
-                            params = JSON.parse(this.vo[this.field.moduleTableField.translatable_params_field_name][i]);
-                        } catch (error) {
-                            ConsoleHandler.error(error);
-                        }
-                        res.push(this.label(translatable_text, params));
-                    } else {
-                        res.push(this.label(translatable_text));
-                    }
-                }
-
-                return res.join(', ');
-            }
-        }
-
-        return this.vo[this.field.datatable_field_uid];
-        // }
-    }
-
-    get transliterate_enum_value_to_class_name(): string {
-        return ((this.field_value !== null && this.field_value !== undefined) ? this.field_value.toString().replace(/[^a-zA-Z0-9-_]/ig, '_') : this.field_value);
-    }
-
-    get is_custom_field_type(): boolean {
-        return !!this.custom_field_types;
-    }
-
-    get custom_field_types(): TableFieldTypeControllerBase {
-        if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-            return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[this.simple_field.field_type];
-        }
-
-        return null;
     }
 }

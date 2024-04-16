@@ -2,21 +2,10 @@ import { RouteConfig } from 'vue-router';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import MenuController from '../menu/MenuController';
-import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class CRUDComponentManager {
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-
-        if (!CRUDComponentManager.instance) {
-            CRUDComponentManager.instance = new CRUDComponentManager();
-        }
-        return CRUDComponentManager.instance;
-    }
 
     private static instance: CRUDComponentManager;
 
@@ -26,6 +15,15 @@ export default class CRUDComponentManager {
 
     public inline_input_mode_semaphore: boolean = false;
     public inline_input_mode_semaphore_disable_cb: { [ii_id: number]: () => void } = {};
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+
+        if (!CRUDComponentManager.instance) {
+            CRUDComponentManager.instance = new CRUDComponentManager();
+        }
+        return CRUDComponentManager.instance;
+    }
 
     public async registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],
@@ -106,34 +104,32 @@ export default class CRUDComponentManager {
                 meta: routes_meta ? routes_meta : undefined
             });
 
-            if (!ModuleTableController.module_tables_by_vo_type[crud.readDatatable.API_TYPE_ID].is_module_param_table) {
-                routes.push({
-                    path: url + "/create",
-                    name: route_name + " --CREATE",
-                    component: () => import('../../components/crud/component/CRUDComponent'),
-                    props: (route) => ({
-                        crud: crud,
-                        key: '__manage__' + API_TYPE_ID,
-                        modal_show_create: true,
-                        sort_id_descending: sort_id_descending,
-                    }),
-                    meta: routes_meta ? routes_meta : undefined
-                });
+            routes.push({
+                path: url + "/create",
+                name: route_name + " --CREATE",
+                component: () => import('../../components/crud/component/CRUDComponent'),
+                props: (route) => ({
+                    crud: crud,
+                    key: '__manage__' + API_TYPE_ID,
+                    modal_show_create: true,
+                    sort_id_descending: sort_id_descending,
+                }),
+                meta: routes_meta ? routes_meta : undefined
+            });
 
-                routes.push({
-                    path: url + "/delete/:id",
-                    name: route_name + " --DELETE",
-                    component: () => import('../../components/crud/component/CRUDComponent'),
-                    props: (route) => ({
-                        crud: crud,
-                        key: '__manage__' + API_TYPE_ID,
-                        modal_show_delete: true,
-                        modal_vo_id: parseInt(route.params.id),
-                        sort_id_descending: sort_id_descending,
-                    }),
-                    meta: routes_meta ? routes_meta : undefined
-                });
-            }
+            routes.push({
+                path: url + "/delete/:id",
+                name: route_name + " --DELETE",
+                component: () => import('../../components/crud/component/CRUDComponent'),
+                props: (route) => ({
+                    crud: crud,
+                    key: '__manage__' + API_TYPE_ID,
+                    modal_show_delete: true,
+                    modal_vo_id: parseInt(route.params.id),
+                    sort_id_descending: sort_id_descending,
+                }),
+                meta: routes_meta ? routes_meta : undefined
+            });
         }
 
         if (menuElement) {

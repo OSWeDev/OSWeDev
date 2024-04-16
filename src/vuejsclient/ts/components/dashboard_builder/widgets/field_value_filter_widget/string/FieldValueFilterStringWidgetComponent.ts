@@ -140,14 +140,373 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
 
-    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+    get has_content_filter_type(): { [filter_type: number]: boolean } {
+        const res: { [filter_type: number]: boolean } = {
+            [AdvancedStringFilter.FILTER_TYPE_COMMENCE]: true,
+            [AdvancedStringFilter.FILTER_TYPE_COMMENCE_PAS]: true,
+            [AdvancedStringFilter.FILTER_TYPE_CONTIENT]: true,
+            [AdvancedStringFilter.FILTER_TYPE_CONTIENT_PAS]: true,
+            [AdvancedStringFilter.FILTER_TYPE_EST]: true,
+            [AdvancedStringFilter.FILTER_TYPE_EST_NULL]: false,
+            [AdvancedStringFilter.FILTER_TYPE_EST_VIDE]: false,
+            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS]: true,
+            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
+            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE]: false,
+        };
 
-    private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_reseter(
-            this.dashboard_page,
-            this.page_widget,
-            this.reset_visible_options.bind(this),
-        );
+        return res;
+    }
+
+    get is_advanced_filter_valid(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        if ((!this.advanced_string_filters) || (!this.advanced_string_filters.length)) {
+            return false;
+        }
+
+        for (const i in this.advanced_string_filters) {
+            const advanced_string_filter = this.advanced_string_filters[i];
+
+            if (!this.has_content_filter_type[advanced_string_filter.filter_type]) {
+                continue;
+            }
+
+            if (advanced_string_filter.filter_content == '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    get link_type_labels(): { [link_type: number]: string } {
+        return AdvancedStringFilter.FILTER_TYPE_LABELS;
+    }
+
+    get placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
+    }
+
+    get advanced_mode_placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)];
+    }
+
+    get can_select_multiple(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_multiple;
+    }
+
+    get show_search_field(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.show_search_field;
+    }
+
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
+    }
+
+    get separation_active_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.separation_active_filter;
+    }
+
+    get is_checkbox(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_checkbox;
+    }
+
+    get is_button(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_button;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
+
+        if (!can_select_all) {
+            return can_select_all;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < query_limit;
+    }
+
+    /**
+     * Can select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_none;
+    }
+
+    get hide_lvl2_if_lvl1_not_selected(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get vo_field_ref_lvl2(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref_lvl2)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref_lvl2);
+    }
+
+    get vo_field_sort(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_sort)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_sort);
+    }
+
+    get vo_field_sort_lvl2(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_sort_lvl2)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
+    }
+
+    get advanced_mode(): boolean {
+        return this.widget_options.advanced_mode;
+    }
+
+    get default_advanced_string_filter_type(): number {
+        return this.widget_options.default_advanced_string_filter_type;
+    }
+
+    get hide_btn_switch_advanced(): boolean {
+        return this.widget_options.hide_btn_switch_advanced;
+    }
+
+    get no_inter_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.no_inter_filter;
+    }
+
+    get has_other_ref_api_type_id(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.has_other_ref_api_type_id;
+    }
+
+    get other_ref_api_type_id(): string {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.other_ref_api_type_id;
+    }
+
+    get hide_advanced_string_filter_type(): boolean {
+        return this.widget_options.hide_advanced_string_filter_type;
+    }
+
+    get vo_field_ref_multiple(): VOFieldRefVO[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
+            return null;
+        }
+
+        const res: VOFieldRefVO[] = [];
+
+        for (const i in options.vo_field_ref_multiple) {
+            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_ref_multiple[i]));
+        }
+
+        return res;
+    }
+
+    get default_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        const res: DataFilterOption[] = [];
+
+        for (const i in options.default_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.default_filter_opt_values[i].select_state,
+                options.default_filter_opt_values[i].label,
+                options.default_filter_opt_values[i].id,
+                options.default_filter_opt_values[i].disabled_state_selected,
+                options.default_filter_opt_values[i].disabled_state_selectable,
+                options.default_filter_opt_values[i].disabled_state_unselectable,
+                options.default_filter_opt_values[i].img,
+                options.default_filter_opt_values[i].desc,
+                options.default_filter_opt_values[i].boolean_value,
+                options.default_filter_opt_values[i].numeric_value,
+                options.default_filter_opt_values[i].string_value,
+                options.default_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
+    get exclude_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
+            return null;
+        }
+
+        const res: DataFilterOption[] = [];
+
+        for (const i in options.exclude_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.exclude_filter_opt_values[i].select_state,
+                options.exclude_filter_opt_values[i].label,
+                options.exclude_filter_opt_values[i].id,
+                options.exclude_filter_opt_values[i].disabled_state_selected,
+                options.exclude_filter_opt_values[i].disabled_state_selectable,
+                options.exclude_filter_opt_values[i].disabled_state_unselectable,
+                options.exclude_filter_opt_values[i].img,
+                options.exclude_filter_opt_values[i].desc,
+                options.exclude_filter_opt_values[i].boolean_value,
+                options.exclude_filter_opt_values[i].numeric_value,
+                options.exclude_filter_opt_values[i].string_value,
+                options.exclude_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
+    get autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.autovalidate_advanced_filter;
+    }
+
+    get active_field_on_autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
+    }
+
+    get is_translatable_type(): boolean {
+        if (!this.vo_field_ref) {
+            return false;
+        }
+
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
+        if (!moduletable) {
+            return false;
+        }
+
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        if (!field) {
+            return false;
+        }
+
+        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
+    }
+
+    get base_filter(): string {
+        return 'filter_opt_' + this.page_widget.id + '_';
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     get div_column_class(): string {
@@ -281,6 +640,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         return options;
     }
+
+
 
     /**
      * Watch on widget_options
@@ -476,6 +837,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id
         });
+    }
+
+    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_reseter(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     /**
@@ -1576,374 +1947,5 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 (e) => e.label == dfo.label
             );
         }
-    }
-
-    get has_content_filter_type(): { [filter_type: number]: boolean } {
-        const res: { [filter_type: number]: boolean } = {
-            [AdvancedStringFilter.FILTER_TYPE_COMMENCE]: true,
-            [AdvancedStringFilter.FILTER_TYPE_COMMENCE_PAS]: true,
-            [AdvancedStringFilter.FILTER_TYPE_CONTIENT]: true,
-            [AdvancedStringFilter.FILTER_TYPE_CONTIENT_PAS]: true,
-            [AdvancedStringFilter.FILTER_TYPE_EST]: true,
-            [AdvancedStringFilter.FILTER_TYPE_EST_NULL]: false,
-            [AdvancedStringFilter.FILTER_TYPE_EST_VIDE]: false,
-            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS]: true,
-            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
-            [AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE]: false,
-        };
-
-        return res;
-    }
-
-    get is_advanced_filter_valid(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        if ((!this.advanced_string_filters) || (!this.advanced_string_filters.length)) {
-            return false;
-        }
-
-        for (const i in this.advanced_string_filters) {
-            const advanced_string_filter = this.advanced_string_filters[i];
-
-            if (!this.has_content_filter_type[advanced_string_filter.filter_type]) {
-                continue;
-            }
-
-            if (advanced_string_filter.filter_content == '') {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    get link_type_labels(): { [link_type: number]: string } {
-        return AdvancedStringFilter.FILTER_TYPE_LABELS;
-    }
-
-    get placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
-    }
-
-    get advanced_mode_placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)];
-    }
-
-    get can_select_multiple(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_multiple;
-    }
-
-    get show_search_field(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.show_search_field;
-    }
-
-    get add_is_null_selectable(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.add_is_null_selectable;
-    }
-
-    get separation_active_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.separation_active_filter;
-    }
-
-    get is_checkbox(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.is_checkbox;
-    }
-
-    get is_button(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.is_button;
-    }
-
-    /**
-     * Can Select All
-     *  - Can select all clickable text
-     */
-    get can_select_all(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        const can_select_all = !!this.widget_options.can_select_all;
-        const query_limit = this.widget_options.max_visible_options;
-
-        if (!can_select_all) {
-            return can_select_all;
-        }
-
-        // May be shown only if active filter options
-        // length smaller than actual query limit
-        return this.filter_visible_options?.length < query_limit;
-    }
-
-    /**
-     * Can select None
-     *  - Can select none clickable text
-     */
-    get can_select_none(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_none;
-    }
-
-    get hide_lvl2_if_lvl1_not_selected(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get vo_field_ref_lvl2(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref_lvl2)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref_lvl2);
-    }
-
-    get vo_field_sort(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_sort)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_sort);
-    }
-
-    get vo_field_sort_lvl2(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_sort_lvl2)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
-    }
-
-    get advanced_mode(): boolean {
-        return this.widget_options.advanced_mode;
-    }
-
-    get default_advanced_string_filter_type(): number {
-        return this.widget_options.default_advanced_string_filter_type;
-    }
-
-    get hide_btn_switch_advanced(): boolean {
-        return this.widget_options.hide_btn_switch_advanced;
-    }
-
-    get no_inter_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.no_inter_filter;
-    }
-
-    get has_other_ref_api_type_id(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.has_other_ref_api_type_id;
-    }
-
-    get other_ref_api_type_id(): string {
-
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.other_ref_api_type_id;
-    }
-
-    get hide_advanced_string_filter_type(): boolean {
-        return this.widget_options.hide_advanced_string_filter_type;
-    }
-
-    get vo_field_ref_multiple(): VOFieldRefVO[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
-            return null;
-        }
-
-        const res: VOFieldRefVO[] = [];
-
-        for (const i in options.vo_field_ref_multiple) {
-            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_ref_multiple[i]));
-        }
-
-        return res;
-    }
-
-    get default_values(): DataFilterOption[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
-            return null;
-        }
-
-        const res: DataFilterOption[] = [];
-
-        for (const i in options.default_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.default_filter_opt_values[i].select_state,
-                options.default_filter_opt_values[i].label,
-                options.default_filter_opt_values[i].id,
-                options.default_filter_opt_values[i].disabled_state_selected,
-                options.default_filter_opt_values[i].disabled_state_selectable,
-                options.default_filter_opt_values[i].disabled_state_unselectable,
-                options.default_filter_opt_values[i].img,
-                options.default_filter_opt_values[i].desc,
-                options.default_filter_opt_values[i].boolean_value,
-                options.default_filter_opt_values[i].numeric_value,
-                options.default_filter_opt_values[i].string_value,
-                options.default_filter_opt_values[i].tstz_value,
-                true,
-            ));
-        }
-
-        return res;
-    }
-
-    get exclude_values(): DataFilterOption[] {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
-            return null;
-        }
-
-        const res: DataFilterOption[] = [];
-
-        for (const i in options.exclude_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.exclude_filter_opt_values[i].select_state,
-                options.exclude_filter_opt_values[i].label,
-                options.exclude_filter_opt_values[i].id,
-                options.exclude_filter_opt_values[i].disabled_state_selected,
-                options.exclude_filter_opt_values[i].disabled_state_selectable,
-                options.exclude_filter_opt_values[i].disabled_state_unselectable,
-                options.exclude_filter_opt_values[i].img,
-                options.exclude_filter_opt_values[i].desc,
-                options.exclude_filter_opt_values[i].boolean_value,
-                options.exclude_filter_opt_values[i].numeric_value,
-                options.exclude_filter_opt_values[i].string_value,
-                options.exclude_filter_opt_values[i].tstz_value,
-                true,
-            ));
-        }
-
-        return res;
-    }
-
-    get autovalidate_advanced_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.autovalidate_advanced_filter;
-    }
-
-    get active_field_on_autovalidate_advanced_filter(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
-    }
-
-    get is_translatable_type(): boolean {
-        if (!this.vo_field_ref) {
-            return false;
-        }
-
-        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
-        if (!moduletable) {
-            return false;
-        }
-
-        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-        if (!field) {
-            return false;
-        }
-
-        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
-    }
-
-    get base_filter(): string {
-        return 'filter_opt_' + this.page_widget.id + '_';
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 }

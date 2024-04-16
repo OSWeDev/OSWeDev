@@ -33,6 +33,24 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
 
     private load_widgets_prevalidation: boolean = false;
 
+    get widget_options(): ValidationFiltersWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: ValidationFiltersWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
+                options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {
@@ -81,23 +99,5 @@ export default class ValidationFiltersWidgetOptionsComponent extends VueComponen
         return new ValidationFiltersWidgetOptions(
             false,
         );
-    }
-
-    get widget_options(): ValidationFiltersWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: ValidationFiltersWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
-                options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

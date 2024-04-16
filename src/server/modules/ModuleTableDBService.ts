@@ -6,7 +6,6 @@ import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import StatsController from '../../shared/modules/Stats/StatsController';
-import VOsTypesManager from '../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
@@ -331,6 +330,10 @@ export default class ModuleTableDBService {
         }
 
         let res: boolean = false;
+
+        // Avant tout ça on compare la description du VO avec le VO lui-même
+        this.check_source_vo_vs_described_vo_consistency(moduleTable, fields_by_field_name);
+
         res = await this.checkMissingInTS(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name);
         if (await this.checkMissingInDB(moduleTable, fields_by_field_name, table_cols_by_name, database_name, table_name)) {
             res = true;
@@ -766,5 +769,21 @@ export default class ModuleTableDBService {
     // istanbul ignore next: nothing to test
     private get_segmented_table_common_limited_seq_label(moduletable: ModuleTableVO): string {
         return moduletable.name.substring(0, 63 - '_common_id_seq'.length) + '_common_id_seq';
+    }
+
+    private check_source_vo_vs_described_vo_consistency(
+        moduleTable: ModuleTableVO,
+        fields_by_field_name: { [field_name: string]: ModuleTableFieldVO }
+    ): void {
+        // Liste des champs de SharedFiltersVO à vérifier
+        const sharedFiltersVOFields = Object.getOwnPropertyNames(ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type].prototype)
+            .filter(fieldName => fieldName !== 'id' && fieldName !== '_type');
+
+        // Vérifier chaque champ
+        sharedFiltersVOFields.forEach((fieldName) => {
+            if (!(fieldName in fields_by_field_name)) {
+                ConsoleHandler.error(`check_source_vo_vs_described_vo_consistency: Le champ "${fieldName}" est manquant dans la description de la table "${moduleTable.vo_type}"`);
+            }
+        });
     }
 }

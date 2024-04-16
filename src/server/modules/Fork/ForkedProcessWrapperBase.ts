@@ -1,29 +1,28 @@
-import pg_promise from 'pg-promise';
-import { IDatabase } from 'pg-promise';
+import pg_promise, { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
 import LocaleManager from '../../../shared/tools/LocaleManager';
-import ConfigurationService from '../../env/ConfigurationService';
-import EnvParam from '../../env/EnvParam';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
 import MemoryUsageStat from '../../MemoryUsageStat';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ConfigurationService from '../../env/ConfigurationService';
+import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
+import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
-import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -122,7 +121,8 @@ export default abstract class ForkedProcessWrapperBase {
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
         }
-        await this.modulesService.register_all_modules(db);
+        await this.modulesService.init_db(db);
+        await this.modulesService.register_all_modules();
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:END');
         }

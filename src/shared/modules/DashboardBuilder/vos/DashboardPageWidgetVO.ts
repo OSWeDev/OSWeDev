@@ -1,8 +1,8 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardGridItem from "../interfaces/IDashboardGridItem";
-import AbstractVO from "../../VO/abstract/AbstractVO";
 import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "./MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "./YearFilterWidgetOptionsVO";
@@ -12,15 +12,6 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public id: number;
     public _type: string = DashboardPageWidgetVO.API_TYPE_ID;
-
-    get translatable_name_code_text(): string {
-
-        if (!this.widget_id) {
-            return null;
-        }
-
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
-    }
 
     public widget_id: number;
 
@@ -51,6 +42,15 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public json_options: string;
 
     public background: string;
+
+    get translatable_name_code_text(): string {
+
+        if (!this.widget_id) {
+            return null;
+        }
+
+        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
+    }
 
     /**
      * Create a new instance from a widget_options object

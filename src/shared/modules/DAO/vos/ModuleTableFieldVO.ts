@@ -74,12 +74,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public secure_boolean_switch_only_server_side: boolean; // false by default
 
     /**
-     * Lien vers la table liée pour les relations N/1
-     * Remplace many_to_one_target_moduletable qui n'est pas utilisé que dans le contexte manytoone, et qui n'est plus le moduletable directement
-     */
-    public foreign_ref_moduletable_id: number;
-
-    /**
      * Pour simplifier la création du code de trad et la création des tables,
      *  on stocke à la fois l'id et le name des tables liées.
      * On peut comme ça déclarer les tables et les champs séparément, dans n'importe quel ordre
@@ -231,7 +225,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     }
 
     get is_indexed(): boolean {
-        return this.force_index || this.is_unique || !!this.foreign_ref_moduletable_id;
+        return this.force_index || this.is_unique || !!this.foreign_ref_vo_type;
     }
 
     public index(): ModuleTableFieldVO {

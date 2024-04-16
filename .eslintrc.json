@@ -58,6 +58,7 @@
         "@typescript-eslint/member-ordering": "error",
         "no-async-promise-executor": "off",
         "no-useless-escape": "warn",
-        "prefer-const": "warn"
+        "prefer-const": "warn",
+        "no-extra-boolean-cast": "off"
     }
 }

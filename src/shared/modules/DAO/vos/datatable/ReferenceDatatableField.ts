@@ -12,13 +12,12 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
     get target_module_table_type_id(): string {
         return this._target_module_table_type_id;
     }
+    get targetModuleTable(): ModuleTableVO {
+        return this.target_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.target_module_table_type_id] : null;
+    }
 
     set target_module_table_type_id(target_module_table_type_id: string) {
         this._target_module_table_type_id = target_module_table_type_id;
-    }
-
-    get targetModuleTable(): ModuleTableVO {
-        return this.target_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.target_module_table_type_id] : null;
     }
 
     public voIdToHumanReadable: (id: number) => string = (id: number) => {

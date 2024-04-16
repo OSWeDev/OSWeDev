@@ -18,6 +18,7 @@ import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableField
 import FieldFiltersVOManager from '../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
@@ -95,14 +96,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
     public static TASK_NAME_invalidate_imports_for_d = 'VarsDatasProxy.invalidate_imports_for_d';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleVarServer.instance) {
-            ModuleVarServer.instance = new ModuleVarServer();
-        }
-        return ModuleVarServer.instance;
-    }
-
     private static instance: ModuleVarServer = null;
 
     public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
@@ -118,6 +111,14 @@ export default class ModuleVarServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleVar.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleVarServer.instance) {
+            ModuleVarServer.instance = new ModuleVarServer();
+        }
+        return ModuleVarServer.instance;
     }
 
     /**
@@ -189,13 +190,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                             continue;
                         }
 
-                        if (!pixel_field.pixel_vo_api_type_id) {
+                        if ((!pixel_field.pixel_vo_api_type_id) && (pixel_field.pixel_range_type != TSRange.RANGE_TYPE)) {
                             ConsoleHandler.error('Pixel varconf but no pixel_vo_api_type_id for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
                         }
 
-                        if (!pixel_field.pixel_vo_field_name) {
+                        if ((!pixel_field.pixel_vo_field_name) && (pixel_field.pixel_range_type != TSRange.RANGE_TYPE)) {
                             ConsoleHandler.error('Pixel varconf but no pixel_vo_field_name for var_id :' + var_id + ': ' + varconf.name + ' - pixel_fields : ' + JSON.stringify(varconf.pixel_fields));
                             has_errors = true;
                             continue;
@@ -316,6 +317,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'En cours de test'
         }, 'slow_var.type.testing'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ce paramètre de variable est un pixel'
+        }, 'var_desc.var_data_is_pixel.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Matroids calculés'
@@ -927,19 +932,21 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await VarsComputationHole.exec_in_computation_hole(async () => {
+        await VarsComputationHole.exec_in_computation_hole(this.force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole);
+    }
 
-            const promises = [];
-            for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+    public async force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole(): Promise<void> {
 
-                const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
-                promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
-            }
-            await all_promises(promises);
+        const promises = [];
+        for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
-            CurrentVarDAGHolder.current_vardag = new VarDAG();
-            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
-        });
+            const moduletable = ModuleTableController.module_tables_by_vo_type[api_type_id];
+            promises.push(ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';'));
+        }
+        await all_promises(promises);
+
+        CurrentVarDAGHolder.current_vardag = new VarDAG();
+        CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
     }
 
     private async onCVarConf(vcc: VarConfVO) {
@@ -1134,7 +1141,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!param[matroid_field.field_name]) || (!(param[matroid_field.field_name] as IRange[]).length) ||
                     ((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0)) {
                     filter_ = true;
-                    ConsoleHandler.error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
+                    ConsoleHandler.error("Registered wrong Matroid:" +
+                        ((!param[matroid_field.field_name]) ? "(!param[matroid_field.field_name]) :" + matroid_field.field_name : (
+                            (!(param[matroid_field.field_name] as IRange[]).length) ? "(!(param[matroid_field.field_name] as IRange[]).length) :" + matroid_field.field_name : (
+                                "((param[matroid_field.field_name] as IRange[]).indexOf(null) >= 0) :" + matroid_field.field_name
+                            )))
+                        + "  :  " + JSON.stringify(param) + ':refused');
                     break;
                 }
             }
@@ -1268,23 +1280,23 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
          */
-        const varconf = VarsController.var_conf_by_id[param.var_id];
-        if (varconf.pixel_activated) {
-            let is_pixel = true;
-            for (const i in varconf.pixel_fields) {
-                const pixel_field = varconf.pixel_fields[i];
+        // const varconf = VarsController.var_conf_by_id[param.var_id];
+        // if (varconf.pixel_activated) {
+        //     let is_pixel = true;
+        //     for (const i in varconf.pixel_fields) {
+        //         const pixel_field = varconf.pixel_fields[i];
 
-                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
-                    is_pixel = false;
-                    break;
-                }
-            }
+        //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
+        //             is_pixel = false;
+        //             break;
+        //         }
+        //     }
 
-            if (!is_pixel) {
-                ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
-                return null;
-            }
-        }
+        //     if (!is_pixel) {
+        //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+        //         return null;
+        //     }
+        // }
 
         /**
          * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on

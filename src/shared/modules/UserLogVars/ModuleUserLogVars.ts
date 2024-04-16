@@ -47,7 +47,7 @@ export default class ModuleUserLogVars extends Module {
             user_id_ranges,
         ];
 
-        VarsInitController.getInstance().register_var_data(UserDataRangesVO.API_TYPE_ID, UserDataRangesVO, datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(UserDataRangesVO.API_TYPE_ID, UserDataRangesVO, this);
         user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 
@@ -59,7 +59,7 @@ export default class ModuleUserLogVars extends Module {
             ModuleTableFieldController.create_new(UserMinDataRangesVO.API_TYPE_ID, field_names<UserMinDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
         ];
 
-        VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, UserMinDataRangesVO, datatable_fields, this);
+        VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, UserMinDataRangesVO, this);
         user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

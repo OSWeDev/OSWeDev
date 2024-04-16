@@ -1,7 +1,5 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
-import { ClockifyTimeEntryParamStatic } from '../../../server/modules/ClockifyAPI/vos/ClockifyTimeEntryParam';
-import TimeParamClockifyTimeEntry from '../../../server/modules/ClockifyAPI/vos/TimeParamClockifyTimeEntry';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
@@ -16,8 +14,10 @@ import Module from '../Module';
 import ClockifyClientVO from './vos/ClockifyClientVO';
 import ClockifyProjetVO from './vos/ClockifyProjetVO';
 import ClockifyTacheVO from './vos/ClockifyTacheVO';
+import { ClockifyTimeEntryParamStatic } from './vos/ClockifyTimeEntryParam';
 import ClockifyTimeEntryVO from './vos/ClockifyTimeEntryVO';
 import ClockifyUserVO from './vos/ClockifyUserVO';
+import TimeParamClockifyTimeEntry from './vos/TimeParamClockifyTimeEntry';
 
 export default class ModuleClockifyAPI extends Module {
 
@@ -37,13 +37,6 @@ export default class ModuleClockifyAPI extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleClockifyAPI.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleClockifyAPI.MODULE_NAME + '.FO_ACCESS';
 
-    public static getInstance(): ModuleClockifyAPI {
-        if (!ModuleClockifyAPI.instance) {
-            ModuleClockifyAPI.instance = new ModuleClockifyAPI();
-        }
-        return ModuleClockifyAPI.instance;
-    }
-
     private static instance: ModuleClockifyAPI = null;
 
     public get_all_clockify_users: () => Promise<ClockifyUserVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_users);
@@ -55,6 +48,13 @@ export default class ModuleClockifyAPI extends Module {
     private constructor() {
 
         super("clockifyapi", ModuleClockifyAPI.MODULE_NAME);
+    }
+
+    public static getInstance(): ModuleClockifyAPI {
+        if (!ModuleClockifyAPI.instance) {
+            ModuleClockifyAPI.instance = new ModuleClockifyAPI();
+        }
+        return ModuleClockifyAPI.instance;
     }
 
     public registerApis() {

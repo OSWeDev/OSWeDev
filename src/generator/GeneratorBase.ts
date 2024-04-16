@@ -80,13 +80,18 @@ import Patch20240206InitNullFieldsFromWidgets from './patchs/premodules/Patch202
 import Patch20240222MoveModuleFieldsToParamVOs from './patchs/premodules/Patch20240222MoveModuleFieldsToParamVOs';
 import Patch20240305EmptyPixelFieldsFromVarConf from './patchs/premodules/Patch20240305EmptyPixelFieldsFromVarConf';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240222RenameFieldIdsToFieldNames from './patchs/premodules/Patch20240222RenameFieldIdsToFieldNames';
+import Patch20240307DuplicateRightsSupervision from './patchs/postmodules/Patch20240307DuplicateRightsSupervision';
+import Patch20240329Adduniqlangconstraint from './patchs/premodules/Patch20240329Adduniqlangconstraint';
+import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/Patch20240329Adduniqtranslatabletextconstraint';
+import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
+import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
+import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
+import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
+// import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): GeneratorBase {
-        return GeneratorBase.instance;
-    }
 
     protected static instance: GeneratorBase;
 
@@ -137,6 +142,11 @@ export default abstract class GeneratorBase {
         ];
 
         this.pre_modules_workers = [
+            Patch20240329CeliaToOseliaDBWidget.getInstance(),
+            Patch20240329Adduniqroleconstraint.getInstance(),
+            Patch20240329Adduniqlangconstraint.getInstance(),
+            Patch20240329Adduniquserconstraints.getInstance(),
+            Patch20240329Adduniqtranslatabletextconstraint.getInstance(),
             Patch20240123ForceUnicityOnGeneratorWorkersUID.getInstance(),
             Patch20231003ForceUnicityCodeText.getInstance(),
             Patch20231010ForceUnicityVarConfName.getInstance(),
@@ -160,7 +170,9 @@ export default abstract class GeneratorBase {
             Patch20231120AddUniqCronPlanificationUID.getInstance(),
             Patch20240206InitNullFieldsFromWidgets.getInstance(),
             Patch20240222MoveModuleFieldsToParamVOs.getInstance(),
+            Patch20240222RenameFieldIdsToFieldNames.getInstance(),
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
+            Patch20240415Adduniqmail_id.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -182,11 +194,17 @@ export default abstract class GeneratorBase {
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
             Patch20231123AddRightsSharedFilters.getInstance(),
-            Patch20240305MigrationCodesTradsMinusculesENV.getInstance()
+            Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
+            Patch20240307DuplicateRightsSupervision.getInstance(),
+            Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
 
-    public abstract getVersion();
+    // istanbul ignore next: nothing to test
+    public static getInstance(): GeneratorBase {
+        return GeneratorBase.instance;
+    }
 
     public async generate() {
 
@@ -207,11 +225,12 @@ export default abstract class GeneratorBase {
 
         const pgp: pg_promise.IMain = pg_promise({});
         const db: IDatabase<any> = pgp(connectionString);
+        await this.modulesService.init_db(db);
 
         if (envParam.launch_init) {
             console.log("INIT pre modules initialization workers...");
             if (this.init_pre_modules_workers) {
-                if (!await this.execute_workers(this.init_pre_modules_workers, db)) {
+                if (!await this.execute_workers(this.init_pre_modules_workers, ModuleServiceBase.db)) {
                     process.exit(0);
                     return;
                 }
@@ -221,14 +240,14 @@ export default abstract class GeneratorBase {
 
         console.log("pre modules initialization workers...");
         if (this.pre_modules_workers) {
-            if (!await this.execute_workers(this.pre_modules_workers, db)) {
+            if (!await this.execute_workers(this.pre_modules_workers, ModuleServiceBase.db)) {
                 process.exit(0);
                 return;
             }
         }
         console.log("pre modules initialization workers done.");
 
-        await this.modulesService.register_all_modules(db, true);
+        await this.modulesService.register_all_modules(true);
 
         console.log("VersionUpdater: ...");
         await VersionUpdater.getInstance().update_version();
@@ -249,7 +268,7 @@ export default abstract class GeneratorBase {
         if (envParam.launch_init) {
             console.log("INIT post modules initialization workers...");
             if (this.init_post_modules_workers) {
-                if (!await this.execute_workers(this.init_post_modules_workers, db)) {
+                if (!await this.execute_workers(this.init_post_modules_workers, ModuleServiceBase.db)) {
                     process.exit(0);
                     return;
                 }
@@ -259,7 +278,7 @@ export default abstract class GeneratorBase {
 
         console.log("post modules initialization workers...");
         if (this.post_modules_workers) {
-            if (!await this.execute_workers(this.post_modules_workers, db)) {
+            if (!await this.execute_workers(this.post_modules_workers, ModuleServiceBase.db)) {
                 process.exit(0);
                 return;
             }
@@ -340,4 +359,6 @@ export default abstract class GeneratorBase {
 
         return true;
     }
+
+    public abstract getVersion();
 }

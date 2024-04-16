@@ -18,7 +18,7 @@ export default class FakeDataHandler {
             ModuleTableFieldController.create_new(FakeDataVO.API_TYPE_ID, 'ts_ranges', ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, FakeDataVO, datatable_fields, null, true);
+        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, FakeDataVO, null, true);
     }
 
     /**

@@ -10,18 +10,18 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessLoadDatas extends VarsProcessBase {
 
+    private static instance: VarsProcessLoadDatas = null;
+
+    private constructor() {
+        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessLoadDatas.instance) {
             VarsProcessLoadDatas.instance = new VarsProcessLoadDatas();
         }
         return VarsProcessLoadDatas.instance;
-    }
-
-    private static instance: VarsProcessLoadDatas = null;
-
-    private constructor() {
-        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {

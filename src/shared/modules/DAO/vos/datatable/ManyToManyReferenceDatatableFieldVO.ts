@@ -9,18 +9,6 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     public static API_TYPE_ID: string = "mtm_dtf";
 
-    public static createNew(
-        datatable_field_uid: string,
-        targetModuleTable: ModuleTableVO,
-        interModuleTable: ModuleTableVO,
-        sorted_target_fields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
-
-        const res = new ManyToManyReferenceDatatableFieldVO();
-        res.init_ref_dtf(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sorted_target_fields);
-        res.inter_module_table_type_id = interModuleTable.vo_type;
-        return res;
-    }
-
     public filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
 
     public _type: string = ManyToManyReferenceDatatableFieldVO.API_TYPE_ID;
@@ -28,21 +16,6 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
     public inter_module_table_type_id: string;
     public inter_target_ref_field_id: string;
     public inter_src_ref_field_id: string;
-
-    public setFilterOptionsForUpdateOrCreateOnManyToMany(filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.filterOptionsForUpdateOrCreateOnManyToMany = filterOptionsForUpdateOrCreateOnManyToMany;
-        return this;
-    }
-
-    public set_interTargetRefFieldId(inter_target_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.inter_target_ref_field_id = inter_target_ref_field_id;
-        return this;
-    }
-
-    public set_interSrcRefFieldId(inter_src_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
-        this.inter_src_ref_field_id = inter_src_ref_field_id;
-        return this;
-    }
 
     get translatable_title(): string {
         if ((!this.vo_type_full_name) || (!this.targetModuleTable)) {
@@ -63,6 +36,33 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
 
     get interModuleTable(): ModuleTableVO {
         return this.inter_module_table_type_id ? ModuleTableController.module_tables_by_vo_type[this.inter_module_table_type_id] : null;
+    }
+
+    public static createNew(
+        datatable_field_uid: string,
+        targetModuleTable: ModuleTableVO,
+        interModuleTable: ModuleTableVO,
+        sorted_target_fields: Array<DatatableField<any, any>>): ManyToManyReferenceDatatableFieldVO<any, any> {
+
+        const res = new ManyToManyReferenceDatatableFieldVO();
+        res.init_ref_dtf(ManyToManyReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sorted_target_fields);
+        res.inter_module_table_type_id = interModuleTable.vo_type;
+        return res;
+    }
+
+    public setFilterOptionsForUpdateOrCreateOnManyToMany(filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.filterOptionsForUpdateOrCreateOnManyToMany = filterOptionsForUpdateOrCreateOnManyToMany;
+        return this;
+    }
+
+    public set_interTargetRefFieldId(inter_target_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.inter_target_ref_field_id = inter_target_ref_field_id;
+        return this;
+    }
+
+    public set_interSrcRefFieldId(inter_src_ref_field_id: string): ManyToManyReferenceDatatableFieldVO<Target, Inter> {
+        this.inter_src_ref_field_id = inter_src_ref_field_id;
+        return this;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): any {

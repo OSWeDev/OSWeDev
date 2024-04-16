@@ -1,5 +1,4 @@
 
-import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
@@ -11,7 +10,21 @@ import IMatroid from '../../Matroid/interfaces/IMatroid';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
-type ExtractVarServerControllerBaseType<T> = T extends VarServerControllerBase<infer U> ? U : never;
+
+/**
+ * Généré par ChatGPT :
+ *      Utility type pour filtrer les clés de T qui correspondent à un type de donnée spécifique
+ *          et qui ne commencent pas par '_'.
+ */
+type FilterFields<T, FieldType> = {
+    [Key in keyof T]: T[Key] extends FieldType ? (Key extends string ? (Key extends `_${string}` ? never : Key) : never) : never;
+}[keyof T];
+
+/**
+ * Généré par ChatGPT :
+ *      Utiliser Pick pour sélectionner uniquement les champs filtrés.
+ */
+type MatroidFields<T> = Pick<T, FilterFields<T, IRange[]>>;
 
 /**
  * Paramètre le calcul de variables
@@ -45,14 +58,12 @@ export default class VarDataBaseVO implements IMatroid {
     public constructor() { }
 
     get var_id(): number { return this._var_id; }
+
     get is_pixel(): boolean {
 
-        if (this._is_pixel == null) {
-            const a = this.index;
-        }
-
-        return this._is_pixel;
+        return this.initial_getter_is_pixel();
     }
+
 
     get _bdd_only_is_pixel(): boolean {
 
@@ -110,6 +121,30 @@ export default class VarDataBaseVO implements IMatroid {
         this.set_field('var_id', var_id);
     }
 
+    /**
+     * On définit un pixel comme un param qui a un cardinal de 1 sur les champs pixellisés
+     * @param vardata
+     */
+    public static is_pixel(vardata: VarDataBaseVO): boolean {
+
+        const varconf = VarsController.var_conf_by_id[vardata.var_id];
+
+        if (!varconf) {
+            return false;
+        }
+
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
+            const card = RangeHandler.getCardinalFromArray(vardata[pixel_field.pixel_param_field_name]);
+
+            if (card != 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static from_index(index: string): VarDataBaseVO {
 
         return MatroidIndexHandler.from_normalized_vardata(index);
@@ -131,6 +166,29 @@ export default class VarDataBaseVO implements IMatroid {
         return a.index == b.index;
     }
 
+    /**
+     * Méthode typée pour créer un nouveau paramètre de var, quelque soit le type
+     * @param _type Le vo_type cible
+     * @param var_name Le nom de la var cible
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
+     */
+    public static new<T extends VarDataBaseVO>(
+        var_type: { new(): T },
+        var_name: string,
+        clone_fields: boolean = true,
+        matroid_fields: MatroidFields<T>): T {
+
+        const fields_ordered_as_in_moduletable_definition: IRange[][] = [];
+        const var_conf = VarsController.var_conf_by_name[var_name];
+
+        const fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        for (const i in fields) {
+            const field = fields[i];
+            fields_ordered_as_in_moduletable_definition.push(matroid_fields[field.field_name]);
+        }
+        return this.createNew(var_name, clone_fields, ...fields_ordered_as_in_moduletable_definition);
+    }
 
 
     /**
@@ -255,70 +313,6 @@ export default class VarDataBaseVO implements IMatroid {
         static_fields: { [field_id: string]: IRange[] } = null): U {
 
         return this.cloneFieldsFromVarId<T, U>(param_to_clone, var_id, clone_fields, static_fields);
-    }
-
-    /**
-     * Méthode pour créer un nouveau paramètre de var, avec un contrôle fort sur le type de retour vs le type de la var
-     * On ajoute les champs additionnels à la volée, et donc le type de retour est étendu
-     * @param param_to_clone Le param que l'on doit cloner
-     * @param controller_type Le controller cible
-     * @param static_fields Les champs additionnels à ajouter
-     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
-     * @returns le paramètre cloné
-     */
-    public static get_cloned_param_for_dep_controller_with_additional_fields<
-        InputType extends VarDataBaseVO,
-        AdditionalFieldsType extends { [field_id: string]: IRange[] },
-        OutputType extends InputType & { [key in keyof AdditionalFieldsType as `_${Extract<key, string>}`]: IRange[] } & ExtractVarServerControllerBaseType<ControllerType>,
-        ControllerParamType extends VarDataBaseVO,
-        ControllerType extends VarServerControllerBase<ControllerParamType>
-    >(
-        param_to_clone: InputType,
-        controller_type: ControllerType,
-        static_fields: AdditionalFieldsType = null,
-        clone_fields: boolean = true,
-    ): OutputType {
-
-        return this.cloneFieldsFromVarName<InputType, OutputType>(param_to_clone, controller_type.varConf.name, clone_fields, static_fields);
-    }
-
-    /**
-     * Méthode pour créer un nouveau paramètre de var, avec un contrôle fort sur le type de retour vs le type de la var
-     * @param param_to_clone Le param que l'on doit cloner
-     * @param controller_type Le controller cible
-     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
-     * @returns le paramètre cloné
-     */
-    public static get_cloned_param_for_dep_controller<
-        InputType extends ExtractVarServerControllerBaseType<ControllerType>,
-        ControllerParamType extends VarDataBaseVO,
-        ControllerType extends VarServerControllerBase<ControllerParamType>
-    >(
-        param_to_clone: InputType,
-        controller_type: ControllerType,
-        clone_fields: boolean = true): ExtractVarServerControllerBaseType<ControllerType> {
-
-        return this.cloneFieldsFromVarName<InputType, ExtractVarServerControllerBaseType<ControllerType>>(param_to_clone, controller_type.varConf.name, clone_fields);
-    }
-
-    /**
-     * Méthode pour créer un nouveau paramètre de var, quelque soit le type, utilisé pour la remontée des invalidateurs
-     *  puisqu'ils peuvent avoir des maxranges. Ne pas utiliser pour descendre/définir des deps.
-     * @param params_to_clone Les params que l'on doit cloner
-     * @param controller_type Le controller cible (souvent le controller de la var courante - on ne peut pas utiliser this pour permettre l'inférence de type. Utiliser le nom de la var à la place + '.getInstance()'
-     * @param clone_fields Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas). TRUE par défaut
-     * @returns les params clonés
-     */
-    public static get_cloned_invalidators_from_dep_controller<
-        InputType extends VarDataBaseVO,
-        ControllerParamType extends VarDataBaseVO,
-        ControllerType extends VarServerControllerBase<ControllerParamType>
-    >(
-        params_to_clone: InputType[],
-        controller_type: ControllerType,
-        clone_fields: boolean = true): Array<ExtractVarServerControllerBaseType<ControllerType>> {
-
-        return this.cloneArrayFrom<InputType, ExtractVarServerControllerBaseType<ControllerType>>(params_to_clone, controller_type.varConf.name, clone_fields);
     }
 
     /**
@@ -461,13 +455,12 @@ export default class VarDataBaseVO implements IMatroid {
     public rebuild_index() {
 
         this._index = null;
-        Object.defineProperty(this, 'index', {
-            get: this.initial_getter_index,
-            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
-        });
+        this._is_pixel = null;
+
+        this.place_initial_getters();
     }
 
-    public do_rebuild_index() {
+    public do_rebuild_index_and_is_pixel() {
 
         if (this.rebuilding_index) {
             return;
@@ -476,7 +469,7 @@ export default class VarDataBaseVO implements IMatroid {
 
         MatroidIndexHandler.normalize_vardata_fields(this);
         this._index = MatroidIndexHandler.get_normalized_vardata(this);
-        this._is_pixel = MatroidController.get_cardinal(this) == 1;
+        this._is_pixel = VarDataBaseVO.is_pixel(this);
 
         this.rebuilding_index = false;
     }
@@ -513,21 +506,54 @@ export default class VarDataBaseVO implements IMatroid {
             if (Array.isArray(value)) {
                 this.rebuild_index();
             }
+        } else {
+            this.rebuild_index();
         }
     }
 
     private initial_getter_index(): string {
 
         if (!this._index) {
-            this.do_rebuild_index();
+            this.do_rebuild_index_and_is_pixel();
         }
 
+        this.replace_initial_getters();
+
+        return this._index;
+    }
+
+    private replace_initial_getters() {
         Object.defineProperty(this, 'index', {
             value: this._index,
             writable: true, // Permet de réassigner la valeur plus tard si nécessaire
             configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
         });
+        Object.defineProperty(this, 'is_pixel', {
+            value: this._is_pixel,
+            writable: true, // Permet de réassigner la valeur plus tard si nécessaire
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+    }
 
-        return this._index;
+    private place_initial_getters() {
+        Object.defineProperty(this, 'index', {
+            get: this.initial_getter_index,
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+        Object.defineProperty(this, 'is_pixel', {
+            get: this.initial_getter_is_pixel,
+            configurable: true // Permet de reconfigurer ou de supprimer la propriété plus tard
+        });
+    }
+
+    private initial_getter_is_pixel(): boolean {
+
+        if (!this._is_pixel) {
+            this.do_rebuild_index_and_is_pixel();
+        }
+
+        this.replace_initial_getters();
+
+        return this._is_pixel;
     }
 }

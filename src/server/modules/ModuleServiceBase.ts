@@ -19,6 +19,7 @@ import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
 import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
 import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
@@ -116,6 +117,7 @@ import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
+import PreloadedModuleServerController from './PreloadedModuleServerController';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
@@ -131,16 +133,11 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 
 export default abstract class ModuleServiceBase {
 
     public static db;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleServiceBase {
-        return ModuleServiceBase.instance;
-    }
     private static instance: ModuleServiceBase;
 
     /**
@@ -171,6 +168,7 @@ export default abstract class ModuleServiceBase {
 
         ModuleServiceBase.db = {
             none: this.db_none.bind(this),
+            one: this.db_one.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
             tx: (options, cb) => this.db_.tx(options, cb)
@@ -189,6 +187,11 @@ export default abstract class ModuleServiceBase {
     }
     get serverModules(): ModuleServerBase[] {
         return this.server_modules;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleServiceBase {
+        return ModuleServiceBase.instance;
     }
 
     public isBaseSharedModule(module: Module): boolean {
@@ -228,11 +231,19 @@ export default abstract class ModuleServiceBase {
         return false;
     }
 
-    public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
+    public async init_db(db: IDatabase<any>) {
         this.db_ = db;
 
         db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         db.$pool.options.idleTimeoutMillis = 120000;
+    }
+
+    public async register_all_modules(is_generator: boolean = false) {
+
+        // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
+        // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
+        PreloadedModuleServerController.db = ModuleServiceBase.db;
+        await PreloadedModuleServerController.preload_modules_is_actif();
 
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
@@ -247,9 +258,6 @@ export default abstract class ModuleServiceBase {
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
         ModuleTableController.initialize();
-
-        // On init le lien de db dans ces modules
-        ModuleDBService.getInstance(ModuleServiceBase.db);
         ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
@@ -267,7 +275,7 @@ export default abstract class ModuleServiceBase {
             for (const i in this.registered_modules) {
                 const registered_module = this.registered_modules[i];
 
-                await ModuleDBService.getInstance(ModuleServiceBase.db).load_or_create_module_is_actif(registered_module);
+                await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
             if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
@@ -481,11 +489,9 @@ export default abstract class ModuleServiceBase {
         throw error;
     }
 
-    protected abstract getChildModules(): Module[];
     protected getLoginChildModules(): Module[] {
         return [];
     }
-    protected abstract getServerChildModules(): ModuleServerBase[];
 
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
@@ -499,7 +505,7 @@ export default abstract class ModuleServiceBase {
             const registered_module = this.registered_modules[i];
 
             try {
-                await ModuleDBService.getInstance(ModuleServiceBase.db).module_install(
+                await ModuleDBService.getInstance().module_install(
                     registered_module
                 );
             } catch (e) {
@@ -523,7 +529,7 @@ export default abstract class ModuleServiceBase {
 
             try {
                 if (registered_module.actif) {
-                    await ModuleDBService.getInstance(ModuleServiceBase.db).module_configure(
+                    await ModuleDBService.getInstance().module_configure(
                         registered_module
                     );
                 }
@@ -773,6 +779,30 @@ export default abstract class ModuleServiceBase {
         return res;
     }
 
+    private async db_one(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = null;
+        const time_in = Dates.now_ms();
+
+        try {
+            res = await this.db_.one(query, values);
+        } catch (error) {
+            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+        }
+
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_one', 'ok', '-');
+        StatsController.register_stat_DUREE('db_one', 'time', '-', duration);
+        return res;
+    }
+
     private async db_oneOrNone(query: string, values?: []) {
 
         /**
@@ -810,4 +840,7 @@ export default abstract class ModuleServiceBase {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
         }
     }
+
+    protected abstract getServerChildModules(): ModuleServerBase[];
+    protected abstract getChildModules(): Module[];
 }

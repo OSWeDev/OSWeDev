@@ -1,4 +1,5 @@
 import ModuleTableController from "../modules/DAO/ModuleTableController";
+import ModuleTableFieldVO from "../modules/DAO/vos/ModuleTableFieldVO";
 import IRange from "../modules/DataRender/interfaces/IRange";
 import HourSegment from "../modules/DataRender/vos/HourSegment";
 import NumRange from "../modules/DataRender/vos/NumRange";
@@ -12,6 +13,22 @@ import VarPixelFieldConfVO from "../modules/Var/vos/VarPixelFieldConfVO";
 import RangeHandler from "./RangeHandler";
 
 export default class MatroidIndexHandler {
+
+    // Ne peuvent être utilisés : - (négatif) | (séparateur de field) & (séparateur de min/max) $ (séparateur de range)
+    private static TO_BASE_76_CARS: string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!%*_@?:/#=+';
+    private static FROM_BASE_76_CARS: { [base_76_car: string]: number } = {
+        '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+        'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15, 'g': 16, 'h': 17, 'i': 18, 'j': 19,
+        'k': 20, 'l': 21, 'm': 22, 'n': 23, 'o': 24, 'p': 25, 'q': 26, 'r': 27, 's': 28, 't': 29,
+        'u': 30, 'v': 31, 'w': 32, 'x': 33, 'y': 34, 'z': 35,
+        'A': 36, 'B': 37, 'C': 38, 'D': 39, 'E': 40, 'F': 41, 'G': 42, 'H': 43, 'I': 44, 'J': 45,
+        'K': 46, 'L': 47, 'M': 48, 'N': 49, 'O': 50, 'P': 51, 'Q': 52, 'R': 53, 'S': 54, 'T': 55,
+        'U': 56, 'V': 57, 'W': 58, 'X': 59, 'Y': 60, 'Z': 61,
+        '.': 62, ',': 63, ';': 64, '!': 65, '%': 66, '*': 67, '_': 68, '@': 69, '?': 70, ':': 71,
+        '/': 72, '#': 73, '=': 74, '+': 75
+    };
+
+    private constructor() { }
 
     /**
      * Does not handle decimals
@@ -224,60 +241,133 @@ export default class MatroidIndexHandler {
         return res;
     }
 
+    // /**
+    //  * Une variante pour les pixels, qui renvoie les indexs de tous les pixels touchés par cette var
+    //  * WARN: nE peut marcher que sur un unique champs pixellisé pour le moment
+    //  * @param vardata
+    //  * @returns la liste des pixels (sous la forme de leur index)
+    //  */
+    // public static get_normalized_vardata_pixels(vardata: VarDataBaseVO): string[] {
+
+    //     if (!vardata) {
+    //         return null;
+    //     }
+
+    //     const res: string[] = [];
+
+    //     let index_prefix = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
+    //     let pixel_field_values = null;
+    //     let index_suffix = '';
+
+    //     const varconf = VarsController.var_conf_by_id[vardata.var_id];
+    //     const pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+    //     for (const i in varconf.pixel_fields) {
+    //         const pixel_field = varconf.pixel_fields[i];
+
+    //         pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
+    //     }
+
+    //     this.normalize_vardata_fields(vardata);
+    //     const fields = MatroidController.getMatroidFields(vardata._type);
+
+    //     for (const i in fields) {
+    //         const field = fields[i];
+
+    //         if (!pixellised_fields_by_id[field.field_name]) {
+    //             if (!pixel_field_values) {
+    //                 index_prefix += '|' + this.get_normalized_ranges(vardata[field.field_name], true);
+    //             } else {
+    //                 index_suffix += '|' + this.get_normalized_ranges(vardata[field.field_name], true);
+    //             }
+    //         } else {
+    //             pixel_field_values = this.get_pixels_normalized_ranges(vardata[field.field_name]);
+    //         }
+    //     }
+
+    //     if ((!pixel_field_values) || (!pixel_field_values.length)) {
+    //         return null;
+    //     }
+
+    //     for (const i in pixel_field_values) {
+    //         res.push(index_prefix + '|' + pixel_field_values[i] + index_suffix);
+    //     }
+
+    //     return res;
+    // }
     /**
      * Une variante pour les pixels, qui renvoie les indexs de tous les pixels touchés par cette var
-     * WARN: nE peut marcher que sur un unique champs pixellisé pour le moment
      * @param vardata
      * @returns la liste des pixels (sous la forme de leur index)
      */
-    public static get_normalized_vardata_pixels(vardata: VarDataBaseVO): string[] {
+    public static get_normalized_vardata_pixels(
+        vardata: VarDataBaseVO,
+        res: string[],
+        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = null,
+        fields_to_handle: ModuleTableFieldVO[] = null,
+        index_prefix: string = null
+    ): void {
 
         if (!vardata) {
             return null;
         }
 
-        const res: string[] = [];
-
-        let index_prefix = MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
+        index_prefix = index_prefix ? index_prefix : MatroidIndexHandler.base_10_num_to_base_76_txt(vardata.var_id);
         let pixel_field_values = null;
-        let index_suffix = '';
 
-        const varconf = VarsController.var_conf_by_id[vardata.var_id];
-        const pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (const i in varconf.pixel_fields) {
-            const pixel_field = varconf.pixel_fields[i];
+        if (!pixellised_fields_by_id) {
+            const varconf = VarsController.var_conf_by_id[vardata.var_id];
+            pixellised_fields_by_id = {};
+            for (const i in varconf.pixel_fields) {
+                const pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
+                pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
+            }
+            this.normalize_vardata_fields(vardata);
         }
 
-        this.normalize_vardata_fields(vardata);
-        const fields = MatroidController.getMatroidFields(vardata._type);
+        fields_to_handle = fields_to_handle ? fields_to_handle : MatroidController.getMatroidFields(vardata._type);
 
-        for (const i in fields) {
-            const field = fields[i];
+        const field = fields_to_handle.shift();
+        if (!field) {
+            res.push(index_prefix);
+            return;
+        }
 
-            if (!pixellised_fields_by_id[field.field_id]) {
-                if (!pixel_field_values) {
-                    index_prefix += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
-                } else {
-                    index_suffix += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
-                }
+        if (!pixellised_fields_by_id[field.field_name]) {
+            index_prefix += '|' + this.get_normalized_ranges(vardata[field.field_name], true);
+
+            if (!fields_to_handle.length) {
+                res.push(index_prefix);
             } else {
-                pixel_field_values = this.get_pixels_normalized_ranges(vardata[field.field_id]);
+                this.get_normalized_vardata_pixels(
+                    vardata,
+                    res,
+                    pixellised_fields_by_id,
+                    Array.from(fields_to_handle),
+                    index_prefix,
+                );
+            }
+
+        } else {
+            pixel_field_values = this.get_pixels_normalized_ranges(vardata[field.field_name]);
+            for (const i in pixel_field_values) {
+                const pixel_field_value = pixel_field_values[i];
+
+                if (!fields_to_handle.length) {
+                    res.push(index_prefix + '|' + pixel_field_value);;
+                } else {
+                    this.get_normalized_vardata_pixels(
+                        vardata,
+                        res,
+                        pixellised_fields_by_id,
+                        Array.from(fields_to_handle),
+                        index_prefix + '|' + pixel_field_value,
+                    );
+                }
+
             }
         }
-
-        if ((!pixel_field_values) || (!pixel_field_values.length)) {
-            return null;
-        }
-
-        for (const i in pixel_field_values) {
-            res.push(index_prefix + '|' + pixel_field_values[i] + index_suffix);
-        }
-
-        return res;
     }
-
 
     public static get_var_id_from_normalized_vardata(index: string): number {
 
@@ -344,20 +434,4 @@ export default class MatroidIndexHandler {
         const field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
         VarDataBaseVO.adapt_param_to_varconf_segmentations(vardata, field_segmentations);
     }
-
-    // Ne peuvent être utilisés : - (négatif) | (séparateur de field) & (séparateur de min/max) $ (séparateur de range)
-    private static TO_BASE_76_CARS: string = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!%*_@?:/#=+';
-    private static FROM_BASE_76_CARS: { [base_76_car: string]: number } = {
-        '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-        'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15, 'g': 16, 'h': 17, 'i': 18, 'j': 19,
-        'k': 20, 'l': 21, 'm': 22, 'n': 23, 'o': 24, 'p': 25, 'q': 26, 'r': 27, 's': 28, 't': 29,
-        'u': 30, 'v': 31, 'w': 32, 'x': 33, 'y': 34, 'z': 35,
-        'A': 36, 'B': 37, 'C': 38, 'D': 39, 'E': 40, 'F': 41, 'G': 42, 'H': 43, 'I': 44, 'J': 45,
-        'K': 46, 'L': 47, 'M': 48, 'N': 49, 'O': 50, 'P': 51, 'Q': 52, 'R': 53, 'S': 54, 'T': 55,
-        'U': 56, 'V': 57, 'W': 58, 'X': 59, 'Y': 60, 'Z': 61,
-        '.': 62, ',': 63, ';': 64, '!': 65, '%': 66, '*': 67, '_': 68, '@': 69, '?': 70, ':': 71,
-        '/': 72, '#': 73, '=': 74, '+': 75
-    };
-
-    private constructor() { }
 }

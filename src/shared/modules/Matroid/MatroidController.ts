@@ -17,14 +17,23 @@ export default class MatroidController {
     public static async initialize() {
     }
 
+    /**
+     * On vérifie que les bases ne sont pas des max_ranges, et ne sont pas nulles
+     * @param matroid
+     * @returns
+     */
     public static check_bases_not_max_ranges(matroid: IMatroid): boolean {
         const matroid_bases = this.getMatroidBases(matroid);
         for (const i in matroid_bases) {
             const matroid_base = matroid_bases[i];
 
+            if (!matroid_base) {
+                return false;
+            }
+
             for (const j in matroid_base.ranges) {
                 const range = matroid_base.ranges[j];
-                if (RangeHandler.is_one_max_range(range)) {
+                if ((!range) || RangeHandler.is_one_max_range(range)) {
                     return false;
                 }
             }
@@ -574,7 +583,7 @@ export default class MatroidController {
         // }
 
         const needs_mapping: boolean = moduletable_from != moduletable_to;
-        const mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
+        const mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids ? moduletable_from.mapping_by_api_type_ids[_type] : undefined;
 
         // if (needs_mapping && (typeof mappings === 'undefined')) {
         //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");

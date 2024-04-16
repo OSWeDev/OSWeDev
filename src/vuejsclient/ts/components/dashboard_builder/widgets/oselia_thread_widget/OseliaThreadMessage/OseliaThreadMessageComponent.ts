@@ -35,8 +35,6 @@ import './OseliaThreadMessageComponent.scss';
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {
 
-    public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -54,6 +52,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
+    public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
 
     private is_loading_thread_message: boolean = true;
 
@@ -63,6 +62,63 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private new_message_text: string = null;
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
+
+    get role_assistant() {
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+    }
+    get role_assistant_avatar_url() {
+        return '/vuejsclient/public/img/avatars/oselia.png';
+    }
+
+    get role_system() {
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_SYSTEM;
+    }
+    get role_system_avatar_url() {
+        return '/vuejsclient/public/img/avatars/system.png';
+    }
+
+    get role_tool() {
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_TOOL;
+    }
+    get role_tool_avatar_url() {
+        return '/vuejsclient/public/img/avatars/tool.png';
+    }
+
+    get role_function() {
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_FUNCTION;
+    }
+    get role_function_avatar_url() {
+        return '/vuejsclient/public/img/avatars/function.png';
+    }
+
+    get role_user() {
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
+    }
+
+    get is_self_user() {
+
+        if ((!this.thread_message) || (!this.thread_message.user_id)) {
+            return false;
+        }
+
+        return this.thread_message.user_id == VueAppController.getInstance().data_user.id;
+    }
+
+    get message_content_type_text() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+    }
+
+    get message_content_type_image() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
+    }
+
+    get message_content_type_action_url() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
+    }
+
+    get message_content_type_email() {
+        return GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL;
+    }
 
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
@@ -121,62 +177,5 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             this.avatar_url = await ModuleAccessPolicy.getInstance().get_avatar_url(this.thread_message.user_id);
         })());
         await all_promises(promises);
-    }
-
-    get role_assistant() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
-    }
-    get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
-    }
-
-    get role_system() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_SYSTEM;
-    }
-    get role_system_avatar_url() {
-        return '/vuejsclient/public/img/avatars/system.png';
-    }
-
-    get role_tool() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_TOOL;
-    }
-    get role_tool_avatar_url() {
-        return '/vuejsclient/public/img/avatars/tool.png';
-    }
-
-    get role_function() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_FUNCTION;
-    }
-    get role_function_avatar_url() {
-        return '/vuejsclient/public/img/avatars/function.png';
-    }
-
-    get role_user() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
-    }
-
-    get is_self_user() {
-
-        if ((!this.thread_message) || (!this.thread_message.user_id)) {
-            return false;
-        }
-
-        return this.thread_message.user_id == VueAppController.getInstance().data_user.id;
-    }
-
-    get message_content_type_text() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
-    }
-
-    get message_content_type_image() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
-    }
-
-    get message_content_type_action_url() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
-    }
-
-    get message_content_type_email() {
-        return GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL;
     }
 }

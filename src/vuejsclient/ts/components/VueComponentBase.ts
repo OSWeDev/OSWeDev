@@ -329,6 +329,28 @@ export default class VueComponentBase extends Vue
 
     protected fullscreen = screenfull.isFullscreen;
 
+    //EDITION MIXIN
+    get editionMode() {
+        return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
+    }
+    // SNOTIFY
+    get snotify() {
+        return this.$snotify;
+    }
+
+    get isPrintable(): boolean {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
+    }
+    get onprint(): () => void {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.onprint;
+    }
+    get isExportableToXLSX(): boolean {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
+    }
+    get printComponent(): VueComponentBase {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
+    }
+
     // TRANSLATION MIXIN
     public t(txt, params = {}): string {
         if (!txt) {
@@ -361,11 +383,6 @@ export default class VueComponentBase extends Vue
 
     protected onFullscreenChange() {
         this.fullscreen = screenfull.isFullscreen;
-    }
-
-    // SNOTIFY
-    get snotify() {
-        return this.$snotify;
     }
 
     protected getVocusLink(API_TYPE_ID: string, vo_id: number): string {
@@ -572,11 +589,6 @@ export default class VueComponentBase extends Vue
         return (xs.length == 0 && !strict) || xs.indexOf(x) != -1;
     }
 
-    //EDITION MIXIN
-    get editionMode() {
-        return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
-    }
-
     protected varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
         return (!!value) && (!!value.value);
     }
@@ -695,6 +707,14 @@ export default class VueComponentBase extends Vue
     protected simple_var_evolution(datas: VarDataBaseVO[]) {
 
         try {
+
+            if ((!datas) || (datas.length < 2)) {
+                return null;
+            }
+
+            if ((!datas[0]) || (!datas[1])) {
+                return null;
+            }
 
             const a: number = datas[0].value;
             const b: number = datas[1].value;
@@ -875,19 +895,6 @@ export default class VueComponentBase extends Vue
     }
     protected deactivateEdition() {
         AppVuexStoreManager.getInstance().appVuexStore.commit("deactivateEdition");
-    }
-
-    get isPrintable(): boolean {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
-    }
-    get onprint(): () => void {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.onprint;
-    }
-    get isExportableToXLSX(): boolean {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
-    }
-    get printComponent(): VueComponentBase {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
     }
 
     protected async export_to_xlsx() {

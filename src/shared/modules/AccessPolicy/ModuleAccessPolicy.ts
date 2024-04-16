@@ -492,7 +492,8 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRole() {
-        const label_field = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
+        const label_field = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true)
+            .unique();
         const parent_role_id = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().parent_role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle parent');
 
         const datatable_fields = [

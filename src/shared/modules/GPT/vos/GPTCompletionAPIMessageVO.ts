@@ -20,6 +20,18 @@ export default class GPTCompletionAPIMessageVO implements IDistantVOBase {
     public static GPTMSG_ROLE_TYPE_FUNCTION: number = 3;
     public static GPTMSG_ROLE_TYPE_TOOL: number = 4;
 
+    public id: number;
+    public _type: string = GPTCompletionAPIMessageVO.API_TYPE_ID;
+
+
+    public role_type: number;
+    public user_id: number;
+    public content: string;
+
+    public conversation_id: number;
+
+    public date: number;
+
     public static createNew(
         role_type: number,
         user_id: number,
@@ -34,18 +46,6 @@ export default class GPTCompletionAPIMessageVO implements IDistantVOBase {
 
         return res;
     }
-
-    public id: number;
-    public _type: string = GPTCompletionAPIMessageVO.API_TYPE_ID;
-
-
-    public role_type: number;
-    public user_id: number;
-    public content: string;
-
-    public conversation_id: number;
-
-    public date: number;
 
     public to_GPT_ChatCompletionMessageParam(): ChatCompletionMessageParam {
 

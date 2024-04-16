@@ -230,7 +230,8 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
-        await GM.register_all_modules(this.db);
+        await GM.init_db(this.db);
+        await GM.register_all_modules();
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:END');
         }

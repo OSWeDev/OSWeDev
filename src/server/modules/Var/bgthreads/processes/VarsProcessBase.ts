@@ -31,6 +31,10 @@ export default abstract class VarsProcessBase {
         protected as_batch: boolean = false,
         protected MAX_Workers: number = 0) { }
 
+    get has_nodes_to_process_in_current_tree() {
+        return !!CurrentVarDAGHolder.current_vardag && !!CurrentVarDAGHolder.current_vardag.nb_nodes;
+    }
+
     public async work(): Promise<void> {
 
         // // On initialise le fait qu'on est pas en train d'attendre une invalidation
@@ -43,6 +47,7 @@ export default abstract class VarsProcessBase {
             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:IN');
         }
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
 
             if (ConfigurationService.node_configuration.debug_vars_processes) {
@@ -117,11 +122,6 @@ export default abstract class VarsProcessBase {
             }
         }
     }
-
-    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean>;
-
-    protected abstract worker_async(node: VarDAGNode): Promise<boolean>;
-    protected abstract worker_sync(node: VarDAGNode): boolean;
 
     private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
 
@@ -414,7 +414,8 @@ export default abstract class VarsProcessBase {
         return filtered_nodes;
     }
 
-    get has_nodes_to_process_in_current_tree() {
-        return !!CurrentVarDAGHolder.current_vardag && !!CurrentVarDAGHolder.current_vardag.nb_nodes;
-    }
+    protected abstract worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean>;
+
+    protected abstract worker_async(node: VarDAGNode): Promise<boolean>;
+    protected abstract worker_sync(node: VarDAGNode): boolean;
 }
