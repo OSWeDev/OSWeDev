@@ -389,7 +389,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             ));
         }
         const dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
-        console.dir(dimensions)
         if ((!dimensions) || (!dimensions.length)) {
             this.var_params_by_dimension = null;
             return;
@@ -415,28 +414,29 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 if (!active_field_filters) {
                     active_field_filters = {};
                 }
-
                 if (!active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id]) {
                     active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                 }
-                active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
-                    ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                    this.widget_options.dimension_custom_filter_name
-                ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
+                // active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name] = filter(
+                //     ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                //     this.widget_options.dimension_custom_filter_name
+                // ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
                     
-                switch (dimension_value) {
-                    case typeof dimension_value == 'string':
+                switch (typeof dimension_value) {
+                    case 'string':
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
                             this.widget_options.dimension_vo_field_ref.api_type_id,
                             this.widget_options.dimension_vo_field_ref.field_id
                         ).by_text_has(dimension_value);
-                    case typeof dimension_value == 'number':
+                        break;
+                    case 'number':
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
                             this.widget_options.dimension_vo_field_ref.api_type_id,
                             this.widget_options.dimension_vo_field_ref.field_id
                         ).by_num_has([dimension_value]);
+                        break;
                 }
-
+                
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
@@ -469,7 +469,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         } else {
             this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
         }
-        console.dir(var_params_by_dimension)
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;
@@ -571,8 +570,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         }
                     }
                 }
-
-                console.dir(dimension_value)
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
@@ -591,7 +588,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 label_by_index[var_params_by_dimension[dimension_value].index].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
             })());
         }
-        console.dir(var_params_by_dimension)
 
         await all_promises(promises);
 

@@ -396,20 +396,8 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         const res = [];
-        const unique_var_params =  this.var_params.filter((entry, index, self) =>
-            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
-        );
-        for (const i in unique_var_params) {
-            if(!this.getlabel(unique_var_params[i])){
-                return
-            }
-            if(this.getlabel(unique_var_params[i]).length>0){
-                for (const j in this.getlabel(unique_var_params[i])) {
-                    res.push(this.getlabel(unique_var_params[i])[j]);
-                }
-            } else {
-                res.push(this.getlabel ? this.getlabel(unique_var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(unique_var_params[i].var_id)));
-            }
+        for (const i in this.var_params) {
+            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
         return res;
     }
