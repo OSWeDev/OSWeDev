@@ -860,7 +860,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
 
         // May be an array if multi select or a single value if not
-        if (!(options?.default_filter_opt_values)) {
+        if (!(options?.default_filter_opt_values?.length)) {
             return null;
         }
 
