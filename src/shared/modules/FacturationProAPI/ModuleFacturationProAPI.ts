@@ -86,7 +86,7 @@ export default class ModuleFacturationProAPI extends Module {
 
         const customers: FactuProCustomerVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/customers.json",
-            params as any as { [i: string]: string },
+            params as unknown as { [i: string]: string },
         ) as FactuProCustomerVO[];
         return customers;
     }
@@ -95,7 +95,7 @@ export default class ModuleFacturationProAPI extends Module {
 
         const products: FactuProProductVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/products.json",
-            params as any as { [i: string]: string },
+            params as unknown as { [i: string]: string },
         ) as FactuProProductVO[];
         return products;
     }
@@ -104,7 +104,7 @@ export default class ModuleFacturationProAPI extends Module {
 
         const invoices: FactuProInvoiceVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/invoices.json",
-            params as any as { [i: string]: string },
+            params as unknown as { [i: string]: string },
         ) as FactuProInvoiceVO[];
         return invoices;
     }
@@ -113,7 +113,7 @@ export default class ModuleFacturationProAPI extends Module {
 
         const categories: FactuProCategoryVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/categories.json",
-            params as any as { [i: string]: string },
+            params as unknown as { [i: string]: string },
         ) as FactuProCategoryVO[];
         return categories;
     }
@@ -122,7 +122,7 @@ export default class ModuleFacturationProAPI extends Module {
 
         const devis: FactuProDevisVO[] = await this.get_all_pages(
             "firms/" + firm_id + "/quotes.json",
-            params as any as { [i: string]: string },
+            params as unknown as { [i: string]: string },
         ) as FactuProDevisVO[];
         return devis;
     }

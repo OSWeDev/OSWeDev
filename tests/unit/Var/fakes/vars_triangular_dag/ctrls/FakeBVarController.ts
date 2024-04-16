@@ -14,14 +14,6 @@ export default class FakeBVarController extends VarServerControllerBase<FakeData
     public static DEP_E: string = 'E' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_F: string = 'F' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeBVarController {
-        if (!FakeBVarController.instance) {
-            FakeBVarController.instance = new FakeBVarController();
-        }
-        return FakeBVarController.instance;
-    }
-
     protected static instance: FakeBVarController = null;
 
     protected constructor() {
@@ -31,6 +23,14 @@ export default class FakeBVarController extends VarServerControllerBase<FakeData
             }, 2),
             {}, {}, {}, {}
         );
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeBVarController {
+        if (!FakeBVarController.instance) {
+            FakeBVarController.instance = new FakeBVarController();
+        }
+        return FakeBVarController.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
@@ -54,10 +54,10 @@ export default class FakeBVarController extends VarServerControllerBase<FakeData
 
         switch (dep_id) {
             case FakeBVarController.DEP_F:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name);
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name);
 
             case FakeBVarController.DEP_E:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeDataVO[];
         }
 
         return null;

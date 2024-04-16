@@ -88,7 +88,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     }
 
     public dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): U {
-        return e as any as U;
+        return e as unknown as U;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): any {

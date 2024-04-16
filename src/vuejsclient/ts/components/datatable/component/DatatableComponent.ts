@@ -111,7 +111,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private watcherLoaded: boolean = false;
 
-    private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as any as () => Promise<void>;
+    private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as unknown as () => Promise<void>;
 
     get v_client_table_key() {
         return this.datatable ? this.datatable.API_TYPE_ID : null;

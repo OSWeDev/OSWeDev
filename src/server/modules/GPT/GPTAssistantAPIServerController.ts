@@ -52,7 +52,7 @@ export default class GPTAssistantAPIServerController {
 
             const file_gpt = await ModuleGPTServer.openai.files.create({
                 purpose: GPTAssistantAPIFileVO.PURPOSE_LABELS[purpose] as 'fine-tune' | 'assistants',
-                file: createReadStream(file_vo.path) as any as Uploadable
+                file: createReadStream(file_vo.path) as unknown as Uploadable
             });
 
             const assistant_file_vo = new GPTAssistantAPIFileVO();

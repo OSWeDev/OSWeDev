@@ -13,6 +13,11 @@ import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
+    /**
+     * DIRTY : workaround pour le typage de this, dans le cadre de l'usage de get_cloned_invalidators_from_dep_controller(this) qui ne comprend pas le typage de this directement, mais de this.self_instance
+     */
+    public self_instance: VarServerControllerBase<TData> = this;
+
     // /**
     //  * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
     //  *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)

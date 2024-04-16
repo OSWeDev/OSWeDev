@@ -622,7 +622,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
 
         if (res == null) {
-            return '' as any as U;
+            return '' as unknown as U;
         }
 
         return res;

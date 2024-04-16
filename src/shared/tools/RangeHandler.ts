@@ -41,6 +41,9 @@ export default class RangeHandler {
     public static MIN_HOUR: number = -9151488000;
     public static MAX_HOUR: number = 8993721599;
 
+    protected static RANGE_MATCHER_API = /([0-9]+)(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
+    protected static RANGE_MATCHER_BDD = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
+
     /**
      * TODO FIXME TU
      */
@@ -1291,11 +1294,11 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as unknown as IRange;
             case HourRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as unknown as IRange;
             case TSRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as unknown as IRange;
         }
 
         return null;
@@ -1513,16 +1516,16 @@ export default class RangeHandler {
             case ModuleTableFieldVO.FIELD_TYPE_numrange:
             case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
             case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                return RangeHandler.getMaxNumRange() as any as IRange;
+                return RangeHandler.getMaxNumRange() as unknown as IRange;
 
             case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
             case ModuleTableFieldVO.FIELD_TYPE_daterange:
             case ModuleTableFieldVO.FIELD_TYPE_tsrange:
-                return RangeHandler.getMaxTSRange() as any as IRange;
+                return RangeHandler.getMaxTSRange() as unknown as IRange;
 
             case ModuleTableFieldVO.FIELD_TYPE_hourrange:
             case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
-                return RangeHandler.getMaxHourRange() as any as IRange;
+                return RangeHandler.getMaxHourRange() as unknown as IRange;
 
             default:
                 return null;
@@ -1556,14 +1559,14 @@ export default class RangeHandler {
                 switch (shift_segment_type) {
                     case NumSegment.TYPE_INT:
                     default:
-                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
                 }
 
             case HourRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
 
             case TSRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
         }
     }
 
@@ -1575,13 +1578,13 @@ export default class RangeHandler {
         switch (from.range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumRange.cloneFrom(from as any as NumRange) as any as U;
+                return NumRange.cloneFrom(from as unknown as NumRange) as unknown as U;
 
             case HourRange.RANGE_TYPE:
-                return HourRange.cloneFrom(from as any as HourRange) as any as U;
+                return HourRange.cloneFrom(from as unknown as HourRange) as unknown as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.cloneFrom(from as any as TSRange) as any as U;
+                return TSRange.cloneFrom(from as unknown as TSRange) as unknown as U;
         }
     }
 
@@ -2302,13 +2305,13 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
 
             case HourRange.RANGE_TYPE:
-                return HourRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return HourRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return TSRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
         }
     }
 
@@ -2433,10 +2436,10 @@ export default class RangeHandler {
             /**
              * On a peut-être déjà un range traduit on le renvoie simplement
              */
-            return rangeLiteral as any as U;
+            return rangeLiteral as unknown as U;
         }
 
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+        let matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {
             return null;
@@ -2457,7 +2460,7 @@ export default class RangeHandler {
                         parseFloat(upperHourRange),
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
 
                 case NumRange.RANGE_TYPE:
 
@@ -2470,10 +2473,10 @@ export default class RangeHandler {
                         parseFloat(upperNumRange),
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
 
                 case TSRange.RANGE_TYPE:
-                    var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+                    matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
                     if (!matches) {
                         return null;
@@ -2487,16 +2490,13 @@ export default class RangeHandler {
                         upperTSRange,
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
             }
         } catch (error) {
             ConsoleHandler.error(error);
         }
         return null;
     }
-
-    protected static RANGE_MATCHER_API = /([0-9]+)(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
-    protected static RANGE_MATCHER_BDD = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     private static is_elt_equals_elt(range_type: number, a: number, b: number): boolean {
 
@@ -2554,13 +2554,13 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumSegmentHandler.getCorrespondingNumSegment(elt, segment_type) as any as ISegment;
+                return NumSegmentHandler.getCorrespondingNumSegment(elt, segment_type) as unknown as ISegment;
 
             case HourRange.RANGE_TYPE:
-                return HourSegmentHandler.getCorrespondingHourSegment(elt, segment_type) as any as ISegment;
+                return HourSegmentHandler.getCorrespondingHourSegment(elt, segment_type) as unknown as ISegment;
 
             case TSRange.RANGE_TYPE:
-                return TimeSegmentHandler.getCorrespondingTimeSegment(elt, segment_type) as any as ISegment;
+                return TimeSegmentHandler.getCorrespondingTimeSegment(elt, segment_type) as unknown as ISegment;
         }
     }
 
@@ -2568,15 +2568,15 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                NumSegmentHandler.incNumSegment(segment as any as NumSegment, segment_type, offset);
+                NumSegmentHandler.incNumSegment(segment as unknown as NumSegment, segment_type, offset);
                 break;
 
             case HourRange.RANGE_TYPE:
-                HourSegmentHandler.incHourSegment(segment as any as HourSegment, segment_type, offset);
+                HourSegmentHandler.incHourSegment(segment as unknown as HourSegment, segment_type, offset);
                 break;
 
             case TSRange.RANGE_TYPE:
-                TimeSegmentHandler.incTimeSegment(segment as any as TimeSegment, segment_type, offset);
+                TimeSegmentHandler.incTimeSegment(segment as unknown as TimeSegment, segment_type, offset);
                 break;
         }
     }
