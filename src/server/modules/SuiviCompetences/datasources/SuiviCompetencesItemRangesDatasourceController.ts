@@ -95,6 +95,10 @@ export default class SuiviCompetencesItemRangesDatasourceController extends Data
         for (let i in grille_by_ids) {
             let grille: SuiviCompetencesGrilleVO = grille_by_ids[i];
 
+            if (!grille.calcul_niveau_maturite) {
+                continue;
+            }
+
             RangeHandler.foreach_ranges_sync(grille.suivi_comp_item_id_ranges, (item_id: number) => {
                 let item: SuiviCompetencesItemVO = item_by_ids[item_id];
 

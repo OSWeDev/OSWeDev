@@ -105,8 +105,8 @@ export default class ModuleSuiviCompetences extends Module {
         let datatable_fields = [
             label_field,
             new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().weight, ModuleTableField.FIELD_TYPE_int, "Poids"),
-            new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().ponderation, ModuleTableField.FIELD_TYPE_int, "Pondération"),
-            new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", false, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().ponderation, ModuleTableField.FIELD_TYPE_int, "Pondération", false, true, 1),
+            new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", true, true, true),
             new ModuleTableField(field_names<SuiviCompetencesGroupeVO>().icon, ModuleTableField.FIELD_TYPE_string, "Icone (font awesome)"),
         ];
 
@@ -133,8 +133,8 @@ export default class ModuleSuiviCompetences extends Module {
             label_field,
             groupe_id,
             new ModuleTableField(field_names<SuiviCompetencesSousGroupeVO>().weight, ModuleTableField.FIELD_TYPE_int, "Poids"),
-            new ModuleTableField(field_names<SuiviCompetencesSousGroupeVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", false, true, true),
-            new ModuleTableField(field_names<SuiviCompetencesSousGroupeVO>().ponderation, ModuleTableField.FIELD_TYPE_int, "Pondération"),
+            new ModuleTableField(field_names<SuiviCompetencesSousGroupeVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesSousGroupeVO>().ponderation, ModuleTableField.FIELD_TYPE_int, "Pondération", false, true, 1),
         ];
 
         let datatable = new ModuleTable(this, SuiviCompetencesSousGroupeVO.API_TYPE_ID, () => new SuiviCompetencesSousGroupeVO(), datatable_fields, label_field, "Suivi Competences Sous groupe");
@@ -144,18 +144,19 @@ export default class ModuleSuiviCompetences extends Module {
     }
 
     private initializeSuiviCompetencesItem() {
-        let label_field = new ModuleTableField(field_names<SuiviCompetencesItemVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom de l'item", true);
+        let label_field = new ModuleTableField(field_names<SuiviCompetencesItemVO>().label, ModuleTableField.FIELD_TYPE_string, "Label");
         let groupe_id = new ModuleTableField(field_names<SuiviCompetencesItemVO>().groupe_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe', true);
         let sous_groupe_id = new ModuleTableField(field_names<SuiviCompetencesItemVO>().sous_groupe_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Sous Groupe');
         let suivi_comp_activite_id = new ModuleTableField(field_names<SuiviCompetencesItemVO>().suivi_comp_activite_id, ModuleTableField.FIELD_TYPE_foreign_key, 'Activité');
 
         let datatable_fields = [
             label_field,
+            new ModuleTableField(field_names<SuiviCompetencesItemVO>().name, ModuleTableField.FIELD_TYPE_string, "Nom de l'item", true),
             new ModuleTableField(field_names<SuiviCompetencesItemVO>().weight, ModuleTableField.FIELD_TYPE_int, "Poids"),
             new ModuleTableField(field_names<SuiviCompetencesItemVO>().indicateurs, SuiviCompetencesIndicateurVO.API_TYPE_ID, "Indicateurs"),
             new ModuleTableField(field_names<SuiviCompetencesItemVO>().kpis, ModuleTableField.FIELD_TYPE_string, "KPIS"),
             new ModuleTableField(field_names<SuiviCompetencesItemVO>().popup, ModuleTableField.FIELD_TYPE_string, "Texte Popup"),
-            new ModuleTableField(field_names<SuiviCompetencesItemVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", false, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesItemVO>().active, ModuleTableField.FIELD_TYPE_boolean, "Actif", true, true, true),
             groupe_id,
             sous_groupe_id,
             suivi_comp_activite_id,
@@ -180,6 +181,7 @@ export default class ModuleSuiviCompetences extends Module {
             name,
             suivi_comp_item_id_ranges,
             suivi_comp_activite_id,
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().calcul_niveau_maturite, ModuleTableField.FIELD_TYPE_boolean, 'Utilisation du calcul du niveau de maturité ?', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, SuiviCompetencesGrilleVO.API_TYPE_ID, () => new SuiviCompetencesGrilleVO(), datatable_fields, name, "Suivi Competences Grille");

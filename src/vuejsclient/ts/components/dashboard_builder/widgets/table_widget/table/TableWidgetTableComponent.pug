@@ -16,6 +16,10 @@ include ../../../../../../views/mixins/loading.pug
                         template(v-for="action in cb_bulk_actions")
                             .btn.btn-primary.display_inline_block.mr-2.mb-1(:class="action.label", @click="callback_action(action)") {{ t(action.translatable_title) }}
 
+            template(v-if="legende_tableau?.length > 0")
+                .legende_tableau
+                    div(v-html="legende_tableau")
+
             .upper_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
@@ -69,6 +73,7 @@ include ../../../../../../views/mixins/loading.pug
                                     th.table_header(v-if="column.type == 5 && column.children.length > 0"
                                         :style="get_style_th(column)"
                                         :colspan="column.children.length"
+                                        :class="column.custom_class_css"
                                     )
 
                                         template(v-if="column.custom_label")
@@ -85,7 +90,7 @@ include ../../../../../../views/mixins/loading.pug
 
                                     th.table_header(
                                         v-if="column.type != 5"
-                                        :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky}'
+                                        :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky, [column.custom_class_css]: !!column.custom_class_css}'
                                         @click="sort_by(column)"
                                         :style="get_style_th(column)"
                                     )
@@ -111,7 +116,7 @@ include ../../../../../../views/mixins/loading.pug
                                     th(
                                         v-if="column.type == 5 && column.children.length > 0"
                                         v-for='child in column.children'
-                                        :class="{order_asc: order_asc_on_id == child.id, order_desc: order_desc_on_id == child.id}"
+                                        :class="{order_asc: (order_asc_on_id == child.id), order_desc: (order_desc_on_id == child.id), [column.custom_class_css]: !!column.custom_class_css}"
                                         :style="get_style_th(child)"
                                         @click="sort_by(child)"
                                     )
@@ -140,7 +145,7 @@ include ../../../../../../views/mixins/loading.pug
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
                                             v-if="column.type != 5"
-                                            :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column), "position-sticky": column.is_sticky }' 
+                                            :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column), "position-sticky": column.is_sticky, [column.custom_class_css]: !!column.custom_class_css }' 
                                             :style="get_style_td(column)"
                                             @click="can_filter_by(column) ? (is_filtering_by_col(column) ? handle_filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : handle_filter_by(column, column.datatable_field_uid, row))) : null" 
                                             v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null' 
@@ -264,7 +269,7 @@ include ../../../../../../views/mixins/loading.pug
                                         )
                                             //- Colonne de type HEADER
                                             template(v-for='child in column.children')
-                                                td.table_col(v-if="child.type == 1")
+                                                td.table_col(v-if="child.type == 1", :class="column.custom_class_css")
                                                     Datatablecomponentfield(
                                                         :filter_custom_field_filters="column.filter_custom_field_filters"
                                                         :field="fields[child.id]"
@@ -285,8 +290,10 @@ include ../../../../../../views/mixins/loading.pug
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
-                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
-                                                        )
+                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' 
+                                                        :style="{width: (child.column_width ? child.column_width + 'rem' : null)}"
+                                                        :class="column.custom_class_css"
+                                                    )
                                                         template(v-if='update_button')
                                                             .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
                                                                 i.fa.fa-pencil
@@ -304,13 +311,13 @@ include ../../../../../../views/mixins/loading.pug
 
                             template(v-for='(column, index_column) in table_columns')
                                 template(v-if="is_column_type_number(column)")
-                                    td.text-center
+                                    td.text-center(:class="column.custom_class_css")
                                         template(v-if="column_total && column_total[column.api_type_id]")
                                             | {{ column_total[column.api_type_id][column.field_id] }}
 
                                 template(v-else)
                                     template(v-if="(!colspan_total_with_hidden || (parseInt(index_column) >= colspan_total_with_hidden)) && !column.hide_from_table")
-                                        td.test(:field_id="column.field_id")
+                                        td.test(:field_id="column.field_id", :class="column.custom_class_css")
 
             .lower_pagination(v-if="!hide_pagination_bottom")
                 Tablepaginationcomponent(

@@ -204,7 +204,7 @@ export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
      * @returns {DataFilterOption[]}
      */
     public get_default_filter_options(): DataFilterOption[] {
-        if (!this.default_filter_opt_values) {
+        if (!this.default_filter_opt_values?.length) {
             return null;
         }
 

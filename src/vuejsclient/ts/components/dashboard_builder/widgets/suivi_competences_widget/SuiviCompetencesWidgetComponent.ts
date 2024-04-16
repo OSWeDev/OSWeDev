@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
@@ -46,6 +46,8 @@ import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCreateModalComponent';
 import './SuiviCompetencesWidgetComponent.scss';
+import SuiviCompetencesGrilleVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
+import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -88,6 +90,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private selected_rapport: SuiviCompetencesRapportVO = null;
     private start_export_excel: boolean = false;
     private all_groupes: SuiviCompetencesGroupeResult[] = [];
+    private grille: SuiviCompetencesGrilleVO = null;
     private filtered_groupes: SuiviCompetencesGroupeResult[] = [];
     private rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
     private all_rapport_item_by_ids: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
@@ -95,9 +98,9 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private indicateur_options_by_item_ids: { [item_id: number]: DataFilterOption[] } = {};
 
     private action_rapport: number = null;
-    private create_action_rapport: number = 1;
-    private duplicate_action_rapport: number = 2;
-    private edit_action_rapport: number = 3;
+    private create_action_rapport: number = SuiviCompetencesWidgetController.CREATE_ACTION_RAPPORT;
+    private duplicate_action_rapport: number = SuiviCompetencesWidgetController.DUPLICATE_ACTION_RAPPORT;
+    private edit_action_rapport: number = SuiviCompetencesWidgetController.EDIT_ACTION_RAPPORT;
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
@@ -114,6 +117,11 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     @Watch('selected_rapport')
     @Watch('action_rapport')
     private async onchange_selected_rapport() {
+        if (this.action_rapport == this.create_action_rapport) {
+            await this.open_create();
+            return;
+        }
+
         if (!this.selected_rapport) {
             return;
         }
@@ -127,6 +135,12 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         promises.push((async () => {
             this.all_groupes = await ModuleSuiviCompetences.getInstance().get_all_suivi_competences_groupe([RangeHandler.create_single_elt_NumRange(this.selected_rapport.suivi_comp_grille_id, NumSegment.TYPE_INT)]);
+        })());
+
+        promises.push((async () => {
+            this.grille = await query(SuiviCompetencesGrilleVO.API_TYPE_ID)
+                .filter_by_id(this.selected_rapport.suivi_comp_grille_id)
+                .select_vo();
         })());
 
         promises.push((async () => {
@@ -151,6 +165,15 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     private async update_visible_options() {
+        if (SuiviCompetencesWidgetController.default_rapport_id) {
+            this.selected_rapport = await query(SuiviCompetencesRapportVO.API_TYPE_ID).filter_by_id(SuiviCompetencesWidgetController.default_rapport_id).select_vo();
+            SuiviCompetencesWidgetController.default_rapport_id = null;
+        }
+
+        if (SuiviCompetencesWidgetController.default_action_rapport) {
+            this.action_rapport = SuiviCompetencesWidgetController.default_action_rapport;
+            SuiviCompetencesWidgetController.default_action_rapport = null;
+        }
 
         let context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
             FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
@@ -233,7 +256,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
         await this.get_Crudcreatemodalcomponent.open_modal(
             SuiviCompetencesRapportVO.API_TYPE_ID,
             this.update_visible_options.bind(this),
-            null,
+            SuiviCompetencesWidgetController.default_vo_init_rapport,
             false,
             this.on_create_rapport.bind(this)
         );
@@ -472,8 +495,14 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         if (
             !this.get_active_field_filters ||
-            !this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID] ||
-            !Object.keys(this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID])?.length
+            (
+                !this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID] ||
+                !Object.keys(this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID])?.length
+            ) &&
+            (
+                !this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID] ||
+                !Object.keys(this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID])?.length
+            )
         ) {
             this.filtered_groupes = this.all_groupes;
             return;
@@ -481,6 +510,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         for (let i in this.all_groupes) {
             let groupe: SuiviCompetencesGroupeResult = this.all_groupes[i];
+            let is_ok_groupe: boolean = true;
 
             for (let field_name in this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID]) {
                 // Si j'ai un filtrage multiple et que le groupe a la valeur, je rajoute
@@ -489,12 +519,11 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 ) {
                     if (
                         !!groupe[field_name] &&
-                        this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_textarray.includes(groupe[field_name])
+                        !this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_textarray.includes(groupe[field_name])
                     ) {
-                        res.push(groupe);
+                        is_ok_groupe = false;
+                        continue;
                     }
-
-                    continue;
                 }
 
                 // Si j'ai un filtrage simple et que le groupe a la valeur, je rajoute
@@ -503,17 +532,66 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 ) {
                     if (
                         !!groupe[field_name] &&
-                        (this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_text == groupe[field_name])
+                        (this.get_active_field_filters[SuiviCompetencesGroupeVO.API_TYPE_ID][field_name].param_text != groupe[field_name])
                     ) {
-                        res.push(groupe);
+                        is_ok_groupe = false;
+                        continue;
+                    }
+                }
+            }
+
+            if (!is_ok_groupe) {
+                continue;
+            }
+
+            if (
+                !this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID] ||
+                !Object.keys(this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID])?.length
+            ) {
+                res.push(groupe);
+                continue;
+            }
+
+            let groupe_cloned: SuiviCompetencesGroupeResult = cloneDeep(groupe);
+            groupe_cloned.sous_groupe = [];
+
+            for (let j in groupe.sous_groupe) {
+                let sous_groupe = groupe.sous_groupe[j];
+                let sous_groupe_cloned: { id: number, name: string, items: SuiviCompetencesItemVO[] } = cloneDeep(sous_groupe);
+                sous_groupe_cloned.items = [];
+
+                for (let k in sous_groupe.items) {
+                    let item: SuiviCompetencesItemVO = sous_groupe.items[k];
+                    let item_rapport: SuiviCompetencesItemRapportVO = this.all_rapport_item_by_ids[item.id];
+
+                    if (!item_rapport) {
+                        continue;
                     }
 
+                    for (let field_name in this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID]) {
+                        if (
+                            !!this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name] &&
+                            !RangeHandler.elt_intersects_any_range(item_rapport.indicateur, this.get_active_field_filters[SuiviCompetencesItemRapportVO.API_TYPE_ID][field_name].param_numranges)
+                        ) {
+                            continue;
+                        }
+
+                        sous_groupe_cloned.items.push(item);
+                    }
+                }
+
+                if (!sous_groupe_cloned.items?.length) {
                     continue;
                 }
 
-                // Si je n'ai pas de filtrage, je rajoute le groupe
-                res.push(groupe);
+                groupe_cloned.sous_groupe.push(sous_groupe_cloned);
             }
+
+            if (!groupe_cloned.sous_groupe?.length) {
+                continue;
+            }
+
+            res.push(groupe_cloned);
         }
 
         this.filtered_groupes = res;

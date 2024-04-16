@@ -26,6 +26,9 @@ import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/Time
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -107,6 +110,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private use_kanban_by_default_if_exists: boolean = true;
     private use_kanban_column_weight_if_exists: boolean = true;
     private use_kanban_card_archive_if_exists: boolean = true;
+    private tmp_legende_tableau: string = null;
 
     private async switch_use_kanban_card_archive_if_exists() {
         this.next_update_options = this.widget_options;
@@ -199,6 +203,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
             if (!this.tmp_has_export_maintenance_alert) {
                 this.tmp_has_export_maintenance_alert = false;
+            }
+            if (this.tmp_legende_tableau) {
+                this.tmp_legende_tableau = null;
             }
             if (!!this.tmp_default_export_option) {
                 this.tmp_default_export_option = null;
@@ -300,6 +307,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.tmp_has_export_maintenance_alert != this.widget_options.has_export_maintenance_alert) {
             this.tmp_has_export_maintenance_alert = this.widget_options.has_export_maintenance_alert;
+        }
+        if (this.tmp_legende_tableau != this.widget_options.legende_tableau) {
+            this.tmp_legende_tableau = this.widget_options.legende_tableau;
         }
         if ((this.widget_options.default_export_option != null) && (!this.tmp_default_export_option || (this.tmp_default_export_option.id != this.widget_options.default_export_option))) {
             this.tmp_default_export_option = this.export_page_options.find((e) => e.id == this.widget_options.default_export_option);
@@ -523,6 +533,23 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.default_export_option = null;
         } else if (this.widget_options.default_export_option != this.tmp_default_export_option.id) {
             this.next_update_options.default_export_option = this.tmp_default_export_option.id;
+        }
+
+        this.throttled_update_options();
+    }
+
+    @Watch('tmp_legende_tableau')
+    private async onchange_tmp_legende_tableau() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = cloneDeep(this.widget_options);
+
+        if (!this.tmp_legende_tableau) {
+            this.next_update_options.legende_tableau = null;
+        } else if (this.widget_options.legende_tableau != this.tmp_legende_tableau) {
+            this.next_update_options.legende_tableau = this.tmp_legende_tableau;
         }
 
         this.throttled_update_options();

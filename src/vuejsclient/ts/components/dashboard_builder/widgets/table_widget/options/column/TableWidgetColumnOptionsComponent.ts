@@ -82,6 +82,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private tmp_bg_color_header: string = null;
     private tmp_font_color_header: string = null;
+    private tmp_custom_class_css: string = null;
 
     private show_options: boolean = false;
     private error: boolean = false;
@@ -372,6 +373,21 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
+    @Watch('tmp_custom_class_css')
+    private async onchange_tmp_custom_class_css() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.custom_class_css == this.tmp_custom_class_css) {
+            return;
+        }
+
+        this.object_column.custom_class_css = this.tmp_custom_class_css;
+
+        this.$emit('update_column', this.object_column);
+    }
+
     @Watch('tmp_font_color_header')
     private async onchange_tmp_font_color_header() {
         if (!this.object_column) {
@@ -435,6 +451,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
+        this.tmp_custom_class_css = this.object_column ? this.object_column.custom_class_css : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
         this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
         this.kanban_use_weight = this.object_column ? this.object_column.kanban_use_weight : false;

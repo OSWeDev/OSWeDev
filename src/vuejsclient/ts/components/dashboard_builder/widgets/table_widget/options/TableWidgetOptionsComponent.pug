@@ -241,15 +241,6 @@
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
-        .has_export_maintenance_alert
-            .input_label {{ label('table_widget_options_component.has_export_maintenance_alert') }}
-            toggle-button(
-                @change="switch_tmp_has_export_maintenance_alert" 
-                :value="tmp_has_export_maintenance_alert" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
-
         .has_default_export_option
             .input_label {{ label('table_widget_options_component.has_default_export_option') }}
             toggle-button(
@@ -485,6 +476,13 @@
             :selected-label='label("multiselect.selectedLabel")'
             :deselect-label='label("multiselect.deselectLabel")'
             :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )
+
+
+    .legende_tableau
+        .input_label {{ label('table_widget_options_component.legende_tableau') }}
+        Vuequilleditor.valign-middle(
+            v-model="tmp_legende_tableau"
         )
 
     .field_refs

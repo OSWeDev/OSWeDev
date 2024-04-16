@@ -31,6 +31,7 @@ export default class SuiviCompetencesItemVO implements IWeightedItem, INamedVO {
 
     public weight: number;
     public name: string;
+    public label: string;
 
     public indicateurs: string;
 

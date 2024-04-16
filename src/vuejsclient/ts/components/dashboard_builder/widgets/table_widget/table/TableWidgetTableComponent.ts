@@ -605,6 +605,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return this.widget_options && this.widget_options.show_bulk_edit;
     }
 
+    get legende_tableau(): string {
+        return this.widget_options && this.widget_options.legende_tableau;
+    }
+
     get default_export_option(): number {
         return this.widget_options && this.widget_options.export_button && this.widget_options.has_default_export_option && this.widget_options.default_export_option ? this.widget_options.default_export_option : null;
     }

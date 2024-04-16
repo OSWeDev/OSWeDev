@@ -349,6 +349,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableField.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
             new ModuleTableField(field_names<TableColumnDescVO>().custom_label, ModuleTableField.FIELD_TYPE_string, "Label personnalisé"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_class_css, ModuleTableField.FIELD_TYPE_string, "Classe CSS personnalisé"),
             new ModuleTableField(field_names<TableColumnDescVO>().custom_values, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées"),
         ];
 

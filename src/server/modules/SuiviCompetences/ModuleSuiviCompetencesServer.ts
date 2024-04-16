@@ -11,6 +11,7 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleSuiviCompetences from '../../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
 import SuiviCompetencesGroupeResult from '../../../shared/modules/SuiviCompetences/apis/SuiviCompetencesGroupeResult';
+import SuiviCompetencesActiviteVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesActiviteVO';
 import SuiviCompetencesGrilleVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
 import SuiviCompetencesGroupeVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO';
 import SuiviCompetencesItemRapportVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO';
@@ -112,12 +113,33 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
 
     private async handleSuiviCompetencesItemCreation(item: SuiviCompetencesItemVO): Promise<boolean> {
-        // On va checker la cohérence groupe / sous-groupe
-        if (item.sous_groupe_id) {
-            let sous_groupe: SuiviCompetencesSousGroupeVO = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID).filter_by_id(item.sous_groupe_id).select_one();
+        let new_label: string[] = [item.name];
 
+        // On va checker la cohérence groupe / sous-groupe
+        let sous_groupe: SuiviCompetencesSousGroupeVO = null;
+
+        if (item.sous_groupe_id) {
+            sous_groupe = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID).filter_by_id(item.sous_groupe_id).select_one();
             item.groupe_id = sous_groupe.groupe_id;
         }
+
+        if (item.groupe_id) {
+            let groupe: SuiviCompetencesGroupeVO = await query(SuiviCompetencesGroupeVO.API_TYPE_ID).filter_by_id(item.groupe_id).select_one();
+
+            new_label.push(groupe.name);
+        }
+
+        if (sous_groupe) {
+            new_label.push(sous_groupe.name);
+        }
+
+        if (item.suivi_comp_activite_id) {
+            let activite: SuiviCompetencesActiviteVO = await query(SuiviCompetencesActiviteVO.API_TYPE_ID).filter_by_id(item.suivi_comp_activite_id).select_one();
+
+            new_label.push(activite.name);
+        }
+
+        item.label = new_label.join(' - ');
 
         return true;
     }
@@ -132,7 +154,9 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         // On va checker la cohérence groupe / sous-groupe
         if (
             (vo_update_handler.post_update_vo.groupe_id == vo_update_handler.pre_update_vo.groupe_id) &&
-            (vo_update_handler.post_update_vo.sous_groupe_id == vo_update_handler.pre_update_vo.sous_groupe_id)
+            (vo_update_handler.post_update_vo.sous_groupe_id == vo_update_handler.pre_update_vo.sous_groupe_id) &&
+            (vo_update_handler.post_update_vo.name == vo_update_handler.pre_update_vo.name) &&
+            (vo_update_handler.post_update_vo.suivi_comp_activite_id == vo_update_handler.pre_update_vo.suivi_comp_activite_id)
         ) {
             return true;
         }
@@ -156,7 +180,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
     private async get_all_suivi_competences_groupe(grille_id_ranges: NumRange[]): Promise<SuiviCompetencesGroupeResult[]> {
         let res: SuiviCompetencesGroupeResult[] = [];
 
-        let groupe_by_ids: { [id: number]: SuiviCompetencesGroupeVO } = null;
+        let groupes: SuiviCompetencesGroupeVO[] = null;
         let sous_groupes_by_groupe_ids: { [groupe_id: number]: SuiviCompetencesSousGroupeVO[] } = {};
         let items_by_groupe_and_sous_groupe_ids: { [groupe_id: number]: { [sous_groupe_id: number]: SuiviCompetencesItemVO[] } } = {};
 
@@ -181,12 +205,10 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         let promise_pipeline = new PromisePipeline(limit);
 
         await promise_pipeline.push(async () => {
-            groupe_by_ids = VOsTypesManager.vosArray_to_vosByIds(
-                await query(SuiviCompetencesGroupeVO.API_TYPE_ID)
-                    .filter_is_true(field_names<SuiviCompetencesGroupeVO>().active)
-                    .set_sort(new SortByVO(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().weight, true))
-                    .select_vos<SuiviCompetencesGroupeVO>()
-            );
+            groupes = await query(SuiviCompetencesGroupeVO.API_TYPE_ID)
+                .filter_is_true(field_names<SuiviCompetencesGroupeVO>().active)
+                .set_sort(new SortByVO(SuiviCompetencesGroupeVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeVO>().weight, true))
+                .select_vos<SuiviCompetencesGroupeVO>();
         });
         await promise_pipeline.push(async () => {
             let sous_groupes: SuiviCompetencesSousGroupeVO[] = await query(SuiviCompetencesSousGroupeVO.API_TYPE_ID)
@@ -213,17 +235,20 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
                 if (!items_by_groupe_and_sous_groupe_ids[item.groupe_id]) {
                     items_by_groupe_and_sous_groupe_ids[item.groupe_id] = {};
                 }
-                if (!items_by_groupe_and_sous_groupe_ids[item.groupe_id][item.sous_groupe_id]) {
-                    items_by_groupe_and_sous_groupe_ids[item.groupe_id][item.sous_groupe_id] = [];
+
+                let sous_groupe_id: number = item.sous_groupe_id ? item.sous_groupe_id : 0;
+
+                if (!items_by_groupe_and_sous_groupe_ids[item.groupe_id][sous_groupe_id]) {
+                    items_by_groupe_and_sous_groupe_ids[item.groupe_id][sous_groupe_id] = [];
                 }
-                items_by_groupe_and_sous_groupe_ids[item.groupe_id][item.sous_groupe_id].push(item);
+                items_by_groupe_and_sous_groupe_ids[item.groupe_id][sous_groupe_id].push(item);
             }
         });
 
         await promise_pipeline.end();
 
-        for (let i in groupe_by_ids) {
-            let groupe: SuiviCompetencesGroupeVO = groupe_by_ids[i];
+        for (let i in groupes) {
+            let groupe: SuiviCompetencesGroupeVO = groupes[i];
 
             let groupe_result: SuiviCompetencesGroupeResult = new SuiviCompetencesGroupeResult();
             groupe_result.name = groupe.name;
@@ -231,6 +256,20 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             groupe_result.id = groupe.id;
             groupe_result.nb_elements = 0;
             groupe_result.sous_groupe = [];
+
+            // Si on a des items sans sous groupe, on va rajouter les items
+            if (items_by_groupe_and_sous_groupe_ids[groupe.id] && (items_by_groupe_and_sous_groupe_ids[groupe.id][0]?.length > 0)) {
+                let ts_sous_groupe_result: { id: number, name: string, items: SuiviCompetencesItemVO[] } = {
+                    id: null,
+                    name: null,
+                    items: items_by_groupe_and_sous_groupe_ids[groupe.id][0]
+                };
+
+                if (ts_sous_groupe_result.items.length > 0) {
+                    groupe_result.sous_groupe.push(ts_sous_groupe_result);
+                    groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
+                }
+            }
 
             // Si on a des sous groupe, on les parcours
             if (sous_groupes_by_groupe_ids[groupe.id]) {
@@ -254,22 +293,6 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
                         // on ajoute le nombre d'items + 1 pour le sous groupe
                         groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
                     }
-                }
-            } else if (items_by_groupe_and_sous_groupe_ids[groupe.id]) {
-                // Si on a pas de sous groupe, on va chercher directement les items
-                let ts_sous_groupe_result: { id: number, name: string, items: SuiviCompetencesItemVO[] } = {
-                    id: null,
-                    name: null,
-                    items: []
-                };
-
-                for (let j in items_by_groupe_and_sous_groupe_ids[groupe.id]) {
-                    ts_sous_groupe_result.items = ts_sous_groupe_result.items.concat(items_by_groupe_and_sous_groupe_ids[groupe.id][j]);
-                }
-
-                if (ts_sous_groupe_result.items.length > 0) {
-                    groupe_result.sous_groupe.push(ts_sous_groupe_result);
-                    groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
                 }
             }
 

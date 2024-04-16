@@ -1,9 +1,11 @@
 import ContextQueryVO, { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SuiviCompetencesRapportGroupeDataRangesVO from "../../../../shared/modules/SuiviCompetences/vars/vos/SuiviCompetencesRapportGroupeDataRangesVO";
 import SuiviCompetencesRapportSousGroupeDataRangesVO from "../../../../shared/modules/SuiviCompetences/vars/vos/SuiviCompetencesRapportSousGroupeDataRangesVO";
+import SuiviCompetencesGrilleVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO";
 import SuiviCompetencesGroupeVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGroupeVO";
 import SuiviCompetencesItemRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO";
 import SuiviCompetencesItemVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO";
+import SuiviCompetencesRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO";
 import SuiviCompetencesSousGroupeVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesSousGroupeVO";
 import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
 import { field_names } from "../../../../shared/tools/ObjectHandler";
@@ -35,6 +37,8 @@ export default class SuiviCompetencesItemRapportRangesDatasourceController exten
         let sous_groupe_by_ids: { [sous_groupe_id: number]: SuiviCompetencesSousGroupeVO } = {};
         let item_by_ids: { [item_id: number]: SuiviCompetencesItemVO } = {};
         let rapport_items: SuiviCompetencesItemRapportVO[] = [];
+        let grille_by_ids: { [grille_id: number]: SuiviCompetencesGrilleVO } = {};
+        let rapport_by_ids: { [rapport_id: number]: SuiviCompetencesRapportVO } = {};
 
         await promise_pipeline.push(async () => {
             groupe_by_ids = VOsTypesManager.vosArray_to_vosByIds(
@@ -84,6 +88,26 @@ export default class SuiviCompetencesItemRapportRangesDatasourceController exten
                 .select_vos();
         });
 
+        await promise_pipeline.push(async () => {
+            grille_by_ids = VOsTypesManager.vosArray_to_vosByIds(
+                await query(SuiviCompetencesGrilleVO.API_TYPE_ID)
+                    .filter_by_id_in(
+                        query(SuiviCompetencesRapportVO.API_TYPE_ID)
+                            .field(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id)
+                            .filter_by_ids(param.suivi_comp_rapport_id_ranges)
+                    )
+                    .select_vos()
+            );
+        });
+
+        await promise_pipeline.push(async () => {
+            rapport_by_ids = VOsTypesManager.vosArray_to_vosByIds(
+                await query(SuiviCompetencesRapportVO.API_TYPE_ID)
+                    .filter_by_ids(param.suivi_comp_rapport_id_ranges)
+                    .select_vos()
+            );
+        });
+
         await promise_pipeline.end();
 
         let res: number = 0;
@@ -94,6 +118,18 @@ export default class SuiviCompetencesItemRapportRangesDatasourceController exten
             let item: SuiviCompetencesItemVO = item_by_ids[rapport_item.suivi_comp_item_id];
 
             if (!item) {
+                continue;
+            }
+
+            let rapport: SuiviCompetencesRapportVO = rapport_by_ids[rapport_item.rapport_id];
+
+            if (!rapport) {
+                continue;
+            }
+
+            let grille: SuiviCompetencesGrilleVO = grille_by_ids[rapport.suivi_comp_grille_id];
+
+            if (!grille.calcul_niveau_maturite) {
                 continue;
             }
 

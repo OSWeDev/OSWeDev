@@ -175,6 +175,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }>;
 
     public custom_label: string;
+    public custom_class_css: string;
     public custom_values: any[];
 
     get is_enum(): boolean {

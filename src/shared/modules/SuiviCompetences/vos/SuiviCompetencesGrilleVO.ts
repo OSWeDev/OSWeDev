@@ -24,6 +24,7 @@ export default class SuiviCompetencesGrilleVO implements IVersionedVO {
     public name: string;
     public suivi_comp_item_id_ranges: NumRange[];
     public suivi_comp_activite_id: number;
+    public calcul_niveau_maturite: boolean;
 
     public parent_id: number;
     public trashed: boolean;

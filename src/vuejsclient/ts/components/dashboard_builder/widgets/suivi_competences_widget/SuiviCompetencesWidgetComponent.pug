@@ -122,12 +122,13 @@ include ../../../../../views/mixins/loading.pug
                             template(v-if="groupe.icon")
                                 i.mr-1(:class="groupe.icon")
 
-                            .prct_niveau_maturite_tsp.no_float.d-ib
-                                var-data(
-                                    :var_param="get_niveau_maturite_param(groupe, null)" 
-                                    :filter='const_filters.percent.read'
-                                    :var_value_callback="var_value_callback"
-                                )
+                            template(v-if="grille.calcul_niveau_maturite")
+                                .prct_niveau_maturite_tsp.no_float.d-ib
+                                    var-data(
+                                        :var_param="get_niveau_maturite_param(groupe, null)" 
+                                        :filter='const_filters.percent.read'
+                                        :var_value_callback="var_value_callback"
+                                    )
 
                             .mt-2 {{ groupe.name }}
 
@@ -136,12 +137,13 @@ include ../../../../../views/mixins/loading.pug
                             tr.sous_groupe
                                 td.valign-middle(:colspan="(show_details ? 5 : 3) + 1")
                                     .sous_groupe_name.mt-0.mb-0
-                                        .prct_niveau_maturite_tsp.mr-2.ml-1
-                                            var-data(
-                                                :var_param="get_niveau_maturite_param(groupe, sous_groupe.id)" 
-                                                :filter='const_filters.percent.read'
-                                                :var_value_callback="var_value_callback"
-                                            )
+                                        template(v-if="grille.calcul_niveau_maturite")
+                                            .prct_niveau_maturite_tsp.mr-2.ml-1
+                                                var-data(
+                                                    :var_param="get_niveau_maturite_param(groupe, sous_groupe.id)" 
+                                                    :filter='const_filters.percent.read'
+                                                    :var_value_callback="var_value_callback"
+                                                )
                                         span {{ sous_groupe.name }}
 
                         template(v-for="item in sous_groupe.items")
@@ -150,13 +152,13 @@ include ../../../../../views/mixins/loading.pug
                                     span(v-tooltip="item.popup") {{ item.name }}
                                 td.valign-middle.details(
                                     v-if="show_details"
-                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                    :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
                                     v-tooltip=""
                                 )
                                     .kpis(v-if="item.kpis") {{ item.kpis }}
 
                                 td.valign-middle.indicateur(
-                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                    :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
                                 )
                                     template(v-if="indicateur_options_by_item_ids[item.id]")
                                         multiselect(
@@ -170,13 +172,13 @@ include ../../../../../views/mixins/loading.pug
                                             placeholder=""
                                         )
                                             template(slot="singleLabel" slot-scope="props")
-                                                span.option__tag.indicateur_value(:class="'indicateur_value_' + props.option.id") {{ props.option.label }}
+                                                span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
                                             template(slot="option" slot-scope="props")
-                                                span.option__tag.indicateur_value(:class="'indicateur_value_' + props.option.id") {{ props.option.label }}
+                                                span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
 
                                 td.valign-middle.details(
                                     v-if="show_details"
-                                    :class="'indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)"
+                                    :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
                                     v-tooltip=""
                                 )
                                     .desc.mt-1(v-if="indicateur_option_rapport_item_by_ids[item.id]?.desc") {{ indicateur_option_rapport_item_by_ids[item.id]?.desc }}
