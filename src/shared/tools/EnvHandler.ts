@@ -13,6 +13,7 @@ export default class EnvHandler {
     public static MAX_POOL: number = null;
     public static DEBUG_PROMISE_PIPELINE: boolean = false;
     public static ZOOM_AUTO: boolean = false;
+    public static LOGO_PATH: string = null;
 
     private constructor() { }
 }

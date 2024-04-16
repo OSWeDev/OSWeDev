@@ -444,5 +444,11 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Modifier un suivi de compétences'
         }, 'suivi_competences_widget_component.edit.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Composant téléchargement rapport PDF'
+        }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_competences_download_rapport.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Télécharger'
+        }, 'suivi_competences_download_rapport.download.___LABEL___'));
     }
 }

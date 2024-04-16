@@ -243,6 +243,8 @@ export default class ModuleEnvParam extends Module {
 
             // BLOCK_TEAMS_MESSAGES ?: boolean;
             new ModuleTableField(field_names<EnvParamsVO>().BLOCK_TEAMS_MESSAGES, ModuleTableField.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true),
+            // BLOCK_TEAMS_MESSAGES ?: boolean;
+            new ModuleTableField(field_names<EnvParamsVO>().LOGO_PATH, ModuleTableField.FIELD_TYPE_string, 'URL du logo'),
         ];
 
         let table = new ModuleTable(this, EnvParamsVO.API_TYPE_ID, () => new EnvParamsVO(), fields, null, 'Static Env Params');

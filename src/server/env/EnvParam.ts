@@ -120,4 +120,5 @@ export default class EnvParam implements IEnvParam {
     public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean = true;
 
     public EXPRESS_SECRET: string = null;
+    public LOGO_PATH?: string = null;
 }

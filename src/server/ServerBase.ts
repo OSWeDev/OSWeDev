@@ -166,6 +166,7 @@ export default abstract class ServerBase {
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
         EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
         EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
+        EnvHandler.LOGO_PATH = this.envParam.LOGO_PATH;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
