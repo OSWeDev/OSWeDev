@@ -17,7 +17,7 @@ export default class SuiviCompetencesVueController {
         );
 
         Vue.component('Suivicompetencesdownloadrapportcomponent', async () => (await import('./download_rapport/SuiviCompetencesDownloadRapportComponent')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew(
                 'suivi_competences_download_rapport',
                 'Suivicompetencesdownloadrapportcomponent',

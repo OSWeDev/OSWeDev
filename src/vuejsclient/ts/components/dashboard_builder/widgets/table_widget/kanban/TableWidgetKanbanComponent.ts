@@ -1537,7 +1537,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             switch (column.type) {
                 case TableColumnDescVO.TYPE_component:
-                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                    res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -1595,7 +1595,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         //     switch (column.type) {
         //         case TableColumnDescVO.TYPE_component:
-        //             res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+        //             res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
         //             break;
         //         case TableColumnDescVO.TYPE_var_ref:
         //             let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -1661,7 +1661,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let res: DatatableField<any, any>;
         switch (column.type) {
             case TableColumnDescVO.TYPE_component:
-                res = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                res = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
             case TableColumnDescVO.TYPE_var_ref:
                 let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(

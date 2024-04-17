@@ -80,7 +80,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             case TableColumnDescVO.TYPE_select_box:
                 return 'select_box';
             case TableColumnDescVO.TYPE_component:
-                return this.component_name;
+                return this.component_name + '___' + this.id.toString();
             case TableColumnDescVO.TYPE_header:
                 return this.header_name;
         }

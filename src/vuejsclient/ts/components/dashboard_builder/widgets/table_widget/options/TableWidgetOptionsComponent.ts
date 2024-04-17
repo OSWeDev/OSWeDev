@@ -1411,11 +1411,11 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return [];
         }
 
-        if (!TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+        if (!TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
             return [];
         }
 
-        let res = TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        let res = TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }
@@ -1461,9 +1461,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let res: string[] = [];
 
-        for (let api_type_id in TableWidgetController.getInstance().components_by_crud_api_type_id) {
-            for (let i in TableWidgetController.getInstance().components_by_crud_api_type_id[api_type_id]) {
-                res.push(TableWidgetController.getInstance().components_by_crud_api_type_id[api_type_id][i].translatable_title);
+        for (let api_type_id in TableWidgetController.components_by_crud_api_type_id) {
+            for (let i in TableWidgetController.components_by_crud_api_type_id[api_type_id]) {
+                res.push(TableWidgetController.components_by_crud_api_type_id[api_type_id][i].translatable_title);
             }
         }
 

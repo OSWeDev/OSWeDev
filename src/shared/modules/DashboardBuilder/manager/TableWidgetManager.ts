@@ -42,6 +42,13 @@ import WidgetOptionsVOManager from './WidgetOptionsVOManager';
  */
 export default class TableWidgetManager {
 
+    public static components_by_crud_api_type_id: { [api_type_id: string]: Array<ComponentDatatableFieldVO<any, any>> } = {};
+    public static components_by_translatable_title: { [translatable_title: string]: ComponentDatatableFieldVO<any, any> } = {};
+    public static custom_components_export_cb_by_translatable_title: { [translatable_title: string]: (vo: any, active_field_filters: FieldFiltersVO, dashboard_api_type_ids: string[], column: TableColumnDescVO) => Promise<any> } = {};
+
+    public static cb_bulk_actions_by_crud_api_type_id: { [api_type_id: string]: BulkActionVO[] } = {};
+    public static cb_bulk_actions_by_translatable_title: { [translatable_title: string]: BulkActionVO } = {};
+
     /**
      * create_exportable_valuetables_xlsx_params
      * - All valuetables on the actual page to be exported
@@ -758,8 +765,7 @@ export default class TableWidgetManager {
 
             switch (column?.type) {
                 case TableColumnDescVO.TYPE_component:
-                    field_by_column_id[column.id] = TableWidgetManager.getInstance()
-                        .components_by_translatable_title[column.component_name]
+                    field_by_column_id[column.id] = TableWidgetManager.components_by_translatable_title[column.component_name]
                         .auto_update_datatable_field_uid_with_vo_type();
 
                     break;
@@ -875,34 +881,20 @@ export default class TableWidgetManager {
         return new_active_field_filters;
     }
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): TableWidgetManager {
-        if (!TableWidgetManager.instance) {
-            TableWidgetManager.instance = new TableWidgetManager();
-        }
-        return TableWidgetManager.instance;
-    }
-
-    protected static instance: TableWidgetManager = null;
-
-    public components_by_crud_api_type_id: { [api_type_id: string]: Array<ComponentDatatableFieldVO<any, any>> } = {};
-    public components_by_translatable_title: { [translatable_title: string]: ComponentDatatableFieldVO<any, any> } = {};
-
-    public cb_bulk_actions_by_crud_api_type_id: { [api_type_id: string]: BulkActionVO[] } = {};
-    public cb_bulk_actions_by_translatable_title: { [translatable_title: string]: BulkActionVO } = {};
-
-    protected constructor() { }
-
-    public register_component(component: ComponentDatatableFieldVO<any, any>) {
+    public static register_component(component: ComponentDatatableFieldVO<any, any>, cb: (vo) => Promise<any> = null) {
         if (!this.components_by_crud_api_type_id[component.vo_type_id]) {
             this.components_by_crud_api_type_id[component.vo_type_id] = [];
         }
         this.components_by_crud_api_type_id[component.vo_type_id].push(component);
 
         this.components_by_translatable_title[component.translatable_title] = component;
+
+        if (!!cb) {
+            this.custom_components_export_cb_by_translatable_title[component.translatable_title] = cb;
+        }
     }
 
-    public register_bulk_action(bulk_action: BulkActionVO) {
+    public static register_bulk_action(bulk_action: BulkActionVO) {
 
         if (!this.cb_bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id]) {
             this.cb_bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id] = [];

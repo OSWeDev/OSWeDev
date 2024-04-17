@@ -27,7 +27,7 @@ export default class DataImportVueModule extends VueModuleBase {
 
     public initialize() {
         Vue.component('Reimportcomponent', async () => (await import('./reimport_component/reimport_component')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id')
                 .setModuleTable(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID])
         );

@@ -624,11 +624,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return [];
         }
 
-        if (!TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+        if (!TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
             return [];
         }
 
-        let res = TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        let res = TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }
@@ -1024,7 +1024,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return null;
                 }
 
-                return this.t(TableWidgetController.getInstance().components_by_translatable_title[this.object_column.component_name].translatable_title);
+                return this.t(TableWidgetController.components_by_translatable_title[this.object_column.component_name].translatable_title);
             case TableColumnDescVO.TYPE_vo_field_ref:
                 if ((!this.object_column.api_type_id) || (!this.object_column.field_id)) {
                     return null;
