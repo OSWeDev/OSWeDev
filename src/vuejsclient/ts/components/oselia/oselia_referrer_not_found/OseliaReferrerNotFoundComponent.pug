@@ -1,0 +1,6 @@
+.OseliaReferrerNotFoundComponent
+    .OseliaReferrerNotFoundComponent__header {{ label('OseliaReferrerNotFoundComponent.header') }}
+    .OseliaReferrerNotFoundComponent__content {{ label('OseliaReferrerNotFoundComponent.content') }}
+    template(v-if='frame')
+        button.btn.btn-sm.btn-primary(@click='close_iframe') {{ label('OseliaReferrerNotFoundComponent.close') }}
+            i.fa-duotone.fa-person-to-door.btn_icon

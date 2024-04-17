@@ -1,5 +1,7 @@
 .oselia_thread_widget_component {
 
+    padding-right: 0 !important;
+
     .update_button {
         text-align: right;
     }
@@ -23,6 +25,7 @@
     .thread_container {
 
         padding: 1em 0em;
+        padding-right: 1em !important;
         overflow-y: auto;
         height: -webkit-fill-available;
 

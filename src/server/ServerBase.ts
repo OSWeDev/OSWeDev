@@ -701,8 +701,8 @@ export default abstract class ServerBase {
                                 async () => {
 
                                     await PushDataServerController.getInstance().unregisterSession(session);
-                                    session.destroy(() => {
-                                        ServerBase.getInstance().redirect_login_or_home(req, res);
+                                    session.destroy(async () => {
+                                        await ServerBase.getInstance().redirect_login_or_home(req, res);
                                     });
                                 });
                             return;
@@ -728,8 +728,8 @@ export default abstract class ServerBase {
                             async () => {
 
                                 await PushDataServerController.getInstance().unregisterSession(session);
-                                session.destroy(() => {
-                                    ServerBase.getInstance().redirect_login_or_home(req, res);
+                                session.destroy(async () => {
+                                    await ServerBase.getInstance().redirect_login_or_home(req, res);
                                 });
                             });
 
@@ -867,7 +867,7 @@ export default abstract class ServerBase {
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
             res.sendFile(path.resolve(file.path));
@@ -948,7 +948,7 @@ export default abstract class ServerBase {
                 async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
-                ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
 
@@ -973,7 +973,7 @@ export default abstract class ServerBase {
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
+                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./dist/public/admin.html'));
@@ -997,7 +997,7 @@ export default abstract class ServerBase {
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
+                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./iisnode/' + file_name));
@@ -1031,8 +1031,8 @@ export default abstract class ServerBase {
                         async () => {
 
                             await PushDataServerController.getInstance().unregisterSession(session);
-                            session.destroy(() => {
-                                ServerBase.getInstance().redirect_login_or_home(req, res);
+                            session.destroy(async () => {
+                                await ServerBase.getInstance().redirect_login_or_home(req, res);
                             });
                         });
                     return;
@@ -1364,14 +1364,6 @@ export default abstract class ServerBase {
     }
 
     /* istanbul ignore next: nothing to test here */
-    protected abstract initializeDataImports();
-    /* istanbul ignore next: nothing to test here */
-    protected abstract hook_configure_express();
-    /* istanbul ignore next: nothing to test here */
-
-    protected abstract getVersion();
-
-    /* istanbul ignore next: nothing to test here */
     protected registerApis(app) {
     }
 
@@ -1387,8 +1379,8 @@ export default abstract class ServerBase {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
     }
 
-    protected redirect_login_or_home(req: Request, res: Response, url: string = null) {
-        if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+    protected async redirect_login_or_home(req: Request, res: Response, url: string = null) {
+        if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
             const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
             return;
@@ -1416,4 +1408,12 @@ export default abstract class ServerBase {
             process.exit();
         }
     }
+
+    /* istanbul ignore next: nothing to test here */
+    protected abstract initializeDataImports();
+    /* istanbul ignore next: nothing to test here */
+    protected abstract hook_configure_express();
+    /* istanbul ignore next: nothing to test here */
+
+    protected abstract getVersion();
 }
