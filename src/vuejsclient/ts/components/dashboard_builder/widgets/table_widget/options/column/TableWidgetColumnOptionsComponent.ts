@@ -976,6 +976,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
                 return true;
         }
 

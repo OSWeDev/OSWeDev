@@ -545,7 +545,6 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateInput(input: any, wait_endofchange: boolean = false) {
-
         if (this.inline_input_mode) {
             await this.prepare_auto_validate(false, null, wait_endofchange);
             return;
@@ -580,11 +579,6 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateEndOfInput(input: any, force_save: boolean = false) {
-
-        //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
-        // if (!this.inline_input_mode) {
-        //     return;
-        // }
         let is_input_html_null = false;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {

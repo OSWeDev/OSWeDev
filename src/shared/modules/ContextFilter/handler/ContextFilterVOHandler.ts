@@ -675,6 +675,7 @@ export default class ContextFilterVOHandler {
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
                 return ContextFilterVO.TYPE_TEXT_EQUALS_NONE;

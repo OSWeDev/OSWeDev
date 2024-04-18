@@ -294,6 +294,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                     if (raw_value == null) {
                         context_filter.has_null();
                     } else {
@@ -441,6 +442,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
                         return row[column.datatable_field_uid + '__raw'] == null;
                     }

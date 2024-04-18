@@ -104,6 +104,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -234,6 +235,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -535,6 +537,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -707,6 +710,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -845,6 +849,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -994,6 +999,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -1169,6 +1175,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -1342,6 +1349,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -1471,6 +1479,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -1609,6 +1618,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -2931,6 +2941,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -3053,6 +3064,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -3099,6 +3111,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_color:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:

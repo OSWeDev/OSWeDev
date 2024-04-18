@@ -1405,6 +1405,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:

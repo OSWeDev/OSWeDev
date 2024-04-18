@@ -2268,6 +2268,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     switch (field.field_type) {
                         case ModuleTableField.FIELD_TYPE_string:
+                        case ModuleTableField.FIELD_TYPE_color:
                         case ModuleTableField.FIELD_TYPE_email:
                         case ModuleTableField.FIELD_TYPE_html:
                         case ModuleTableField.FIELD_TYPE_password:

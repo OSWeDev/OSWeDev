@@ -870,6 +870,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                     if (!filtered_value) {
                         filtering_by_active_field_filter.has_null();
                     } else {
@@ -1002,6 +1003,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
                         return row[column.datatable_field_uid] == null;
                     }
@@ -2085,6 +2087,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                         switch (this.kanban_column_field.field_type) {
                             case ModuleTableField.FIELD_TYPE_string:
+                            case ModuleTableField.FIELD_TYPE_color:
 
                                 rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
                                     cloned_query.filter_by_text_eq(this.kanban_column.field_id, kanban_column_value, this.kanban_column.api_type_id),

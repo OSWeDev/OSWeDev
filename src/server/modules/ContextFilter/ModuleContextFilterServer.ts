@@ -114,6 +114,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
                 filter_ = filter(api_type_id, field.field_id).by_text_has(unique_field_value);
                 break;
             default:
