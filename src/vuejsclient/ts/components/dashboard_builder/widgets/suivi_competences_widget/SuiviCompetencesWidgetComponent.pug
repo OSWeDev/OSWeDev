@@ -15,32 +15,35 @@ include ../../../../../views/mixins/loading.pug
         .col-md-6
             template(v-if="has_active_filters")
                 .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.create.tooltip.' + page_widget.id)" 
                     :class="{'btn-success': action_rapport == create_action_rapport}"
                     @click='open_create'
                 )
                     i.fa-duotone.fa-circle-plus.fa-lg.btn_icon.mr-2(aria-hidden="true")
-                    | {{ label('suivi_competences_widget_component.create') }}
+                    | {{ label('suivi_competences_widget_component.create.' + page_widget.id) }}
 
                 .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.duplicate.tooltip.' + page_widget.id)" 
                     :class="{'btn-success': action_rapport == duplicate_action_rapport}"
                     @click='duplicate_rapport'
                 )
                     i.fa-duotone.fa-copy.fa-lg.btn_icon.mr-2(aria-hidden="true")
-                    | {{ label('suivi_competences_widget_component.duplicate') }}
+                    | {{ label('suivi_competences_widget_component.duplicate.' + page_widget.id) }}
 
                 .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.edit.tooltip.' + page_widget.id)" 
                     :class="{'btn-success': action_rapport == edit_action_rapport}"
                     @click='edit_rapport'
                 )
                     i.fa-duotone.fa-edit.fa-lg.btn_icon.mr-2(aria-hidden="true")
-                    | {{ label('suivi_competences_widget_component.edit') }}
+                    | {{ label('suivi_competences_widget_component.edit.' + page_widget.id) }}
 
                 template(v-if="(action_rapport == duplicate_action_rapport) || (action_rapport == edit_action_rapport)")
                     multiselect.text-center.align-center.vselect-form-control.mt-2.select_rapport(
                         :preselect-first="false"
                         :multiple="false"
                         v-model="selected_rapport"
-                        :placeholder="label('suivi_competences_widget_component.select_rapport')"
+                        :placeholder="label('suivi_competences_widget_component.select_rapport.' + page_widget.id)" 
                         :options="rapports"
                         label="name"
                         :allow-empty="true",
@@ -59,7 +62,7 @@ include ../../../../../views/mixins/loading.pug
                     )
 
             template(v-else)
-                .no_has_active_filters.text-center {{ label('suivi_competences_widget_component.no_has_active_filters') }}
+                .no_has_active_filters.text-center {{ label('suivi_competences_widget_component.no_has_active_filters.' + page_widget.id) }}
 
         .col-md-3.text-right
             template(v-if="selected_rapport")
@@ -71,11 +74,11 @@ include ../../../../../views/mixins/loading.pug
     template(v-if="selected_rapport && has_active_filters && (action_rapport == edit_action_rapport)")
         table.table.table-condensed.table-striped.mb-5
             caption
-                span {{ label('suivi_competences_widget_component.suivi', {date: formatDate_FullyearMonthDay(selected_rapport.date)}) }}
+                span {{ label('suivi_competences_widget_component.suivi.' + page_widget.id, {date: formatDate_FullyearMonthDay(selected_rapport.date)}) }}
             thead                                
                 tr
-                    th.col-md-6 {{ label('suivi_competences_widget_component.points_cles') }}
-                    th.col-md-6 {{ label('suivi_competences_widget_component.objectif_prochaine_visite') }}
+                    th.col-md-6 {{ label('suivi_competences_widget_component.points_cles.' + page_widget.id) }}
+                    th.col-md-6 {{ label('suivi_competences_widget_component.objectif_prochaine_visite.' + page_widget.id) }}
             tbody
                 tr
                     td
@@ -108,13 +111,13 @@ include ../../../../../views/mixins/loading.pug
                         th.col-md-3.empty
                         th.col-md-3(
                             v-if="show_details"
-                        ) {{ label('suivi_competences_widget_component.kpi') }}
-                        th.col-md-1 {{ label('suivi_competences_widget_component.indicateur') }}
+                        ) {{ label('suivi_competences_widget_component.kpi.' + page_widget.id) }}
+                        th.col-md-1 {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
                         th.col-md-3(
                             v-if="show_details"
-                        ) {{ label('suivi_competences_widget_component.indicateur_detail') }}
-                        th.col-md-3 {{ label('suivi_competences_widget_component.commentaires') }}
-                        th.col-md-3 {{ label('suivi_competences_widget_component.plan_action') }}
+                        ) {{ label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.commentaires.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.plan_action.' + page_widget.id) }}
 
                 tbody
                     tr

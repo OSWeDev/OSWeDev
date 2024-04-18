@@ -364,35 +364,8 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
     private registerTranslations() {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Supprimer le rapport ?'
-        }, 'confirm_delete_selected_rapport.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Suppression'
-        }, 'confirm_delete_selected_rapport.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Suivi des compétences'
         }, 'dashboards.widgets.icons_tooltips.SuiviCompetences.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Commentaire'
-        }, 'suivi_competences_widget_component.commentaires.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Créer un rapport'
-        }, 'suivi_competences_widget_component.create.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Merci de sélectionner au moins un filtre pour pouvoir sélectionner un rapport'
-        }, 'suivi_competences_widget_component.no_has_active_filters.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": "Plan d'action"
-        }, 'suivi_competences_widget_component.plan_action.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Maturité'
-        }, 'suivi_competences_widget_component.indicateur.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'KPI'
-        }, 'suivi_competences_widget_component.kpi.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Sélectionner un rapport'
-        }, 'suivi_competences_widget_component.select_rapport.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Afficher le détail'
         }, 'show_details.no.___LABEL___'));
@@ -412,38 +385,11 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             "fr-fr": 'Min'
         }, 'niveau_maturite_style.min.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Dupliquer le rapport ?'
-        }, 'confirm_duplicate_rapport.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Dupliquer le rapport'
-        }, 'suivi_competences_widget_component.duplicate.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Objectif de la prochaine visite'
-        }, 'suivi_competences_widget_component.objectif_prochaine_visite.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Points clés'
-        }, 'suivi_competences_widget_component.points_cles.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Suivi du {date}'
-        }, 'suivi_competences_widget_component.suivi.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Détails'
-        }, 'suivi_competences_widget_component.indicateur_detail.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Rapport dupliqué'
-        }, 'duplicate_rapport.success.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Export en cours...'
-        }, 'export_selected_rapport.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Filtrer par rôles'
+            "fr-fr": 'Limiter les rôles'
         }, 'suivi_competences_widget_component.filtered_roles.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Filtrer par grilles'
+            "fr-fr": 'Limiter les grilles'
         }, 'suivi_competences_widget_component.filtered_grilles.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            "fr-fr": 'Modifier un suivi de compétences'
-        }, 'suivi_competences_widget_component.edit.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Composant téléchargement rapport PDF'
         }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_competences_download_rapport.___LABEL___'));

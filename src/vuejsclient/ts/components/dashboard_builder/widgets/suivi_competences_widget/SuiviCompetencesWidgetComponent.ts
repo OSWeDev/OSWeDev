@@ -5,7 +5,7 @@ import APIControllerWrapper from '../../../../../../shared/modules/API/APIContro
 import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -220,6 +220,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                 }
 
                 if (this.widget_options.filtered_grille_ids?.length) {
+                    context_filters.push(filter(SuiviCompetencesGrilleVO.API_TYPE_ID).by_ids(this.widget_options.filtered_grille_ids));
                     await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id).setSelectOptionsEnabled(this.widget_options.filtered_grille_ids);
                 } else {
                     await crud.createDatatable.getFieldByDatatableFieldUID(field_names<SuiviCompetencesRapportVO>().suivi_comp_grille_id).emptySelectOptionsEnabled();
@@ -277,7 +278,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     }
 
     private async duplicate_rapport_action() {
-        this.snotify.confirm(this.label('confirm_duplicate_rapport.body'), null, {
+        this.snotify.confirm(this.label('confirm_duplicate_rapport.body.' + this.page_widget.id), null, {
             timeout: 0,
             showProgressBar: true,
             closeOnClick: false,
@@ -308,7 +309,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                         this.throttle_update_visible_options();
                         this.selected_rapport = await query(SuiviCompetencesRapportVO.API_TYPE_ID).filter_by_id(res.id).select_vo();
 
-                        this.$snotify.success(this.label('duplicate_rapport.success'));
+                        this.$snotify.success(this.label('duplicate_rapport.success.' + this.page_widget.id));
                     },
                     bold: false
                 },
@@ -343,7 +344,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             return;
         }
 
-        this.snotify.confirm(this.label('confirm_delete_selected_rapport.body'), null, {
+        this.snotify.confirm(this.label('confirm_delete_selected_rapport.body.' + this.page_widget.id), null, {
             timeout: 0,
             showProgressBar: true,
             closeOnClick: false,
@@ -394,7 +395,7 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
 
         this.start_export_excel = false;
 
-        this.snotify.info(this.label('export_selected_rapport.start'));
+        this.snotify.info(this.label('export_selected_rapport.start.' + this.page_widget.id));
     }
 
     private print_selected_rapport() {
