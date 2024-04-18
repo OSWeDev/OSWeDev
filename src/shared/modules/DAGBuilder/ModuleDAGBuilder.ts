@@ -65,8 +65,8 @@ export default class ModuleDAGBuilder extends Module {
             to,
             new ModuleTableField('fromLink', ModuleTableField.FIELD_TYPE_string, 'fromLink', false),
             new ModuleTableField('toLink', ModuleTableField.FIELD_TYPE_string, 'toLink', false),
-            new ModuleTableField('edgeColor', ModuleTableField.FIELD_TYPE_string, 'edgeColor', false),
-            new ModuleTableField('arrowColor', ModuleTableField.FIELD_TYPE_string, 'arrowColor', false),
+            new ModuleTableField('edgeColor', ModuleTableField.FIELD_TYPE_color, 'edgeColor', false),
+            new ModuleTableField('arrowColor', ModuleTableField.FIELD_TYPE_color, 'arrowColor', false),
         ];
 
         let datatable = new ModuleTable(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
