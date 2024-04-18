@@ -1,7 +1,7 @@
 include ../../../../../views/mixins/loading.pug
 
 .suivi_competences_widget_component
-    .text-center.mb-4.row
+    .text-center.mb-4.row.hidden-print
         .col-md-3.text-left
             template(v-if="has_active_filters && selected_rapport")
                 toggle-button(
@@ -69,12 +69,12 @@ include ../../../../../views/mixins/loading.pug
                 .actions
                     i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
                     i.fa.fa-download.fa-duotone.btn.btn-primary.ml-2(@click="export_selected_rapport")
-                    i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(@click="print_selected_rapport")
+                    // i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(@click="print_selected_rapport")
 
     template(v-if="selected_rapport && has_active_filters && (action_rapport == edit_action_rapport)")
         table.table.table-condensed.table-striped.mb-5
             caption
-                span {{ label('suivi_competences_widget_component.suivi.' + page_widget.id, {date: formatDate_FullyearMonthDay(selected_rapport.date)}) }}
+                span {{ selected_rapport.name }}
             thead                                
                 tr
                     th.col-md-6 {{ label('suivi_competences_widget_component.points_cles.' + page_widget.id) }}

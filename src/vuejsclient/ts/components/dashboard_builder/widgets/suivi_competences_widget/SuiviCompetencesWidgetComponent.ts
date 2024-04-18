@@ -97,6 +97,8 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private indicateur_option_rapport_item_by_ids: { [item_id: number]: DataFilterOption } = {};
     private indicateur_options_by_item_ids: { [item_id: number]: DataFilterOption[] } = {};
 
+    private is_downloading: boolean = false;
+
     private action_rapport: number = null;
     private create_action_rapport: number = SuiviCompetencesWidgetController.CREATE_ACTION_RAPPORT;
     private duplicate_action_rapport: number = SuiviCompetencesWidgetController.DUPLICATE_ACTION_RAPPORT;
@@ -398,8 +400,26 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
         this.snotify.info(this.label('export_selected_rapport.start.' + this.page_widget.id));
     }
 
-    private print_selected_rapport() {
-        window.print();
+    private async print_selected_rapport() {
+        if (this.is_downloading) {
+            return;
+        }
+
+        this.is_downloading = true;
+
+        this.$snotify.async(this.label('generate_pdf.en_cours'), () => new Promise(async (resolve, reject) => {
+            await SuiviCompetencesWidgetController.download_rapport_pdf(this.selected_rapport.id);
+
+            this.is_downloading = false;
+
+            resolve({
+                title: this.label('generate_pdf.success'),
+                body: '',
+                config: {
+                    timeout: 2000,
+                }
+            });
+        }));
     }
 
     private switch_show_details() {

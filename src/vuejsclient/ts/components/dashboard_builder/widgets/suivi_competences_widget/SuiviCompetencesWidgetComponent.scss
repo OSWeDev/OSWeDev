@@ -123,4 +123,17 @@
             border: 0;
         }
     }
+
+}
+
+.suivi_competences_bilaterales {
+    @media print {
+        .dashboard_viewer {
+
+            .header,
+            .widget_name__fieldvaluefilter {
+                display: none;
+            }
+        }
+    }
 }
