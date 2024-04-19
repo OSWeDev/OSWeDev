@@ -1,8 +1,10 @@
 .OseliaReferrerActivationComponent
     template(v-if='referrer_name')
-        .OseliaReferrerActivationComponent__header {{ label('OseliaReferrerActivationComponent.header') }}
-        .OseliaReferrerActivationComponent__content {{ label('OseliaReferrerActivationComponent.content', { referrer_name: referrer_name }) }}
-        button.btn.btn-sm.btn-primary(@click='accept') {{ label('OseliaReferrerActivationComponent.accept') }}
-            i.fa-duotone.fa-link.btn_icon
-        button.btn.btn-sm.btn-danger(@click='refuse') {{ label('OseliaReferrerActivationComponent.refuse') }}
-            i.fa-duotone.fa-link-slash.btn_icon
+        .OseliaReferrerActivationComponent_content_wrapper
+            .OseliaReferrerActivationComponent__header {{ label('OseliaReferrerActivationComponent.header') }}
+            .OseliaReferrerActivationComponent__content {{ label('OseliaReferrerActivationComponent.content', { referrer_name: referrer_name }) }}
+            .OseliaReferrerActivationComponent__buttons
+                button.btn.btn-sm.btn-secondary(@click='refuse') {{ label('OseliaReferrerActivationComponent.refuse') }}
+                    i.fa-duotone.fa-link-slash.btn_icon
+                button.btn.btn-sm.btn-primary(@click='accept') {{ label('OseliaReferrerActivationComponent.accept') }}
+                    i.fa-duotone.fa-link.btn_icon

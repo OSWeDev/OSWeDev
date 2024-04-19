@@ -21,7 +21,7 @@ export default class OseliaVueModule extends VueModuleBase {
         this.routes.push(
             this.get_route_oselia_referrer_not_found(),
             this.get_route_oselia_referrer_activation(),
-
+            this.get_route_oselia(),
         );
     }
 
@@ -48,6 +48,7 @@ export default class OseliaVueModule extends VueModuleBase {
         return {
             path: '/oselia_referrer_activation/:referrer_code/:referrer_user_uid/:openai_thread_id/:openai_assistant_id',
             name: 'oselia_referrer_activation',
+            caseSensitive: true,
             component: () => import('./oselia_referrer_activation/OseliaReferrerActivationComponent'),
             props: (route) => ({
                 referrer_code: route.params.referrer_code,

@@ -22,14 +22,6 @@ export default class ModulePushData extends Module {
     public static APINAME_leave_io_room: string = 'leave_io_room';
     public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModulePushData {
-        if (!ModulePushData.instance) {
-            ModulePushData.instance = new ModulePushData();
-        }
-        return ModulePushData.instance;
-    }
-
     private static instance: ModulePushData = null;
 
     public set_prompt_result: (
@@ -45,6 +37,14 @@ export default class ModulePushData extends Module {
 
         super("pushdata", "PushData");
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModulePushData {
+        if (!ModulePushData.instance) {
+            ModulePushData.instance = new ModulePushData();
+        }
+        return ModulePushData.instance;
     }
 
     public registerApis() {
@@ -114,6 +114,7 @@ export default class ModulePushData extends Module {
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().notif_route_params_values, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
 
             ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().room_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Room ID', false),
+            ModuleTableFieldController.create_new(NotificationVO.API_TYPE_ID, field_names<NotificationVO>().redirect_uri, ModuleTableFieldVO.FIELD_TYPE_string, 'URI de redirection', false),
         ];
         const datatable = ModuleTableController.create_new(this.name, NotificationVO, null, "Notifications");
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);

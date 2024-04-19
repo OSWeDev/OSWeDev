@@ -153,6 +153,17 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public is_unique: boolean; // false by default
 
+
+    get field_label_translatable_code(): string {
+        if (!this.module_table_vo_type) {
+            return null;
+        }
+
+        let moduletable = ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
+
+        return "fields.labels." + moduletable.full_name + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
+
     public flag_as_secure_boolean_switch_only_server_side(): ModuleTableFieldVO {
         this.secure_boolean_switch_only_server_side = true;
         return this;
@@ -339,14 +350,16 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
-    get field_label_translatable_code(): string {
-        if (!this.module_table_vo_type) {
-            return null;
+    public getPGSqlFieldTrigger(trigger_name: string, database_name: string, table_name: string): string {
+        switch (this.field_type) {
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+                return 'CREATE TRIGGER ' + trigger_name + ' ' +
+                    'BEFORE INSERT OR UPDATE ' +
+                    'ON ' + database_name + '.' + table_name + ' ' +
+                    'FOR EACH ROW ' +
+                    'EXECUTE PROCEDURE ref.' + trigger_name + '();';
         }
-
-        let moduletable = ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
-
-        return "fields.labels." + moduletable.full_name + "." + this.field_name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return null;
     }
 
     public getPGSqlFieldDescription() {

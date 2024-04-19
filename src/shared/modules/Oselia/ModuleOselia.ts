@@ -46,6 +46,8 @@ export default class ModuleOselia extends Module {
     public static APINAME_accept_link: string = ModuleOselia.MODULE_NAME + ".accept_link";
     public static APINAME_refuse_link: string = ModuleOselia.MODULE_NAME + ".refuse_link";
 
+    public static APINAME_account_waiting_link_status: string = ModuleOselia.MODULE_NAME + ".account_waiting_link_status";
+
     private static instance: ModuleOselia = null;
 
     public open_oselia_db: (referrer_code: string, referrer_user_uid: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
@@ -54,6 +56,8 @@ export default class ModuleOselia extends Module {
     public get_referrer_name: (referrer_code: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
     public accept_link: (referrer_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
     public refuse_link: (referrer_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
+
+    public account_waiting_link_status: (referrer_code: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
 
     private constructor() {
 
@@ -70,8 +74,8 @@ export default class ModuleOselia extends Module {
     }
 
     public initialize() {
-        this.initializeOseliaUserReferrerVO();
         this.initializeOseliaReferrerVO();
+        this.initializeOseliaUserReferrerVO();
         this.initializeOseliaReferrerExternalAPIVO();
     }
 
@@ -97,6 +101,12 @@ export default class ModuleOselia extends Module {
             [OseliaUserReferrerVO.API_TYPE_ID],
             StringParamVOStatic
         ));
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, void>(
+            null,
+            ModuleOselia.APINAME_account_waiting_link_status,
+            [OseliaUserReferrerVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
 
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, void>(
@@ -112,7 +122,7 @@ export default class ModuleOselia extends Module {
             null,
             OpenOseliaDBParamVOStatic
         ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, void>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<RequestOseliaUserConnectionParamVO, void>(
             null,
             ModuleOselia.APINAME_link_user_to_oselia_referrer,
             [OseliaUserReferrerVO.API_TYPE_ID],

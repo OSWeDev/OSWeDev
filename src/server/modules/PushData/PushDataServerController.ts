@@ -598,7 +598,14 @@ export default class PushDataServerController {
                 notification = this.getTechNotif(
                     null, null,
                     Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT);
-                notification.redirect_uri = redirect_uri;
+
+                if (session && session['last_fragmented_url']) {
+                    const url = session['last_fragmented_url'];
+                    session['last_fragmented_url'] = null;
+                    notification.redirect_uri = url.replace(/\/f\//, '/#/');
+                } else {
+                    notification.redirect_uri = redirect_uri;
+                }
             }
         } catch (error) {
             ConsoleHandler.error(error);

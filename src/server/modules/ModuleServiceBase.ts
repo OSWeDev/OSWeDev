@@ -133,6 +133,8 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
+import ModuleOseliaServer from './Oselia/ModuleOseliaServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -634,6 +636,7 @@ export default abstract class ModuleServiceBase {
             ModuleActionURL.getInstance(),
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
+            ModuleOselia.getInstance(),
         ];
     }
 
@@ -698,6 +701,7 @@ export default abstract class ModuleServiceBase {
             ModuleActionURLServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleOseliaServer.getInstance(),
         ];
     }
 

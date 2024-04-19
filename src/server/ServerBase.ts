@@ -548,7 +548,6 @@ export default abstract class ServerBase {
             this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
         }
 
-
         // Use this instead
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
@@ -820,6 +819,31 @@ export default abstract class ServerBase {
 
             next();
         });
+
+
+        /**
+         * On ajoute un comportement pour pouvoir rediriger correctement après un login par exemple
+         * et de manière plus générale on fourni une URL sans fragment à toutes les urls fragmentées
+         * en faisant une redirection temporaire de /f/[...] vers /#/[...]
+         */
+        this.app.use(
+            async (req, res, next) => {
+                if (req.url.indexOf('/f/') >= 0) {
+                    req.session.last_fragmented_url = req.url;
+                    res.redirect(307, req
+                        .url
+                        .replace(/\/f\//, '/#/'));
+
+                    if (!req.session) {
+                        ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
+                        return;
+                    }
+
+                    return;
+                }
+                next();
+            }
+        );
 
         /**
          * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
@@ -1385,7 +1409,16 @@ export default abstract class ServerBase {
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
             return;
         }
-        res.redirect(url ? url : '/login');
+
+        if (req.session && req.session.last_fragmented_url) {
+            req.session.last_fragmented_url = null;
+            res.redirect(307, req
+                .url
+                .replace(/\/f\//, '/#/'));
+            return;
+        }
+
+        res.redirect(url ? url : '/');
         return;
     }
 

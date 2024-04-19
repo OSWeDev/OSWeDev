@@ -334,7 +334,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Cette discussion est introuvable. Vous n\'avez peut-être pas les droits nécessaires pour y accéder.'
         }, 'oselia_thread_widget_component.no_access.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Pour débuter la discussion, utilisez le champ de saisie ci-dessous et validez avec la touche Entrée'
+            'fr-fr': 'Pour débuter la discussion, utilisez le champ de saisie ci-dessous et cliquez sur le bouton "Envoyer".'
         }, 'oselia_thread_widget_component.no_messages.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Osélia'

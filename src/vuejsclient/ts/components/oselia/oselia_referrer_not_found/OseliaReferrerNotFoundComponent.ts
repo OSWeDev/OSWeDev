@@ -23,6 +23,8 @@ export default class OseliaReferrerNotFoundComponent extends VueComponentBase {
         if (!this.frame) {
             return;
         }
-        parent.document.body.removeChild(this.frame);
+
+        const container = this.frame.parentNode;  // obtenir le div conteneur
+        container.removeChild(this.frame);  // supprimer l'iframe du div
     }
 }
