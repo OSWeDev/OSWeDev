@@ -238,6 +238,15 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             !this.get_widgets_invisibility[w.id]
         ) : null;
 
+        if (widgets?.length) {
+            widgets.sort((a, b) => {
+                let a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                let b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+
+                return a_weight - b_weight;
+            });
+        }
+
         this.widgets = widgets;
     }
 
@@ -304,7 +313,19 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }
 
                     // On reload les widgets
-                    self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+
+                    if (widgets?.length) {
+                        widgets.sort((a, b) => {
+                            let a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                            let b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+
+                            return a_weight - b_weight;
+                        });
+                    }
+
+                    self.widgets = widgets;
+
                     page_widget = self.widgets.find((w) => w.id == insertOrDeleteQueryResult.id);
 
                     self.editable_dashboard_page = Object.assign({
