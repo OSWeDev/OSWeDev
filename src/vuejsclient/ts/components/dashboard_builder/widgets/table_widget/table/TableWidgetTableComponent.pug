@@ -144,6 +144,7 @@ include ../../../../../../views/mixins/loading.pug
                                 template(v-for='(column, column_key) in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
+                                            :data-label="column.custom_label ?? (column.get_translatable_name_code_text(page_widget.id) ? get_flat_locale_translations[column.get_translatable_name_code_text(page_widget.id)] : '')" 
                                             v-if="column.type != 5"
                                             :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column), "position-sticky": column.is_sticky, [column.custom_class_css]: !!column.custom_class_css }' 
                                             :style="get_style_td(column)"
@@ -269,7 +270,11 @@ include ../../../../../../views/mixins/loading.pug
                                         )
                                             //- Colonne de type HEADER
                                             template(v-for='child in column.children')
-                                                td.table_col(v-if="child.type == 1", :class="column.custom_class_css")
+                                                td.table_col(
+                                                    v-if="child.type == 1", 
+                                                    :class="column.custom_class_css"
+                                                    :data-label="column.custom_label ?? (column.get_translatable_name_code_text(page_widget.id) ? get_flat_locale_translations[column.get_translatable_name_code_text(page_widget.id)] : '')" 
+                                                )
                                                     Datatablecomponentfield(
                                                         :filter_custom_field_filters="column.filter_custom_field_filters"
                                                         :field="fields[child.id]"
@@ -293,6 +298,7 @@ include ../../../../../../views/mixins/loading.pug
                                                         v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' 
                                                         :style="{width: (child.column_width ? child.column_width + 'rem' : null)}"
                                                         :class="column.custom_class_css"
+                                                        :data-label="column.custom_label ?? (column.get_translatable_name_code_text(page_widget.id) ? get_flat_locale_translations[column.get_translatable_name_code_text(page_widget.id)] : '')" 
                                                     )
                                                         template(v-if='update_button')
                                                             .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
