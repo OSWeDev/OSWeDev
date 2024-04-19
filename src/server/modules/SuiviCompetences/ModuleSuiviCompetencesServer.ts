@@ -267,7 +267,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
                 if (ts_sous_groupe_result.items.length > 0) {
                     groupe_result.sous_groupe.push(ts_sous_groupe_result);
-                    groupe_result.nb_elements += (ts_sous_groupe_result.items.length + 1);
+                    groupe_result.nb_elements += (ts_sous_groupe_result.items.length);
                 }
             }
 

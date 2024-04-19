@@ -108,23 +108,24 @@ include ../../../../../views/mixins/loading.pug
                                 :inline_input_mode='true'
                                 :show_pencil_btn='true'
                             )
-            template(v-for="(groupe, index_g) in filtered_groupes")
-                table.table.table-condensed.table-striped.groupe.mb-5
-                    thead                                
-                        tr
-                            th.col-md-3.empty
-                            th.col-md-3.empty
-                            th.col-md-3(
-                                v-if="show_details"
-                            ) {{ label('suivi_competences_widget_component.kpi.' + page_widget.id) }}
-                            th.col-md-1 {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
-                            th.col-md-3(
-                                v-if="show_details"
-                            ) {{ label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id) }}
-                            th.col-md-3 {{ label('suivi_competences_widget_component.commentaires.' + page_widget.id) }}
-                            th.col-md-3 {{ label('suivi_competences_widget_component.plan_action.' + page_widget.id) }}
 
-                    tbody
+            table.table.table-condensed.table-striped.groupe.mb-5
+                thead                                
+                    tr
+                        th.col-md-3.empty
+                        th.col-md-3.empty
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.kpi.' + page_widget.id) }}
+                        th.col-md-1 {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.commentaires.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.plan_action.' + page_widget.id) }}
+
+                tbody
+                    template(v-for="(groupe, index_g) in filtered_groupes")
                         tr
                             td.text-center.groupe_name(:rowspan="(groupe.nb_elements + 1)")
                                 template(v-if="groupe.icon")
@@ -221,4 +222,5 @@ include ../../../../../views/mixins/loading.pug
                                             :show_pencil_btn='true'
                                         )
 
-                .break-page(v-if="(index_g + 1) < filtered_groupes.length")
+                        tr.break-page(v-if="(index_g + 1) < filtered_groupes.length")
+                            td(:colspan="(show_details ? 7 : 5)")
