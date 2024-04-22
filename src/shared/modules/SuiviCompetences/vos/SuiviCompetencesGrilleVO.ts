@@ -26,6 +26,9 @@ export default class SuiviCompetencesGrilleVO implements IVersionedVO {
     public suivi_comp_activite_id: number;
     public calcul_niveau_maturite: boolean;
 
+    // Ajout pour déplacement OK/NOK fin de tableau sur bilatérales
+    public move_indicateur_to_end: boolean;
+
     public parent_id: number;
     public trashed: boolean;
     public version_num: number;

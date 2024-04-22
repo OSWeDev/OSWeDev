@@ -117,12 +117,13 @@ include ../../../../../views/mixins/loading.pug
                         th.col-md-3(
                             v-if="show_details"
                         ) {{ label('suivi_competences_widget_component.kpi.' + page_widget.id) }}
-                        th.col-md-1 {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
+                        th.col-md-1(v-if='grille && !grille.move_indicateur_to_end') {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
                         th.col-md-3(
                             v-if="show_details"
                         ) {{ label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id) }}
                         th.col-md-3 {{ label('suivi_competences_widget_component.commentaires.' + page_widget.id) }}
                         th.col-md-3 {{ label('suivi_competences_widget_component.plan_action.' + page_widget.id) }}
+                        th.col-md-1(v-if='grille && grille.move_indicateur_to_end') {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
 
                 tbody
                     template(v-for="(groupe, index_g) in filtered_groupes")
@@ -170,6 +171,7 @@ include ../../../../../views/mixins/loading.pug
                                     td.valign-middle.indicateur(
                                         :data-label="label('suivi_competences_widget_component.indicateur.' + page_widget.id)" 
                                         :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-if='grille && !grille.move_indicateur_to_end'
                                     )
                                         template(v-if="indicateur_options_by_item_ids[item.id]")
                                             multiselect(
@@ -221,6 +223,27 @@ include ../../../../../views/mixins/loading.pug
                                             :inline_input_mode='true'
                                             :show_pencil_btn='true'
                                         )
+
+                                    td.valign-middle.indicateur(
+                                        :data-label="label('suivi_competences_widget_component.indicateur.' + page_widget.id)" 
+                                        :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-if='grille && grille.move_indicateur_to_end'
+                                    )
+                                        template(v-if="indicateur_options_by_item_ids[item.id]")
+                                            multiselect(
+                                                v-model="indicateur_option_rapport_item_by_ids[item.id]",
+                                                :multiple="false"
+                                                :options="indicateur_options_by_item_ids[item.id]",
+                                                track-by="id"
+                                                :allow-empty="true"
+                                                label="label"
+                                                @input="onchange_indicateur(item)"
+                                                placeholder=""
+                                            )
+                                                template(slot="singleLabel" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
+                                                template(slot="option" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
 
                         tr.break-page(v-if="(index_g + 1) < filtered_groupes.length")
                             td(:colspan="(show_details ? 7 : 5)")

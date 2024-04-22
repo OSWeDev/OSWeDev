@@ -182,6 +182,7 @@ export default class ModuleSuiviCompetences extends Module {
             suivi_comp_item_id_ranges,
             suivi_comp_activite_id,
             new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().calcul_niveau_maturite, ModuleTableField.FIELD_TYPE_boolean, 'Utilisation du calcul du niveau de maturité ?', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().move_indicateur_to_end, ModuleTableField.FIELD_TYPE_boolean, 'Déplacer l\'indicateur en fin de tableau ?', true, true, false),
         ];
 
         let datatable = new ModuleTable(this, SuiviCompetencesGrilleVO.API_TYPE_ID, () => new SuiviCompetencesGrilleVO(), datatable_fields, name, "Suivi Competences Grille");
