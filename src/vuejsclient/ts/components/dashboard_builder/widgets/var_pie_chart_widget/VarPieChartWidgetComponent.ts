@@ -189,7 +189,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return this.label_by_index[var_param.index];
+        return this.label_by_index[var_param.id];
     }
 
     /**
@@ -451,18 +451,20 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     return;
                 }
 
+                var_params_by_dimension[dimension_value].id = parseInt(i);
                 let label = null;
                 if (dimension_table && dimension_table.default_label_field) {
                     label = dimension[dimension_table.default_label_field.field_id];
                 } else if (dimension_table && dimension_table.table_label_function) {
                     label = dimension_table.table_label_function(dimension);
                 }
-                if(label_by_index[var_params_by_dimension[dimension_value].index] === undefined) {
-                    label_by_index[var_params_by_dimension[dimension_value].index] = [];
+                if(label_by_index[parseInt(i)] === undefined) {
+                    label_by_index[parseInt(i)] = [];
                 }
-                label_by_index[var_params_by_dimension[dimension_value].index].push(label);
+                label_by_index[parseInt(i)].push(label);
             })());
         }
+
         await all_promises(promises);
         if(Object.values(var_params_by_dimension).every(x => x === null || x.value === undefined)) {
             this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));

@@ -138,8 +138,8 @@ export default class VarPieChartComponent extends VueComponentBase {
         const unique_var_params =  this.var_params.filter((entry, index, self) =>
             !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
         );
-        for (const i in unique_var_params) {
-            const var_param = unique_var_params[i];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
             res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
         }
         this.var_datas = res;
@@ -396,8 +396,17 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         const res = [];
+
         for (const i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            if(this.getlabel && this.getlabel(this.var_params[i])) {
+                if(this.getlabel(this.var_params[i]).length <= 1) {
+                    res.push(this.getlabel(this.var_params[i]))
+                } else {
+                    res.push(this.getlabel(this.var_params[i])[i])
+                }
+            } else {
+                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)))
+            }
         }
         return res;
     }
