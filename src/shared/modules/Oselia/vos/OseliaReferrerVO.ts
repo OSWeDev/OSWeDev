@@ -46,10 +46,6 @@ export default class OseliaReferrerVO implements IDistantVOBase, IVersionedVO {
     public trigger_hook_gpt_assistant_thread_delete_url: string;
 
     /**
-     * Hook qui prend 2 params : user_id: number interne OSWEDEV, api_key: string API key mise à jour de l'utilisateur
-     */
-    public trigger_hook_user_api_key_update_url: string;
-    /**
      * Hook qui prend 2 params : user_id: number interne OSWEDEV, errors: string[] les erreurs qui ont empêché l'ouverture du DB Osélia
      */
     public trigger_hook_open_oselia_db_reject_url: string;

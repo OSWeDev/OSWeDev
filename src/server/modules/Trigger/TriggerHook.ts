@@ -1,5 +1,6 @@
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 
 export default abstract class TriggerHook<Conditions, Params, Out> {
 
@@ -16,13 +17,26 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
     constructor(public trigger_type_UID: string) {
     }
 
+    public unregisterHandlerOnThisThread(conditionUID: string, handler: (params: Params, exec_as_server?: boolean) => Promise<Out>) {
+        if (!this.registered_handlers[conditionUID]) {
+            ConsoleHandler.warn('No handler to unregister for conditionUID:' + conditionUID);
+            return;
+        }
+
+        const index = this.registered_handlers[conditionUID].indexOf(handler);
+        if (index < 0) {
+            ConsoleHandler.warn('No handler to unregister for conditionUID:' + conditionUID);
+            return;
+        }
+
+        this.registered_handlers[conditionUID].splice(index, 1);
+    }
+
     public has_trigger(conditions: Conditions): boolean {
         const conditionUID: string = this.getConditionUID_from_Conditions(conditions);
 
         return !!(conditionUID ? this.registered_handlers[conditionUID] : null);
     }
-
-    public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 
     public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params, exec_as_server?: boolean) => Promise<Out> | Out) {
         const conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
@@ -64,4 +78,6 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
         return res;
     }
+
+    public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 }

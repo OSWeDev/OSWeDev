@@ -9,7 +9,9 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
@@ -22,13 +24,22 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PasswordInitialisation from '../AccessPolicy/PasswordInitialisation/PasswordInitialisation';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
     private static instance: ModuleOseliaServer = null;
+
+    private static referers_triggers_hooks_condition_UID_cache: { [trigger_type_UID: string]: { [condition_UID: string]: [(params: unknown, exec_as_server?: boolean) => Promise<unknown>] } } = {};
+    private static TASK_NAME_clear_reapply_referrers_triggers_OnThisThread: string = 'ModuleOseliaServer.clear_reapply_referrers_triggers_OnThisThread';
 
     protected constructor() {
         super(ModuleOselia.getInstance().name);
@@ -79,9 +90,19 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Fermer la fenêtre' },
             'OseliaReferrerNotFoundComponent.close.___LABEL___'));
 
+        ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
+
         // AJOUTER les triggers existants pour les referrer + les triggers pour ajouter/supprimer les triggers en fonction de la mise à jour des referrers
         // Le plus simple est probablement de stocker un tableau des triggers qui sont mis en place par ce système, et pour toute modif et au démarrage de l'appli de clear / reapply
-        await this.clear_reapply_referrers_triggers();
+        await this.clear_reapply_referrers_triggers_OnThisThread();
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+
+        postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+        postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+        postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
     }
 
     /**
@@ -489,5 +510,227 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         return (!user_referrer.user_validated) ? 'waiting' : 'validated';
+    }
+
+    private async clear_referrers_triggers() {
+
+        const referers_triggers_hooks_cache = ModuleOseliaServer.referers_triggers_hooks_condition_UID_cache;
+        ModuleOseliaServer.referers_triggers_hooks_condition_UID_cache = null;
+
+        for (const trigger_type_UID in referers_triggers_hooks_cache) {
+            const conditions = referers_triggers_hooks_cache[trigger_type_UID];
+
+            for (const condition_UID in conditions) {
+                const handlers = conditions[condition_UID];
+                const trigger_hook = ModuleTriggerServer.getInstance().getTriggerHook(trigger_type_UID);
+
+                for (const i in handlers) {
+                    const handler = handlers[i];
+
+                    trigger_hook.unregisterHandlerOnThisThread(condition_UID, handler);
+                }
+            }
+        }
+    }
+
+    private async clear_reapply_referrers_triggers_OnAllThreads() {
+        await ForkedTasksController.broadexec_with_valid_promise_for_await(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread);
+    }
+
+    /**
+     * Ne pas appeler directement, utiliser la méthode clear_reapply_referrers_triggers_OnAllThreads
+     */
+    private async clear_reapply_referrers_triggers_OnThisThread() {
+        this.clear_referrers_triggers();
+        this.reapply_referrers_triggers();
+    }
+
+    private async reapply_referrers_triggers() {
+        const referrers = await query(OseliaReferrerVO.API_TYPE_ID).exec_as_server().select_vos<OseliaReferrerVO>();
+
+        for (const i in referrers) {
+            const referrer = referrers[i];
+
+            if (!referrer.activate_trigger_hooks) {
+                continue;
+            }
+
+            this.reapply_referrer_triggers(referrer);
+        }
+    }
+
+    private reapply_referrer_triggers(referrer: OseliaReferrerVO) {
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+
+        if (referrer.trigger_hook_gpt_assistant_run_create_url) {
+            postCreateTrigger.registerHandler(
+                GPTAssistantAPIRunVO.API_TYPE_ID,
+                this,
+                this.send_post_create_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIRunVO>(referrer, referrer.trigger_hook_gpt_assistant_run_create_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_run_update_url) {
+            postUpdateTrigger.registerHandler(
+                GPTAssistantAPIRunVO.API_TYPE_ID,
+                this,
+                this.send_post_update_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIRunVO>(referrer, referrer.trigger_hook_gpt_assistant_run_update_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_run_delete_url) {
+            postDeleteTrigger.registerHandler(
+                GPTAssistantAPIRunVO.API_TYPE_ID,
+                this,
+                this.send_post_delete_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIRunVO>(referrer, referrer.trigger_hook_gpt_assistant_run_delete_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_content_create_url) {
+            postCreateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_create_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_content_create_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_content_update_url) {
+            postUpdateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_update_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_content_update_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_content_delete_url) {
+            postDeleteTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_delete_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_content_delete_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_message_file_create_url) {
+            postCreateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_create_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_message_file_create_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_message_file_update_url) {
+            postUpdateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_update_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_message_file_update_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_message_file_delete_url) {
+            postDeleteTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_delete_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_message_file_delete_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_create_url) {
+            postCreateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_create_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_create_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_update_url) {
+            postUpdateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_update_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_update_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_msg_delete_url) {
+            postDeleteTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_delete_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_msg_delete_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_create_url) {
+            postCreateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_create_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_create_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_update_url) {
+            postUpdateTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_update_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_update_url),
+            );
+        }
+
+        if (referrer.trigger_hook_gpt_assistant_thread_delete_url) {
+            postDeleteTrigger.registerHandler(
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                this,
+                this.send_post_delete_hook_trigger_datas_to_referrer_wrapper<GPTAssistantAPIThreadVO>(referrer, referrer.trigger_hook_gpt_assistant_thread_delete_url),
+            );
+        }
+    }
+
+    private send_post_create_hook_trigger_datas_to_referrer_wrapper<T extends IDistantVOBase>(
+        referrer: OseliaReferrerVO,
+        url: string
+    ) {
+
+        return async (created_vo: T) => {
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                url,
+                created_vo,
+                referrer.triggers_hook_external_api_authentication_id
+            );
+        };
+    }
+
+    private send_post_update_hook_trigger_datas_to_referrer_wrapper<T extends IDistantVOBase>(
+        referrer: OseliaReferrerVO,
+        url: string
+    ) {
+
+        return async (updated_vo: DAOUpdateVOHolder<T>) => {
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                url,
+                updated_vo,
+                referrer.triggers_hook_external_api_authentication_id
+            );
+        };
+    }
+
+    private send_post_delete_hook_trigger_datas_to_referrer_wrapper<T extends IDistantVOBase>(
+        referrer: OseliaReferrerVO,
+        url: string
+    ) {
+
+        return async (deleted_vo: T) => {
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                url,
+                deleted_vo,
+                referrer.triggers_hook_external_api_authentication_id
+            );
+        };
     }
 }
