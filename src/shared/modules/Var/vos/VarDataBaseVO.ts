@@ -275,6 +275,32 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
+     * Fonction qui check que le type de l'object est cohérent avec le type demandé. Même type et champs a minima avec un range
+     */
+    public check_param_is_valid(target_type: string): boolean {
+
+        if (this._type != target_type) {
+            return false;
+        }
+
+        if (!VarsController.var_conf_by_id[this.var_id]) {
+            return false;
+        }
+
+        let fields = MatroidController.getMatroidFields(this._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if ((!this[field.field_id]) || (!this[field.field_id].length)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * on demande le rebuild au prochain accès au getter
      */
     public rebuild_index() {
@@ -298,6 +324,15 @@ export default class VarDataBaseVO implements IMatroid {
         this._is_pixel = MatroidController.get_cardinal(this) == 1;
 
         this.rebuilding_index = false;
+    }
+
+    protected set_field(field_id: string, value: any) {
+        this['_' + field_id] = value;
+        if (field_id != 'var_id') {
+            if (Array.isArray(value)) {
+                this.rebuild_index();
+            }
+        }
     }
 
     /**
@@ -374,40 +409,5 @@ export default class VarDataBaseVO implements IMatroid {
     get _bdd_only_index(): string {
 
         return this.index;
-    }
-
-    /**
-     * Fonction qui check que le type de l'object est cohérent avec le type demandé. Même type et champs a minima avec un range
-     */
-    public check_param_is_valid(target_type: string): boolean {
-
-        if (this._type != target_type) {
-            return false;
-        }
-
-        if (!VarsController.var_conf_by_id[this.var_id]) {
-            return false;
-        }
-
-        let fields = MatroidController.getMatroidFields(this._type);
-
-        for (let i in fields) {
-            let field = fields[i];
-
-            if ((!this[field.field_id]) || (!this[field.field_id].length)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    protected set_field(field_id: string, value: any) {
-        this['_' + field_id] = value;
-        if (field_id != 'var_id') {
-            if (Array.isArray(value)) {
-                this.rebuild_index();
-            }
-        }
     }
 }
