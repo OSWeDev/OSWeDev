@@ -99,6 +99,11 @@ export default class ModuleTableField<T> {
     /**
      * Dans le cas d'un translatable text, on indique le nom du champs du même objet qui contient des params pour la trad
      */
+    public translatable_params_field_name: string; // null by default
+
+    /**
+     * Dans le cas d'un translatable text, on indique le nom du champs du même objet qui contient des params pour la trad
+     */
     public translatable_params_field_id: string = null;
 
     /**
