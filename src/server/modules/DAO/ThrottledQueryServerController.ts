@@ -38,6 +38,9 @@ export default class ThrottledQueryServerController {
         }
     }, 10000, { leading: true, trailing: true });
 
+    private static throttled_shift_select_queries_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+        ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
+    }, 10000, { leading: true, trailing: true });
 
     /**
      * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
@@ -84,15 +87,12 @@ export default class ThrottledQueryServerController {
         const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
         const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
         const waiter = 1;
-        const throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
-        }, 10000, { leading: true, trailing: true });
 
         while (true) {
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             if (AzureMemoryCheckServerController.dao_server_coef == 0) {
-                throttled_log_dao_server_coef_0();
+                ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
                 continue;
             }
