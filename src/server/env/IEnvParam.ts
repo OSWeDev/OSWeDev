@@ -68,6 +68,8 @@ export default interface IEnvParam {
 
     debug_azure_memory_check?: boolean;
 
+    debug_throttle_uid?: boolean;
+
     debug_context_query_build_select_query_not_count?: boolean;
     debug_export_context_query_to_xlsx_datas?: boolean;
     debug_export_context_query_to_xlsx_datas_with_vars?: boolean;

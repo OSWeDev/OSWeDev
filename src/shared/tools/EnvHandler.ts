@@ -13,6 +13,7 @@ export default class EnvHandler {
     public static max_pool: number = null;
     public static debug_promise_pipeline: boolean = false;
     public static zoom_auto: boolean = false;
+    public static debug_throttle_uid: boolean = false;
 
     private constructor() { }
 }

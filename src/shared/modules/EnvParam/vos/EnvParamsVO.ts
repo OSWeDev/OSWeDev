@@ -164,6 +164,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_AZURE_MEMORY_CHECK?: boolean;
     public debug_azure_memory_check: boolean;
 
+    public debug_throttle_uid: boolean;
+
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
     public debug_context_query_build_select_query_not_count: boolean;
 

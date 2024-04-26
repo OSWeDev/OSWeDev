@@ -23,14 +23,6 @@ export default class ModuleEnvParam extends Module {
     public static APINAME_set_env_param_boolean: string = "set_env_param_boolean";
     public static APINAME_set_env_param_number: string = "set_env_param_number";
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleEnvParam {
-        if (!ModuleEnvParam.instance) {
-            ModuleEnvParam.instance = new ModuleEnvParam();
-        }
-        return ModuleEnvParam.instance;
-    }
-
     private static instance: ModuleEnvParam = null;
 
     public set_env_param_string: (code: string, value: string) => Promise<boolean> = APIControllerWrapper.sah<String2ParamVO, boolean>(ModuleEnvParam.APINAME_set_env_param_string);
@@ -43,6 +35,14 @@ export default class ModuleEnvParam extends Module {
 
         super("env_param", ModuleEnvParam.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleEnvParam {
+        if (!ModuleEnvParam.instance) {
+            ModuleEnvParam.instance = new ModuleEnvParam();
+        }
+        return ModuleEnvParam.instance;
     }
 
     public registerApis() {
@@ -192,6 +192,8 @@ export default class ModuleEnvParam extends Module {
 
             // DEBUG_AZURE_MEMORY_CHECK ?: boolean;
             ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_azure_memory_check, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug azure memory check', true),
+
+            ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_throttle_uid, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug current Throttle UID', true, true, false),
 
             // DEBUG_CONTEXT_QUERY_build_select_query_not_count ?: boolean;
             ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_context_query_build_select_query_not_count, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug context query build select query not count', true),

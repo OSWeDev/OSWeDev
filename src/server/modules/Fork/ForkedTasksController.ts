@@ -80,33 +80,38 @@ export default class ForkedTasksController {
                 } else {
 
                     const promises = [];
-                    for (const type in ForkServerController.fork_by_type_and_name) {
-                        const forks = ForkServerController.fork_by_type_and_name[type];
+                    const done_bgt_uid: { [uid: number]: boolean } = {};
+                    const forks = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType];
 
-                        for (const fork_name in forks) {
+                    for (const fork_name in forks) {
 
-                            const fork = ForkServerController.forks[fork_name];
+                        const fork = forks[fork_name];
 
-                            if (!fork) {
-                                continue;
-                            }
-
-                            if (!fork.child_process) {
-                                continue;
-                            }
-
-                            promises.push(new Promise(async (res, rej) => {
-
-                                await ForkedTasksController.exec_self_on_bgthread_and_return_value(
-                                    rej,
-                                    fork_name,
-                                    task_uid,
-                                    res,
-                                    ...task_params
-                                );
-                            }));
+                        if (!fork) {
+                            continue;
                         }
+
+                        if (done_bgt_uid[fork.uid]) {
+                            continue;
+                        }
+                        done_bgt_uid[fork.uid] = true;
+
+                        if (!fork.child_process) {
+                            continue;
+                        }
+
+                        promises.push(new Promise(async (res, rej) => {
+
+                            await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                                rej,
+                                fork_name,
+                                task_uid,
+                                res,
+                                ...task_params
+                            );
+                        }));
                     }
+                    promises.push(ForkedTasksController.registered_tasks[task_uid](...task_params));
 
                     await Promise.all(promises);
 

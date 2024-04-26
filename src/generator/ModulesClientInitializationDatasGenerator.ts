@@ -6,6 +6,11 @@ import GeneratorBase from "./GeneratorBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
+    private static instance: ModulesClientInitializationDatasGenerator = null;
+
+    private constructor() {
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModulesClientInitializationDatasGenerator {
         if (!ModulesClientInitializationDatasGenerator.instance) {
@@ -13,11 +18,6 @@ export default class ModulesClientInitializationDatasGenerator {
         }
         return ModulesClientInitializationDatasGenerator.instance;
     }
-    private static instance: ModulesClientInitializationDatasGenerator = null;
-
-    private constructor() {
-    }
-
 
     public async generate() {
 
@@ -81,6 +81,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.is_dev = " + ((ConfigurationService.node_configuration.isdev) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.debug_vars = " + ((ConfigurationService.node_configuration.debug_vars) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.debug_promise_pipeline = " + ((ConfigurationService.node_configuration.debug_promise_pipeline) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_throttle_uid = " + ((ConfigurationService.node_configuration.debug_throttle_uid) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.compress = " + ((ConfigurationService.node_configuration.compress) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.base_url = '" + ConfigurationService.node_configuration.base_url + "';\n";
         fileContent += "    EnvHandler.code_google_analytics = '" + ConfigurationService.node_configuration.code_google_analytics + "';\n";
