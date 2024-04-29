@@ -6,8 +6,11 @@ import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/D
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
+import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -24,19 +27,8 @@ import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/opti
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
-import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardBuilderVueModuleBase {
-        if (!DashboardBuilderVueModuleBase.instance) {
-            DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();
-        }
-
-        return DashboardBuilderVueModuleBase.instance;
-    }
 
     protected static instance: DashboardBuilderVueModuleBase = null;
 
@@ -51,6 +43,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
             this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
         }
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DashboardBuilderVueModuleBase {
+        if (!DashboardBuilderVueModuleBase.instance) {
+            DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();
+        }
+
+        return DashboardBuilderVueModuleBase.instance;
     }
 
     public async initializeAsync() {
@@ -125,6 +126,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ResetFilters();
         await this.initializeWidget_BlocText();
+        await this.initializeWidget_SuiviCompetences();
 
         await this.initializeWidget_SaveFavoritesFilters();
 
@@ -223,7 +225,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -265,7 +267,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -641,6 +643,29 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgetcomponent', () => import('./widgets/bloc_text_widget/BlocTextWidgetComponent'));
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
+    }
+    private async initializeWidget_SuiviCompetences() {
+        let SuiviCompetences = new DashboardWidgetVO();
+
+        SuiviCompetences.default_height = 5;
+        SuiviCompetences.default_width = 2;
+        SuiviCompetences.name = 'SuiviCompetences';
+        SuiviCompetences.widget_component = 'SuiviCompetenceswidgetcomponent';
+        SuiviCompetences.options_component = 'SuiviCompetenceswidgetoptionscomponent';
+        SuiviCompetences.weight = 3;
+        SuiviCompetences.default_background = '#f5f5f5';
+        SuiviCompetences.icon_component = 'SuiviCompetenceswidgeticoncomponent';
+        SuiviCompetences.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(
+            SuiviCompetences,
+            () => new SuiviCompetencesWidgetOptionsVO(null, null, null),
+            null
+        );
+
+        Vue.component('SuiviCompetenceswidgetcomponent', () => import('./widgets/suivi_competences_widget/SuiviCompetencesWidgetComponent'));
+        Vue.component('SuiviCompetenceswidgetoptionscomponent', () => import('./widgets/suivi_competences_widget/options/SuiviCompetencesWidgetOptionsComponent'));
+        Vue.component('SuiviCompetenceswidgeticoncomponent', () => import('./widgets/suivi_competences_widget/icon/SuiviCompetencesWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {

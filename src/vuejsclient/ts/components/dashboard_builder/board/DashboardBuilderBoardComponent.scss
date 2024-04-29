@@ -46,17 +46,56 @@
 
     .filters-bloc {
         .header-filters-bloc {
+            padding: 1px 0;
             background-color: lightgrey;
 
             .chevron {
                 position: absolute;
                 right: 5px;
-                top: 15px;
+                top: 12px;
                 cursor: pointer;
             }
 
             .translated_text {
                 font-weight: bold;
+            }
+        }
+    }
+
+    @media(max-width:1030px) {
+        .grid_wrapper {
+            .vue-grid-layout {
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: row;
+                align-content: flex-start;
+
+                .grid_item_wrapper {
+                    flex: 48%;
+                    margin: 1%;
+
+                    &.widget_name__datatable {
+                        flex: 100%;
+                        margin: 1% 0;
+                    }
+
+                    .vue-grid-item {
+                        transform: none !important;
+                        position: initial !important;
+                        width: 100% !important;
+                    }
+                }
+            }
+        }
+    }
+
+    @media (max-width:767px) {
+        .grid_wrapper {
+            .vue-grid-layout {
+                .grid_item_wrapper {
+                    flex: 100%;
+                    margin: 1% 0;
+                }
             }
         }
     }

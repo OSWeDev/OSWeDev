@@ -56,6 +56,8 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
+import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 require('moment-json-parser').overrideDefault();
 
 // const loadComponent = async (component) => {
@@ -504,6 +506,10 @@ export default abstract class VueAppBase {
             );
         }
         // this.registerPushWorker();
+
+        if (ModuleSuiviCompetences.getInstance().actif) {
+            SuiviCompetencesVueController.initialize();
+        }
 
         window.onbeforeunload = (e) => {
             e = e || window.event;

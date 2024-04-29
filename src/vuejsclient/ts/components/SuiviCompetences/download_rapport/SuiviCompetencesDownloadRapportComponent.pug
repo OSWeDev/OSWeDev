@@ -1,0 +1,4 @@
+.suivi_competences_download_rapport
+    .btn.btn-primary(@click="download_rapport") 
+        span {{ label('suivi_competences_download_rapport.download') }}
+        i.ml-2.fa.fa-spinner.fa-spin(v-if="is_downloading")

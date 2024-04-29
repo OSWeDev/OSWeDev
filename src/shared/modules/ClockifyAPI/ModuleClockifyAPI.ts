@@ -11,13 +11,13 @@ import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
+import { ClockifyTimeEntryParamStatic } from './params/ClockifyTimeEntryParam';
+import TimeParamClockifyTimeEntry from './params/TimeParamClockifyTimeEntry';
 import ClockifyClientVO from './vos/ClockifyClientVO';
 import ClockifyProjetVO from './vos/ClockifyProjetVO';
 import ClockifyTacheVO from './vos/ClockifyTacheVO';
-import { ClockifyTimeEntryParamStatic } from './vos/ClockifyTimeEntryParam';
 import ClockifyTimeEntryVO from './vos/ClockifyTimeEntryVO';
 import ClockifyUserVO from './vos/ClockifyUserVO';
-import TimeParamClockifyTimeEntry from './vos/TimeParamClockifyTimeEntry';
 
 export default class ModuleClockifyAPI extends Module {
 

@@ -100,7 +100,7 @@ export default class ContextQueryServerController {
 
         //Requête
         if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
-            ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+            ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.query : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_vos');
         }
@@ -205,7 +205,7 @@ export default class ContextQueryServerController {
 
         query_wrapper = query_wrapper ? query_wrapper : await ContextQueryServerController.build_select_query(context_query);
         if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
-            ConsoleHandler.error('Invalid query:select:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+            ConsoleHandler.error('Invalid query:select:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.query : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select');
         }
@@ -288,7 +288,7 @@ export default class ContextQueryServerController {
         context_query.query_distinct = true;
         const query_wrapper = await ContextQueryServerController.build_select_query(context_query);
         if ((!query_wrapper || !query_wrapper.query) && (!query_wrapper.is_segmented_non_existing_table)) {
-            ConsoleHandler.error('Invalid query:select_datatable_rows:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+            ConsoleHandler.error('Invalid query:select_datatable_rows:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.query : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_datatable_rows');
         }
@@ -538,7 +538,7 @@ export default class ContextQueryServerController {
 
         const query_wrapper = await ContextQueryServerController.build_select_query_not_count(context_query);
         if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
-            ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+            ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.query : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
         }
@@ -2633,7 +2633,7 @@ export default class ContextQueryServerController {
 
                 const query_wrapper = await ContextQueryServerController.build_select_query(query_.set_query_distinct());
                 if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
-                    ConsoleHandler.error('Invalid query:add_context_access_hooks:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    ConsoleHandler.error('Invalid query:add_context_access_hooks:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.query : 'NO QUERY') : 'NO QUERY RESULT'));
                     context_query.log(true);
                     throw new Error('Invalid query:add_context_access_hooks');
                 }

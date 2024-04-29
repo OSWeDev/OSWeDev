@@ -23,6 +23,39 @@ import DatatableField from './DatatableField';
 export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
     public static API_TYPE_ID: string = "simple_dtf";
+    public _type: string = SimpleDatatableFieldVO.API_TYPE_ID;
+
+    get translatable_title(): string {
+        if (!this.vo_type_full_name) {
+            return null;
+        }
+
+        if (!this.moduleTableField) {
+            return 'id'; // Cas de l'id
+        }
+
+        if (this.translatable_title_custom) {
+            return this.translatable_title_custom;
+        }
+
+        const trad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type][this.moduleTableField.field_name] : null;
+        const e = trad ? trad.code_text : null;
+        if (this.module_table_field_id != this.datatable_field_uid) {
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        } else {
+            return e;
+        }
+    }
+
+    get max_values(): number {
+
+        return this.moduleTableField.max_values;
+    }
+
+    get min_values(): number {
+
+        return this.moduleTableField.min_values;
+    }
 
     public static createNew(datatable_field_uid: string): SimpleDatatableFieldVO<any, any> {
 
@@ -301,6 +334,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
                     return res_tstz_array;
 
+                case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    return field_value;
+
                 case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 default:
 
@@ -460,6 +496,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return '{' + values + '}';
 
                 case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                    return value;
 
                 case ModuleTableFieldVO.FIELD_TYPE_tstz:
                     switch (this.segmentation_type) {
@@ -550,46 +587,12 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public _type: string = SimpleDatatableFieldVO.API_TYPE_ID;
-
-    get max_values(): number {
-
-        return this.moduleTableField.max_values;
-    }
-
-    get min_values(): number {
-
-        return this.moduleTableField.min_values;
-    }
-
     public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
         return this.dataToUpdateIHM(e, vo);
     }
 
     public CreateIHMToData(e: U, vo: IDistantVOBase): T {
         return this.UpdateIHMToData(e, vo);
-    }
-
-    get translatable_title(): string {
-        if (!this.vo_type_full_name) {
-            return null;
-        }
-
-        if (!this.moduleTableField) {
-            return 'id'; // Cas de l'id
-        }
-
-        if (this.translatable_title_custom) {
-            return this.translatable_title_custom;
-        }
-
-        const trad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type][this.moduleTableField.field_name] : null;
-        const e = trad ? trad.code_text : null;
-        if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
-        } else {
-            return e;
-        }
     }
 
     public enumIdToHumanReadable: (id: number) => string = (id: number) => {

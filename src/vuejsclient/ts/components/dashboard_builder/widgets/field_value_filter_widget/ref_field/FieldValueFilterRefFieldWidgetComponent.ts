@@ -1468,6 +1468,7 @@ export default class FieldValueFilterRefFieldWidgetComponent extends VueComponen
             case ModuleTableFieldVO.FIELD_TYPE_int_array:
             case ModuleTableFieldVO.FIELD_TYPE_float_array:
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_date:
             case ModuleTableFieldVO.FIELD_TYPE_day:
             case ModuleTableFieldVO.FIELD_TYPE_month:

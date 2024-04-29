@@ -55,7 +55,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     public initialize() {
 
         Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew(
                 'impersonate',
                 'Impersonatecomponent',
@@ -63,7 +63,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
                 'Sendinitpwdcomponent',
@@ -71,7 +71,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
                 'Sendrecapturecomponent',

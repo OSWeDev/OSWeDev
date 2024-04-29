@@ -1,0 +1,249 @@
+include ../../../../../views/mixins/loading.pug
+
+.suivi_competences_widget_component
+    .text-center.mb-4.row.hidden-print
+        .col-md-3.text-left
+            template(v-if="has_active_filters && selected_rapport")
+                toggle-button(
+                    @change="switch_show_details" 
+                    :value="show_details" 
+                    :sync="false"
+                    :width="150"
+                    :labels="{checked: label('show_details.yes'), unchecked: label('show_details.no')}" 
+                )
+
+        .col-md-6
+            template(v-if="has_active_filters")
+                .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.create.tooltip.' + page_widget.id)" 
+                    :class="{'btn-success': action_rapport == create_action_rapport}"
+                    @click='open_create'
+                )
+                    i.fa-duotone.fa-circle-plus.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.create.' + page_widget.id) }}
+
+                .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.duplicate.tooltip.' + page_widget.id)" 
+                    :class="{'btn-success': action_rapport == duplicate_action_rapport}"
+                    @click='duplicate_rapport'
+                )
+                    i.fa-duotone.fa-copy.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.duplicate.' + page_widget.id) }}
+
+                .btn.btn-sm.btn-primary.mr-1(
+                    v-tooltip="label('suivi_competences_widget_component.edit.tooltip.' + page_widget.id)" 
+                    :class="{'btn-success': action_rapport == edit_action_rapport}"
+                    @click='edit_rapport'
+                )
+                    i.fa-duotone.fa-edit.fa-lg.btn_icon.mr-2(aria-hidden="true")
+                    | {{ label('suivi_competences_widget_component.edit.' + page_widget.id) }}
+
+                template(v-if="(action_rapport == duplicate_action_rapport) || (action_rapport == edit_action_rapport)")
+                    multiselect.text-center.align-center.vselect-form-control.mt-2.select_rapport(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="selected_rapport"
+                        :placeholder="label('suivi_competences_widget_component.select_rapport.' + page_widget.id)" 
+                        :options="rapports"
+                        label="name"
+                        :allow-empty="true",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        track-by="id"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+            template(v-else)
+                .no_has_active_filters.text-center {{ label('suivi_competences_widget_component.no_has_active_filters.' + page_widget.id) }}
+
+        .col-md-3.text-right
+            template(v-if="selected_rapport")
+                .actions
+                    i.fa.fa-trash.fa-duotone.btn.btn-danger.ml-2(@click="delete_selected_rapport")
+                    i.fa.fa-download.fa-duotone.btn.btn-primary.ml-2(@click="export_selected_rapport")
+                    // i.fa.fa-print.fa-duotone.btn.btn-primary.ml-2(@click="print_selected_rapport")
+
+    template(v-if="selected_rapport && has_active_filters && (action_rapport == edit_action_rapport)")
+        .suivi_competences_widget_component_container
+            table.table.table-condensed.table-striped.mb-5
+                caption
+                    span {{ selected_rapport.name }}
+                thead                                
+                    tr
+                        th.col-md-6 {{ label('suivi_competences_widget_component.points_cles.' + page_widget.id) }}
+                        th.col-md-6 {{ label('suivi_competences_widget_component.objectif_prochaine_visite.' + page_widget.id) }}
+                tbody
+                    tr
+                        td(
+                            :data-label="label('suivi_competences_widget_component.points_cles.' + page_widget.id)" 
+                        )
+                            Crudcomponentfield.highlight_editable_input(
+                                :field="points_cles_editable_field"
+                                :vo="selected_rapport"
+                                :show_insert_or_update_target="false",
+                                :auto_update_field_value='true',
+                                :auto_validate_inline_input='true',
+                                :auto_validate_inline_input_delay_sec='0',
+                                :inline_input_mode='true'
+                                :show_pencil_btn='true'
+                            )
+                        td(
+                            :data-label="label('suivi_competences_widget_component.objectif_prochaine_visite.' + page_widget.id)" 
+                        )
+                            Crudcomponentfield.highlight_editable_input(
+                                :field="objectif_prochaine_visite_editable_field"
+                                :vo="selected_rapport"
+                                :show_insert_or_update_target="false",
+                                :auto_update_field_value='true',
+                                :auto_validate_inline_input='true',
+                                :auto_validate_inline_input_delay_sec='0',
+                                :inline_input_mode='true'
+                                :show_pencil_btn='true'
+                            )
+
+            table.table.table-condensed.table-striped.groupe.mb-5
+                thead                                
+                    tr
+                        th.col-md-3.empty
+                        th.col-md-3.empty
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.kpi.' + page_widget.id) }}
+                        th.col-md-1(v-if='grille && !grille.move_indicateur_to_end') {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
+                        th.col-md-3(
+                            v-if="show_details"
+                        ) {{ label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.commentaires.' + page_widget.id) }}
+                        th.col-md-3 {{ label('suivi_competences_widget_component.plan_action.' + page_widget.id) }}
+                        th.col-md-1(v-if='grille && grille.move_indicateur_to_end') {{ label('suivi_competences_widget_component.indicateur.' + page_widget.id) }}
+
+                tbody
+                    template(v-for="(groupe, index_g) in filtered_groupes")
+                        tr
+                            td.text-center.groupe_name(:rowspan="(groupe.nb_elements + 1)")
+                                template(v-if="groupe.icon")
+                                    i.mr-1(:class="groupe.icon")
+
+                                template(v-if="grille.calcul_niveau_maturite")
+                                    .prct_niveau_maturite_tsp.no_float.d-ib
+                                        var-data(
+                                            :var_param="get_niveau_maturite_param(groupe, null)" 
+                                            :filter='const_filters.percent.read'
+                                            :var_value_callback="var_value_callback"
+                                        )
+
+                                .mt-2 {{ groupe.name }}
+
+                        template(v-for="sous_groupe in groupe.sous_groupe")
+                            template(v-if="sous_groupe.name")
+                                tr.sous_groupe
+                                    td.valign-middle(:colspan="(show_details ? 5 : 3) + 1")
+                                        .sous_groupe_name.mt-0.mb-0
+                                            template(v-if="grille.calcul_niveau_maturite")
+                                                .prct_niveau_maturite_tsp.mr-2.ml-1
+                                                    var-data(
+                                                        :var_param="get_niveau_maturite_param(groupe, sous_groupe.id)" 
+                                                        :filter='const_filters.percent.read'
+                                                        :var_value_callback="var_value_callback"
+                                                    )
+                                            span {{ sous_groupe.name }}
+
+                            template(v-for="item in sous_groupe.items")
+                                tr
+                                    td.valign-middle.item_name
+                                        span(v-tooltip="item.popup") {{ item.name }}
+                                    td.valign-middle.details(
+                                        :data-label="label('suivi_competences_widget_component.kpi.' + page_widget.id)" 
+                                        v-if="show_details"
+                                        :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-tooltip=""
+                                    )
+                                        .kpis(v-if="item.kpis") {{ item.kpis }}
+
+                                    td.valign-middle.indicateur(
+                                        :data-label="label('suivi_competences_widget_component.indicateur.' + page_widget.id)" 
+                                        :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-if='grille && !grille.move_indicateur_to_end'
+                                    )
+                                        template(v-if="indicateur_options_by_item_ids[item.id]")
+                                            multiselect(
+                                                v-model="indicateur_option_rapport_item_by_ids[item.id]",
+                                                :multiple="false"
+                                                :options="indicateur_options_by_item_ids[item.id]",
+                                                track-by="id"
+                                                :allow-empty="true"
+                                                label="label"
+                                                @input="onchange_indicateur(item)"
+                                                placeholder=""
+                                            )
+                                                template(slot="singleLabel" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
+                                                template(slot="option" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
+
+                                    td.valign-middle.details(
+                                        :data-label="label('suivi_competences_widget_component.indicateur_detail.' + page_widget.id)" 
+                                        v-if="show_details"
+                                        :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-tooltip=""
+                                    )
+                                        .desc.mt-1(v-if="indicateur_option_rapport_item_by_ids[item.id]?.desc") {{ indicateur_option_rapport_item_by_ids[item.id]?.desc }}
+
+                                    td.valign-middle.etat_des_lieux(
+                                        :data-label="label('suivi_competences_widget_component.commentaires.' + page_widget.id)" 
+                                    )
+                                        Crudcomponentfield.highlight_editable_input(
+                                            :field="etat_des_lieux_editable_field"
+                                            :vo="all_rapport_item_by_ids[item.id]"
+                                            :show_insert_or_update_target="false",
+                                            :auto_update_field_value='true',
+                                            :auto_validate_inline_input='true',
+                                            :auto_validate_inline_input_delay_sec='0',
+                                            :inline_input_mode='true'
+                                            :show_pencil_btn='true'
+                                        )
+                                    td.valign-middle.plan_action(
+                                        :data-label="label('suivi_competences_widget_component.plan_action.' + page_widget.id)" 
+                                    )
+                                        Crudcomponentfield.highlight_editable_input(
+                                            :field="plan_action_editable_field"
+                                            :vo="all_rapport_item_by_ids[item.id]"
+                                            :show_insert_or_update_target="false",
+                                            :auto_update_field_value='true',
+                                            :auto_validate_inline_input='true',
+                                            :auto_validate_inline_input_delay_sec='0',
+                                            :inline_input_mode='true'
+                                            :show_pencil_btn='true'
+                                        )
+
+                                    td.valign-middle.indicateur(
+                                        :data-label="label('suivi_competences_widget_component.indicateur.' + page_widget.id)" 
+                                        :class="{['indicateur_value_' + (indicateur_option_rapport_item_by_ids[item.id]?.id)]: grille.calcul_niveau_maturite}"
+                                        v-if='grille && grille.move_indicateur_to_end'
+                                    )
+                                        template(v-if="indicateur_options_by_item_ids[item.id]")
+                                            multiselect(
+                                                v-model="indicateur_option_rapport_item_by_ids[item.id]",
+                                                :multiple="false"
+                                                :options="indicateur_options_by_item_ids[item.id]",
+                                                track-by="id"
+                                                :allow-empty="true"
+                                                label="label"
+                                                @input="onchange_indicateur(item)"
+                                                placeholder=""
+                                            )
+                                                template(slot="singleLabel" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
+                                                template(slot="option" slot-scope="props")
+                                                    span.option__tag.indicateur_value(:class="{['indicateur_value_' + props.option.id]: grille.calcul_niveau_maturite}") {{ props.option.label }}
+
+                        tr.break-page(v-if="(index_g + 1) < filtered_groupes.length")
+                            td(:colspan="(show_details ? 7 : 5)")

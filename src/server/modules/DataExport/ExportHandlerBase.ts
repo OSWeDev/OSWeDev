@@ -22,8 +22,6 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
     protected constructor() { }
 
-    public abstract prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas>;
-
     /**
      * Par défaut on exporte au format XLSX avec la fonction exportDataToXLSX
      * @param exhi
@@ -78,16 +76,24 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
             let subject: TranslatableTextVO;
             let content: string;
-            let mail_param: {} = {};
+            let mail_param = {};
 
             if (exhi.exported_file_id) {
                 const exported_file: FileVO = exhi.exported_file_id ? await query(FileVO.API_TYPE_ID).filter_by_id(exhi.exported_file_id).select_vo<FileVO>() : null;
                 subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
                 content = default_mail_html_template;
 
+                let formatted_path: string = exported_file.path.replace(/^[.][/]/, '/');
+
+                if (envParam.base_url.endsWith('/') && formatted_path.startsWith('/')) {
+                    formatted_path = formatted_path.substring(1);
+                } else if (!envParam.base_url.endsWith('/') && !formatted_path.startsWith('/')) {
+                    formatted_path = '/' + formatted_path;
+                }
+
                 mail_param = {
                     EXPORT_TYPE_ID: exhi.export_type_id,
-                    FILE_URL: envParam.base_url + exported_file.path.replace(/^[.][/]/, '/')
+                    FILE_URL: envParam.base_url + formatted_path
                 };
 
             } else {
@@ -124,4 +130,6 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
         return true;
     }
+
+    public abstract prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas>;
 }

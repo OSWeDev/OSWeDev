@@ -105,6 +105,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -235,6 +236,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -536,6 +538,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -708,6 +711,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -846,6 +850,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -995,6 +1000,7 @@ export default class ContextFilterServerController {
                         throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -1170,6 +1176,7 @@ export default class ContextFilterServerController {
                         break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -1344,6 +1351,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
@@ -1475,6 +1483,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                         if (context_filter.param_text != null) {
@@ -1613,6 +1622,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                     case ModuleTableFieldVO.FIELD_TYPE_email:
 
@@ -1706,6 +1716,11 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int:
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_name + " <= " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1830,6 +1845,11 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int:
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_name + " < " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -1954,6 +1974,11 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int:
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_name + " > " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2078,6 +2103,11 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int:
                     case ModuleTableFieldVO.FIELD_TYPE_prct:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                        if (context_filter.param_alias != null) {
+                            where_conditions.push(field_name + " >= " + context_filter.param_alias);
+                            break;
+                        }
+
                         if (context_filter.param_numeric_array != null) {
 
                             context_filter.param_numeric_array = context_filter.param_numeric_array.filter((v) => v != undefined);
@@ -2912,6 +2942,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -3034,6 +3065,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:
@@ -3080,6 +3112,7 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_numrange:
                     case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                     case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
                     case ModuleTableFieldVO.FIELD_TYPE_file_field:
                     case ModuleTableFieldVO.FIELD_TYPE_textarea:

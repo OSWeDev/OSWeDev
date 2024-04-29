@@ -89,8 +89,8 @@ export default class ContextFilterVOHandler {
 
         return res;
     }
-    
-    
+
+
 
     /**
      * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
@@ -673,6 +673,7 @@ export default class ContextFilterVOHandler {
 
             case ModuleTableFieldVO.FIELD_TYPE_html:
             case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_string:

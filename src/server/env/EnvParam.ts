@@ -123,4 +123,5 @@ export default class EnvParam implements IEnvParam {
     public teams_webhook__message_max_size_auto_summarize?: boolean = false;
 
     public express_secret: string = null;
+    public logo_path?: string = null;
 }

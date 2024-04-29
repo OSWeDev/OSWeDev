@@ -1,0 +1,11 @@
+.container_suivi_competences_indicateur.no_bg
+    template(v-if="field_values" v-for="(field_value, index) in field_values")
+        .suivi_competences_indicateur_item(:field_value="index")
+            h4 {{ label('crud.container_suivi_competences_indicateur.numero') }} {{ index + 1 }}
+            template(v-for="field in fields")
+                template(v-if="!!field_value[field.module_table_field_id]")
+                    Datatablecomponentfield(
+                        :field="field",
+                        :vo="field_value",
+                        :show_label="true"
+                    )

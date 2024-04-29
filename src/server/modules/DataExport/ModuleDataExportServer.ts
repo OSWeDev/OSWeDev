@@ -14,7 +14,6 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
-import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
@@ -67,6 +66,7 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import default_export_mail_html_template from './default_export_mail_html_template.html';
+import TableWidgetManager from '../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -419,7 +419,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ): Promise<void> {
 
         const api_type_id = context_query.base_api_type_id;
-        const columns_by_field_id = {};
+        const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
         for (const i in columns) {
             const column = columns[i];
@@ -522,7 +522,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
                 }
 
-                await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
+                await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns, active_field_filters, active_api_type_ids, columns_by_field_id);
 
                 // - Update to columns format (percent, toFixed etc...)
                 const this_xlsx_datas = await this.update_data_rows_to_xlsx_columns_format(translated_datas, columns);
@@ -1467,7 +1467,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
-            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
@@ -1509,7 +1509,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      */
     private async update_custom_fields(
         datas: any[],
-        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string },
+        active_field_filters: FieldFiltersVO,
+        active_api_type_ids: string[],
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
     ) {
 
         const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
@@ -1519,8 +1522,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         for (const field_id in exportable_datatable_custom_field_columns) {
             const custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
 
-            const cb = TableWidgetCustomFieldsController.getInstance()
-                .custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
+            let cb = TableWidgetManager.custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
 
             if (!cb) {
                 continue;
@@ -1532,7 +1534,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 const data = datas[key_i];
 
                 await promise_pipeline.push(async () => {
-                    data[field_id] = await cb(data);
+                    data[field_id] = await cb(data, active_field_filters, active_api_type_ids, columns_by_field_id[field_id]);
 
                     if (ConfigurationService.node_configuration.debug_exports) {
                         ConsoleHandler.log('update_custom_fields :: ' + custom_field_translatable_name + ' :: ' + cpt_custom_field_translatable_name[custom_field_translatable_name] + '/' + datas.length);

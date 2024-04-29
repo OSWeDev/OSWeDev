@@ -23,8 +23,9 @@ export default class Patch20231010ForceUnicityVarCacheConfVarID implements IGene
 
     public async work(db: IDatabase<any>) {
 
-        // Généré par ChatGPT
-        const query = `
+        try {
+            // Généré par ChatGPT
+            const query = `
             WITH Ranked AS (
                 SELECT *,
                     ROW_NUMBER() OVER (PARTITION BY var_id ORDER BY id DESC) as rn
@@ -61,6 +62,9 @@ export default class Patch20231010ForceUnicityVarCacheConfVarID implements IGene
             END $$;
             `;
 
-        await db.none(query);
+            await db.none(query);
+        } catch (error) {
+            console.error('Error running patch : ', error);
+        }
     }
 }

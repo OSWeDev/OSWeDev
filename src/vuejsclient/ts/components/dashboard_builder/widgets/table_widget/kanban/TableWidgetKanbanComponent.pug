@@ -118,7 +118,10 @@ include ../../../../../../views/mixins/loading.pug
                                                                     .kanban_row_column
                                                                         .kanban_row_column_field
                                                                             .kanban_row_column_field_label
-                                                                                Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                                                                template(v-if="column.custom_label")
+                                                                                    span {{ column.custom_label }}
+                                                                                template(v-else)
+                                                                                    Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
                                                                             .kanban_row_column_field_value
                                                                                 template(v-if='column.is_enum')
                                                                                     Datatablecomponentfield.is_enum(

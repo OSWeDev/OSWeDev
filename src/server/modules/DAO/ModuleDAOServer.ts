@@ -688,6 +688,24 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Format incorrect"
         }, 'crud.field_error_format.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Formulaire de création / modification"
+        }, 'crud.insert_or_update_target.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Champs requis"
+        }, 'validation.ko.required'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Minimum 8 caractères"
+        }, 'validation.ko.length_min_8'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Il faut au moins un nombre"
+        }, 'validation.ko.need_number'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Il faut au moins une minuscule"
+        }, 'validation.ko.need_lowercase'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Il faut au moins une majuscule"
+        }, 'validation.ko.need_uppercase'));
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -2216,6 +2234,111 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         return await this._insertOrUpdateVOs(vos, false);
     }
+
+    // /**
+    //  * On checke les indexs uniques, et si on trouve que l'objet existe, on renvoie l'id de l'objet identifié
+    //  */
+    // private async check_uniq_indexes(vo: IDistantVOBase, moduleTable: ModuleTable<any>): Promise<number> {
+    //     if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
+    //         for (let j in moduleTable.uniq_indexes) {
+    //             let uniq_index = moduleTable.uniq_indexes[j];
+
+    //             let replace_if_unique_field_id: { [field_id: string]: boolean } = {};
+
+    //             let filters = [];
+
+    //             for (let k in uniq_index) {
+    //                 let field = uniq_index[k];
+
+    //                 replace_if_unique_field_id[field.field_id] = field.replace_if_unique;
+
+    //                 // Si la valeur est null dans le vo ça sert à rien de tester
+    //                 if (vo[field.field_id] == null) {
+    //                     continue;
+    //                 }
+
+    //                 if (field.replace_if_unique) {
+    //                     return null;
+    //                 }
+
+    //                 let filter_: ContextFilterVO = null;
+
+    //                 switch (field.field_type) {
+    //                     case ModuleTableField.FIELD_TYPE_string:
+    //                     case ModuleTableField.FIELD_TYPE_color:
+    //                     case ModuleTableField.FIELD_TYPE_email:
+    //                     case ModuleTableField.FIELD_TYPE_html:
+    //                     case ModuleTableField.FIELD_TYPE_password:
+    //                     case ModuleTableField.FIELD_TYPE_textarea:
+    //                         filter_ = filter(moduleTable.vo_type, field.field_id).by_text_has(vo[field.field_id]);
+    //                         break;
+    //                     case ModuleTableField.FIELD_TYPE_amount:
+    //                     case ModuleTableField.FIELD_TYPE_date:
+    //                     case ModuleTableField.FIELD_TYPE_enum:
+    //                     case ModuleTableField.FIELD_TYPE_file_ref:
+    //                     case ModuleTableField.FIELD_TYPE_float:
+    //                     case ModuleTableField.FIELD_TYPE_geopoint:
+    //                     case ModuleTableField.FIELD_TYPE_image_ref:
+    //                     case ModuleTableField.FIELD_TYPE_int:
+    //                     case ModuleTableField.FIELD_TYPE_isoweekdays:
+    //                     case ModuleTableField.FIELD_TYPE_month:
+    //                     case ModuleTableField.FIELD_TYPE_month:
+    //                     case ModuleTableField.FIELD_TYPE_prct:
+    //                     case ModuleTableField.FIELD_TYPE_tstz:
+    //                     case ModuleTableField.FIELD_TYPE_foreign_key:
+    //                         filter_ = filter(moduleTable.vo_type, field.field_id).by_num_eq(vo[field.field_id]); // pas has ?
+    //                         break;
+    //                     default:
+    //                         throw new Error('Not Implemented');
+    //                 }
+
+    //                 filters.push(filter_);
+    //             }
+
+    //             if ((!filters) || (!filters.length)) {
+    //                 continue;
+    //             }
+
+    //             let query_: ContextQueryVO = query(vo._type).add_filters(filters).set_limit(1, 0);
+
+    //             /**
+    //              * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
+    //              */
+    //             query_.exec_as_server();
+
+    //             let uniquevos: IDistantVOBase[] = null;
+
+    //             StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'query');
+
+    //             uniquevos = await query_.select_vos();
+
+    //             if (uniquevos && uniquevos[0] && uniquevos[0].id) {
+    //                 /**
+    //                  * JNE :Est-ce que c'est pas un code inaccessible depuis l'ajout de if (field.replace_if_unique) { return null; } dans la boucle au dessus ?
+    //                  */
+    //                 for (let field_id in replace_if_unique_field_id) {
+    //                     // Si on a la même valeur et qu'on ne peut pas remplacer, on throw une erreur
+    //                     if ((vo[field_id] != null) && (vo[field_id] == uniquevos[0][field_id]) && !replace_if_unique_field_id[field_id]) {
+    //                         let uid: number = StackContext.get('UID');
+    //                         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+
+    //                         if (uid && CLIENT_TAB_ID) {
+    //                             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+    //                         }
+    //                         StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'error');
+
+    //                         let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
+    //                         ConsoleHandler.error(msg);
+    //                         throw new Error(msg);
+    //                     }
+    //                 }
+
+    //                 return uniquevos[0].id;
+    //             }
+    //         }
+    //     }
+    //     return null;
+    // }
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 

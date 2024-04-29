@@ -66,14 +66,12 @@ import StackContext from './StackContext';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import IFork from './modules/Fork/interfaces/IFork';
+import ForkMessageController from './modules/Fork/ForkMessageController';
+import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
-
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ServerBase {
-        return ServerBase.instance;
-    }
 
     protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
 
@@ -137,6 +135,11 @@ export default abstract class ServerBase {
         this.csrfProtection = csrf({ cookie: true });
     }
 
+    /* istanbul ignore next: nothing to test here */
+    public static getInstance(): ServerBase {
+        return ServerBase.instance;
+    }
+
     // /**
     //  * Gestion des clefs d'API
     //  */
@@ -193,6 +196,7 @@ export default abstract class ServerBase {
         EnvHandler.activate_pwa = !!this.envParam.activate_pwa;
         EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
         EnvHandler.debug_vars = !!this.envParam.debug_vars;
+        EnvHandler.logo_path = this.envParam.logo_path;
 
         this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
@@ -616,6 +620,7 @@ export default abstract class ServerBase {
                     req.session.sid = sid;
                 }
             } catch (error) {
+
             }
             next();
         });
@@ -1192,6 +1197,57 @@ export default abstract class ServerBase {
                     return res.status(500).send(err.message || err);
                 }
             }
+        });
+
+        // Vérification des thread s'ils sont alive
+        this.app.get('/thread_alive/:uid', async (req: Request, res) => {
+            let uid = req.params.uid;
+
+            if (!uid) {
+                return res.status(404).send('Pas de uid envoyé');
+            }
+
+            let fork: IFork = ForkServerController.forks[uid];
+
+            if (!fork) {
+                return res.status(404).send('Pas de fork trouvé pour uid: ' + uid);
+            }
+
+            let check_process: boolean = false;
+
+            for (let i in fork.processes) {
+                let process = fork.processes[i];
+
+                if (process.type != BGThreadServerController.ForkedProcessType) {
+                    continue;
+                }
+
+                let thrower = (error) => {
+                    ConsoleHandler.error('API thread_alive:' + error);
+                    return res.status(500).send(false);
+                };
+                let resolver = async (res_resolver) => {
+                    return res.status(200).send(res_resolver);
+                };
+
+                await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                    thrower, process.name, BGThreadServerController.TASK_NAME_is_alive, resolver
+                );
+
+                check_process = true;
+
+                break;
+            }
+
+            if (check_process) {
+                return;
+            }
+
+            let msg = new PingForkMessage(fork.uid);
+
+            let is_alive: boolean = await ForkMessageController.send(msg, fork.child_process, fork);
+
+            return res.status(200).send(is_alive);
         });
 
         // TODO FIXME : à passer en API normale !

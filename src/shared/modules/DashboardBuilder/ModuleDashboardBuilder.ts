@@ -133,6 +133,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().hide_navigation, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().group_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false);
+        ModuleTableFieldController.create_new(DashboardPageVO.API_TYPE_ID, field_names<DashboardPageVO>().collapse_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Voir les filtres par défaut', false, true, false);
 
         const res = ModuleTableController.create_new(this.name, DashboardPageVO, null, "Pages de Dashboard");
 
@@ -281,11 +282,16 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().enum_fg_colors, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Enum FG colors");
 
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().children, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Enfants");
-        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().bg_color_header, ModuleTableFieldVO.FIELD_TYPE_string, "Header BG color");
-        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().font_color_header, ModuleTableFieldVO.FIELD_TYPE_string, "Header FG color");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().bg_color_header, ModuleTableFieldVO.FIELD_TYPE_color, "Header BG color");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().font_color_header, ModuleTableFieldVO.FIELD_TYPE_color, "Header FG color");
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().kanban_column, ModuleTableFieldVO.FIELD_TYPE_boolean, "Colonne Kanban", true, true, false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableFieldVO.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions");
+
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_label, ModuleTableFieldVO.FIELD_TYPE_string, "Label personnalisé");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_class_css, ModuleTableFieldVO.FIELD_TYPE_string, "Classe CSS personnalisé");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().custom_values, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées");
+
 
         ModuleTableController.create_new(this.name, TableColumnDescVO, null, "Référence de champs");
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
@@ -574,6 +580,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().semaphore_auto_update_datatable_field_uid_with_vo_type, ModuleTableFieldVO.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false);
         ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().type, ModuleTableFieldVO.FIELD_TYPE_string, 'type');
         ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().datatable_field_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'datatable_field_uid');
+        ModuleTableFieldController.create_new(SimpleDatatableFieldVO.API_TYPE_ID, field_names<SimpleDatatableFieldVO<any, any>>().max_range_offset, ModuleTableFieldVO.FIELD_TYPE_int, 'max_range_offset');
 
         ModuleTableController.create_new(this.name, SimpleDatatableFieldVO, null, "SimpleDatatableFieldVO");
     }

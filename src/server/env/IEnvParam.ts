@@ -100,4 +100,5 @@ export default interface IEnvParam {
     block_teams_messages?: boolean;
 
     express_secret: string;
+    logo_path?: string;
 }

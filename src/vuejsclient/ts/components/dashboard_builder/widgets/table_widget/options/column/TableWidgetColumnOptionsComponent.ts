@@ -86,6 +86,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private tmp_bg_color_header: string = null;
     private tmp_font_color_header: string = null;
+    private tmp_custom_class_css: string = null;
 
     private show_options: boolean = false;
     private error: boolean = false;
@@ -388,6 +389,21 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
+    @Watch('tmp_custom_class_css')
+    private async onchange_tmp_custom_class_css() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.custom_class_css == this.tmp_custom_class_css) {
+            return;
+        }
+
+        this.object_column.custom_class_css = this.tmp_custom_class_css;
+
+        this.$emit('update_column', this.object_column);
+    }
+
     @Watch('tmp_font_color_header')
     private async onchange_tmp_font_color_header() {
         if (!this.object_column) {
@@ -451,6 +467,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
+        this.tmp_custom_class_css = this.object_column ? this.object_column.custom_class_css : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
         this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
         this.kanban_use_weight = this.object_column ? this.object_column.kanban_use_weight : false;
@@ -623,11 +640,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return [];
         }
 
-        if (!TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+        if (!TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
             return [];
         }
 
-        const res = TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        let res = TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
 
         return res.map((c) => c.translatable_title);
     }
@@ -975,6 +992,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             case ModuleTableFieldVO.FIELD_TYPE_int:
             case ModuleTableFieldVO.FIELD_TYPE_prct:
             case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
                 return true;
         }
 
@@ -1023,7 +1041,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return null;
                 }
 
-                return this.t(TableWidgetController.getInstance().components_by_translatable_title[this.object_column.component_name].translatable_title);
+                return this.t(TableWidgetController.components_by_translatable_title[this.object_column.component_name].translatable_title);
             case TableColumnDescVO.TYPE_vo_field_ref:
                 if ((!this.object_column.api_type_id) || (!this.object_column.field_id)) {
                     return null;

@@ -18,6 +18,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
     public hide_navigation: boolean;
 
     public group_filters: boolean;
+    public collapse_filters: boolean;
 
     get translatable_group_filters_code_text(): string {
 

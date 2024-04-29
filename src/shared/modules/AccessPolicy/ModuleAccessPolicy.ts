@@ -112,14 +112,6 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_LOGIN_INFOS = 'ModuleAccessPolicy.LOGIN_INFOS';
     public static PARAM_NAME_LOGIN_CGU = 'ModuleAccessPolicy.LOGIN_CGU';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleAccessPolicy {
-        if (!ModuleAccessPolicy.instance) {
-            ModuleAccessPolicy.instance = new ModuleAccessPolicy();
-        }
-        return ModuleAccessPolicy.instance;
-    }
-
     private static instance: ModuleAccessPolicy = null;
 
     public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
@@ -172,6 +164,14 @@ export default class ModuleAccessPolicy extends Module {
 
         super("access_policy", ModuleAccessPolicy.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleAccessPolicy {
+        if (!ModuleAccessPolicy.instance) {
+            ModuleAccessPolicy.instance = new ModuleAccessPolicy();
+        }
+        return ModuleAccessPolicy.instance;
     }
 
     public registerApis() {
@@ -469,7 +469,13 @@ export default class ModuleAccessPolicy extends Module {
             ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(
+            this.name,
+            UserVO,
+            label_field,
+            DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }),
+            field_names<UserVO>().name
+        );
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
