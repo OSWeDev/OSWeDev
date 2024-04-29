@@ -196,7 +196,7 @@
                             :preselect-first="false"
                             :multiple="false"
                             v-model="tmp_selected_dimension_custom_filter_segment_type"
-                            :options="dimension_custom_filter_segment_types"
+                            :options="dimension_custom_filter_segment_types_values"
                             :allow-empty="false",
 
                             :searchable="true"
@@ -243,15 +243,16 @@
                     )
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
-        .widget_filter_options(v-if='title_name_code_text && widget_options')
-            .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
-            .widget_filter_options_wrapper
-                Widgetfilteroptionscomponent(
-                    :actual_additional_options="widget_options.filter_additional_params"
-                    :actual_filter_type="widget_options.filter_type"
-                    @update_additional_options="update_additional_options"
-                    @update_filter_type="update_filter_type"
-                )
+            .input_label("wip")
+        //- .widget_filter_options(v-if='title_name_code_text && widget_options')
+        //-     .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
+        //-     .widget_filter_options_wrapper
+        //-         Widgetfilteroptionscomponent(
+        //-             :actual_additional_options="widget_options.filter_additional_params"
+        //-             :actual_filter_type="widget_options.filter_type"
+        //-             @update_additional_options="update_additional_options"
+        //-             @update_filter_type="update_filter_type"
+        //-         )
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_1_options') }}
         .var_name_1 

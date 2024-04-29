@@ -134,13 +134,11 @@ export default class VarPieChartComponent extends VueComponentBase {
             return;
         }
         
-        const res: { [index: string]: VarDataValueResVO } = {};
-        const unique_var_params =  this.var_params.filter((entry, index, self) =>
-            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
-        );
+        const res: { [id: number]: VarDataValueResVO } = {};
+
         for (const i in this.var_params) {
             const var_param = this.var_params[i];
-            res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
+            res[var_param.id] = VarsClientController.cached_var_datas[var_param.index];
         }
         this.var_datas = res;
     }
@@ -166,7 +164,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (const i in this.var_params) {
             const var_param = this.var_params[i];
 
-            if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
+            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
                 return false;
             }
         }
@@ -299,12 +297,12 @@ export default class VarPieChartComponent extends VueComponentBase {
         const backgrounds: string[] = [];
         const bordercolors: string[] = [];
         const borderwidths: number[] = [];
-        for (const j in this.var_params.filter((entry, index, self) =>
-            !self.slice(index + 1).some((otherEntry) => otherEntry.index === entry.index)
+        for (const j in this.var_params.filter((entry, id, self) =>
+            !self.slice(id + 1).some((otherEntry) => otherEntry.id === entry.id)
         )) {
             const var_param: VarDataBaseVO = this.var_params[j];
             // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
-            dataset_datas.push(this.var_datas[var_param.index].value);
+            dataset_datas.push(this.var_datas[var_param.id].value);
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
             } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {

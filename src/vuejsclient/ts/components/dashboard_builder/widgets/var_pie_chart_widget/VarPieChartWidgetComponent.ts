@@ -32,6 +32,8 @@ import ValidationFiltersWidgetController from '../validation_filters_widget/Vali
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
 import './VarPieChartWidgetComponent.scss';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
+import DefaultTranslationVO from '../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -363,7 +365,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
     ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
-        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
+        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1] || !this.widget_options.dimension_vo_field_ref) {
             return null;
         }
 
@@ -401,8 +403,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
         for (const i in dimensions) {
             const dimension: any = dimensions[i];
-            const dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+            let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
 
+            if(!dimension_value) {
+                dimension_value = '[NULL]'
+            }
+
+            if(ordered_dimension.includes(dimension_value)) {
+                continue;
+            }
             ordered_dimension.push(dimension_value);
 
             promises.push((async () => {
@@ -445,15 +454,23 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     this.get_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
-                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                    this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
-                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
-                    return;
+                    if(dimension_value !== '[NULL]') {
+                        // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                        this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
+                        ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                        return;
+                    } else {
+                        var_params_by_dimension[dimension_value] = new VarDataBaseVO();
+                    }
                 }
 
                 var_params_by_dimension[dimension_value].id = parseInt(i);
-                let label = null;
-                if (dimension_table && dimension_table.default_label_field) {
+                let label = 'NULL';
+                if(this.widget_options.dimension_vo_field_ref.field_id){
+                    if(dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
+                        label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                    } 
+                } else if (dimension_table && dimension_table.default_label_field) {
                     label = dimension[dimension_table.default_label_field.field_id];
                 } else if (dimension_table && dimension_table.table_label_function) {
                     label = dimension_table.table_label_function(dimension);
@@ -466,11 +483,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         await all_promises(promises);
-        if(Object.values(var_params_by_dimension).every(x => x === null || x.value === undefined)) {
-            this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
-        } else {
-            this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
-        }
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;
@@ -584,10 +596,12 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                     return;
                 }
-                if (label_by_index[var_params_by_dimension[dimension_value].index]== undefined) {
-                    label_by_index[var_params_by_dimension[dimension_value].index] = [];
+
+                var_params_by_dimension[dimension_value].id = parseInt(i);
+                if(label_by_index[parseInt(i)] === undefined) {
+                    label_by_index[parseInt(i)] = [];
                 }
-                label_by_index[var_params_by_dimension[dimension_value].index].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
+                label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
             })());
         }
 
