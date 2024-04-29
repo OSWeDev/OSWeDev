@@ -69,23 +69,25 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private var_charts_options?: VarChartOptionsVO[] = [];
     private scale_options_x?: Partial<Scale> = null;
     private scale_options_y?: Partial<Scale> = null;
+    private scale_x_color?: string = null;
+    private scale_y_color?: string = null;
 
     private tmp_selected_legend_position: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
 
     private widget_options: VarMixedChartWidgetOptionsVO = null;
 
-    private dimension_custom_filter_segment_types: string[] = [
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        this.label('VarMixedChartsWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
-    ];
+    private dimension_custom_filter_segment_types:  { [index: number]: string } = 
+        { [TimeSegment.TYPE_YEAR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+         [TimeSegment.TYPE_MONTH] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+         [TimeSegment.TYPE_DAY] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+         [TimeSegment.TYPE_HOUR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+         [TimeSegment.TYPE_MINUTE] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+        [TimeSegment.TYPE_SECOND] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)};
 
+    private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
     // TODO: Add translations
     private legend_positions: string[] = [
         'top',
@@ -95,13 +97,13 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     ];
 
     @Watch('page_widget', { immediate: true, deep: true })
-    private onchange_page_widget(): void {
-        this.throttled_reload_options();
+    private async onchange_page_widget() {
+        await this.throttled_reload_options();
     }
 
     @Watch('widget_options')
-    private onchange_widget_options(): void {
-        this.throttled_reload_options();
+    private async onchange_widget_options() {
+        await this.throttled_reload_options();
     }
 
     @Watch('tmp_selected_dimension_custom_filter_segment_type')
@@ -440,7 +442,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      *
      * @returns {void}
      */
-    private switch_has_dimension(): void {
+    private async switch_has_dimension() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -449,7 +451,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
 
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
@@ -457,7 +459,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      *
      * @returns {void}
      */
-    private switch_title_display(): void {
+    private async switch_title_display() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -466,7 +468,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
         this.next_update_options.title_display = !this.next_update_options.title_display;
 
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     private async switch_legend_use_point_style() {
@@ -498,7 +500,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      *
      * @returns {void}
      */
-    private update_colors(): void {
+    private async update_colors() {
         if (!this.widget_options) {
             return;
         }
@@ -510,8 +512,12 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.legend_font_color = this.legend_font_color;
         this.next_update_options.title_font_color = this.title_font_color;
         this.next_update_options.bg_color = this.bg_color;
+        this.next_update_options.legend_font_color = this.legend_font_color;
+        this.next_update_options.title_font_color = this.title_font_color;
+        this.next_update_options.scale_x_color = this.scale_x_color;
+        this.next_update_options.scale_y_color = this.scale_y_color;
 
-        this.throttled_update_options();
+        await this.throttled_update_options();
     }
 
     /**
@@ -533,6 +539,32 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
 
         this.throttled_update_options();
+    }
+
+    private handle_scale_x_color_change(color: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_x_color = color;
+        this.throttled_update_colors();
+    }
+
+    private handle_scale_y_color_change(color: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.scale_y_color = color;
+        this.throttled_update_colors();
     }
 
     /**
@@ -686,6 +718,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.var_charts_options = [];
             this.scale_options_x = null;
             this.scale_options_y = null;
+            this.scale_x_color = '#666';
+            this.scale_y_color = '#666';
 
             return;
         }
@@ -745,6 +779,12 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (this.bg_color != this.widget_options.bg_color) {
             this.bg_color = this.widget_options.bg_color;
         }
+        if (this.scale_x_color != this.widget_options.scale_x_color) {
+            this.scale_x_color = this.widget_options.scale_x_color;
+        }
+        if (this.scale_y_color != this.widget_options.scale_y_color) {
+            this.scale_y_color = this.widget_options.scale_y_color;
+        }
         if (this.legend_font_color != this.widget_options.legend_font_color) {
             this.legend_font_color = this.widget_options.legend_font_color;
         }
@@ -770,8 +810,13 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
     private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
-            let res = this.dimension_custom_filter_segment_types.indexOf(selected_option);
-            return res >= 0 ? res : null;
+            for(const key in Object.keys(this.dimension_custom_filter_segment_types)){
+                if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
+                    const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
+                    return res >= 0 ? res : null;
+                }
+            }
+            return null
         }
     }
 

@@ -70,7 +70,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     private ordered_dimension: number[] = null;
-    private label_by_index: { [index: string]: string } = null;
+    private label_by_index: { [index: string]: string[] } = null;
     private var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = null;
     private var_params_1_et_2: { [dimension_value: number]: VarDataBaseVO } = null;
 
@@ -79,8 +79,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
     private current_var_params = null;
     private current_var_dataset_descriptor = null;
     private current_options = null;
-
-    $snotify: any;
 
     @Watch('options')
     @Watch('var_dataset_descriptor')
@@ -111,7 +109,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.filter_additional_params ? JSON.parse(this.widget_options.filter_additional_params) : undefined;
+        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
     }
 
     get translated_title(): string {
@@ -164,7 +162,6 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     font: {
                         size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
                     }
-                    
                 },
 
                 tooltips: {
@@ -182,7 +179,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
                             let params = [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]];
 
-                            if (!!self.var_filter_additional_params) {
+                            if (self.var_filter_additional_params) {
                                 params = params.concat(self.var_filter_additional_params);
                             }
                             return label + self.var_filter.apply(null, params);
@@ -195,13 +192,13 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
                     labels: {
-                        color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
+                        font: {
+                            size: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
+                        },
                         boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
                         padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
                         usePointStyle: this.get_bool_option('legend_use_point_style', false),
-                        font: {
-                            size: this.widget_options.legend_font_size ? this.widget_options.legend_font_size : 12,
-                        }
+                        color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
                     },
                 },
             },
@@ -219,7 +216,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         if (!this.label_by_index) {
             return null;
         }
-        return this.label_by_index[var_param.index];
+        return this.label_by_index[var_param.id];
     }
 
     /**
@@ -398,7 +395,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
     ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
-        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
+        if ((!this.widget_options.var_id_1) || !VarsController.var_conf_by_id[this.widget_options.var_id_1] || !this.widget_options.dimension_vo_field_ref) {
             return null;
         }
 
@@ -410,7 +407,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         /**
          * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
          */
-        let query_: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
+        let query_: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id )
             .set_limit(this.widget_options.max_dimension_values)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
@@ -435,13 +432,18 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
         let promises = [];
         let ordered_dimension: number[] = [];
-        let label_by_index: { [index: string]: string } = {};
+        let label_by_index: { [index: string]: string[] } = {};
         let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
             ModuleTableController.module_tables_by_vo_type[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
             let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-
+            if(!dimension_value) {
+                dimension_value = '[NULL]'
+            }
+            if(ordered_dimension.includes(dimension_value)) {
+                continue;
+            }
             ordered_dimension.push(dimension_value);
 
             promises.push((async () => {
@@ -458,17 +460,19 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id] = {};
                 }
 
-                switch (dimension_value) {
-                    case typeof dimension_value == 'string':
+                switch (typeof dimension_value) {
+                    case 'string':
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
                             this.widget_options.dimension_vo_field_ref.api_type_id,
                             this.widget_options.dimension_vo_field_ref.field_id
                         ).by_text_has(dimension_value);
-                    case typeof dimension_value == 'number':
+                        break;
+                    case 'number':
                         active_field_filters[this.widget_options.dimension_vo_field_ref.api_type_id][this.widget_options.dimension_vo_field_ref.field_id] = filter(
                             this.widget_options.dimension_vo_field_ref.api_type_id,
                             this.widget_options.dimension_vo_field_ref.field_id
                         ).by_num_has([dimension_value]);
+                        break;
                 }
 
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
@@ -479,31 +483,35 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     this.get_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
-                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                    this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
-                    this.snotify.error('Pas de var_params pour la dimension ' + dimension_value);
-                    return;
+                    if(dimension_value !== '[NULL]') {
+                        // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                        this.snotify.error(this.t('var_line_chart_widget.error.no_data'));
+                        ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                        return;
+                    } else {
+                        var_params_by_dimension[dimension_value] = new VarDataBaseVO();
+                    }                    
                 }
 
-                let label = null;
-
-                if (dimension_table && dimension_table.default_label_field) {
+                var_params_by_dimension[dimension_value].id = parseInt(i);
+                let label = 'NULL';
+                if(this.widget_options.dimension_vo_field_ref.field_id){
+                    if(dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
+                        label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+                    } 
+                } else if (dimension_table && dimension_table.default_label_field) {
                     label = dimension[dimension_table.default_label_field.field_id];
                 } else if (dimension_table && dimension_table.table_label_function) {
                     label = dimension_table.table_label_function(dimension);
                 }
-
-                label_by_index[var_params_by_dimension[dimension_value].index] = label;
+                if(label_by_index[parseInt(i)] === undefined) {
+                    label_by_index[parseInt(i)] = [];
+                }
+                label_by_index[parseInt(i)].push(label);
 
             })());
         }
         await all_promises(promises);
-        if(Object.values(var_params_by_dimension).every(x => x === null || x.value === undefined)) {
-            this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
-        } else {
-            this.snotify.success(this.t('var_pie_chart_widget.success.data_loaded'));
-        }
-
         this.ordered_dimension = ordered_dimension;
         this.label_by_index = label_by_index;
         return var_params_by_dimension;
@@ -575,7 +583,7 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
         this.ordered_dimension = dimension_values;
 
         let promises = [];
-        let label_by_index: { [index: string]: string } = {};
+        let label_by_index: { [index: string]: string[] } = {};
         for (let i in dimension_values) {
             let dimension_value: number = dimension_values[i];
 
@@ -619,8 +627,11 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
                     ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
                     return;
                 }
-
-                label_by_index[var_params_by_dimension[dimension_value].index] = Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type);
+                var_params_by_dimension[dimension_value].id = parseInt(i);
+                if(label_by_index[parseInt(i)] === undefined) {
+                    label_by_index[parseInt(i)] = [];
+                }
+                label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
             })());
         }
 
@@ -765,8 +776,8 @@ export default class VarLineChartWidgetComponent extends VueComponentBase {
 
         this.ordered_dimension = [0, 1];
         this.label_by_index = {
-            0: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)),
-            1: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))
+            0: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))],
+            1: [this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))]
         };
         this.var_params_1_et_2 = {
             0: var_1,

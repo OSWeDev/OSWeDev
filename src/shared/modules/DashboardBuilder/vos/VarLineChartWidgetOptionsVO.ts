@@ -104,7 +104,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             {},
 
             null,
-            null,
+            '#666',
             null,
 
             false,

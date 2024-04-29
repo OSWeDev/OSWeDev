@@ -91,16 +91,16 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
 
     private widget_options: VarLineChartWidgetOptionsVO = null;
 
-    private dimension_custom_filter_segment_types: string[] = [
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        // this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        this.label('VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
-    ];
+    private dimension_custom_filter_segment_types:  { [index: number]: string } = 
+        { [TimeSegment.TYPE_YEAR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+        [TimeSegment.TYPE_MONTH] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+        [TimeSegment.TYPE_DAY] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+        [TimeSegment.TYPE_HOUR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+        [TimeSegment.TYPE_MINUTE] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+        [TimeSegment.TYPE_SECOND] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)};
+
 
     private scale_types_options: string[] = [
         'linear',
@@ -109,6 +109,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         'time',
         'radialLinear'
     ];
+    private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
 
     private legend_positions: string[] = [
         'top',
@@ -730,8 +731,13 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
 
     private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
-            let res = this.dimension_custom_filter_segment_types.indexOf(selected_option);
-            return res >= 0 ? res : null;
+            for(const key in Object.keys(this.dimension_custom_filter_segment_types)){
+                if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
+                    const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
+                    return res >= 0 ? res : null;
+                }
+            }
+            return null
         }
     }
 

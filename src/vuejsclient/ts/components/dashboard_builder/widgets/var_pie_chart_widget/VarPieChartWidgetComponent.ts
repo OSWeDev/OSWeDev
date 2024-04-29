@@ -136,8 +136,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 title: {
                     display: this.get_bool_option('title_display', true),
                     text: this.translated_title ? this.translated_title : '',
-                    fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
-                    fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    color: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
+                    font: {
+                        size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    },
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
                 },
 
@@ -170,9 +172,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
                     labels: {
-                        fontColor: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
-                        fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
-                        boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
+                        color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
+                        font: {
+                            size: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
+                        },                        boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
                         padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
                         usePointStyle: this.get_bool_option('legend_use_point_style', false)
                     },

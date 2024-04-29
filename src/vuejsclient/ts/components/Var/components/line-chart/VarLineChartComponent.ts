@@ -38,7 +38,7 @@ export default class VarLineChartComponent extends VueComponentBase {
     public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
-    public getlabel: (var_param: VarDataBaseVO) => string;
+    public getlabel: (var_param: VarDataBaseVO) => string[];
 
     @Prop({ default: null })
     public var_dataset_descriptor: VarLineDataSetDescriptor;
@@ -134,17 +134,20 @@ export default class VarLineChartComponent extends VueComponentBase {
     }
 
     private var_datas_updater() {
-
         if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
             this.var_datas = null;
             return;
         }
-        let res: { [index: string]: VarDataValueResVO } = {};
+        
+        const res: { [id: number]: VarDataValueResVO } = {};
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-
-            res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
+            if(var_param.index == null) {
+                res[var_param.id] = new VarDataValueResVO().set_value(0);
+            } else {
+                res[var_param.id] = VarsClientController.cached_var_datas[var_param.index];
+            }
         }
         this.var_datas = res;
     }
@@ -170,7 +173,7 @@ export default class VarLineChartComponent extends VueComponentBase {
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
 
-            if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
+            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
                 return false;
             }
         }
@@ -305,7 +308,7 @@ export default class VarLineChartComponent extends VueComponentBase {
             let var_param: VarDataBaseVO = this.var_params[j];
 
             // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
-            dataset_datas.push(this.var_datas[var_param.index].value);
+            dataset_datas.push(this.var_datas[var_param.id].value);
 
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
@@ -397,12 +400,17 @@ export default class VarLineChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         let res = [];
+        	
         for (let i in this.var_params) {
-            res.push(
-                this.getlabel ?
-                    this.getlabel(this.var_params[i]) :
-                    this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id))
-            );
+            if(this.getlabel && this.getlabel(this.var_params[i])) {
+                if(this.getlabel(this.var_params[i]).length <= 1) {
+                    res.push(this.getlabel(this.var_params[i]))
+                } else {
+                    res.push(this.getlabel(this.var_params[i])[i])
+                }
+            } else {
+                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)))
+            }
         }
 
         return res;

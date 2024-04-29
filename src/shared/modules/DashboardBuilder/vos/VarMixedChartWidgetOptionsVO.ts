@@ -81,6 +81,8 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
              */
             [],
             null,
+            "#666",
+            "#666",
             null,
             null
         );
@@ -135,6 +137,8 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         // --- Var Options We should be able to add as many vars as we can ---
         public var_charts_options?: VarChartOptionsVO[],
         public scale_options_x?: Partial<Scale>,
+        public scale_x_color?: string,
+        public scale_y_color?: string,
         public scale_options_y?: Partial<Scale>,
         public scale_options_r?: Partial<Scale>,
     ) {

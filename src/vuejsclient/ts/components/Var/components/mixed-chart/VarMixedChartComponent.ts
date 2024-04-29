@@ -183,8 +183,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 if (!res[chart_key]) {
                     res[chart_key] = {};
                 }
-
-                res[chart_key][var_param.index] = VarsClientController.cached_var_datas[var_param.index];
+                if(var_param.index == null) {
+                    res[chart_key][var_param.id] = new VarDataValueResVO().set_value(0);
+                } else {
+                    res[chart_key][var_param.id] = VarsClientController.cached_var_datas[var_param.index];
+                }
             }
         }
 
@@ -194,45 +197,46 @@ export default class VarMixedChartComponent extends VueComponentBase {
     /**
      * get all charts_var_datas (we may have many charts in one mixed chart component)
      *
-     * @returns {{ [chart_index: string]: IChartDataset }}
+     * @returns {{ [chart_id: string]: IChartDataset }}
      */
-    private get_charts_datasets(): { [chart_index: string]: IChartDataset } {
-        const datasets: { [chart_index: string]: IChartDataset } = {};
+    private get_charts_datasets(): { [chart_id: string]: IChartDataset } {
+        const datasets: { [chart_id: string]: IChartDataset } = {};
 
-        for (const chart_index in this.charts_var_params) {
+        for (const chart_id in this.charts_var_params) {
 
-            const data: IChartDataset = this.get_chart_dataset_by_chart_index(chart_index);
-
-            datasets[chart_index] = data;
+            const data: IChartDataset = this.get_chart_dataset_by_chart_id(chart_id);
+            if(data != null) {
+                datasets[chart_id] = data;
+            }
         }
 
         return datasets;
     }
 
     /**
-     * Get chart data by the given chart_index
+     * Get chart data by the given chart_id
      *
-     * @param {string} chart_index
+     * @param {string} chart_id
      * @returns {(number[] | string[])}
      */
-    private get_chart_dataset_by_chart_index(chart_index: string): IChartDataset {
-        const chart_var_dataset_descriptor = this.charts_var_dataset_descriptor[chart_index];
-        const chart_var_params = this.charts_var_params[chart_index];
-        const chart_var_datas = this.charts_var_datas[chart_index];
+    private get_chart_dataset_by_chart_id(chart_id: string): IChartDataset {
+        const chart_var_dataset_descriptor = this.charts_var_dataset_descriptor[chart_id];
+        const chart_var_params = this.charts_var_params[chart_id];
+        const chart_var_datas = this.charts_var_datas[chart_id];
 
         const data: number[] = [];
         const backgroundColor = [];
         const borderColor = [];
         const borderWidth = [];
 
-        if (!chart_var_params || !chart_var_datas) {
+        if (!chart_var_params || !chart_var_datas || !chart_var_dataset_descriptor) {
             return null;
         }
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
 
-            data.push(chart_var_datas[var_param.index].value);
+            data.push(chart_var_datas[var_param.id].value);
 
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[var_key]) {
                 backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[var_key]);
@@ -304,8 +308,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
                 if (
                     (!this.charts_var_datas[chart_key]) ||
-                    (!this.charts_var_datas[chart_key][var_param.index]) ||
-                    (typeof this.charts_var_datas[chart_key][var_param.index].value === 'undefined')
+                    (!this.charts_var_datas[chart_key][var_param.id]) ||
+                    (typeof this.charts_var_datas[chart_key][var_param.id].value === 'undefined')
                 ) {
                     return false;
                 }
@@ -340,7 +344,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     @Watch('charts_var_params', { immediate: true })
-    private async onchange_charts_var_params(new_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
+    private async onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
 
         // On doit vérifier qu'ils sont bien différents
         if (isEqual(new_charts_var_params, old_charts_var_params)) {
@@ -460,7 +464,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     /**
-     * Build datasets by chart_index @see https://www.chartjs.org/docs/latest/charts/mixed.html#mixed-chart-types
+     * Build datasets by chart_id @see https://www.chartjs.org/docs/latest/charts/mixed.html#mixed-chart-types
      *
      * @returns {IChartDataset[]}
      */
@@ -538,10 +542,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const i in chart_var_params) {
                 const var_param: VarDataBaseVO = chart_var_params[i];
 
-                res.push(this.getlabel ?
-                    this.getlabel(var_param) :
-                    this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id))
-                );
+                if(this.getlabel && this.getlabel(var_param)) {
+                    res.push(this.getlabel(var_param))
+                } else {
+                    res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)))
+                }
             }
 
             break;

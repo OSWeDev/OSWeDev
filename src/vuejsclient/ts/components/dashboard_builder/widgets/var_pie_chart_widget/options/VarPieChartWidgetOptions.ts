@@ -1,5 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import TimeSegment from "../../../../../../../shared/modules/DataRender/vos/TimeSegment";
 import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
@@ -160,5 +161,79 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
         }
 
         return res;
+    }
+
+    public static createDefault() {
+        return new VarPieChartWidgetOptions(
+
+            /**
+             * Paramètres du widget
+             */
+            null,
+
+            /**
+             * Paramètres du graph
+             */
+            true,
+            'top',
+            '#666',
+            12,
+            40,
+            10,
+            false,
+
+            false,
+            '#666',
+            16,
+            10,
+
+            50, // 0-100 - exemples : donut 50, camembert 0
+            270, // 0-360 - exemples : donut 270, camembert 0
+            180, // 0-180 - exemples : donut 180, camembert 0
+
+            false,
+            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
+            null,
+            true,
+
+            /**
+             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
+             */
+            true,
+            null,
+            null,
+            TimeSegment.TYPE_YEAR,
+
+            /**
+             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
+             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
+             */
+            'none',
+            null,
+
+            /**
+             * Var 1
+             */
+            null,
+
+            {},
+
+            null,
+            null,
+            0,
+
+            /**
+             * Var 2 si pas de dimension
+             */
+            null,
+
+            {},
+
+            null,
+            null,
+            0,
+
+            false,
+        );
     }
 }
