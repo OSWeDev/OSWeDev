@@ -14,6 +14,7 @@ import ModuleTableCompositeUniqueKeyController from "./ModuleTableCompositeUniqu
 import ModuleTableFieldController from "./ModuleTableFieldController";
 import ModuleTableFieldVO from "./vos/ModuleTableFieldVO";
 import ModuleTableVO from "./vos/ModuleTableVO";
+import SortByVO from "../ContextFilter/vos/SortByVO";
 
 export default class ModuleTableController {
 
@@ -113,7 +114,9 @@ export default class ModuleTableController {
         module_name: string,
         vo_constructor: { new(): T },
         label_field: ModuleTableFieldVO = null,
-        label: string | DefaultTranslationVO = null
+        label: string | DefaultTranslationVO = null,
+        sort_by_field: string = null,
+        sort_by_asc: boolean = true,
     ): ModuleTableVO {
 
         const res: ModuleTableVO = new ModuleTableVO();
@@ -130,6 +133,7 @@ export default class ModuleTableController {
             throw new Error('create_new: vo_type doit être en minuscules: ' + vo_type);
         }
 
+        res.sort_by_field = sort_by_field ? new SortByVO(vo_type, sort_by_field, sort_by_asc) : null;
         ModuleTableController.vo_constructor_by_vo_type[vo_type] = ModuleTableController.vo_constructor_wrapper(vo_constructor);
 
         res.default_label_field = label_field;

@@ -433,5 +433,6 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().is_matroid_table, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Table de matroids', true, true, false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().any_to_many_default_behaviour_show, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher par défaut les relations many to many', true, true, true);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().mapping_by_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Mapping des champs par APIType', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().sort_by_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de tri', false);
     }
 }

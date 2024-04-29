@@ -30,6 +30,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
     public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_email: string = 'email';
     public static FIELD_TYPE_string: string = 'text';
+    public static FIELD_TYPE_color: string = 'color';
     public static FIELD_TYPE_plain_vo_obj: string = 'plain_vo_obj';
     public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
@@ -153,6 +154,48 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
 
     public is_unique: boolean; // false by default
 
+    /**
+     * @deprecated use ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type]; instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get module_table(): ModuleTableVO {
+        return ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
+    }
+
+    /**
+     * @deprecated use ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name]; instead
+     * Or it needs to be optimized for recurring calls
+     */
+    get field_label(): DefaultTranslationVO {
+        return ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type] ?
+            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name] : null;
+    }
+
+    get is_indexed(): boolean {
+        return this.force_index || this.is_unique || !!this.foreign_ref_vo_type;
+    }
+
+    get field_default(): any {
+        return this.field_default_value ? this.field_default_value.value : null;
+    }
+
+    /**
+     * @deprecated use field_name instead
+     */
+    get field_id(): string {
+        return this.field_name;
+    }
+
+    get has_single_relation() {
+        if ((this.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) &&
+            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) &&
+            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref) &&
+            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_int)) {
+            return false;
+        }
+
+        return true;
+    }
 
     get field_label_translatable_code(): string {
         if (!this.module_table_vo_type) {
@@ -235,10 +278,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
-    get is_indexed(): boolean {
-        return this.force_index || this.is_unique || !!this.foreign_ref_vo_type;
-    }
-
     public index(): ModuleTableFieldVO {
         this.force_index = true;
         return this;
@@ -266,13 +305,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         this.is_visible_datatable = false;
 
         return this;
-    }
-
-    /**
-     * @deprecated use field_name instead
-     */
-    get field_id(): string {
-        return this.field_name;
     }
 
     public set_module_table(module_table: ModuleTableVO): ModuleTableFieldVO {
@@ -431,17 +463,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
         return this;
     }
 
-    get has_single_relation() {
-        if ((this.field_type != ModuleTableFieldVO.FIELD_TYPE_file_ref) &&
-            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_foreign_key) &&
-            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_image_ref) &&
-            (this.field_type != ModuleTableFieldVO.FIELD_TYPE_int)) {
-            return false;
-        }
-
-        return true;
-    }
-
     public isAcceptableCurrentDBType(db_type: string): boolean {
         switch (this.field_type) {
             case ModuleTableFieldVO.FIELD_TYPE_int:
@@ -528,6 +549,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
             case ModuleTableFieldVO.FIELD_TYPE_password:
@@ -544,27 +566,6 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
                     }
                 }
         }
-    }
-
-    /**
-     * @deprecated use ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type]; instead
-     * Or it needs to be optimized for recurring calls
-     */
-    get module_table(): ModuleTableVO {
-        return ModuleTableController.module_tables_by_vo_type[this.module_table_vo_type];
-    }
-
-    /**
-     * @deprecated use ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name]; instead
-     * Or it needs to be optimized for recurring calls
-     */
-    get field_label(): DefaultTranslationVO {
-        return ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type] ?
-            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.module_table_vo_type][this.field_name] : null;
-    }
-
-    get field_default(): any {
-        return this.field_default_value ? this.field_default_value.value : null;
     }
 
     public getPGSqlFieldType() {
@@ -652,6 +653,7 @@ export default class ModuleTableFieldVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_html:
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:
             case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
