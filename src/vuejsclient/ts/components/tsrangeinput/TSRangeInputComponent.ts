@@ -405,7 +405,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     /**
      * Fonction liée au param option
      * Vérifie qu'il correspond à la partie date d'un tsrange
-     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
+     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable' | 'hideend')
      * Sinon, renvoie null
      */
     get date_option(): string {
