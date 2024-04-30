@@ -33,6 +33,7 @@ import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerV
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -694,12 +695,14 @@ export default class GPTAssistantAPIServerController {
         );
 
         // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
-        const referrer: OseliaReferrerVO = thread.thread_vo.referrer_id ?
+        // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
+        const referrer: OseliaReferrerVO =
             await query(OseliaReferrerVO.API_TYPE_ID)
-                .filter_by_id(thread.thread_vo.referrer_id)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
                 .exec_as_server()
-                .select_vo<OseliaReferrerVO>()
-            : null;
+                .set_limit(1)
+                .select_vo<OseliaReferrerVO>();
         const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
             await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
                 .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)

@@ -4,7 +4,6 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleClockifyAPI from '../../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
-import TimeParamClockifyTimeEntry from '../../../shared/modules/ClockifyAPI/params/TimeParamClockifyTimeEntry';
 import ClockifyClientVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyClientVO';
 import ClockifyProjetVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyProjetVO';
 import ClockifyTacheVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyTacheVO';

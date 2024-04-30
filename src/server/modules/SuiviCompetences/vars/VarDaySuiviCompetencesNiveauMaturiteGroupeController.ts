@@ -19,13 +19,6 @@ import SuiviCompetencesItemRapportRangesDatasourceController from "../datasource
 
 export default class VarDaySuiviCompetencesNiveauMaturiteGroupeController extends VarServerControllerBase<SuiviCompetencesRapportGroupeDataRangesVO> {
 
-    public static getInstance(): VarDaySuiviCompetencesNiveauMaturiteGroupeController {
-        if (!VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance) {
-            VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance = new VarDaySuiviCompetencesNiveauMaturiteGroupeController();
-        }
-        return VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance;
-    }
-
     protected static instance: VarDaySuiviCompetencesNiveauMaturiteGroupeController = null;
 
     protected constructor() {
@@ -33,14 +26,20 @@ export default class VarDaySuiviCompetencesNiveauMaturiteGroupeController extend
             new VarConfVO(
                 SuiviCompetencesVarsNamesHolder.VarDaySuiviCompetencesNiveauMaturiteGroupeController_VAR_NAME,
                 SuiviCompetencesRapportGroupeDataRangesVO.API_TYPE_ID,
-            ),
+            ).disable_optimization__has_no_imports()
+            ,
             { 'fr-fr': 'DaySuiviCompetencesNiveauMaturiteGroupe' },
             { 'fr-fr': 'Niveau de maturité TSP pour Groupe' },
             { 'fr-fr': '% du niveau de maturité TSP sur les groupes et sous groupes TSP' },
             {}
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    public static getInstance(): VarDaySuiviCompetencesNiveauMaturiteGroupeController {
+        if (!VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance) {
+            VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance = new VarDaySuiviCompetencesNiveauMaturiteGroupeController();
+        }
+        return VarDaySuiviCompetencesNiveauMaturiteGroupeController.instance;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

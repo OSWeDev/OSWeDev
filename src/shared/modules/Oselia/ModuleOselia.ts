@@ -10,12 +10,15 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import OseliaReferrerExternalAPIVO from './vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from './vos/OseliaReferrerVO';
+import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
@@ -76,6 +79,7 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaReferrerVO();
         this.initializeOseliaUserReferrerVO();
         this.initializeOseliaReferrerExternalAPIVO();
+        this.initializeOseliaThreadReferrerVO();
     }
 
     public registerApis() {
@@ -133,6 +137,8 @@ export default class ModuleOselia extends Module {
 
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant par défaut', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
@@ -205,6 +211,24 @@ export default class ModuleOselia extends Module {
                 OseliaReferrerExternalAPIVO,
                 ModuleTableFieldController.create_new(OseliaReferrerExternalAPIVO.API_TYPE_ID, field_names<OseliaReferrerExternalAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
                 DefaultTranslationVO.create_new({ 'fr-fr': "API externe partenaire Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaThreadReferrerVO() {
+
+        ModuleTableFieldController.create_new(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().referrer_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', true)
+            .set_many_to_one_target_moduletable_name(OseliaReferrerVO.API_TYPE_ID);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaThreadReferrerVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Lien Thread/Partenaire Osélia" })
             )
         );
     }

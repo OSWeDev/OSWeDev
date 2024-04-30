@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -13,7 +12,6 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../../../../VueAppController';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
@@ -115,60 +113,158 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private use_kanban_card_archive_if_exists: boolean = true;
     private tmp_legende_tableau: string = null;
 
-    private async switch_use_kanban_card_archive_if_exists() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.use_kanban_card_archive_if_exists = !this.use_kanban_card_archive_if_exists;
-
-        if (this.use_kanban_card_archive_if_exists != this.next_update_options.use_kanban_card_archive_if_exists) {
-            this.next_update_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    private async switch_use_kanban_column_weight_if_exists() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
-
-        if (this.use_kanban_column_weight_if_exists != this.next_update_options.use_kanban_column_weight_if_exists) {
-            this.next_update_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
-
-            await this.throttled_update_options();
-        }
-    }
-
-    private async switch_use_kanban_by_default_if_exists() {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
-
-        if (this.use_kanban_by_default_if_exists != this.next_update_options.use_kanban_by_default_if_exists) {
-            this.next_update_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
-
-            await this.throttled_update_options();
-        }
-    }
-
     get crud_api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
     }
 
-    private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
+
+    get cb_bulk_actions_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        if (!TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+            return [];
+        }
+
+        const res = TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+
+        return res.map((c) => c.translatable_title);
+    }
+
+    get column_dynamic_page_widget_is_type_date(): boolean {
+        if (!this.column_dynamic_page_widget) {
+            return false;
+        }
+
+        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
+
+        if (!options?.vo_field_ref) {
+            return false;
+        }
+
+        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
+    }
+
+    get segmentation_type_options(): DataFilterOption[] {
+        let res: DataFilterOption[] = [];
+
+        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            let new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            res.push(new_opt);
+        }
+
+        return res;
+    }
+
+
+    get is_archived_api_type_id(): boolean {
+        if (!this.widget_options?.crud_api_type_id) {
+            return false;
+        }
+
+        return ModuleTableController.module_tables_by_vo_type[this.widget_options.crud_api_type_id].is_archived;
+    }
+
+    get columns(): TableColumnDescVO[] {
+        const options: TableWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.columns)) {
+            this.editable_columns = null;
+            return null;
+        }
+
+        const res: TableColumnDescVO[] = [];
+        for (const i in options.columns) {
+
+            const column = options.columns[i];
+            if (column.readonly == null) {
+                column.readonly = true;
+            }
+            if (column.column_width == null) {
+                column.column_width = 0;
+            }
+            if (column.exportable == null) {
+                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
+            }
+            if (column.hide_from_table == null) {
+                column.hide_from_table = false;
+            }
+            if (column.sortable == null) {
+                column.sortable = true;
+            }
+            if (column.can_filter_by == null) {
+                column.can_filter_by = column.readonly && (
+                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
+                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
+            }
+
+            res.push(Object.assign(new TableColumnDescVO(), column));
+        }
+        WeightHandler.getInstance().sortByWeight(res);
+
+        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
+
+        return res;
+    }
+
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'Table#' + this.page_widget.id;
+    }
+
+    get widget_options(): TableWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: TableWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get component_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let api_type_id in TableWidgetController.components_by_crud_api_type_id) {
+            for (let i in TableWidgetController.components_by_crud_api_type_id[api_type_id]) {
+                res.push(TableWidgetController.components_by_crud_api_type_id[api_type_id][i].translatable_title);
+            }
+        }
+
+        return res;
     }
 
     @Watch('page_widget', { immediate: true })
@@ -524,6 +620,67 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    @Watch('crud_api_type_id_selected')
+    private async onchange_crud_api_type_id_selected() {
+        this.next_update_options = cloneDeep(this.widget_options);
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.crud_api_type_id != this.crud_api_type_id_selected) {
+            this.next_update_options.crud_api_type_id = this.crud_api_type_id_selected;
+
+            /**
+             * Si on configure un crud_api_type_id_selected et qu'on a pas de colonne pour traiter les crud actions, on rajoute la colonne
+             */
+
+            if ((!!this.crud_api_type_id_selected) && ((!this.next_update_options.columns) || (!this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions)))) {
+                const crud_actions_column = new TableColumnDescVO();
+                crud_actions_column.api_type_id = this.crud_api_type_id_selected;
+                crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
+                crud_actions_column.weight = -1;
+                crud_actions_column.id = this.get_new_column_id();
+                crud_actions_column.readonly = true;
+                crud_actions_column.exportable = false;
+                crud_actions_column.hide_from_table = false;
+                crud_actions_column.sortable = true;
+                crud_actions_column.filter_by_access = null;
+                crud_actions_column.enum_bg_colors = null;
+                crud_actions_column.enum_fg_colors = null;
+                crud_actions_column.bg_color_header = null;
+                crud_actions_column.font_color_header = null;
+                crud_actions_column.can_filter_by = false;
+                crud_actions_column.column_width = 0;
+                crud_actions_column.kanban_column = false;
+                await this.add_column(crud_actions_column);
+                return;
+            } else if (this.crud_api_type_id_selected) {
+                // On check qu'on a le bon type
+                const existing_column = this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions);
+                if (existing_column.api_type_id != this.crud_api_type_id_selected) {
+                    existing_column.api_type_id = this.crud_api_type_id_selected;
+                }
+            }
+
+            this.throttled_update_options();
+        }
+    }
+
+    @Watch('cb_bulk_actions')
+    private async onchange_cb_bulk_actions() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.cb_bulk_actions != this.cb_bulk_actions) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.cb_bulk_actions = this.cb_bulk_actions;
+
+            await this.throttled_update_options();
+        }
+    }
+
     @Watch('tmp_default_export_option')
     private async onchange_tmp_default_export_option() {
         if (!this.widget_options) {
@@ -595,67 +752,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
 
         return max + 1;
-    }
-
-    @Watch('crud_api_type_id_selected')
-    private async onchange_crud_api_type_id_selected() {
-        this.next_update_options = cloneDeep(this.widget_options);
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        if (this.next_update_options.crud_api_type_id != this.crud_api_type_id_selected) {
-            this.next_update_options.crud_api_type_id = this.crud_api_type_id_selected;
-
-            /**
-             * Si on configure un crud_api_type_id_selected et qu'on a pas de colonne pour traiter les crud actions, on rajoute la colonne
-             */
-
-            if ((!!this.crud_api_type_id_selected) && ((!this.next_update_options.columns) || (!this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions)))) {
-                const crud_actions_column = new TableColumnDescVO();
-                crud_actions_column.api_type_id = this.crud_api_type_id_selected;
-                crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
-                crud_actions_column.weight = -1;
-                crud_actions_column.id = this.get_new_column_id();
-                crud_actions_column.readonly = true;
-                crud_actions_column.exportable = false;
-                crud_actions_column.hide_from_table = false;
-                crud_actions_column.sortable = true;
-                crud_actions_column.filter_by_access = null;
-                crud_actions_column.enum_bg_colors = null;
-                crud_actions_column.enum_fg_colors = null;
-                crud_actions_column.bg_color_header = null;
-                crud_actions_column.font_color_header = null;
-                crud_actions_column.can_filter_by = false;
-                crud_actions_column.column_width = 0;
-                crud_actions_column.kanban_column = false;
-                await this.add_column(crud_actions_column);
-                return;
-            } else if (this.crud_api_type_id_selected) {
-                // On check qu'on a le bon type
-                const existing_column = this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions);
-                if (existing_column.api_type_id != this.crud_api_type_id_selected) {
-                    existing_column.api_type_id = this.crud_api_type_id_selected;
-                }
-            }
-
-            this.throttled_update_options();
-        }
-    }
-
-    @Watch('cb_bulk_actions')
-    private async onchange_cb_bulk_actions() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.cb_bulk_actions != this.cb_bulk_actions) {
-            this.next_update_options = this.widget_options;
-            this.next_update_options.cb_bulk_actions = this.cb_bulk_actions;
-
-            await this.throttled_update_options();
-        }
     }
 
     private async changed_columns() {
@@ -866,48 +962,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.throttled_update_options();
     }
 
-    get columns(): TableColumnDescVO[] {
-        const options: TableWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.columns)) {
-            this.editable_columns = null;
-            return null;
-        }
-
-        const res: TableColumnDescVO[] = [];
-        for (const i in options.columns) {
-
-            const column = options.columns[i];
-            if (column.readonly == null) {
-                column.readonly = true;
-            }
-            if (column.column_width == null) {
-                column.column_width = 0;
-            }
-            if (column.exportable == null) {
-                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
-            }
-            if (column.hide_from_table == null) {
-                column.hide_from_table = false;
-            }
-            if (column.sortable == null) {
-                column.sortable = true;
-            }
-            if (column.can_filter_by == null) {
-                column.can_filter_by = column.readonly && (
-                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
-                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
-            }
-
-            res.push(Object.assign(new TableColumnDescVO(), column));
-        }
-        WeightHandler.getInstance().sortByWeight(res);
-
-        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
-
-        return res;
-    }
-
     private beforeMove({ dragItem, pathFrom, pathTo }) {
         // Si on essaye de faire un 3eme niveau, on refuse
         if (pathTo.length > 2) {
@@ -955,36 +1009,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         const text = translation[label + '.___LABEL___'];
 
         return text;
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Table#' + this.page_widget.id;
-    }
-
-    get widget_options(): TableWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: TableWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
-                options = options ? new TableWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
     // @Watch('vocus_button')
@@ -1341,14 +1365,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    get is_archived_api_type_id(): boolean {
-        if (!this.widget_options?.crud_api_type_id) {
-            return false;
-        }
-
-        return ModuleTableController.module_tables_by_vo_type[this.widget_options.crud_api_type_id].is_archived;
-    }
-
     private async switch_show_bulk_edit() {
         this.show_bulk_edit = !this.show_bulk_edit;
 
@@ -1405,71 +1421,56 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return this.t(translatable_title);
     }
 
-    get cb_bulk_actions_options(): string[] {
-        if ((!this.page_widget) || (!this.widget_options)) {
-            return [];
+
+    private async switch_use_kanban_card_archive_if_exists() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        if (!this.widget_options.crud_api_type_id) {
-            return [];
+        this.use_kanban_card_archive_if_exists = !this.use_kanban_card_archive_if_exists;
+
+        if (this.use_kanban_card_archive_if_exists != this.next_update_options.use_kanban_card_archive_if_exists) {
+            this.next_update_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
+
+            await this.throttled_update_options();
         }
-
-        if (!TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
-            return [];
-        }
-
-        const res = TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
-
-        return res.map((c) => c.translatable_title);
     }
 
-    get column_dynamic_page_widget_is_type_date(): boolean {
-        if (!this.column_dynamic_page_widget) {
-            return false;
+    private async switch_use_kanban_column_weight_if_exists() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
+        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
 
-        if (!options?.vo_field_ref) {
-            return false;
+        if (this.use_kanban_column_weight_if_exists != this.next_update_options.use_kanban_column_weight_if_exists) {
+            this.next_update_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
+
+            await this.throttled_update_options();
         }
-
-        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
     }
 
-    get segmentation_type_options(): DataFilterOption[] {
-        let res: DataFilterOption[] = [];
+    private async switch_use_kanban_by_default_if_exists() {
+        this.next_update_options = this.widget_options;
 
-        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            let new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
-                parseInt(segmentation_type)
-            );
-
-            res.push(new_opt);
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        return res;
+        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
+
+        if (this.use_kanban_by_default_if_exists != this.next_update_options.use_kanban_by_default_if_exists) {
+            this.next_update_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
+
+            await this.throttled_update_options();
+        }
     }
 
-    get component_options(): string[] {
-        if ((!this.page_widget) || (!this.widget_options)) {
-            return [];
-        }
-
-        if (!this.widget_options.crud_api_type_id) {
-            return [];
-        }
-
-        let res: string[] = [];
-
-        for (let api_type_id in TableWidgetController.components_by_crud_api_type_id) {
-            for (let i in TableWidgetController.components_by_crud_api_type_id[api_type_id]) {
-                res.push(TableWidgetController.components_by_crud_api_type_id[api_type_id][i].translatable_title);
-            }
-        }
-
-        return res;
+    private crud_api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 }

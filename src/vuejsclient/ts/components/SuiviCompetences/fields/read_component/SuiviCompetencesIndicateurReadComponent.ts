@@ -23,13 +23,14 @@ export default class SuiviCompetencesIndicateurReadComponent extends VueComponen
 
     private field_values: SuiviCompetencesIndicateurVO[] = [];
 
+
+    get fields(): Array<DatatableField<any, any>> {
+        return SuiviCompetencesIndicateurVO.fields();
+    }
+
     @Watch('value', { immediate: true })
     @Watch('row', { immediate: true })
     private async reload_field_values() {
         this.field_values = (this.value) ? JSON.parse(this.value) : null;
-    }
-
-    get fields(): Array<DatatableField<any, any>> {
-        return SuiviCompetencesIndicateurVO.fields();
     }
 }

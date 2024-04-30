@@ -27,9 +27,4 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
      * Le prompt auquel l'assistant est en train de répondre
      */
     public current_oselia_prompt_id: number;
-
-    /**
-     * Le lien avec le referrer qui gère ce thread (si il y en a un)
-     */
-    public referrer_id: number;
 }

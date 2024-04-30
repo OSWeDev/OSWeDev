@@ -48,6 +48,7 @@ import CRUDCreateModalComponent from '../table_widget/crud_modals/create/CRUDCre
 import './SuiviCompetencesWidgetComponent.scss';
 import SuiviCompetencesGrilleVO from '../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO';
 import SuiviCompetencesWidgetController from './SuiviCompetencesWidgetController';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./SuiviCompetencesWidgetComponent.pug'),
@@ -103,6 +104,42 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private create_action_rapport: number = SuiviCompetencesWidgetController.CREATE_ACTION_RAPPORT;
     private duplicate_action_rapport: number = SuiviCompetencesWidgetController.DUPLICATE_ACTION_RAPPORT;
     private edit_action_rapport: number = SuiviCompetencesWidgetController.EDIT_ACTION_RAPPORT;
+
+
+
+    get widget_options(): SuiviCompetencesWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SuiviCompetencesWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
+                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get plan_action_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+    }
+
+    get etat_des_lieux_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+    }
+
+    get points_cles_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]);
+    }
+
+    get objectif_prochaine_visite_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]);
+    }
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
@@ -670,39 +707,5 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)],
             [RangeHandler.create_single_elt_NumRange(tsp_groupe.id, NumSegment.TYPE_INT)],
         );
-    }
-
-    get widget_options(): SuiviCompetencesWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SuiviCompetencesWidgetOptionsVO = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
-                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
-    get plan_action_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
-    }
-
-    get etat_des_lieux_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
-    }
-
-    get points_cles_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
-    }
-
-    get objectif_prochaine_visite_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
     }
 }

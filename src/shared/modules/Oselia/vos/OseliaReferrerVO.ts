@@ -15,6 +15,8 @@ export default class OseliaReferrerVO implements IDistantVOBase, IVersionedVO {
      */
     public user_id: number;
 
+    public default_assistant_id: number;
+
     public name: string;
     public description: string;
 

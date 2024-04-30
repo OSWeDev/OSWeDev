@@ -22,7 +22,7 @@ export default class SuiviCompetencesWidgetController {
 
     public static async download_rapport_pdf(rapport_id: number) {
 
-        let limit = EnvHandler.MAX_POOL / 2; // front
+        let limit = EnvHandler.max_pool / 2; // front
         let promise_pipeline = new PromisePipeline(limit);
 
         let rapport: SuiviCompetencesRapportVO = null;
@@ -48,7 +48,7 @@ export default class SuiviCompetencesWidgetController {
 
         let vars = {
             base_url: VueAppController.getInstance().base_url,
-            logo_url: EnvHandler.LOGO_PATH,
+            logo_url: EnvHandler.logo_path,
             user_name: user?.name,
             date: Dates.format(rapport.date, 'DD/MM/YYYY', false),
             name: rapport.name,

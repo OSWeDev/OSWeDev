@@ -1,12 +1,12 @@
-import TableFieldTypesManager from "../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
-import SuiviCompetencesIndicateurTableFieldTypeController from "../../../../shared/modules/SuiviCompetences/fields/indicateur/SuiviCompetencesIndicateurTableFieldTypeController";
-import SuiviCompetencesIndicateurReadComponent from './fields/read_component/SuiviCompetencesIndicateurReadComponent';
-import SuiviCompetencesIndicateurCreateUpdateComponent from './fields/create_update_component/SuiviCompetencesIndicateurCreateUpdateComponent';
 import Vue from "vue";
-import TableWidgetController from "../dashboard_builder/widgets/table_widget/TableWidgetController";
+import ModuleTableController from "../../../../shared/modules/DAO/ModuleTableController";
 import ComponentDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO";
-import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
+import SuiviCompetencesIndicateurTableFieldTypeController from "../../../../shared/modules/SuiviCompetences/fields/indicateur/SuiviCompetencesIndicateurTableFieldTypeController";
 import SuiviCompetencesRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO";
+import TableFieldTypesManager from "../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
+import TableWidgetController from "../dashboard_builder/widgets/table_widget/TableWidgetController";
+import SuiviCompetencesIndicateurCreateUpdateComponent from './fields/create_update_component/SuiviCompetencesIndicateurCreateUpdateComponent';
+import SuiviCompetencesIndicateurReadComponent from './fields/read_component/SuiviCompetencesIndicateurReadComponent';
 
 export default class SuiviCompetencesVueController {
     public static initialize() {
@@ -22,7 +22,7 @@ export default class SuiviCompetencesVueController {
                 'suivi_competences_download_rapport',
                 'Suivicompetencesdownloadrapportcomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID])
         );
     }
 }

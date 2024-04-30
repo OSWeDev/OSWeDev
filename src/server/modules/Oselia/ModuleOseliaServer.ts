@@ -8,12 +8,14 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -234,6 +236,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
          * On récupère le thread : on le crée si on reçoit null, et dans tous les cas on crée et on récupère le thread depuis OpenAI si on ne le connait pas encore
          * Si un assistant est passé en param, on le force dans le thread
          */
+        if ((!openai_assistant_id) && referrer.default_assistant_id) {
+            const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(referrer.default_assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
+        }
         const assistant: { assistant_gpt: Assistant; assistant_vo: GPTAssistantAPIAssistantVO } =
             openai_assistant_id ? await GPTAssistantAPIServerController.get_assistant(openai_assistant_id) : null;
         const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
@@ -246,9 +256,17 @@ export default class ModuleOseliaServer extends ModuleServerBase {
          * Si le referrer n'est pas lié au thread, on le lie
          * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
          */
-        if (referrer.id != thread.thread_vo.referrer_id) {
-            if (thread.thread_vo.referrer_id) {
-                ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + thread.thread_vo.referrer_id);
+        const current_referrer: OseliaReferrerVO =
+            await query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1)
+                .select_vo<OseliaReferrerVO>();
+
+        if (referrer.id != current_referrer.id) {
+            if (current_referrer.id) {
+                ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
 
                 await this.send_hook_trigger_datas_to_referrer(
                     referrer,
@@ -262,9 +280,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 return;
             }
 
-            thread.thread_vo.referrer_id = referrer.id;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+            const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+            thread_referrer.thread_id = thread.thread_vo.id;
+            thread_referrer.referrer_id = referrer.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
         }
 
         /**

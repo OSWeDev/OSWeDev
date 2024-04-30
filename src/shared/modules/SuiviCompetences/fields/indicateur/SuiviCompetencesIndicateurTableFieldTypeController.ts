@@ -1,13 +1,20 @@
 import ConsoleHandler from '../../../../tools/ConsoleHandler';
+import ModuleTableFieldVO from '../../../DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableField from '../../../ModuleTableField';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import SuiviCompetencesItemVO from '../../vos/SuiviCompetencesItemVO';
 import SuiviCompetencesIndicateurVO from './vos/SuiviCompetencesIndicateurVO';
 
 export default class SuiviCompetencesIndicateurTableFieldTypeController extends TableFieldTypeControllerBase {
+
+
+    private static instance: SuiviCompetencesIndicateurTableFieldTypeController = null;
+
+    private constructor() {
+        super(SuiviCompetencesIndicateurVO.API_TYPE_ID);
+    }
 
     public static getInstance(): SuiviCompetencesIndicateurTableFieldTypeController {
         if (!SuiviCompetencesIndicateurTableFieldTypeController.instance) {
@@ -16,16 +23,10 @@ export default class SuiviCompetencesIndicateurTableFieldTypeController extends 
         return SuiviCompetencesIndicateurTableFieldTypeController.instance;
     }
 
-    private static instance: SuiviCompetencesIndicateurTableFieldTypeController = null;
-
-    private constructor() {
-        super(SuiviCompetencesIndicateurVO.API_TYPE_ID);
-    }
-
     public get_value(item: SuiviCompetencesItemVO): SuiviCompetencesIndicateurVO[] {
         if ((!!item) && (!!item.indicateurs) && (item.indicateurs != '') && (item.indicateurs != '[]') && (item.indicateurs != '[{}]')) {
             try {
-                let values: SuiviCompetencesIndicateurVO[] = JSON.parse(item.indicateurs);
+                const values: SuiviCompetencesIndicateurVO[] = JSON.parse(item.indicateurs);
 
                 for (let obj of values) {
                     obj.titre = (obj.titre != null) ? obj.titre : null;
@@ -65,14 +66,14 @@ export default class SuiviCompetencesIndicateurTableFieldTypeController extends 
         return null;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return field_value;
     }
-    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return value;
     }
 
-    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableField<any>) {
+    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO) {
 
         if ((!e) || (!field) || (!e[field.field_id])) {
             return;
