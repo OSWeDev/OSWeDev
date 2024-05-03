@@ -96,8 +96,8 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_get_my_sid = "get_my_sid";
     public static APINAME_sendrecapture = "sendrecapture";
 
-    public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + ".get_avatar_url";
-    public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + ".get_avatar_name";
+    public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
+    public static APINAME_GET_AVATAR_NAME = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_name";
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
