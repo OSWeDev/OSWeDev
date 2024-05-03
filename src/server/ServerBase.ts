@@ -133,7 +133,9 @@ export default abstract class ServerBase {
         CronServerController.getInstance().register_crons = true;
 
         ModulesManager.isServerSide = true;
-        this.csrfProtection = csrf({ cookie: true });
+        this.csrfProtection = csrf({
+            cookie: true
+        });
     }
 
     /* istanbul ignore next: nothing to test here */

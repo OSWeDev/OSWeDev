@@ -78,6 +78,6 @@ export default class OseliaReferrerActivationComponent extends VueComponentBase 
     }
 
     private redirect_to_oselia() {
-        window.location.href = '/api_handler/oselia_open_oselia_db/' + this.referrer_user_ott + '/' + this.openai_thread_id + '/' + this.openai_assistant_id;
+        window.location.href = '/api_handler/oselia__open_oselia_db/' + this.referrer_user_ott + '/' + this.openai_thread_id + '/' + this.openai_assistant_id;
     }
 }

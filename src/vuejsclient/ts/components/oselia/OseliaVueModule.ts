@@ -46,13 +46,12 @@ export default class OseliaVueModule extends VueModuleBase {
 
     private get_route_oselia_referrer_activation(): RouteConfig {
         return {
-            path: '/oselia_referrer_activation/:referrer_id/:user_id/:openai_thread_id/:openai_assistant_id',
+            path: '/oselia_referrer_activation/:referrer_user_ott/:openai_thread_id/:openai_assistant_id',
             name: 'oselia_referrer_activation',
             caseSensitive: true,
             component: () => import('./oselia_referrer_activation/OseliaReferrerActivationComponent'),
             props: (route) => ({
-                referrer_id: parseInt(route.params.referrer_id),
-                user_id: parseInt(route.params.user_id),
+                referrer_user_ott: route.params.referrer_user_ott,
                 openai_thread_id: route.params.openai_thread_id,
                 openai_assistant_id: route.params.openai_assistant_id
             })
