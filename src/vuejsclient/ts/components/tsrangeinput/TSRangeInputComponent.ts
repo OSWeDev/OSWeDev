@@ -385,7 +385,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 end = Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
                 end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
             }
-
+            if (this.date_option == 'hideend') {
+                let diff: number = Dates.diff(this.ts_start, end, TimeSegment.TYPE_DAY);
+                if (diff > 0 && Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_DAY)) {
+                    end = Dates.add(end, diff, TimeSegment.TYPE_DAY);
+                }
+            }
             if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
                 end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
             }
