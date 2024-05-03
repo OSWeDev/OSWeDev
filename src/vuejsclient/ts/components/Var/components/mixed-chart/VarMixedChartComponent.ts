@@ -263,16 +263,21 @@ export default class VarMixedChartComponent extends VueComponentBase {
             }
         }
 
-        return {
-            label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
-                this.t(chart_var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.get_translatable_name_code(chart_var_dataset_descriptor.var_name)),
-            type: chart_var_dataset_descriptor.type,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor,
-            borderWidth: borderWidth,
-            data: data,
-        };
+        if(chart_var_dataset_descriptor && chart_var_dataset_descriptor.type){
+            return {
+                label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
+                    this.t(chart_var_dataset_descriptor.label_translatable_code) :
+                    this.t(VarsController.get_translatable_name_code(chart_var_dataset_descriptor.var_name)),
+                type: chart_var_dataset_descriptor.type,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: borderWidth,
+                data: data,
+            };
+        } else {
+            return 
+        }
+
     }
 
     private async mounted() {

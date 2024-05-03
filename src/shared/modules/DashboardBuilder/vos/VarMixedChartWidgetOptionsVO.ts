@@ -56,7 +56,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             // 270, // 0-360 - exemples : donut 270, camembert 0
             // 180, // 0-180 - exemples : donut 180, camembert 0
 
-            false,
+            true,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
             null,
             true,
@@ -64,6 +64,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             /**
              * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
              */
+            null,
             true,
             null,
             null,
@@ -118,6 +119,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         public max_dimension_values?: number, // Permet de limiter le nombre de vars affichées (par défaut 10)
         public sort_dimension_by_vo_field_ref?: VOFieldRefVO,
         public sort_dimension_by_asc?: boolean,
+        public sort_dimension_by_vo_field_ref_label?: VOFieldRefVO,
 
         /**
          * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type

@@ -118,17 +118,17 @@
 
         .options_separator_lvl1 {{ label('var_line_chart_widget_options_component.separator.datas_options') }}
 
-        .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.datas_dimension_options') }}
-        .field_has_dimension
-            .input_label {{ label('var_line_chart_widget_options_component.has_dimension') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_has_dimension" 
-                    :value="has_dimension" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
+        //- .options_separator_lvl2 {{ label('var_line_chart_widget_options_component.separator.datas_dimension_options') }}
+        //- .field_has_dimension
+        //-     .input_label {{ label('var_line_chart_widget_options_component.has_dimension') }}
+        //-     .input_wrapper
+        //-         toggle-button(
+        //-             @change="switch_has_dimension" 
+        //-             :value="has_dimension" 
+        //-             :sync="false"
+        //-             :width="60"
+        //-             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+        //-         )
 
         template(v-if='has_dimension')
             .field_dimension_is_vo_field_ref

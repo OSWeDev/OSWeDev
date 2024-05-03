@@ -419,7 +419,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
             3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
 
-            false,
+            true,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
             null,
             true,

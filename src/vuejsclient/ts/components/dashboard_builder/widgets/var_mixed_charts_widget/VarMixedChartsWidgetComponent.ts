@@ -186,17 +186,29 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
 
         let charts_var_params_by_dimension: { [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
-
+        let context_query: ContextQueryVO = null;
         /**
-         * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
-         */
-        const context_query: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
+        * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
+        */
+        context_query = query(this.widget_options.dimension_vo_field_ref.api_type_id)
             .set_limit(this.widget_options.max_dimension_values)
             .using(this.get_dashboard_api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
-
+        // if(this.widget_options.sort_dimension_by_vo_field_ref_label)  {
+        //     /**
+        //                  * Si la dimension est un champ de référence, on va chercher les valeurs possibles du champs en fonction des filtres actifs
+        //                  */
+        //     context_query = query(this.widget_options.dimension_vo_field_ref.api_type_id)
+        //     .field(this.widget_options.sort_dimension_by_vo_field_ref_label.field_id)
+        //     .set_limit(this.widget_options.max_dimension_values)
+        //     .using(this.get_dashboard_api_type_ids)
+        //     .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+        //         FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+        //     ));
+        // } else {
+       
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
@@ -307,6 +319,13 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                 })());
             }
         }
+
+        let query_res: ContextQueryVO = query(this.widget_options.dimension_vo_field_ref.api_type_id)
+            .set_limit(this.widget_options.max_dimension_values)
+            .using(this.get_dashboard_api_type_ids)
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            ));
 
         await all_promises(promises);
 
@@ -561,7 +580,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
-
+        
         this.charts_var_params_by_dimension = charts_var_params_by_dimension;
     }
 

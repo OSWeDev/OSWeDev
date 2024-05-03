@@ -548,9 +548,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         const dimension_values: number[] = this.get_dimension_values();
 
         if ((!dimension_values) || (!dimension_values.length)) {
-            this.var_params_by_dimension = null;
-            this.ordered_dimension = null;
-            this.label_by_index = null;
+            // this.var_params_by_dimension = null;
+            // this.ordered_dimension = null;
+            // this.label_by_index = null;
             return;
         }
 
@@ -635,20 +635,23 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         if (!root_context_filter) {
             return null;
         }
+        if(this.widget_options.max_dimension_values === 0) {
+            this.snotify.error('Un custom filter doit avoir un maximum de valeurs à afficher supérieur à 0');
+            return null;
+        } else {
+            const ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
+                root_context_filter,
+                this.widget_options.dimension_custom_filter_segment_type,
+                this.widget_options.max_dimension_values,
+                this.widget_options.sort_dimension_by_asc
+            );
 
-        const ts_ranges = ContextFilterVOHandler.get_ts_ranges_from_context_filter_root(
-            root_context_filter,
-            this.widget_options.dimension_custom_filter_segment_type,
-            this.widget_options.max_dimension_values,
-            this.widget_options.sort_dimension_by_asc
-        );
-
-        const dimension_values: number[] = [];
-        RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
-            dimension_values.push(d);
-        }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
-        return dimension_values;
-
+            const dimension_values: number[] = [];
+            RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
+                dimension_values.push(d);
+            }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
+            return dimension_values;
+        }
         // let year_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
         // let month_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         // let dom_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);

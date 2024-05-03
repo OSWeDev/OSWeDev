@@ -191,7 +191,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
             270, // 0-360 - exemples : donut 270, camembert 0
             180, // 0-180 - exemples : donut 180, camembert 0
 
-            false,
+            true,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
             null,
             true,
