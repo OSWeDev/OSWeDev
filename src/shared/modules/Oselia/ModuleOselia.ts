@@ -19,6 +19,7 @@ import VersionedVOController from '../Versioned/VersionedVOController';
 import OseliaReferrerExternalAPIVO from './vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from './vos/OseliaReferrerVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
+import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
@@ -41,25 +42,25 @@ export default class ModuleOselia extends Module {
 
     public static POLICY_GET_REFERRER_NAME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GET_REFERRER_NAME';
 
-    public static APINAME_open_oselia_db: string = ModuleOselia.MODULE_NAME + ".open_oselia_db";
-    public static APINAME_link_user_to_oselia_referrer: string = ModuleOselia.MODULE_NAME + ".link_user_to_oselia_referrer";
+    public static APINAME_open_oselia_db: string = "oselia__open_oselia_db";
+    public static APINAME_link_user_to_oselia_referrer: string = "oselia__link_user_to_oselia_referrer";
 
-    public static APINAME_get_referrer_name: string = ModuleOselia.MODULE_NAME + ".get_referrer_name";
-    public static APINAME_accept_link: string = ModuleOselia.MODULE_NAME + ".accept_link";
-    public static APINAME_refuse_link: string = ModuleOselia.MODULE_NAME + ".refuse_link";
+    public static APINAME_get_referrer_name: string = "oselia__get_referrer_name";
+    public static APINAME_accept_link: string = "oselia__accept_link";
+    public static APINAME_refuse_link: string = "oselia__refuse_link";
 
-    public static APINAME_account_waiting_link_status: string = ModuleOselia.MODULE_NAME + ".account_waiting_link_status";
+    public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
     private static instance: ModuleOselia = null;
 
-    public open_oselia_db: (referrer_code: string, referrer_user_uid: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
+    public open_oselia_db: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
     public link_user_to_oselia_referrer: (referrer_code: string, user_email: string, referrer_user_uid: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_link_user_to_oselia_referrer);
 
-    public get_referrer_name: (referrer_code: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
-    public accept_link: (referrer_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
-    public refuse_link: (referrer_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
+    public get_referrer_name: (referrer_user_ott: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
+    public accept_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
+    public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
 
-    public account_waiting_link_status: (referrer_code: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
+    public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
 
     private constructor() {
 
@@ -80,6 +81,7 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaUserReferrerVO();
         this.initializeOseliaReferrerExternalAPIVO();
         this.initializeOseliaThreadReferrerVO();
+        this.initializeOseliaUserReferrerOTTVO();
     }
 
     public registerApis() {
@@ -112,7 +114,7 @@ export default class ModuleOselia extends Module {
         ));
 
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, string>(
             null,
             ModuleOselia.APINAME_link_user_to_oselia_referrer,
             [OseliaUserReferrerVO.API_TYPE_ID],
@@ -124,12 +126,6 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_open_oselia_db,
             null,
             OpenOseliaDBParamVOStatic
-        ));
-        APIControllerWrapper.registerApi(new GetAPIDefinition<RequestOseliaUserConnectionParamVO, void>(
-            null,
-            ModuleOselia.APINAME_link_user_to_oselia_referrer,
-            [OseliaUserReferrerVO.API_TYPE_ID],
-            RequestOseliaUserConnectionParamVOStatic
         ));
     }
 
@@ -185,6 +181,24 @@ export default class ModuleOselia extends Module {
                 OseliaReferrerVO,
                 ModuleTableFieldController.create_new(OseliaReferrerVO.API_TYPE_ID, field_names<OseliaReferrerVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
                 DefaultTranslationVO.create_new({ 'fr-fr': "Partenaire Intégrateur Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaUserReferrerOTTVO() {
+        ModuleTableFieldController.create_new(OseliaUserReferrerOTTVO.API_TYPE_ID, field_names<OseliaUserReferrerOTTVO>().user_referrer_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Lien Utilisateur/Partenaire', true)
+            .set_many_to_one_target_moduletable_name(OseliaUserReferrerVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaUserReferrerOTTVO.API_TYPE_ID, field_names<OseliaUserReferrerOTTVO>().ott, ModuleTableFieldVO.FIELD_TYPE_password, 'One Time Token', true);
+
+        ModuleTableFieldController.create_new(OseliaUserReferrerOTTVO.API_TYPE_ID, field_names<OseliaUserReferrerOTTVO>().expires, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaUserReferrerOTTVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "One Time Token Utilisateur/Partenaire Osélia" })
             )
         );
     }

@@ -2,6 +2,7 @@ import child_process from 'child_process';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
+import helmet from 'helmet';
 import express, { NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
 import expressSession from 'express-session';
@@ -336,6 +337,8 @@ export default abstract class ServerBase {
         process.on('uncaughtException', async (err) => await this.exitHandler.bind(null, { exit: true, from: 'uncaughtException:' + err }));
 
         this.app.use(cookieParser());
+
+        this.app.use(helmet());
 
         // this.app.use(helmet({
         //     referrerPolicy: ({ policy: 'same-origin' }),

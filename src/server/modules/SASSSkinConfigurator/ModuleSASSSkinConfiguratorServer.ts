@@ -6,14 +6,6 @@ import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleSASSSkinConfiguratorServer.instance) {
-            ModuleSASSSkinConfiguratorServer.instance = new ModuleSASSSkinConfiguratorServer();
-        }
-        return ModuleSASSSkinConfiguratorServer.instance;
-    }
-
     private static instance: ModuleSASSSkinConfiguratorServer = null;
 
     private in_generating: boolean = false;
@@ -21,6 +13,14 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleSASSSkinConfiguratorServer.instance) {
+            ModuleSASSSkinConfiguratorServer.instance = new ModuleSASSSkinConfiguratorServer();
+        }
+        return ModuleSASSSkinConfiguratorServer.instance;
     }
 
     // istanbul ignore next: cannot test configure

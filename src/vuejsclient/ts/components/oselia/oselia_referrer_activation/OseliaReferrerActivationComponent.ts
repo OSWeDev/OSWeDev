@@ -13,10 +13,7 @@ import './OseliaReferrerActivationComponent.scss';
 export default class OseliaReferrerActivationComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    private referrer_code: string;
-
-    @Prop({ default: null })
-    private referrer_user_uid: string;
+    private referrer_user_ott: string;
 
     @Prop({ default: null })
     private openai_thread_id: string;
@@ -29,13 +26,13 @@ export default class OseliaReferrerActivationComponent extends VueComponentBase 
 
     private throttle_init = ThrottleHelper.declare_throttle_without_args(this.init, 100);
 
-    @Watch('referrer_code', { immediate: true })
-    private async on_referrer_code_change() {
+    @Watch('referrer_user_ott', { immediate: true })
+    private async on_referrer_user_ott_change() {
         this.throttle_init();
     }
 
     private async init() {
-        const account_has_waiting_link: "validated" | "waiting" | "none" = await ModuleOselia.getInstance().account_waiting_link_status(this.referrer_code);
+        const account_has_waiting_link: "validated" | "waiting" | "none" = await ModuleOselia.getInstance().account_waiting_link_status(this.referrer_user_ott);
 
         if (account_has_waiting_link == "validated") {
             this.redirect_to_oselia();
@@ -50,16 +47,16 @@ export default class OseliaReferrerActivationComponent extends VueComponentBase 
             return;
         }
 
-        this.referrer_name = await ModuleOselia.getInstance().get_referrer_name(this.referrer_code);
+        this.referrer_name = await ModuleOselia.getInstance().get_referrer_name(this.referrer_user_ott);
     }
 
     private async accept() {
-        await ModuleOselia.getInstance().accept_link(this.referrer_code);
+        await ModuleOselia.getInstance().accept_link(this.referrer_user_ott);
         this.redirect_to_oselia();
     }
 
     private async refuse() {
-        await ModuleOselia.getInstance().refuse_link(this.referrer_code);
+        await ModuleOselia.getInstance().refuse_link(this.referrer_user_ott);
         this.close_iframe();
     }
 
@@ -81,6 +78,6 @@ export default class OseliaReferrerActivationComponent extends VueComponentBase 
     }
 
     private redirect_to_oselia() {
-        window.location.href = '/api_handler/Oselia.open_oselia_db/' + this.referrer_code + '/' + this.referrer_user_uid + '/' + this.openai_thread_id + '/' + this.openai_assistant_id;
+        window.location.href = '/api_handler/oselia_open_oselia_db/' + this.referrer_user_ott + '/' + this.openai_thread_id + '/' + this.openai_assistant_id;
     }
 }

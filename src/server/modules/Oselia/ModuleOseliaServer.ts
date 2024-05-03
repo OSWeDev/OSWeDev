@@ -16,6 +16,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
+import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -165,60 +166,64 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     private async open_oselia_db(
-        referrer_code: string,
-        referrer_user_uid: string,
+        referrer_user_ott: string,
         openai_thread_id: string,
         openai_assistant_id: string,
         req: Request,
         res: Response
     ): Promise<void> {
+
+        /**
+         * On checke le OTT
+         */
+        const user_referrer_ott = await query(OseliaUserReferrerOTTVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott)
+            .exec_as_server()
+            .select_vo<OseliaUserReferrerOTTVO>();
+
+        if (!user_referrer_ott) {
+            ConsoleHandler.error('OTT not found:' + referrer_user_ott);
+            res.redirect('/f/oselia_referrer_not_found');
+            return;
+        }
+
+        const user_referrer: OseliaUserReferrerVO = await query(OseliaUserReferrerVO.API_TYPE_ID)
+            .filter_by_id(user_referrer_ott.user_referrer_id)
+            .exec_as_server()
+            .select_vo<OseliaUserReferrerVO>();
+        if (!user_referrer) {
+            ConsoleHandler.error('Referrer not found:user_referrer_id:' + user_referrer_ott.user_referrer_id);
+            res.redirect('/f/oselia_referrer_not_found');
+            return;
+        }
+
         /**
          * On commence par checker le referrer
          * Puis le user lié au referrer, et le fait que la liaison soit validée, sinon on renvoie vers la demande de confirmation du lien
          */
         const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_code, referrer_code)
+            .filter_by_id(user_referrer.referrer_id)
             .exec_as_server()
             .select_vo<OseliaReferrerVO>();
 
         if (!referrer) {
-            ConsoleHandler.error('Referrer not found:' + referrer_code);
-            res.redirect('/f/oselia_referrer_not_found'); // FIXME TODO créer une page dédiée
-            return;
-        }
-
-        const user_referrer: OseliaUserReferrerVO = await query(OseliaUserReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaUserReferrerVO>().referrer_user_uid, referrer_user_uid)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().referrer_id, referrer.id)
-            .exec_as_server()
-            .select_vo<OseliaUserReferrerVO>();
-        if (!user_referrer) {
-            ConsoleHandler.error('User not linked to referrer_user_uid:' + referrer_user_uid);
-
-            await this.send_hook_trigger_datas_to_referrer(
-                referrer,
-                'post',
-                referrer.trigger_hook_open_oselia_db_reject_url,
-                ['User not linked to referrer_user_uid:' + referrer_user_uid],
-                referrer.triggers_hook_external_api_authentication_id
-            );
-
-            res.redirect(referrer.failed_open_oselia_db_target_url);
+            ConsoleHandler.error('Referrer not found:referrer_id:' + user_referrer.referrer_id);
+            res.redirect('/f/oselia_referrer_not_found');
             return;
         }
 
         const user = await query(UserVO.API_TYPE_ID)
-            .filter_by_id(user_referrer.id, OseliaUserReferrerVO.API_TYPE_ID)
+            .filter_by_id(user_referrer.user_id)
             .exec_as_server()
             .select_vo<UserVO>();
-        if (user.archived || user.blocked || user.invalidated) {
-            ConsoleHandler.error('User not valid:referrer_user_uid:' + referrer_user_uid + ':uid:' + user.id);
+        if ((!user) || user.archived || user.blocked || user.invalidated) {
+            ConsoleHandler.error('User not valid:referrer_user_uid:' + user_referrer.referrer_user_uid + ':uid:' + user_referrer.user_id);
 
             await this.send_hook_trigger_datas_to_referrer(
                 referrer,
                 'post',
                 referrer.trigger_hook_open_oselia_db_reject_url,
-                ['User not valid (archived, blocked or invalidated):' + referrer_user_uid],
+                ['User not valid (archived, blocked or invalidated):' + user_referrer.referrer_user_uid],
                 referrer.triggers_hook_external_api_authentication_id
             );
 
@@ -228,7 +233,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!user_referrer.user_validated) {
             // L'utilisateur est lié, tout est ok, mais il n'a pas encore validé la liaison. On l'envoie sur une page de validation
-            res.redirect('/f/oselia_referrer_activation/' + referrer_code + '/' + referrer_user_uid + '/' + (openai_thread_id ? openai_thread_id : '') + '/' + (openai_assistant_id ? openai_assistant_id : '')); //TODO FIXME créer la page dédiée
+            res.redirect('/f/oselia_referrer_activation/' + referrer_user_ott + '/' + (openai_thread_id ? openai_thread_id : '') + '/' + (openai_assistant_id ? openai_assistant_id : '')); //TODO FIXME créer la page dédiée
             return;
         }
 
@@ -287,6 +292,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         /**
+         * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+         */
+        await ModuleAccessPolicyServer.getInstance().login(user.id);
+
+        /**
          * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
          */
         res.redirect('/f/oselia/' + thread.thread_vo.id);
@@ -318,10 +328,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     /**
      * Request to connect a user to a referrer
+     * And return a single use token to open Osélia from the referrer
      * @param referrer_code referrer code
      * @param user_email user email
      * @param referrer_user_uid referrer user uid
-     * @returns error string if any, null otherwise
+     * @returns one time token to open Osélia if everything is fine, null otherwise
      */
     private async link_user_to_oselia_referrer(
         referrer_code: string,
@@ -342,7 +353,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if (!referrer) {
                 ConsoleHandler.error('Referrer not found:' + referrer_code);
-                return 'Referrer not found:' + referrer_code;
+                return null;
             }
 
             // Check if the user exists
@@ -361,7 +372,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                 if (test_existing_login) {
                     ConsoleHandler.error('User already exists with login:' + login);
-                    return 'User already exists with login:' + login;
+                    return null;
                 }
 
                 user = new UserVO();
@@ -374,7 +385,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
                 } catch (error) {
                     ConsoleHandler.error('Error while creating user:' + error);
-                    return 'Error while creating user:' + error;
+                    return null;
                 }
 
                 await PasswordInitialisation.getInstance().begininitpwd_user(user);
@@ -390,7 +401,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             // Si le lien existe mais le referrer_user_uid est différent, on signale une erreur
             if (link && (link.referrer_user_uid != referrer_user_uid)) {
                 ConsoleHandler.error('Link already exists with different referrer_user_uid:yours:' + referrer_user_uid + ', existing:<Protected>');
-                return 'Link already exists with different referrer_user_uid:yours:' + referrer_user_uid + ', existing:<Protected>';
+                return null;
             }
 
             if (!link) {
@@ -405,27 +416,37 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(link);
                 } catch (error) {
                     ConsoleHandler.error('Error while creating link:' + error);
-                    return 'Error while creating link:' + error;
+                    return null;
                 }
             }
+
+            const new_ott = new OseliaUserReferrerOTTVO();
+
+            new_ott.user_referrer_id = link.id;
+            new_ott.ott = OseliaUserReferrerOTTVO.generateSecretToken(32);
+            new_ott.expires = Date.now() + (1000 * 60 * 60 * 24); // 1 hour
+
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_ott);
+
+            return new_ott.ott;
+
         } catch (error) {
             ConsoleHandler.error('Error while requesting connection:' + error);
-            return 'Error while requesting connection:' + error;
         }
-
         return null;
     }
 
-    private async get_referrer_name(referrer_code: string): Promise<string> {
+    private async get_referrer_name(referrer_user_ott: string): Promise<string> {
         const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_code, referrer_code)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott, OseliaUserReferrerOTTVO.API_TYPE_ID)
+            .using(OseliaUserReferrerVO.API_TYPE_ID)
             .exec_as_server()
             .select_vo<OseliaReferrerVO>();
 
         return referrer ? referrer.name : null;
     }
 
-    private async accept_link(referrer_code: string): Promise<void> {
+    private async accept_link(referrer_user_ott: string): Promise<void> {
 
         const uid = await ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
@@ -433,29 +454,18 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return;
         }
 
-        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_code, referrer_code)
-            .exec_as_server()
-            .select_vo<OseliaReferrerVO>();
-
-        if (!referrer) {
-            ConsoleHandler.error('Referrer not found:' + referrer_code);
-            return;
-        }
-
         const user_referrer = await query(OseliaUserReferrerVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().referrer_id, referrer.id)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().user_id, uid)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott, OseliaUserReferrerOTTVO.API_TYPE_ID)
             .exec_as_server()
             .select_vo<OseliaUserReferrerVO>();
 
         if (!user_referrer) {
-            ConsoleHandler.error('User referrer not found:' + referrer_code + ':' + uid);
+            ConsoleHandler.error('User referrer not found:OTT:' + referrer_user_ott + ':' + uid);
             return;
         }
 
         if (user_referrer.user_validated) {
-            ConsoleHandler.warn('User referrer already validated:' + referrer_code + ':' + uid);
+            ConsoleHandler.warn('User referrer already validated:OTT:' + referrer_user_ott + ':' + uid);
             return;
         }
 
@@ -464,7 +474,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_referrer);
     }
 
-    private async refuse_link(referrer_code: string): Promise<void> {
+    private async refuse_link(referrer_user_ott: string): Promise<void> {
 
         const uid = await ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
@@ -472,35 +482,24 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return;
         }
 
-        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_code, referrer_code)
-            .exec_as_server()
-            .select_vo<OseliaReferrerVO>();
-
-        if (!referrer) {
-            ConsoleHandler.error('Referrer not found:' + referrer_code);
-            return;
-        }
-
         const user_referrer = await query(OseliaUserReferrerVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().referrer_id, referrer.id)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().user_id, uid)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott, OseliaUserReferrerOTTVO.API_TYPE_ID)
             .exec_as_server()
             .select_vo<OseliaUserReferrerVO>();
 
         if (!user_referrer) {
-            ConsoleHandler.error('User referrer not found:' + referrer_code + ':' + uid);
+            ConsoleHandler.error('User referrer not found:OTT:' + referrer_user_ott + ':' + uid);
             return;
         }
 
         if (user_referrer.user_validated) {
-            ConsoleHandler.warn('User referrer already validated:' + referrer_code + ':' + uid + ' - deleting beacause of refusal');
+            ConsoleHandler.warn('User referrer already validated:OTT:' + referrer_user_ott + ':' + uid + ' - deleting beacause of refusal');
         }
 
         await ModuleDAOServer.getInstance().deleteVOs_as_server([user_referrer]);
     }
 
-    private async account_waiting_link_status(referrer_code: string): Promise<'validated' | 'waiting' | 'none'> {
+    private async account_waiting_link_status(referrer_user_ott: string): Promise<'validated' | 'waiting' | 'none'> {
 
         const uid = await ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
@@ -508,19 +507,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return 'none';
         }
 
-        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_code, referrer_code)
-            .exec_as_server()
-            .select_vo<OseliaReferrerVO>();
-
-        if (!referrer) {
-            ConsoleHandler.error('Referrer not found:' + referrer_code);
-            return 'none';
-        }
-
         const user_referrer = await query(OseliaUserReferrerVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().referrer_id, referrer.id)
-            .filter_by_num_eq(field_names<OseliaUserReferrerVO>().user_id, uid)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott, OseliaUserReferrerOTTVO.API_TYPE_ID)
             .exec_as_server()
             .select_vo<OseliaUserReferrerVO>();
 
