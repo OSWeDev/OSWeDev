@@ -1,4 +1,4 @@
-.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field_type : ""' :data-label="t(field.translatable_title)" :style="custom_style")
+.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field_type : ""' :data-label="t(field.translatable_title)" :style='align_content_right ? "text-align: right; custom_style" : custom_style')
     template(v-if="is_load")
         template(v-if='!field.hidden')
             template(v-if="show_label")
@@ -102,4 +102,5 @@
                 )
 
             template(v-else)
+                
                 span {{ field_value }}

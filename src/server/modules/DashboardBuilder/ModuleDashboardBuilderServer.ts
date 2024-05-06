@@ -2424,6 +2424,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.can_filter_by_column.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aligner à droite" },
+            'table_widget_column_conf.align_content_right.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Alignement par défaut" },
+            'table_widget_column_conf.editable_column.align_content_right.default.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aligner à droite" },
+            'table_widget_column_conf.editable_column.align_content_right.right.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Supervision" },
             'dashboards.widgets.icons_tooltips.supervision.___LABEL___'
         ));

@@ -176,6 +176,14 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    .align_content_right.mt-2(v-tooltip='label("table_widget_column_conf.align_content_right")')
+                        toggle-button(
+                            @change="switch_align_content_right" 
+                            :value="column.align_content_right" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.align_content_right.right'), unchecked: label('table_widget_column_conf.editable_column.align_content_right.default')}")
+
                     template(v-if='is_type_number_vo_field_ref')
                         toggle-button(
                             @change="switch_sum_numeral_datas" 
