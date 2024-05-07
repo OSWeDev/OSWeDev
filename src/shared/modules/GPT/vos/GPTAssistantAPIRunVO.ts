@@ -11,6 +11,10 @@ export default class GPTAssistantAPIRunVO implements IDistantVOBase {
     public thread_id: number;
     public assistant_id: number;
 
+    public is_best_run: boolean;
+    public ask_user_which_run_is_best: boolean;
+    public rerun_of_run_id: number;
+
     public gpt_run_id: string;
 
     // The Unix timestamp(in seconds) for when the run was created.

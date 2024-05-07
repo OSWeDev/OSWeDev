@@ -89,6 +89,7 @@ import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch2024032
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
 import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
+import Patch20240507AddDefaultRightsAPIsOselia from './patchs/postmodules/Patch20240507AddDefaultRightsAPIsOselia';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -197,6 +198,7 @@ export default abstract class GeneratorBase {
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
             Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            Patch20240507AddDefaultRightsAPIsOselia.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

@@ -27,6 +27,9 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
     public user_id: number;
     public run_id: number;
 
+    // Si on a choisi de modifier un message par exemple, on l'archive, ce qui signifie que dans la synchro avec openai, on supprime le message côté openai, et la liaison avec nous
+    public archived: boolean;
+
     /**
      * L'assistant si c'est un message de l'assistant
      */

@@ -52,6 +52,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = this.reload_openai_runs_datas;
     }
@@ -71,6 +72,20 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 await GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
             }
         }
+    }
+
+    /**
+     * Le re_run a pour but de générer une nouvelle solution à un problème déjà répondu mais dont la réponse n'est pas satisfaisante, ou dont les conditions ont changé
+     * Idéalement on veut garder la trace des runs précédents pour pouvoir les comparer et expliquer pourquoi on a choisi la nouvelle solution (il faudrait donc aussi pouvoir dire si on préfère la nouvelle ou pas, et pourquoi)
+     * @param run_id
+     */
+    public async rerun(run_id: number): Promise<GPTAssistantAPIRunVO> {
+
+        // On doit récupérer le thread pour lequel on veut faire un nouveau run
+        // On récupère tous les thrads messages pour ce thread
+        // On isole les messages du run qu'on veut refaire, ainsi que les messages suivants le run (quelque soit leur role)
+        
+        throw new Error('Method not implemented.');
     }
 
     public async ask_assistant(
@@ -142,6 +157,30 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_ASSISTANT_FILES_ACCESS.translatable_name = ModuleGPT.POLICY_ASSISTANT_FILES_ACCESS;
         POLICY_ASSISTANT_FILES_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_ASSISTANT_FILES_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès aux fichiers issus de GPT'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_ask_assistant: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_ask_assistant.group_id = group.id;
+        POLICY_ask_assistant.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_ask_assistant.translatable_name = ModuleGPT.POLICY_ask_assistant;
+        POLICY_ask_assistant = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_ask_assistant, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: ask_assistant'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_rerun: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_rerun.group_id = group.id;
+        POLICY_rerun.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_rerun.translatable_name = ModuleGPT.POLICY_rerun;
+        POLICY_rerun = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_rerun, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: rerun'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_generate_response: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_generate_response.group_id = group.id;
+        POLICY_generate_response.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_generate_response.translatable_name = ModuleGPT.POLICY_generate_response;
+        POLICY_generate_response = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_generate_response, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: generate_response'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 

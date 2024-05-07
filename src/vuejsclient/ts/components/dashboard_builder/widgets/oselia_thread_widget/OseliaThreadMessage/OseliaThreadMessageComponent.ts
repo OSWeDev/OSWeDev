@@ -21,6 +21,8 @@ import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import TablePaginationComponent from '../../table_widget/pagination/TablePaginationComponent';
 import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionURL/OseliaThreadMessageActionURLComponent';
 import './OseliaThreadMessageComponent.scss';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -52,6 +54,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
+
     public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
 
     private is_loading_thread_message: boolean = true;
@@ -60,6 +63,11 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private user_name: string = null;
 
     private new_message_text: string = null;
+
+    private is_editing_content: boolean[] = [];
+    private changed_input: boolean[] = [];
+
+    private show_feedback: boolean = false;
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
 
@@ -125,6 +133,53 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         this.throttle_load_thread_message();
     }
 
+    @Watch('thread_message_contents', { deep: true })
+    private on_change_thread_message_contents() {
+        this.is_editing_content = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
+        this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
+    }
+
+    private async copy() {
+
+        // On récupère le texte du message, donc le texte brut de tous les contenus de type texte
+        let text = '';
+
+        for (const i in this.thread_message_contents) {
+            const content = this.thread_message_contents[i];
+
+            if (content.content_type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
+                text += ((text == '') ? '\n\n' : '') + content.value;
+            }
+        }
+
+        await navigator.clipboard.writeText(text);
+    }
+
+    private async rerun() {
+        throw new Error('Not implemented');
+    }
+
+    private async cancel_edit_thread_message_content(message_content: GPTAssistantAPIThreadMessageContentVO, i: number) {
+        this.is_editing_content[i] = false;
+        this.changed_input[i] = false;
+
+        this.thread_message_contents[i] = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID).filter_by_id(message_content.id).select_vo<GPTAssistantAPIThreadMessageContentVO>();
+    }
+
+    private async save_edit_thread_message_content(message_content: GPTAssistantAPIThreadMessageContentVO, i: number) {
+        this.is_editing_content[i] = false;
+        this.changed_input[i] = false;
+
+        /**
+         * TODO FIXME : Ici on devrait avoir un trigger côté serveur pour relancer le run qui suivait ce message - potentiellement pas le message content suivant du coup.
+         * Le truc c'est que contrairement à GPT, faut bien récupérer l'assistant du run, puisqu'il évolue dans la discussion potentiellement.
+         * Et donc faut aussi gérer une logique d'arborescence de discussion et pas de thread linéaire pour stocker toutes les variantes de la discussion.
+         * Pour le moment, on propose de modifier les messages, et avec un bouton dédié à chaque contenu issu d'un assistant,
+         *  de run à nouveau l'assistant pour la section de la discussion concernée, sans impacter le reste - on perd l'ancien résultat du coup si on fait ça...
+         */
+        await ModuleDAO.getInstance().insertOrUpdateVO(message_content);
+    }
+
     private async force_reload() {
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
             GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
@@ -144,6 +199,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         this.is_loading_thread_message = true;
         this.thread_message_contents = [];
+        this.is_editing_content = [];
+        this.changed_input = [];
+
         await this.unregister_all_vo_event_callbacks();
 
         if (!this.thread_message) {
