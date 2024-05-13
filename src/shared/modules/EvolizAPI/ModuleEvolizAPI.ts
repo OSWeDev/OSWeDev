@@ -25,6 +25,8 @@ import EvolizCompanyVO from './vos/company/EvolizCompanyVO';
 import EvolizPayTypeVO from './vos/pay_type/EvolizPayTypeVO';
 import EvolizInvoiceEmailParam, { EvolizInvoiceEmailParamStatic } from './vos/apis/EvolizInvoiceEmailParam';
 import EvolizInvoiceEmailVO from './vos/invoices/EvolizInvoiceEmailVO';
+import EvolizCreditVO from './vos/credit/EvolizCreditVO';
+import EvolizAdvanceVO from './vos/advance/EvolizAdvanceVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -55,6 +57,8 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_list_companies: string = "list_companies";
     public static APINAME_list_paytypes: string = "list_paytypes";
     public static APINAME_send_mail_invoice: string = "send_mail_invoice";
+    public static APINAME_list_credits: string = "list_credits";
+    public static APINAME_list_advances: string = "list_advances";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -92,6 +96,8 @@ export default class ModuleEvolizAPI extends Module {
     public list_companies: () => Promise<EvolizCompanyVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_companies);
     public list_paytypes: () => Promise<EvolizPayTypeVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_paytypes);
     public send_mail_invoice: (invoiceid: number, params: EvolizInvoiceEmailVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_send_mail_invoice);
+    public list_credits: () => Promise<EvolizCreditVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_credits);
+    public list_advances: () => Promise<EvolizAdvanceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_advances);
 
     private constructor() {
 
@@ -217,6 +223,18 @@ export default class ModuleEvolizAPI extends Module {
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizPayTypeVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_paytypes,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizCreditVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_credits,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizAdvanceVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_advances,
             []
         ));
 

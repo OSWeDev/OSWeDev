@@ -31,6 +31,8 @@ import EvolizUnitCodeVO from '../../../shared/modules/EvolizAPI/vos/unit_codes/E
 import EvolizPayTypeVO from '../../../shared/modules/EvolizAPI/vos/pay_type/EvolizPayTypeVO';
 import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/EvolizCompanyVO';
 import EvolizInvoiceEmailVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceEmailVO';
+import EvolizCreditVO from '../../../shared/modules/EvolizAPI/vos/credit/EvolizCreditVO';
+import EvolizAdvanceVO from '../../../shared/modules/EvolizAPI/vos/advance/EvolizAdvanceVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -108,6 +110,8 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_companies, this.list_companies.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_paytypes, this.list_paytypes.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_send_mail_invoice, this.send_mail_invoice.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_credits, this.list_credits.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_advances, this.list_advances.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -179,6 +183,28 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             );
 
             return companies;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Credit
+    public async list_credits(): Promise<EvolizCreditVO[]> {
+        try {
+            let credits: EvolizCreditVO[] = await this.get_all_pages('/api/v1/credits') as EvolizCreditVO[];
+
+            return credits;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Advance
+    public async list_advances(): Promise<EvolizAdvanceVO[]> {
+        try {
+            let advances: EvolizAdvanceVO[] = await this.get_all_pages('/api/v1/advances') as EvolizAdvanceVO[];
+
+            return advances;
         } catch (error) {
             console.error(error);
         }
