@@ -3,13 +3,13 @@ import { Prop } from 'vue-property-decorator';
 import 'vue-slider-component/theme/default.css';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueComponentBase from '../../../../VueComponentBase';
-import './VarLineChartWidgetIconComponent.scss';
+import './VarRadarChartWidgetIconComponent.scss';
 
 @Component({
-    template: require('./VarLineChartWidgetIconComponent.pug'),
+    template: require('./VarRadarChartWidgetIconComponent.pug'),
     components: {}
 })
-export default class VarLineChartWidgetIconComponent extends VueComponentBase {
+export default class VarRadarChartWidgetIconComponent extends VueComponentBase {
 
     @Prop()
     private widget: DashboardWidgetVO;

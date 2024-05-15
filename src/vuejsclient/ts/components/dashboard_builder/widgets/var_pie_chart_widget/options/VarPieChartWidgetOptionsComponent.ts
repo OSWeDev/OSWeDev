@@ -59,6 +59,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private title_font_color: string = null;
 
     private legend_display: boolean = false;
+    private label_display: boolean = false;
     private max_is_sum_of_var_1_and_2: boolean = false;
     private legend_use_point_style: boolean = false;
     private title_display: boolean = false;
@@ -83,15 +84,17 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
     private widget_options: VarPieChartWidgetOptions = null;
 
-    private dimension_custom_filter_segment_types:  { [index: number]: string } = 
-        { [TimeSegment.TYPE_YEAR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-         [TimeSegment.TYPE_MONTH] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-         [TimeSegment.TYPE_DAY] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-         [TimeSegment.TYPE_HOUR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-         [TimeSegment.TYPE_MINUTE] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        [TimeSegment.TYPE_SECOND] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)};
+    private dimension_custom_filter_segment_types: { [index: number]: string } =
+        {
+            [TimeSegment.TYPE_YEAR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+            [TimeSegment.TYPE_MONTH]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+            [TimeSegment.TYPE_DAY]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+            [TimeSegment.TYPE_HOUR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+            // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+            // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+            [TimeSegment.TYPE_MINUTE]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+            [TimeSegment.TYPE_SECOND]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
+        };
 
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
     private legend_positions: string[] = [
@@ -203,6 +206,18 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
+    private async switch_label_display() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.label_display = !this.next_update_options.label_display;
+
+        await this.throttled_update_options();
+    }
+
     private async switch_dimension_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -228,7 +243,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     }
 
     private async switch_has_dimension() {
-        if(!this.has_dimension){
+        if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
         // this.next_update_options = this.widget_options;
@@ -468,6 +483,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (ObjectHandler.are_equal(this.widget_options.filter_custom_field_filters_2, options.filter_custom_field_filters_2)) &&
 
                         (this.widget_options.legend_display == options.legend_display) &&
+                        (this.widget_options.label_display == options.label_display) &&
                         (this.widget_options.legend_position == options.legend_position) &&
                         (this.widget_options.bg_color_1 == options.bg_color_1) &&
                         (this.widget_options.bg_color_2 == options.bg_color_2) &&
@@ -507,6 +523,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                     options = options ? new VarPieChartWidgetOptions(
                         options.bg_color,
                         options.legend_display,
+                        options.label_display,
                         options.legend_position,
                         options.legend_font_color,
                         options.legend_font_size,
@@ -562,6 +579,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.bg_color = null;
 
             this.legend_display = true;
+            this.label_display = true;
             this.tmp_selected_legend_position = 'top';
             this.legend_font_color = '#666';
             this.legend_font_size = '12';
@@ -573,9 +591,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.title_font_color = '#666';
             this.title_font_size = '16';
             this.title_padding = '10';
-            this.cutout_percentage = '50';
-            this.rotation = '270';
-            this.circumference = '180';
+            this.cutout_percentage = '0';
+            this.rotation = '0';
+            this.circumference = '360';
 
             this.has_dimension = true;
             this.max_dimension_values = '10';
@@ -601,6 +619,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
         if (this.legend_display != this.widget_options.legend_display) {
             this.legend_display = this.widget_options.legend_display;
+        }
+        if (this.label_display != this.widget_options.label_display) {
+            this.label_display = this.widget_options.label_display;
         }
         if (((!this.widget_options.legend_font_size) && this.legend_font_size) || (this.widget_options.legend_font_size && (this.legend_font_size != this.widget_options.legend_font_size.toString()))) {
             this.legend_font_size = this.widget_options.legend_font_size ? this.widget_options.legend_font_size.toString() : null;
@@ -712,7 +733,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
     private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
-            for(const key in Object.keys(this.dimension_custom_filter_segment_types)){
+            for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
                 if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
                     const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
                     return res >= 0 ? res : null;
@@ -871,7 +892,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
-                if(parseInt(this.legend_font_size)<=100 && parseInt(this.legend_font_size) >= 0){
+                if (parseInt(this.legend_font_size) <= 100 && parseInt(this.legend_font_size) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
                 }
@@ -900,7 +921,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
-                if(parseInt(this.legend_box_width)<=400 && parseInt(this.legend_box_width) >= 0){
+                if (parseInt(this.legend_box_width) <= 400 && parseInt(this.legend_box_width) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
                 }
@@ -929,7 +950,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.legend_padding != parseInt(this.legend_padding)) {
-                if(parseInt(this.legend_padding)<=100 && parseInt(this.legend_padding) >= 0){
+                if (parseInt(this.legend_padding) <= 100 && parseInt(this.legend_padding) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_padding = parseInt(this.legend_padding);
                 }
@@ -958,7 +979,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
-                if(parseInt(this.title_font_size)<=100 && parseInt(this.title_font_size) >= 0){
+                if (parseInt(this.title_font_size) <= 100 && parseInt(this.title_font_size) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.title_font_size = parseInt(this.title_font_size);
                 }
@@ -987,7 +1008,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.title_padding != parseInt(this.title_padding)) {
-                if(parseInt(this.title_padding)<=100 && parseInt(this.title_padding) >= 0){
+                if (parseInt(this.title_padding) <= 100 && parseInt(this.title_padding) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.title_padding = parseInt(this.title_padding);
                 }
@@ -1016,7 +1037,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.cutout_percentage != parseInt(this.cutout_percentage)) {
-                if(parseInt(this.cutout_percentage)<=100 && parseInt(this.cutout_percentage) >= 0){
+                if (parseInt(this.cutout_percentage) <= 95 && parseInt(this.cutout_percentage) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.cutout_percentage = parseInt(this.cutout_percentage);
                 }
@@ -1045,7 +1066,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.rotation != parseInt(this.rotation)) {
-                if(parseInt(this.rotation)<=360 && parseInt(this.rotation) >= 0){
+                if (parseInt(this.rotation) <= 360 && parseInt(this.rotation) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.rotation = parseInt(this.rotation);
                 }
@@ -1074,7 +1095,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.circumference != parseInt(this.circumference)) {
-                if(parseInt(this.circumference)<=360 && parseInt(this.circumference) >= 0){
+                if (parseInt(this.circumference) <= 360 && parseInt(this.circumference) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.circumference = parseInt(this.circumference);
                 }
@@ -1103,7 +1124,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.border_width_1 != parseInt(this.border_width_1)) {
-                if(parseInt(this.border_width_1)<=10 && parseInt(this.border_width_1) >= 0){
+                if (parseInt(this.border_width_1) <= 10 && parseInt(this.border_width_1) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.border_width_1 = parseInt(this.border_width_1);
                 }
@@ -1132,7 +1153,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.border_width_2 != parseInt(this.border_width_2)) {
-                if(parseInt(this.border_width_2)<=10 && parseInt(this.border_width_2) >= 0){
+                if (parseInt(this.border_width_2) <= 10 && parseInt(this.border_width_2) >= 0) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.border_width_2 = parseInt(this.border_width_2);
                 }
@@ -1161,14 +1182,14 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         try {
 
             if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
-                if(this.widget_options.dimension_is_vo_field_ref) {
-                    if(parseInt(this.max_dimension_values) >= 0){
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dimension_values) >= 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     }
                     await this.throttled_update_options();
                 } else {
-                    if(parseInt(this.max_dimension_values) > 0){
+                    if (parseInt(this.max_dimension_values) > 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     } else {
@@ -1202,16 +1223,15 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        this.title_name_code_text 
         await this.throttled_update_options();
-    
+
     }
 
     get title_name_code_text(): string {
         if (!this.widget_options) {
             return null;
         }
-        
+
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 }

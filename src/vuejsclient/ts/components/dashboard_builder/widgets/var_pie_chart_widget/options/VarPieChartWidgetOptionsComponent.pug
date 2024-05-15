@@ -45,7 +45,17 @@
                         type="number"
                         v-model="title_padding"
                     )
-        
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_label_options') }}
+        .field_label_display
+            .input_label {{ label('var_pie_chart_widget_options_component.label_display') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_label_display" 
+                    :value="label_display" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_legend_options') }}
         .field_legend_display
             .input_label {{ label('var_pie_chart_widget_options_component.legend_display') }}
@@ -57,6 +67,7 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
+        
         template(v-if='legend_display')
             .legend_position 
                 .input_label {{ label('var_pie_chart_widget_options_component.legend_position') }}

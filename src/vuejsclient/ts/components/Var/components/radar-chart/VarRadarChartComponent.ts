@@ -1,11 +1,11 @@
 import { debounce } from 'lodash';
-import { Line } from 'vue-chartjs';
+import { Radar } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
 import { _adapters } from 'chart.js';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
-import VarLineDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarLineDataSetDescriptor';
+import VarRadarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarRadarDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -22,12 +22,12 @@ const date_adapter = DatesChartJsAdapters.get_adapters();
 _adapters._date.override(date_adapter);
 
 @Component({
-    template: require('./VarLineChartComponent.pug'),
+    template: require('./VarRadarChartComponent.pug'),
     components: {
-        linechart: Line,
+        radarchart: Radar,
     }
 })
-export default class VarLineChartComponent extends VueComponentBase {
+export default class VarRadarChart extends VueComponentBase {
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -41,7 +41,7 @@ export default class VarLineChartComponent extends VueComponentBase {
     public getlabel: (var_param: VarDataBaseVO) => string[];
 
     @Prop({ default: null })
-    public var_dataset_descriptor: VarLineDataSetDescriptor;
+    public var_dataset_descriptor: VarRadarDataSetDescriptor;
 
     @Prop({ default: null })
     public options: any;
@@ -138,12 +138,12 @@ export default class VarLineChartComponent extends VueComponentBase {
             this.var_datas = null;
             return;
         }
-        
+
         const res: { [id: number]: VarDataValueResVO } = {};
 
         for (const i in this.var_params) {
             const var_param = this.var_params[i];
-            if(var_param.index == null) {
+            if (var_param.index == null) {
                 res[var_param.id] = new VarDataValueResVO().set_value(0);
             } else {
                 res[var_param.id] = VarsClientController.cached_var_datas[var_param.index];
@@ -226,7 +226,7 @@ export default class VarLineChartComponent extends VueComponentBase {
     }
 
     @Watch('var_dataset_descriptor')
-    private async onchange_descriptors(new_var_dataset_descriptor: VarLineDataSetDescriptor, old_var_dataset_descriptor: VarLineDataSetDescriptor) {
+    private async onchange_descriptors(new_var_dataset_descriptor: VarRadarDataSetDescriptor, old_var_dataset_descriptor: VarRadarDataSetDescriptor) {
 
         // On doit vérifier qu'ils sont bien différents
         new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
@@ -356,7 +356,7 @@ export default class VarLineChartComponent extends VueComponentBase {
         }
 
         if (!!this.rendered) {
-            ConsoleHandler.error('PB:render Line Chart déjà rendu');
+            ConsoleHandler.error('PB:render Radar Chart déjà rendu');
             return;
         }
 
@@ -374,8 +374,7 @@ export default class VarLineChartComponent extends VueComponentBase {
                 this.chart_options
             );
         } catch (error) {
-            // ConsoleHandler.warn('PB:render Line Chart probablement trop tôt:' + error);
-            ConsoleHandler.error('PB:render Line Chart probablement trop tôt:' + error + ':');
+            ConsoleHandler.error('PB:render Radar Chart probablement trop tôt:' + error + ':');
             this.rendered = false;
             // setTimeout(this.render_chart_js, 500);
         }
@@ -400,10 +399,10 @@ export default class VarLineChartComponent extends VueComponentBase {
 
     get labels(): string[] {
         let res = [];
-        	
+
         for (let i in this.var_params) {
-            if(this.getlabel && this.getlabel(this.var_params[i])) {
-                if(this.getlabel(this.var_params[i]).length <= 1) {
+            if (this.getlabel && this.getlabel(this.var_params[i])) {
+                if (this.getlabel(this.var_params[i]).length <= 1) {
                     res.push(this.getlabel(this.var_params[i]))
                 } else {
                     res.push(this.getlabel(this.var_params[i])[i])

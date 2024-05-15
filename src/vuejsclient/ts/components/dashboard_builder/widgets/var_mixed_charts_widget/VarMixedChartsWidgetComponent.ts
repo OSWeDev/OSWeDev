@@ -116,7 +116,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        if(this.widget_options.filter_type == 'none') {
+        if (this.widget_options.filter_type == 'none') {
             return null;
         }
         return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
@@ -131,7 +131,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (!this.label_by_index || !this.label_by_index[var_param.id]) {
             return null;
         }
-        if(this.label_by_index[var_param.id].length > 1 ) {
+        if (this.label_by_index[var_param.id].length > 1) {
             return this.label_by_index[var_param.id][0];
         }
         return this.label_by_index[var_param.id];
@@ -179,7 +179,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     ): Promise<{ [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } }> {
 
         // Case when we have some var_charts_options and all of them are valid
-        if  (!this.widget_options.dimension_vo_field_ref || (!this.widget_options?.var_charts_options?.length) ||
+        if (!this.widget_options.dimension_vo_field_ref || (!this.widget_options?.var_charts_options?.length) ||
             !this.widget_options.var_charts_options?.every((var_chart_options) => !!VarsController.var_conf_by_id[var_chart_options.var_id])) {
 
             return null;
@@ -208,7 +208,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         //         FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
         //     ));
         // } else {
-       
+
         FieldValueFilterWidgetManager.add_discarded_field_paths(context_query, this.get_discarded_field_paths);
 
         if (this.widget_options.sort_dimension_by_vo_field_ref) {
@@ -241,11 +241,11 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             for (const i in dimensions) {
                 const dimension: any = dimensions[i];
                 let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-                if(!dimension_value) {
+                if (!dimension_value) {
                     dimension_value = '[NULL]'
                 }
-    
-                if(!ordered_dimension.includes(dimension_value)) {
+
+                if (!ordered_dimension.includes(dimension_value)) {
                     ordered_dimension.push(dimension_value);
                 }
 
@@ -290,32 +290,32 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     );
 
                     if (!charts_var_params_by_dimension[var_chart_id][dimension_value]) {
-                        if(dimension_value !== '[NULL]') {
+                        if (dimension_value !== '[NULL]') {
                             this.snotify.error(this.t('var_mixed_charts_widget.error_charts_var_params_for_dimension_value'));
                             // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
                             ConsoleHandler.log('Pas de charts_var_params pour la dimension ' + dimension_value);
                             return;
-                        }else{
+                        } else {
                             charts_var_params_by_dimension[var_chart_id][dimension_value] = new VarDataBaseVO();
                         }
                     }
-                    
+
                     charts_var_params_by_dimension[var_chart_id][dimension_value].id = parseInt(i)
                     let label = 'NULL';
-                    if(this.widget_options.dimension_vo_field_ref.field_id){
-                        if(dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
+                    if (this.widget_options.dimension_vo_field_ref.field_id) {
+                        if (dimension[this.widget_options.dimension_vo_field_ref.field_id]) {
                             label = dimension[this.widget_options.dimension_vo_field_ref.field_id];
-                        } 
+                        }
                     } else if (dimension_table && dimension_table.default_label_field) {
                         label = dimension[dimension_table.default_label_field.field_id];
                     } else if (dimension_table && dimension_table.table_label_function) {
                         label = dimension_table.table_label_function(dimension);
                     }
-                    if(label_by_index[parseInt(i)] === undefined) {
+                    if (label_by_index[parseInt(i)] === undefined) {
                         label_by_index[parseInt(i)] = [];
                     }
                     label_by_index[parseInt(i)].push(label);
-                    
+
                 })());
             }
         }
@@ -478,7 +478,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     }
 
                     charts_var_params_by_dimension[var_chart_id][dimension_value].id = parseInt(i);
-                    if(label_by_index[parseInt(i)] === undefined) {
+                    if (label_by_index[parseInt(i)] === undefined) {
                         label_by_index[parseInt(i)] = [];
                     }
                     label_by_index[parseInt(i)].push(Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type));
@@ -580,7 +580,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
-        
+
         this.charts_var_params_by_dimension = charts_var_params_by_dimension;
     }
 
@@ -618,14 +618,14 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         if (this.widget_options.scale_options_x) {
             scales['x'] = this.widget_options.scale_options_x;
             scales['x']['grid'] = {
-                color:this.widget_options.scale_x_color ? this.widget_options.scale_x_color : '#666'
+                color: this.widget_options.scale_x_color ? this.widget_options.scale_x_color : '#666'
             };
         }
 
         if (this.widget_options.scale_options_y) {
             scales['y'] = this.widget_options.scale_options_y;
             scales['y']['grid'] = {
-                color:this.widget_options.scale_y_color ? this.widget_options.scale_y_color : '#666'
+                color: this.widget_options.scale_y_color ? this.widget_options.scale_y_color : '#666'
             };
         }
 
@@ -647,7 +647,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
                     },
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
-               },
+                },
 
                 tooltips: {
                     callbacks: {
@@ -692,15 +692,15 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         };
     }
 
-    private hexToRgbA(hex){
+    private hexToRgbA(hex) {
         var c;
-        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-            c= hex.substring(1).split('');
-            if(c.length== 3){
-                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length == 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
             }
-            c= '0x'+c.join('');
-            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',');
+            c = '0x' + c.join('');
+            return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',');
         }
         throw new Error('Bad Hex');
     }
@@ -765,10 +765,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             let is_rbga = true;
             let colors = [];
 
-            if(var_chart_options.has_gradient){
+            if (var_chart_options.has_gradient) {
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
-            
+
                 if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('#')) {
                     base_color = this.hexToRgbA(var_chart_options.bg_color);
                     is_rbga = true;
@@ -776,7 +776,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     base_color = 'rgba(' + var_chart_options.bg_color.substring(4, var_chart_options.bg_color.length - 2);
                     is_rbga = true;
                 } else if (var_chart_options.bg_color && var_chart_options.bg_color.startsWith('rgba(')) {
-                    base_color = var_chart_options.bg_color.slice(0,var_chart_options.bg_color.lastIndexOf(','))
+                    base_color = var_chart_options.bg_color.slice(0, var_chart_options.bg_color.lastIndexOf(','))
                     is_rbga = true;
                 }
 

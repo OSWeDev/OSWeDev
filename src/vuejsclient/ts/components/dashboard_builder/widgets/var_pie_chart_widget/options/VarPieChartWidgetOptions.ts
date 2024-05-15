@@ -43,6 +43,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
          * Paramètres du graph
          */
         public legend_display: boolean,
+        public label_display: boolean,
         public legend_position: string,
         public legend_font_color: string,
         public legend_font_size: number,
@@ -169,11 +170,12 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
             /**
              * Paramètres du widget
              */
-            null,
+            '#f0210a',
 
             /**
              * Paramètres du graph
              */
+            true,
             true,
             'top',
             '#666',
@@ -187,9 +189,9 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
             16,
             10,
 
-            50, // 0-100 - exemples : donut 50, camembert 0
-            270, // 0-360 - exemples : donut 270, camembert 0
-            180, // 0-180 - exemples : donut 180, camembert 0
+            0, // 0-100 - exemples : donut 50, camembert 0
+            0, // 0-360 - exemples : donut 270, camembert 0
+            360, // 0-180 - exemples : donut 180, camembert 0
 
             true,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)

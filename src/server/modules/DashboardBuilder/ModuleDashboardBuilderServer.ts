@@ -67,193 +67,185 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Graphique de var - Lignes'
-        }, 'dashboards.widgets.icons_tooltips.varlinechart.___LABEL___'));
+            'fr-fr': 'Graphique de var - Radar'
+        }, 'dashboards.widgets.icons_tooltips.varradarchart.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
-        }, 'var_line_chart_widget_options_component.separator.widget_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.widget_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre'
-        }, 'var_line_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du fond'
-        }, 'var_line_chart_widget_options_component.bg_color.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.bg_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du titre'
-        }, 'var_line_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
-       
+        }, 'var_radar_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher le titre'
-        }, 'var_line_chart_widget_options_component.title_display.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.title_display.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du titre'
-        }, 'var_line_chart_widget_options_component.title_font_color.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.title_font_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Taille du titre'
-        }, 'var_line_chart_widget_options_component.title_font_size.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.title_font_size.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Epaisseur du titre'
-        }, 'var_line_chart_widget_options_component.title_padding.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.title_padding.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de la légende'
-        }, 'var_line_chart_widget_options_component.separator.chart_legend_options.___LABEL___'));
-        
+        }, 'var_radar_chart_widget_options_component.separator.chart_legend_options.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher la légende'
-        }, 'var_line_chart_widget_options_component.legend_display.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_display.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Position de la légende'
-        }, 'var_line_chart_widget_options_component.legend_position.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_position.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur de la légende'
-        }, 'var_line_chart_widget_options_component.legend_font_color.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_font_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Taille de la légende'
-        }, 'var_line_chart_widget_options_component.legend_font_size.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_font_size.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Epaisseur de la légende'
-        }, 'var_line_chart_widget_options_component.legend_box_width.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_box_width.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Marge de la légende'
-        }, 'var_line_chart_widget_options_component.legend_padding.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_padding.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser le style de point pour la légende'
-        }, 'var_line_chart_widget_options_component.legend_use_point_style.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_use_point_style.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des données'
-        }, 'var_line_chart_widget_options_component.separator.datas_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.datas_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options des dimensions'
-        }, 'var_line_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
-        }, 'var_line_chart_widget_options_component.has_dimension.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.has_dimension.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'La dimension est un champ ?'
-        }, 'var_line_chart_widget_options_component.dimension_is_vo_field_ref.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.dimension_is_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Champ de la dimension'
-        }, 'var_line_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Segmentation de la dimension date'
-        }, 'var_line_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Max. de valeurs pour la dimension choisie'
-        }, 'var_line_chart_widget_options_component.max_dimension_values.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.max_dimension_values.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Permet de définir un nombre max de résultats pris en compte pour le graphique sur la dimension proposée. Par exemple si on a sélectionné une année et qu\'on segmente au jour, on peut limiter aux 10 premiers jours en indiquant 10 ici.'
-        }, 'var_line_chart_widget_options_component.max_dimension_values.tooltip.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.max_dimension_values.tooltip.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Trier la dimension par un champ'
-        }, 'var_line_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Trier la dimension par ordre croissant ?'
-        }, 'var_line_chart_widget_options_component.sort_dimension_by_asc.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.sort_dimension_by_asc.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nom du filtre de la dimension'
-        }, 'var_line_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
-        
+        }, 'var_radar_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de tri des dimensions'
-        }, 'var_line_chart_widget_options_component.separator.datas_filter_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.datas_filter_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filtre des valeurs'
-        }, 'var_line_chart_widget_options_component.widget_filter_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.widget_filter_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de la variable principale'
-        }, 'var_line_chart_widget_options_component.separator.var_1_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.var_1_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nom de la variable principale'
-        }, 'var_line_chart_widget_options_component.var_name_1.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.var_name_1.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du fond'
-        }, 'var_line_chart_widget_options_component.bg_color_1.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.bg_color_1.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur des bordures'
-        }, 'var_line_chart_widget_options_component.border_color_1.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de l\'axe des abscisses'
-        }, 'var_line_chart_widget_options_component.scale_x_axis_color.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de l\'axe des abscisses'
-        }, 'var_line_chart_widget_options_component.scale_x_axis_options_1.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de l\'axe des ordonnées'
-        }, 'var_line_chart_widget_options_component.scale_y_axis_color.___LABEL___'));
-
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Options de l\'axe des ordonnées'
-        }, 'var_line_chart_widget_options_component.scale_y_axis_options_1.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.border_color_1.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Position de la légende'
-        }, 'var_line_chart_widget_options_component.legend_position.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.legend_position.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de la variable secondaire'
-        }, 'var_line_chart_widget_options_component.separator.var_2_options.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.separator.var_2_options.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Variable secondaire'
-        }, 'var_line_chart_widget_options_component.var_name_2.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.var_name_2.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du fond'
-        }, 'var_line_chart_widget_options_component.bg_color_2.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.bg_color_2.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur de bordure'
-        }, 'var_line_chart_widget_options_component.border_color_2.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.border_color_2.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Epaisseur de la bordure'
-        }, 'var_line_chart_widget_options_component.border_width_2.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.border_width_2.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
-        }, 'var_line_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du graphique'
+        }, 'var_radar_chart_widget_options_component.separator.chart_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du graphique'
+        }, 'var_radar_chart_widget_options_component.border_width_1.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nom de la variable'
-        }, 'var_line_chart_widget_options_component.var_title_1.title_name_code_text.___LABEL___'));
+        }, 'var_radar_chart_widget_options_component.var_title_1.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du widget'
         }, 'var_mixed_charts_widget_options_component.separator.widget_options.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({  
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
         }, 'var_mixed_charts_widget_options_component.separator.chart_options.___LABEL___'));
 
@@ -397,9 +389,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Graphique de var - Mixés'
         }, 'dashboards.widgets.icons_tooltips.varmixedcharts.___LABEL___'));
 
-        
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Ajouter une variable de graphique'
+            'fr-fr': 'Ajouter une variable au graphique'
         }, 'var_charts_options_component.add_var_chart_options_button.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -443,7 +435,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_chart_options_item_component.border_width.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Supprimer la variable de graphique'
+            'fr-fr': 'Supprimer la variable du graphique'
         }, 'var_charts_options_component.remove_var_chart_options_button.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1630,6 +1622,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Afficher la légende'
         }, 'var_pie_chart_widget_options_component.legend_display.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher les étiquettes'
+        }, 'var_pie_chart_widget_options_component.label_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des étiquettes'
+        }, 'var_pie_chart_widget_options_component.separator.chart_label_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Position de la légende'
         }, 'var_pie_chart_widget_options_component.legend_position.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1815,28 +1813,28 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.1.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.1.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Semaine'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.3.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.3.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année glissante'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.4.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.4.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Minute'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.6.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.6.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Seconde'
-        }, 'VarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.7.___LABEL___'));
+        }, 'VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.7.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Enregistrement en cours...'

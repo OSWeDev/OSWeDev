@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import VarLineChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
+import VarRadarChartWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -13,24 +13,21 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import ChartJsScaleOptionsComponent from '../../../../chartjs/scale_options/ChartJsScaleOptionsComponent';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import './VarLineChartWidgetOptionsComponent.scss';
-import { Scale } from 'chart.js';
+import './VarRadarChartWidgetOptionsComponent.scss';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 
 @Component({
-    template: require('./VarLineChartWidgetOptionsComponent.pug'),
+    template: require('./VarRadarChartWidgetOptionsComponent.pug'),
     components: {
-        Chartjsscaleoptionscomponent: ChartJsScaleOptionsComponent,
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
         Widgetfilteroptionscomponent: WidgetFilterOptionsComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
-export default class VarLineChartWidgetOptionsComponent extends VueComponentBase {
+export default class VarRadarChartWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -41,7 +38,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
 
-    private next_update_options: VarLineChartWidgetOptionsVO = null;
+    private next_update_options: VarRadarChartWidgetOptionsVO = null;
     private throttled_reload_options = ThrottleHelper.declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_colors = ThrottleHelper.declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
@@ -77,38 +74,24 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     private max_dimension_values: string = null;
     private border_width_1: string = null;
 
-    private scale_x_color?: string = null;
-    private scale_y_color?: string = null;
-
-    private scale_options_x_1?: Partial<Scale> = null;
-    private scale_options_y_1?: Partial<Scale> = null;
-    private scale_options_r_1?: Partial<Scale> = null;
-
     private border_width_2: string = null;
 
     private tmp_selected_legend_position: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
 
-    private widget_options: VarLineChartWidgetOptionsVO = null;
+    private widget_options: VarRadarChartWidgetOptionsVO = null;
 
-    private dimension_custom_filter_segment_types:  { [index: number]: string } = 
-        { [TimeSegment.TYPE_YEAR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-        [TimeSegment.TYPE_MONTH] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        [TimeSegment.TYPE_DAY] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-        [TimeSegment.TYPE_HOUR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-        [TimeSegment.TYPE_MINUTE] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        [TimeSegment.TYPE_SECOND] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)};
+    private dimension_custom_filter_segment_types: { [index: number]: string } =
+        {
+            [TimeSegment.TYPE_YEAR]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+            [TimeSegment.TYPE_MONTH]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+            [TimeSegment.TYPE_DAY]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+            [TimeSegment.TYPE_HOUR]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+            [TimeSegment.TYPE_MINUTE]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+            [TimeSegment.TYPE_SECOND]: this.label('VarRadarChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
+        };
 
 
-    private scale_types_options: string[] = [
-        'linear',
-        'logarithmic',
-        'category',
-        'time',
-        'radialLinear'
-    ];
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
 
     private legend_positions: string[] = [
@@ -119,7 +102,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     ];
 
     get dimension_vo_field_ref(): VOFieldRefVO {
-        let options: VarLineChartWidgetOptionsVO = this.widget_options;
+        let options: VarRadarChartWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.dimension_vo_field_ref)) {
             return null;
@@ -162,7 +145,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     }
 
     get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
-        let options: VarLineChartWidgetOptionsVO = this.widget_options;
+        let options: VarRadarChartWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
             return null;
@@ -204,8 +187,8 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         await this.throttled_update_options();
     }
 
-    private get_default_options(): VarLineChartWidgetOptionsVO {
-        return VarLineChartWidgetOptionsVO.createDefault();
+    private get_default_options(): VarRadarChartWidgetOptionsVO {
+        return VarRadarChartWidgetOptionsVO.createDefault();
     }
 
     private async switch_legend_display() {
@@ -245,7 +228,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
     }
 
     private async switch_has_dimension() {
-        if(!this.has_dimension){
+        if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
         // this.next_update_options = this.widget_options;
@@ -336,64 +319,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
 
         await this.throttled_update_options();
-    }
-
-    private handle_scale_x_color_change(color: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_x_color = color;
-        this.throttled_update_colors();
-    }
-
-    private handle_scale_y_color_change(color: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_y_color = color;
-        this.throttled_update_colors();
-    }
-
-
-    private handle_scale_x_axis_options_1_change(options: Partial<Scale>) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_options_x_1 = options;
-        this.next_update_options.scale_options_x_1 = this.scale_options_x_1;
-
-        this.throttled_update_options();
-    }
-
-    private handle_scale_y_axis_options_1_change(options: Partial<Scale>) {
-        this.scale_options_y_1 = options;
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_options_y_1 = options;
-        this.next_update_options.scale_options_y_1 = this.scale_options_y_1;
-
-        this.throttled_update_options();
     }
 
     get fields_that_could_get_custom_filter_1(): string[] {
@@ -515,10 +440,10 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.widget_options = null;
         } else {
 
-            let options: VarLineChartWidgetOptionsVO = null;
+            let options: VarRadarChartWidgetOptionsVO = null;
             try {
                 if (!!this.page_widget.json_options) {
-                    options = JSON.parse(this.page_widget.json_options) as VarLineChartWidgetOptionsVO;
+                    options = JSON.parse(this.page_widget.json_options) as VarRadarChartWidgetOptionsVO;
                     if (this.widget_options &&
                         (this.widget_options.var_id_1 == options.var_id_1) &&
                         (this.widget_options.var_id_2 == options.var_id_2) &&
@@ -542,8 +467,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
                         (this.widget_options.title_display == options.title_display) &&
                         (this.widget_options.title_font_size == options.title_font_size) &&
                         (this.widget_options.title_padding == options.title_padding) &&
-                        (this.widget_options.scale_x_color == options.scale_x_color) &&
-                        (this.widget_options.scale_y_color == options.scale_y_color) &&
                         (this.widget_options.has_dimension == options.has_dimension) &&
                         (this.widget_options.max_dimension_values == options.max_dimension_values) &&
                         (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
@@ -562,7 +485,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
                         options = null;
                     }
 
-                    options = options ? new VarLineChartWidgetOptionsVO().from(options) : null;
+                    options = options ? new VarRadarChartWidgetOptionsVO().from(options) : null;
                 }
             } catch (error) {
                 ConsoleHandler.error(error);
@@ -613,8 +536,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
             this.border_color_2 = null;
             this.border_width_2 = null;
             this.max_is_sum_of_var_1_and_2 = false;
-            this.scale_x_color = "#666";
-            this.scale_y_color = "#666";
 
             return;
         }
@@ -693,13 +614,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
-
-        if (this.scale_x_color != this.widget_options.scale_x_color) {
-            this.scale_x_color = this.widget_options.scale_x_color;
-        }
-        if (this.scale_y_color != this.widget_options.scale_y_color) {
-            this.scale_y_color = this.widget_options.scale_y_color;
-        }
         if (this.bg_color_1 != this.widget_options.bg_color_1) {
             this.bg_color_1 = this.widget_options.bg_color_1;
         }
@@ -721,12 +635,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         if (this.title_font_color != this.widget_options.title_font_color) {
             this.title_font_color = this.widget_options.title_font_color;
         }
-        if (this.scale_options_x_1 != this.widget_options.scale_options_x_1) {
-            this.scale_options_x_1 = this.widget_options.scale_options_x_1;
-        }
-        if (this.scale_options_y_1 != this.widget_options.scale_options_y_1) {
-            this.scale_options_y_1 = this.widget_options.scale_options_y_1;
-        }
         if (this.next_update_options != this.widget_options) {
             this.next_update_options = this.widget_options;
         }
@@ -734,7 +642,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
 
     private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
-            for(const key in Object.keys(this.dimension_custom_filter_segment_types)){
+            for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
                 if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
                     const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
                     return res >= 0 ? res : null;
@@ -893,7 +801,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         try {
 
             if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
-                if(parseInt(this.legend_font_size)<=100){
+                if (parseInt(this.legend_font_size) <= 100) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
                 }
@@ -922,7 +830,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         try {
 
             if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
-                if(parseInt(this.legend_box_width)<=400){
+                if (parseInt(this.legend_box_width) <= 400) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
                 }
@@ -979,7 +887,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         try {
 
             if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
-                if(parseInt(this.title_font_size)<=100){
+                if (parseInt(this.title_font_size) <= 100) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.title_font_size = parseInt(this.title_font_size);
                 }
@@ -1018,7 +926,7 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         }
     }
 
-    
+
     @Watch('border_width_1')
     private async onchange_border_width_1() {
         if (!this.widget_options) {
@@ -1093,14 +1001,14 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         try {
 
             if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
-                if(this.widget_options.dimension_is_vo_field_ref) {
-                    if(parseInt(this.max_dimension_values) >= 0){
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dimension_values) >= 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     }
                     await this.throttled_update_options();
                 } else {
-                    if(parseInt(this.max_dimension_values) > 0){
+                    if (parseInt(this.max_dimension_values) > 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     } else {
@@ -1130,8 +1038,6 @@ export default class VarLineChartWidgetOptionsComponent extends VueComponentBase
         this.next_update_options.bg_color = this.bg_color;
         this.next_update_options.legend_font_color = this.legend_font_color;
         this.next_update_options.title_font_color = this.title_font_color;
-        this.next_update_options.scale_x_color = this.scale_x_color;
-        this.next_update_options.scale_y_color = this.scale_y_color;
         await this.throttled_update_options();
     }
 

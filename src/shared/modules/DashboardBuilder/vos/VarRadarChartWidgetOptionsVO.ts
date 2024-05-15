@@ -3,21 +3,20 @@ import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
-import { Scale } from "chart.js";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 /**
- * Line chart widget options
- *  - To be able to configure a line chart widget
+ * Radar chart widget options
+ *  - To be able to configure a radar chart widget
  *  - We may configure 2 vars with the same dimension
  */
-export default class VarLineChartWidgetOptionsVO extends AbstractVO {
+export default class VarRadarChartWidgetOptionsVO extends AbstractVO {
 
-    public static TITLE_CODE_PREFIX: string = "VarLineChartWidgetOptions.title.";
+    public static TITLE_CODE_PREFIX: string = "VarRadarChartWidgetOptions.title.";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         if (page_widget.json_options) {
-            let options = JSON.parse(page_widget.json_options) as VarLineChartWidgetOptionsVO;
+            let options = JSON.parse(page_widget.json_options) as VarRadarChartWidgetOptionsVO;
 
             if (options && options.has_dimension && options.dimension_is_vo_field_ref && options.dimension_vo_field_ref) {
                 return {
@@ -31,7 +30,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
     }
 
     public static createDefault() {
-        return new VarLineChartWidgetOptionsVO(
+        return new VarRadarChartWidgetOptionsVO(
 
             /**
              * Paramètres du widget
@@ -85,14 +84,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
 
             {},
 
-            null,
-            null,
-            null,
-
-            // Scale options
-            '#666',
-            null,
-            '#666',
+            "#ff1a1a",
             null,
             null,
 
@@ -135,7 +127,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         public title_font_size?: number,
         public title_padding?: number,
 
-        // --- Specify the field tu customize the LineChart ---
+        // --- Specify the field tu customize the RadarChart ---
 
         public has_dimension?: boolean,
         public max_dimension_values?: number, // Permet de limiter le nombre de vars affichées (par défaut 10)
@@ -167,13 +159,6 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         public bg_color_1?: string,
         public border_color_1?: string,
         public border_width_1?: number,
-        public scale_x_color?: string,
-        public scale_options_x_1?: Partial<Scale>,
-
-        public scale_y_color?: string,
-        public scale_options_y_1?: Partial<Scale>,
-        public scale_options_r_1?: Partial<Scale>,
-
         /**
          * Var 2 si pas de dimension
          */
@@ -196,7 +181,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return VarRadarChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
@@ -205,7 +190,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return VarRadarChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
@@ -215,7 +200,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
-                VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
+                VarRadarChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
                 DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
@@ -226,7 +211,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             if (placeholder_name_code_text_var_id_1) {
 
                 res[placeholder_name_code_text_var_id_1] =
-                    VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
+                    VarRadarChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                     '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_1 + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
@@ -240,7 +225,7 @@ export default class VarLineChartWidgetOptionsVO extends AbstractVO {
             if (placeholder_name_code_text_var_id_2) {
 
                 res[placeholder_name_code_text_var_id_2] =
-                    VarLineChartWidgetOptionsVO.TITLE_CODE_PREFIX +
+                    VarRadarChartWidgetOptionsVO.TITLE_CODE_PREFIX +
                     '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id_2 + '}}' +
                     '.' +
                     '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +

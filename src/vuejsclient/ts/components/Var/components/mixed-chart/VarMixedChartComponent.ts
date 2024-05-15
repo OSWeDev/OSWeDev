@@ -183,7 +183,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 if (!res[chart_key]) {
                     res[chart_key] = {};
                 }
-                if(var_param.index == null) {
+                if (var_param.index == null) {
                     res[chart_key][var_param.id] = new VarDataValueResVO().set_value(0);
                 } else {
                     res[chart_key][var_param.id] = VarsClientController.cached_var_datas[var_param.index];
@@ -205,7 +205,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         for (const chart_id in this.charts_var_params) {
 
             const data: IChartDataset = this.get_chart_dataset_by_chart_id(chart_id);
-            if(data != null) {
+            if (data != null) {
                 datasets[chart_id] = data;
             }
         }
@@ -263,7 +263,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             }
         }
 
-        if(chart_var_dataset_descriptor && chart_var_dataset_descriptor.type){
+        if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.type) {
             return {
                 label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
                     this.t(chart_var_dataset_descriptor.label_translatable_code) :
@@ -275,7 +275,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 data: data,
             };
         } else {
-            return 
+            return
         }
 
     }
@@ -422,6 +422,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return null;
         }
 
+        let numdatasets = this.datasets[0].data.map((value) => Number(value));;
+        this.charts_options.scales.y["suggestedMax"] = Math.max(...numdatasets) * 1.2;
         return {
             labels: this.labels, // Abscisses
             datasets: this.datasets // Ordonnées (charts datasets definition)
@@ -448,7 +450,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                     labels: false,
                 },
 
-                onClick: (point, event) => {
+                onClick: (point: any, event: any) => {
                     if (!self.isDescMode) {
                         return;
                     }
@@ -547,7 +549,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const i in chart_var_params) {
                 const var_param: VarDataBaseVO = chart_var_params[i];
 
-                if(this.getlabel && this.getlabel(var_param)) {
+                if (this.getlabel && this.getlabel(var_param)) {
                     res.push(this.getlabel(var_param))
                 } else {
                     res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)))
