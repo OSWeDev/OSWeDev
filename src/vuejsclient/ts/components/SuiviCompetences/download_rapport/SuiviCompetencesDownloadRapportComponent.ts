@@ -3,9 +3,15 @@ import TableColumnDescVO from '../../../../../shared/modules/DashboardBuilder/vo
 import VueComponentBase from '../../VueComponentBase';
 import SuiviCompetencesWidgetController from '../../dashboard_builder/widgets/suivi_competences_widget/SuiviCompetencesWidgetController';
 import "./SuiviCompetencesDownloadRapportComponent.scss";
+import SuiviCompetencesWidgetContainerComponent from '../../dashboard_builder/widgets/suivi_competences_widget/container/SuiviCompetencesWidgetContainerComponent';
+import SuiviCompetencesRapportVO from '../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
-    template: require('./SuiviCompetencesDownloadRapportComponent.pug')
+    template: require('./SuiviCompetencesDownloadRapportComponent.pug'),
+    components: {
+        Suivicompetenceswidgetcontainer: SuiviCompetencesWidgetContainerComponent,
+    }
 })
 export default class SuiviCompetencesDownloadRapportComponent extends VueComponentBase {
 
@@ -16,6 +22,7 @@ export default class SuiviCompetencesDownloadRapportComponent extends VueCompone
     private columns: TableColumnDescVO[];
 
     private is_downloading: boolean = false;
+    private selected_rapport: SuiviCompetencesRapportVO = null;
 
     private async download_rapport() {
         if (this.is_downloading) {
@@ -25,7 +32,10 @@ export default class SuiviCompetencesDownloadRapportComponent extends VueCompone
         this.is_downloading = true;
 
         this.$snotify.async(this.label('generate_pdf.en_cours'), () => new Promise(async (resolve, reject) => {
-            await SuiviCompetencesWidgetController.download_rapport_pdf(parseInt(this.vo.__crud_actions));
+            this.selected_rapport = await query(SuiviCompetencesRapportVO.API_TYPE_ID).filter_by_id(parseInt(this.vo.__crud_actions)).select_vo<SuiviCompetencesRapportVO>();
+            await SuiviCompetencesWidgetController.download_rapport_pdf(
+                this.selected_rapport.id
+            );
 
             this.is_downloading = false;
 

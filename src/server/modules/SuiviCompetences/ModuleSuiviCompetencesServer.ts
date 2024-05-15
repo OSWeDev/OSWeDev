@@ -27,12 +27,14 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DefaultTranslationsServerManager from '../Translation/DefaultTranslationsServerManager';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SuiviCompetencesRapportExportHandler from './exports/SuiviCompetencesRapportExportHandler';
 import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteGroupeController';
@@ -94,6 +96,9 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(SuiviCompetencesItemVO.API_TYPE_ID, this, this.handleSuiviCompetencesItemUpdate);
         preUpdateTrigger.registerHandler(SuiviCompetencesRapportVO.API_TYPE_ID, this, this.handleSuiviCompetencesRapportUpdate);
+
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(SuiviCompetencesGrilleVO.API_TYPE_ID, this, this.onCreateSuiviCompetencesGrilleVO);
 
         await this.configure_vars();
 
@@ -175,6 +180,36 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         }
 
         return this.handleSuiviCompetencesRapportCreation(vo_update_handler.post_update_vo);
+    }
+
+    private async onCreateSuiviCompetencesGrilleVO(vo: SuiviCompetencesGrilleVO): Promise<void> {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Points clés'
+        }, 'suivi_competences_widget_component.points_cles.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Objectif de la prochaine visite'
+        }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'KPI'
+        }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Maturité'
+        }, 'suivi_competences_widget_component.indicateur.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Détails'
+        }, 'suivi_competences_widget_component.indicateur_detail.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": "Commentaire"
+        }, 'suivi_competences_widget_component.commentaires.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": "Plan d'action"
+        }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }
 
     private async get_all_suivi_competences_groupe(grille_id_ranges: NumRange[]): Promise<SuiviCompetencesGroupeResult[]> {
@@ -396,5 +431,8 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'Télécharger'
         }, 'suivi_competences_download_rapport.download.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Composant téléchargement rapport PDF'
+        }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_comp_rapport___suivi_competences_download_rapport.___LABEL___'));
     }
 }
