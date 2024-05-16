@@ -89,6 +89,9 @@ export default class EnvParam implements IEnvParam {
     public debug_exports?: boolean = false;
     public debug_throttled_select?: boolean = false;
     public debug_promise_pipeline?: boolean = false;
+
+    public debug_throttle_uid?: boolean = false;
+
     /**
      * Activate this to debug the promise pipeline nb_running_promises stat each second
      */
@@ -120,4 +123,5 @@ export default class EnvParam implements IEnvParam {
     public teams_webhook__message_max_size_auto_summarize?: boolean = false;
 
     public express_secret: string = null;
+    public logo_path?: string = null;
 }

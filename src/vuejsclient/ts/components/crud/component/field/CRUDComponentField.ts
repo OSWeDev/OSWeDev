@@ -54,6 +54,8 @@ import './CRUDComponentField.scss';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 const debounce = require('lodash/debounce');
+import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 
 @Component({
     template: require('./CRUDComponentField.pug'),
@@ -68,7 +70,9 @@ const debounce = require('lodash/debounce');
         Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
-    },
+        Crudupdateformcomponent: CRUDUpdateFormComponent,
+        Crudcreateformcomponent: CRUDCreateFormComponent,
+    }
 })
 export default class CRUDComponentField extends VueComponentBase
     implements ICRUDComponentField {
@@ -231,6 +235,9 @@ export default class CRUDComponentField extends VueComponentBase
     private select_options_enabled_by_id: { [id: number]: number } = {};
 
     private is_readonly: boolean = false;
+    private show_inline_form_in_crud: boolean = false;
+    private show_inline_form_in_crud_is_create: boolean = false;
+    private vo_of_field_value: IDistantVOBase = null;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 30);
     private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
@@ -239,9 +246,163 @@ export default class CRUDComponentField extends VueComponentBase
 
     private debounced_validate_inline_input_auto = null;
 
+    get targetModuleTable_count(): number {
+        const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
+            return ObjectHandler.arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
+        }
+
+        return null;
+    }
+
+    get field_value_length(): number {
+        return this.field_value ? this.field_value.length : 0;
+    }
+
+    get is_custom_field_type(): boolean {
+        return !!this.custom_field_types[this.field_type];
+    }
+
+    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
+        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
+    }
+
+    get field_type(): string {
+        if (this.field.type == 'Simple') {
+            return (this.field as SimpleDatatableFieldVO<any, any>).field_type;
+        }
+
+        return this.field.type;
+    }
+
+    get random_number(): number {
+        return Math.floor(Math.random() * 1000);
+    }
+
+    get show_mandatory_star(): boolean {
+        return this.field.is_required && (this.field_type != 'boolean');
+    }
+
+    get hide_inline_controls(): boolean {
+        return this.field.is_required && (this.field_type == 'boolean');
+    }
+
+    get placeholder_string(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
+    }
+
+    get needs_options(): boolean {
+        const simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
+        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
+            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum));
+    }
+
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
+
+    get alert_path(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.alert_path;
+    }
+
+    get is_segmented_day_tsrange_array() {
+        const field = (this.field as SimpleDatatableFieldVO<any, any>);
+        if ((!!field) && (!!field.moduleTableField)) {
+            return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        }
+    }
+
+    get input_elt_id() {
+
+        if (this.vo && this.vo.id) {
+            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
+        }
+        if (this.vo) {
+            return this.vo._type + '.' + this.field.datatable_field_uid;
+        }
+        if (this.field && this.field.vo_type_id) {
+            return this.field.vo_type_id + '.' + this.field.datatable_field_uid;
+        }
+
+        return this.field.datatable_field_uid;
+    }
+
+    /**
+     * Fonction liée au param option
+     * Vérifie si l'option concerne le composant des tsrange
+     * Si oui, transmet la chaîne de caractères complète
+     * Sinon, ne transmet rien (option_ts_range = null)
+     */
+    get option_ts_range(): string {
+        if (!this.option) {
+            return null;
+        }
+        const option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 2 || option_arr[0] !== 'tsrange') {
+            return null;
+        }
+        return this.option;
+    }
+
+    get filtered_value() {
+
+        if (this.field_value == null) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return this.field_value;
+        }
+
+        let params = [this.field_value];
+
+        if (this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
+    }
+
+    get is_auto_validating() {
+        return this.auto_validate_inline_input && !!this.auto_validate_start;
+    }
+
+    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
+    // @Watch('field_select_options_enabled')
+    @Watch('field', { immediate: true })
+    @Watch('vo', { deep: true })
+    @Watch('datatable')
+    @Watch('default_field_data')
+    @Watch('targetModuleTable_count')
+    public async on_reload_field_value() {
+        this.debounced_reload_field_value();
+    }
+
     @Watch('auto_validate_inline_input_delay_sec', { immediate: true })
     public onchange_auto_validate_inline_input_delay_sec() {
         this.debounced_validate_inline_input_auto = debounce(this.validate_inline_input, this.auto_validate_inline_input_delay_sec * 1000);
+    }
+
+    @Watch('inline_input_read_value', { immediate: true })
+    private onchange_inline_input_read_value() {
+        if ((!this.inline_input_mode) || (!this.field)) {
+            return;
+        }
+        const tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+        if (this.field_value != tmp) {
+            this.field_value = tmp;
+        }
     }
 
     public async mounted() {
@@ -334,28 +495,6 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.debounced_onchangevo_emitter();
-    }
-
-    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
-    // @Watch('field_select_options_enabled')
-    @Watch('field', { immediate: true })
-    @Watch('vo', { deep: true })
-    @Watch('datatable')
-    @Watch('default_field_data')
-    @Watch('targetModuleTable_count')
-    public async on_reload_field_value() {
-        this.debounced_reload_field_value();
-    }
-
-    @Watch('inline_input_read_value', { immediate: true })
-    private onchange_inline_input_read_value() {
-        if ((!this.inline_input_mode) || (!this.field)) {
-            return;
-        }
-        const tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
-        if (this.field_value != tmp) {
-            this.field_value = tmp;
-        }
     }
 
     private async reload_field_value() {
@@ -539,7 +678,6 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateInput(input: any, wait_endofchange: boolean = false) {
-
         if (this.inline_input_mode) {
             await this.prepare_auto_validate(false, null, wait_endofchange);
             return;
@@ -574,11 +712,6 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateEndOfInput(input: any, force_save: boolean = false) {
-
-        //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
-        // if (!this.inline_input_mode) {
-        //     return;
-        // }
         let is_input_html_null = false;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_html)) {
@@ -1227,6 +1360,11 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+
+        // Si on est en affichage du formulaire inline, on met à jour le vo
+        if (this.show_inline_form_in_crud) {
+            this.set_show_inline_form_in_crud(this.show_inline_form_in_crud_is_create);
+        }
     }
 
     private async inputValue(value: any) {
@@ -1624,29 +1762,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.inline_input_is_editing = false;
     }
 
-    get filtered_value() {
-
-        if (this.field_value == null) {
-            return null;
-        }
-
-        if (!this.filter) {
-            return this.field_value;
-        }
-
-        let params = [this.field_value];
-
-        if (this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
-        }
-
-        return this.filter.apply(null, params);
-    }
-
-    get is_auto_validating() {
-        return this.auto_validate_inline_input && !!this.auto_validate_start;
-    }
-
     private update_input_field_value_from_vo_field_value() {
         let field_value: any = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
 
@@ -1715,107 +1830,6 @@ export default class CRUDComponentField extends VueComponentBase
         return '/admin#' + this.getCRUDUpdateLink(api_type_id, vo_id);
     }
 
-    get targetModuleTable_count(): number {
-        const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
-            return ObjectHandler.arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
-        }
-
-        return null;
-    }
-
-    get field_value_length(): number {
-        return this.field_value ? this.field_value.length : 0;
-    }
-
-    get is_custom_field_type(): boolean {
-        return !!this.custom_field_types[this.field_type];
-    }
-
-    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
-        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
-    }
-
-    get field_type(): string {
-        if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).field_type;
-        }
-
-        return this.field.type;
-    }
-
-    get random_number(): number {
-        return Math.floor(Math.random() * 1000);
-    }
-
-    get show_mandatory_star(): boolean {
-        return this.field.is_required && (this.field_type != 'boolean');
-    }
-
-    get hide_inline_controls(): boolean {
-        return this.field.is_required && (this.field_type == 'boolean');
-    }
-
-    get needs_options(): boolean {
-        const simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
-        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
-            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
-            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum));
-    }
-
-    get hourrange_input_component() {
-        return HourrangeInputComponent;
-    }
-
-    get alert_path(): string {
-        if (!this.field) {
-            return null;
-        }
-
-        return this.field.alert_path;
-    }
-
-    get is_segmented_day_tsrange_array() {
-        const field = (this.field as SimpleDatatableFieldVO<any, any>);
-        if ((!!field) && (!!field.moduleTableField)) {
-            return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
-        }
-    }
-
-    get input_elt_id() {
-
-        if (this.vo && this.vo.id) {
-            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
-        }
-        if (this.vo) {
-            return this.vo._type + '.' + this.field.datatable_field_uid;
-        }
-        if (this.field && this.field.vo_type_id) {
-            return this.field.vo_type_id + '.' + this.field.datatable_field_uid;
-        }
-
-        return this.field.datatable_field_uid;
-    }
-
-    /**
-     * Fonction liée au param option
-     * Vérifie si l'option concerne le composant des tsrange
-     * Si oui, transmet la chaîne de caractères complète
-     * Sinon, ne transmet rien (option_ts_range = null)
-     */
-    get option_ts_range(): string {
-        if (!this.option) {
-            return null;
-        }
-        const option_arr: string[] = this.option.split('_');
-        if (option_arr.length < 2 || option_arr[0] !== 'tsrange') {
-            return null;
-        }
-        return this.option;
-    }
-
     private get_check_field_options_enabled(field: DatatableField<any, any>): { [id: number]: number } {
         let res: { [id: number]: number } = {};
 
@@ -1853,14 +1867,6 @@ export default class CRUDComponentField extends VueComponentBase
         return res;
     }
 
-    get placeholder_string(): string {
-        if (!this.field) {
-            return null;
-        }
-
-        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
-    }
-
     private async prepare_auto_validate(force_live_validation: boolean = false, event: any = null, wait_endofchange: boolean = false) {
         this.update_vo_field_value_from_input_field_value();
 
@@ -1889,5 +1895,47 @@ export default class CRUDComponentField extends VueComponentBase
                 await this.validate_inline_input(event);
             }
         }
+    }
+
+    private set_show_inline_form_in_crud(to_create: boolean) {
+        if ((this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)
+        ) {
+            if (!(this.field as ReferenceDatatableField<any>).targetModuleTable) {
+                return;
+            }
+
+            if (to_create) {
+                if (!(this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor) {
+                    return;
+                }
+
+                this.vo_of_field_value = (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor();
+            } else {
+                if (!this.field_value) {
+                    return;
+                }
+
+                this.vo_of_field_value = this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type][this.field_value];
+            }
+        }
+
+        this.show_inline_form_in_crud_is_create = to_create;
+        this.show_inline_form_in_crud = true;
+    }
+
+    private close_inline_form_in_crud() {
+        this.show_inline_form_in_crud = false;
+    }
+
+    private async create_inline_form_in_crud(vo: IDistantVOBase) {
+        this.field_value = vo.id;
+        await this.onChangeField();
+    }
+
+    private async update_inline_form_in_crud(vo: IDistantVOBase) {
+        await this.onChangeField();
     }
 }

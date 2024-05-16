@@ -345,22 +345,13 @@ export default class ModuleGPT extends Module {
         const current_oselia_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia en cours de run', false);
         const current_oselia_prompt_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt Osélia en cours de réponse', false);
 
-        const fields = [
-            user_id,
-            label,
-            current_default_assistant_id,
-            ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false),
-            current_oselia_assistant_id,
-            current_oselia_prompt_id
-        ];
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false);
 
-        const table = ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
+        ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 
         user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         current_default_assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         current_oselia_assistant_id.set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
-
-
 
         current_oselia_prompt_id.set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
     }

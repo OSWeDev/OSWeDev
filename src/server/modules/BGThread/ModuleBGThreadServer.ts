@@ -41,16 +41,10 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public static DEFAULT_MAX_timeout: number = 30000;
     public static DEFAULT_MIN_timeout: number = 300;
 
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleBGThreadServer.instance) {
-            ModuleBGThreadServer.instance = new ModuleBGThreadServer();
-        }
-        return ModuleBGThreadServer.instance;
-    }
-
     private static instance: ModuleBGThreadServer = null;
+
+    private static TASK_NAME_write_heap_snapshot_on_all_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_all_thread';
+    private static TASK_NAME_write_heap_snapshot_on_this_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_this_thread';
 
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
@@ -59,6 +53,14 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleBGThread.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleBGThreadServer.instance) {
+            ModuleBGThreadServer.instance = new ModuleBGThreadServer();
+        }
+        return ModuleBGThreadServer.instance;
     }
 
     /**
@@ -84,6 +86,27 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+    }
+
+    public async configure() {
+        ForkedTasksController.register_task(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread, this.write_heap_snapshot_on_this_thread.bind(this));
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_all_thread] =
+            ModuleBGThreadServer.getInstance().write_heap_snapshot_on_all_threads;
+    }
+
+    public async write_heap_snapshot_on_all_threads() {
+        await ForkedTasksController.broadexec_with_valid_promise_for_await(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread);
+    }
+
+    public async write_heap_snapshot_on_this_thread() {
+
+        if (global.gc) {
+            global.gc();
+        } else {
+            ConsoleHandler.warn('Garbage collection unavailable.  Pass --expose-gc '
+                + 'when launching node to enable forced garbage collection.');
+        }
+        require('v8').writeHeapSnapshot();
     }
 
     /**

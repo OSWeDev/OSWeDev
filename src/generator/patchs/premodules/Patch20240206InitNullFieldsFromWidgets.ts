@@ -22,7 +22,16 @@ export default class Patch20240206InitNullFieldsFromWidgets implements IGenerato
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await db.query("update ref.module_dashboardbuilder_dashboard_widget set is_filter = false where is_filter is null;");
-        await db.query("update ref.module_dashboardbuilder_dashboard_widget set is_validation_filters = false where is_validation_filters is null;");
+        try {
+            await db.query("update ref.module_dashboardbuilder_dashboard_widget set is_filter = false where is_filter is null;");
+        } catch (error) {
+            console.error(error);
+        }
+
+        try {
+            await db.query("update ref.module_dashboardbuilder_dashboard_widget set is_validation_filters = false where is_validation_filters is null;");
+        } catch (error) {
+            console.error(error);
+        }
     }
 }

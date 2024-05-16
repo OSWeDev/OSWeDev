@@ -27,15 +27,6 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 export default class ModuleParamsServer extends ModuleServerBase {
 
     public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleParamsServer.instance) {
-            ModuleParamsServer.instance = new ModuleParamsServer();
-        }
-        return ModuleParamsServer.instance;
-    }
-
     private static instance: ModuleParamsServer = null;
 
     private throttled_param_cache_value: { [param_name: string]: any } = {};
@@ -47,6 +38,14 @@ export default class ModuleParamsServer extends ModuleServerBase {
         super(ModuleParams.getInstance().name);
 
         ForkedTasksController.register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, this.delete_params_cache.bind(this));
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleParamsServer.instance) {
+            ModuleParamsServer.instance = new ModuleParamsServer();
+        }
+        return ModuleParamsServer.instance;
     }
 
     // istanbul ignore next: cannot test configure

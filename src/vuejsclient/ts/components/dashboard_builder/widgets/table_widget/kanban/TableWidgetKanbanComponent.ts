@@ -15,6 +15,7 @@ import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/Sort
 import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
 import CRUD from '../../../../../../../shared/modules/DAO/vos/CRUD';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
@@ -70,7 +71,6 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import './TableWidgetKanbanComponent.scss';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
-import ModuleTableFieldController from '../../../../../../../shared/modules/DAO/ModuleTableFieldController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -207,7 +207,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             const datatable_field_uid = this.sorted_link_datatable_field_uids[i];
 
             if (row[datatable_field_uid]) {
-                res.push(this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+                res.push(this.columns_by_field_id[datatable_field_uid].custom_label ?? this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
             }
         }
         return res;
@@ -872,6 +872,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 case ModuleTableFieldVO.FIELD_TYPE_email:
                 case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_color:
                     if (!filtered_value) {
                         filtering_by_active_field_filter.has_null();
                     } else {
@@ -1004,6 +1005,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 case ModuleTableFieldVO.FIELD_TYPE_textarea:
                 case ModuleTableFieldVO.FIELD_TYPE_email:
                 case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_color:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
                         return row[column.datatable_field_uid] == null;
                     }
@@ -1539,7 +1541,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             switch (column.type) {
                 case TableColumnDescVO.TYPE_component:
-                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                    res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
                     const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -1597,7 +1599,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
         //     switch (column.type) {
         //         case TableColumnDescVO.TYPE_component:
-        //             res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+        //             res[column.id] = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
         //             break;
         //         case TableColumnDescVO.TYPE_var_ref:
         //             let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -1663,7 +1665,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let res: DatatableField<any, any>;
         switch (column.type) {
             case TableColumnDescVO.TYPE_component:
-                res = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                res = TableWidgetController.components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
             case TableColumnDescVO.TYPE_var_ref:
                 const var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -2089,6 +2091,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                         switch (this.kanban_column_field.field_type) {
                             case ModuleTableFieldVO.FIELD_TYPE_string:
+                            case ModuleTableFieldVO.FIELD_TYPE_color:
 
                                 rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
                                     cloned_query.filter_by_text_eq(this.kanban_column.field_id, kanban_column_value, this.kanban_column.api_type_id),
@@ -2485,10 +2488,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     const child = column.children[key];
-                    res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                    res[child.datatable_field_uid] = child.custom_label ?? this.t(child.get_translatable_name_code_text(this.page_widget.id));
                 }
             } else {
-                res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+                res[column.datatable_field_uid] = column.custom_label ?? this.t(column.get_translatable_name_code_text(this.page_widget.id));
             }
         }
 

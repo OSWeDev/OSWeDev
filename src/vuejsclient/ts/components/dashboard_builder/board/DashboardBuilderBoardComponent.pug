@@ -31,8 +31,8 @@
             )
                 template(v-if="dashboard_page.group_filters")
                     .filters-bloc.mt-3
-                        .row.header-filters-bloc.clickable(@click="change_is_filtres_deplie")
-                            .col.text-center.mb-2
+                        .header-filters-bloc.clickable(@click="change_is_filtres_deplie")
+                            .text-center.mb-2
                                 Inlinetranslatabletext(:code_text="dashboard_page.translatable_group_filters_code_text" :is_editable="editable" default_translation="Filtres")
                             .text-right.chevron
                                 template(v-if="is_filtres_deplie")
@@ -51,9 +51,8 @@
                             template(v-if='!item.hide')
                                 template(v-if='!widgets_by_id[item.widget_id].is_filter')
                                     include ./grid_item.pug
-                
+
                 template(v-else)
                     template(v-for="item in editable_dashboard_page.layout")
                         template(v-if='!item.hide')
                             include ./grid_item.pug
-                        

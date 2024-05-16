@@ -2,6 +2,7 @@ import ConsoleHandler from '../../../tools/ConsoleHandler';
 import { field_names } from '../../../tools/ObjectHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import ContextQueryInjectionCheckHandler from '../../ContextFilter/ContextQueryInjectionCheckHandler';
+import SortByVO from '../../ContextFilter/vos/SortByVO';
 import HourRange from '../../DataRender/vos/HourRange';
 import NumRange from '../../DataRender/vos/NumRange';
 import NumSegment from '../../DataRender/vos/NumSegment';
@@ -49,6 +50,8 @@ export default class ModuleTableVO implements IDistantVOBase {
     public vo_type: string;
     public label: DefaultTranslationVO;
 
+    public sort_by_field: SortByVO;
+
     public default_label_field: ModuleTableFieldVO;
     public importable: boolean;
 
@@ -86,6 +89,7 @@ export default class ModuleTableVO implements IDistantVOBase {
             case ModuleTableFieldVO.FIELD_TYPE_password:
             case ModuleTableFieldVO.FIELD_TYPE_email:
             case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
             case ModuleTableFieldVO.FIELD_TYPE_file_field:
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             case ModuleTableFieldVO.FIELD_TYPE_textarea:

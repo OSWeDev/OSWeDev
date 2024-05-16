@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -13,7 +12,6 @@ import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsT
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
-import VueAppController from '../../../../../../VueAppController';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
@@ -22,6 +20,16 @@ import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsCont
 import TableWidgetController from '../TableWidgetController';
 import './TableWidgetOptionsComponent.scss';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
+import { cloneDeep, isEqual } from 'lodash';
+import VueAppController from '../../../../../../VueAppController';
+import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -79,7 +87,15 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private limit_selectable: string = TableWidgetOptionsVO.DEFAULT_LIMIT_SELECTABLE;
     private tmp_nbpages_pagination_list: number = TableWidgetOptionsVO.DEFAULT_NBPAGES_PAGINATION_LIST;
     private show_bulk_edit: boolean = false;
+    private has_column_dynamic: boolean = false;
     private show_bulk_select_all: boolean = true;
+    private column_dynamic_page_widget_id: number = null;
+    private do_not_use_page_widget_ids: number[] = null;
+    private column_dynamic_component: string = null;
+    private column_dynamic_page_widget: DashboardPageWidgetVO = null;
+    private do_not_use_page_widgets: DashboardPageWidgetVO[] = [];
+    private page_widget_options: DashboardPageWidgetVO[] = [];
+    private tmp_column_dynamic_time_segment: DataFilterOption = null;
 
     private tmp_default_export_option: DataFilterOption = null;
     private export_page_options: DataFilterOption[] = [
@@ -95,35 +111,164 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private use_kanban_by_default_if_exists: boolean = true;
     private use_kanban_column_weight_if_exists: boolean = true;
     private use_kanban_card_archive_if_exists: boolean = true;
-
-    private async switch_use_kanban_card_archive_if_exists() {
-        this.use_kanban_card_archive_if_exists = !this.use_kanban_card_archive_if_exists;
-        this.widget_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
-        await this.update_options();
-    }
-
-    private async switch_use_kanban_column_weight_if_exists() {
-        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
-        this.widget_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
-        await this.update_options();
-    }
-
-    private async switch_use_kanban_by_default_if_exists() {
-        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
-        this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
-        await this.update_options();
-    }
+    private tmp_legende_tableau: string = null;
 
     get crud_api_type_id_select_options(): string[] {
         return this.get_dashboard_api_type_ids;
     }
 
-    private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
+
+    get cb_bulk_actions_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        if (!TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+            return [];
+        }
+
+        const res = TableWidgetController.cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+
+        return res.map((c) => c.translatable_title);
+    }
+
+    get column_dynamic_page_widget_is_type_date(): boolean {
+        if (!this.column_dynamic_page_widget) {
+            return false;
+        }
+
+        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
+
+        if (!options?.vo_field_ref) {
+            return false;
+        }
+
+        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
+    }
+
+    get segmentation_type_options(): DataFilterOption[] {
+        let res: DataFilterOption[] = [];
+
+        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            let new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            res.push(new_opt);
+        }
+
+        return res;
+    }
+
+
+    get is_archived_api_type_id(): boolean {
+        if (!this.widget_options?.crud_api_type_id) {
+            return false;
+        }
+
+        return ModuleTableController.module_tables_by_vo_type[this.widget_options.crud_api_type_id].is_archived;
+    }
+
+    get columns(): TableColumnDescVO[] {
+        const options: TableWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.columns)) {
+            this.editable_columns = null;
+            return null;
+        }
+
+        const res: TableColumnDescVO[] = [];
+        for (const i in options.columns) {
+
+            const column = options.columns[i];
+            if (column.readonly == null) {
+                column.readonly = true;
+            }
+            if (column.column_width == null) {
+                column.column_width = 0;
+            }
+            if (column.exportable == null) {
+                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
+            }
+            if (column.hide_from_table == null) {
+                column.hide_from_table = false;
+            }
+            if (column.sortable == null) {
+                column.sortable = true;
+            }
+            if (column.can_filter_by == null) {
+                column.can_filter_by = column.readonly && (
+                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
+                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
+            }
+
+            res.push(Object.assign(new TableColumnDescVO(), column));
+        }
+        WeightHandler.getInstance().sortByWeight(res);
+
+        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
+
+        return res;
+    }
+
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        return 'Table#' + this.page_widget.id;
+    }
+
+    get widget_options(): TableWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: TableWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    get component_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let api_type_id in TableWidgetController.components_by_crud_api_type_id) {
+            for (let i in TableWidgetController.components_by_crud_api_type_id[api_type_id]) {
+                res.push(TableWidgetController.components_by_crud_api_type_id[api_type_id][i].translatable_title);
+            }
+        }
+
+        return res;
     }
 
     @Watch('page_widget', { immediate: true })
-    private onchange_page_widget() {
+    private async onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {
             if (this.crud_api_type_id_selected) {
                 this.crud_api_type_id_selected = null;
@@ -158,7 +303,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.tmp_has_export_maintenance_alert) {
                 this.tmp_has_export_maintenance_alert = false;
             }
-            if (this.tmp_default_export_option) {
+            if (this.tmp_legende_tableau) {
+                this.tmp_legende_tableau = null;
+            }
+            if (!!this.tmp_default_export_option) {
                 this.tmp_default_export_option = null;
             }
             if (!this.refresh_button) {
@@ -170,8 +318,38 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.show_bulk_edit) {
                 this.show_bulk_edit = false;
             }
+            if (!this.has_column_dynamic) {
+                this.has_column_dynamic = false;
+            }
             if (!this.show_bulk_select_all) {
                 this.show_bulk_select_all = true;
+            }
+            if (!this.use_kanban_by_default_if_exists) {
+                this.use_kanban_by_default_if_exists = true;
+            }
+            if (!this.use_kanban_column_weight_if_exists) {
+                this.use_kanban_column_weight_if_exists = true;
+            }
+            if (!this.use_kanban_card_archive_if_exists) {
+                this.use_kanban_card_archive_if_exists = true;
+            }
+            if (!!this.column_dynamic_page_widget_id) {
+                this.column_dynamic_page_widget_id = null;
+            }
+            if (!!this.do_not_use_page_widget_ids) {
+                this.do_not_use_page_widget_ids = null;
+            }
+            if (!!this.column_dynamic_component) {
+                this.column_dynamic_component = null;
+            }
+            if (!!this.column_dynamic_page_widget) {
+                this.column_dynamic_page_widget = null;
+            }
+            if (!!this.do_not_use_page_widgets) {
+                this.do_not_use_page_widgets = [];
+            }
+            if (!!this.tmp_column_dynamic_time_segment) {
+                this.tmp_column_dynamic_time_segment = null;
             }
             this.limit = TableWidgetOptionsVO.DEFAULT_LIMIT.toString();
             this.limit_selectable = TableWidgetOptionsVO.DEFAULT_LIMIT_SELECTABLE;
@@ -229,6 +407,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.tmp_has_export_maintenance_alert != this.widget_options.has_export_maintenance_alert) {
             this.tmp_has_export_maintenance_alert = this.widget_options.has_export_maintenance_alert;
         }
+        if (this.tmp_legende_tableau != this.widget_options.legende_tableau) {
+            this.tmp_legende_tableau = this.widget_options.legende_tableau;
+        }
         if ((this.widget_options.default_export_option != null) && (!this.tmp_default_export_option || (this.tmp_default_export_option.id != this.widget_options.default_export_option))) {
             this.tmp_default_export_option = this.export_page_options.find((e) => e.id == this.widget_options.default_export_option);
         }
@@ -253,8 +434,50 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.show_bulk_edit != this.widget_options.show_bulk_edit) {
             this.show_bulk_edit = this.widget_options.show_bulk_edit;
         }
+        if (this.has_column_dynamic != this.widget_options.has_column_dynamic) {
+            this.has_column_dynamic = this.widget_options.has_column_dynamic;
+        }
         if (this.show_bulk_select_all != this.widget_options.show_bulk_select_all) {
             this.show_bulk_select_all = this.widget_options.show_bulk_select_all;
+        }
+        if (this.use_kanban_by_default_if_exists != this.widget_options.use_kanban_by_default_if_exists) {
+            this.use_kanban_by_default_if_exists = this.widget_options.use_kanban_by_default_if_exists;
+        }
+        if (this.use_kanban_column_weight_if_exists != this.widget_options.use_kanban_column_weight_if_exists) {
+            this.use_kanban_column_weight_if_exists = this.widget_options.use_kanban_column_weight_if_exists;
+        }
+        if (this.use_kanban_card_archive_if_exists != this.widget_options.use_kanban_card_archive_if_exists) {
+            this.use_kanban_card_archive_if_exists = this.widget_options.use_kanban_card_archive_if_exists;
+        }
+        if (this.column_dynamic_page_widget_id != this.widget_options.column_dynamic_page_widget_id) {
+            this.column_dynamic_page_widget_id = this.widget_options.column_dynamic_page_widget_id;
+        }
+        if (this.do_not_use_page_widget_ids != this.widget_options.do_not_use_page_widget_ids) {
+            this.do_not_use_page_widget_ids = this.widget_options.do_not_use_page_widget_ids;
+        }
+        if (this.column_dynamic_component != this.widget_options.column_dynamic_component) {
+            this.column_dynamic_component = this.widget_options.column_dynamic_component;
+        }
+
+        this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
+            .filter_by_num_not_eq(field_names<DashboardPageWidgetVO>().id, this.page_widget.id)
+            .filter_is_true(field_names<DashboardWidgetVO>().is_filter, DashboardWidgetVO.API_TYPE_ID)
+            .select_vos();
+
+        if (this.column_dynamic_page_widget_id) {
+            this.column_dynamic_page_widget = this.page_widget_options.find((page_widget) => {
+                return (page_widget.id == this.column_dynamic_page_widget_id);
+            });
+        }
+        if (this.do_not_use_page_widget_ids?.length) {
+            this.do_not_use_page_widgets = this.page_widget_options.filter((page_widget) => {
+                return this.do_not_use_page_widget_ids.includes(page_widget.id);
+            });
+        }
+
+        if (this.tmp_column_dynamic_time_segment?.id != this.widget_options.column_dynamic_time_segment) {
+            this.tmp_column_dynamic_time_segment = !!this.widget_options.column_dynamic_time_segment ? this.segmentation_type_options.find((e) => e.id == this.widget_options.column_dynamic_time_segment) : null;
         }
 
         this.can_apply_default_field_filters_without_validation = this.widget_options.can_apply_default_field_filters_without_validation ?? true;
@@ -278,6 +501,20 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             await this.throttled_update_options();
         }
     }
+    @Watch('has_column_dynamic')
+    private async onchange_has_column_dynamic() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.has_column_dynamic != this.next_update_options.has_column_dynamic) {
+            this.next_update_options.has_column_dynamic = this.has_column_dynamic;
+
+            await this.throttled_update_options();
+        }
+    }
 
     @Watch('show_bulk_select_all')
     private async onchange_show_bulk_select_all() {
@@ -289,6 +526,65 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.show_bulk_select_all != this.next_update_options.show_bulk_select_all) {
             this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('column_dynamic_page_widget')
+    private async onchange_column_dynamic_page_widget() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.column_dynamic_page_widget?.id != this.next_update_options.column_dynamic_page_widget_id) {
+            this.next_update_options.column_dynamic_page_widget_id = this.column_dynamic_page_widget?.id;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('do_not_use_page_widgets')
+    private async onchange_do_not_use_page_widgets() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.do_not_use_page_widgets?.length != this.next_update_options.do_not_use_page_widget_ids?.length) {
+            this.next_update_options.do_not_use_page_widget_ids = this.do_not_use_page_widgets ? this.do_not_use_page_widgets.map((e) => e.id) : null;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('column_dynamic_component')
+    private async onchange_column_dynamic_component() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.column_dynamic_component != this.next_update_options.column_dynamic_component) {
+            this.next_update_options.column_dynamic_component = this.column_dynamic_component;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('tmp_column_dynamic_time_segment')
+    private async onchange_tmp_column_dynamic_time_segment() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_column_dynamic_time_segment || (this.widget_options.column_dynamic_time_segment != this.tmp_column_dynamic_time_segment.id)) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.column_dynamic_time_segment = this.tmp_column_dynamic_time_segment ? this.tmp_column_dynamic_time_segment.id : null;
 
             await this.throttled_update_options();
         }
@@ -322,62 +618,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
             this.throttled_update_options();
         }
-    }
-
-    @Watch('tmp_default_export_option')
-    private async onchange_tmp_default_export_option() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        this.next_update_options = cloneDeep(this.widget_options);
-
-        if (!this.tmp_default_export_option) {
-            this.next_update_options.default_export_option = null;
-        } else if (this.widget_options.default_export_option != this.tmp_default_export_option.id) {
-            this.next_update_options.default_export_option = this.tmp_default_export_option.id;
-        }
-
-        this.throttled_update_options();
-    }
-
-    @Watch('limit_selectable')
-    private async onchange_limit_selectable() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (this.widget_options.limit_selectable != this.limit_selectable) {
-            this.next_update_options = cloneDeep(this.widget_options);
-            this.next_update_options.limit_selectable = this.limit_selectable;
-
-            this.throttled_update_options();
-        }
-    }
-
-    private filter_visible_label(dfo: DataFilterOption): string {
-        return dfo.label;
-    }
-
-    private get_new_column_id() {
-        if (!this.widget_options) {
-            ConsoleHandler.error('get_new_column_id:failed');
-            return null;
-        }
-
-        if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
-            return 0;
-        }
-
-        const ids = this.widget_options.columns.map((c) => c.id ? c.id : 0);
-        let max = -1;
-        for (const i in ids) {
-            if (max < ids[i]) {
-                max = ids[i];
-            }
-        }
-
-        return max + 1;
     }
 
     @Watch('crud_api_type_id_selected')
@@ -439,6 +679,79 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
             await this.throttled_update_options();
         }
+    }
+
+    @Watch('tmp_default_export_option')
+    private async onchange_tmp_default_export_option() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = cloneDeep(this.widget_options);
+
+        if (!this.tmp_default_export_option) {
+            this.next_update_options.default_export_option = null;
+        } else if (this.widget_options.default_export_option != this.tmp_default_export_option.id) {
+            this.next_update_options.default_export_option = this.tmp_default_export_option.id;
+        }
+
+        this.throttled_update_options();
+    }
+
+    @Watch('tmp_legende_tableau')
+    private async onchange_tmp_legende_tableau() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = cloneDeep(this.widget_options);
+
+        if (!this.tmp_legende_tableau) {
+            this.next_update_options.legende_tableau = null;
+        } else if (this.widget_options.legende_tableau != this.tmp_legende_tableau) {
+            this.next_update_options.legende_tableau = this.tmp_legende_tableau;
+        }
+
+        this.throttled_update_options();
+    }
+
+    @Watch('limit_selectable')
+    private async onchange_limit_selectable() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.limit_selectable != this.limit_selectable) {
+            this.next_update_options = cloneDeep(this.widget_options);
+            this.next_update_options.limit_selectable = this.limit_selectable;
+
+            this.throttled_update_options();
+        }
+    }
+
+    private filter_visible_label(dfo: DataFilterOption): string {
+        return dfo.label;
+    }
+
+    private get_new_column_id() {
+        if (!this.widget_options) {
+            ConsoleHandler.error('get_new_column_id:failed');
+            return null;
+        }
+
+        if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
+            return 0;
+        }
+
+        const ids = this.widget_options.columns.map((c) => c.id ? c.id : 0);
+        let max = -1;
+        for (const i in ids) {
+            if (max < ids[i]) {
+                max = ids[i];
+            }
+        }
+
+        return max + 1;
     }
 
     private async changed_columns() {
@@ -525,8 +838,16 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
         }
         if (typeof (k) != 'undefined') {
+            if (isEqual(this.next_update_options.columns[i].children[k], update_column)) {
+                return;
+            }
+
             this.next_update_options.columns[i].children[k] = update_column;
         } else {
+            if (isEqual(this.next_update_options.columns[i], update_column)) {
+                return;
+            }
+
             this.next_update_options.columns[i] = update_column;
         }
 
@@ -641,48 +962,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.throttled_update_options();
     }
 
-    get columns(): TableColumnDescVO[] {
-        const options: TableWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.columns)) {
-            this.editable_columns = null;
-            return null;
-        }
-
-        const res: TableColumnDescVO[] = [];
-        for (const i in options.columns) {
-
-            const column = options.columns[i];
-            if (column.readonly == null) {
-                column.readonly = true;
-            }
-            if (column.column_width == null) {
-                column.column_width = 0;
-            }
-            if (column.exportable == null) {
-                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
-            }
-            if (column.hide_from_table == null) {
-                column.hide_from_table = false;
-            }
-            if (column.sortable == null) {
-                column.sortable = true;
-            }
-            if (column.can_filter_by == null) {
-                column.can_filter_by = column.readonly && (
-                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
-                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
-            }
-
-            res.push(Object.assign(new TableColumnDescVO(), column));
-        }
-        WeightHandler.getInstance().sortByWeight(res);
-
-        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
-
-        return res;
-    }
-
     private beforeMove({ dragItem, pathFrom, pathTo }) {
         // Si on essaye de faire un 3eme niveau, on refuse
         if (pathTo.length > 2) {
@@ -730,36 +1009,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         const text = translation[label + '.___LABEL___'];
 
         return text;
-    }
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        return 'Table#' + this.page_widget.id;
-    }
-
-    get widget_options(): TableWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: TableWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
-                options = options ? new TableWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
     // @Watch('vocus_button')
@@ -1116,14 +1365,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    get is_archived_api_type_id(): boolean {
-        if (!this.widget_options?.crud_api_type_id) {
-            return false;
-        }
-
-        return ModuleTableController.module_tables_by_vo_type[this.widget_options.crud_api_type_id].is_archived;
-    }
-
     private async switch_show_bulk_edit() {
         this.show_bulk_edit = !this.show_bulk_edit;
 
@@ -1135,6 +1376,20 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.show_bulk_edit != this.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
+            await this.throttled_update_options();
+        }
+    }
+    private async switch_has_column_dynamic() {
+        this.has_column_dynamic = !this.has_column_dynamic;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.has_column_dynamic != this.has_column_dynamic) {
+            this.next_update_options.has_column_dynamic = this.has_column_dynamic;
             await this.throttled_update_options();
         }
     }
@@ -1158,21 +1413,64 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return this.t(cb_bulk_action);
     }
 
-    get cb_bulk_actions_options(): string[] {
-        if ((!this.page_widget) || (!this.widget_options)) {
-            return [];
+    private page_widget_label(p_widget: DashboardPageWidgetVO): string {
+        return "Widget ID: " + p_widget.id.toString();
+    }
+
+    private component_label(translatable_title: string): string {
+        return this.t(translatable_title);
+    }
+
+
+    private async switch_use_kanban_card_archive_if_exists() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        if (!this.widget_options.crud_api_type_id) {
-            return [];
+        this.use_kanban_card_archive_if_exists = !this.use_kanban_card_archive_if_exists;
+
+        if (this.use_kanban_card_archive_if_exists != this.next_update_options.use_kanban_card_archive_if_exists) {
+            this.next_update_options.use_kanban_card_archive_if_exists = this.use_kanban_card_archive_if_exists;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_use_kanban_column_weight_if_exists() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        if (!TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
-            return [];
+        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
+
+        if (this.use_kanban_column_weight_if_exists != this.next_update_options.use_kanban_column_weight_if_exists) {
+            this.next_update_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_use_kanban_by_default_if_exists() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
         }
 
-        const res = TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
 
-        return res.map((c) => c.translatable_title);
+        if (this.use_kanban_by_default_if_exists != this.next_update_options.use_kanban_by_default_if_exists) {
+            this.next_update_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    private crud_api_type_id_select_label(api_type_id: string): string {
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 }

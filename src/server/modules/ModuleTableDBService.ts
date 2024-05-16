@@ -1,3 +1,4 @@
+import UserVO from '../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldController from '../../shared/modules/DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../../shared/modules/DAO/vos/ModuleTableFieldVO';
@@ -7,9 +8,13 @@ import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import StatsController from '../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
+import TextHandler from '../../shared/tools/TextHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import AccessPolicyServerController from './AccessPolicy/AccessPolicyServerController';
+import PasswordInitialisation from './AccessPolicy/PasswordInitialisation/PasswordInitialisation';
+import PasswordInvalidationController from './AccessPolicy/workers/PasswordInvalidation/PasswordInvalidationController';
 import DAOServerController from './DAO/DAOServerController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleTableServerController from './DAO/ModuleTableServerController';
@@ -300,6 +305,7 @@ export default class ModuleTableDBService {
             res = true;
             await this.create_new_datatable(moduleTable, database_name, table_name);
             await this.chec_indexes(moduleTable, database_name, table_name);
+            await this.check_triggers(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
                 await ForkedTasksController.broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
@@ -310,7 +316,85 @@ export default class ModuleTableDBService {
             if (await this.chec_indexes(moduleTable, database_name, table_name)) {
                 res = true;
             }
+
+            if (await this.check_triggers(moduleTable, database_name, table_name)) {
+                res = true;
+            }
         }
+        return res;
+    }
+
+    private async check_triggers(moduleTable: ModuleTableVO, database_name: string, table_name: string): Promise<boolean> {
+
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_triggers', '-');
+
+        let res: boolean = false;
+
+        /**
+         * Pour le moment, les triggers se résument aux mdp pour les crypter
+         *  Et on exclut historiquement le user.password qui est déjà crypté par un patch qui gère la créa de la fonction de cryptage aussi
+         */
+        const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[moduleTable.vo_type];
+
+        for (const i in fields) {
+            const field = fields[i];
+            const this_trigger_name = 'trg_' + database_name + '_' + table_name + '_' + field.field_name;
+
+            if ((moduleTable.vo_type == UserVO.API_TYPE_ID) && (field.field_name == field_names<UserVO>().password)) {
+                continue;
+            }
+
+            /**
+             * On ne doit pas agir sur les tables versionnées (versioned.*, trashed.*, trashed__versioned.*)
+             */
+            if ((database_name == 'versioned') || (database_name == 'trashed') || (database_name == 'trashed__versioned')) {
+                continue;
+            }
+
+            const trigger_sql = field.getPGSqlFieldTrigger(this_trigger_name, database_name, table_name);
+
+            if (!trigger_sql) {
+                continue;
+            }
+
+            let actual_trigger_name_res = null;
+            try {
+                actual_trigger_name_res = await this.db.query(
+                    'select tgname ' +
+                    '  from pg_trigger ' +
+                    '  where tgname = \'' + this_trigger_name + '\';');
+            } catch (error) {
+                ConsoleHandler.error('check_triggers: error on actual_trigger_name_res:' + error);
+            }
+
+            const actual_trigger_name: string = (actual_trigger_name_res && actual_trigger_name_res.length > 0) ? actual_trigger_name_res[0]['tgname'] : null;
+
+            if (!actual_trigger_name) {
+                try {
+                    ConsoleHandler.log('Création du trigger: ' + this_trigger_name);
+
+                    await this.db.none('CREATE FUNCTION ref.' + this_trigger_name + '() ' +
+                        'RETURNS trigger ' +
+                        'LANGUAGE \'plpgsql\' ' +
+                        'COST 100 ' +
+                        'VOLATILE NOT LEAKPROOF ' +
+                        'AS $BODY$ ' +
+                        'BEGIN ' +
+                        'IF tg_op = \'INSERT\' OR new.' + field.field_name + ' <> old.' + field.field_name + ' ' +
+                        'THEN ' +
+                        'new.' + field.field_name + ' = crypt(new.' + field.field_name + ', gen_salt(\'bf\')); ' +
+                        'END IF; ' +
+                        'RETURN new; ' +
+                        'END ' +
+                        '$BODY$; ');
+                    await this.db.none(trigger_sql);
+                    res = true;
+                } catch (error) {
+                    ConsoleHandler.error('check_triggers: error on trigger_sql:' + error);
+                }
+            }
+        }
+
         return res;
     }
 

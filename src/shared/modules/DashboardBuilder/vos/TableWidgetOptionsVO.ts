@@ -3,6 +3,7 @@ import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
+import VOFieldRefVO from "./VOFieldRefVO";
 
 /**
  * TableWidgetOptionsVO
@@ -88,6 +89,12 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public cb_bulk_actions?: string[],
         public show_bulk_select_all?: boolean,
         public has_export_maintenance_alert?: boolean,
+        public has_column_dynamic?: boolean,
+        public column_dynamic_page_widget_id?: number,
+        public column_dynamic_component?: string,
+        public column_dynamic_time_segment?: number,
+        public do_not_use_page_widget_ids?: number[],
+        public legende_tableau?: string,
     ) {
         super();
     }

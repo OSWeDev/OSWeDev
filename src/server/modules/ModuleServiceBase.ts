@@ -44,6 +44,7 @@ import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenanc
 import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
+import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
@@ -54,6 +55,7 @@ import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurato
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleStats from '../../shared/modules/Stats/ModuleStats';
 import StatsController from '../../shared/modules/Stats/StatsController';
+import ModuleSuiviCompetences from '../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
@@ -114,6 +116,7 @@ import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
+import ModuleOseliaServer from './Oselia/ModuleOseliaServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
@@ -124,6 +127,7 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleStatsServer from './Stats/ModuleStatsServer';
+import ModuleSuiviCompetencesServer from './SuiviCompetences/ModuleSuiviCompetencesServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
@@ -245,6 +249,13 @@ export default abstract class ModuleServiceBase {
         // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
         // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
         PreloadedModuleServerController.db = ModuleServiceBase.db;
+
+        // On va créer la structure de base de la BDD pour les modules
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
+
+            await this.create_modules_base_structure_in_db(this.db_);
+        }
+
         await PreloadedModuleServerController.preload_modules_is_actif();
 
         this.registered_base_modules = this.getBaseModules();
@@ -264,8 +275,6 @@ export default abstract class ModuleServiceBase {
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
         if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
-
-            await this.create_modules_base_structure_in_db();
 
             // On lance l'installation des modules.
             await this.install_modules();
@@ -491,15 +500,15 @@ export default abstract class ModuleServiceBase {
         throw error;
     }
 
-    protected getLoginChildModules(): Module[] {
-        return [];
+    public async create_modules_base_structure_in_db(db: IDatabase<any>) {
+        // On vérifie que la table des modules est disponible, sinon on la crée
+        await db.none('CREATE SCHEMA IF NOT EXISTS admin;');
+        await db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
 
-    private async create_modules_base_structure_in_db() {
-        // On vérifie que la table des modules est disponible, sinon on la crée
-        await ModuleServiceBase.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
-        await ModuleServiceBase.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
-        await ModuleServiceBase.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
+    protected getLoginChildModules(): Module[] {
+        return [];
     }
 
     private async install_modules() {
@@ -637,6 +646,8 @@ export default abstract class ModuleServiceBase {
             ModuleGPT.getInstance(),
             ModuleOselia.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
+            ModuleOselia.getInstance(),
+            ModuleSuiviCompetences.getInstance(),
         ];
     }
 
@@ -702,6 +713,8 @@ export default abstract class ModuleServiceBase {
             ModuleGPTServer.getInstance(),
             ModuleOseliaServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleOseliaServer.getInstance(),
+            ModuleSuiviCompetencesServer.getInstance(),
         ];
     }
 

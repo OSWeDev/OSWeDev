@@ -37,14 +37,6 @@ import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleTranslationServer.instance) {
-            ModuleTranslationServer.instance = new ModuleTranslationServer();
-        }
-        return ModuleTranslationServer.instance;
-    }
-
     private static instance: ModuleTranslationServer = null;
 
     /**
@@ -59,6 +51,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleTranslation.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleTranslationServer.instance) {
+            ModuleTranslationServer.instance = new ModuleTranslationServer();
+        }
+        return ModuleTranslationServer.instance;
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -260,6 +260,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Oui'
         }, 'crud.field.boolean.true.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Télécharger'
+        }, 'crud.field.file.download.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Données - {datatable_title}'
         }, 'crud.read.title.___LABEL___'));
@@ -891,9 +894,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async t(code_text: string, lang_id: number): Promise<string> {
+        if (!code_text || !lang_id) {
+            return null;
+        }
+
         const translation = await query(TranslationVO.API_TYPE_ID)
             .filter_by_id(lang_id, LangVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+            .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, code_text, TranslatableTextVO.API_TYPE_ID)
+            .select_vo<TranslationVO>();
         if (!translation) {
             return null;
         }
@@ -902,6 +910,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async label(code_text: string, lang_id: number): Promise<string> {
+        if (!code_text || !lang_id) {
+            return null;
+        }
+
         code_text += DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         return await this.t(code_text, lang_id);
     }

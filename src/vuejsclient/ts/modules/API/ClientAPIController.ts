@@ -93,7 +93,7 @@ export default class ClientAPIController implements IAPIController {
 
                 api_res = await AjaxCacheClientController.getInstance().get(
                     apiDefinition,
-                    (APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
+                    APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param,
                     API_TYPES_IDS_involved,
                     'application/json; charset=utf-8') as U;
                 break;

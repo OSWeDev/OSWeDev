@@ -41,7 +41,7 @@ export default class PushDataServerController {
     public static NOTIFY_RELOAD: string = 'PushDataServerController.reload' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
-    public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';
+    public static TASK_NAME_notifyUserLoggedAndRedirect: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirect';
     public static TASK_NAME_notifyAPIResult: string = 'PushDataServerController' + '.notifyAPIResult';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
@@ -69,14 +69,6 @@ export default class PushDataServerController {
     public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
 
     // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): PushDataServerController {
-        if (!PushDataServerController.instance) {
-            PushDataServerController.instance = new PushDataServerController();
-        }
-        return PushDataServerController.instance;
-    }
 
     private static instance: PushDataServerController = null;
 
@@ -163,7 +155,7 @@ export default class PushDataServerController {
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
         // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, this.notifyUserLoggedAndRedirect.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
         // ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
@@ -174,6 +166,14 @@ export default class PushDataServerController {
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, this.notify_vo_update.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, this.notify_vo_deletion.bind(this));
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): PushDataServerController {
+        if (!PushDataServerController.instance) {
+            PushDataServerController.instance = new PushDataServerController();
+        }
+        return PushDataServerController.instance;
     }
 
     public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -583,10 +583,10 @@ export default class PushDataServerController {
     /**
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    public async notifyUserLoggedAndRedirectHome() {
+    public async notifyUserLoggedAndRedirect(redirect_uri: string = '/') {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri)) {
             return;
         }
 
@@ -597,7 +597,15 @@ export default class PushDataServerController {
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 notification = this.getTechNotif(
                     null, null,
-                    Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
+                    Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT);
+
+                if (session && session['last_fragmented_url']) {
+                    const url = session['last_fragmented_url'];
+                    session['last_fragmented_url'] = null;
+                    notification.redirect_uri = url.replace(/\/f\//, '/#/');
+                } else {
+                    notification.redirect_uri = redirect_uri;
+                }
             }
         } catch (error) {
             ConsoleHandler.error(error);

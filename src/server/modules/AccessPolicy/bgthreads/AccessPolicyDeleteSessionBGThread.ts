@@ -18,14 +18,6 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
     public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!AccessPolicyDeleteSessionBGThread.instance) {
-            AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
-        }
-        return AccessPolicyDeleteSessionBGThread.instance;
-    }
-
     private static instance: AccessPolicyDeleteSessionBGThread = null;
 
     public session_last_send_date: { [sid: string]: number } = {};
@@ -49,6 +41,14 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     get name(): string {
         return "AccessPolicyDeleteSessionBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!AccessPolicyDeleteSessionBGThread.instance) {
+            AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
+        }
+        return AccessPolicyDeleteSessionBGThread.instance;
     }
 
     public async work(): Promise<number> {

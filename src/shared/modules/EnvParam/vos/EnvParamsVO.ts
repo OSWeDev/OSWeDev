@@ -164,6 +164,8 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_AZURE_MEMORY_CHECK?: boolean;
     public debug_azure_memory_check: boolean;
 
+    public debug_throttle_uid: boolean;
+
     // DEBUG_CONTEXT_QUERY_build_select_query_not_count?: boolean;
     public debug_context_query_build_select_query_not_count: boolean;
 
@@ -229,4 +231,7 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
+
+    // logo_path?: string;
+    public logo_path: string;
 }

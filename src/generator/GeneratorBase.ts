@@ -227,6 +227,9 @@ export default abstract class GeneratorBase {
         const db: IDatabase<any> = pgp(connectionString);
         await this.modulesService.init_db(db);
 
+        // On va créer la structure de base de la BDD pour les modules
+        await this.modulesService.create_modules_base_structure_in_db(db);
+
         if (envParam.launch_init) {
             console.log("INIT pre modules initialization workers...");
             if (this.init_pre_modules_workers) {

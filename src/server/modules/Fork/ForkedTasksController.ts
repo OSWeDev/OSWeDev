@@ -26,6 +26,11 @@ export default class ForkedTasksController {
     public static registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
     public static registered_tasks: { [task_uid: string]: (...task_params) => boolean | Promise<boolean> } = {};
 
+    public static broadexec_with_valid_promise_for_await_TASK_UID: string = 'ForkedTasksController.broadexec_with_valid_promise_for_await';
+
+    private static result_task_prefix_thread_uid: number = process.pid;
+    private static result_task_uid: number = 1;
+
     public static init() {
         ThreadHandler.set_interval(ForkedTasksController.handle_fork_message_callback_timeout.bind(this), 10000, 'ForkedTasksController.handle_fork_message_callback_timeout', true);
     }
@@ -33,6 +38,8 @@ export default class ForkedTasksController {
     /**
      * Objectif : Exécuter la fonction sur tous les threads, et le plus vite possible (et en synchrone) en local
      *  donc on envoie un message pour tous les autres threads, mais on indique bien que nous c'est fait
+     * TODO FIXME est_il utile d'avoir une version qui await pas vraiment l'exécution de la tache sur les autres threads avant de resolve ?
+     *  @see broadexec_with_valid_promise_for_await
      * @param task_uid
      * @param task_params
      */
@@ -50,6 +57,71 @@ export default class ForkedTasksController {
             // Si on est sur le thread parent, le broadcast s'occupe de lancer la tache en local aussi
             return await ForkMessageController.broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur tous les threads, et le plus vite possible (et en synchrone) en local
+     *  donc on envoie un message pour tous les autres threads, mais on indique bien que nous c'est fait
+     * @param task_uid
+     * @param task_params
+     */
+    public static async broadexec_with_valid_promise_for_await(task_uid: string, ...task_params): Promise<void> {
+
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if (!ForkServerController.is_main_process()) {
+
+                    return await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                        reject,
+                        ForkedTasksController.broadexec_with_valid_promise_for_await_TASK_UID,
+                        resolve,
+                        [task_uid, ...task_params]);
+                } else {
+
+                    const promises = [];
+                    const done_bgt_uid: { [uid: number]: boolean } = {};
+                    const forks = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType];
+
+                    for (const fork_name in forks) {
+
+                        const fork = forks[fork_name];
+
+                        if (!fork) {
+                            continue;
+                        }
+
+                        if (done_bgt_uid[fork.uid]) {
+                            continue;
+                        }
+                        done_bgt_uid[fork.uid] = true;
+
+                        if (!fork.child_process) {
+                            continue;
+                        }
+
+                        promises.push(new Promise(async (res, rej) => {
+
+                            await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                                rej,
+                                fork_name,
+                                task_uid,
+                                res,
+                                ...task_params
+                            );
+                        }));
+                    }
+                    promises.push(ForkedTasksController.registered_tasks[task_uid](...task_params));
+
+                    await Promise.all(promises);
+
+                    resolve();
+                }
+            } catch (error) {
+                ConsoleHandler.error('broadexec_with_valid_promise_for_await error: ' + error);
+                reject(error);
+            }
+        });
     }
 
     /**
@@ -194,8 +266,6 @@ export default class ForkedTasksController {
         ForkedTasksController.registered_tasks[task_uid] = handler;
     }
 
-    private static result_task_prefix_thread_uid: number = process.pid;
-    private static result_task_uid: number = 1;
     /**
      * ----- Local thread cache
      */

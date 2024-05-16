@@ -684,7 +684,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 // }, 3000);
                                 break;
 
-                            case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
+                            case NotificationVO.TECH_LOGGED_AND_REDIRECT:
 
                                 // On teste de supprimer les délais pour éviter les appels à des méthodes qui ne sont plus accessibles typiquement lors d'un impersonate...
                                 // let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
@@ -692,7 +692,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 //     timeout: 3000
                                 // });
                                 // setTimeout(() => {
-                                location.href = '/';
+                                location.href = notification.redirect_uri ? notification.redirect_uri : '/';
                                 // }, 3000);
                                 break;
 

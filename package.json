@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.32.0-pre.8",
+    "version": "0.32.0-pre.9c",
     "description": "",
     "repository": {
         "type": "git",
@@ -55,6 +55,7 @@
         "compression": "1.7.2",
         "cookie-parser": "1.4.4",
         "cron": "2.0.0",
+        "crypto": "^1.0.1",
         "csurf": "1.10.0",
         "csv-reader": "1.0.8",
         "d3": "5.9.1",
@@ -69,7 +70,7 @@
         "fullcalendar": "3.9.0",
         "fullcalendar-scheduler": "1.9.4",
         "he": "1.2.0",
-        "helmet": "3.21.1",
+        "helmet": "^3.21.1",
         "html2canvas": "1.4.1",
         "http": "0.0.0",
         "http-proxy-middleware": "0.20.0",

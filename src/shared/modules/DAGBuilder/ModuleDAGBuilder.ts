@@ -60,8 +60,8 @@ export default class ModuleDAGBuilder extends Module {
             to,
             ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().fromLink, ModuleTableFieldVO.FIELD_TYPE_string, 'fromLink', false),
             ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().toLink, ModuleTableFieldVO.FIELD_TYPE_string, 'toLink', false),
-            ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().edgeColor, ModuleTableFieldVO.FIELD_TYPE_string, 'edgeColor', false),
-            ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().arrowColor, ModuleTableFieldVO.FIELD_TYPE_string, 'arrowColor', false),
+            ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().edgeColor, ModuleTableFieldVO.FIELD_TYPE_color, 'edgeColor', false),
+            ModuleTableFieldController.create_new(DAGBuilderEdgeVO.API_TYPE_ID, field_names<DAGBuilderEdgeVO>().arrowColor, ModuleTableFieldVO.FIELD_TYPE_color, 'arrowColor', false),
         ];
 
         const datatable = ModuleTableController.create_new(this.name, DAGBuilderEdgeVO, null, "DAGBuilder Edge");

@@ -56,6 +56,8 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
+import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 require('moment-json-parser').overrideDefault();
 
 // const loadComponent = async (component) => {
@@ -180,7 +182,8 @@ export default abstract class VueAppBase {
 
         // Vue.config.errorHandler = function (err, vm, info) {
         //     if (err.message.includes("Failed to fetch dynamically imported module")) {
-        //         window.location.reload(true); // force reload to bypass cache
+        //         ConsoleHandler.error(err + " - " + info + " - Reloading page");
+        //         window.location.reload();
         //     }
         // };
 
@@ -415,6 +418,20 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
+        // Nouvelle tentative d'intercepter les erreurs de navigation et de reload la page dans ce cas
+        const wrapped_vue_router_push = this.vueRouter.push.bind(this.vueRouter);
+        this.vueRouter.push = (location, onComplete?, onAbort?) => {
+            try {
+                wrapped_vue_router_push(location, onComplete, onAbort);
+            } catch (error) {
+
+                if (error.message.includes("Failed to fetch dynamically imported module")) {
+                    ConsoleHandler.error(error + " - Reloading page");
+                    window.location.reload();
+                }
+            }
+        };
+
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
         Vue.use(VueRouter);
@@ -489,6 +506,10 @@ export default abstract class VueAppBase {
             );
         }
         // this.registerPushWorker();
+
+        if (ModuleSuiviCompetences.getInstance().actif) {
+            SuiviCompetencesVueController.initialize();
+        }
 
         window.onbeforeunload = (e) => {
             e = e || window.event;

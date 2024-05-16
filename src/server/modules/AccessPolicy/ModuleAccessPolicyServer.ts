@@ -68,6 +68,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
     public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
+    private static instance: ModuleAccessPolicyServer = null;
+
+    private debug_check_access: boolean = false;
+    private rights_have_been_preloaded: boolean = false;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAccessPolicy.getInstance().name);
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        AccessPolicyServerController.init_tasks();
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -125,21 +138,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
         return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-    }
-
-
-    private static instance: ModuleAccessPolicyServer = null;
-
-    private debug_check_access: boolean = false;
-    private rights_have_been_preloaded: boolean = false;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAccessPolicy.getInstance().name);
-
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
-        AccessPolicyServerController.init_tasks();
     }
 
     /**
@@ -1373,7 +1371,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
 
             return true;
         } catch (error) {
@@ -1873,7 +1871,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -1935,7 +1933,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -1960,7 +1958,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -2016,7 +2014,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -2096,7 +2094,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-        await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+        await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
 
         return user.id;
     }

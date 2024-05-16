@@ -29,6 +29,11 @@ import FileServerController from '../File/FileServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
+import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
+import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
+import ExternalAPIServerController from '../API/ExternalAPIServerController';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -689,6 +694,28 @@ export default class GPTAssistantAPIServerController {
             run_params
         );
 
+        // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
+        // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
+        const referrer: OseliaReferrerVO =
+            await query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1)
+                .select_vo<OseliaReferrerVO>();
+        const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
+            await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
+                .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
+                .exec_as_server()
+                .select_vos<OseliaReferrerExternalAPIVO>()
+            : [];
+        const referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO } = {};
+
+        for (const i in referrer_external_apis) {
+            const referrer_external_api = referrer_external_apis[i];
+            referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
+        }
+
         while (run.status != "completed") {
 
             switch (run.status) {
@@ -722,14 +749,46 @@ export default class GPTAssistantAPIServerController {
                                 try {
 
                                     const function_vo: GPTAssistantAPIFunctionVO = availableFunctions[tool_call.function.name];
+                                    const function_args = JSON.parse(tool_call.function.arguments);
 
                                     if (!function_vo) {
+
+                                        // si on a un referrer et des externals apis, on peut tenter de trouver dans ses fonctions
+                                        if (referrer_external_api_by_name && referrer_external_api_by_name[tool_call.function.name]) {
+                                            const referrer_external_api = referrer_external_api_by_name[tool_call.function.name];
+
+                                            try {
+                                                function_response = await ExternalAPIServerController.call_external_api(
+                                                    (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
+                                                    referrer_external_api.external_api_url,
+                                                    function_args,
+                                                    referrer_external_api.external_api_authentication_id
+                                                );
+
+                                                if (!function_response) {
+                                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - function_response null or undefined. Simulating ERROR response.');
+                                                    function_response = "FAILED";
+                                                }
+
+                                                tool_outputs.push({
+                                                    tool_call_id: tool_call.id,
+                                                    output: function_response,
+                                                });
+                                                return;
+                                            } catch (error) {
+                                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - Failed REFERRER ExternalAPI Call - referrer - ' +
+                                                    referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
+                                                function_response = "TECHNICAL MALFUNCTION : REFERRER ExternalAPI Call Failed.";
+                                                throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
+                                                    referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
+                                            }
+                                        }
+
                                         function_response = "UNKNOWN_FUNCTION : Check the name and retry.";
                                         throw new Error('function_vo not found: ' + tool_call.function.name);
                                     }
 
                                     const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
-                                    const function_args = JSON.parse(tool_call.function.arguments);
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread.thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
                                     function_response = await function_to_call.call(null, ...ordered_args);
 

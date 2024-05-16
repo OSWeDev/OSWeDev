@@ -4,6 +4,7 @@ import ModuleEnvParam from '../../../shared/modules/EnvParam/ModuleEnvParam';
 import EnvParamsVO from '../../../shared/modules/EnvParam/vos/EnvParamsVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
 
@@ -61,16 +62,19 @@ export default class ModuleEnvParamServer extends ModuleServerBase {
 
     public async set_env_param_string(code: string, value: string): Promise<boolean> {
         ConfigurationService.node_configuration[code] = value;
+        EnvHandler[code] = value;
         return true;
     }
 
     public async set_env_param_boolean(code: string, value: boolean): Promise<boolean> {
         ConfigurationService.node_configuration[code] = value;
+        EnvHandler[code] = value;
         return true;
     }
 
     public async set_env_param_number(code: string, value: number): Promise<boolean> {
         ConfigurationService.node_configuration[code] = value;
+        EnvHandler[code] = value;
         return true;
     }
 

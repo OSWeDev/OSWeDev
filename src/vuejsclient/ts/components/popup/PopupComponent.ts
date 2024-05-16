@@ -36,7 +36,7 @@ export default class PopupComponent extends VueComponentBase {
             .set_sort(new SortByVO(PopupVO.API_TYPE_ID, field_names<PopupVO>().activated_ts_range, true))
             .select_vos<PopupVO>();
 
-        if (!this.popups.length) {
+        if (!this.popups?.length) {
             return;
         }
 

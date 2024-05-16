@@ -21,18 +21,19 @@ import ModuleFileServerBase from './ModuleFileServerBase';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
+
+    private static instance: ModuleFileServer = null;
+
+    protected constructor() {
+        super('/ModuleFileServer/upload', ModuleFile.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFileServer {
         if (!ModuleFileServer.instance) {
             ModuleFileServer.instance = new ModuleFileServer();
         }
         return ModuleFileServer.instance;
-    }
-
-    private static instance: ModuleFileServer = null;
-
-    protected constructor() {
-        super('/ModuleFileServer/upload', ModuleFile.getInstance().name);
     }
 
     /**
@@ -67,6 +68,10 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Fichier introuvable : {file_id}' },
             'file_datatable_field.introuvable.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Télécharger' },
+            'file_datatable_field.download.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

@@ -40,9 +40,6 @@ import './OseliaThreadWidgetComponent.scss';
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
-    public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
-    public thread: GPTAssistantAPIThreadVO = null;
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -67,6 +64,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
+    public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
+    public thread: GPTAssistantAPIThreadVO = null;
+
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
 
@@ -83,6 +83,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
+    get role_assistant_avatar_url() {
+        return '/vuejsclient/public/img/avatars/oselia.png';
+    }
+
     @Watch('get_active_field_filters', { immediate: true, deep: true })
     @Watch('get_discarded_field_paths', { deep: true })
     @Watch('page_widget')
@@ -90,15 +94,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_load_thread();
     }
 
-    // private async force_reload() {
-    //     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([
-    //         GPTAssistantAPIThreadVO.API_TYPE_ID,
-    //         GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-    //         GPTAssistantAPIAssistantVO.API_TYPE_ID
-    //     ]);
-
-    //     this.throttle_load_thread();
-    // }
+    @Watch('thread', { immediate: true })
+    private async onchange_thread() {
+        this.throttle_register_thread();
+    }
 
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
@@ -124,11 +123,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         this.is_loading_thread = false;
         this.has_access_to_thread = !!this.thread;
-    }
-
-    @Watch('thread', { immediate: true })
-    private async onchange_thread() {
-        this.throttle_register_thread();
     }
 
     private async register_thread() {
@@ -320,9 +314,5 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 }
                 self.assistant_is_busy = false;
             }));
-    }
-
-    get role_assistant_avatar_url() {
-        return '/vuejsclient/public/img/avatars/oselia.png';
     }
 }

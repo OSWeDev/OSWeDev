@@ -214,7 +214,7 @@
                         :searchable="false"
                         :internal-search="false"
                         :hide-selected="false"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -222,6 +222,7 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
+        template(v-if="is_type_string || is_type_enum || is_type_ref_field || is_type_number")
             .hide_btn_switch_advanced
                 .input_label {{ label('field_value_filter_widget_component.hide_btn_switch_advanced') }}
                 .input_wrapper
@@ -233,6 +234,7 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
+        template(v-if="is_type_string || is_type_enum || is_type_ref_field")
             .placeholder_advanced_string_filter
                 .input_label {{ label('field_value_filter_widget_component.placeholder_advanced_string_filter') }}
                 .input_wrapper
@@ -260,7 +262,7 @@
                         :value="hide_advanced_ref_field_filter_type" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     ) 
 
             .vo_field_ref_multiple 
@@ -446,9 +448,9 @@
                         :hide-selected="true"
 
                         track-by="text_uid"
-                        
+
                         :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'

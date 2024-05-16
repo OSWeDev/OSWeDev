@@ -17,6 +17,31 @@ import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
 
+
+    private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
+    private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
+
+    /**
+     * Les params du throttled_select_query
+     */
+    private static throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
+
+    private static throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+            ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+        }
+    }, 10000, { leading: true, trailing: true });
+
+    private static throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
+        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+            ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
+        }
+    }, 10000, { leading: true, trailing: true });
+
+    private static throttled_shift_select_queries_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+        ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
+    }, 10000, { leading: true, trailing: true });
+
     /**
      * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
      * @returns {Promise<any>} résultat potentiellement freeze à tester avec Object.isFrozen
@@ -62,15 +87,12 @@ export default class ThrottledQueryServerController {
         const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
         const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
         const waiter = 1;
-        const throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
-        }, 10000, { leading: true, trailing: true });
 
         while (true) {
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             if (AzureMemoryCheckServerController.dao_server_coef == 0) {
-                throttled_log_dao_server_coef_0();
+                ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
                 continue;
             }
@@ -169,14 +191,6 @@ export default class ThrottledQueryServerController {
         }
     }
 
-    private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
-    private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
-
-    /**
-     * Les params du throttled_select_query
-     */
-    private static throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
-
     private static async handle_groups_queries(
         dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } },
         request_by_group_id: { [group_id: number]: string },
@@ -185,17 +199,6 @@ export default class ThrottledQueryServerController {
         promise_pipeline: PromisePipeline
     ) {
         const self = this;
-        const throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
-                ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
-            }
-        }, 10000, { leading: true, trailing: true });
-
-        const throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.debug_azure_memory_check) {
-                ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
-            }
-        }, 10000, { leading: true, trailing: true });
         const old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
 
         for (const group_id_s in request_by_group_id) {
@@ -206,12 +209,12 @@ export default class ThrottledQueryServerController {
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             while (AzureMemoryCheckServerController.dao_server_coef == 0) {
-                throttled_log_dao_server_coef_0();
+                ThrottledQueryServerController.throttled_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:handle_groups_queries:dao_server_coef == 0");
             }
 
             if (AzureMemoryCheckServerController.dao_server_coef < 0.5) {
-                throttled_log_dao_server_coef_not_1();
+                ThrottledQueryServerController.throttled_log_dao_server_coef_not_1();
             }
 
             promise_pipeline.max_concurrent_promises = Math.max(Math.floor(old_promise_pipeline_max_concurrent_promises * AzureMemoryCheckServerController.dao_server_coef), 1);

@@ -324,8 +324,25 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         // tri en fonction de la fonction de tri, Sinon on va trier par weight si c'est un objet avec un weight
         if (this.sort && optionsArray) {
             this.sort(optionsArray);
-        } else if (optionsArray && optionsArray[0] && optionsArray[0]['weight']) {
-            optionsArray = WeightHandler.getInstance().sortByWeight(optionsArray as any);
+        } else if (optionsArray && optionsArray[0]) {
+            if (optionsArray[0]['weight']) {
+                // Je trie par weight si c'est un objet de type weight
+                optionsArray = WeightHandler.getInstance().sortByWeight(optionsArray as any);
+            } else if (this.moduleTable.sort_by_field) {
+                // je trie sur le champ si je l'ai défini sur le moduletable
+                optionsArray.sort((a, b) => {
+                    let field_id: string = this.moduleTable.sort_by_field.field_name;
+                    let sort_asc: boolean = this.moduleTable.sort_by_field.sort_asc;
+
+                    if (a[field_id] < b[field_id]) {
+                        return sort_asc ? -1 : 1;
+                    }
+                    if (a[field_id] > b[field_id]) {
+                        return sort_asc ? 1 : -1;
+                    }
+                    return 0;
+                });
+            }
         }
 
         //s'il y a une fonction de filtrage on filtre
@@ -473,6 +490,21 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         if (this.vue_component) {
             // on informe
             this.vue_component.$data.select_options_enabled = Array.from(options);
+            await this.vue_component.on_reload_field_value();
+        }
+
+        return this;
+    }
+
+    /**
+     * Permet de vider les options enabled
+     */
+    public async emptySelectOptionsEnabled(): Promise<DatatableField<T, U>> {
+        this.select_options_enabled = null;
+
+        if (!!this.vue_component) {
+            // on informe
+            this.vue_component.$data.select_options_enabled = null;
             await this.vue_component.on_reload_field_value();
         }
 
