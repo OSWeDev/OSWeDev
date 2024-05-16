@@ -150,10 +150,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
-
-
-
-
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);
     }

@@ -1,0 +1,45 @@
+@import "skin-variables.scss";
+
+.openclose_oselia_chat_handler_module_wrapper {
+    .btn {
+        border-radius: 5px;
+        padding: 5px 12px 4px;
+        border: solid 1px #CCC;
+
+        &.btn-secondary {
+            background: white;
+            color: black;
+        }
+    }
+
+    .badge {
+        margin-left: 5px;
+
+        background-color: black;
+
+        &.badge-danger {
+            background-color: #b3003c;
+            color: white;
+        }
+    }
+}
+
+.oselia_chat_handler_module_wrapper {
+    position: fixed;
+    top: 60px;
+    left: 200px;
+    right: 100px;
+    bottom: 90px;
+    overflow: auto;
+    background: #EEE;
+    border-radius: 20px;
+    padding: 20px;
+    z-index: 10000;
+    box-shadow: #888 0px 0px 30px;
+}
+
+.oselia_chat_handler {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
+}
