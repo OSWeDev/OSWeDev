@@ -442,7 +442,15 @@ export default class VarMixedChartComponent extends VueComponentBase {
         return Object.assign(
             {
                 options: {
-
+                    animations: {
+                        tension: {
+                            duration: 2000,
+                            easing: 'easeInOutElastic',
+                            from: 1,
+                            to: 0,
+                            loop: false
+                        }
+                    }
                 },
 
                 // @see https://www.chartjs.org/docs/latest/general/options.html#plugin-options

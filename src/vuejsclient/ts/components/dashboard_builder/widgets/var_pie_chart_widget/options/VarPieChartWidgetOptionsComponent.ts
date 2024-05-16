@@ -55,6 +55,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private border_color_1: string = null;
     private border_color_2: string = null;
     private bg_color: string = null;
+    private bg_colors: string[] = null;
+    private bg_gradient: boolean = false;
     private legend_font_color: string = null;
     private title_font_color: string = null;
 
@@ -192,6 +194,18 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
     private get_default_options(): VarPieChartWidgetOptions {
         return VarPieChartWidgetOptions.createDefault();
+    }
+
+    private async switch_bg_gradient() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.bg_gradient = !this.next_update_options.bg_gradient;
+
+        await this.throttled_update_options();
     }
 
     private async switch_legend_display() {
@@ -487,6 +501,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.legend_position == options.legend_position) &&
                         (this.widget_options.bg_color_1 == options.bg_color_1) &&
                         (this.widget_options.bg_color_2 == options.bg_color_2) &&
+                        (this.widget_options.bg_colors == options.bg_colors) &&
+                        (this.widget_options.bg_gradient == options.bg_gradient) &&
                         (this.widget_options.border_color_1 == options.border_color_1) &&
                         (this.widget_options.border_color_2 == options.border_color_2) &&
                         (this.widget_options.bg_color == options.bg_color) &&
@@ -549,6 +565,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         options.filter_additional_params,
                         options.var_id_1,
                         options.filter_custom_field_filters_1,
+                        options.bg_colors,
+                        options.bg_gradient,
                         options.bg_color_1,
                         options.border_color_1,
                         options.border_width_1,
@@ -604,6 +622,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
             this.tmp_selected_var_name_1 = null;
             this.custom_filter_names_1 = {};
+            this.bg_colors = null;
+            this.bg_gradient = false;
             this.bg_color_1 = null;
             this.border_color_1 = null;
             this.border_width_1 = null;
@@ -703,7 +723,12 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
-
+        if (this.bg_colors != this.widget_options.bg_colors) {
+            this.bg_colors = this.widget_options.bg_colors;
+        }
+        if (this.bg_gradient != this.widget_options.bg_gradient) {
+            this.bg_gradient = this.widget_options.bg_gradient;
+        }
         if (this.bg_color_1 != this.widget_options.bg_color_1) {
             this.bg_color_1 = this.widget_options.bg_color_1;
         }

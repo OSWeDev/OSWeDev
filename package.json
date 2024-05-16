@@ -52,6 +52,7 @@
         "bootstrap": "4.4.1",
         "chart.js": "4.2.1",
         "chart.js-plugin-labels-dv": "4.0.0",
+        "chartjs-plugin-piechart-outlabels": "^0.1.4",
         "compression": "1.7.2",
         "cookie-parser": "1.4.4",
         "cron": "2.0.0",

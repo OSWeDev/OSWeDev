@@ -275,7 +275,43 @@ export default class VarPieChartComponent extends VueComponentBase {
                 options: {
                     events: ['click', 'mousemove', 'mouseout']
                 },
-                plugins: this.current_chart_plugins,
+                // plugins: this.chart_plugins,
+                // plugins: [
+                //     {
+                //         id: 'ShowLabels',
+                //         beforeDraw: function (chart, args, options) {
+                //             if (options.activated) {
+                //                 const { ctx } = chart;
+                //                 ctx.save();
+
+                //                 chart.data.datasets.forEach((dataset, i) => {
+                //                     chart.getDatasetMeta(i).data.forEach((p, j) => {
+                //                         const { x, y } = p.tooltipPosition();
+
+                //                         const text = chart.data.labels[j] + ': ' + (Math.round(chart.data.datasets[i].data[j] * 100) / 100);
+                //                         const textWidth = ctx.measureText(text).width;
+
+                //                         ctx.fillStyle = dataset.backgroundColor[j];
+                //                         ctx.fillRect(x - ((textWidth + 10) / 2), y - 25, textWidth + 10, 20);
+
+                //                         ctx.beginPath();
+                //                         ctx.moveTo(x, y);
+                //                         ctx.lineTo(x - 5, y - 5);
+                //                         ctx.lineTo(x + 5, y + 5);
+                //                         ctx.fill()
+                //                         ctx.restore()
+
+
+                //                         ctx.font = '12px Arial';
+                //                         ctx.fillStyle = 'white';
+                //                         ctx.fillText(text, x - (textWidth / 2), y - 10);
+                //                         ctx.restore()
+                //                     });
+                //                 });
+                //             }
+                //         }
+                //     }
+                // ],
                 onClick: (point, event) => {
                     if (!self.isDescMode) {
                         return;
@@ -312,48 +348,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     get chart_plugins() {
         const self = this;
         let plugins = [
-            {
-                id: 'hoverValue',
-                afterDatasetsDraw: function (chart, args, pluginOptions) {
-                    const { ctx, data, options } = chart;
-                    chart.getActiveElements().forEach((element) => {
-                        chart.legend.legendItems[element.index].fontColor = 'black';
-                    })
-                }
-            },
-            this.options.label_display ?
-                {
-                    id: 'ShowLabels',
-                    afterDraw: function (chart, args, options) {
-                        const { ctx } = chart;
-                        ctx.save();
-
-                        chart.data.datasets.forEach((dataset, i) => {
-                            chart.getDatasetMeta(i).data.forEach((p, j) => {
-                                const { x, y } = p.tooltipPosition();
-
-                                const text = chart.data.labels[j] + ': ' + (Math.round(chart.data.datasets[i].data[j] * 100) / 100);
-                                const textWidth = ctx.measureText(text).width;
-
-                                ctx.fillStyle = dataset.backgroundColor[j];
-                                ctx.fillRect(x - ((textWidth + 10) / 2), y - 25, textWidth + 10, 20);
-
-                                ctx.beginPath();
-                                ctx.moveTo(x, y);
-                                ctx.lineTo(x - 5, y - 5);
-                                ctx.lineTo(x + 5, y + 5);
-                                ctx.fill()
-                                ctx.restore()
-
-
-                                ctx.font = '12px Arial';
-                                ctx.fillStyle = 'white';
-                                ctx.fillText(text, x - (textWidth / 2), y - 10);
-                                ctx.restore()
-                            });
-                        });
-                    }
-                } : {}
+            this.plugins
         ]
 
         return plugins;
@@ -401,22 +396,21 @@ export default class VarPieChartComponent extends VueComponentBase {
                 } else {
                     backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
                 }
+            }
+            if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
+                bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
+            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
+                bordercolors.push(this.var_dataset_descriptor.bordercolors[0]);
+            } else {
+                bordercolors.push('#fff');
+            }
 
-                if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
-                    bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
-                } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
-                    bordercolors.push(this.var_dataset_descriptor.bordercolors[0]);
-                } else {
-                    bordercolors.push('#fff');
-                }
-
-                if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[j]) {
-                    borderwidths.push(this.var_dataset_descriptor.borderwidths[j]);
-                } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[0]) {
-                    borderwidths.push(this.var_dataset_descriptor.borderwidths[0]);
-                } else {
-                    borderwidths.push(2);
-                }
+            if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[j]) {
+                borderwidths.push(this.var_dataset_descriptor.borderwidths[j]);
+            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.borderwidths[0]) {
+                borderwidths.push(this.var_dataset_descriptor.borderwidths[0]);
+            } else {
+                borderwidths.push(2);
             }
 
         }

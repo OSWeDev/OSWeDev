@@ -394,78 +394,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => new VarPieChartWidgetOptions(
-
-            /**
-             * Paramètres du widget
-             */
-            null,
-
-            /**
-             * Paramètres du graph
-             */
-            true,
-            true,
-            'top',
-            '#666',
-            12,
-            40,
-            10,
-            false,
-
-            false,
-            '#666',
-            16,
-            10,
-
-            0, // 0-100 - exemples : donut 50, camembert 0
-            0, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            360, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-
-            true,
-            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
-            null,
-            true,
-
-            /**
-             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
-             */
-            true,
-            null,
-            null,
-            TimeSegment.TYPE_YEAR,
-
-            /**
-             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
-             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
-             */
-            null,
-            null,
-
-            /**
-             * Var 1
-             */
-            null,
-
-            {},
-
-            '#f0210a',
-            null,
-            null,
-
-            /**
-             * Var 2 si pas de dimension
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            false,
-        ), VarPieChartWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptions.createDefault(), VarPieChartWidgetOptions.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));

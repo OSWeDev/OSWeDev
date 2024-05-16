@@ -82,6 +82,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private current_var_dataset_descriptor = null;
     private current_options = null;
     private current_plugins = null;
+    private isValid: boolean = true;
+    private colorGenerated: boolean = false;
 
     @Watch('options')
     @Watch('var_dataset_descriptor')
@@ -145,22 +147,21 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     },
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
                 },
-
                 tooltip: {
-                    enabled: !this.get_bool_option('label_display', true),
+                    // enabled: !this.get_bool_option('label_display', true),
                     callbacks: {
                         label: function (tooltipItem, data) {
-                            let label = data.labels[tooltipItem.index] || '';
+                            let label = ' ' + tooltipItem.label[0] || '';
 
                             if (label) {
                                 label += ': ';
                             }
-
+                            tooltipItem.chart.tooltip.title = [];
                             if (!self.var_filter) {
-                                return label + data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                return label + tooltipItem.dataset.data[tooltipItem.dataIndex];
                             }
 
-                            let params = [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]];
+                            let params = [tooltipItem.dataset.data[tooltipItem.dataIndex]];
 
                             if (self.var_filter_additional_params) {
                                 params = params.concat(self.var_filter_additional_params);
@@ -210,6 +211,9 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                     },
                 },
+                ShowLabels: {
+                    activated: this.get_bool_option('label_display', true)
+                }
             },
 
             cutout: (self.widget_options.cutout_percentage == null) ? "50%" : self.widget_options.cutout_percentage.toString() + '%',
@@ -276,41 +280,60 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         if (this.widget_options.has_dimension) {
             if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
-
-                // tentative de faire un dégradé automatique de couleur pour les dimensions.
-                // à voir comment on peut proposer de paramétrer cette partie
-                const colors = [];
-                let base_color = null;
-                let is_rbga = false;
-                if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
-                    base_color = this.widget_options.bg_color_1;
-                } else if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('rgba(')) {
-                    base_color = 'rgba' + this.widget_options.bg_color_1.substring(4, this.widget_options.bg_color_1.length - 2);
-                    is_rbga = true;
-                }
-
-                if (!base_color) {
-                    base_color = 'rgba(0,0,0';
-                    is_rbga = true;
-                }
-
-                for (const i in this.ordered_dimension) {
-                    const nb = parseInt(i);
-                    let color = base_color;
-                    if (is_rbga) {
-                        color += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
-                    } else {
-                        color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                if (this.widget_options.bg_gradient) {
+                    // tentative de faire un dégradé automatique de couleur pour les dimensions.
+                    // à voir comment on peut proposer de paramétrer cette partie
+                    const colors = [];
+                    let base_color = null;
+                    let is_rbga = false;
+                    this.widget_options.bg_colors = null;
+                    if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
+                        base_color = this.widget_options.bg_color_1;
+                    } else if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('rgba(')) {
+                        base_color = 'rgba' + this.widget_options.bg_color_1.substring(4, this.widget_options.bg_color_1.length - 2);
+                        is_rbga = true;
                     }
-                    colors.push(color);
-                }
 
-                return new VarPieDataSetDescriptor(
-                    VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
-                    .set_backgrounds(colors)
-                    .set_bordercolors([this.widget_options.border_color_1])
-                    .set_borderwidths([this.widget_options.border_width_1]);
+                    if (!base_color) {
+                        base_color = 'rgba(0,0,0';
+                        is_rbga = true;
+                    }
+
+                    for (const i in this.ordered_dimension) {
+                        const nb = parseInt(i);
+                        let color = base_color;
+                        if (is_rbga) {
+                            color += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                        } else {
+                            color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                        }
+                        colors.push(color);
+                    }
+
+                    return new VarPieDataSetDescriptor(
+                        VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                        .set_backgrounds(colors)
+                        .set_bordercolors([this.widget_options.border_color_1])
+                        .set_borderwidths([this.widget_options.border_width_1]);
+                } else {
+                    let colors = [];
+                    if (this.widget_options.bg_colors && this.widget_options.bg_colors.length > 0) {
+                        colors = this.widget_options.bg_colors;
+                    } else {
+                        for (const i in this.ordered_dimension) {
+                            colors.push("#" + Math.floor(Math.random() * 16777215).toString(16));
+                        }
+                        this.widget_options.bg_colors = colors;
+                    }
+                    return new VarPieDataSetDescriptor(
+                        VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
+                        this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                        .set_backgrounds(colors)
+                        .set_bordercolors([this.widget_options.border_color_1])
+                        .set_borderwidths([this.widget_options.border_width_1]);
+
+                }
             }
             return null;
         } else {
@@ -527,11 +550,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 if (!var_params_by_dimension[dimension_value]) {
                     if (dimension_value !== '[NULL]') {
                         // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                        this.snotify.error(this.t('var_pie_chart_widget.error.no_data'));
-                        ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                        this.isValid = false;
                         return;
                     } else {
                         var_params_by_dimension[dimension_value] = new VarDataBaseVO();
+                        this.isValid = true;
                     }
                 }
 
@@ -663,9 +686,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     this.get_discarded_field_paths);
 
                 if (!var_params_by_dimension[dimension_value]) {
-                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                    this.isValid = false;
                     return;
+                } else {
+                    this.isValid = true;
                 }
 
                 var_params_by_dimension[dimension_value].id = parseInt(i);
@@ -810,6 +834,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return;
         }
 
+        if (!this.isValid) {
+            this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
+            return;
+        }
+
         this.var_params_by_dimension = var_params_by_dimension;
     }
 
@@ -917,6 +946,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     options.filter_additional_params,
                     options.var_id_1,
                     options.filter_custom_field_filters_1,
+                    options.bg_colors,
+                    options.bg_gradient,
                     options.bg_color_1,
                     options.border_color_1,
                     options.border_width_1,

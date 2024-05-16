@@ -1587,6 +1587,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': '<b>ID: </b>{id}'
         }, 'table_widget_component.id.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pas de données, veuillez vérifier que les tables nécessaires sont présentes.'
+        }, 'var_chart_widget.error.no_data'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du widget'
