@@ -1,11 +1,11 @@
 import { Component, Watch } from 'vue-property-decorator';
-import VueComponentBase from "../VueComponentBase";
-import OseliaChatVO from '../../../../shared/modules/Oselia/vos/OseliaChatVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOGetter } from '../dao/store/DaoStore';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import OseliaThreadWidgetComponent from '../dashboard_builder/widgets/oselia_thread_widget/OseliaThreadWidgetComponent';
 import ModuleOselia from '../../../../shared/modules/Oselia/ModuleOselia';
+import OseliaController from '../../../../shared/modules/Oselia/OseliaController';
+import VueComponentBase from "../VueComponentBase";
+import { ModuleDAOGetter } from '../dao/store/DaoStore';
+import OseliaThreadWidgetComponent from '../dashboard_builder/widgets/oselia_thread_widget/OseliaThreadWidgetComponent';
+import './OseliaChatHandlerComponent.scss';
 @Component({
     template: require('./OseliaChatHandlerComponent.pug')
 })
@@ -26,16 +26,18 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
     @Watch('$route')
     public async onRouteChange() {
-        this.url = this.$route.fullPath
-        const vos: OseliaChatVO[] = await query(OseliaChatVO.API_TYPE_ID).select_vos<OseliaChatVO>()
-        for (const i in vos) {
-            const chat_instance: OseliaChatVO = vos[i];
-            if (new RegExp(chat_instance.regex).test(this.url)) {
-                this.isActive = true
-                this.widget = new OseliaThreadWidgetComponent();
-                break;
-            }
+        this.url = this.$route.fullPath;
+        this.isActive = (await OseliaController.get_referrer_id(this.url)) != null;
+    }
+
+    get oselia_url(): string {
+
+        if (!this.ott) {
+            return null;
         }
+
+        const { protocol, hostname, port } = window.location;
+        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/api_handler/oselia__open_oselia_db/${this.ott}/_/_`;
     }
 
     private async openClick() {
@@ -47,5 +49,4 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         this.isOpened = false;
         this.ott = null;
     }
-
 }

@@ -14,6 +14,7 @@ import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAP
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
+import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
@@ -62,6 +63,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_link_user_to_oselia_referrer, this.link_user_to_oselia_referrer.bind(this));
 
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_referrer_name, this.get_referrer_name.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_token_oselia, this.get_token_oselia.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_accept_link, this.accept_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_refuse_link, this.refuse_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
@@ -146,6 +148,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         POLICY_GET_REFERRER_NAME.translatable_name = ModuleOselia.POLICY_GET_REFERRER_NAME;
         POLICY_GET_REFERRER_NAME = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_GET_REFERRER_NAME, DefaultTranslationVO.create_new({
             'fr-fr': 'Demander le nom du referrer par son code'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_GET_TOKEN_OSELIA: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_GET_TOKEN_OSELIA.group_id = group.id;
+        POLICY_GET_TOKEN_OSELIA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_GET_TOKEN_OSELIA.translatable_name = ModuleOselia.POLICY_GET_TOKEN_OSELIA;
+        POLICY_GET_TOKEN_OSELIA = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_GET_TOKEN_OSELIA, DefaultTranslationVO.create_new({
+            'fr-fr': 'Demander un token unique d\'accès à Osélia'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let POLICY_THREAD_MESSAGE_FEEDBACK_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -370,6 +380,35 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 ConsoleHandler.error('Referrer not found:' + referrer_code);
                 return null;
             }
+
+            return await this.link_user_to_oselia_referrer_obj(referrer, user_email, referrer_user_uid);
+
+        } catch (error) {
+            ConsoleHandler.error('Error while requesting connection:' + error);
+        }
+        return null;
+    }
+
+    /**
+     * Request to connect a user to a referrer
+     * And return a single use token to open Osélia from the referrer
+     * @param referrer Le partenaire qui demande la connexion
+     * @param user_email user email
+     * @param referrer_user_uid referrer user uid
+     * @returns one time token to open Osélia if everything is fine, null otherwise
+     */
+    private async link_user_to_oselia_referrer_obj(
+        referrer: OseliaReferrerVO,
+        user_email: string,
+        referrer_user_uid: string,
+    ): Promise<string> {
+
+        if (!referrer) {
+            ConsoleHandler.error('link_user_to_oselia_referrer_obj: No Referrer');
+            return null;
+        }
+
+        try {
 
             // Check if the user exists
             let user = await query(UserVO.API_TYPE_ID)
@@ -749,5 +788,34 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 referrer.triggers_hook_external_api_authentication_id
             );
         };
+    }
+
+    private async get_token_oselia(url: string): Promise<string> {
+        const referrer_id = await OseliaController.get_referrer_id(url);
+
+        if (!referrer_id) {
+            return null;
+        }
+
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(referrer_id)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            return null;
+        }
+
+        const user = await ModuleAccessPolicyServer.getSelfUser();
+
+        if (!user) {
+            return null;
+        }
+
+        return await this.link_user_to_oselia_referrer_obj(
+            referrer,
+            user.email,
+            user.id.toString()
+        );
     }
 }

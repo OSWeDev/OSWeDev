@@ -71,7 +71,6 @@ import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 import { all_promises } from '../../shared/tools/PromiseTools';
 import ThreadHandler from '../../shared/tools/ThreadHandler';
-import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
@@ -138,7 +137,6 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleOseliaServer from './Oselia/ModuleOseliaServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -644,7 +642,6 @@ export default abstract class ModuleServiceBase {
             ModulePlayWright.getInstance(),
             ModuleActionURL.getInstance(),
             ModuleGPT.getInstance(),
-            ModuleOselia.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
             ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
@@ -711,7 +708,6 @@ export default abstract class ModuleServiceBase {
             ModulePlayWrightServer.getInstance(),
             ModuleActionURLServer.getInstance(),
             ModuleGPTServer.getInstance(),
-            ModuleOseliaServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
             ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),

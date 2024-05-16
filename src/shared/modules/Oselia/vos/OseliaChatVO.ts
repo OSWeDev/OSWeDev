@@ -13,9 +13,9 @@ export default class OseliaChatVO implements IDistantVOBase, IVersionedVO {
     public regex: string;
 
     /**
-     * Le code du partenaire
+     * Le partenaire
      */
-    public partenaire_code: string;
+    public referrer_id: number;
 
     public parent_id: number;
     public trashed: boolean;

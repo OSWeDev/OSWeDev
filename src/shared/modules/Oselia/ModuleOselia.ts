@@ -42,17 +42,21 @@ export default class ModuleOselia extends Module {
     public static POLICY_THREAD_FEEDBACK_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.THREAD_FEEDBACK_ACCESS';
 
     public static POLICY_GET_REFERRER_NAME: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GET_REFERRER_NAME';
+    public static POLICY_GET_TOKEN_OSELIA: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.GET_TOKEN_OSELIA';
 
     public static APINAME_open_oselia_db: string = "oselia__open_oselia_db";
     public static APINAME_link_user_to_oselia_referrer: string = "oselia__link_user_to_oselia_referrer";
 
     public static APINAME_get_referrer_name: string = "oselia__get_referrer_name";
+    public static APINAME_get_token_oselia: string = "oselia__get_token_oselia";
     public static APINAME_accept_link: string = "oselia__accept_link";
     public static APINAME_refuse_link: string = "oselia__refuse_link";
 
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
     private static instance: ModuleOselia = null;
+
+    public get_token_oselia: (url: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_token_oselia);
 
     public open_oselia_db: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
     public link_user_to_oselia_referrer: (referrer_code: string, user_email: string, referrer_user_uid: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_link_user_to_oselia_referrer);
@@ -87,14 +91,11 @@ export default class ModuleOselia extends Module {
     }
 
     public initializeOseliaChatVO() {
-        const regex = ModuleTableFieldController.create_new(OseliaChatVO.API_TYPE_ID, field_names<OseliaChatVO>().regex, ModuleTableFieldVO.FIELD_TYPE_string, 'Regex', true);
-        const partenaire_code = ModuleTableFieldController.create_new(OseliaChatVO.API_TYPE_ID, field_names<OseliaChatVO>().partenaire_code, ModuleTableFieldVO.FIELD_TYPE_string, 'Code partenaire', true);
-        const fields = [
-            regex,
-            partenaire_code
-        ];
+        ModuleTableFieldController.create_new(OseliaChatVO.API_TYPE_ID, field_names<OseliaChatVO>().regex, ModuleTableFieldVO.FIELD_TYPE_string, 'Regex', true);
+        ModuleTableFieldController.create_new(OseliaChatVO.API_TYPE_ID, field_names<OseliaChatVO>().referrer_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Partenaire', true)
+            .set_many_to_one_target_moduletable_name(OseliaReferrerVO.API_TYPE_ID);
 
-        const table = ModuleTableController.create_new(this.name, OseliaChatVO, null, 'Oselia - Chat');
+        ModuleTableController.create_new(this.name, OseliaChatVO, null, 'Oselia - Chat');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaChatVO.API_TYPE_ID]);
     }
 
@@ -107,6 +108,12 @@ export default class ModuleOselia extends Module {
             StringParamVOStatic
         ));
 
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleOselia.POLICY_GET_TOKEN_OSELIA,
+            ModuleOselia.APINAME_get_token_oselia,
+            [OseliaUserReferrerOTTVO.API_TYPE_ID, OseliaUserReferrerVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,

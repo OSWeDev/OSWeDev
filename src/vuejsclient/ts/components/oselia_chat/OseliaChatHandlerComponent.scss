@@ -22,20 +22,17 @@
             color: white;
         }
     }
-}
 
-.oselia_chat_handler_module_wrapper {
-    position: fixed;
-    top: 60px;
-    left: 200px;
-    right: 100px;
-    bottom: 90px;
-    overflow: auto;
-    background: #EEE;
-    border-radius: 20px;
-    padding: 20px;
-    z-index: 10000;
-    box-shadow: #888 0px 0px 30px;
+    iframe {
+        width: 483px;
+        position: fixed;
+        right: 10px;
+        bottom: 60px;
+        height: 80vh;
+        border: none;
+        border-radius: 1em;
+        box-shadow: 5px 5px 10px #CCC;
+    }
 }
 
 .oselia_chat_handler {
