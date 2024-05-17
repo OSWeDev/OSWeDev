@@ -16,7 +16,6 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
         "array",
         "null"
     ];
-
     public static TYPE_STRING: number = 0;
     public static TYPE_NUMBER: number = 1;
     public static TYPE_BOOLEAN: number = 2;
@@ -24,6 +23,26 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
     public static TYPE_OBJECT: number = 4;
     public static TYPE_ARRAY: number = 5;
     public static TYPE_NULL: number = 6;
+
+    public static TYPE_FROM_OPENAI: { [type: string]: number } = {
+        'string': GPTAssistantAPIFunctionParamVO.TYPE_STRING,
+        'number': GPTAssistantAPIFunctionParamVO.TYPE_NUMBER,
+        'boolean': GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN,
+        'integer': GPTAssistantAPIFunctionParamVO.TYPE_INTEGER,
+        'object': GPTAssistantAPIFunctionParamVO.TYPE_OBJECT,
+        'array': GPTAssistantAPIFunctionParamVO.TYPE_ARRAY,
+        'null': GPTAssistantAPIFunctionParamVO.TYPE_NULL,
+    };
+
+    public static TYPE_TO_OPENAI: { [type: number]: string } = {
+        [GPTAssistantAPIFunctionParamVO.TYPE_STRING]: 'string',
+        [GPTAssistantAPIFunctionParamVO.TYPE_NUMBER]: 'number',
+        [GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN]: 'boolean',
+        [GPTAssistantAPIFunctionParamVO.TYPE_INTEGER]: 'integer',
+        [GPTAssistantAPIFunctionParamVO.TYPE_OBJECT]: 'object',
+        [GPTAssistantAPIFunctionParamVO.TYPE_ARRAY]: 'array',
+        [GPTAssistantAPIFunctionParamVO.TYPE_NULL]: 'null',
+    };
 
     public id: number;
     public _type: string = GPTAssistantAPIFunctionParamVO.API_TYPE_ID;
@@ -45,6 +64,8 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
     public weight: number;
 
+    public archived: boolean;
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;
@@ -53,6 +74,46 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
     public version_timestamp: number;
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
+
+    public static from_GPT_FunctionParameters(from: any): GPTAssistantAPIFunctionParamVO {
+
+        if (!from) {
+            return null;
+        }
+
+        const res: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
+
+        res.type = GPTAssistantAPIFunctionParamVO.TYPE_FROM_OPENAI[from.type];
+        res.gpt_funcparam_description = from.description;
+
+        if (from.enum) {
+            if (res.type == GPTAssistantAPIFunctionParamVO.TYPE_STRING) {
+                res.string_enum = from.enum;
+            }
+
+            if ((res.type == GPTAssistantAPIFunctionParamVO.TYPE_NUMBER) || (res.type == GPTAssistantAPIFunctionParamVO.TYPE_INTEGER)) {
+                res.number_enum = from.enum;
+            }
+        }
+
+        if (from.properties) {
+            res.object_fields = [];
+
+            for (const i in from.properties) {
+                const field: GPTAssistantAPIFunctionParamVO = GPTAssistantAPIFunctionParamVO.from_GPT_FunctionParameters(from.properties[i]);
+
+                field.gpt_funcparam_name = i;
+
+                res.object_fields.push(field);
+            }
+        }
+
+        if (from.items) {
+            res.array_items_type = GPTAssistantAPIFunctionParamVO.TYPE_FROM_OPENAI[from.items.type];
+        }
+
+        return res;
+    }
 
     public to_GPT_FunctionParameters(): FunctionParameters {
 

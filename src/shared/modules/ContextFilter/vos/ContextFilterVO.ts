@@ -77,6 +77,16 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         'context_filter.type.TYPE_EXISTS',
 
         'context_filter.type.FILTER_UNION',
+        'context_filter.type.NUMERIC_CONTAINS',
+        'context_filter.type.MINUTE_INTERSECTS',
+        'context_filter.type.MINUTE_EQUALS',
+        'context_filter.type.MINUTE_INCLUDES',
+        'context_filter.type.MINUTE_IS_INCLUDED_IN',
+        'context_filter.type.SECOND_INTERSECTS',
+        'context_filter.type.SECOND_EQUALS',
+        'context_filter.type.SECOND_INCLUDES',
+        'context_filter.type.SECOND_IS_INCLUDED_IN',
+        'context_filter.type.REGEXP_ANY',
     ];
 
     /**
@@ -268,66 +278,11 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     public static TYPE_NULL_OR_EMPTY: number = 54;
 
     /**
-     * Sucre syntaxique pour echaîner facilement des or et obtenir le filtre résultat
-     * @param filters les filtres à joindre par une chaîne OR
+     * Avec une regexp
      */
-    public static or(filters: ContextFilterVO[]): ContextFilterVO {
-        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_OR);
-    }
-
-    /**
-     * Sucre syntaxique pour echaîner facilement des and et obtenir le filtre résultat
-     * @param filters les filtres à joindre par une chaîne AND
-     */
-    public static and(filters: ContextFilterVO[]): ContextFilterVO {
-        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_AND);
-    }
-
-    /**
-     * Sucre syntaxique pour echaîner facilement des xor et obtenir le filtre résultat
-     * @param filters les filtres à joindre par une chaîne XOR
-     */
-    public static xor(filters: ContextFilterVO[]): ContextFilterVO {
-        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_XOR);
-    }
-
-    /**
-     * Sucre syntaxique pour echaîner facilement des union et obtenir le filtre résultat
-     * @param filters les filtres à joindre par une chaîne UNION
-     */
-    public static union(filters: ContextFilterVO[]): ContextFilterVO {
-        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_UNION);
-    }
+    public static TYPE_REGEXP_ANY: number = 70;
 
     private static UID_QUERY_TABLE_PREFIX: number = 0;
-
-    private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
-        if ((!filters) || (!filters.length)) {
-            return null;
-        }
-
-        if (filters.length == 1) {
-            return filters[0];
-        }
-
-        let res: ContextFilterVO = null;
-        let first_filter: ContextFilterVO = null;
-        for (let i = 0; i < (filters.length - 1); i++) {
-            const filter_ = filters[i];
-
-            const tmp = new ContextFilterVO();
-            tmp.filter_type = type;
-            tmp.left_hook = filter_;
-            tmp.right_hook = res;
-            if (!first_filter) {
-                first_filter = tmp;
-            }
-            res = tmp;
-        }
-
-        first_filter.right_hook = filters[filters.length - 1];
-        return res;
-    }
 
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
@@ -375,6 +330,66 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
      * Sous-requête liée dans le cas d'un type sub_query
      */
     public sub_query: ContextQueryVO = null;
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des or et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne OR
+     */
+    public static or(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_OR);
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des and et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne AND
+     */
+    public static and(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_AND);
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des xor et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne XOR
+     */
+    public static xor(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_XOR);
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des union et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne UNION
+     */
+    public static union(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_UNION);
+    }
+
+    private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
+        if ((!filters) || (!filters.length)) {
+            return null;
+        }
+
+        if (filters.length == 1) {
+            return filters[0];
+        }
+
+        let res: ContextFilterVO = null;
+        let first_filter: ContextFilterVO = null;
+        for (let i = 0; i < (filters.length - 1); i++) {
+            const filter_ = filters[i];
+
+            const tmp = new ContextFilterVO();
+            tmp.filter_type = type;
+            tmp.left_hook = filter_;
+            tmp.right_hook = res;
+            if (!first_filter) {
+                first_filter = tmp;
+            }
+            res = tmp;
+        }
+
+        first_filter.right_hook = filters[filters.length - 1];
+        return res;
+    }
 
     /**
      * Hydrate this from the given properties
@@ -498,6 +513,20 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
 
         this.text_ignore_case = text_ignore_case;
         // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par regexp le contenu dans la valeur du champ. Si le champs est un text array, un seul match suffit
+     * @param regexp la regexp à tester
+     * @param text_ignore_case si on ignore la casse. Par défaut false
+     */
+    public by_regexp(regexp: string, ignore_case: boolean = false): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_REGEXP_ANY;
+        this.param_text = regexp;
+
+        this.text_ignore_case = ignore_case;
 
         return this;
     }

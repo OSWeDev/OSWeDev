@@ -20,6 +20,8 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
 
     public prepend_thread_vo: boolean;
 
+    public archived: boolean;
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;

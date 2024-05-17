@@ -14,10 +14,17 @@ import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerControl
 
 export default class OseliaServerController {
 
+    public static PROMPT_PARAM_PREFIX: string = '{{PROMPT_PARAM.';
+    public static PROMPT_PARAM_SUFFIX: string = '}}';
+
+    public static wrap_param_name_for_prompt(param_name: string): string {
+        return OseliaServerController.PROMPT_PARAM_PREFIX + param_name + OseliaServerController.PROMPT_PARAM_SUFFIX;
+    }
+
     public static async prompt_oselia_by_prompt_name(
         prompt_name: string,
         prompt_parameters: { [param_name: string]: string },
-        thread: GPTAssistantAPIThreadVO,
+        thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
@@ -31,7 +38,7 @@ export default class OseliaServerController {
     public static async prompt_oselia(
         prompt: OseliaPromptVO,
         prompt_parameters: { [param_name: string]: string },
-        thread: GPTAssistantAPIThreadVO,
+        thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
@@ -104,7 +111,7 @@ export default class OseliaServerController {
         let res = prompt_string_with_parameters;
 
         for (const i in prompt_parameters) {
-            res = res.split('{' + i + '}').join(prompt_parameters[i]);
+            res = res.split(OseliaServerController.PROMPT_PARAM_PREFIX + i + OseliaServerController.PROMPT_PARAM_SUFFIX).join(prompt_parameters[i]);
         }
 
         return res;

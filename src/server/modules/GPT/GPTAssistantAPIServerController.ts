@@ -1,7 +1,7 @@
 import { createReadStream, writeFileSync } from 'fs';
 import { FileObject } from 'openai/resources';
-import { Assistant } from 'openai/resources/beta/assistants/assistants';
-import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages/messages';
+import { Assistant } from 'openai/resources/beta/assistants';
+import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages';
 import { Run, RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { Uploadable } from 'openai/uploads';
@@ -336,10 +336,10 @@ export default class GPTAssistantAPIServerController {
 
             switch (message.role) {
                 case 'user':
-                    message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
+                    message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
                     break;
                 default:
-                    message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+                    message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
                     message_vo.assistant_id = thread_vo.current_oselia_assistant_id;
                     break;
             }
@@ -526,7 +526,7 @@ export default class GPTAssistantAPIServerController {
         message_vo.thread_id = thread_vo.id;
         message_vo.user_id = user_id ? user_id : thread_vo.user_id;
         message_vo.prompt_id = thread_vo.current_oselia_prompt_id;
-        message_vo.role_type = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS.indexOf(message_gpt.role);
+        message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_LABELS.indexOf(message_gpt.role);
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(message_vo);
 
@@ -654,7 +654,7 @@ export default class GPTAssistantAPIServerController {
 
         // On commence par synchroniser les messages entre Osélia et OpenAI
         //  Cela implique en particulier de supprimer de OpenAI les messages qui ne sont plus dans Osélia ou qui sont archivés
-        await GPTAssistantAPIServerController.sync_messages(thread.thread_vo, thread.thread_gpt);
+        await GPTAssistantAPIServerController.sync_thread(thread.thread_vo, thread.thread_gpt);
 
         const asking_message: {
             message_gpt: Message;
@@ -938,16 +938,5 @@ export default class GPTAssistantAPIServerController {
         const thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(user_id, gpt_thread_id, assistant.assistant_vo.id);
 
         return { availableFunctions, availableFunctionsParameters };
-    }
-
-    /**
-     * On synchronise les messages entre Osélia et OpenAI
-     * D'abord on récupère les messages qui existent dans OpenAI et pas dans Osélia => on les crée dans Osélia
-     * Ensuite on prend les messages qui sont 
-     * @param thread_vo
-     * @param thread_gpt
-     */
-    private static async sync_messages(thread_vo: GPTAssistantAPIThreadVO, thread_gpt: Thread) {
-        // FIXME TODO
     }
 }

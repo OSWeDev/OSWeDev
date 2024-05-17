@@ -315,4 +315,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 self.assistant_is_busy = false;
             }));
     }
+
+    private handle_new_message_text_keydown(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Ajoute une nouvelle ligne
+                return;
+            } else {
+                // Empêche le comportement par défaut
+                event.preventDefault();
+                // Exécute la fonction send
+                this.send_message();
+            }
+        }
+    }
 }

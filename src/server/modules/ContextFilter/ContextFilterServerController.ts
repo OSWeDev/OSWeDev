@@ -185,6 +185,126 @@ export default class ContextFilterServerController {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_REGEXP_ANY:
+                switch (field_type) {
+
+                    case ModuleTableFieldVO.FIELD_TYPE_amount:
+                    case ModuleTableFieldVO.FIELD_TYPE_enum:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_float:
+                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_int:
+                    case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
+
+                        if (!context_filter.param_text) {
+                            throw new Error('Not Implemented');
+                        }
+
+                        // On checke le format de la regexp
+                        try {
+                            const test_format = new RegExp(context_filter.param_text);
+                        } catch (error) {
+                            context_query.log(true);
+                            throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
+                        }
+
+                        if (context_filter.text_ignore_case) {
+                            where_conditions.push(field_name + "::text ~* " + pgPromise.as.format('$1', [context_filter.param_text]));
+                        } else {
+                            where_conditions.push(field_name + "::text ~ " + pgPromise.as.format('$1', [context_filter.param_text]));
+                        }
+
+                        break;
+
+                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableFieldVO.FIELD_TYPE_string:
+                    case ModuleTableFieldVO.FIELD_TYPE_color:
+                    case ModuleTableFieldVO.FIELD_TYPE_html:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                    case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                    case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                    case ModuleTableFieldVO.FIELD_TYPE_email:
+
+                        if (!context_filter.param_text) {
+                            throw new Error('Not Implemented');
+                        }
+
+                        // On checke le format de la regexp
+                        try {
+                            const test_format = new RegExp(context_filter.param_text);
+                        } catch (error) {
+                            context_query.log(true);
+                            throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
+                        }
+
+                        if (context_filter.text_ignore_case) {
+                            where_conditions.push(field_name + " ~* " + pgPromise.as.format('$1', [context_filter.param_text]));
+                        } else {
+                            where_conditions.push(field_name + " ~ " + pgPromise.as.format('$1', [context_filter.param_text]));
+                        }
+
+                        break;
+
+                    case ModuleTableFieldVO.FIELD_TYPE_string_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_html_array:
+                        if (!context_filter.param_text) {
+                            throw new Error('Not Implemented');
+                        }
+
+                        // On checke le format de la regexp
+                        try {
+                            const test_format = new RegExp(context_filter.param_text);
+                        } catch (error) {
+                            context_query.log(true);
+                            throw new Error('Invalid regexp format:' + context_filter.param_text + ':' + JSON.stringify(error));
+                        }
+
+                        if (context_filter.text_ignore_case) {
+
+                            where_conditions.push(
+                                'EXISTS ( ' +
+                                '  select 1' +
+                                '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
+                                '  where a ~* ' + pgPromise.as.format('$1', [context_filter.param_text]) +
+                                '  )');
+                        } else {
+
+                            where_conditions.push(
+                                'EXISTS ( ' +
+                                '  select 1' +
+                                '  from unnest(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ') as a' +
+                                '  where a ~ ' + pgPromise.as.format('$1', [context_filter.param_text]) +
+                                '  )');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ANY:
                 switch (field_type) {
 
@@ -1250,39 +1370,6 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                 switch (field_type) {
 
-                    case ModuleTableFieldVO.FIELD_TYPE_amount:
-                    case ModuleTableFieldVO.FIELD_TYPE_enum:
-                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
-                    case ModuleTableFieldVO.FIELD_TYPE_float:
-                    case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
-                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
-                    case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
-                    case ModuleTableFieldVO.FIELD_TYPE_int:
-                    case ModuleTableFieldVO.FIELD_TYPE_prct:
-                    case ModuleTableFieldVO.FIELD_TYPE_tstz:
-
-                        if (context_filter.param_alias != null) {
-                            where_conditions.push(field_name + " != " + context_filter.param_alias);
-                            break;
-                        }
-
-                        if (context_filter.param_numeric != null) {
-                            ContextQueryInjectionCheckHandler.assert_numeric(context_filter.param_numeric);
-                            where_conditions.push(field_name + " != " + context_filter.param_numeric);
-                            break;
-                        }
-
-                        if (context_filter.param_text != null) {
-                            const param_text = parseFloat(context_filter.param_text);
-                            ContextQueryInjectionCheckHandler.assert_numeric(param_text);
-                            where_conditions.push(field_name + " != " + param_text);
-                            break;
-                        }
-
-                        throw new Error('Not Implemented');
-
                     case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
                     case ModuleTableFieldVO.FIELD_TYPE_float_array:
@@ -1330,24 +1417,6 @@ export default class ContextFilterServerController {
                             throw new Error('Not Implemented');
                         }
                         break;
-
-                    case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
-                    case ModuleTableFieldVO.FIELD_TYPE_int_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_float_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                        throw new Error('Not Implemented');
-
-                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
-                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
-                        throw new Error('Not Implemented');
-
-                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
-                        throw new Error('Not Implemented');
-
-                    case ModuleTableFieldVO.FIELD_TYPE_password:
-                        throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:

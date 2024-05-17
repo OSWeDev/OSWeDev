@@ -27,6 +27,11 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
+import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
+import AssistantVoFieldDescription from './functions/get_vo_type_description/AssistantVoFieldDescription';
+import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -84,7 +89,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         // On doit récupérer le thread pour lequel on veut faire un nouveau run
         // On récupère tous les thrads messages pour ce thread
         // On isole les messages du run qu'on veut refaire, ainsi que les messages suivants le run (quelque soit leur role)
-        
+
         throw new Error('Method not implemented.');
     }
 
@@ -96,6 +101,13 @@ export default class ModuleGPTServer extends ModuleServerBase {
         user_id: number = null
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
         return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
+    }
+
+    public async assistant_function_get_vo_type_description_controller(
+        thread_vo: GPTAssistantAPIThreadVO,
+        api_type_id: string,
+    ): Promise<AssistantVoTypeDescription> {
+        return await GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
     }
 
     // istanbul ignore next: cannot test configure
@@ -112,6 +124,65 @@ export default class ModuleGPTServer extends ModuleServerBase {
         ModuleGPTServer.openai = new OpenAI({
             apiKey: ConfigurationService.node_configuration.open_api_api_key
         });
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_QUEUED] },
+            "GPTAssistantAPIRunVO.STATUS_QUEUED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_IN_PROGRESS] },
+            "GPTAssistantAPIRunVO.STATUS_IN_PROGRESS"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION] },
+            "GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_CANCELLING] },
+            "GPTAssistantAPIRunVO.STATUS_CANCELLING"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_CANCELLED] },
+            "GPTAssistantAPIRunVO.STATUS_CANCELLED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_FAILED] },
+            "GPTAssistantAPIRunVO.STATUS_FAILED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_COMPLETED] },
+            "GPTAssistantAPIRunVO.STATUS_COMPLETED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_INCOMPLETE] },
+            "GPTAssistantAPIRunVO.STATUS_INCOMPLETE"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_EXPIRED] },
+            "GPTAssistantAPIRunVO.STATUS_EXPIRED"
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_IN_PROGRESS] },
+            "GPTAssistantAPIRunStepVO.STATUS_IN_PROGRESS"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_CANCELLED] },
+            "GPTAssistantAPIRunStepVO.STATUS_CANCELLED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_FAILED] },
+            "GPTAssistantAPIRunStepVO.STATUS_FAILED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_COMPLETED] },
+            "GPTAssistantAPIRunStepVO.STATUS_COMPLETED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_EXPIRED] },
+            "GPTAssistantAPIRunStepVO.STATUS_EXPIRED"
+        ));
     }
 
     public async handleTriggerPreCreateGPTCompletionAPIConversationVO(vo: GPTCompletionAPIConversationVO): Promise<boolean> {
