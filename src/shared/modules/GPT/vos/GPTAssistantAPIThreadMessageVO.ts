@@ -1,5 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
+import GPTAssistantAPIThreadMessageAttachmentVO from './GPTAssistantAPIThreadMessageAttachmentVO';
 import GPTAssistantAPIThreadMessageContentVO from './GPTAssistantAPIThreadMessageContentVO';
 
 /**
@@ -131,7 +132,7 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
     // The content of the message in array of text and / or images. => GPTAssistantAPIThreadMessageContentVO[]
 
     // A list of files attached to the message, and the tools they were added to.
-    public attachments: GPTAssistantAPIThreadMessageContentVO[];
+    public attachments: GPTAssistantAPIThreadMessageAttachmentVO[];
 
     /**
      * Set of 16 key - value pairs that can be attached to an object.

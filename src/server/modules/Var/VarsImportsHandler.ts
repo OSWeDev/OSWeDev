@@ -1,13 +1,12 @@
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
-import VarsServerController from './VarsServerController';
 
 export default class VarsImportsHandler {
 

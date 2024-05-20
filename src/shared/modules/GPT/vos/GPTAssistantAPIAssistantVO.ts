@@ -1,6 +1,15 @@
 
+import { AssistantTool } from 'openai/resources/beta/assistants';
+import { field_names } from '../../../tools/ObjectHandler';
+import { all_promises } from '../../../tools/PromiseTools';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../ContextFilter/vos/SortByVO';
 import IDistantVOBase from '../../IDistantVOBase';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
+import GPTAssistantAPIAssistantFunctionVO from './GPTAssistantAPIAssistantFunctionVO';
+import GPTAssistantAPIFunctionParamVO from './GPTAssistantAPIFunctionParamVO';
+import GPTAssistantAPIFunctionVO from './GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIToolResourcesVO from './GPTAssistantAPIToolResourcesVO';
 
 /**
  * @see https://platform.openai.com/docs/api-reference/assistants/createAssistant
@@ -26,11 +35,15 @@ export default class GPTAssistantAPIAssistantVO implements IDistantVOBase, IVers
     // The system instructions that the assistant uses.The maximum length is 32768 characters.
     public instructions: string;
 
-    // A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types code_interpreter, file_search, or function.
-    public tools: Array<unknown>;
+    // Version OSWedev du champs tools, décomposé en code interpréteur, recherche de fichier, et fonctions
+    public tools_code_interpreter: boolean;
+    // Version OSWedev du champs tools, décomposé en code interpréteur, recherche de fichier, et fonctions
+    public tools_file_search: boolean;
+    // Version OSWedev du champs tools, décomposé en code interpréteur, recherche de fichier, et fonctions
+    public tools_functions: boolean;
 
     // A set of resources that are used by the assistant's tools. The resources are specific to the type of tool. For example, the code_interpreter tool requires a list of file IDs, while the file_search tool requires a list of vector store IDs.
-    public tool_resources: unknown;
+    public tool_resources: GPTAssistantAPIToolResourcesVO;
 
     // Set of 16 key - value pairs that can be attached to an object.This can be useful for storing additional information about the object in a structured format.Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.
     public metadata: unknown;
@@ -52,7 +65,7 @@ export default class GPTAssistantAPIAssistantVO implements IDistantVOBase, IVers
      *  resulting in a long-running and seemingly "stuck" request. Also note that the message content may be partially cut off
      *  if finish_reason="length", which indicates the generation exceeded max_tokens or the conversation exceeded the max context length.
      */
-    public response_format: string;
+    public response_format: unknown;
 
     public archived: boolean;
 
@@ -64,4 +77,54 @@ export default class GPTAssistantAPIAssistantVO implements IDistantVOBase, IVers
     public version_timestamp: number;
     public version_edit_author_id: number;
     public version_edit_timestamp: number;
+
+    public async get_openai_tools_definition(): Promise<AssistantTool[]> {
+        const res = [];
+
+        if (this.tools_code_interpreter) {
+            res.push({
+                type: "code_interpreter"
+            });
+        }
+
+        if (this.tools_file_search) {
+            res.push({
+                type: "file_search"
+            });
+        }
+
+        if (this.tools_functions) {
+
+            /**
+             * On charge toutes les fonctions, dans l'ordre et on en tire la def de chacune
+             */
+            const functions = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                .filter_by_id(this.id, GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+                .set_sort(new SortByVO(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantFunctionVO>().weight, true))
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIFunctionVO>();
+
+            const promises = [];
+            for (const i in functions) {
+                const func = functions[i];
+
+                promises.push((async () => {
+                    const params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                        .filter_by_id(func.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                        .set_sort(new SortByVO(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, true))
+                        .exec_as_server()
+                        .select_vos<GPTAssistantAPIFunctionParamVO>();
+                    res.push({
+                        type: "function",
+                        function: func.to_GPT_FunctionDefinition(params)
+                    });
+                })());
+            }
+
+            await all_promises(promises);
+        }
+
+        return res;
+    }
 }

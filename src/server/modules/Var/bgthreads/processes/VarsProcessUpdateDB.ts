@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import MatroidController from '../../../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';

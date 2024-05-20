@@ -1,6 +1,6 @@
 
-import VarDAG from '../../../server/modules/Var/vos/VarDAG';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import VarDAG from '../../modules/Var/vos/VarDAG';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';

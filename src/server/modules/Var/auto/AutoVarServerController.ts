@@ -1,4 +1,4 @@
-import VarDAGNode from '../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../modules/Var/vos/VarDAGNode';
 import { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import FieldFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";

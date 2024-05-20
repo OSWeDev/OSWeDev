@@ -16,6 +16,8 @@ export default class GPTAssistantAPIThreadMessageAttachmentVO implements IDistan
     // The ID of the file to attach to the message.
     public gpt_file_id: string;
 
-    // The tools to add this file to.
-    public tools: Array<{ type: 'code_interpreter' | 'file_search' }>;
+    // The tools to add this file to. 'code_interpreter' | 'file_search'
+    public add_to_tool_code_interpreter: boolean;
+    // The tools to add this file to. 'code_interpreter' | 'file_search'
+    public add_to_tool_file_search: boolean;
 }
