@@ -20,4 +20,6 @@ export default class GPTAssistantAPIThreadMessageAttachmentVO implements IDistan
     public add_to_tool_code_interpreter: boolean;
     // The tools to add this file to. 'code_interpreter' | 'file_search'
     public add_to_tool_file_search: boolean;
+
+    public weight: number;
 }

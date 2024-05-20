@@ -25,9 +25,7 @@ import GPTAssistantAPIErrorVO from './vos/GPTAssistantAPIErrorVO';
 import GPTAssistantAPIFileVO from './vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIFunctionParamVO from './vos/GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIFunctionVO from './vos/GPTAssistantAPIFunctionVO';
-import GPTAssistantAPIRunStepUsageVO from './vos/GPTAssistantAPIRunStepUsageVO';
 import GPTAssistantAPIRunStepVO from './vos/GPTAssistantAPIRunStepVO';
-import GPTAssistantAPIRunUsageVO from './vos/GPTAssistantAPIRunUsageVO';
 import GPTAssistantAPIRunVO from './vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageAttachmentVO from './vos/GPTAssistantAPIThreadMessageAttachmentVO';
 import GPTAssistantAPIThreadMessageContentFileCitationVO from './vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
@@ -51,6 +49,9 @@ export default class ModuleGPT extends Module {
 
     public static PARAM_NAME_MODEL_ID: string = 'PARAM_NAME_MODEL_ID';
 
+    /**
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
     public static APINAME_generate_response: string = "modulegpt_generate_response";
 
     public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
@@ -64,6 +65,10 @@ export default class ModuleGPT extends Module {
 
     public static POLICY_ask_assistant = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ask_assistant";
     public static POLICY_rerun = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".rerun";
+
+    /**
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
     public static POLICY_generate_response = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".generate_response";
 
     public static POLICY_ASSISTANT_FILES_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".ASSISTANT_FILES_ACCESS";
@@ -93,6 +98,9 @@ export default class ModuleGPT extends Module {
         run_id: number
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_rerun);
 
+    /**
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
     public generate_response: (
         conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO
     ) => Promise<GPTCompletionAPIMessageVO> = APIControllerWrapper.sah<APIGPTGenerateResponseParam, GPTCompletionAPIMessageVO>(ModuleGPT.APINAME_generate_response);
@@ -120,6 +128,9 @@ export default class ModuleGPT extends Module {
             APIGPTGenerateResponseParamStatic
         ));
 
+        /**
+         * Depuis la synchro auto en cas de données manquantes, on peut impacter tout type de données en fait sur une ask_assistant...
+         */
         APIControllerWrapper.registerApi(new PostAPIDefinition<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(
             ModuleGPT.POLICY_ask_assistant,
             ModuleGPT.APINAME_ask_assistant,
@@ -127,12 +138,23 @@ export default class ModuleGPT extends Module {
                 GPTAssistantAPIFileVO.API_TYPE_ID,
                 GPTAssistantAPIRunVO.API_TYPE_ID,
                 GPTAssistantAPIRunStepVO.API_TYPE_ID,
-                GPTAssistantAPIRunUsageVO.API_TYPE_ID,
-                GPTAssistantAPIRunStepUsageVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-                GPTAssistantAPIThreadVO.API_TYPE_ID
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                GPTAssistantAPIErrorVO.API_TYPE_ID,
+                GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID,
+                GPTAssistantAPIFunctionVO.API_TYPE_ID,
+                GPTAssistantAPIAssistantVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID,
+                GPTAssistantAPIFunctionParamVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentFileCitationVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentImageFileVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID
             ],
             APIGPTAskAssistantParamStatic
         ));
@@ -144,12 +166,23 @@ export default class ModuleGPT extends Module {
                 GPTAssistantAPIFileVO.API_TYPE_ID,
                 GPTAssistantAPIRunVO.API_TYPE_ID,
                 GPTAssistantAPIRunStepVO.API_TYPE_ID,
-                GPTAssistantAPIRunUsageVO.API_TYPE_ID,
-                GPTAssistantAPIRunStepUsageVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
-                GPTAssistantAPIThreadVO.API_TYPE_ID
+                GPTAssistantAPIThreadVO.API_TYPE_ID,
+                GPTAssistantAPIErrorVO.API_TYPE_ID,
+                GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID,
+                GPTAssistantAPIFunctionVO.API_TYPE_ID,
+                GPTAssistantAPIAssistantVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID,
+                GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID,
+                GPTAssistantAPIFunctionParamVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentFileCitationVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentTextVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentImageFileVO.API_TYPE_ID,
+                GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID
             ],
             NumberParamVOStatic
         ));
@@ -179,9 +212,7 @@ export default class ModuleGPT extends Module {
         this.initializeGPTAssistantAPIFunctionParamVO();
         this.initializeGPTAssistantAPIThreadVO();
         this.initializeGPTAssistantAPIRunVO();
-        this.initializeGPTAssistantAPIRunUsageVO();
         this.initializeGPTAssistantAPIRunStepVO();
-        this.initializeGPTAssistantAPIRunStepUsageVO();
         this.initializeGPTAssistantAPIThreadMessageVO();
         this.initializeGPTAssistantAPIThreadMessageAttachmentVO();
         this.initializeGPTAssistantAPIThreadMessageContentVO();
@@ -289,7 +320,6 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Interpréteur de code', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_file_search, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Recherche de fichiers', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_functions, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Fonctions', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tool_resources, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ressources des outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().temperature, ModuleTableFieldVO.FIELD_TYPE_float, 'Température', true, true, 1);
@@ -365,6 +395,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().expires_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Expire à', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().last_active_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière activité', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIVectorStoreVO, label, 'GPT Assistant API - Vector Store');
     }
@@ -496,6 +527,10 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().truncation_strategy, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Stratégie de troncature', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().tool_choice, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Choix des outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().response_format, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Format de réponse', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().completion_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Output', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().prompt_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Input', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().total_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens total', false, true, 0);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIRunVO, label, 'GPT Assistant API - Run');
 
@@ -526,32 +561,11 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().completed_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().expired_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().completion_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Output', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().prompt_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Input', false, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().total_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens total', false, true, 0);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIRunStepVO, label, 'GPT Assistant API - Run Step');
-    }
-
-    private initializeGPTAssistantAPIRunUsageVO() {
-
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run', true)
-            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
-
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().completion_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Output', false, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().prompt_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Input', false, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunUsageVO>().total_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens total', false, true, 0);
-
-        ModuleTableController.create_new(this.name, GPTAssistantAPIRunUsageVO, null, 'GPT Assistant API - Run - Consommation');
-    }
-
-    private initializeGPTAssistantAPIRunStepUsageVO() {
-
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepUsageVO>().run_step_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run Step', true)
-            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunStepVO.API_TYPE_ID);
-
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepUsageVO>().completion_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Output', false, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepUsageVO>().prompt_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens Input', false, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIRunStepUsageVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepUsageVO>().total_tokens, ModuleTableFieldVO.FIELD_TYPE_int, 'Nb. Tokens total', false, true, 0);
-
-        ModuleTableController.create_new(this.name, GPTAssistantAPIRunStepUsageVO, null, 'GPT Assistant API - Run Step - Consommation');
     }
 
     private initializeGPTAssistantAPIThreadMessageVO() {
@@ -585,6 +599,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().incomplete_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'incomplétion', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().attachments, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Pièces jointes', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageVO, label, 'GPT Assistant API - Thread Message');
     }
@@ -597,6 +612,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().add_to_tool_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ajouter à l\'interpréteur de code', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().add_to_tool_file_search, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ajouter à la recherche de fichier', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageAttachmentVO, null, 'GPT Assistant API - Thread Message Attachment');
     }

@@ -101,4 +101,6 @@ export default interface IEnvParam {
 
     express_secret: string;
     logo_path?: string;
+
+    debug_openai_sync?: boolean;
 }

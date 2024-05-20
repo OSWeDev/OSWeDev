@@ -1,99 +1,15 @@
-import { FileObject, FileObjectsPage } from 'openai/resources';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleGPTServer from './ModuleGPTServer';
 import { createReadStream } from 'fs';
+import { FileObject, FileObjectsPage } from 'openai/resources';
 import { Uploadable } from 'openai/uploads';
-import { cloneDeep } from 'lodash';
-import { AssistantCreateParams } from 'openai/resources/beta/assistants';
-import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import GPTAssistantAPIToolResourcesVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIToolResourcesVO';
-import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import RangeHandler from '../../../shared/tools/RangeHandler';
-import ConfigurationService from '../../env/ConfigurationService';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import GPTAssistantAPIFileVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../../env/ConfigurationService';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ModuleGPTServer from '../ModuleGPTServer';
 
 export default class GPTAssistantAPIServerSyncFilesController {
-
-    public static async from_openai_api(data: AssistantCreateParams.ToolResources): Promise<GPTAssistantAPIToolResourcesVO> {
-
-        if (!data) {
-            return null;
-        }
-
-        const res: GPTAssistantAPIToolResourcesVO = new GPTAssistantAPIToolResourcesVO();
-
-        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
-        if (data.code_interpreter) {
-            res.code_interpreter_gpt_file_ids = cloneDeep(data.code_interpreter.file_ids);
-
-            const code_interpreter_file_ids_ranges: NumRange[] = [];
-            for (const i in res.code_interpreter_gpt_file_ids) {
-                const gpt_file_id = res.code_interpreter_gpt_file_ids[i];
-
-                await promise_pipeline.push(async () => {
-                    const assistant_file = await GPTAssistantAPIServerSyncFilesController.get_file_or_sync(gpt_file_id);
-
-                    if (!assistant_file) {
-                        throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
-                    }
-
-                    code_interpreter_file_ids_ranges.push(RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT));
-                });
-            }
-            res.code_interpreter_file_ids_ranges = code_interpreter_file_ids_ranges;
-        }
-
-        if (data.file_search) {
-            res.file_search_gpt_vector_store_ids = cloneDeep(data.file_search.vector_store_ids);
-
-            const file_search_vector_store_ids_ranges: NumRange[] = [];
-            for (const i in res.file_search_gpt_vector_store_ids) {
-                const gpt_vector_store_id = res.file_search_gpt_vector_store_ids[i];
-
-                await promise_pipeline.push(async () => {
-                    const vector_store_file = await GPTAssistantAPIServerSyncVectorStoresController.get_vector_store_or_sync(gpt_vector_store_id);
-
-                    if (!vector_store_file) {
-                        throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
-                    }
-
-                    file_search_vector_store_ids_ranges.push(RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT));
-                });
-            }
-            res.file_search_vector_store_ids_ranges = file_search_vector_store_ids_ranges;
-        }
-
-        await promise_pipeline.end();
-
-        return res;
-    }
-
-    public static async to_openai_api(vo: GPTAssistantAPIToolResourcesVO): Promise<AssistantCreateParams.ToolResources> {
-
-        if (!vo) {
-            return null;
-        }
-
-        const res: AssistantCreateParams.ToolResources = {};
-
-        if (vo.code_interpreter_gpt_file_ids) {
-            res.code_interpreter = {
-                file_ids: cloneDeep(vo.code_interpreter_gpt_file_ids)
-            };
-        }
-
-        if (vo.file_search_gpt_vector_store_ids) {
-            res.file_search = {
-                vector_store_ids: cloneDeep(vo.file_search_gpt_vector_store_ids)
-            };
-        }
-
-        return res;
-    }
 
     /**
      * à utiliser pour la création ou la mise à jour vers OpenAI
@@ -110,7 +26,20 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
             let gpt_obj: FileObject = vo.gpt_file_id ? await ModuleGPTServer.openai.files.retrieve(vo.gpt_file_id) : null;
 
+            // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
+            if (vo.archived) {
+                if (!!gpt_obj) {
+                    ConsoleHandler.error('Error while pushing file to OpenAI : file is archived in Osélia but not in OpenAI');
+                }
+                return null;
+            }
+
             if (!gpt_obj) {
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('push_file_to_openai: Creating file in OpenAI : ' + vo.filename);
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.files.create({
 
                     file: createReadStream(vo.filename) as unknown as Uploadable,
@@ -121,11 +50,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
                     throw new Error('Error while creating file in OpenAI');
                 }
             } else {
-                if ((vo.gpt_file_id != gpt_obj.id) ||
-                    (vo.created_at != gpt_obj.created_at) ||
-                    (vo.bytes != gpt_obj.bytes) ||
-                    (vo.filename != gpt_obj.filename) ||
-                    (vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[gpt_obj.purpose])) {
+                if (GPTAssistantAPIServerSyncFilesController.file_has_diff(vo, gpt_obj)) {
+
+                    if (ConfigurationService.node_configuration.debug_openai_sync) {
+                        ConsoleHandler.log('push_file_to_openai: Updating file in OpenAI : ' + vo.filename);
+                    }
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les fichiers
                     // donc on supprime et on recrée
@@ -144,11 +73,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
             }
 
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
-            if ((vo.gpt_file_id != gpt_obj.id) ||
-                (vo.created_at != gpt_obj.created_at) ||
-                (vo.bytes != gpt_obj.bytes) ||
-                (vo.filename != gpt_obj.filename) ||
-                (vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[gpt_obj.purpose])) {
+            if (GPTAssistantAPIServerSyncFilesController.file_has_diff(vo, gpt_obj) || vo.archived) {
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('push_file_to_openai: Updating file in Osélia : ' + vo.filename);
+                }
 
                 vo.gpt_file_id = gpt_obj.id;
                 vo.created_at = gpt_obj.created_at;
@@ -198,6 +127,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
      * On récupère tous les files de l'API GPT et on les synchronise avec Osélia
      */
     public static async sync_files() {
+
+        if (ConfigurationService.node_configuration.debug_openai_sync) {
+            ConsoleHandler.log('sync_files: Syncing files');
+        }
+
         const files: FileObject[] = await GPTAssistantAPIServerSyncFilesController.get_all_files();
         const files_vos: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIFileVO>();
         const files_vos_by_gpt_id: { [gpt_file_id: string]: GPTAssistantAPIFileVO } = {};
@@ -218,14 +152,14 @@ export default class GPTAssistantAPIServerSyncFilesController {
             }
 
             needs_update = needs_update ||
-                (found_vo.gpt_file_id != file.id) ||
-                (found_vo.created_at != file.created_at) ||
-                (found_vo.bytes != file.bytes) ||
-                (found_vo.filename != file.filename) ||
-                (found_vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file.purpose]);
+                GPTAssistantAPIServerSyncFilesController.file_has_diff(found_vo, file);
 
             if (!needs_update) {
                 continue;
+            }
+
+            if (ConfigurationService.node_configuration.debug_openai_sync) {
+                ConsoleHandler.log('sync_files: Updating file in Osélia : ' + file.filename);
             }
 
             found_vo.gpt_file_id = file.id;
@@ -249,6 +183,10 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
             if (found_vo.archived) {
                 continue;
+            }
+
+            if (ConfigurationService.node_configuration.debug_openai_sync) {
+                ConsoleHandler.log('sync_files: Archiving file in Osélia : ' + found_vo.filename);
             }
 
             found_vo.archived = true;
@@ -277,5 +215,24 @@ export default class GPTAssistantAPIServerSyncFilesController {
         }
 
         return res;
+    }
+
+    private static file_has_diff(
+        file_vo: GPTAssistantAPIFileVO,
+        file_gpt: FileObject): boolean {
+
+        if ((!file_vo) && (!file_gpt)) {
+            return false;
+        }
+
+        if ((!file_vo) || (!file_gpt)) {
+            return true;
+        }
+
+        return (file_vo.gpt_file_id != file_gpt.id) ||
+            (file_vo.created_at != file_gpt.created_at) ||
+            (file_vo.bytes != file_gpt.bytes) ||
+            (file_vo.filename != file_gpt.filename) ||
+            (file_vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file_gpt.purpose]);
     }
 }

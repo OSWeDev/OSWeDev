@@ -124,4 +124,6 @@ export default class EnvParam implements IEnvParam {
 
     public express_secret: string = null;
     public logo_path?: string = null;
+
+    public debug_openai_sync?: boolean;
 }

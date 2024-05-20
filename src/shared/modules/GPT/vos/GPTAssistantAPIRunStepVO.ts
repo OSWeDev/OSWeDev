@@ -117,5 +117,12 @@ export default class GPTAssistantAPIRunStepVO implements IDistantVOBase {
      */
     public metadata: unknown;
 
-    // Usage statistics related to the run step. This value will be null while the run step's status is in_progress. => GPTAssistantAPIRunStepUsageVO
+    // Number of completion tokens used over the course of the run.
+    public completion_tokens: number;
+
+    // Number of prompt tokens used over the course of the run.
+    public prompt_tokens: number;
+
+    // Total number of tokens used(prompt + completion).
+    public total_tokens: number;
 }

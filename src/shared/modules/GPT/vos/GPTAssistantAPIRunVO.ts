@@ -1,5 +1,8 @@
 
+import { AssistantToolChoiceOption } from 'openai/resources/beta/threads/threads';
 import IDistantVOBase from '../../IDistantVOBase';
+import { RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
+import { AssistantTool } from 'openai/resources/beta/assistants';
 
 /**
  * @see https://platform.openai.com/docs/api-reference/runs/object
@@ -117,15 +120,13 @@ export default class GPTAssistantAPIRunVO implements IDistantVOBase {
     public instructions: string;
 
     // The list of tools that the assistant used for this run.
-    public tools: Array<unknown>;
+    public tools: AssistantTool[];
 
     // Set of 16 key - value pairs that can be attached to an object.This can be useful for storing additional information about the object in a structured format.Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.
     public metadata: unknown;
 
     // The sampling temperature used for this run.If not set, defaults to 1.
     public temperature: number;
-
-    // Usage statistics related to the run.This value will be null if the run is not in a terminal state(i.e.in_progress, queued, etc.). => GPTAssistantAPIRunUsageVO
 
     // The nucleus sampling value used for this run.If not set, defaults to 1.
     public top_p: number;
@@ -137,15 +138,16 @@ export default class GPTAssistantAPIRunVO implements IDistantVOBase {
     public max_completion_tokens: number;
 
     // Controls for how a thread will be truncated prior to the run.Use this to control the intial context window of the run.
-    public truncation_strategy: unknown;
+    public truncation_strategy: RunCreateParams.TruncationStrategy;
 
     /**
-     * Controls which(if any) tool is called by the model.none means the model will not call any tools and instead generates a message.
+     * Controls which(if any) tool is called by the model.
+     *  none means the model will not call any tools and instead generates a message.
      *  auto is the default value and means the model can pick between generating a message or calling one or more tools.
      *  required means the model must call one or more tools before responding to the user.
      *  Specifying a particular tool like { "type": "file_search" } or { "type": "function", "function": { "name": "my_function" } } forces the model to call that tool.
      */
-    public tool_choice: unknown;
+    public tool_choice: AssistantToolChoiceOption;
 
     /**
      * Specifies the format that the model must output.Compatible with GPT - 4o, GPT - 4 Turbo, and all GPT - 3.5 Turbo models since gpt - 3.5 - turbo - 1106.
@@ -155,4 +157,15 @@ export default class GPTAssistantAPIRunVO implements IDistantVOBase {
      *  Also note that the message content may be partially cut off if finish_reason = "length", which indicates the generation exceeded max_tokens or the conversation exceeded the max context length.
      */
     public response_format: unknown;
+
+    public archived: boolean;
+
+    // Number of completion tokens used over the course of the run.
+    public completion_tokens: number;
+
+    // Number of prompt tokens used over the course of the run.
+    public prompt_tokens: number;
+
+    // Total number of tokens used(prompt + completion).
+    public total_tokens: number;
 }

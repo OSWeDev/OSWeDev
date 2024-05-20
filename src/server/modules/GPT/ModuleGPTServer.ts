@@ -285,7 +285,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    // istanbul ignore next: cannot test extern apis
+    /**
+     * istanbul ignore next: cannot test extern apis
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
             const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
