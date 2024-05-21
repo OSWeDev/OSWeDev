@@ -94,6 +94,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'OseliaReferrerNotFoundComponent.close.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Ajotuer un commentaire' },
+            'oselia_thread_feedback.oselia_thread_feedback__add_feedback_text.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Texte copié dans le presse-papier' },
             'oselia_thread_message.copy_success.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
