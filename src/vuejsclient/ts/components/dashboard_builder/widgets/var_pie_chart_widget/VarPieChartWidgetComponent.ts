@@ -35,6 +35,7 @@ import './VarPieChartWidgetComponent.scss';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import DefaultTranslationVO from '../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import { Chart } from 'vue-chartjs';
+import { color } from 'chart.js/helpers';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -138,6 +139,32 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             maintainAspectRatio: false,
 
             plugins: {
+                tooltip: {
+                    enabled: !this.get_bool_option('label_display', true),
+                },
+
+                datalabels: {
+                    display: this.get_bool_option('label_display', true) ?
+                        function (ctx) {
+                            let count = 0;
+                            let value = ctx.dataset.data[ctx.dataIndex];
+                            for (let data in ctx.dataset.data) {
+                                count += ctx.dataset.data[data]
+                            }
+                            if (((value / count) * 100) < 3) {
+                                return false
+                            } else {
+                                return true
+                            }
+                        } : false,
+                    anchor: 'center',
+                    backgroundColor: 'black',
+                    color: 'white',
+                    formatter: function (value, context) {
+
+                        return context.chart.data.labels[context.dataIndex] + ' :\n' + Math.round(value);
+                    }
+                },
                 title: {
                     display: this.get_bool_option('title_display', true),
                     text: this.translated_title ? this.translated_title : '',
@@ -146,30 +173,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         size: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
                     },
                     padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
-                },
-                tooltip: {
-                    // enabled: !this.get_bool_option('label_display', true),
-                    callbacks: {
-                        label: function (tooltipItem, data) {
-                            let label = ' ' + tooltipItem.label[0] || '';
-
-                            if (label) {
-                                label += ': ';
-                            }
-                            tooltipItem.chart.tooltip.title = [];
-                            if (!self.var_filter) {
-                                return label + tooltipItem.dataset.data[tooltipItem.dataIndex];
-                            }
-
-                            let params = [tooltipItem.dataset.data[tooltipItem.dataIndex]];
-
-                            if (self.var_filter_additional_params) {
-                                params = params.concat(self.var_filter_additional_params);
-                            }
-
-                            return label + self.var_filter.apply(null, params);
-                        }
-                    }
                 },
 
                 legend: {
@@ -183,7 +186,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                         } else {
                             legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.slice(0, color.length - 2) + 'FF' : color.slice(0, color.length - 2) + '33';
+                                colors[index] = index === item.index ? color.slice(2, color.length) + 'FF' : color.slice(0, color.length - 2) + '33';
                             });
                         }
                         legend.chart.update();
@@ -211,11 +214,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                     },
                 },
-                ShowLabels: {
-                    activated: this.get_bool_option('label_display', true)
-                }
             },
-
             cutout: (self.widget_options.cutout_percentage == null) ? "50%" : self.widget_options.cutout_percentage.toString() + '%',
             rotation: (self.widget_options.rotation == null) ? 270 : self.widget_options.rotation,
             circumference: (self.widget_options.circumference == null) ? 180 : self.widget_options.circumference,
@@ -288,7 +287,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     let is_rbga = false;
                     this.widget_options.bg_colors = null;
                     if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
-                        base_color = this.widget_options.bg_color_1;
+                        base_color = this.hexToRgb(this.widget_options.bg_color_1).slice(0, this.hexToRgb(this.widget_options.bg_color_1).length - 2); // on enlève l'opacité
+                        is_rbga = true;
                     } else if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('rgba(')) {
                         base_color = 'rgba' + this.widget_options.bg_color_1.substring(4, this.widget_options.bg_color_1.length - 2);
                         is_rbga = true;
@@ -318,13 +318,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         .set_borderwidths([this.widget_options.border_width_1]);
                 } else {
                     let colors = [];
-                    if (this.widget_options.bg_colors && this.widget_options.bg_colors.length > 0) {
-                        colors = this.widget_options.bg_colors;
-                    } else {
-                        for (const i in this.ordered_dimension) {
-                            colors.push("#" + Math.floor(Math.random() * 16777215).toString(16));
+                    if (!this.widget_options.color_palette) {
+                        return
+                    }
+                    for (let palette in this.widget_options.color_palette) {
+                        if (this.widget_options.color_palette[palette].startsWith('#')) {
+                            colors.push(this.hexToRgb(this.widget_options.color_palette[palette]));
+                        } else {
+                            colors.push(this.widget_options.color_palette[palette]);
                         }
-                        this.widget_options.bg_colors = colors;
                     }
                     return new VarPieDataSetDescriptor(
                         VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
@@ -348,6 +350,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
     }
+
+
 
     get var_params(): VarDataBaseVO[] {
 
@@ -389,6 +393,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return res;
         }
     }
+
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
@@ -455,6 +460,13 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         );
     }
 
+
+    private hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? 'rgba(' + parseInt(result[1], 16) + ',' + parseInt(result[2], 16) + ',' + parseInt(result[3], 16) + ',1)' : null;
+    }
+
+
     private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(
         custom_filters_1: { [var_param_field_name: string]: ContextFilterVO }
     ): Promise<{ [dimension_value: number]: VarDataBaseVO }> {
@@ -489,7 +501,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             this.var_params_by_dimension = null;
             return;
         }
-
+        this.isValid = true;
         const promises = [];
         const ordered_dimension: any[] = [];
         const label_by_index: { [index: string]: string[] } = {};
@@ -554,7 +566,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         return;
                     } else {
                         var_params_by_dimension[dimension_value] = new VarDataBaseVO();
-                        this.isValid = true;
                     }
                 }
 
@@ -598,7 +609,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         const var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
-
+        this.isValid = true;
         /**
          * Sinon on se base sur la liste des valeurs possibles pour la dimension segmentée
          */
@@ -688,8 +699,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 if (!var_params_by_dimension[dimension_value]) {
                     this.isValid = false;
                     return;
-                } else {
-                    this.isValid = true;
                 }
 
                 var_params_by_dimension[dimension_value].id = parseInt(i);
@@ -946,6 +955,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     options.filter_additional_params,
                     options.var_id_1,
                     options.filter_custom_field_filters_1,
+                    options.color_palette,
                     options.bg_colors,
                     options.bg_gradient,
                     options.bg_color_1,

@@ -244,12 +244,29 @@
             .input_wrapper
                 Varchartsoptionscomponent(
                     @on_change="handle_var_charts_options_change"
-                    :get_var_name_code_text="get_var_name_code_text"
+                    :get_var_name_code_text="this.widget_options.get_var_name_code_text"
                     :page_widget_id="page_widget.id"
                     :options="var_charts_options"
                 )
 
         hr
+        .show_scale_x
+            .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_x') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_show_scale_x" 
+                            :value="show_scale_x" 
+                            :sync="false"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        )
+        template(v-if='show_scale_x')
+            .scale_x_title
+                .input_label {{ label('var_mixed_charts_widget_options_component.scale_x_title') }}
+                    Inlinetranslatabletext(
+                        :code_text="scale_x_title" 
+                        :is_editable="true"
+                    )
         .scale_x_color 
             .explication {{ label("var_mixed_charts_widget_options_component.scale_x_axis_color") }}
             color-picker(v-model="scale_x_color" @change='handle_scale_x_color_change')
@@ -262,6 +279,25 @@
                 )
 
         hr
+        .show_scale_y
+            .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_y') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_show_scale_y" 
+                            :value="show_scale_y" 
+                            :sync="false"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        )
+        template(v-if='show_scale_y')
+            .scale_y_title
+                .input_label {{ label('var_mixed_charts_widget_options_component.scale_y_title') }}
+                .input_wrapper 
+                    Inlinetranslatabletext(
+                        :code_text="scale_y_title" 
+                        :is_editable="true"
+                    )
+                
         .scale_y_color 
             .explication {{ label("var_mixed_charts_widget_options_component.scale_y_axis_color") }}
             color-picker(v-model="scale_y_color" @change='handle_scale_y_color_change')  

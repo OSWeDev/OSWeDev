@@ -338,7 +338,7 @@ export default class VarRadarChart extends VueComponentBase {
         let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
+                '',
             data: dataset_datas,
             backgroundColor: backgrounds,
             borderColor: bordercolors,

@@ -51,8 +51,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private chart_id: number = null;
     private var_id: number = null;
     private type: string | 'line' | 'bar' | 'radar' = null;
-    private bg_color: string = null;
-    private border_color: string = null;
+    private bg_color: string = '#ff0000';
+    private border_color: string = '#ff0000';
     private border_width: number = null;
 
     // for gradient color
@@ -62,7 +62,6 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
     private graphe_types: string[] = [
         'line',     // many lines on the same graph or line chart with bars
         'bar',      // Bar chart with lines chart
-        'radar',    // Many radar charts on the same graph
     ];
 
     // TODO: Add translations
@@ -104,6 +103,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
         this.options_props = this.options;
     }
+
 
     @Watch('selected_var_name')
     private async on_change_selected_var_name() {
@@ -221,7 +221,7 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.border_width = this.border_width;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
-        
+
         this.$emit('on_change', this.options_props);
     }
 

@@ -307,9 +307,31 @@
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
-        .bg_color_1
-            .explication {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
-            color-picker(v-model="bg_color_1" @change='throttled_update_colors')
+        template(v-if='bg_gradient')
+            .bg_color_1
+                .explication {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
+                color-picker(v-model="bg_color_1" @change='throttled_update_colors')
+        template(v-else)
+            multiselect(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_selected_color_palette"
+                :options="color_palettes_labels"
+                :allow-empty="false",
+
+                :searchable="true"
+                :internal-search="true"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="color_palette_selector"               
+            )
         .border_color_1
             .explication {{ label("var_pie_chart_widget_options_component.border_color_1") }}
             color-picker(v-model="border_color_1" @change='throttled_update_colors')

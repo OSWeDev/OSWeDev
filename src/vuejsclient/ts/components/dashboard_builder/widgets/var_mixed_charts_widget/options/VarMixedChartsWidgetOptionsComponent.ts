@@ -67,6 +67,11 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private max_dimension_values: string = null;
 
     private var_charts_options?: VarChartOptionsVO[] = [];
+
+    private scale_y_title: string = null;
+    private scale_x_title: string = null;
+    private show_scale_x: boolean = false;
+    private show_scale_y: boolean = false;
     private scale_options_x?: Partial<Scale> = null;
     private scale_options_y?: Partial<Scale> = null;
     private scale_x_color?: string = null;
@@ -77,15 +82,17 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
     private widget_options: VarMixedChartWidgetOptionsVO = null;
 
-    private dimension_custom_filter_segment_types:  { [index: number]: string } = 
-        { [TimeSegment.TYPE_YEAR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-         [TimeSegment.TYPE_MONTH] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-         [TimeSegment.TYPE_DAY] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
-         [TimeSegment.TYPE_HOUR] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
-        // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-         [TimeSegment.TYPE_MINUTE] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-        [TimeSegment.TYPE_SECOND] : this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)};
+    private dimension_custom_filter_segment_types: { [index: number]: string } =
+        {
+            [TimeSegment.TYPE_YEAR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+            [TimeSegment.TYPE_MONTH]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+            [TimeSegment.TYPE_DAY]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+            [TimeSegment.TYPE_HOUR]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+            // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
+            // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+            [TimeSegment.TYPE_MINUTE]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+            [TimeSegment.TYPE_SECOND]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
+        };
 
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
     // TODO: Add translations
@@ -180,7 +187,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         try {
 
             if (this.widget_options.legend_font_size != parseInt(this.legend_font_size)) {
-                if(parseInt(this.legend_font_size)<=100){
+                if (parseInt(this.legend_font_size) <= 100) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_font_size = parseInt(this.legend_font_size);
                 }
@@ -209,7 +216,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         try {
 
             if (this.widget_options.legend_box_width != parseInt(this.legend_box_width)) {
-                if(parseInt(this.legend_box_width)<=400){
+                if (parseInt(this.legend_box_width) <= 400) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.legend_box_width = parseInt(this.legend_box_width);
                 }
@@ -266,10 +273,66 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         try {
 
             if (this.widget_options.title_font_size != parseInt(this.title_font_size)) {
-                if(parseInt(this.title_font_size)<=100){
+                if (parseInt(this.title_font_size) <= 100) {
                     this.next_update_options = this.widget_options;
                     this.next_update_options.title_font_size = parseInt(this.title_font_size);
                 }
+                this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('scale_x_title')
+    private async onchange_scale_x_title() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.scale_x_title) {
+
+            if (this.widget_options.scale_x_title) {
+                this.widget_options.scale_x_title = null;
+                this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.scale_x_title != this.scale_x_title) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.scale_x_title = this.scale_x_title;
+
+                this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('scale_y_title')
+    private async onchange_scale_y_title() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.scale_y_title) {
+
+            if (this.widget_options.scale_y_title) {
+                this.widget_options.scale_y_title = null;
+                this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.scale_y_title != this.scale_y_title) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.scale_y_title = this.scale_y_title;
+
                 this.throttled_update_options();
             }
         } catch (error) {
@@ -323,14 +386,14 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         try {
 
             if (this.widget_options.max_dimension_values != parseInt(this.max_dimension_values)) {
-                if(this.widget_options.dimension_is_vo_field_ref) {
-                    if(parseInt(this.max_dimension_values) >= 0){
+                if (this.widget_options.dimension_is_vo_field_ref) {
+                    if (parseInt(this.max_dimension_values) >= 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     }
                     await this.throttled_update_options();
                 } else {
-                    if(parseInt(this.max_dimension_values) > 0){
+                    if (parseInt(this.max_dimension_values) > 0) {
                         this.next_update_options = this.widget_options;
                         this.next_update_options.max_dimension_values = parseInt(this.max_dimension_values);
                     } else {
@@ -450,6 +513,30 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         return VarMixedChartWidgetOptionsVO.createDefault();
     }
 
+    private async switch_show_scale_x() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_scale_x = !this.next_update_options.show_scale_x;
+
+        this.throttled_update_options();
+    }
+
+    private async switch_show_scale_y() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.show_scale_y = !this.next_update_options.show_scale_y;
+
+        this.throttled_update_options();
+    }
+
     private async switch_legend_display() {
         this.next_update_options = this.widget_options;
 
@@ -492,7 +579,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      * @returns {void}
      */
     private async switch_has_dimension() {
-        if(!this.has_dimension){
+        if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
         // this.next_update_options = this.widget_options;
@@ -670,9 +757,9 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
         }
-        
-        if(this.scale_options_x) {
-            if(this.scale_options_x.type != "") {
+
+        if (this.scale_options_x) {
+            if (this.scale_options_x.type != "") {
                 this.next_update_options.scale_options_x = options;
             }
         }
@@ -691,8 +778,8 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.next_update_options = this.get_default_options();
         }
 
-        if(this.scale_options_y) {
-            if(this.scale_options_y.type != "") {
+        if (this.scale_options_y) {
+            if (this.scale_options_y.type != "") {
                 this.next_update_options.scale_options_y = options;
             }
         }
@@ -775,6 +862,10 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[0];
 
             this.var_charts_options = [];
+            this.show_scale_x = false;
+            this.show_scale_y = false;
+            this.scale_x_title = null;
+            this.scale_y_title = null;
             this.scale_options_x = null;
             this.scale_options_y = null;
             this.scale_x_color = '#666';
@@ -853,7 +944,18 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         if (!isEqual(this.var_charts_options, this.widget_options.var_charts_options)) {
             this.var_charts_options = cloneDeep(this.widget_options.var_charts_options);
         }
-
+        if (this.show_scale_x != this.widget_options.show_scale_x) {
+            this.show_scale_x = this.widget_options.show_scale_x;
+        }
+        if (this.show_scale_y != this.widget_options.show_scale_y) {
+            this.show_scale_y = this.widget_options.show_scale_y;
+        }
+        if (this.scale_x_title != this.widget_options.scale_x_title) {
+            this.scale_x_title = this.widget_options.scale_x_title;
+        }
+        if (this.scale_y_title != this.widget_options.scale_y_title) {
+            this.scale_y_title = this.widget_options.scale_y_title;
+        }
         if (!isEqual(this.scale_options_x, this.widget_options.scale_options_x)) {
             this.scale_options_x = cloneDeep(this.widget_options.scale_options_x);
         }
@@ -869,7 +971,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
 
     private get_dimension_custom_filter_segment_type_from_selected_option(selected_option: string): number {
         if (this.dimension_custom_filter_segment_types) {
-            for(const key in Object.keys(this.dimension_custom_filter_segment_types)){
+            for (const key in Object.keys(this.dimension_custom_filter_segment_types)) {
                 if (this.dimension_custom_filter_segment_types[Object.keys(this.dimension_custom_filter_segment_types)[key]] == selected_option) {
                     const res = parseInt(Object.keys(this.dimension_custom_filter_segment_types)[key]);
                     return res >= 0 ? res : null;

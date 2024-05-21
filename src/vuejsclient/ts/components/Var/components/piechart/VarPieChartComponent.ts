@@ -14,7 +14,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-
+import VarPieChartWidgetOptions from '../../../dashboard_builder/widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 @Component({
     template: require('./VarPieChartComponent.pug'),
     components: {
@@ -73,10 +74,13 @@ export default class VarPieChartComponent extends VueComponentBase {
     };
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels)
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
-        await import("chart.js-plugin-labels-dv");
+        // await import("chart.js-plugin-labels-dv");
+        await import("chartjs-plugin-datalabels");
     }
     @Watch('chart_plugins', { immediate: true })
     @Watch('chart_data')
@@ -275,43 +279,7 @@ export default class VarPieChartComponent extends VueComponentBase {
                 options: {
                     events: ['click', 'mousemove', 'mouseout']
                 },
-                // plugins: this.chart_plugins,
-                // plugins: [
-                //     {
-                //         id: 'ShowLabels',
-                //         beforeDraw: function (chart, args, options) {
-                //             if (options.activated) {
-                //                 const { ctx } = chart;
-                //                 ctx.save();
 
-                //                 chart.data.datasets.forEach((dataset, i) => {
-                //                     chart.getDatasetMeta(i).data.forEach((p, j) => {
-                //                         const { x, y } = p.tooltipPosition();
-
-                //                         const text = chart.data.labels[j] + ': ' + (Math.round(chart.data.datasets[i].data[j] * 100) / 100);
-                //                         const textWidth = ctx.measureText(text).width;
-
-                //                         ctx.fillStyle = dataset.backgroundColor[j];
-                //                         ctx.fillRect(x - ((textWidth + 10) / 2), y - 25, textWidth + 10, 20);
-
-                //                         ctx.beginPath();
-                //                         ctx.moveTo(x, y);
-                //                         ctx.lineTo(x - 5, y - 5);
-                //                         ctx.lineTo(x + 5, y + 5);
-                //                         ctx.fill()
-                //                         ctx.restore()
-
-
-                //                         ctx.font = '12px Arial';
-                //                         ctx.fillStyle = 'white';
-                //                         ctx.fillText(text, x - (textWidth / 2), y - 10);
-                //                         ctx.restore()
-                //                     });
-                //                 });
-                //             }
-                //         }
-                //     }
-                // ],
                 onClick: (point, event) => {
                     if (!self.isDescMode) {
                         return;

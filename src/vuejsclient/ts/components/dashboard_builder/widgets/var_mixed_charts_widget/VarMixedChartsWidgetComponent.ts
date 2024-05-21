@@ -79,6 +79,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
     private current_charts_var_params: { [chart_id: string]: VarDataBaseVO[] } = null;
     private current_options: IChartOptions = null;
 
+    private isValid: boolean = true;
     private async mounted() {
         await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
@@ -184,7 +185,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
             return null;
         }
-
+        this.isValid = true;
         let charts_var_params_by_dimension: { [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
         let context_query: ContextQueryVO = null;
         /**
@@ -291,9 +292,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
                     if (!charts_var_params_by_dimension[var_chart_id][dimension_value]) {
                         if (dimension_value !== '[NULL]') {
-                            this.snotify.error(this.t('var_mixed_charts_widget.error_charts_var_params_for_dimension_value'));
-                            // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                            ConsoleHandler.log('Pas de charts_var_params pour la dimension ' + dimension_value);
+                            this.isValid = false;
                             return;
                         } else {
                             charts_var_params_by_dimension[var_chart_id][dimension_value] = new VarDataBaseVO();
@@ -355,7 +354,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
 
         let charts_var_params_by_dimension: { [chart_id: string]: { [dimension_value: number]: VarDataBaseVO } } = {};
-
+        this.isValid = true;
         /**
          * Sinon on se base sur la liste des valeurs possibles pour la dimension segmentée
          */
@@ -472,8 +471,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                     );
 
                     if (!charts_var_params_by_dimension[var_chart_id][dimension_value]) {
-                        // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
-                        ConsoleHandler.log('Pas de charts_var_params pour la dimension ' + dimension_value);
+                        this.isValid = false;
                         return;
                     }
 
@@ -575,7 +573,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         } else {
             charts_var_params_by_dimension = await this.get_charts_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters);
         }
-
+        if (!this.isValid) {
+            this.snotify.error("Pas de données, veuillez vérifier que les tables nécessaires sont présentes.");
+            return;
+        }
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;
@@ -617,6 +618,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         if (this.widget_options.scale_options_x) {
             scales['x'] = this.widget_options.scale_options_x;
+            scales['x']['title'] = {
+                display: this.widget_options.show_scale_x ? this.widget_options.show_scale_x : false,
+                text: this.widget_options.scale_x_title ? this.widget_options.scale_x_title : '',
+            };
             scales['x']['grid'] = {
                 color: this.widget_options.scale_x_color ? this.widget_options.scale_x_color : '#666'
             };
@@ -624,6 +629,10 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
 
         if (this.widget_options.scale_options_y) {
             scales['y'] = this.widget_options.scale_options_y;
+            scales['y']['title'] = {
+                display: this.widget_options.show_scale_y ? this.widget_options.show_scale_y : false,
+                text: this.widget_options.scale_y_title ? this.widget_options.scale_y_title : '',
+            };
             scales['y']['grid'] = {
                 color: this.widget_options.scale_y_color ? this.widget_options.scale_y_color : '#666'
             };

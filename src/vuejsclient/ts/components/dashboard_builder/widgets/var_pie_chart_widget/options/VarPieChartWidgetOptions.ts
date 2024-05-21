@@ -87,6 +87,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
 
         public filter_custom_field_filters_1: { [field_id: string]: string },
 
+        public color_palette: string[],
         public bg_colors: string[],
         public bg_gradient: boolean,
         public bg_color_1: string,
@@ -221,6 +222,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
             null,
 
             {},
+            [],
             [],
             null,
 

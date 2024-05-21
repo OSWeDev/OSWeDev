@@ -52,19 +52,24 @@ export default class ChartJsPieComponent extends VueComponentBase {
     }
 
     get chart_options() {
-        return Object.assign(
-            {
-                plugins: {
-                    labels: false,
-                }
-            },
-            this.options
-        );
+        // return Object.assign(
+        //     {
+        //         plugins: {
+        //             labels: false,
+        //         }
+        //     },
+        //     this.options
+        // );
+        if (this.options.plugins) {
+            return this.options;
+        } else {
+            return
+        }
     }
 
     get chart_plugins() {
-        if(this.plugins.length > 0) {
-        return this.plugins;
+        if (this.plugins.length > 0) {
+            return this.plugins;
         } else {
             return
         }

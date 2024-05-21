@@ -45,10 +45,60 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
     private tmp_selected_var_name_1: string = null;
     private tmp_selected_var_name_2: string = null;
+    private tmp_selected_color_palette: string = null;
 
     private custom_filter_names_1: { [field_id: string]: string } = {};
     private custom_filter_names_2: { [field_id: string]: string } = {};
     private dimension_custom_filter_name: string = null;
+    private color_palettes_labels: string[] = [
+        "Tableau",
+        "ColorBrewer",
+        "Matplotlib",
+        "Coolors",
+    ]
+    private color_palettes: string[][] = [
+        [
+            '#4E79A7', // Bleu
+            '#F28E2B', // Orange
+            '#E15759', // Rouge
+            '#76B7B2', // Vert
+            '#59A14F', // Vert foncé
+            '#EDC948', // Jaune
+            '#B07AA1', // Violet
+            '#FF9DA7', // Rose
+            '#9C755F', // Marron
+            '#BAB0AC'  // Gris
+        ],
+        [
+            '#1b9e77', // Vert
+            '#d95f02', // Orange
+            '#7570b3', // Violet
+            '#e7298a', // Rose
+            '#66a61e', // Vert clair
+            '#e6ab02', // Jaune
+            '#a6761d', // Marron
+            '#666666'  // Gris
+        ],
+        [
+            '#1f77b4', // Bleu
+            '#ff7f0e', // Orange
+            '#2ca02c', // Vert
+            '#d62728', // Rouge
+            '#9467bd', // Violet
+            '#8c564b', // Marron
+            '#e377c2', // Rose
+            '#7f7f7f', // Gris
+            '#bcbd22', // Jaune
+            '#17becf'  // Cyan
+        ],
+        [
+            '#264653', // Bleu foncé
+            '#2a9d8f', // Vert sarcelle
+            '#e9c46a', // Jaune moutarde
+            '#f4a261', // Orange brûlé
+            '#e76f51'  // Rouge terre cuite
+        ]
+    ];
 
     private bg_color_1: string = null;
     private bg_color_2: string = null;
@@ -505,6 +555,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         (this.widget_options.bg_gradient == options.bg_gradient) &&
                         (this.widget_options.border_color_1 == options.border_color_1) &&
                         (this.widget_options.border_color_2 == options.border_color_2) &&
+                        (this.widget_options.color_palette == options.color_palette) &&
                         (this.widget_options.bg_color == options.bg_color) &&
                         (this.widget_options.legend_font_color == options.legend_font_color) &&
                         (this.widget_options.title_font_color == options.title_font_color) &&
@@ -565,6 +616,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         options.filter_additional_params,
                         options.var_id_1,
                         options.filter_custom_field_filters_1,
+                        options.color_palette,
                         options.bg_colors,
                         options.bg_gradient,
                         options.bg_color_1,
@@ -622,6 +674,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
             this.tmp_selected_var_name_1 = null;
             this.custom_filter_names_1 = {};
+            this.tmp_selected_color_palette = "None"
+            this.color_palettes = null;
             this.bg_colors = null;
             this.bg_gradient = false;
             this.bg_color_1 = null;
@@ -723,6 +777,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (this.dimension_custom_filter_name != this.widget_options.dimension_custom_filter_name) {
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
+        if (this.tmp_selected_color_palette != this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)]) {
+            this.tmp_selected_color_palette = this.color_palettes_labels[this.searchIndexOfArray(this.widget_options.color_palette, this.color_palettes)];
+        }
         if (this.bg_colors != this.widget_options.bg_colors) {
             this.bg_colors = this.widget_options.bg_colors;
         }
@@ -768,6 +825,14 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
+    private searchIndexOfArray(target: any, source: any): number {
+        for (let i = 0; i <= source.length; i++) {
+            if (JSON.stringify(target) === JSON.stringify(source[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
     @Watch('page_widget', { immediate: true, deep: true })
     private async onchange_page_widget() {
         await this.throttled_reload_options();
@@ -809,6 +874,36 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             ConsoleHandler.error(error);
         }
     }
+
+    @Watch('tmp_selected_color_palette')
+    private async onchange_tmp_selected_color_palette() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_selected_color_palette) {
+
+            if (this.widget_options.color_palette) {
+                this.widget_options.color_palette = null;
+                await this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+            let selected_palette_index = this.color_palettes_labels.indexOf(this.tmp_selected_color_palette);
+            let new_palette = this.color_palettes[selected_palette_index];
+            if (this.widget_options.color_palette != new_palette) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.color_palette = new_palette;
+
+                await this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
 
 
     @Watch('tmp_selected_var_name_1')
