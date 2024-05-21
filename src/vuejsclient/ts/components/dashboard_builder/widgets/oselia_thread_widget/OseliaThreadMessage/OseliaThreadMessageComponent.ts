@@ -23,6 +23,7 @@ import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionU
 import './OseliaThreadMessageComponent.scss';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -32,7 +33,8 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
         Tablepaginationcomponent: TablePaginationComponent,
         Oseliathreadmessageactionurlcomponent: OseliaThreadMessageActionURLComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Oseliathreadmessageemailcomponent: MailIDEventsComponent
+        Oseliathreadmessageemailcomponent: MailIDEventsComponent,
+        Oseliathreadfeedbackcomponent: OseliaThreadFeedbackComponent
     }
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {
@@ -139,20 +141,48 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
     }
 
-    private async copy() {
+    private async copy(ref: string) {
 
-        // On récupère le texte du message, donc le texte brut de tous les contenus de type texte
-        let text = '';
+        // // On récupère le texte du message, donc le texte brut de tous les contenus de type texte
+        // let text = '';
 
-        for (const i in this.thread_message_contents) {
-            const content = this.thread_message_contents[i];
+        // for (const i in this.thread_message_contents) {
+        //     const content = this.thread_message_contents[i];
 
-            if (content.type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
-                text += ((text == '') ? '\n\n' : '') + (content.content_type_text ? content.content_type_text.value : '');
+        //     if (content.type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
+        //         text += ((text == '') ? '\n\n' : '') + (content.content_type_text ? content.content_type_text.value : '');
+        //     }
+        // }
+
+        // await navigator.clipboard.writeText(text);
+
+        let selection = null;
+        try {
+
+            const range = document.createRange();
+            let ref_node = this.$refs[ref];
+            if (Array.isArray(ref_node)) {
+                ref_node = ref_node[0];
             }
+            range.selectNode(ref_node as any);
+            selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            const successful = document.execCommand('copy');
+            if (successful) {
+                await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
+            } else {
+                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            }
+        } catch (err) {
+            await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            console.error('Unable to copy', err);
         }
 
-        await navigator.clipboard.writeText(text);
+        if (selection) {
+            selection.removeAllRanges(); // Deselect the content
+        }
     }
 
     private async rerun() {

@@ -317,6 +317,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private handle_new_message_text_keydown(event: KeyboardEvent) {
+        this.$nextTick(() => {
+            setTimeout(this.adjustTextareaHeight.bind(this), 10);
+        });
+
         if (event.key === 'Enter') {
             if (event.shiftKey) {
                 // Ajoute une nouvelle ligne
@@ -328,5 +332,21 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 this.send_message();
             }
         }
+    }
+
+    private adjustTextareaHeight() {
+        const textarea = this.$refs.new_message_textarea_ref as HTMLTextAreaElement;
+        textarea.style.height = 'auto'; // Reset the height
+        const scrollHeight = textarea.scrollHeight; // Get the scroll height
+
+        const maxRows = 10;
+        const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
+        const maxHeight = lineHeight * maxRows;
+
+        textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+
+        this.$nextTick(() => {
+            setTimeout(this.scroll_to_bottom.bind(this), 10);
+        });
     }
 }

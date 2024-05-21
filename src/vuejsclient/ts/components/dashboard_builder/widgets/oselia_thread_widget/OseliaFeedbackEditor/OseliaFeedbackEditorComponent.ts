@@ -17,8 +17,6 @@ import './OseliaFeedbackEditorComponent.scss';
 })
 export default class OseliaFeedbackEditorComponent extends VueComponentBase {
 
-    public current_user_feedback: OseliaThreadFeedbackVO | OseliaThreadMessageFeedbackVO = null;
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -37,6 +35,7 @@ export default class OseliaFeedbackEditorComponent extends VueComponentBase {
     @Prop({ default: null })
     private current_user_feedback_id: number;
 
+    public current_user_feedback: OseliaThreadFeedbackVO | OseliaThreadMessageFeedbackVO = null;
     private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(this.load_feedback, 10);
     private throttle_save_feedback = ThrottleHelper.declare_throttle_without_args(this.save_feedback, 10);
 

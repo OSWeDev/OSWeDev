@@ -93,6 +93,26 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Fermer la fenêtre' },
             'OseliaReferrerNotFoundComponent.close.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Texte copié dans le presse-papier' },
+            'oselia_thread_message.copy_success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Echec de la copie' },
+            'oselia_thread_message.copy_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Modifier' },
+            'oselia_thread_widget_component.thread_message_footer_actions.edit.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Copier le texte' },
+            'oselia_thread_widget_component.thread_message_footer_actions.copy.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Obtenir une nouvelle réponse' },
+            'oselia_thread_widget_component.thread_message_footer_actions.rerun.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Donnez votre avis sur ce résultat' },
+            'oselia_thread_widget_component.thread_message_footer_actions.feedback.___LABEL___'));
+
         ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
 
         // AJOUTER les triggers existants pour les referrer + les triggers pour ajouter/supprimer les triggers en fonction de la mise à jour des referrers

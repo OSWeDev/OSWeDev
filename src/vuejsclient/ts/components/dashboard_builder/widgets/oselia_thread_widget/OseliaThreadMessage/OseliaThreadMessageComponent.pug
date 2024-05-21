@@ -39,7 +39,7 @@
                 .thread_message_header_right_date
                     | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
 
-        .thread_message_body
+        .thread_message_body(ref='thread_message_body_ref')
             template(v-for='(message_content, i) in thread_message_contents')
                 .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.type')
                     template(v-if='is_editing_content[i]')
@@ -53,13 +53,24 @@
                                 button.btn.btn-primary(@click='save_edit_thread_message_content(message_content, i)' :disabled='!changed_input[i]') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.save') }}
                     template(v-else)
                         template(v-if='message_content.type == message_content_type_text')
-                            .thread_message_body_text(v-html='message_content.content_type_text.value')
-                            template(v-if='is_self_user')
-                                .thread_message_footer_actions
+                            .thread_message_body_text(v-html='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"')
+                            .thread_message_footer_actions
+                                .thread_message_footer_action
+                                    .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
+                                        .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
+                                            i.fa-duotone.fa-clipboard
+
+                                template(v-if='is_self_user')
+                                    //- .thread_message_footer_action
+                                    //-     .thread_message_body_text_edit(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.edit")')
+                                    //-         .thread_message_body_text_edit_button(@click='edit_thread_message_content(message_content)')
+                                    //-             i.fa-duotone.fa-pen-to-square
+
+                                template(v-if='thread_message.role == role_assistant')
                                     .thread_message_footer_action
-                                        .thread_message_body_text_edit(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.edit")')
-                                            .thread_message_body_text_edit_button(@click='edit_thread_message_content(message_content)')
-                                                i.fa-duotone.fa-pen-to-square
+                                        .thread_message_feedback(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.feedback")'  :class='{ active: show_feedback }')
+                                            .thread_message_feedback_button(@click='show_feedback = !show_feedback')
+                                                i.fa-duotone.fa-comments
 
                         template(v-else-if='message_content.type == message_content_type_action_url')
                             .thread_message_body_action_url
@@ -77,24 +88,8 @@
                         //-         img(:src='message_content.assistant_file_id')
         
         template(v-if='thread_message.role == role_assistant')
-            .thread_message_footer_actions
-                .thread_message_footer_action
-                    .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
-                        .thread_message_copy_button(@click='copy')
-                            i.fa-duotone.fa-clipboard
-
-                .thread_message_footer_action
-                    .thread_message_rerun(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.rerun")')
-                        .thread_message_rerun_button(@click='rerun')
-                            i.fa-duotone.fa-rotate-reverse
-
-                .thread_message_footer_action
-                    .thread_message_feedback(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.feedback")'  :class='{ active: show_feedback }')
-                        .thread_message_feedback_button(@click='show_feedback = !show_feedback')
-                            i.fa-duotone.fa-comments
-            
             template(v-if='show_feedback')
-                OseliaThreadFeedbackComponent(
+                Oseliathreadfeedbackcomponent(
                     :thread='thread'
                 )
 
