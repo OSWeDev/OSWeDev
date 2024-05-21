@@ -74,6 +74,10 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                     ConsoleHandler.log('push_vector_store_to_openai: Creating vector_store in OpenAI : ' + vo.name);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing vector_store to OpenAI : block_openai_sync_push_to_openai');
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.create({
 
                     expires_after: {
@@ -92,6 +96,10 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_vector_store_to_openai: Updating vector_store in OpenAI : ' + vo.name);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing vector_store to OpenAI : block_openai_sync_push_to_openai');
                     }
 
                     // On doit mettre à jour

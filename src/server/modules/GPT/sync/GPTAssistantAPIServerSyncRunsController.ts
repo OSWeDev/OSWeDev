@@ -80,6 +80,10 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     ConsoleHandler.log('push_run_to_openai: Creating run in OpenAI : ' + vo.id);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.threads.runs.create(vo.gpt_thread_id, {
 
                     assistant_id: vo.gpt_assistant_id,
@@ -104,6 +108,10 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_run_to_openai: Updating run in OpenAI : ' + vo.gpt_run_id);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
                     }
 
                     // On doit mettre à jour

@@ -65,6 +65,10 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                     ConsoleHandler.log('push_vector_store_file_batch_to_openai: Creating vector_store_file_batch in OpenAI : ' + vo.gpt_id + ' - ' + vo.vector_store_gpt_id);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing vector store file batch to OpenAI : OpenAI sync is blocked : ' + vo.gpt_id);
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.fileBatches.create(vo.vector_store_gpt_id, {
                     file_ids: vo.gpt_file_ids,
                 });

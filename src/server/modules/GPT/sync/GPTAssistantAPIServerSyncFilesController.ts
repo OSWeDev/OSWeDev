@@ -73,6 +73,10 @@ export default class GPTAssistantAPIServerSyncFilesController {
                     ConsoleHandler.log('push_file_to_openai: Creating file in OpenAI : ' + vo.filename);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing file to OpenAI : block_openai_sync_push_to_openai');
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.files.create({
 
                     file: createReadStream(vo.filename) as unknown as Uploadable,
@@ -87,6 +91,10 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_file_to_openai: Updating file in OpenAI : ' + vo.filename);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing file to OpenAI : block_openai_sync_push_to_openai');
                     }
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les fichiers

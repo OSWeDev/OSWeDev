@@ -103,4 +103,6 @@ export default interface IEnvParam {
     logo_path?: string;
 
     debug_openai_sync?: boolean;
+
+    block_openai_sync_push_to_openai?: boolean;
 }

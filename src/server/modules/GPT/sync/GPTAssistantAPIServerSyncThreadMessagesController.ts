@@ -115,6 +115,10 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     ConsoleHandler.log('push_thread_message_to_openai: Creating thread message in OpenAI : ' + vo.id);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing obj to OpenAI : blocked :api_type_id:' + vo._type + ':vo_id:' + vo.id);
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.threads.messages.create(vo.gpt_thread_id, {
                     content: message_contents,
                     role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
@@ -130,6 +134,10 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_thread_message_to_openai: Updating thread message in OpenAI : ' + vo.id);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing obj to OpenAI : blocked :api_type_id:' + vo._type + ':vo_id:' + vo.id);
                     }
 
                     // On doit mettre à jour

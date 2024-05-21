@@ -236,4 +236,5 @@ export default class EnvParamsVO implements IDistantVOBase {
     public logo_path: string;
 
     public debug_openai_sync: boolean;
+    public block_openai_sync_push_to_openai: boolean;
 }

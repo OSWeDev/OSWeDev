@@ -176,6 +176,10 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     ConsoleHandler.log('push_assistant_to_openai: Creating assistant in OpenAI : ' + vo.nom);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing assistant to OpenAI : push to OpenAI is blocked');
+                }
+
                 // On récupère la définition des outils
                 gpt_obj = await ModuleGPTServer.openai.beta.assistants.create({
 
@@ -201,6 +205,10 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_assistant_to_openai: Updating assistant in OpenAI : ' + vo.nom);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing assistant to OpenAI : push to OpenAI is blocked');
                     }
 
                     // On doit mettre à jour

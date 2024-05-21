@@ -77,6 +77,15 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             const tool_resources: ThreadCreateParams.ToolResources = await GPTAssistantAPIServerSyncThreadsController.tool_resources_to_openai_api(vo.tool_resources);
 
             if (!gpt_obj) {
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('GPTAssistantAPIServerSyncThreadsController:push_thread_to_openai - creating thread');
+                }
+
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai');
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.threads.create({
 
                     messages: [], // On synchronise les messages après dans tous les cas
@@ -89,6 +98,14 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                 }
             } else {
                 if (GPTAssistantAPIServerSyncThreadsController.thread_has_diff(vo, tool_resources, gpt_obj)) {
+
+                    if (ConfigurationService.node_configuration.debug_openai_sync) {
+                        ConsoleHandler.log('GPTAssistantAPIServerSyncThreadsController:push_thread_to_openai - updating thread');
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai');
+                    }
 
                     // On doit mettre à jour
                     await ModuleGPTServer.openai.beta.threads.update(gpt_obj.id, {

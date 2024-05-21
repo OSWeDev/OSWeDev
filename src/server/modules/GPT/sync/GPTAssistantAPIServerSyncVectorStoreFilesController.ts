@@ -69,6 +69,10 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
                     ConsoleHandler.log('push_vector_store_file_to_openai: Creating vector_store_file in OpenAI : ' + vo.gpt_file_id + ' - ' + vo.vector_store_gpt_id);
                 }
 
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai :api_type_id:' + vo._type + ':vo_id:' + vo.id);
+                }
+
                 gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.files.create(vo.vector_store_gpt_id, {
 
                     file_id: vo.gpt_file_id,
@@ -82,6 +86,10 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_vector_store_file_to_openai: Updating vector_store_file in OpenAI : ' + vo.gpt_file_id + ' - ' + vo.vector_store_gpt_id);
+                    }
+
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                        throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai :api_type_id:' + vo._type + ':vo_id:' + vo.id);
                     }
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les vector store files

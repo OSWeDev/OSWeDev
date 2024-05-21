@@ -436,6 +436,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     private async call_api(modelId: string, currentMessages: ChatCompletionMessageParam[]): Promise<any> {
         try {
+            if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                throw new Error('OpenAI sync is blocked');
+            }
+
             return await ModuleGPTServer.openai.chat.completions.create({
                 model: modelId,
                 messages: currentMessages as ChatCompletionMessageParam[],

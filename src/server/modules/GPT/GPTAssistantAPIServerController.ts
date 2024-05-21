@@ -29,6 +29,7 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class GPTAssistantAPIServerController {
 
@@ -107,6 +108,11 @@ export default class GPTAssistantAPIServerController {
 
             let thread_gpt: Thread = null;
             if (!thread_id) {
+
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    return null;
+                }
+
                 thread_gpt = await ModuleGPTServer.openai.beta.threads.create();
             } else {
                 thread_gpt = await ModuleGPTServer.openai.beta.threads.retrieve(thread_id);
