@@ -57,7 +57,7 @@ export default class ModuleGPT extends Module {
     public static APINAME_ask_assistant: string = "modulegpt_ask_assistant";
     public static APINAME_rerun: string = "modulegpt_rerun";
 
-    public static MANUAL_TASK_NAME_reload_openai_runs_datas: string = ModuleGPT.MODULE_NAME + ".reload_openai_runs_datas";
+    public static MANUAL_TASK_NAME_sync_openai_datas: string = ModuleGPT.MODULE_NAME + ".sync_openai_datas";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleGPT.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleGPT.MODULE_NAME + ".BO_ACCESS";
@@ -190,7 +190,7 @@ export default class ModuleGPT extends Module {
 
     public initialize() {
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = null;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = null;
 
         this.initializeGPTCompletionAPIConversationVO();
         this.initializeGPTCompletionAPIMessageVO();

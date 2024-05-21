@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Assistant } from 'openai/resources/beta/assistants/assistants';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -33,6 +32,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssistantAPIServerSyncAssistantsController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
@@ -259,12 +259,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
         }
-        const assistant: { assistant_gpt: Assistant; assistant_vo: GPTAssistantAPIAssistantVO } =
-            openai_assistant_id ? await GPTAssistantAPIServerController.get_assistant(openai_assistant_id) : null;
+        const assistant_vo: GPTAssistantAPIAssistantVO =
+            openai_assistant_id ? await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(openai_assistant_id) : null;
         const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
             user.id,
             openai_thread_id,
-            assistant && assistant.assistant_vo ? assistant.assistant_vo.id : null,
+            assistant_vo ? assistant_vo.id : null,
         );
 
         /**

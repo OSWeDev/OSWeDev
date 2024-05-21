@@ -52,6 +52,7 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
+import GPTAssistantAPIServerSyncController from './sync/GPTAssistantAPIServerSyncController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -79,24 +80,11 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = this.reload_openai_runs_datas;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
 
-    public async reload_openai_runs_datas() {
-        const run_vos = await query(GPTAssistantAPIRunVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIRunVO>();
-        for (const i in run_vos) {
-            const run_vo = run_vos[i];
-            if (run_vo.gpt_run_id) {
-
-                if (!run_vo.gpt_thread_id) {
-                    const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_id(run_vo.thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID).select_vo<GPTAssistantAPIThreadVO>();
-                    run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
-                }
-
-                const run_gpt = await ModuleGPTServer.openai.beta.threads.runs.retrieve(run_vo.gpt_thread_id, run_vo.gpt_run_id);
-                await GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
-            }
-        }
+    public async sync_openai_datas() {
+        await GPTAssistantAPIServerSyncController.sync_all_datas();
     }
 
     /**

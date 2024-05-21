@@ -20,6 +20,6 @@ export default class Patch20240409RetrieveOpenAIRunStats implements IGeneratorWo
     }
 
     public async work(db: IDatabase<unknown>) {
-        await ModuleGPTServer.getInstance().reload_openai_runs_datas();
+        await ModuleGPTServer.getInstance().sync_openai_datas();
     }
 }

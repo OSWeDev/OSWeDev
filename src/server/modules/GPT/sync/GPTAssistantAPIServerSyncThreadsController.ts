@@ -33,6 +33,12 @@ export default class GPTAssistantAPIServerSyncThreadsController {
         return true;
     }
     public static async pre_create_trigger_handler_for_ThreadVO(vo: GPTAssistantAPIThreadVO, exec_as_server?: boolean): Promise<boolean> {
+
+        if (vo.gpt_thread_id) {
+            // Si on a l'id GPT, c'est que la création vient de OpenAI, pas l'inverse. Donc on ne fait rien de plus
+            return true;
+        }
+
         try {
             await GPTAssistantAPIServerSyncThreadsController.push_thread_to_openai(vo);
         } catch (error) {

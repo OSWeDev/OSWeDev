@@ -31,6 +31,12 @@ export default class GPTAssistantAPIServerSyncRunsController {
         return true;
     }
     public static async pre_create_trigger_handler_for_RunVO(vo: GPTAssistantAPIRunVO, exec_as_server?: boolean): Promise<boolean> {
+
+        if (vo.gpt_run_id) {
+            // Si on a l'id GPT, c'est que la création vient de OpenAI, pas l'inverse. Donc on ne fait rien de plus
+            return true;
+        }
+
         try {
             await GPTAssistantAPIServerSyncRunsController.push_run_to_openai(vo);
         } catch (error) {
