@@ -421,17 +421,17 @@ export default class ModuleGPT extends Module {
     }
 
     private initializeGPTAssistantAPIVectorStoreFileVO() {
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT File ID', true);
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true).unique()
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
             .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().status, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', false).setEnumValues(GPTAssistantAPIVectorStoreFileVO.STATUS_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().last_error, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dernière erreur', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().usage_bytes, ModuleTableFieldVO.FIELD_TYPE_int, 'Bytes utilisés', true, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID du vector store', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Vector Store', false)
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID du vector store', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Vector Store', true)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIVectorStoreVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
@@ -440,8 +440,8 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIFileVO() {
 
-        const file_id = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true).unique();
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const file_id = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier', true);
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).index();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().purpose, ModuleTableFieldVO.FIELD_TYPE_enum, 'Params', true, true, GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS).setEnumValues(GPTAssistantAPIFileVO.PURPOSE_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du fichier', true);
@@ -502,7 +502,7 @@ export default class ModuleGPT extends Module {
 
         const thread_id = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true);
         const assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true);
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).index();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIRunVO.API_TYPE_ID, field_names<GPTAssistantAPIRunVO>().rerun_of_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Re-run de', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
@@ -551,7 +551,7 @@ export default class ModuleGPT extends Module {
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run', true)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().gpt_run_step_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().gpt_run_step_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).index();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type', false).setEnumValues(GPTAssistantAPIRunStepVO.TYPE_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIRunStepVO.API_TYPE_ID, field_names<GPTAssistantAPIRunStepVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Run ID', true);
@@ -582,7 +582,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
 
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', false).index();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
@@ -616,7 +616,7 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().add_to_tool_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ajouter à l\'interpréteur de code', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().add_to_tool_file_search, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ajouter à la recherche de fichier', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT File ID', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageAttachmentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageAttachmentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadMessageAttachmentVO, null, 'GPT Assistant API - Thread Message Attachment');
@@ -628,7 +628,7 @@ export default class ModuleGPT extends Module {
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadMessageVO.API_TYPE_ID);
 
         // On peut pas unique puisque souvent null, mais on index
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().gpt_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).index();
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().gpt_thread_message_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Thread Message ID', false).index();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().content_type_text, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Texte', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().content_type_image_file, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Image - Fichier', false);

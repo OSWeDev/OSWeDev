@@ -92,6 +92,7 @@ import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduni
 import Patch20240507AddDefaultRightsAPIsOselia from './patchs/postmodules/Patch20240507AddDefaultRightsAPIsOselia';
 import Patch20240514AddAssistantFunctionGetVoTypeDescription from './patchs/postmodules/Patch20240514AddAssistantFunctionGetVoTypeDescription';
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
+import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -177,6 +178,7 @@ export default abstract class GeneratorBase {
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
             Patch20240415Adduniqmail_id.getInstance(),
             Patch20240515RunStatusToEnum.getInstance(),
+            Patch20240521ChangeFormatDbAssistants.getInstance()
         ];
 
         this.post_modules_workers = [

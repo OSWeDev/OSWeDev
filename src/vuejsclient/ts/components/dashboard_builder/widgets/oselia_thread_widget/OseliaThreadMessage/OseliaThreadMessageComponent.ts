@@ -72,35 +72,35 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
 
     get role_assistant() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
     }
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
     }
 
     get role_system() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_SYSTEM;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_SYSTEM;
     }
     get role_system_avatar_url() {
         return '/vuejsclient/public/img/avatars/system.png';
     }
 
     get role_tool() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_TOOL;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TOOL;
     }
     get role_tool_avatar_url() {
         return '/vuejsclient/public/img/avatars/tool.png';
     }
 
     get role_function() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_FUNCTION;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_FUNCTION;
     }
     get role_function_avatar_url() {
         return '/vuejsclient/public/img/avatars/function.png';
     }
 
     get role_user() {
-        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_TYPE_USER;
+        return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
     }
 
     get is_self_user() {
@@ -147,8 +147,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         for (const i in this.thread_message_contents) {
             const content = this.thread_message_contents[i];
 
-            if (content.content_type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
-                text += ((text == '') ? '\n\n' : '') + content.value;
+            if (content.type == GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT) {
+                text += ((text == '') ? '\n\n' : '') + (content.content_type_text ? content.content_type_text.value : '');
             }
         }
 
