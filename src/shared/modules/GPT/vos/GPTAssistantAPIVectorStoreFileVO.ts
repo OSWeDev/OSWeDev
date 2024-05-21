@@ -34,7 +34,9 @@ export default class GPTAssistantAPIVectorStoreFileVO implements IDistantVOBase 
     public _type: string = GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID;
 
     public file_id: number;
-    public gpt_id: string;
+
+    // Semble-t-il le même que l'id du fichier qu'on rattache au vector store
+    public gpt_file_id: string;
 
     // The Unix timestamp(in seconds) for when the vector store file was created.
     public created_at: number;
@@ -49,9 +51,12 @@ export default class GPTAssistantAPIVectorStoreFileVO implements IDistantVOBase 
     /**
      * The status of the vector store file, which can be either in_progress, completed, cancelled, or failed.
      * The status completed indicates that the vector store file is ready for use.
+     * Enum in OSWedev, traduire pour OpenAI
      */
-    public status: string;
+    public status: number;
 
     // The last error associated with this vector store file. Will be null if there are no errors.
     public last_error: GPTAssistantAPIErrorVO;
+
+    public archived: boolean;
 }

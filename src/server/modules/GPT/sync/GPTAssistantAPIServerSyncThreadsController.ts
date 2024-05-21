@@ -15,8 +15,35 @@ import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 
 export default class GPTAssistantAPIServerSyncThreadsController {
+
+    /**
+     * GPTAssistantAPIThreadVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_ThreadVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncThreadsController.push_thread_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing thread to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_ThreadVO(vo: GPTAssistantAPIThreadVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncThreadsController.push_thread_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing thread to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_ThreadVO(vo: GPTAssistantAPIThreadVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
 
     /**
      * à utiliser pour la création ou la mise à jour vers OpenAI
@@ -24,7 +51,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
      * @param vo le vo à pousser vers OpenAI
      * @returns OpenAI obj
      */
-    public static async push_thread_to_openai(vo: GPTAssistantAPIThreadVO): Promise<Thread> {
+    public static async push_thread_to_openai(vo: GPTAssistantAPIThreadVO, is_trigger_pre_x: boolean = true): Promise<Thread> {
         try {
 
             if (!vo) {
@@ -57,8 +84,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             } else {
                 if (GPTAssistantAPIServerSyncThreadsController.thread_has_diff(vo, tool_resources, gpt_obj)) {
 
-                    // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les threads
-                    // donc on supprime et on recrée
+                    // On doit mettre à jour
                     await ModuleGPTServer.openai.beta.threads.update(gpt_obj.id, {
                         tool_resources: tool_resources,
                         metadata: cloneDeep(vo.metadata),
@@ -70,13 +96,19 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncThreadsController.thread_has_diff(vo, tool_resources, gpt_obj) || vo.archived) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             if (GPTAssistantAPIServerSyncThreadsController.thread_has_diff(vo, tool_resources, gpt_obj) || vo.archived) {
 
                 await GPTAssistantAPIServerSyncThreadsController.assign_vo_from_gpt(vo, gpt_obj);
-                vo.archived = false;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
             }
 
             // On synchronise les messages du thread - en mode push
@@ -96,11 +128,6 @@ export default class GPTAssistantAPIServerSyncThreadsController {
         }
     }
 
-    /**
-     * On récupère tous les threads de l'API GPT et on les synchronise avec Osélia
-     *  Ce qui signifie créer dans Osélia les Threads de GPT qui n'existent pas encore
-     *  Archiver les threads d'Osélia qui n'existent plus dans GPT (et pas encore archivés dans Osélia)
-     */
     public static async get_thread_or_sync(gpt_thread_id: string): Promise<GPTAssistantAPIThreadVO> {
         let thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id)
@@ -159,6 +186,17 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     return;
                 }
 
+                // On met à jour le thread dans Osélia
+                if (GPTAssistantAPIServerSyncThreadsController.thread_has_diff(thread_vo, await GPTAssistantAPIServerSyncThreadsController.tool_resources_to_openai_api(thread_vo.tool_resources), thread_gpt)) {
+
+                    if (ConfigurationService.node_configuration.debug_openai_sync) {
+                        ConsoleHandler.log('GPTAssistantAPIServerSyncThreadsController:sync_threads - updating thread');
+                    }
+
+                    await GPTAssistantAPIServerSyncThreadsController.assign_vo_from_gpt(thread_vo, thread_gpt);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+                }
+
                 // On synchronise les messages du thread
                 await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
 
@@ -202,5 +240,6 @@ export default class GPTAssistantAPIServerSyncThreadsController {
         vo.created_at = gpt_obj.created_at;
         vo.metadata = cloneDeep(gpt_obj.metadata);
         vo.tool_resources = await GPTAssistantAPIServerSyncThreadsController.tool_resources_from_openai_api(gpt_obj.tool_resources);
+        vo.archived = false;
     }
 }

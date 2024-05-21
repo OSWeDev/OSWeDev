@@ -1,5 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
+import GPTAssistantAPIErrorVO from './GPTAssistantAPIErrorVO';
 
 /**
  * @see https://platform.openai.com/docs/api-reference/run-steps/step-object
@@ -96,7 +97,7 @@ export default class GPTAssistantAPIRunStepVO implements IDistantVOBase {
 
 
     // The last error associated with this run step.Will be null if there are no errors.
-    public last_error: unknown;
+    public last_error: GPTAssistantAPIErrorVO;
 
     // The Unix timestamp(in seconds) for when the run step expired. A step is considered expired if the parent run is expired.
     public expired_at: number;

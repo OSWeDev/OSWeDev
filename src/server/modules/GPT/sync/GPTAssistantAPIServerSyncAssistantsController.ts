@@ -17,13 +17,134 @@ import { all_promises } from '../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPTServer from '../ModuleGPTServer';
+import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
 
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
-    public static async push_assistant_to_openai(vo: GPTAssistantAPIAssistantVO): Promise<Assistant> {
+    /**
+     * GPTAssistantAPIFunctionVO
+     * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+     */
+    public static async post_update_trigger_handler_for_FunctionVO(params: DAOUpdateVOHolder<GPTAssistantAPIFunctionVO>, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(params.post_update_vo.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+    public static async post_create_trigger_handler_for_FunctionVO(vo: GPTAssistantAPIFunctionVO, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(vo.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+    public static async post_delete_trigger_handler_for_FunctionVO(vo: GPTAssistantAPIFunctionVO, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(vo.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+
+    /**
+     * GPTAssistantAPIFunctionParamVO
+     * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+     */
+    public static async post_update_trigger_handler_for_FunctionParamVO(params: DAOUpdateVOHolder<GPTAssistantAPIFunctionParamVO>, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(params.post_update_vo.function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+    public static async post_create_trigger_handler_for_FunctionParamVO(vo: GPTAssistantAPIFunctionParamVO, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(vo.function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+    public static async post_delete_trigger_handler_for_FunctionParamVO(vo: GPTAssistantAPIFunctionParamVO, exec_as_server?: boolean) {
+        const function_assistants = await query(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
+            .filter_by_id(vo.function_id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIAssistantFunctionVO>();
+
+        for (const i in function_assistants) {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(function_assistants[i].assistant_id);
+        }
+    }
+
+    /**
+     * GPTAssistantAPIAssistantFunctionVO
+     * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+     */
+    public static async post_update_trigger_handler_for_AssistantFunctionVO(params: DAOUpdateVOHolder<GPTAssistantAPIAssistantFunctionVO>, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(params.post_update_vo.assistant_id);
+    }
+    public static async post_create_trigger_handler_for_AssistantFunctionVO(vo: GPTAssistantAPIAssistantFunctionVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(vo.assistant_id);
+    }
+    public static async post_delete_trigger_handler_for_AssistantFunctionVO(vo: GPTAssistantAPIAssistantFunctionVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncAssistantsController.push_assistant_id(vo.assistant_id);
+    }
+
+    /**
+     * GPTAssistantAPIAssistantVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_AssistantVO(params: DAOUpdateVOHolder<GPTAssistantAPIAssistantVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing assistant to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_AssistantVO(vo: GPTAssistantAPIAssistantVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncAssistantsController.push_assistant_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing assistant to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_AssistantVO(vo: GPTAssistantAPIAssistantVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
+
+    public static async push_assistant_id(assistant_id: number) {
+        const assistant = assistant_id ? await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_id(assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>() : null;
+
+        if (!assistant) {
+            throw new Error('Assistant not found by id : ' + assistant_id);
+        }
+
+        await GPTAssistantAPIServerSyncAssistantsController.push_assistant_to_openai(assistant, false);
+    }
+
+    public static async push_assistant_to_openai(vo: GPTAssistantAPIAssistantVO, is_trigger_pre_x: boolean = true): Promise<Assistant> {
         try {
 
             if (!vo) {
@@ -99,6 +220,11 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncAssistantsController.assistant_has_diff(vo, tools, tool_resources, gpt_obj) || (vo.archived)) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             if (GPTAssistantAPIServerSyncAssistantsController.assistant_has_diff(vo, tools, tool_resources, gpt_obj) || (vo.archived)) {
 
@@ -106,26 +232,11 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     ConsoleHandler.log('push_assistant_to_openai: Updating assistant in Osélia : ' + vo.nom);
                 }
 
-                vo.gpt_assistant_id = gpt_obj.id;
-                vo.created_at = gpt_obj.created_at;
-                vo.description = gpt_obj.description;
-                vo.instructions = gpt_obj.instructions;
-                vo.metadata = cloneDeep(gpt_obj.metadata);
-                vo.model = gpt_obj.model;
-                vo.nom = gpt_obj.name;
-                vo.response_format = cloneDeep(gpt_obj.response_format);
-                vo.temperature = gpt_obj.temperature;
-                vo.tool_resources = await GPTAssistantAPIServerSyncAssistantsController.tool_resources_from_openai_api(gpt_obj.tool_resources);
-                vo.tools_code_interpreter = !!gpt_obj.tool_resources?.code_interpreter;
-                vo.tools_file_search = !!gpt_obj.tool_resources?.file_search;
-                vo.tools_functions = !!gpt_obj.tools?.length;
-                vo.top_p = gpt_obj.top_p;
-                vo.archived = false;
+                await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(vo, gpt_obj);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
-
-                // Si on a une modification de l'assistant, on doit aussi synchroniser les fonctions, dans le doute
-                await GPTAssistantAPIServerSyncAssistantsController.sync_assistant_functions(vo, gpt_obj);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
             }
 
             return gpt_obj;
@@ -201,21 +312,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         ConsoleHandler.log('sync_assistants: Updating assistant in Osélia : ' + assistant.name);
                     }
 
-                    found_vo.gpt_assistant_id = assistant.id;
-                    found_vo.created_at = assistant.created_at;
-                    found_vo.description = assistant.description;
-                    found_vo.instructions = assistant.instructions;
-                    found_vo.metadata = cloneDeep(assistant.metadata);
-                    found_vo.model = assistant.model;
-                    found_vo.nom = assistant.name;
-                    found_vo.response_format = cloneDeep(assistant.response_format);
-                    found_vo.temperature = assistant.temperature;
-                    found_vo.tool_resources = await GPTAssistantAPIServerSyncAssistantsController.tool_resources_from_openai_api(assistant.tool_resources);
-                    found_vo.tools_code_interpreter = !!assistant.tool_resources?.code_interpreter;
-                    found_vo.tools_file_search = !!assistant.tool_resources?.file_search;
-                    found_vo.tools_functions = !!assistant.tools?.length;
-                    found_vo.top_p = assistant.top_p;
-                    found_vo.archived = false;
+                    await GPTAssistantAPIServerSyncAssistantsController.assign_vo_from_gpt(found_vo, assistant);
 
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
                 }
@@ -344,6 +441,9 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             .using(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID)
             .exec_as_server()
             .select_vos<GPTAssistantAPIFunctionVO>();
+        const all_functions: GPTAssistantAPIFunctionVO[] = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIFunctionVO>();
 
         // On les trie par nom
         const assistant_functions_by_name: { [name: string]: GPTAssistantAPIFunctionVO } = {};
@@ -352,7 +452,14 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             assistant_functions_by_name[assistant_function.gpt_function_name] = assistant_function;
         }
 
+        const all_functions_by_name: { [name: string]: GPTAssistantAPIFunctionVO } = {};
+        for (const i in all_functions) {
+            const all_function = all_functions[i];
+            all_functions_by_name[all_function.gpt_function_name] = all_function;
+        }
+
         const gpt_assistant_functions_by_name: { [name: string]: FunctionDefinition } = {};
+        let weight = 0;
         for (const i in assistant.tools) {
             const tool: AssistantTool = assistant.tools[i];
 
@@ -361,8 +468,10 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     await GPTAssistantAPIServerSyncAssistantsController.sync_assistant_function(
                         assistant_vo,
                         assistant_functions_by_name,
+                        all_functions_by_name,
                         assistant,
-                        tool.function as FunctionDefinition
+                        tool.function as FunctionDefinition,
+                        weight++,
                     );
                     break;
                 default:
@@ -396,18 +505,21 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
     private static async sync_assistant_function(
         assistant_vo: GPTAssistantAPIAssistantVO,
         assistant_functions_by_name: { [name: string]: GPTAssistantAPIFunctionVO },
+        all_functions_by_name: { [name: string]: GPTAssistantAPIFunctionVO },
         assistant: Assistant,
-        tool: FunctionDefinition
+        tool: FunctionDefinition,
+        weight: number
     ) {
 
         if (ConfigurationService.node_configuration.debug_openai_sync) {
             ConsoleHandler.log('sync_assistant_function: Syncing assistant function : ' + tool.name);
         }
 
-        let found_vo: GPTAssistantAPIFunctionVO = assistant_functions_by_name[tool.name];
+        let found_vo: GPTAssistantAPIFunctionVO = all_functions_by_name[tool.name];
         let needs_update = false;
 
         if (!found_vo) {
+
             found_vo = new GPTAssistantAPIFunctionVO();
             needs_update = true;
         }
@@ -431,6 +543,16 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             found_vo.archived = false;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+        }
+
+        // Là on a vérifié l'existence de la fonction globalement, mais pas le lien avec l'assistant
+        if (!assistant_functions_by_name[found_vo.gpt_function_name]) {
+            const assistant_function_vo = new GPTAssistantAPIAssistantFunctionVO();
+            assistant_function_vo.assistant_id = assistant_vo.id;
+            assistant_function_vo.function_id = found_vo.id;
+            assistant_function_vo.weight = weight;
+
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_function_vo);
         }
 
         // On synchronise les paramètres de la fonction
@@ -625,5 +747,23 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             (JSON.stringify(assistant_vo_to_openai_tool_resources) != JSON.stringify(assistant_gpt.tool_resources)) ||
             (JSON.stringify(assistant_vo_to_openai_tools) != JSON.stringify(assistant_gpt.tools)) ||
             (assistant_vo.top_p != assistant_gpt.top_p);
+    }
+
+    private static async assign_vo_from_gpt(vo: GPTAssistantAPIAssistantVO, gpt_obj: Assistant) {
+        vo.gpt_assistant_id = gpt_obj.id;
+        vo.created_at = gpt_obj.created_at;
+        vo.description = gpt_obj.description;
+        vo.instructions = gpt_obj.instructions;
+        vo.metadata = cloneDeep(gpt_obj.metadata);
+        vo.model = gpt_obj.model;
+        vo.nom = gpt_obj.name;
+        vo.response_format = cloneDeep(gpt_obj.response_format);
+        vo.temperature = gpt_obj.temperature;
+        vo.tool_resources = await GPTAssistantAPIServerSyncAssistantsController.tool_resources_from_openai_api(gpt_obj.tool_resources);
+        vo.tools_code_interpreter = !!gpt_obj.tool_resources?.code_interpreter;
+        vo.tools_file_search = !!gpt_obj.tool_resources?.file_search;
+        vo.tools_functions = !!gpt_obj.tools?.length;
+        vo.top_p = gpt_obj.top_p;
+        vo.archived = false;
     }
 }

@@ -12,6 +12,7 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
@@ -20,12 +21,62 @@ import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerS
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
     /**
+     * GPTAssistantAPIThreadMessageVO
+     * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+     */
+    public static async post_update_trigger_handler_for_ThreadMessageVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadMessageVO>, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(params.post_update_vo.assistant_id);
+    }
+    public static async post_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.assistant_id);
+    }
+    public static async post_delete_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.assistant_id);
+    }
+
+    /**
+     * GPTAssistantAPIThreadMessageVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_ThreadMessageVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadMessageVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing thread message to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing thread message to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
+
+    public static async push_thread_message_id(thread_message_id: number) {
+        const thread_message = thread_message_id ? await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID).filter_by_id(thread_message_id).exec_as_server().select_vo<GPTAssistantAPIThreadMessageVO>() : null;
+
+        if (!thread_message) {
+            throw new Error('thread_message not found by id : ' + thread_message_id);
+        }
+
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_to_openai(thread_message, false);
+    }
+
+    /**
          * à utiliser pour la création ou la mise à jour vers OpenAI
          * ATTENTION : peut initier une mise à jour du VO, car on récupère les champs de l'objet OpenAI après mise à jour ou création dans OpenAI
          * @param vo le vo à pousser vers OpenAI
          * @returns OpenAI obj
          */
-    public static async push_thread_message_to_openai(vo: GPTAssistantAPIThreadMessageVO): Promise<Message> {
+    public static async push_thread_message_to_openai(vo: GPTAssistantAPIThreadMessageVO, is_trigger_pre_x: boolean = true): Promise<Message> {
         try {
 
             if (!vo) {
@@ -87,6 +138,11 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents, gpt_obj) || vo.archived) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents, gpt_obj) || vo.archived) {
 
@@ -95,18 +151,9 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 }
 
                 await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(vo, gpt_obj);
-                vo.archived = false;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
-
-                // On synchronise les messages du thread - en mode push
-                const msg_vos = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                    .filter_by_id(vo.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, false))
-                    .exec_as_server()
-                    .select_vos<GPTAssistantAPIThreadMessageVO>();
-                for (const i in msg_vos) {
-                    await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_to_openai(msg_vos[i]);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
                 }
             }
 
@@ -189,7 +236,6 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         }
 
         await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(thread_message_vo, thread_message);
-        thread_message_vo.archived = false;
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
     }
@@ -410,5 +456,6 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         vo.gpt_id = gpt_obj.id;
         vo.role = GPTAssistantAPIThreadMessageVO.FROM_OPENAI_ROLE_MAP[gpt_obj.role];
         vo.status = GPTAssistantAPIThreadMessageVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status];
+        vo.archived = false;
     }
 }

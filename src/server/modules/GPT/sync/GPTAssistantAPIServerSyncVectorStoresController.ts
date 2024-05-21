@@ -7,8 +7,37 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleGPTServer from '../ModuleGPTServer';
+import GPTAssistantAPIServerSyncVectorStoreFilesController from './GPTAssistantAPIServerSyncVectorStoreFilesController';
+import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 
 export default class GPTAssistantAPIServerSyncVectorStoresController {
+
+    /**
+     * GPTAssistantAPIVectorStoreVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_VectorStoreVO(params: DAOUpdateVOHolder<GPTAssistantAPIVectorStoreVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncVectorStoresController.push_vector_store_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing vector store to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_VectorStoreVO(vo: GPTAssistantAPIVectorStoreVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncVectorStoresController.push_vector_store_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing vector store to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_VectorStoreVO(vo: GPTAssistantAPIVectorStoreVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
 
     /**
      * à utiliser pour la création ou la mise à jour vers OpenAI
@@ -16,7 +45,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
      * @param vo le vo à pousser vers OpenAI
      * @returns OpenAI obj
      */
-    public static async push_vector_store_to_openai(vo: GPTAssistantAPIVectorStoreVO): Promise<VectorStore> {
+    public static async push_vector_store_to_openai(vo: GPTAssistantAPIVectorStoreVO, is_trigger_pre_x: boolean = true): Promise<VectorStore> {
         try {
 
             if (!vo) {
@@ -76,6 +105,11 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncVectorStoresController.vector_store_has_diff(vo, gpt_obj) || vo.archived) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             if (GPTAssistantAPIServerSyncVectorStoresController.vector_store_has_diff(vo, gpt_obj) || vo.archived) {
 
@@ -84,9 +118,10 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 }
 
                 GPTAssistantAPIServerSyncVectorStoresController.assign_vo_from_gpt(vo, gpt_obj);
-                vo.archived = false;
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
             }
 
             return gpt_obj;
@@ -96,11 +131,6 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
         }
     }
 
-    /**
-     * On récupère tous les vector stores de l'API GPT et on les synchronise avec Osélia
-     *  Ce qui signifie créer dans Osélia les Vector Stores de GPT qui n'existent pas encore
-     *  Archiver les vector stores d'Osélia qui n'existent plus dans GPT (et pas encore archivés dans Osélia)
-     */
     public static async get_vector_store_or_sync(gpt_id: string): Promise<GPTAssistantAPIVectorStoreVO> {
         let vector_store = await query(GPTAssistantAPIVectorStoreVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIVectorStoreVO>().gpt_id, gpt_id)
@@ -154,18 +184,19 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
             needs_update = needs_update ||
                 GPTAssistantAPIServerSyncVectorStoresController.vector_store_has_diff(found_vo, vector_store);
 
-            if (!needs_update) {
-                continue;
+            if (needs_update) {
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('sync_vector_stores: Updating vector_store in Osélia : ' + vector_store.name);
+                }
+
+                GPTAssistantAPIServerSyncVectorStoresController.assign_vo_from_gpt(found_vo, vector_store);
+
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }
 
-            if (ConfigurationService.node_configuration.debug_openai_sync) {
-                ConsoleHandler.log('sync_vector_stores: Updating vector_store in Osélia : ' + vector_store.name);
-            }
-
-            GPTAssistantAPIServerSyncVectorStoresController.assign_vo_from_gpt(found_vo, vector_store);
-            found_vo.archived = false;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
+            // On synchron les fichiers du vector store
+            await GPTAssistantAPIServerSyncVectorStoreFilesController.sync_vector_store_files(found_vo.gpt_id);
         }
 
         // Les files qu'on trouve dans Osélia mais pas dans OpenAI, on les archive
@@ -189,6 +220,9 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
+
+        // On synchro les batchs de fichiers même si on peut pas vraiment les mettre à jour
+        await GPTAssistantAPIServerSyncVectorStoreFileBatchesController.sync_vector_store_file_batches();
     }
 
     private static async get_all_vector_stores(): Promise<VectorStore[]> {
@@ -257,5 +291,6 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
         vector_store_vo.expires_at = vector_store_gpt.expires_at;
         vector_store_vo.last_active_at = vector_store_gpt.last_active_at;
         vector_store_vo.metadata = cloneDeep(vector_store_gpt.metadata);
+        vector_store_vo.archived = false;
     }
 }

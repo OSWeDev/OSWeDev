@@ -397,6 +397,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
+
         ModuleTableController.create_new(this.name, GPTAssistantAPIVectorStoreVO, label, 'GPT Assistant API - Vector Store');
     }
 
@@ -412,12 +413,15 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().file_counts_failed, ModuleTableFieldVO.FIELD_TYPE_int, 'Fichiers en erreur', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().file_counts_cancelled, ModuleTableFieldVO.FIELD_TYPE_int, 'Fichiers annulés', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().file_counts_total, ModuleTableFieldVO.FIELD_TYPE_int, 'Fichiers total', true, true, 0);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().gpt_file_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Fichiers (GPT IDs)', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().file_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Fichiers', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIFileVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIVectorStoreFileBatchVO, label, 'GPT Assistant API - Vector Store File Batch');
     }
 
     private initializeGPTAssistantAPIVectorStoreFileVO() {
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().gpt_file_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true).unique()
             .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
@@ -429,6 +433,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID du vector store', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Vector Store', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIVectorStoreVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIVectorStoreFileVO, label, 'GPT Assistant API - Vector Store File');
     }

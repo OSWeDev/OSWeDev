@@ -8,8 +8,35 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleGPTServer from '../ModuleGPTServer';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 
 export default class GPTAssistantAPIServerSyncFilesController {
+
+    /**
+     * GPTAssistantAPIFileVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_FileVO(params: DAOUpdateVOHolder<GPTAssistantAPIFileVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncFilesController.push_file_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing file to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_FileVO(vo: GPTAssistantAPIFileVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncFilesController.push_file_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing file to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_FileVO(vo: GPTAssistantAPIFileVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
 
     /**
      * à utiliser pour la création ou la mise à jour vers OpenAI
@@ -17,7 +44,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
      * @param vo le vo à pousser vers OpenAI
      * @returns OpenAI obj
      */
-    public static async push_file_to_openai(vo: GPTAssistantAPIFileVO): Promise<FileObject> {
+    public static async push_file_to_openai(vo: GPTAssistantAPIFileVO, is_trigger_pre_x: boolean = true): Promise<FileObject> {
         try {
 
             if (!vo) {
@@ -72,6 +99,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncFilesController.file_has_diff(vo, gpt_obj) || vo.archived) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
             if (GPTAssistantAPIServerSyncFilesController.file_has_diff(vo, gpt_obj) || vo.archived) {
 
@@ -79,14 +111,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
                     ConsoleHandler.log('push_file_to_openai: Updating file in Osélia : ' + vo.filename);
                 }
 
-                vo.gpt_file_id = gpt_obj.id;
-                vo.created_at = gpt_obj.created_at;
-                vo.bytes = gpt_obj.bytes;
-                vo.filename = gpt_obj.filename;
-                vo.purpose = GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[gpt_obj.purpose];
-                vo.archived = false;
+                GPTAssistantAPIServerSyncFilesController.assign_vo_from_gpt(vo, gpt_obj);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
             }
 
             return gpt_obj;
@@ -96,11 +125,6 @@ export default class GPTAssistantAPIServerSyncFilesController {
         }
     }
 
-    /**
-     * On récupère tous les fichiers de l'API GPT et on les synchronise avec Osélia
-     *  Ce qui signifie créer dans Osélia les Files de GPT qui n'existent pas encore
-     *  Archiver les fichiers d'Osélia qui n'existent plus dans GPT (et pas encore archivés dans Osélia)
-     */
     public static async get_file_or_sync(gpt_file_id: string): Promise<GPTAssistantAPIFileVO> {
         let file = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, gpt_file_id)
@@ -162,12 +186,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
                 ConsoleHandler.log('sync_files: Updating file in Osélia : ' + file.filename);
             }
 
-            found_vo.gpt_file_id = file.id;
-            found_vo.created_at = file.created_at;
-            found_vo.bytes = file.bytes;
-            found_vo.filename = file.filename;
-            found_vo.purpose = GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file.purpose];
-            found_vo.archived = false;
+            GPTAssistantAPIServerSyncFilesController.assign_vo_from_gpt(found_vo, file);
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
@@ -234,5 +253,14 @@ export default class GPTAssistantAPIServerSyncFilesController {
             (file_vo.bytes != file_gpt.bytes) ||
             (file_vo.filename != file_gpt.filename) ||
             (file_vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file_gpt.purpose]);
+    }
+
+    private static assign_vo_from_gpt(vo: GPTAssistantAPIFileVO, gpt_obj: FileObject) {
+        vo.gpt_file_id = gpt_obj.id;
+        vo.created_at = gpt_obj.created_at;
+        vo.bytes = gpt_obj.bytes;
+        vo.filename = gpt_obj.filename;
+        vo.purpose = GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[gpt_obj.purpose];
+        vo.archived = false;
     }
 }

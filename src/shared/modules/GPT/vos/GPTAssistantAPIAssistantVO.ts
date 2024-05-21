@@ -1,14 +1,6 @@
 
-import { AssistantTool } from 'openai/resources/beta/assistants';
-import { field_names } from '../../../tools/ObjectHandler';
-import { all_promises } from '../../../tools/PromiseTools';
-import { query } from '../../ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../ContextFilter/vos/SortByVO';
 import IDistantVOBase from '../../IDistantVOBase';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
-import GPTAssistantAPIAssistantFunctionVO from './GPTAssistantAPIAssistantFunctionVO';
-import GPTAssistantAPIFunctionParamVO from './GPTAssistantAPIFunctionParamVO';
-import GPTAssistantAPIFunctionVO from './GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIToolResourcesVO from './GPTAssistantAPIToolResourcesVO';
 
 /**

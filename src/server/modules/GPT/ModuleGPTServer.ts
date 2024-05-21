@@ -10,29 +10,48 @@ import ManualTasksController from '../../../shared/modules/Cron/ManualTasksContr
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
+import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import GPTAssistantAPIVectorStoreFileBatchVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileBatchVO';
+import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileVO';
+import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
-import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
-import AssistantVoFieldDescription from './functions/get_vo_type_description/AssistantVoFieldDescription';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
-import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
+import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
+import GPTAssistantAPIServerSyncFilesController from './sync/GPTAssistantAPIServerSyncFilesController';
+import GPTAssistantAPIServerSyncRunStepsController from './sync/GPTAssistantAPIServerSyncRunStepsController';
+import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
+import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPIServerSyncThreadsController';
+import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
+import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
+import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -115,7 +134,96 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public async configure() {
 
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
+        /**
+         * On défini les triggers des synchros avec OpenAI
+         *  Fonctionnement : En pre : on demande un push vers OpenAI si le on est informé d'une synchro nécessaire, on refuse la mise à jour et on log une erreur. On devrait pouvoir push la modif ou alors faut pas pouvoir la faire.
+         */
+
+        /**
+         * GPTAssistantAPIAssistantFunctionVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_AssistantFunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_AssistantFunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_AssistantFunctionVO);
+
+        // GPTAssistantAPIAssistantVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_create_trigger_handler_for_AssistantVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_update_trigger_handler_for_AssistantVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_delete_trigger_handler_for_AssistantVO);
+
+        // GPTAssistantAPIFileVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_create_trigger_handler_for_FileVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_update_trigger_handler_for_FileVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_delete_trigger_handler_for_FileVO);
+
+        // GPTAssistantAPIThreadVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_create_trigger_handler_for_ThreadVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_update_trigger_handler_for_ThreadVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_delete_trigger_handler_for_ThreadVO);
+
+        // GPTAssistantAPIVectorStoreFileBatchVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_create_trigger_handler_for_VectorStoreFileBatchVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_update_trigger_handler_for_VectorStoreFileBatchVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_delete_trigger_handler_for_VectorStoreFileBatchVO);
+
+        // GPTAssistantAPIVectorStoreFileVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_create_trigger_handler_for_VectorStoreFileVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_update_trigger_handler_for_VectorStoreFileVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_delete_trigger_handler_for_VectorStoreFileVO);
+
+        // GPTAssistantAPIVectorStoreVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_create_trigger_handler_for_VectorStoreVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_update_trigger_handler_for_VectorStoreVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_delete_trigger_handler_for_VectorStoreVO);
+
+        /**
+         * GPTAssistantAPIFunctionParamVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_AssistantFunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_AssistantFunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_AssistantFunctionVO);
+
+        /**
+         * GPTAssistantAPIFunctionVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_FunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_FunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_FunctionVO);
+
+        // GPTAssistantAPIRunStepVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_create_trigger_handler_for_RunStepVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_update_trigger_handler_for_RunStepVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_delete_trigger_handler_for_RunStepVO);
+
+        // GPTAssistantAPIRunVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_create_trigger_handler_for_RunVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_update_trigger_handler_for_RunVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_delete_trigger_handler_for_RunVO);
+
+        /**
+         * GPTAssistantAPIThreadMessageContentVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_create_trigger_handler_for_ThreadMessageVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_update_trigger_handler_for_ThreadMessageVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_delete_trigger_handler_for_ThreadMessageVO);
+
+        // GPTAssistantAPIThreadMessageVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_create_trigger_handler_for_ThreadMessageVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_update_trigger_handler_for_ThreadMessageVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_delete_trigger_handler_for_ThreadMessageVO);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');

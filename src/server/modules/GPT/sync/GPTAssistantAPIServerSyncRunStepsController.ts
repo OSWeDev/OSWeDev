@@ -6,12 +6,40 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
 
 export default class GPTAssistantAPIServerSyncRunStepsController {
+
+    /**
+     * GPTAssistantAPIRunStepVO
+     *  On refuse la suppression. On doit archiver.
+     */
+    public static async pre_update_trigger_handler_for_RunStepVO(params: DAOUpdateVOHolder<GPTAssistantAPIRunStepVO>, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncRunStepsController.push_run_step_to_openai(params.post_update_vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing run step to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_create_trigger_handler_for_RunStepVO(vo: GPTAssistantAPIRunStepVO, exec_as_server?: boolean): Promise<boolean> {
+        try {
+            await GPTAssistantAPIServerSyncRunStepsController.push_run_step_to_openai(vo);
+        } catch (error) {
+            ConsoleHandler.error('Error while pushing run step to OpenAI : ' + error);
+            return false;
+        }
+        return true;
+    }
+    public static async pre_delete_trigger_handler_for_RunStepVO(vo: GPTAssistantAPIRunStepVO, exec_as_server?: boolean): Promise<boolean> {
+        return false;
+    }
 
     /**
      * à utiliser pour la création ou la mise à jour vers OpenAI
@@ -20,7 +48,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
      * @param vo le vo à pousser vers OpenAI
      * @returns OpenAI obj
      */
-    public static async push_run_step_to_openai(vo: GPTAssistantAPIRunStepVO): Promise<RunStep> {
+    public static async push_run_step_to_openai(vo: GPTAssistantAPIRunStepVO, is_trigger_pre_x: boolean = true): Promise<RunStep> {
         try {
 
             if (!vo) {
@@ -29,6 +57,8 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
 
             const gpt_obj: RunStep = vo.gpt_run_step_id ? await ModuleGPTServer.openai.beta.threads.runs.steps.retrieve(vo.gpt_thread_id, vo.gpt_run_id, vo.gpt_run_step_id) : null;
 
+            const to_openai_last_error = GPTAssistantAPIServerSyncController.to_openai_error(vo.last_error) as RunStep.LastError;
+
             if (!gpt_obj) {
 
                 if (ConfigurationService.node_configuration.debug_openai_sync) {
@@ -36,7 +66,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
                     throw new Error('Failed to retrieve run in OpenAI : ' + vo.gpt_run_step_id);
                 }
             } else {
-                if (GPTAssistantAPIServerSyncRunStepsController.run_has_diff(vo, gpt_obj)) {
+                if (GPTAssistantAPIServerSyncRunStepsController.run_has_diff(vo, to_openai_last_error, gpt_obj)) {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.error('push_run_to_openai: Diffs found between Osélia and OpenAI : ' + vo.gpt_run_step_id);
@@ -45,8 +75,13 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
                 }
             }
 
+            // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter
+            // if (GPTAssistantAPIServerSyncRunStepsController.run_has_diff(vo, to_openai_last_error, gpt_obj)) {
+            //     throw new Error('Error while pushing obj to OpenAI : has diff :api_type_id:' + vo._type + ':vo_id:' + vo.id + ':gpt_id:' + gpt_obj.id);
+            // }
+
             // On met à jour le vo avec les infos de l'objet OpenAI si c'est nécessaire
-            if (GPTAssistantAPIServerSyncRunStepsController.run_has_diff(vo, gpt_obj)) {
+            if (GPTAssistantAPIServerSyncRunStepsController.run_has_diff(vo, to_openai_last_error, gpt_obj)) {
 
                 if (ConfigurationService.node_configuration.debug_openai_sync) {
                     ConsoleHandler.log('push_run_to_openai: Updating run step in Osélia : ' + vo.gpt_run_id);
@@ -54,7 +89,9 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
 
                 await GPTAssistantAPIServerSyncRunStepsController.assign_vo_from_gpt(vo, gpt_obj);
 
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
             }
 
             return gpt_obj;
@@ -64,11 +101,6 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
         }
     }
 
-    /**
-     * On récupère tous les run step de l'API GPT et on les synchronise avec Osélia
-     *  Ce qui signifie créer dans Osélia les Files de GPT qui n'existent pas encore
-     *  Archiver les run step d'Osélia qui n'existent plus dans GPT (et pas encore archivés dans Osélia)
-     */
     public static async get_run_step_or_sync(gpt_thread_id: string, gpt_run_id: string, gpt_run_step_id: string): Promise<GPTAssistantAPIRunStepVO> {
         let run_step = await query(GPTAssistantAPIRunStepVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIRunStepVO>().gpt_thread_id, gpt_thread_id)
@@ -124,7 +156,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
             }
 
             needs_update = needs_update ||
-                GPTAssistantAPIServerSyncRunStepsController.run_has_diff(found_vo, run);
+                GPTAssistantAPIServerSyncRunStepsController.run_has_diff(found_vo, GPTAssistantAPIServerSyncController.to_openai_error(found_vo.last_error) as RunStep.LastError, run);
 
             if (!needs_update) {
                 continue;
@@ -177,6 +209,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
 
     private static run_has_diff(
         run_step_vo: GPTAssistantAPIRunStepVO,
+        to_openai_last_error: RunStep.LastError,
         run_gpt: RunStep): boolean {
 
         if ((!run_step_vo) && (!run_gpt)) {
@@ -198,7 +231,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
             (run_step_vo.status != GPTAssistantAPIRunStepVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) ||
             (run_step_vo.completion_tokens != (run_gpt.usage?.completion_tokens ? run_gpt.usage?.completion_tokens : 0)) ||
             (run_step_vo.gpt_run_step_id != run_gpt.id) ||
-            (JSON.stringify(run_step_vo.last_error) != JSON.stringify(run_gpt.last_error)) ||
+            (JSON.stringify(to_openai_last_error) != JSON.stringify(run_gpt.last_error)) ||
             (JSON.stringify(run_step_vo.metadata) != JSON.stringify(run_gpt.metadata)) ||
             (run_step_vo.prompt_tokens != (run_gpt.usage?.prompt_tokens ? run_gpt.usage?.prompt_tokens : 0)) ||
             (JSON.stringify(run_step_vo.step_details) != JSON.stringify(run_gpt.step_details)) ||
@@ -257,7 +290,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
         vo.status = GPTAssistantAPIRunStepVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status];
         vo.completion_tokens = (gpt_obj.usage?.completion_tokens ? gpt_obj.usage?.completion_tokens : 0);
         vo.gpt_run_step_id = gpt_obj.id;
-        vo.last_error = cloneDeep(gpt_obj.last_error);
+        vo.last_error = GPTAssistantAPIServerSyncController.from_openai_error(gpt_obj.last_error);
         vo.metadata = cloneDeep(gpt_obj.metadata);
         vo.prompt_tokens = (gpt_obj.usage?.prompt_tokens ? gpt_obj.usage?.prompt_tokens : 0);
         vo.step_details = cloneDeep(gpt_obj.step_details);

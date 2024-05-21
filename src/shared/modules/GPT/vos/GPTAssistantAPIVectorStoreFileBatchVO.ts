@@ -1,4 +1,5 @@
 
+import NumRange from '../../DataRender/vos/NumRange';
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class GPTAssistantAPIVectorStoreFileBatchVO implements IDistantVOBase {
@@ -41,6 +42,10 @@ export default class GPTAssistantAPIVectorStoreFileBatchVO implements IDistantVO
     // The ID of the vector store that the File is attached to.
     public vector_store_gpt_id: string;
     public vector_store_id: number;
+
+    // Les gpt_file_id des fichiers de ce batch => nécessaires pour la création sur OpenAI mais impossible à mettre à jour, et pas renvoyés par OpenAI...
+    public gpt_file_ids: string[];
+    public file_id_ranges: NumRange[];
 
     /**
      * The status of the vector store files batch, which can be either in_progress, completed, cancelled or failed.

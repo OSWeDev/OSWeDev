@@ -3,6 +3,7 @@ import { AssistantToolChoiceOption } from 'openai/resources/beta/threads/threads
 import IDistantVOBase from '../../IDistantVOBase';
 import { RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
 import { AssistantTool } from 'openai/resources/beta/assistants';
+import GPTAssistantAPIErrorVO from './GPTAssistantAPIErrorVO';
 
 /**
  * @see https://platform.openai.com/docs/api-reference/runs/object
@@ -89,7 +90,7 @@ export default class GPTAssistantAPIRunVO implements IDistantVOBase {
     public required_action: unknown;
 
     // The last error associated with this run.Will be null if there are no errors.
-    public last_error: unknown;
+    public last_error: GPTAssistantAPIErrorVO;
 
     // The Unix timestamp(in seconds) for when the run will expire.
     public expires_at: number;

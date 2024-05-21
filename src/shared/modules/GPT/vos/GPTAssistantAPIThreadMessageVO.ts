@@ -1,7 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
 import GPTAssistantAPIThreadMessageAttachmentVO from './GPTAssistantAPIThreadMessageAttachmentVO';
-import GPTAssistantAPIThreadMessageContentVO from './GPTAssistantAPIThreadMessageContentVO';
 
 /**
  * @see https://platform.openai.com/docs/api-reference/messages/object
