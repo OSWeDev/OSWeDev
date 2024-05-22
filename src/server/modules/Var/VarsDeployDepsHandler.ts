@@ -436,7 +436,7 @@ export default class VarsDeployDepsHandler {
                     true,
                     segment_type
                 )];
-                new_var_data
+
                 if (!aggregated_datas[new_var_data.index]) {
                     VarsDeployDepsHandler.populate_missing_pixels(
                         aggregated_datas,
