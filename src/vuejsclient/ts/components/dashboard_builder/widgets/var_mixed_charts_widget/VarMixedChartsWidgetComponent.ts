@@ -620,7 +620,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             scales['x'] = this.widget_options.scale_options_x;
             scales['x']['title'] = {
                 display: this.widget_options.show_scale_x ? this.widget_options.show_scale_x : false,
-                text: this.widget_options.scale_x_title ? this.widget_options.scale_x_title : '',
+                text: this.translated_scale_x_title ? this.translated_scale_x_title : '',
             };
             scales['x']['grid'] = {
                 color: this.widget_options.scale_x_color ? this.widget_options.scale_x_color : '#666'
@@ -631,7 +631,7 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
             scales['y'] = this.widget_options.scale_options_y;
             scales['y']['title'] = {
                 display: this.widget_options.show_scale_y ? this.widget_options.show_scale_y : false,
-                text: this.widget_options.scale_y_title ? this.widget_options.scale_y_title : '',
+                text: this.translated_scale_y_title ? this.translated_scale_y_title : '',
             };
             scales['y']['grid'] = {
                 color: this.widget_options.scale_y_color ? this.widget_options.scale_y_color : '#666'
@@ -681,7 +681,9 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
                         }
                     }
                 },
-
+                datalabels: {
+                    display: false
+                },
                 legend: {
                     display: this.get_bool_option('legend_display', true),
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
@@ -913,5 +915,26 @@ export default class VarMixedChartsWidgetComponent extends VueComponentBase {
         }
 
         return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
+    }
+
+    @Watch('translated_scale_x_title')
+    private async onchange_translated_scale_x_title() {
+        await this.throttled_update_visible_options();
+    }
+
+    get translated_scale_x_title(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.t(this.widget_options.get_scale_x_code_text(this.page_widget.id));
+    }
+
+    get translated_scale_y_title(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.t(this.widget_options.get_scale_y_code_text(this.page_widget.id));
     }
 }

@@ -16,6 +16,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 const date_adapter = DatesChartJsAdapters.get_adapters();
 
@@ -72,10 +73,13 @@ export default class VarRadarChart extends VueComponentBase {
     };
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels)
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
-        await import("chart.js-plugin-labels-dv");
+        // await import("chart.js-plugin-labels-dv");
+        await import("chartjs-plugin-datalabels");
     }
 
     @Watch('chart_data')

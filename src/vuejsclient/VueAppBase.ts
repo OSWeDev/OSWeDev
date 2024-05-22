@@ -462,6 +462,7 @@ export default abstract class VueAppBase {
         // Vue.component('var-bar-chart', () => import('./ts/components/Var/components/databarchart/VarDataBarChartComponent'));
         Vue.component('vars-bar-chart', () => import('./ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
         Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
+        Vue.component('var-choropleth-chart', () => import('./ts/components/Var/components/choropleth-chart/VarChoroplethChartComponent'));
         Vue.component('var-mixed-charts', () => import('./ts/components/Var/components/mixed-chart/VarMixedChartComponent'));
         Vue.component('var-radar-chart', () => import('./ts/components/Var/components/radar-chart/VarRadarChartComponent'));
         Vue.component('Resizableimg', () => import('./ts/components/resizable_img/ResizableImageComponent'));

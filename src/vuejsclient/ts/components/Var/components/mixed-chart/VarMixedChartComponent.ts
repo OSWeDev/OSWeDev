@@ -16,6 +16,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 export interface IChartOptions {
     responsive?: boolean;
@@ -96,10 +97,13 @@ export default class VarMixedChartComponent extends VueComponentBase {
     };
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels)
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
-        await import("chart.js-plugin-labels-dv");
+        // await import("chart.js-plugin-labels-dv");
+        await import("chartjs-plugin-datalabels");
     }
 
     @Watch('charts_data')
@@ -423,7 +427,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
 
         let numdatasets = this.datasets[0].data.map((value) => Number(value));;
-        this.charts_options.scales.y["suggestedMax"] = Math.max(...numdatasets) * 1.2;
+        // this.charts_options.scales.y["suggestedMax"] = Math.max(...numdatasets) * 1.2;
         return {
             labels: this.labels, // Abscisses
             datasets: this.datasets // Ordonnées (charts datasets definition)

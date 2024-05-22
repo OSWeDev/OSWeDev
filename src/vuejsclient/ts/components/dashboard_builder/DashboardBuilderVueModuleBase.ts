@@ -26,6 +26,7 @@ import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSw
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
+import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -108,6 +109,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_VarPieChart();
         await this.initializeWidget_VarRadarChart();
         await this.initializeWidget_VarMixedChart();
+        await this.initializeWidget_VarChoroplethChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -399,6 +401,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
         Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarChoroplethChart() {
+        const VarChoroplethChart = new DashboardWidgetVO();
+
+        VarChoroplethChart.default_height = 10;
+        VarChoroplethChart.default_width = 2;
+        VarChoroplethChart.name = DashboardWidgetVO.WIDGET_NAME_varchoroplethchart;
+        VarChoroplethChart.widget_component = 'Varchoroplethchartwidgetcomponent';
+        VarChoroplethChart.options_component = 'Varchoroplethchartwidgetoptionscomponent';
+        VarChoroplethChart.weight = 15;
+        VarChoroplethChart.default_background = '#f5f5f5';
+        VarChoroplethChart.icon_component = 'Varchoroplethchartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
+
+        Vue.component('Varchoroplethchartwidgetcomponent', () => import('./widgets/var_choropleth_chart_widget/VarChoroplethChartWidgetComponent'));
+        Vue.component('Varchoroplethchartwidgetoptionscomponent', () => import('./widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptionsComponent'));
+        Vue.component('Varchoroplethchartwidgeticoncomponent', () => import('./widgets/var_choropleth_chart_widget/icon/VarChoroplethChartWidgetIconComponent'));
     }
 
     private async initializeWidget_VarRadarChart() {

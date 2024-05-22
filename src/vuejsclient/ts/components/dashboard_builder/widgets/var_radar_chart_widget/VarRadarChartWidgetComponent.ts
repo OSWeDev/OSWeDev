@@ -133,7 +133,9 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             locale: 'fr-fr',
 
             plugins: {
-
+                datalabels: {
+                    display: false
+                },
                 title: {
                     display: this.get_bool_option('title_display', true),
                     text: this.translated_title ? this.translated_title : '',

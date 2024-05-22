@@ -165,6 +165,25 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
+    public get_scale_x_code_text(page_widget_id: number): string {
+
+        if (!page_widget_id) {
+            return null;
+        }
+
+        this.scale_x_title = VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + '.scale_x' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + '.scale_x' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_scale_y_code_text(page_widget_id: number): string {
+
+        if (!page_widget_id) {
+            return null;
+        }
+
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + '.scale_y' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+    }
+
     public get_var_name_code_text(page_widget_id: number, var_id: number): string {
 
         if ((!page_widget_id) || (!var_id)) {

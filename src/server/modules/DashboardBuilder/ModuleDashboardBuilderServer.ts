@@ -65,6 +65,102 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
         }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Graphique de var - Carte choroplèthe'
+        }, 'dashboards.widgets.icons_tooltips.varchoroplethchart.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du graphique'
+        }, 'var_choropleth_chart_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Titre'
+        }, 'var_choropleth_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Couleur du fond'
+        }, 'var_choropleth_chart_widget_options_component.bg_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du graphique'
+        }, 'var_choropleth_chart_widget_options_component.separator.chart_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du titre'
+        }, 'var_choropleth_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher le titre'
+        }, 'var_choropleth_chart_widget_options_component.title_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Couleur de la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_font_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Taille de la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_font_size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Epaisseur de la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_box_width.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Marge de la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_padding.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utiliser le style de point pour la légende'
+        }, 'var_choropleth_chart_widget_options_component.legend_use_point_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des données'
+        }, 'var_choropleth_chart_widget_options_component.separator.datas_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'La dimension est un champ ?'
+        }, 'var_choropleth_chart_widget_options_component.dimension_is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Champ de la dimension'
+        }, 'var_choropleth_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Segmentation de la dimension date'
+        }, 'var_choropleth_chart_widget_options_component.max_dimension_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Trier la dimension par un champ'
+        }, 'var_choropleth_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Trier la dimension par ordre croissant ?'
+        }, 'var_choropleth_chart_widget_options_component.sort_dimension_by_asc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable principale'
+        }, 'var_choropleth_chart_widget_options_component.separator.var_1_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nom de la variable principale'
+        }, 'var_choropleth_chart_widget_options_component.var_name_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utiliser un dégradé de couleur ?'
+        }, 'var_choropleth_chart_widget_options_component.bg_gradient.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Couleur de bordure'
+        }, 'var_choropleth_chart_widget_options_component.border_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Epaisseur de la bordure'
+        }, 'var_choropleth_chart_widget_options_component.border_width_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Nom du filtre de la dimension'
+        }, 'var_choropleth_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Année'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Mois'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Jour'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Heure'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Minute'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.4.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Seconde'
+        }, 'VarChoroplethChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Graphique de var - Radar'
@@ -374,12 +470,28 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_mixed_charts_widget_options_component.scale_x_axis_color.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher la légende des abscisses'
+        }, 'var_mixed_charts_widget_options_component.show_scale_x.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de l\'axe des abscisses'
         }, 'var_mixed_charts_widget_options_component.scale_options_x.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Légende de l\'axe des abscisses'
+        }, 'var_mixed_charts_widget_options_component.scale_x_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher la légende des ordonnées'
+        }, 'var_mixed_charts_widget_options_component.show_scale_y.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur de l\'axe des ordonnées'
         }, 'var_mixed_charts_widget_options_component.scale_y_axis_color.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Légende de l\'axe des abscisses'
+        }, 'var_mixed_charts_widget_options_component.scale_y_title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de l\'axe des ordonnées'
@@ -481,6 +593,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du format de date'
         }, 'chart_js_scale_time_options_component.parser_options_selector.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de format des dimensions'
+        }, 'chart_js_scale_options_component.types_options_selector.___LABEL___'));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -1748,6 +1864,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utiliser ce filtre de date personnalisé pour la dimension'
         }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Utiliser un dégradé de couleur ?'
+        }, 'var_pie_chart_widget_options_component.bg_gradient.___LABEL___'));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

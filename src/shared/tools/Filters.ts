@@ -290,6 +290,20 @@ const readToAmountFilter = (
     currency = "€"
 ): string => {
 
+    const currencyTab = {
+        "€": 1,
+        "$": 1.08,
+        "£": 0.85,
+        "¥": 169.69,
+        "AU$": 1.63,
+        "CA$": 1.48,
+        "CHF": 0.99,
+        "CN¥": 7.857464,
+        "HK$": 8.46,
+        "NZ$": 1.78
+    };
+
+
     if ((value === null) || (typeof value === "undefined")) {
         return null;
     }
@@ -317,6 +331,10 @@ const readToAmountFilter = (
     if (k) {
         currency = "k€";
         value = value / 1000;
+    }
+
+    if (currencyTab[currency]) {
+        value = value * currencyTab[currency];
     }
 
     if (humanize) {

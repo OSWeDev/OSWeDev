@@ -253,16 +253,16 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-        //- .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
-        //- .widget_filter_options(v-if='title_name_code_text && widget_options')
-        //-     .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
-        //-     .widget_filter_options_wrapper
-        //-         Widgetfilteroptionscomponent(
-        //-             :actual_additional_options="widget_options.filter_additional_params"
-        //-             :actual_filter_type="widget_options.filter_type"
-        //-             @update_additional_options="update_additional_options"
-        //-             @update_filter_type="update_filter_type"
-        //-         )
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
+        .widget_filter_options(v-if='title_name_code_text && widget_options')
+            .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
+            .widget_filter_options_wrapper
+                Widgetfilteroptionscomponent(
+                    :actual_additional_options="widget_options.filter_additional_params"
+                    :actual_filter_type="widget_options.filter_type"
+                    @update_additional_options="update_additional_options"
+                    @update_filter_type="update_filter_type"
+                )
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_1_options') }}
         .var_name_1 
@@ -297,8 +297,7 @@
                     :code_text="widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)" 
                     :is_editable="true")
         .bg_gradient 
-            .explication {{ label("var_pie_chart_widget_options_component.bg_gradient") }}
-            .input_label {{ label('var_pie_chart_widget_options_component.dimension_is_vo_field_ref') }}
+            .input_label {{ label('var_pie_chart_widget_options_component.bg_gradient') }}
                 .input_wrapper
                     toggle-button(
                         @change="switch_bg_gradient" 
@@ -357,68 +356,3 @@
                         .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                             template(v-for='custom_filter in get_custom_filters')
                                 .custom_filter.clickable(@click='change_custom_filter_1(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
-
-        template(v-if='!has_dimension')
-            .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_2_options') }}
-            .var_name_2 
-                .input_label {{ label('var_pie_chart_widget_options_component.var_name_2') }}
-                .input_wrapper
-                    multiselect.var_name_selector(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="tmp_selected_var_name_2"
-                        :options="var_names"
-                        :allow-empty="false",
-
-                        :searchable="true"
-                        :internal-search="true"
-                        
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
-
-                        placeholder=''
-                        
-                        name="var_name_selector_2"
-                    )
-                        .lang_selector_option(slot="noOptions") -
-            .bg_color_2
-                .explication {{ label("var_pie_chart_widget_options_component.bg_color_2") }}
-                color-picker(v-model="bg_color_2" @change='throttled_update_colors')
-            .border_color_2
-                .explication {{ label("var_pie_chart_widget_options_component.border_color_2") }}
-                color-picker(v-model="border_color_2" @change='throttled_update_colors')
-            .border_width_2
-                .input_label {{ label('var_pie_chart_widget_options_component.border_width_2') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="border_width_2"
-                    )
-            template(v-if='fields_that_could_get_custom_filter_2 && fields_that_could_get_custom_filter_2.length')
-                .fields_that_could_get_custom_filter_2
-                    template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_2')
-                        .field_that_could_get_custom_filter
-                            .field_id {{ field_that_could_get_custom_filter }}
-                            .custom_filter 
-                                input(
-                                    type="text"
-                                    v-model="custom_filter_names_2[field_that_could_get_custom_filter]"
-                                    :disabled="true"
-                                )
-                            .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                                template(v-for='custom_filter in get_custom_filters')
-                                    .custom_filter.clickable(@click='change_custom_filter_2(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
-
-            .field_max_is_sum_of_var_1_and_2
-                .input_label {{ label('var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_max_is_sum_of_var_1_and_2" 
-                        :value="max_is_sum_of_var_1_and_2" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )

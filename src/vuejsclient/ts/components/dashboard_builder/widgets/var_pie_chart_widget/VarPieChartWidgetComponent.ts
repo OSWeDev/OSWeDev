@@ -132,6 +132,23 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
     }
 
+    private getLabels(value, context) {
+        if (this.var_filter) {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
+        } else {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
+        }
+    }
+
+    private getLabelsForTooltip(context) {
+        let value = context.raw;
+        if (this.var_filter) {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
+        } else {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
+        }
+    }
+
     get options() {
         const self = this;
         return {
@@ -141,6 +158,12 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             plugins: {
                 tooltip: {
                     enabled: !this.get_bool_option('label_display', true),
+                    callbacks: {
+                        title: function (tooltipItems) {
+                            return '';
+                        },
+                        label: this.getLabelsForTooltip
+                    }
                 },
 
                 datalabels: {
@@ -160,10 +183,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     anchor: 'center',
                     backgroundColor: 'black',
                     color: 'white',
-                    formatter: function (value, context) {
-
-                        return context.chart.data.labels[context.dataIndex] + ' :\n' + Math.round(value);
-                    }
+                    formatter: this.getLabels
                 },
                 title: {
                     display: this.get_bool_option('title_display', true),

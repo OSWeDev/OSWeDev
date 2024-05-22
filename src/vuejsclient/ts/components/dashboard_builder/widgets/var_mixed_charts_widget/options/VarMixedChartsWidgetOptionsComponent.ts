@@ -108,7 +108,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         await this.throttled_reload_options();
     }
 
-    @Watch('widget_options')
+    @Watch('widget_options', { deep: true })
     private async onchange_widget_options() {
         await this.throttled_reload_options();
     }
@@ -1012,6 +1012,50 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
 
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get scale_x_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_scale_x_code_text(this.page_widget.id);
+    }
+
+    get scale_y_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_scale_y_code_text(this.page_widget.id);
+    }
+
+    @Watch('scale_x_code_text')
+    private async onchange_scale_x_code_text() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.scale_x_code_text) {
+
+            if (this.widget_options.scale_x_title) {
+                this.widget_options.scale_x_title = null;
+                this.throttled_update_options();
+            }
+            return;
+        }
+
+        try {
+
+            if (this.widget_options.scale_x_title != this.scale_x_code_text) {
+                this.next_update_options = this.widget_options;
+                this.next_update_options.scale_x_title = this.scale_x_code_text;
+
+                this.throttled_update_options();
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
     }
 
     get dimension_vo_field_ref(): VOFieldRefVO {

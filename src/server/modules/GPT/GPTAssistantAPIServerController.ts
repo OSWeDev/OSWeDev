@@ -625,7 +625,7 @@ export default class GPTAssistantAPIServerController {
         content: string,
         files: FileVO[],
         user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
-
+        console.dir("xxxxxxxx")
         const assistant: { assistant_gpt: Assistant, assistant_vo: GPTAssistantAPIAssistantVO } = await GPTAssistantAPIServerController.get_assistant(assistant_id);
 
         if ((!assistant) || (!assistant.assistant_gpt) || (!assistant.assistant_vo)) {
@@ -661,6 +661,7 @@ export default class GPTAssistantAPIServerController {
 
             availableFunctions[functionVO.gpt_function_name] = functionVO;
         }
+        console.dir(availableFunctions)
 
         const thread: { thread_gpt: Thread, thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(user_id, thread_id, assistant.assistant_vo.id);
 
