@@ -196,6 +196,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private vos_by_id: { [id: number]: any } = {};
 
     private show_export_alert: boolean = false;
+    private already_use_load_widgets_prevalidation: boolean = false;
 
     private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
 
@@ -1430,20 +1431,22 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // Si j'ai mon bouton de validation des filtres qui est actif,
         // je vérifie s'il me permet de faire un update
         let validation_filters: DashboardPageWidgetVO[] = this.get_validation_page_widgets();
-        let can_update: boolean = true;
+        let can_update: boolean = false;
+
         for (let i in validation_filters) {
             let validation_filter = validation_filters[i];
 
             // Si j'ai un seul widget de validation qui n'accepte pas l'update, je ne mettrais pas à jour mes widgets
             if (!validation_filter.json_options) {
-                can_update = false;
                 continue;
             }
 
             let options = JSON.parse(validation_filter.json_options) as ValidationFiltersWidgetOptions;
             options = options ? new ValidationFiltersWidgetOptions().from(options) : null;
-            if (!options || !options.load_widgets_prevalidation) {
-                can_update = false;
+
+            if (options?.load_widgets_prevalidation && !this.already_use_load_widgets_prevalidation) {
+                can_update = true;
+                this.already_use_load_widgets_prevalidation = true;
             }
         }
 
