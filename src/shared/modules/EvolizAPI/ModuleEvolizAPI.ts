@@ -27,6 +27,8 @@ import EvolizInvoiceEmailParam, { EvolizInvoiceEmailParamStatic } from './vos/ap
 import EvolizInvoiceEmailVO from './vos/invoices/EvolizInvoiceEmailVO';
 import EvolizCreditVO from './vos/credit/EvolizCreditVO';
 import EvolizAdvanceVO from './vos/advance/EvolizAdvanceVO';
+import EvolizDocumentLinksVO from './vos/document_links/EvolizDocumentLinksVO';
+import EvolizDocumentLinksParam, { EvolizDocumentLinksParamStatic } from './vos/apis/EvolizDocumentLinksParam';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -59,6 +61,7 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_send_mail_invoice: string = "send_mail_invoice";
     public static APINAME_list_credits: string = "list_credits";
     public static APINAME_list_advances: string = "list_advances";
+    public static APINAME_get_document_links: string = "get_document_links";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -98,6 +101,7 @@ export default class ModuleEvolizAPI extends Module {
     public send_mail_invoice: (invoiceid: number, params: EvolizInvoiceEmailVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_send_mail_invoice);
     public list_credits: () => Promise<EvolizCreditVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_credits);
     public list_advances: () => Promise<EvolizAdvanceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_advances);
+    public get_document_links: (doc_type: string, doc_id: number) => Promise<EvolizDocumentLinksVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_get_document_links);
 
     private constructor() {
 
@@ -243,6 +247,13 @@ export default class ModuleEvolizAPI extends Module {
             ModuleEvolizAPI.APINAME_send_mail_invoice,
             [],
             EvolizInvoiceEmailParamStatic
+        ));
+
+        APIControllerWrapper.registerApi(new GetAPIDefinition<EvolizDocumentLinksParam, EvolizDocumentLinksVO>(
+            null,
+            ModuleEvolizAPI.APINAME_get_document_links,
+            [],
+            EvolizDocumentLinksParamStatic
         ));
     }
 

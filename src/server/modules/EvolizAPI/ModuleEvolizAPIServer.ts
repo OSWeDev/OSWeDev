@@ -33,6 +33,7 @@ import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/Evoli
 import EvolizInvoiceEmailVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceEmailVO';
 import EvolizCreditVO from '../../../shared/modules/EvolizAPI/vos/credit/EvolizCreditVO';
 import EvolizAdvanceVO from '../../../shared/modules/EvolizAPI/vos/advance/EvolizAdvanceVO';
+import EvolizDocumentLinksVO from '../../../shared/modules/EvolizAPI/vos/document_links/EvolizDocumentLinksVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -112,6 +113,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_send_mail_invoice, this.send_mail_invoice.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_credits, this.list_credits.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_advances, this.list_advances.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_get_document_links, this.get_document_links.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -159,6 +161,32 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
         } else {
             console.error("Erreur connexion à l'API Evoliz (demande de token).");
+        }
+    }
+
+    /**
+     * @param doc_type "payment", "invoice", "advance", "credit", "quote", "corder", "delivery", "cash-deposit"
+     */
+    public async get_document_links(doc_type: string, doc_id: number): Promise<EvolizDocumentLinksVO> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let document_links: EvolizDocumentLinksVO = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                ('/api/v1/links/' + doc_type + '/' + doc_id),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            return document_links;
+        } catch (error) {
+            console.error(error);
         }
     }
 
