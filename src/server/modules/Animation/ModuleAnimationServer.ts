@@ -23,6 +23,7 @@ import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterO
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -76,6 +77,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_resetThemesOrModules, this.resetThemesOrModules.bind(this));
     }
 
     /**
@@ -540,6 +542,77 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     /**
+     * remise à zero des modules et themes pour les utilisateurs
+     * suppression AnimationUserModuleVO (module_id|user_id)
+     * suppression AnimationUserQRVO WHERE (qr_id = QR.module_id) && (user_id in user_ids)
+     * @param user_ids
+     * @param theme_ids
+     * @param module_ids
+     * @returns
+     */
+    private async resetThemesOrModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ res: boolean, label: string }> {
+
+        if (!user_ids || !user_ids.length) {
+            return { res: false, label: 'animation.reset.no_user_ids' };
+
+        }
+        if ((!module_ids || !module_ids.length) && (!theme_ids || !theme_ids.length)) {
+            return { res: false, label: 'animation.reset.no_module_ids' };
+        }
+
+        // sinon on a des theme on recupere le module_ids des themes
+        if (!!theme_ids && !!theme_ids.length) {
+            let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID)
+                .filter_by_num_has(field_names<AnimationModuleVO>().theme_id, theme_ids)
+                .select_vos<AnimationModuleVO>();
+
+            let already_module_id: { [module_id: number]: boolean } = {};
+
+            // on vérifie si on a desjam les module ids en question
+            if (module_ids && module_ids.length > 0) {
+                for (let i in module_ids) {
+                    already_module_id[module_ids[i]] = true;
+                }
+            } else {
+                module_ids = [];
+            }
+
+            if (!!modules && !!modules.length) {
+                for (let i in modules) {
+                    if (!already_module_id[modules[i].id]) {
+                        module_ids.push(modules[i].id);
+                    }
+                }
+            }
+        }
+
+        if (!module_ids || !module_ids.length) {
+            return { res: false, label: 'animation.reset.no_module_ids' };
+        }
+
+        let ums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<AnimationUserModuleVO>().user_id, user_ids)
+            .filter_by_num_has(field_names<AnimationUserModuleVO>().module_id, module_ids)
+            .select_vos<AnimationUserModuleVO>();
+
+        let users_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<AnimationUserQRVO>().user_id, user_ids)
+            .filter_by_num_in(
+                field_names<AnimationUserQRVO>().qr_id,
+                query(AnimationQRVO.API_TYPE_ID)
+                    .field(field_names<AnimationQRVO>().id)
+                    .filter_by_num_has(field_names<AnimationQRVO>().module_id, module_ids))
+            .select_vos<AnimationUserQRVO>();
+
+        let toDelete: IDistantVOBase[] = (!!ums && !!ums.length) ? ums : [];
+        toDelete = (!!users_qrs && !!users_qrs.length) ? toDelete.concat(users_qrs) : toDelete;
+
+        await ModuleDAO.getInstance().deleteVOs(toDelete);
+
+        return { res: true, label: 'animation.module.reset.success' };
+    }
+
+    /**
      * Context access hook pour les modules d'animation qui doivent être liées à un rôle de l'utilisateur. On sélectionne l'id des vos valides
      * @param moduletable La table sur laquelle on fait la demande
      * @param uid L'uid lié à la session qui fait la requête
@@ -717,7 +790,17 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'utilisateur id requis manquant', 'en-us': 'missing required user id' }, 'animation.reset.no_user_ids.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'module id requis manquant', 'en-us': 'missing required module id' }, 'animation.reset.no_module_ids.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Remise à zéro des modules du thème', 'en-us': 'Reset of the theme modules' }, 'animation.theme.reset.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Remise à zéro du module', 'en-us': 'Reset of the module' }, 'animation.module.reset.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Confirmation', 'en-us': 'Confirmation' }, 'animation.theme.reset.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Remise à zéro des modules du thème', 'en-us': 'Reset of the theme modules' }, 'animation.theme.reset.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OK : Remise à zéro des modules du thème', 'en-us': 'OK: Reset of the theme modules' }, 'animation.theme.reset.success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Confirmation', 'en-us': 'Confirmation' }, 'animation.module.reset.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Remise à zéro du module', 'en-us': 'Reset of the module' }, 'animation.module.reset.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OK : Remise à zéro du module', 'en-us': 'OK: Reset of the module' }, 'animation.module.reset.success.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'OK : Remise à zéro en cours', 'en-us': 'OK: Reset in progress' }, 'animation.module.reset.async.wip.___LABEL___'));
     }
 
     private async configure_vars() {

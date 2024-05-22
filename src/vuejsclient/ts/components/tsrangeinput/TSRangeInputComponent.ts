@@ -264,6 +264,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
+
         let new_value: TSRange = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
@@ -273,9 +274,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
             this.segmentation_type_
         );
 
+        // en acs de segmentation minute, on vérifie que les champs sont tous renseignés
+        if (this.is_segmentation_minute && (!this.ts_start_is_usable || !this.ts_end_is_usable)) {
+            new_value = null;
+        }
+
         // Quand on est en Week, on va vérifier qu'on a bien sélectionné le début et fin de la semaine
         // Sinon on modifie les valeurs
-        if (this.is_segmentation_week) {
+        if (!!new_value && this.is_segmentation_week) {
             let to_edit: boolean = false;
 
             let start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
@@ -379,7 +385,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 end = Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
                 end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
             }
-
+            if (this.date_option == 'hideend') {
+                let diff: number = Dates.diff(this.ts_start, end, TimeSegment.TYPE_DAY);
+                if (diff > 0 && Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_DAY)) {
+                    end = Dates.add(end, diff, TimeSegment.TYPE_DAY);
+                }
+            }
             if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
                 end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
             }
@@ -399,7 +410,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     /**
      * Fonction liée au param option
      * Vérifie qu'il correspond à la partie date d'un tsrange
-     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
+     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable' | 'hideend')
      * Sinon, renvoie null
      */
     get date_option(): string {
@@ -424,5 +435,54 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         return null;
+    }
+
+    /**
+     * vérifie que la saisie est complete
+     */
+    get ts_start_is_usable(): boolean {
+        if (!this.tsrange_start) {
+            return false;
+        }
+
+        if (this.is_segmentation_minute) {
+            let start: number = moment(this.tsrange_start).utc(true).unix();
+            let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
+
+            if (!start || !hours || !hours.length || !hours[0] || isNaN(parseInt(hours[0])) || !hours[1] || isNaN(parseInt(hours[1]))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * vérifie que la saisie est complete
+     */
+    get ts_end_is_usable(): boolean {
+        if (this.is_segmentation_minute) {
+            if (!this.tsrange_end) {
+                if (!this.tsrange_start) {
+                    return false;
+                }
+
+                this.tsrange_end = cloneDeep(this.tsrange_start);
+            }
+
+            let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
+            let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
+
+            if (!end || !hours || !hours.length || !hours[0] || isNaN(parseInt(hours[0])) || !hours[1] || isNaN(parseInt(hours[1]))) {
+                return false;
+            }
+            return true;
+        }
+
+        if (!this.tsrange_end) {
+            return false;
+        }
+
+        return true;
     }
 }
