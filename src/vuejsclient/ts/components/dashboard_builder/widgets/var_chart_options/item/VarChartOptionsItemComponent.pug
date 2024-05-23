@@ -96,6 +96,16 @@
                     v-model="border_width"
                     type="number"
                 )
+    .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.datas_filter_options') }}
+        .filter_options
+            .filter_options_label {{ label('var_chart_options_item_component.filter_options') }}
+            .widget_filter_options_wrapper
+                Widgetfilteroptionscomponent(
+                    :actual_additional_options="filter_additional_params"
+                    :actual_filter_type="filter_type"
+                    @update_additional_options="update_additional_options"
+                    @update_filter_type="update_filter_type"
+                )
 
         template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
             .fields_that_could_get_custom_filter

@@ -124,6 +124,14 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
     }
 
+    private getLabels(value, context) {
+        if (this.var_filter) {
+            return this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
+        } else {
+            return value;
+        }
+    }
+
     get options() {
         let self = this;
 
@@ -183,6 +191,13 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
                         color: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
                     },
                 },
+            },
+            scales: {
+                r: {
+                  ticks: {
+                    callback: this.getLabels
+                  },
+                }
             },
 
         };

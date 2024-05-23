@@ -39,7 +39,7 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
         'logarithmic',
         'category',
         // 'exponential',
-        // 'time',
+        'time',
         // 'radialLinear'
     ];
 

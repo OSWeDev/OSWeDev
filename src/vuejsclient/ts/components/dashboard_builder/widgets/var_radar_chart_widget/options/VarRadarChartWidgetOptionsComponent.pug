@@ -219,15 +219,14 @@
 
         .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.datas_filter_options') }}
         .widget_filter_options(v-if='title_name_code_text && widget_options')
-            .input_label("wip")
-            //- .widget_filter_options_label {{ label('var_radar_chart_widget_options_component.widget_filter_options') }}
-            //- .widget_filter_options_wrapper
-            //-     Widgetfilteroptionscomponent(
-            //-         :actual_additional_options="widget_options.filter_additional_params"
-            //-         :actual_filter_type="widget_options.filter_type"
-            //-         @update_additional_options="update_additional_options"
-            //-         @update_filter_type="update_filter_type"
-            //-     )
+            .widget_filter_options_label {{ label('var_radar_chart_widget_options_component.widget_filter_options') }}
+            .widget_filter_options_wrapper
+                Widgetfilteroptionscomponent(
+                    :actual_additional_options="widget_options.filter_additional_params"
+                    :actual_filter_type="widget_options.filter_type"
+                    @update_additional_options="update_additional_options"
+                    @update_filter_type="update_filter_type"
+                )
 
         .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.var_1_options') }}
         .var_name_1 

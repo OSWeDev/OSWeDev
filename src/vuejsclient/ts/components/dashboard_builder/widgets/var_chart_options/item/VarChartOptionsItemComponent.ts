@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { cloneDeep, isEqual } from 'lodash';
+import { cloneDeep, filter, isEqual } from 'lodash';
 import VarChartOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarChartOptionsVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -57,7 +57,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
 
     // for gradient color
     private has_gradient: boolean = false;
-
+    private filter_type: string = '';
+    private filter_additional_params: string = '';
 
     private graphe_types: string[] = [
         'line',     // many lines on the same graph or line chart with bars
@@ -154,6 +155,16 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.emit_change();
     }
 
+    private async update_additional_options(additional_options: string) {
+        this.filter_additional_params = additional_options;
+        this.emit_change();
+    }
+
+    private async update_filter_type(filter_type: string) {
+        this.filter_type=filter_type;
+        this.emit_change();
+    }
+
     /**
      * change_custom_filter
      *
@@ -221,6 +232,8 @@ export default class VarChartOptionsItemComponent extends VueComponentBase {
         this.options_props.border_width = this.border_width;
         this.options_props.custom_filter_names = this.custom_filter_names;
         this.options_props.has_gradient = this.has_gradient;
+        this.options_props.filter_additional_params = this.filter_additional_params;
+        this.options_props.filter_type = this.filter_type;
 
         this.$emit('on_change', this.options_props);
     }

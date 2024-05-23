@@ -310,15 +310,6 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (!this.has_dimension) {
             this.snotify.error('Not implemented yet');
         }
-        // this.next_update_options = this.widget_options;
-
-        // if (!this.next_update_options) {
-        //     this.next_update_options = this.get_default_options();
-        // }
-
-        // this.next_update_options.has_dimension = !this.next_update_options.has_dimension;
-
-        // await this.throttled_update_options();
     }
 
     private async switch_title_display() {

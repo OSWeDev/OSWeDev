@@ -773,52 +773,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
             return dimension_values;
         }
-        // let year_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        // let month_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        // let dom_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
-        // let dow_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
-        // let week_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
-
-        // /**
-        //  * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois
-        //  */
-        // if (dom_filter || dow_filter || week_filter || !year_filter) {
-        //     throw new Error('Not implemented');
-        // }
-
-        // let ranges = [];
-        // let nb_ranges = 0;
-        // // Si la semgentation est annuelle, inutile/impossible de filtrer sur le mois => on prend tous les mois, est-ce qu'on devrait renvoyer une erreur ?
-        // // On part du principe que les ranges sont déjà ordonnés, via une union par exemple ou une normalisation quelconque - voir si c'est ok
-        // if (month_filter && (this.widget_options.dimension_custom_filter_segment_type >= TimeSegment.TYPE_MONTH)) {
-        //     RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
-        //         RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
-
-        //             if (nb_ranges >= this.widget_options.max_dimension_values) {
-        //                 return;
-        //             }
-
-        //             ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month - 1), TimeSegment.TYPE_MONTH));
-        //             nb_ranges++;
-        //         }, TimeSegment.TYPE_MONTH, null, null, !this.widget_options.sort_dimension_by_asc);
-        //     }, TimeSegment.TYPE_YEAR, null, null, !this.widget_options.sort_dimension_by_asc);
-        // } else {
-        //     ranges = year_filter.param_numranges;
-        // }
-
-        // nb_ranges = 0;
-        // let dimension_values: number[] = [];
-        // RangeHandler.foreach_ranges_sync(ranges, (d: number) => {
-
-        //     if (nb_ranges >= this.widget_options.max_dimension_values) {
-        //         return;
-        //     }
-
-        //     dimension_values.push(d);
-        //     nb_ranges++;
-        // }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
-
-        // return dimension_values;
     }
 
     private async do_update_visible_options() {

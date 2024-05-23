@@ -1814,6 +1814,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Permet de définir un nombre max de résultats pris en compte pour le graphique sur la dimension proposée. Par exemple si on a sélectionné une année et qu\'on segmente au jour, on peut limiter aux 10 premiers jours en indiquant 10 ici.'
         }, 'var_pie_chart_widget_options_component.max_dimension_values.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'La conversion des devises suit le tableau suivant : "1€": 1€,"1$": 1.08€,"1£": 0.85€,"1¥": 169.69€,"1AU$": 1.63€,"1CA$": 1.48€,"1CHF": 0.99€,"1CN¥": 7.857464€,"1HK$": 8.46€,"1NZ$": 1.78€'
+        }, 'var_pie_chart_widget_options_component.custom_filter_names_1.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Trier la dimension par un champ'
         }, 'var_pie_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
