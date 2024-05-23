@@ -42,3 +42,33 @@ include ../../../../../views/mixins/loading.pug
 
                 template(v-if="description")
                     .description.italic.mb-2 {{ description }}
+
+                template(v-if="show_inline_form_in_crud")
+                    fieldset
+                        legend
+                            span {{ label('crud.insert_or_update_target') }}
+
+                        template(v-if="show_inline_form_in_crud_is_create")
+                            Crudcreateformcomponent(
+                                ref="Crudcreateformcomponent"
+                                :close_on_submit="true"
+                                :show_insert_or_update_target="show_insert_or_update_target"
+                                :api_type_id="field.targetModuleTable.vo_type"
+                                :vo_init="vo_of_field_value"
+                                :show_placeholder="show_placeholder"
+                                @close='close_inline_form_in_crud'
+                                @cancel='close_inline_form_in_crud'
+                                @vo_create="create_inline_form_in_crud"
+                            )
+
+                        template(v-else)
+                            Crudupdateformcomponent(
+                                ref="Crudupdateformcomponent"
+                                :close_on_submit="true"
+                                :selected_vo="vo_of_field_value"
+                                :show_insert_or_update_target="show_insert_or_update_target"
+                                :show_placeholder="show_placeholder"
+                                @close='close_inline_form_in_crud'
+                                @cancel='close_inline_form_in_crud'
+                                @vo_update="update_inline_form_in_crud"
+                            )
