@@ -125,8 +125,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             let expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
             if (expiration) {
 
-                ConsoleHandler.log('Temps actuel: ' + now + ' - Temps expiration: ' + evoliz_time);
-                ConsoleHandler.log('Token EvolizAPI encore valide. Token = ' + this.token.access_token.substring(0, 10) + '...');
                 return this.token;
             }
         }
