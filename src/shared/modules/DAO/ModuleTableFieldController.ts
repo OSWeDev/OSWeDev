@@ -211,8 +211,12 @@ export default class ModuleTableFieldController {
                     return e;
                 }
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return [];
                 }
 
                 const res: Array<number | string> = ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : null;
@@ -232,16 +236,24 @@ export default class ModuleTableFieldController {
                     return e;
                 }
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return [];
                 }
 
                 return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : e;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj: {
 
-                if ((e == null) || (e == '{}')) {
+                if (e == null) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return {};
                 }
 
                 let trans_ = ObjectHandler.try_get_json(e);
@@ -288,15 +300,15 @@ export default class ModuleTableFieldController {
             }
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
                 }
 
-                if ((e === null) || (typeof e === 'undefined')) {
-                    return e;
-                } else {
-                    return (e as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
+                if (e == '{}') {
+                    return [];
                 }
+
+                return (e as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
 
             default:
                 return e;
