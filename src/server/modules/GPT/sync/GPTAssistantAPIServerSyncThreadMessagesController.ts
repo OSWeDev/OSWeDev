@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { ImageFileContentBlock, ImageURLContentBlock, Message, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
+import { Annotation, ImageFileContentBlock, ImageURLContentBlock, Message, MessageContent, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlock, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -17,6 +17,8 @@ import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
+import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
+import GPTAssistantAPIThreadMessageContentFilePathVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFilePathVO';
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
@@ -110,6 +112,11 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             const message_contents: MessageContentPartParam[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_api(vo);
 
             if (!gpt_obj) {
+
+                // Si on a aucun contenu à envoyer à OpenAI, on a pas de message non plus et c'est normal
+                if ((!message_contents) || (!message_contents.length)) {
+                    return null;
+                }
 
                 if (ConfigurationService.node_configuration.debug_openai_sync) {
                     ConsoleHandler.log('push_thread_message_to_openai: Creating thread message in OpenAI : ' + vo.id);
@@ -352,7 +359,93 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         return res;
     }
 
-    private static async message_contents_to_openai_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContentPartParam[]> {
+    private static async message_contents_to_openai_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContent[]> {
+        const res: MessageContent[] = [];
+
+        if (!vo) {
+            return res;
+        }
+
+        const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+            .filter_by_id(vo.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().weight, true))
+            .exec_as_server()
+            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+        for (const i in contents) {
+            const content = contents[i];
+
+            switch (content.type) {
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT:
+
+                    const annotations: Annotation[] = [];
+
+                    for (const j in content.content_type_text.annotations) {
+                        const annotation = content.content_type_text.annotations[j];
+
+                        switch (annotation._type) {
+                            case GPTAssistantAPIThreadMessageContentFileCitationVO.API_TYPE_ID:
+                                annotations.push({
+                                    start_index: annotation.start_index,
+                                    end_index: annotation.end_index,
+                                    file_citation: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote,
+                                    text: annotation.text,
+                                    type: 'file_citation',
+                                });
+                                break;
+                            case GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID:
+                                annotations.push({
+                                    start_index: annotation.start_index,
+                                    end_index: annotation.end_index,
+                                    file_path: (annotation as GPTAssistantAPIThreadMessageContentFilePathVO).gpt_file_id,
+                                    text: annotation.text,
+                                    type: 'file_path'
+                                });
+                                break;
+                        }
+                    }
+
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        text: {
+                            value: content.content_type_text.value,
+                            annotations: annotations,
+                        }
+                    } as TextContentBlock);
+                    break;
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL:
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        image_url: {
+                            url: content.content_type_image_url.url,
+                            detail: content.content_type_image_url.detail,
+                        }
+                    } as ImageURLContentBlock);
+                    break;
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE:
+                    res.push({
+                        type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
+                        image_file: {
+                            file_id: content.content_type_image_file.gpt_file_id,
+                            detail: content.content_type_image_file.detail,
+                        }
+                    } as ImageFileContentBlock);
+                    break;
+
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL:
+                case GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL:
+                    // Ne concernent pas OpenAI.
+                    break;
+
+                default:
+                    throw new Error('Unknown content type');
+            }
+        }
+
+        return res;
+    }
+
+    private static async message_contents_to_openai_create_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContentPartParam[]> {
         const res: MessageContentPartParam[] = [];
 
         if (!vo) {

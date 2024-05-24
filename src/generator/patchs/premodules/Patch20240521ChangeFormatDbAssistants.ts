@@ -28,6 +28,7 @@ export default class Patch20240521ChangeFormatDbAssistants implements IGenerator
         await db.query('ALTER TABLE ref.module_gpt_gpt_assistant_thread_msg_content RENAME COLUMN action_url_id TO content_type_action_url_id;');
         await db.query('ALTER TABLE ref.module_gpt_gpt_assistant_thread_msg_content RENAME COLUMN value TO content_type_text;');
 
+        await db.query('ALTER TABLE ref.module_gpt_gpt_assistant_thread_msg RENAME COLUMN gpt_message_id TO gpt_id;');
         await db.query('ALTER TABLE ref.module_gpt_gpt_assistant_thread_msg RENAME COLUMN role_type TO role;');
 
         await db.query("ALTER TABLE ref.module_gpt_gpt_assistant_thread_msg_content ADD COLUMN temp_jsonb_content jsonb;");
