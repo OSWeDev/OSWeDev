@@ -6,6 +6,7 @@ import VarChartOptionsVO from "./VarChartOptionsVO";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
+import VarChartScalesOptionsVO from "./VarChartScalesOptionsVO";
 
 /**
  * Line chart widget options
@@ -81,6 +82,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
              * VarChartOptionsVO
              */
             [],
+            [],
             '',
             '',
             false,
@@ -142,6 +144,7 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
 
         // --- Var Options We should be able to add as many vars as we can ---
         public var_charts_options?: VarChartOptionsVO[],
+        public var_chart_scales_options?: VarChartScalesOptionsVO[],
 
         public scale_x_title?: string,
         public scale_y_title?: string,

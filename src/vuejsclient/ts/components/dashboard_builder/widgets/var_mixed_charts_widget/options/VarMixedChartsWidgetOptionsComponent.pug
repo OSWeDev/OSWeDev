@@ -208,13 +208,6 @@
                             :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
                             :page_widget_id='page_widget ? page_widget.id : null'
                         )
-                //- .field_ref
-                //-     .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_vo_field_ref_label') }}
-                //-     .input_wrapper
-                //-         Singlevofieldrefholdercomponent(
-                //-             :vo_field_ref="sort_dimension_by_vo_field_ref_label" @remove_field_ref="remove_sort_dimension_by_vo_field_ref_label" @add_field_ref="add_sort_dimension_by_vo_field_ref_label"
-                //-             :page_widget_id='page_widget ? page_widget.id : null'
-                //-         )
 
             .field_sort_dimension_by_asc
                 .input_label {{ label('var_mixed_charts_widget_options_component.sort_dimension_by_asc') }}
@@ -236,64 +229,44 @@
                     :get_var_name_code_text="this.widget_options.get_var_name_code_text"
                     :page_widget_id="page_widget.id"
                     :options="var_charts_options"
+                    :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
                 )
 
-        hr
-        .show_scale_x
+        .options_separator_lvl2 {{ label('var_mixed_charts_widget_options_component.separator.chart_scales_options') }}
+        .show_scale_y
             .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_x') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_show_scale_x" 
-                            :value="show_scale_x" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
+            .input_wrapper
+                toggle-button(
+                    @change="switch_show_scale_x" 
+                    :value="show_scale_x" 
+                    :sync="true"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
         template(v-if='show_scale_x')
             .scale_x_title
                 .input_label {{ label('var_mixed_charts_widget_options_component.scale_x_title') }}
+                .input_wrapper 
                     Inlinetranslatabletext(
                         :code_text="scale_x_code_text" 
                         :is_editable="true"
                     )
-        .scale_x_color 
-            .explication {{ label("var_mixed_charts_widget_options_component.scale_x_axis_color") }}
-            color-picker(v-model="scale_x_color" @change='handle_scale_x_color_change')
-        .scale_options_x 
-            .input_label {{ label('var_mixed_charts_widget_options_component.scale_options_x') }}
-            .input_wrapper
-                Chartjsscaleoptionscomponent(
-                    @on_change="handle_scale_options_x_change"
-                    :options="scale_options_x"
-                )
-
-        hr
-        .show_scale_y
-            .input_label {{ label('var_mixed_charts_widget_options_component.show_scale_y') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_show_scale_y" 
-                            :value="show_scale_y" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
-        template(v-if='show_scale_y')
-            .scale_y_title
-                .input_label {{ label('var_mixed_charts_widget_options_component.scale_y_title') }}
-                .input_wrapper 
-                    Inlinetranslatabletext(
-                        :code_text="scale_y_code_text" 
-                        :is_editable="true"
-                    )
-                
-        .scale_y_color 
-            .explication {{ label("var_mixed_charts_widget_options_component.scale_y_axis_color") }}
-            color-picker(v-model="scale_y_color" @change='handle_scale_y_color_change')  
-        .scale_options_y 
-            .input_label {{ label('var_mixed_charts_widget_options_component.scale_options_y') }}
-            .input_wrapper
-                Chartjsscaleoptionscomponent(
-                    @on_change="handle_scale_options_y_change"
-                    :options="scale_options_y"
-                )
+                    
+            .scale_x_color 
+                .explication {{ label("var_mixed_charts_widget_options_component.scale_x_axis_color") }}
+                color-picker(v-model="scale_x_color" @change='handle_scale_x_color_change')  
+            .scale_options_x 
+                .input_label {{ label('var_mixed_charts_widget_options_component.scale_options_x') }}
+                .input_wrapper
+                    Chartjsscaleoptionscomponent(
+                        @on_change="handle_scale_options_x_change"
+                        :options="scale_options_x"
+                    )      
+        .input_wrapper
+            Varchartscalesoptionscomponent(
+                @on_change="handle_var_chart_scales_options_change"
+                :get_var_name_code_text="this.widget_options.get_var_name_code_text"
+                :page_widget_id="page_widget.id"
+                :options="var_chart_scales_options"
+            )
+            

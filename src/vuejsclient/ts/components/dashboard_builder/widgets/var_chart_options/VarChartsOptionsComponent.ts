@@ -6,6 +6,7 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VueComponentBase from '../../../VueComponentBase';
 import VarChartOptionsItemComponent from './item/VarChartOptionsItemComponent';
 import './VarChartsOptionsComponent.scss';
+import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 
 @Component({
     template: require('./VarChartsOptionsComponent.pug'),
@@ -26,6 +27,9 @@ export default class VarChartsOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private get_var_name_code_text: (page_widget_id: number, var_id: number) => string;
+
+    @Prop({ default: [] })
+    private fields_that_could_get_scales_filter: VarChartScalesOptionsVO[];
 
     private options_props: VarChartOptionsVO[] = [];
 

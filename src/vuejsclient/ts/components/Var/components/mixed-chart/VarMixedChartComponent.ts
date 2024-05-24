@@ -39,6 +39,7 @@ export interface IChartDataset {
     borderColor: string[];
     borderWidth: number[];
     fill?: number;
+    yAxisID: string;
 }
 
 const date_adapter = DatesChartJsAdapters.get_adapters();
@@ -232,6 +233,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
         const backgroundColor = [];
         const borderColor = [];
         const borderWidth = [];
+        const yAxisID = null;
 
         if (!chart_var_params || !chart_var_datas || !chart_var_dataset_descriptor) {
             return null;
@@ -277,6 +279,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
                 borderColor: borderColor,
                 borderWidth: borderWidth,
                 data: data,
+                yAxisID: yAxisID
             };
         } else {
             return
@@ -426,8 +429,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
             return null;
         }
 
-        let numdatasets = this.datasets[0].data.map((value) => Number(value));;
-        // this.charts_options.scales.y["suggestedMax"] = Math.max(...numdatasets) * 1.2;
         return {
             labels: this.labels, // Abscisses
             datasets: this.datasets // Ordonnées (charts datasets definition)

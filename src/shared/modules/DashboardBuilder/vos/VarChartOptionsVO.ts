@@ -1,5 +1,6 @@
 
 import AbstractVO from "../../VO/abstract/AbstractVO";
+import VarChartScalesOptionsVO from "./VarChartScalesOptionsVO";
 
 /**
  * The VarChartOptionsVO
@@ -13,7 +14,7 @@ export default class VarChartOptionsVO extends AbstractVO {
         public var_id?: number, // May have many chart with the same var_id
 
         public custom_filter_names?: { [field_id: string]: string },
-
+        public selected_filter?: VarChartScalesOptionsVO,
         public type?: string,  // The type of the graph (line, bar, radar)
         public bg_color?: string,
         public border_color?: string,

@@ -96,16 +96,6 @@
                     v-model="border_width"
                     type="number"
                 )
-    .options_separator_lvl2 {{ label('var_chart_options_item_component.separator.datas_filter_options') }}
-        .filter_options
-            .filter_options_label {{ label('var_chart_options_item_component.filter_options') }}
-            .widget_filter_options_wrapper
-                Widgetfilteroptionscomponent(
-                    :actual_additional_options="filter_additional_params"
-                    :actual_filter_type="filter_type"
-                    @update_additional_options="update_additional_options"
-                    @update_filter_type="update_filter_type"
-                )
 
         template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
             .fields_that_could_get_custom_filter
@@ -122,3 +112,26 @@
                             template(v-for='custom_filter in get_custom_filters')
                                 .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
+        template(v-if='fields_that_could_get_scales_filter && fields_that_could_get_scales_filter.length')
+            .fields_that_could_get_scales_filter
+                .scale_filter 
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="selected_filter_name"
+                        :options="scale_filter_names"
+                        :allow-empty="false",
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        select-label=''
+                        select-group-label=''
+                        selected-label=''
+                        deselect-label=''
+                        deselect-group-label=''
+
+                        placeholder=''
+
+                        name="fields_that_could_get_scales_filter_selector"
+                    )

@@ -1,0 +1,42 @@
+.var_chart_scales_options_item_component 
+    .var_chart_scales_options_item_component_wrapper
+
+        .options_separator_lvl2 {{ label('var_chart_scales_options_item_component.separator.var_options') }}
+    
+        .chart_id
+            .input_label {{ label('var_chart_scales_options_item_component.chart_id') }}
+            .input_wrapper 
+                input(
+                    v-model="chart_id"
+                    :disabled="true"
+                    type="text"
+                )
+        .scale_title 
+            .input_label {{ label('var_chart_scales_options_item_component.scale_title') }}
+            .input_wrapper
+                Inlinetranslatabletext(
+                    :code_text="title_code_text" 
+                    :is_editable="true"
+                )
+        .scales_options 
+            .show_scale_title
+                .input_label {{ label('var_chart_scales_options_item.show_scale_title') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_show_scale_title" 
+                                :value="show_scale_title" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            )
+            template(v-if='show_scale_title')
+                .scale_color 
+                    .explication {{ label("var_chart_scales_options_item.scale_axis_color") }}
+                    color-picker(v-model="scale_color" @change='handle_scale_color_change')
+                .scale_options 
+                    .input_label {{ label('var_chart_scales_options_item.scale_options') }}
+                    .input_wrapper
+                        Chartjsscaleoptionscomponent(
+                            @on_change="handle_scale_options_change"
+                            :options="scale_options"
+                        )
