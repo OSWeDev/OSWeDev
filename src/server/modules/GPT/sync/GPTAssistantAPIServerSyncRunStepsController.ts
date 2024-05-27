@@ -64,6 +64,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
 
             const gpt_obj: RunStep = vo.gpt_run_step_id ? await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.steps.retrieve,
+                ModuleGPTServer.openai.beta.threads.runs.steps,
                 vo.gpt_thread_id,
                 vo.gpt_run_id,
                 vo.gpt_run_step_id) : null;
@@ -201,7 +202,7 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
         let res: RunStep[] = [];
 
         let runs_page: RunStepsPage = await GPTAssistantAPIServerController.wrap_api_call(
-            ModuleGPTServer.openai.beta.threads.runs.steps.list, gpt_thread_id, gpt_run_id);
+            ModuleGPTServer.openai.beta.threads.runs.steps.list, ModuleGPTServer.openai.beta.threads.runs.steps, gpt_thread_id, gpt_run_id);
 
         if (!runs_page) {
             return res;

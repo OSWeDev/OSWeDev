@@ -40,13 +40,13 @@ export default class GPTAssistantAPIServerController {
      * @param args
      * @returns
      */
-    public static async wrap_api_call(apiFunction, ...args) {
+    public static async wrap_api_call<T extends (...args: any[]) => Promise<any>>(apiFunction: T, context: ThisParameterType<T>, ...args: Parameters<T>): Promise<ReturnType<T>> {
         const maxRetries = 7;
         const baseDelay = 1000; // Initial delay in milliseconds (1 second)
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                return await apiFunction(...args);
+                return await apiFunction.apply(context, args);
             } catch (error) {
                 const delay = baseDelay * Math.pow(2, attempt - 1);
                 if (error.statusCode === 429) {
@@ -141,9 +141,9 @@ export default class GPTAssistantAPIServerController {
                     return null;
                 }
 
-                thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.create);
+                thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.create, ModuleGPTServer.openai.beta.threads);
             } else {
-                thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.retrieve, thread_id);
+                thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_id);
             }
 
             if (!thread_gpt) {
@@ -857,7 +857,8 @@ export default class GPTAssistantAPIServerController {
         //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
         // }
 
-        const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.retrieve, thread_vo.gpt_thread_id) : null;
+        const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
         await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
 
         await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
@@ -995,7 +996,7 @@ export default class GPTAssistantAPIServerController {
             throw new Error('GPTAssistantAPIServerController.handle_run: run not created');
         }
 
-        let run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
+        let run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
 
         while (run.status != "completed") {
 
@@ -1093,6 +1094,7 @@ export default class GPTAssistantAPIServerController {
                         // Submit tool outputs
                         await GPTAssistantAPIServerController.wrap_api_call(
                             ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                            ModuleGPTServer.openai.beta.threads.runs,
                             thread_vo.gpt_thread_id,
                             run.id,
                             { tool_outputs: tool_outputs }
@@ -1114,6 +1116,7 @@ export default class GPTAssistantAPIServerController {
             await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
             run = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.retrieve,
+                ModuleGPTServer.openai.beta.threads.runs,
                 thread_vo.gpt_thread_id,
                 run.id
             );

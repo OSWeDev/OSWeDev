@@ -59,7 +59,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
                 throw new Error('No file_vo provided');
             }
 
-            let gpt_obj: FileObject = vo.gpt_file_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.retrieve, vo.gpt_file_id) : null;
+            let gpt_obj: FileObject = vo.gpt_file_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.retrieve, ModuleGPTServer.openai.files, vo.gpt_file_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -81,6 +81,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.files.create,
+                    ModuleGPTServer.openai.files,
                     {
                         file: createReadStream(vo.filename) as unknown as Uploadable,
                         purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
@@ -102,10 +103,11 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les fichiers
                     // donc on supprime et on recrée
-                    await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.del, gpt_obj.id);
+                    await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.del, ModuleGPTServer.openai.files, gpt_obj.id);
 
                     gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.files.create,
+                        ModuleGPTServer.openai.files,
                         {
                             file: createReadStream(vo.filename) as unknown as Uploadable,
                             purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
@@ -236,7 +238,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
         let res: FileObject[] = [];
 
-        let files_page: FileObjectsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.list);
+        let files_page: FileObjectsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.list, ModuleGPTServer.openai.files);
 
         if (!files_page) {
             return res;

@@ -60,7 +60,8 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 throw new Error('No vector_store_vo provided');
             }
 
-            let gpt_obj: VectorStore = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.retrieve, vo.gpt_id) : null;
+            let gpt_obj: VectorStore = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.vectorStores.retrieve, ModuleGPTServer.openai.beta.vectorStores, vo.gpt_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -82,6 +83,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.vectorStores.create,
+                    ModuleGPTServer.openai.beta.vectorStores,
                     {
                         expires_after: {
                             anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
@@ -108,6 +110,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                     // On doit mettre à jour
                     await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.vectorStores.update,
+                        ModuleGPTServer.openai.beta.vectorStores,
                         gpt_obj.id,
                         {
                             expires_after: {
@@ -248,7 +251,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
         let res: VectorStore[] = [];
 
-        let vector_stores_page: VectorStoresPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.list);
+        let vector_stores_page: VectorStoresPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.list, ModuleGPTServer.openai.beta.vectorStores);
 
         if (!vector_stores_page) {
             return res;

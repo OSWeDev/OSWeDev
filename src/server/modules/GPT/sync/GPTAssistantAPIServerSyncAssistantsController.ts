@@ -159,7 +159,10 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 throw new Error('No assistant_vo provided');
             }
 
-            let gpt_obj: Assistant = vo.gpt_assistant_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.retrieve, vo.gpt_assistant_id) : null;
+            let gpt_obj: Assistant = vo.gpt_assistant_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.assistants.retrieve,
+                ModuleGPTServer.openai.beta.assistants,
+                vo.gpt_assistant_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -185,6 +188,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 // On récupère la définition des outils
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.assistants.create,
+                    ModuleGPTServer.openai.beta.assistants,
                     {
                         model: vo.model,
                         name: vo.nom,
@@ -217,6 +221,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     // On doit mettre à jour
                     gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.assistants.update,
+                        ModuleGPTServer.openai.beta.assistants,
                         gpt_obj.id,
                         {
                             model: vo.model,
@@ -686,7 +691,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
         let res: Assistant[] = [];
 
-        let assistants_page: AssistantsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.list);
+        let assistants_page: AssistantsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.list, ModuleGPTServer.openai.beta.assistants);
 
         if (!assistants_page) {
             return res;

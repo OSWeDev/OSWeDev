@@ -53,7 +53,9 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
             }
 
             let gpt_obj: VectorStoreFile = vo.gpt_file_id ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.vectorStores.files.retrieve, vo.vector_store_gpt_id, vo.gpt_file_id) : null;
+                ModuleGPTServer.openai.beta.vectorStores.files.retrieve,
+                ModuleGPTServer.openai.beta.vectorStores.files,
+                vo.vector_store_gpt_id, vo.gpt_file_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -77,6 +79,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.vectorStores.files.create,
+                    ModuleGPTServer.openai.beta.vectorStores.files,
                     vo.vector_store_gpt_id,
                     {
                         file_id: vo.gpt_file_id,
@@ -99,10 +102,13 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les vector store files
                     // donc on supprime et on recrée
                     await GPTAssistantAPIServerController.wrap_api_call(
-                        ModuleGPTServer.openai.beta.vectorStores.files.del, vo.vector_store_gpt_id, gpt_obj.id);
+                        ModuleGPTServer.openai.beta.vectorStores.files.del,
+                        ModuleGPTServer.openai.beta.vectorStores.files,
+                        vo.vector_store_gpt_id, gpt_obj.id);
 
                     gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.vectorStores.files.create,
+                        ModuleGPTServer.openai.beta.vectorStores.files,
                         vo.vector_store_gpt_id,
                         {
                             file_id: vo.gpt_file_id,
@@ -235,7 +241,8 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
         let res: VectorStoreFile[] = [];
 
-        let vector_stores_page: VectorStoreFilesPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.files.list, gpt_vector_store_id);
+        let vector_stores_page: VectorStoreFilesPage = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.vectorStores.files.list, ModuleGPTServer.openai.beta.vectorStores.files, gpt_vector_store_id);
 
         if (!vector_stores_page) {
             return res;

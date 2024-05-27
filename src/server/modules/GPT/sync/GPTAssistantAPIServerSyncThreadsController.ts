@@ -18,6 +18,7 @@ import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSync
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
+import { APIPromise, RequestOptions } from 'openai/core';
 
 export default class GPTAssistantAPIServerSyncThreadsController {
 
@@ -67,7 +68,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             }
 
             let gpt_obj: Thread = vo.gpt_thread_id ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.threads.retrieve, vo.gpt_thread_id) : null;
+                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, vo.gpt_thread_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -90,12 +91,14 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                 }
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.threads.create,
+                    // On cast pour éviter l'erreur de type car fonction à plusieurs types possibles...
+                    ModuleGPTServer.openai.beta.threads.create as (body?: ThreadCreateParams, options?: RequestOptions<unknown>) => APIPromise<Thread>,
+                    ModuleGPTServer.openai.beta.threads,
                     {
                         messages: [], // On synchronise les messages après dans tous les cas
                         metadata: cloneDeep(vo.metadata),
                         tool_resources: tool_resources,
-                    });
+                    } as ThreadCreateParams);
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating thread in OpenAI');
@@ -114,6 +117,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     // On doit mettre à jour
                     await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.threads.update,
+                        ModuleGPTServer.openai.beta.threads,
                         gpt_obj.id,
                         {
                             tool_resources: tool_resources,
@@ -199,7 +203,7 @@ export default class GPTAssistantAPIServerSyncThreadsController {
 
             await promise_pipeline.push(async () => {
                 const thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.threads.retrieve, thread_vo.gpt_thread_id);
+                    ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id);
 
                 if (!thread_gpt) {
 

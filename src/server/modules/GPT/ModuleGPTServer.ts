@@ -447,6 +447,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
 
             return await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.chat.completions.create,
+                ModuleGPTServer.openai.chat.completions,
                 {
                     model: modelId,
                     messages: currentMessages as ChatCompletionMessageParam[],

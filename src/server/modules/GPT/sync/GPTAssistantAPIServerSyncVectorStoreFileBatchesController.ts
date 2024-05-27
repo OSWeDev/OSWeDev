@@ -60,7 +60,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
             }
 
             let gpt_obj: VectorStoreFileBatch = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve, vo.vector_store_gpt_id, vo.gpt_id) : null;
+                ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve, ModuleGPTServer.openai.beta.vectorStores.fileBatches, vo.vector_store_gpt_id, vo.gpt_id) : null;
 
             if (!gpt_obj) {
 
@@ -74,6 +74,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.vectorStores.fileBatches.create,
+                    ModuleGPTServer.openai.beta.vectorStores.fileBatches,
                     vo.vector_store_gpt_id,
                     {
                         file_ids: vo.gpt_file_ids,
@@ -164,6 +165,7 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
             await promise_pipeline.push(async () => {
                 const vector_store_file_batch_gpt = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve,
+                    ModuleGPTServer.openai.beta.vectorStores.fileBatches,
                     vector_store_file_batch_vo.vector_store_gpt_id, vector_store_file_batch_vo.gpt_id);
 
                 if (!vector_store_file_batch_gpt) {

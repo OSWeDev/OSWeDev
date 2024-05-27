@@ -63,7 +63,8 @@ export default class GPTAssistantAPIServerSyncRunsController {
                 throw new Error('No run_vo provided');
             }
 
-            let gpt_obj: Run = vo.gpt_run_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, vo.gpt_thread_id, vo.gpt_run_id) : null;
+            let gpt_obj: Run = vo.gpt_run_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, vo.gpt_thread_id, vo.gpt_run_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -87,6 +88,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.threads.runs.create,
+                    ModuleGPTServer.openai.beta.threads.runs,
                     vo.gpt_thread_id,
                     {
                         assistant_id: vo.gpt_assistant_id,
@@ -101,7 +103,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                         tools: cloneDeep(vo.tools),
                         top_p: vo.top_p,
                         truncation_strategy: cloneDeep(vo.truncation_strategy),
-                    });
+                    }) as Run;
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating run in OpenAI');
@@ -120,6 +122,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     // On doit mettre à jour
                     await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.threads.runs.update,
+                        ModuleGPTServer.openai.beta.threads.runs,
                         vo.gpt_thread_id, vo.gpt_run_id,
                         {
                             metadata: cloneDeep(vo.metadata),
@@ -265,7 +268,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
         let res: Run[] = [];
 
-        let runs_page: RunsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.list, gpt_thread_id);
+        let runs_page: RunsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.list, ModuleGPTServer.openai.beta.threads.runs, gpt_thread_id);
 
         if (!runs_page) {
             return res;

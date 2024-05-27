@@ -101,7 +101,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             let gpt_obj: Message = (vo.gpt_thread_id && vo.gpt_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.threads.messages.retrieve, vo.gpt_thread_id, vo.gpt_id) : null;
+                ModuleGPTServer.openai.beta.threads.messages.retrieve, ModuleGPTServer.openai.beta.threads.messages, vo.gpt_thread_id, vo.gpt_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -132,6 +132,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
                 gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.threads.messages.create,
+                    ModuleGPTServer.openai.beta.threads.messages,
                     vo.gpt_thread_id,
                     {
                         content: message_contents_create,
@@ -158,6 +159,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     // Celà dit, comme on peut pas update grand chose, grosse proba que la diff si elle existait avant existe toujours après ...
                     gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
                         ModuleGPTServer.openai.beta.threads.messages.update,
+                        ModuleGPTServer.openai.beta.threads.messages,
                         gpt_obj.thread_id,
                         gpt_obj.id,
                         {
@@ -303,7 +305,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         let res: Message[] = [];
 
         let messages_page: MessagesPage = await GPTAssistantAPIServerController.wrap_api_call(
-            ModuleGPTServer.openai.beta.threads.messages.list, gpt_thread_id);
+            ModuleGPTServer.openai.beta.threads.messages.list, ModuleGPTServer.openai.beta.threads.messages, gpt_thread_id);
 
         if (!messages_page) {
             return res;
