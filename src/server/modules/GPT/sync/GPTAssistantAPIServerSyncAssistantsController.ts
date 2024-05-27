@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { FunctionDefinition, FunctionParameters } from 'openai/resources';
+import { FunctionDefinition } from 'openai/resources';
 import { Assistant, AssistantCreateParams, AssistantTool, AssistantsPage } from 'openai/resources/beta/assistants';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -19,8 +19,10 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
 import ModuleGPTServer from '../ModuleGPTServer';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
@@ -157,7 +159,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 throw new Error('No assistant_vo provided');
             }
 
-            let gpt_obj: Assistant = vo.gpt_assistant_id ? await ModuleGPTServer.openai.beta.assistants.retrieve(vo.gpt_assistant_id) : null;
+            let gpt_obj: Assistant = vo.gpt_assistant_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.retrieve, vo.gpt_assistant_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -181,19 +183,20 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 }
 
                 // On récupère la définition des outils
-                gpt_obj = await ModuleGPTServer.openai.beta.assistants.create({
-
-                    model: vo.model,
-                    name: vo.nom,
-                    description: vo.description,
-                    instructions: vo.instructions,
-                    metadata: cloneDeep(vo.metadata),
-                    response_format: cloneDeep(vo.response_format),
-                    temperature: vo.temperature,
-                    tool_resources: tool_resources,
-                    tools: tools,
-                    top_p: vo.top_p,
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.assistants.create,
+                    {
+                        model: vo.model,
+                        name: vo.nom,
+                        description: vo.description,
+                        instructions: vo.instructions,
+                        metadata: cloneDeep(vo.metadata),
+                        response_format: cloneDeep(vo.response_format),
+                        temperature: vo.temperature,
+                        tool_resources: tool_resources,
+                        tools: tools,
+                        top_p: vo.top_p,
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating assistant in OpenAI');
@@ -212,7 +215,8 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     }
 
                     // On doit mettre à jour
-                    gpt_obj = await ModuleGPTServer.openai.beta.assistants.update(
+                    gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.assistants.update,
                         gpt_obj.id,
                         {
                             model: vo.model,
@@ -566,16 +570,20 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             assistant_function_vo.function_id = found_vo.id;
             assistant_function_vo.weight = weight;
 
+            if (ConfigurationService.node_configuration.debug_openai_sync) {
+                ConsoleHandler.log('sync_assistant_function: Updating assistant function in Osélia : ' + tool.name + ' for assistant ' + assistant_vo.nom);
+            }
+
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_function_vo);
         }
 
         // On synchronise les paramètres de la fonction
-        await GPTAssistantAPIServerSyncAssistantsController.sync_assistant_function_params(found_vo, tool.parameters);
+        await GPTAssistantAPIServerSyncAssistantsController.sync_assistant_function_params(found_vo, tool.parameters as { required: string[], type: 'function', properties: any });
     }
 
     private static async sync_assistant_function_params(
         assistant_function_vo: GPTAssistantAPIFunctionVO,
-        params: FunctionParameters
+        params: { required: string[], type: 'function', properties: any },
     ) {
 
         if (ConfigurationService.node_configuration.debug_openai_sync) {
@@ -595,8 +603,9 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             assistant_function_params_by_name[assistant_function_param.gpt_funcparam_name] = assistant_function_param;
         }
 
-        for (const param_name in params) {
-            const param: unknown = params[param_name];
+        const weight = 0;
+        for (const param_name in params.properties) {
+            const param: unknown = params.properties[param_name];
             let found_vo: GPTAssistantAPIFunctionParamVO = assistant_function_params_by_name[param_name];
             let needs_update = false;
 
@@ -605,18 +614,30 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 needs_update = true;
             }
 
+            if (params.required.indexOf(param_name) < 0) {
+                if (found_vo.required) {
+                    needs_update = true;
+                    found_vo.required = false;
+                }
+            } else {
+                if (!found_vo.required) {
+                    needs_update = true;
+                    found_vo.required = true;
+                }
+            }
+
             const from_openai = GPTAssistantAPIFunctionParamVO.from_GPT_FunctionParameters(param);
-            needs_update = needs_update ||
-                (JSON.stringify(from_openai.array_items_type) != JSON.stringify(found_vo.array_items_type)) ||
-                (from_openai.function_id != assistant_function_vo.id) ||
-                (from_openai.gpt_funcparam_description != found_vo.gpt_funcparam_description) ||
-                (from_openai.gpt_funcparam_name != found_vo.gpt_funcparam_name) ||
-                (JSON.stringify(from_openai.number_enum) != JSON.stringify(found_vo.number_enum)) ||
-                (JSON.stringify(from_openai.object_fields) != JSON.stringify(found_vo.object_fields)) ||
-                (from_openai.required != found_vo.required) ||
-                (JSON.stringify(from_openai.string_enum) != JSON.stringify(found_vo.string_enum)) ||
-                (from_openai.type != found_vo.type) ||
-                (from_openai.weight != found_vo.weight);
+            from_openai.gpt_funcparam_name = param_name;
+
+            needs_update = needs_update || !(
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.array_items_type, found_vo.array_items_type) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.gpt_funcparam_description, found_vo.gpt_funcparam_description) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.gpt_funcparam_name, found_vo.gpt_funcparam_name) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.number_enum, found_vo.number_enum) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.object_fields, found_vo.object_fields) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.string_enum, found_vo.string_enum) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.type, found_vo.type) &&
+                GPTAssistantAPIServerSyncController.compare_values(weight, found_vo.weight));
 
             if (needs_update) {
 
@@ -625,15 +646,13 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 }
 
                 found_vo.array_items_type = cloneDeep(from_openai.array_items_type);
-                found_vo.function_id = assistant_function_vo.id;
                 found_vo.gpt_funcparam_description = from_openai.gpt_funcparam_description;
                 found_vo.gpt_funcparam_name = from_openai.gpt_funcparam_name;
                 found_vo.number_enum = cloneDeep(from_openai.number_enum);
                 found_vo.object_fields = cloneDeep(from_openai.object_fields);
-                found_vo.required = from_openai.required;
                 found_vo.string_enum = cloneDeep(from_openai.string_enum);
                 found_vo.type = from_openai.type;
-                found_vo.weight = from_openai.weight;
+                found_vo.weight = weight;
                 found_vo.archived = false;
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
@@ -665,21 +684,21 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
     private static async get_all_assistants(): Promise<Assistant[]> {
 
-        const res: Assistant[] = [];
+        let res: Assistant[] = [];
 
-        let assistants_page: AssistantsPage = await ModuleGPTServer.openai.beta.assistants.list();
+        let assistants_page: AssistantsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.assistants.list);
 
         if (!assistants_page) {
             return res;
         }
 
         if (assistants_page.data && assistants_page.data.length) {
-            res.concat(assistants_page.data);
+            res = res.concat(assistants_page.data);
         }
 
         while (assistants_page.hasNextPage()) {
             assistants_page = await assistants_page.getNextPage();
-            res.concat(assistants_page.data);
+            res = res.concat(assistants_page.data);
         }
 
         return res;
@@ -749,18 +768,19 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             return true;
         }
 
-        return (assistant_vo.gpt_assistant_id != assistant_gpt.id) ||
-            (assistant_vo.created_at != assistant_gpt.created_at) ||
-            (assistant_vo.description != assistant_gpt.description) ||
-            (assistant_vo.instructions != assistant_gpt.instructions) ||
-            (JSON.stringify(assistant_vo.metadata) != JSON.stringify(assistant_gpt.metadata)) ||
-            (assistant_vo.model != assistant_gpt.model) ||
-            (assistant_vo.nom != assistant_gpt.name) ||
-            (JSON.stringify(assistant_vo.response_format) != JSON.stringify(assistant_gpt.response_format)) ||
-            (assistant_vo.temperature != assistant_gpt.temperature) ||
-            (JSON.stringify(assistant_vo_to_openai_tool_resources) != JSON.stringify(assistant_gpt.tool_resources)) ||
-            (JSON.stringify(assistant_vo_to_openai_tools) != JSON.stringify(assistant_gpt.tools)) ||
-            (assistant_vo.top_p != assistant_gpt.top_p);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.gpt_assistant_id, assistant_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.created_at, assistant_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.description, assistant_gpt.description) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.instructions, assistant_gpt.instructions) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.metadata, assistant_gpt.metadata) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.model, assistant_gpt.model) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.nom, assistant_gpt.name) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.response_format, assistant_gpt.response_format) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.temperature, assistant_gpt.temperature) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo_to_openai_tool_resources, assistant_gpt.tool_resources) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo_to_openai_tools, assistant_gpt.tools) &&
+            GPTAssistantAPIServerSyncController.compare_values(assistant_vo.top_p, assistant_gpt.top_p));
     }
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIAssistantVO, gpt_obj: Assistant) {

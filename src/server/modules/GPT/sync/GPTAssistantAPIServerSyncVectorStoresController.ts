@@ -6,10 +6,12 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import ModuleGPTServer from '../ModuleGPTServer';
-import GPTAssistantAPIServerSyncVectorStoreFilesController from './GPTAssistantAPIServerSyncVectorStoreFilesController';
-import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import ModuleGPTServer from '../ModuleGPTServer';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
+import GPTAssistantAPIServerSyncVectorStoreFilesController from './GPTAssistantAPIServerSyncVectorStoreFilesController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncVectorStoresController {
 
@@ -58,7 +60,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                 throw new Error('No vector_store_vo provided');
             }
 
-            let gpt_obj: VectorStore = vo.gpt_id ? await ModuleGPTServer.openai.beta.vectorStores.retrieve(vo.gpt_id) : null;
+            let gpt_obj: VectorStore = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.retrieve, vo.gpt_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -78,15 +80,16 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                     throw new Error('Error while pushing vector_store to OpenAI : block_openai_sync_push_to_openai');
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.create({
-
-                    expires_after: {
-                        anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
-                        days: vo.expires_after_days
-                    },
-                    metadata: cloneDeep(vo.metadata),
-                    name: vo.name
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.vectorStores.create,
+                    {
+                        expires_after: {
+                            anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
+                            days: vo.expires_after_days
+                        },
+                        metadata: cloneDeep(vo.metadata),
+                        name: vo.name
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating vector_store in OpenAI');
@@ -103,15 +106,17 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
                     }
 
                     // On doit mettre à jour
-                    await ModuleGPTServer.openai.beta.vectorStores.update(gpt_obj.id, {
-
-                        expires_after: {
-                            anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
-                            days: vo.expires_after_days
-                        },
-                        metadata: cloneDeep(vo.metadata),
-                        name: vo.name
-                    });
+                    await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.vectorStores.update,
+                        gpt_obj.id,
+                        {
+                            expires_after: {
+                                anchor: GPTAssistantAPIVectorStoreVO.TO_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vo.expires_after_anchor] as 'last_active_at',
+                                days: vo.expires_after_days
+                            },
+                            metadata: cloneDeep(vo.metadata),
+                            name: vo.name
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating vector_store in OpenAI');
@@ -241,21 +246,21 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
     private static async get_all_vector_stores(): Promise<VectorStore[]> {
 
-        const res: VectorStore[] = [];
+        let res: VectorStore[] = [];
 
-        let vector_stores_page: VectorStoresPage = await ModuleGPTServer.openai.beta.vectorStores.list();
+        let vector_stores_page: VectorStoresPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.list);
 
         if (!vector_stores_page) {
             return res;
         }
 
         if (vector_stores_page.data && vector_stores_page.data.length) {
-            res.concat(vector_stores_page.data);
+            res = res.concat(vector_stores_page.data);
         }
 
         while (vector_stores_page.hasNextPage()) {
             vector_stores_page = await vector_stores_page.getNextPage();
-            res.concat(vector_stores_page.data);
+            res = res.concat(vector_stores_page.data);
         }
 
         return res;
@@ -273,21 +278,22 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
             return true;
         }
 
-        return (vector_store_vo.gpt_id != vector_store_gpt.id) ||
-            (vector_store_vo.created_at != vector_store_gpt.created_at) ||
-            (vector_store_vo.name != vector_store_gpt.name) ||
-            (vector_store_vo.usage_bytes != vector_store_gpt.usage_bytes) ||
-            (vector_store_vo.file_counts_in_progress != (vector_store_gpt.file_counts?.in_progress ? vector_store_gpt.file_counts?.in_progress : 0)) ||
-            (vector_store_vo.file_counts_completed != (vector_store_gpt.file_counts?.completed ? vector_store_gpt.file_counts?.completed : 0)) ||
-            (vector_store_vo.file_counts_failed != (vector_store_gpt.file_counts?.failed ? vector_store_gpt.file_counts?.failed : 0)) ||
-            (vector_store_vo.file_counts_cancelled != (vector_store_gpt.file_counts?.cancelled ? vector_store_gpt.file_counts?.cancelled : 0)) ||
-            (vector_store_vo.file_counts_total != (vector_store_gpt.file_counts?.total ? vector_store_gpt.file_counts?.total : 0)) ||
-            (vector_store_vo.status != GPTAssistantAPIVectorStoreVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]) ||
-            (vector_store_vo.expires_after_anchor != (vector_store_gpt.expires_after?.anchor ? GPTAssistantAPIVectorStoreVO.FROM_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vector_store_gpt.expires_after?.anchor] : null)) ||
-            (vector_store_vo.expires_after_days != (vector_store_gpt.expires_after?.days ? vector_store_gpt.expires_after?.days : 0)) ||
-            (vector_store_vo.expires_at != vector_store_gpt.expires_at) ||
-            (vector_store_vo.last_active_at != vector_store_gpt.last_active_at) ||
-            (JSON.stringify(vector_store_vo.metadata) != JSON.stringify(vector_store_gpt.metadata));
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.gpt_id, vector_store_gpt.id),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.created_at, vector_store_gpt.created_at),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.name, vector_store_gpt.name),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.usage_bytes, vector_store_gpt.usage_bytes),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_in_progress, (vector_store_gpt.file_counts?.in_progress ? vector_store_gpt.file_counts?.in_progress : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_completed, (vector_store_gpt.file_counts?.completed ? vector_store_gpt.file_counts?.completed : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_failed, (vector_store_gpt.file_counts?.failed ? vector_store_gpt.file_counts?.failed : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_cancelled, (vector_store_gpt.file_counts?.cancelled ? vector_store_gpt.file_counts?.cancelled : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_total, (vector_store_gpt.file_counts?.total ? vector_store_gpt.file_counts?.total : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.status, GPTAssistantAPIVectorStoreVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_anchor, (vector_store_gpt.expires_after?.anchor ? GPTAssistantAPIVectorStoreVO.FROM_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vector_store_gpt.expires_after?.anchor] : null)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_days, (vector_store_gpt.expires_after?.days ? vector_store_gpt.expires_after?.days : 0)),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_at, vector_store_gpt.expires_at),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.last_active_at, vector_store_gpt.last_active_at),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.metadata, vector_store_gpt.metadata));
     }
 
     private static assign_vo_from_gpt(vector_store_vo: GPTAssistantAPIVectorStoreVO, vector_store_gpt: VectorStore) {

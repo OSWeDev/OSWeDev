@@ -9,6 +9,8 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
 
@@ -57,7 +59,8 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                 throw new Error('No vector_store_file_batch_vo provided');
             }
 
-            let gpt_obj: VectorStoreFileBatch = vo.gpt_id ? await ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve(vo.vector_store_gpt_id, vo.gpt_id) : null;
+            let gpt_obj: VectorStoreFileBatch = vo.gpt_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve, vo.vector_store_gpt_id, vo.gpt_id) : null;
 
             if (!gpt_obj) {
 
@@ -69,9 +72,12 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
                     throw new Error('Error while pushing vector store file batch to OpenAI : OpenAI sync is blocked : ' + vo.gpt_id);
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.fileBatches.create(vo.vector_store_gpt_id, {
-                    file_ids: vo.gpt_file_ids,
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.vectorStores.fileBatches.create,
+                    vo.vector_store_gpt_id,
+                    {
+                        file_ids: vo.gpt_file_ids,
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating vector_store_file_batch in OpenAI');
@@ -156,7 +162,9 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
             const vector_store_file_batch_vo = vector_store_file_batch_vos[i];
 
             await promise_pipeline.push(async () => {
-                const vector_store_file_batch_gpt = await ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve(vector_store_file_batch_vo.vector_store_gpt_id, vector_store_file_batch_vo.gpt_id);
+                const vector_store_file_batch_gpt = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.vectorStores.fileBatches.retrieve,
+                    vector_store_file_batch_vo.vector_store_gpt_id, vector_store_file_batch_vo.gpt_id);
 
                 if (!vector_store_file_batch_gpt) {
                     return;
@@ -188,15 +196,16 @@ export default class GPTAssistantAPIServerSyncVectorStoreFileBatchesController {
             return true;
         }
 
-        return (vector_store_file_batch_vo.gpt_id != vector_store_file_batch_gpt.id) ||
-            (vector_store_file_batch_vo.created_at != vector_store_file_batch_gpt.created_at) ||
-            (vector_store_file_batch_vo.file_counts_in_progress != (vector_store_file_batch_gpt.file_counts?.in_progress ? vector_store_file_batch_gpt.file_counts?.in_progress : 0)) ||
-            (vector_store_file_batch_vo.file_counts_completed != (vector_store_file_batch_gpt.file_counts?.completed ? vector_store_file_batch_gpt.file_counts?.completed : 0)) ||
-            (vector_store_file_batch_vo.file_counts_failed != (vector_store_file_batch_gpt.file_counts?.failed ? vector_store_file_batch_gpt.file_counts?.failed : 0)) ||
-            (vector_store_file_batch_vo.file_counts_total != (vector_store_file_batch_gpt.file_counts?.total ? vector_store_file_batch_gpt.file_counts?.total : 0)) ||
-            (vector_store_file_batch_vo.file_counts_cancelled != (vector_store_file_batch_gpt.file_counts?.cancelled ? vector_store_file_batch_gpt.file_counts?.cancelled : 0)) ||
-            (vector_store_file_batch_vo.status != GPTAssistantAPIVectorStoreFileBatchVO.FROM_OPENAI_STATUS_MAP[vector_store_file_batch_gpt.status]) ||
-            (vector_store_file_batch_vo.vector_store_gpt_id != vector_store_file_batch_gpt.vector_store_id);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.gpt_id, vector_store_file_batch_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.created_at, vector_store_file_batch_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.file_counts_in_progress, (vector_store_file_batch_gpt.file_counts?.in_progress ? vector_store_file_batch_gpt.file_counts?.in_progress : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.file_counts_completed, (vector_store_file_batch_gpt.file_counts?.completed ? vector_store_file_batch_gpt.file_counts?.completed : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.file_counts_failed, (vector_store_file_batch_gpt.file_counts?.failed ? vector_store_file_batch_gpt.file_counts?.failed : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.file_counts_total, (vector_store_file_batch_gpt.file_counts?.total ? vector_store_file_batch_gpt.file_counts?.total : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.file_counts_cancelled, (vector_store_file_batch_gpt.file_counts?.cancelled ? vector_store_file_batch_gpt.file_counts?.cancelled : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.status, GPTAssistantAPIVectorStoreFileBatchVO.FROM_OPENAI_STATUS_MAP[vector_store_file_batch_gpt.status]) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_batch_vo.vector_store_gpt_id, vector_store_file_batch_gpt.vector_store_id));
     }
 
     private static async assign_vo_from_gpt(vector_store_file_batch_vo: GPTAssistantAPIVectorStoreFileBatchVO, vector_store_file_batch_gpt: VectorStoreFileBatch) {

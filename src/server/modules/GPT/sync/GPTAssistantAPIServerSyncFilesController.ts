@@ -9,6 +9,8 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleGPTServer from '../ModuleGPTServer';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncFilesController {
 
@@ -57,7 +59,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
                 throw new Error('No file_vo provided');
             }
 
-            let gpt_obj: FileObject = vo.gpt_file_id ? await ModuleGPTServer.openai.files.retrieve(vo.gpt_file_id) : null;
+            let gpt_obj: FileObject = vo.gpt_file_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.retrieve, vo.gpt_file_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -77,11 +79,12 @@ export default class GPTAssistantAPIServerSyncFilesController {
                     throw new Error('Error while pushing file to OpenAI : block_openai_sync_push_to_openai');
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.files.create({
-
-                    file: createReadStream(vo.filename) as unknown as Uploadable,
-                    purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.files.create,
+                    {
+                        file: createReadStream(vo.filename) as unknown as Uploadable,
+                        purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating file in OpenAI');
@@ -99,13 +102,14 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les fichiers
                     // donc on supprime et on recrée
-                    await ModuleGPTServer.openai.files.del(gpt_obj.id);
+                    await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.del, gpt_obj.id);
 
-                    gpt_obj = await ModuleGPTServer.openai.files.create({
-
-                        file: createReadStream(vo.filename) as unknown as Uploadable,
-                        purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
-                    });
+                    gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.files.create,
+                        {
+                            file: createReadStream(vo.filename) as unknown as Uploadable,
+                            purpose: GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[vo.purpose] as "assistants" | "batch" | "fine-tune"
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating file in OpenAI');
@@ -230,21 +234,21 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
     private static async get_all_files(): Promise<FileObject[]> {
 
-        const res: FileObject[] = [];
+        let res: FileObject[] = [];
 
-        let files_page: FileObjectsPage = await ModuleGPTServer.openai.files.list();
+        let files_page: FileObjectsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.files.list);
 
         if (!files_page) {
             return res;
         }
 
         if (files_page.data && files_page.data.length) {
-            res.concat(files_page.data);
+            res = res.concat(files_page.data);
         }
 
         while (files_page.hasNextPage()) {
             files_page = await files_page.getNextPage();
-            res.concat(files_page.data);
+            res = res.concat(files_page.data);
         }
 
         return res;
@@ -262,11 +266,12 @@ export default class GPTAssistantAPIServerSyncFilesController {
             return true;
         }
 
-        return (file_vo.gpt_file_id != file_gpt.id) ||
-            (file_vo.created_at != file_gpt.created_at) ||
-            (file_vo.bytes != file_gpt.bytes) ||
-            (file_vo.filename != file_gpt.filename) ||
-            (file_vo.purpose != GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file_gpt.purpose]);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(file_vo.gpt_file_id, file_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(file_vo.created_at, file_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(file_vo.bytes, file_gpt.bytes) &&
+            GPTAssistantAPIServerSyncController.compare_values(file_vo.filename, file_gpt.filename) &&
+            GPTAssistantAPIServerSyncController.compare_values(file_vo.purpose, GPTAssistantAPIFileVO.FROM_OPENAI_PURPOSE_MAP[file_gpt.purpose]));
     }
 
     private static assign_vo_from_gpt(vo: GPTAssistantAPIFileVO, gpt_obj: FileObject) {

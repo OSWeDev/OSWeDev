@@ -12,6 +12,7 @@ import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServ
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncRunStepsController {
 
@@ -61,7 +62,11 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
                 throw new Error('No run_step_vo provided');
             }
 
-            const gpt_obj: RunStep = vo.gpt_run_step_id ? await ModuleGPTServer.openai.beta.threads.runs.steps.retrieve(vo.gpt_thread_id, vo.gpt_run_id, vo.gpt_run_step_id) : null;
+            const gpt_obj: RunStep = vo.gpt_run_step_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.runs.steps.retrieve,
+                vo.gpt_thread_id,
+                vo.gpt_run_id,
+                vo.gpt_run_step_id) : null;
 
             const to_openai_last_error = GPTAssistantAPIServerSyncController.to_openai_error(vo.last_error) as RunStep.LastError;
 
@@ -193,21 +198,22 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
 
     private static async get_all_run_steps(gpt_thread_id: string, gpt_run_id: string): Promise<RunStep[]> {
 
-        const res: RunStep[] = [];
+        let res: RunStep[] = [];
 
-        let runs_page: RunStepsPage = await ModuleGPTServer.openai.beta.threads.runs.steps.list(gpt_thread_id, gpt_run_id);
+        let runs_page: RunStepsPage = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.threads.runs.steps.list, gpt_thread_id, gpt_run_id);
 
         if (!runs_page) {
             return res;
         }
 
         if (runs_page.data && runs_page.data.length) {
-            res.concat(runs_page.data);
+            res = res.concat(runs_page.data);
         }
 
         while (runs_page.hasNextPage()) {
             runs_page = await runs_page.getNextPage();
-            res.concat(runs_page.data);
+            res = res.concat(runs_page.data);
         }
 
         return res;
@@ -226,23 +232,24 @@ export default class GPTAssistantAPIServerSyncRunStepsController {
             return true;
         }
 
-        return (run_step_vo.gpt_assistant_id != run_gpt.assistant_id) ||
-            (run_step_vo.gpt_thread_id != run_gpt.thread_id) ||
-            (run_step_vo.gpt_run_id != run_gpt.run_id) ||
-            (run_step_vo.cancelled_at != run_gpt.cancelled_at) ||
-            (run_step_vo.completed_at != run_gpt.completed_at) ||
-            (run_step_vo.created_at != run_gpt.created_at) ||
-            (run_step_vo.failed_at != run_gpt.failed_at) ||
-            (run_step_vo.expired_at != run_gpt.expired_at) ||
-            (run_step_vo.status != GPTAssistantAPIRunStepVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) ||
-            (run_step_vo.completion_tokens != (run_gpt.usage?.completion_tokens ? run_gpt.usage?.completion_tokens : 0)) ||
-            (run_step_vo.gpt_run_step_id != run_gpt.id) ||
-            (JSON.stringify(to_openai_last_error) != JSON.stringify(run_gpt.last_error)) ||
-            (JSON.stringify(run_step_vo.metadata) != JSON.stringify(run_gpt.metadata)) ||
-            (run_step_vo.prompt_tokens != (run_gpt.usage?.prompt_tokens ? run_gpt.usage?.prompt_tokens : 0)) ||
-            (JSON.stringify(run_step_vo.step_details) != JSON.stringify(run_gpt.step_details)) ||
-            (run_step_vo.total_tokens != (run_gpt.usage?.total_tokens ? run_gpt.usage?.total_tokens : 0)) ||
-            (run_step_vo.type != GPTAssistantAPIRunStepVO.FROM_OPENAI_TYPE_MAP[run_gpt.type]);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.gpt_assistant_id, run_gpt.assistant_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.gpt_thread_id, run_gpt.thread_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.gpt_run_id, run_gpt.run_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.cancelled_at, run_gpt.cancelled_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.completed_at, run_gpt.completed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.created_at, run_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.failed_at, run_gpt.failed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.expired_at, run_gpt.expired_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.status, GPTAssistantAPIRunStepVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.completion_tokens, (run_gpt.usage?.completion_tokens ? run_gpt.usage?.completion_tokens : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.gpt_run_step_id, run_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(to_openai_last_error, run_gpt.last_error) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.metadata, run_gpt.metadata) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.prompt_tokens, (run_gpt.usage?.prompt_tokens ? run_gpt.usage?.prompt_tokens : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.step_details, run_gpt.step_details) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.total_tokens, (run_gpt.usage?.total_tokens ? run_gpt.usage?.total_tokens : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_step_vo.type, GPTAssistantAPIRunStepVO.FROM_OPENAI_TYPE_MAP[run_gpt.type]));
     }
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIRunStepVO, gpt_obj: RunStep) {

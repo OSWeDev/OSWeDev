@@ -1,9 +1,11 @@
 import { cloneDeep } from 'lodash';
-import { Annotation, ImageFileContentBlock, ImageURLContentBlock, Message, MessageContent, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlock, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
+import { Annotation, FileCitationAnnotation, FilePathAnnotation, ImageFileContentBlock, ImageURLContentBlock, Message, MessageContent, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlock, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
+import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
+import GPTAssistantAPIThreadMessageContentFilePathVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFilePathVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
@@ -17,23 +19,23 @@ import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
-import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
-import GPTAssistantAPIThreadMessageContentFilePathVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFilePathVO';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
     /**
-     * GPTAssistantAPIThreadMessageVO
+     * GPTAssistantAPIThreadMessageContentVO
      * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
      */
-    public static async post_update_trigger_handler_for_ThreadMessageVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadMessageVO>, exec_as_server?: boolean) {
-        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(params.post_update_vo.assistant_id);
+    public static async post_update_trigger_handler_for_ThreadMessageContentVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadMessageContentVO>, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(params.post_update_vo.thread_message_id);
     }
-    public static async post_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean) {
-        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.assistant_id);
+    public static async post_create_trigger_handler_for_ThreadMessageContentVO(vo: GPTAssistantAPIThreadMessageContentVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.thread_message_id);
     }
-    public static async post_delete_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO, exec_as_server?: boolean) {
-        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.assistant_id);
+    public static async post_delete_trigger_handler_for_ThreadMessageContentVO(vo: GPTAssistantAPIThreadMessageContentVO, exec_as_server?: boolean) {
+        await GPTAssistantAPIServerSyncThreadMessagesController.push_thread_message_id(vo.thread_message_id);
     }
 
     /**
@@ -98,7 +100,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 return null;
             }
 
-            let gpt_obj: Message = (vo.gpt_thread_id && vo.gpt_id) ? await ModuleGPTServer.openai.beta.threads.messages.retrieve(vo.gpt_thread_id, vo.gpt_id) : null;
+            let gpt_obj: Message = (vo.gpt_thread_id && vo.gpt_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.messages.retrieve, vo.gpt_thread_id, vo.gpt_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -109,12 +112,13 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             const attachments: MessageCreateParams.Attachment[] = GPTAssistantAPIServerSyncThreadMessagesController.attachments_to_openai_api(vo);
-            const message_contents: MessageContentPartParam[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_api(vo);
+            const message_contents_full: MessageContent[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_api(vo);
+            const message_contents_create: MessageContentPartParam[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_create_api(vo);
 
             if (!gpt_obj) {
 
                 // Si on a aucun contenu à envoyer à OpenAI, on a pas de message non plus et c'est normal
-                if ((!message_contents) || (!message_contents.length)) {
+                if ((!message_contents_create) || (!message_contents_create.length)) {
                     return null;
                 }
 
@@ -126,18 +130,21 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     throw new Error('Error while pushing obj to OpenAI : blocked :api_type_id:' + vo._type + ':vo_id:' + vo.id);
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.threads.messages.create(vo.gpt_thread_id, {
-                    content: message_contents,
-                    role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
-                    attachments: attachments,
-                    metadata: cloneDeep(vo.metadata),
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.threads.messages.create,
+                    vo.gpt_thread_id,
+                    {
+                        content: message_contents_create,
+                        role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
+                        attachments: attachments,
+                        metadata: cloneDeep(vo.metadata),
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating thread message in OpenAI');
                 }
             } else {
-                if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents, gpt_obj)) {
+                if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents_full, gpt_obj)) {
 
                     if (ConfigurationService.node_configuration.debug_openai_sync) {
                         ConsoleHandler.log('push_thread_message_to_openai: Updating thread message in OpenAI : ' + vo.id);
@@ -149,9 +156,13 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
                     // On doit mettre à jour
                     // Celà dit, comme on peut pas update grand chose, grosse proba que la diff si elle existait avant existe toujours après ...
-                    gpt_obj = await ModuleGPTServer.openai.beta.threads.messages.update(gpt_obj.thread_id, gpt_obj.id, {
-                        metadata: cloneDeep(vo.metadata),
-                    });
+                    gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.threads.messages.update,
+                        gpt_obj.thread_id,
+                        gpt_obj.id,
+                        {
+                            metadata: cloneDeep(vo.metadata),
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating thread message in OpenAI');
@@ -177,7 +188,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 }
             }
 
-            if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents, gpt_obj, weight) || vo.archived) {
+            if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, message_contents_full, gpt_obj, weight) || vo.archived) {
 
                 if (ConfigurationService.node_configuration.debug_openai_sync) {
                     ConsoleHandler.log('push_thread_message_to_openai: Updating thread message in Osélia : ' + vo.id);
@@ -209,7 +220,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
     ) {
 
         if (ConfigurationService.node_configuration.debug_openai_sync) {
-            ConsoleHandler.log('sync_thread_messages: Syncing thread messages for thread ' + thread_vo.id);
+            ConsoleHandler.log('sync_thread_messages: Syncing thread messages for thread ' + thread_vo.id + ' - ' + thread_gpt.id);
         }
 
         const thread_messages: Message[] = await GPTAssistantAPIServerSyncThreadMessagesController.get_all_messages(thread_gpt.id);
@@ -229,7 +240,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             const thread_message = thread_messages[i];
 
             await promise_pipeline.push(async () => {
-                GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_message(
+                await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_message(
                     thread_vo,
                     thread_message,
                     thread_messages_vos_by_gpt_message_id,
@@ -259,6 +270,9 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             // On le crée
             thread_message_vo = new GPTAssistantAPIThreadMessageVO();
             needs_update = true;
+
+            // Si on a pas de user à associé, on prend celui du thread
+            thread_message_vo.user_id = thread_vo.user_id;
         }
 
         const attachments = GPTAssistantAPIServerSyncThreadMessagesController.attachments_to_openai_api(thread_message_vo);
@@ -277,26 +291,31 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
         await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(thread_message_vo, thread_message, weight);
 
+        if (ConfigurationService.node_configuration.debug_openai_sync) {
+            ConsoleHandler.log('sync_thread_message: Updating thread message in Osélia : ' + thread_message_vo.id);
+        }
+
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
     }
 
     private static async get_all_messages(gpt_thread_id: string): Promise<Message[]> {
 
-        const res: Message[] = [];
+        let res: Message[] = [];
 
-        let messages_page: MessagesPage = await ModuleGPTServer.openai.beta.threads.messages.list(gpt_thread_id);
+        let messages_page: MessagesPage = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.threads.messages.list, gpt_thread_id);
 
         if (!messages_page) {
             return res;
         }
 
         if (messages_page.data && messages_page.data.length) {
-            res.concat(messages_page.data);
+            res = res.concat(messages_page.data);
         }
 
         while (messages_page.hasNextPage()) {
             messages_page = await messages_page.getNextPage();
-            res.concat(messages_page.data);
+            res = res.concat(messages_page.data);
         }
 
         return res;
@@ -388,19 +407,25 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                                 annotations.push({
                                     start_index: annotation.start_index,
                                     end_index: annotation.end_index,
-                                    file_citation: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote,
                                     text: annotation.text,
+                                    file_citation: {
+                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).gpt_file_id,
+                                        quote: (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote,
+                                    } as FileCitationAnnotation.FileCitation,
                                     type: 'file_citation',
-                                });
+                                    // (annotation as GPTAssistantAPIThreadMessageContentFileCitationVO).quote
+                                } as FileCitationAnnotation);
                                 break;
                             case GPTAssistantAPIThreadMessageContentFilePathVO.API_TYPE_ID:
                                 annotations.push({
                                     start_index: annotation.start_index,
                                     end_index: annotation.end_index,
-                                    file_path: (annotation as GPTAssistantAPIThreadMessageContentFilePathVO).gpt_file_id,
+                                    file_path: {
+                                        file_id: (annotation as GPTAssistantAPIThreadMessageContentFilePathVO).gpt_file_id,
+                                    } as FilePathAnnotation.FilePath,
                                     text: annotation.text,
                                     type: 'file_path'
-                                });
+                                } as FilePathAnnotation);
                                 break;
                         }
                     }
@@ -503,7 +528,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
     private static thread_message_has_diff(
         vo: GPTAssistantAPIThreadMessageVO,
         attachments: MessageCreateParams.Attachment[],
-        message_contents: MessageContentPartParam[],
+        message_contents: MessageContent[],
         gpt_obj: Message,
         weight: number = null,
     ): boolean {
@@ -516,20 +541,21 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             return true;
         }
 
-        return (vo.gpt_assistant_id != gpt_obj.assistant_id) ||
-            (JSON.stringify(message_contents) != JSON.stringify(gpt_obj.content)) ||
-            (JSON.stringify(attachments) != JSON.stringify(gpt_obj.attachments)) ||
-            (vo.completed_at != gpt_obj.completed_at) ||
-            (vo.created_at != gpt_obj.created_at) ||
-            (vo.gpt_id != gpt_obj.id) ||
-            (vo.gpt_run_id != gpt_obj.run_id) ||
-            (vo.gpt_thread_id != gpt_obj.thread_id) ||
-            (vo.incomplete_at != gpt_obj.incomplete_at) ||
-            (JSON.stringify(vo.incomplete_details) != JSON.stringify(gpt_obj.incomplete_details)) ||
-            (JSON.stringify(vo.metadata) != JSON.stringify(gpt_obj.metadata)) ||
-            ((weight != null) && (vo.weight != weight)) ||
-            (vo.role != GPTAssistantAPIThreadMessageVO.FROM_OPENAI_ROLE_MAP[gpt_obj.role]) ||
-            (vo.status != GPTAssistantAPIThreadMessageVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status]);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(vo.gpt_assistant_id, gpt_obj.assistant_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(message_contents, gpt_obj.content) &&
+            GPTAssistantAPIServerSyncController.compare_values(attachments, gpt_obj.attachments) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.completed_at, gpt_obj.completed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.created_at, gpt_obj.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.gpt_id, gpt_obj.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.gpt_run_id, gpt_obj.run_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.gpt_thread_id, gpt_obj.thread_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.incomplete_at, gpt_obj.incomplete_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.incomplete_details, gpt_obj.incomplete_details) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.metadata, gpt_obj.metadata) &&
+            ((weight == null) || GPTAssistantAPIServerSyncController.compare_values(vo.weight, weight)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.role, GPTAssistantAPIThreadMessageVO.FROM_OPENAI_ROLE_MAP[gpt_obj.role]) &&
+            GPTAssistantAPIServerSyncController.compare_values(vo.status, GPTAssistantAPIThreadMessageVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status]));
     }
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIThreadMessageVO, gpt_obj: Message, weight: number) {

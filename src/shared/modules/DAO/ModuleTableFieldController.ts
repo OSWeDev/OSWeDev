@@ -256,6 +256,10 @@ export default class ModuleTableFieldController {
                     return {};
                 }
 
+                if (!ObjectHandler.try_is_json(e)) {
+                    return e;
+                }
+
                 let trans_ = ObjectHandler.try_get_json(e);
                 if (trans_) {
 
@@ -266,7 +270,12 @@ export default class ModuleTableFieldController {
                         const new_array = [];
                         for (const i in trans_) {
                             const transi = trans_[i];
-                            new_array.push(ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi)));
+
+                            if (!ObjectHandler.try_is_json(transi)) {
+                                new_array.push(transi);
+                            } else {
+                                new_array.push(ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi)));
+                            }
                         }
                         trans_ = new_array;
                     } else {
@@ -281,7 +290,12 @@ export default class ModuleTableFieldController {
                             const new_obj = new Object();
                             for (const i in trans_) {
                                 const transi = trans_[i];
-                                new_obj[i] = ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi));
+
+                                if (!ObjectHandler.try_is_json(transi)) {
+                                    new_obj[i] = transi;
+                                } else {
+                                    new_obj[i] = ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi));
+                                }
                             }
                             trans_ = new_obj;
                         } else {
@@ -369,7 +383,7 @@ export default class ModuleTableFieldController {
                     return JSON.stringify(trans_array);
 
                 } else if (e) {
-                    return JSON.stringify(e);
+                    return (typeof e == 'object') ? JSON.stringify(e) : e;
                 } else {
                     return null;
                 }

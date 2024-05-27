@@ -16,6 +16,8 @@ import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServ
 import GPTAssistantAPIServerSyncThreadMessagesController from './GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIServerSyncRunsController from './GPTAssistantAPIServerSyncRunsController';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncThreadsController {
 
@@ -64,7 +66,8 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                 throw new Error('No thread_vo provided');
             }
 
-            let gpt_obj: Thread = vo.gpt_thread_id ? await ModuleGPTServer.openai.beta.threads.retrieve(vo.gpt_thread_id) : null;
+            let gpt_obj: Thread = vo.gpt_thread_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.retrieve, vo.gpt_thread_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -86,12 +89,13 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai');
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.threads.create({
-
-                    messages: [], // On synchronise les messages après dans tous les cas
-                    metadata: cloneDeep(vo.metadata),
-                    tool_resources: tool_resources,
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.threads.create,
+                    {
+                        messages: [], // On synchronise les messages après dans tous les cas
+                        metadata: cloneDeep(vo.metadata),
+                        tool_resources: tool_resources,
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating thread in OpenAI');
@@ -108,10 +112,13 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     }
 
                     // On doit mettre à jour
-                    await ModuleGPTServer.openai.beta.threads.update(gpt_obj.id, {
-                        tool_resources: tool_resources,
-                        metadata: cloneDeep(vo.metadata),
-                    });
+                    await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.threads.update,
+                        gpt_obj.id,
+                        {
+                            tool_resources: tool_resources,
+                            metadata: cloneDeep(vo.metadata),
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating thread in OpenAI');
@@ -191,7 +198,8 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             const thread_vo = threads_vos[i];
 
             await promise_pipeline.push(async () => {
-                const thread_gpt = await ModuleGPTServer.openai.beta.threads.retrieve(thread_vo.gpt_thread_id);
+                const thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.threads.retrieve, thread_vo.gpt_thread_id);
 
                 if (!thread_gpt) {
 
@@ -242,10 +250,11 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             return true;
         }
 
-        return (thread_vo.gpt_thread_id != thread_gpt.id) ||
-            (thread_vo.created_at != thread_gpt.created_at) ||
-            (JSON.stringify(thread_vo.metadata) != JSON.stringify(thread_gpt.metadata)) ||
-            (JSON.stringify(thread_vo_to_openai_tool_resources) != JSON.stringify(thread_gpt.tool_resources));
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.gpt_thread_id, thread_gpt.id) ||
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.created_at, thread_gpt.created_at) ||
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.metadata, thread_gpt.metadata) ||
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo_to_openai_tool_resources, thread_gpt.tool_resources));
     }
 
     private static async tool_resources_from_openai_api(data: ThreadCreateParams.ToolResources): Promise<GPTAssistantAPIToolResourcesVO> {

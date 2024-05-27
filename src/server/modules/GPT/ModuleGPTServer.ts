@@ -16,6 +16,7 @@ import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantA
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import GPTAssistantAPIVectorStoreFileBatchVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileBatchVO';
@@ -44,6 +45,7 @@ import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
 import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
 import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
+import GPTAssistantAPIServerSyncController from './sync/GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncFilesController from './sync/GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncRunStepsController from './sync/GPTAssistantAPIServerSyncRunStepsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
@@ -52,7 +54,6 @@ import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPISe
 import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
 import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
-import GPTAssistantAPIServerSyncController from './sync/GPTAssistantAPIServerSyncController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -204,14 +205,18 @@ export default class ModuleGPTServer extends ModuleServerBase {
          * GPTAssistantAPIThreadMessageContentVO
          * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
          */
-        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_create_trigger_handler_for_ThreadMessageVO);
-        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_update_trigger_handler_for_ThreadMessageVO);
-        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_delete_trigger_handler_for_ThreadMessageVO);
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_create_trigger_handler_for_ThreadMessageContentVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_update_trigger_handler_for_ThreadMessageContentVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_delete_trigger_handler_for_ThreadMessageContentVO);
+
 
         // GPTAssistantAPIThreadMessageVO
         preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_create_trigger_handler_for_ThreadMessageVO);
         preUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_update_trigger_handler_for_ThreadMessageVO);
         preDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_delete_trigger_handler_for_ThreadMessageVO);
+
+        // Juste pour init la date
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_ThreadMessageVO);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -440,10 +445,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
                 throw new Error('OpenAI sync is blocked');
             }
 
-            return await ModuleGPTServer.openai.chat.completions.create({
-                model: modelId,
-                messages: currentMessages as ChatCompletionMessageParam[],
-            });
+            return await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.chat.completions.create,
+                {
+                    model: modelId,
+                    messages: currentMessages as ChatCompletionMessageParam[],
+                });
         } catch (err) {
             ConsoleHandler.error(err);
         }
@@ -465,5 +472,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+    }
+
+    private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {
+        vo.date = vo.created_at ? vo.created_at : Dates.now();
+        return true;
     }
 }

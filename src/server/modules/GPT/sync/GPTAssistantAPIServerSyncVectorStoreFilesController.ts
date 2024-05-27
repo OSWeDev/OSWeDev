@@ -9,6 +9,7 @@ import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
@@ -51,7 +52,8 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
                 throw new Error('No vector_store_file_vo provided');
             }
 
-            let gpt_obj: VectorStoreFile = vo.gpt_file_id ? await ModuleGPTServer.openai.beta.vectorStores.files.retrieve(vo.vector_store_gpt_id, vo.gpt_file_id) : null;
+            let gpt_obj: VectorStoreFile = vo.gpt_file_id ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.vectorStores.files.retrieve, vo.vector_store_gpt_id, vo.gpt_file_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -73,10 +75,12 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
                     throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai :api_type_id:' + vo._type + ':vo_id:' + vo.id);
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.files.create(vo.vector_store_gpt_id, {
-
-                    file_id: vo.gpt_file_id,
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.vectorStores.files.create,
+                    vo.vector_store_gpt_id,
+                    {
+                        file_id: vo.gpt_file_id,
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating vector_store_file in OpenAI');
@@ -94,12 +98,15 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
                     // On doit mettre à jour mais en l'occurence il n'y a pas de méthode update pour les vector store files
                     // donc on supprime et on recrée
-                    await ModuleGPTServer.openai.beta.vectorStores.files.del(vo.vector_store_gpt_id, gpt_obj.id);
+                    await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.vectorStores.files.del, vo.vector_store_gpt_id, gpt_obj.id);
 
-                    gpt_obj = await ModuleGPTServer.openai.beta.vectorStores.files.create(vo.vector_store_gpt_id, {
-
-                        file_id: vo.gpt_file_id,
-                    });
+                    gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.vectorStores.files.create,
+                        vo.vector_store_gpt_id,
+                        {
+                            file_id: vo.gpt_file_id,
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating vector_store_file in OpenAI');
@@ -226,21 +233,21 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
 
     private static async get_all_vector_store_files(gpt_vector_store_id: string): Promise<VectorStoreFile[]> {
 
-        const res: VectorStoreFile[] = [];
+        let res: VectorStoreFile[] = [];
 
-        let vector_stores_page: VectorStoreFilesPage = await ModuleGPTServer.openai.beta.vectorStores.files.list(gpt_vector_store_id);
+        let vector_stores_page: VectorStoreFilesPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.vectorStores.files.list, gpt_vector_store_id);
 
         if (!vector_stores_page) {
             return res;
         }
 
         if (vector_stores_page.data && vector_stores_page.data.length) {
-            res.concat(vector_stores_page.data);
+            res = res.concat(vector_stores_page.data);
         }
 
         while (vector_stores_page.hasNextPage()) {
             vector_stores_page = await vector_stores_page.getNextPage();
-            res.concat(vector_stores_page.data);
+            res = res.concat(vector_stores_page.data);
         }
 
         return res;
@@ -259,12 +266,13 @@ export default class GPTAssistantAPIServerSyncVectorStoreFilesController {
             return true;
         }
 
-        return (vector_store_file_vo.gpt_file_id != vector_store_gpt.id) ||
-            (vector_store_file_vo.created_at != vector_store_gpt.created_at) ||
-            (vector_store_file_vo.usage_bytes != vector_store_gpt.usage_bytes) ||
-            (JSON.stringify(to_openai_last_error) != JSON.stringify(vector_store_gpt.last_error)) ||
-            (vector_store_file_vo.status != GPTAssistantAPIVectorStoreFileVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]) ||
-            (vector_store_file_vo.vector_store_gpt_id != vector_store_gpt.vector_store_id);
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_vo.gpt_file_id, vector_store_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_vo.created_at, vector_store_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_vo.usage_bytes, vector_store_gpt.usage_bytes) &&
+            GPTAssistantAPIServerSyncController.compare_values(to_openai_last_error, vector_store_gpt.last_error) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_vo.status, GPTAssistantAPIVectorStoreFileVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_file_vo.vector_store_gpt_id, vector_store_gpt.vector_store_id));
     }
 
     private static async assign_vo_from_gpt(vector_store_file_vo: GPTAssistantAPIVectorStoreFileVO, vector_store_gpt: VectorStoreFile) {

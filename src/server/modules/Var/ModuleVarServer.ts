@@ -1,6 +1,4 @@
 
-import VarDAG from '../../modules/Var/vos/VarDAG';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -48,6 +46,8 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarDAG from '../../modules/Var/vos/VarDAG';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
@@ -77,6 +77,7 @@ import VarsDeployDepsHandler from './VarsDeployDepsHandler';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+import AutoVarServerController from './auto/AutoVarServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -219,6 +220,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        await this.init_auto_vars_confs();
 
         VarsTabsSubsController.init();
         VarsServerCallBackSubsController.init();
@@ -976,6 +979,11 @@ export default class ModuleVarServer extends ModuleServerBase {
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
         for (const i in vcs) {
             const vc = vcs[i];
+
+            if (vc.is_auto && !VarsServerController.getVarControllerById(vc.id)) {
+                this.init_auto_vars_conf(vc);
+            }
+
             VarsServerController.update_registered_varconf(vc.id, vc);
         }
     }
@@ -1759,4 +1767,24 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     //     return this.filter.apply(null, params);
     // }
+
+    private async init_auto_vars_confs() {
+        const autovarconfs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+            .filter_is_true(field_names<VarConfVO>().is_auto)
+            .filter_is_false(field_names<VarConfVO>().disable_var)
+            .select_vos<VarConfVO>();
+
+        for (const i in autovarconfs) {
+            const autovarconf = autovarconfs[i];
+            this.init_auto_vars_conf(autovarconf);
+        }
+    }
+
+    private init_auto_vars_conf(autovarconf: VarConfVO) {
+        if (!autovarconf) {
+            return;
+        }
+
+        VarsServerController.registerVar(autovarconf, AutoVarServerController.getInstance(autovarconf));
+    }
 }

@@ -134,6 +134,9 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
          */
         switch (this.varConf.auto_operator) {
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_VOFIELDREF:
+                AutoVarCalculationHandler.assert_has_0_dep(this.varConf.auto_operator, deps_values);
+                break;
+
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_MOINS:
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_NOT:
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_ABS:
@@ -156,9 +159,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_HEURES:
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_MINUTES:
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_SECONDES:
-                if (deps_values.length != 1) {
-                    throw new Error('AutoVarServerController.getValue: nombre de deps_values != 1 pour opérateur unitaire');
-                }
+                AutoVarCalculationHandler.assert_has_1_dep(this.varConf.auto_operator, deps_values);
                 break;
 
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_PLUS:
@@ -183,16 +184,12 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_EXP:
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_LOG:
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_STARTOF:
-                if (deps_values.length != 2) {
-                    throw new Error('AutoVarServerController.getValue: nombre de deps_values != 2 pour opérateur binaire');
-                }
+                AutoVarCalculationHandler.assert_has_2_deps(this.varConf.auto_operator, deps_values);
                 break;
 
             case VarConfVO.AUTO_OPERATEUR_TERNAIRE_SI:
             case VarConfVO.AUTO_OPERATEUR_TERNAIRE_AJOUT_DUREE:
-                if (deps_values.length != 3) {
-                    throw new Error('AutoVarServerController.getValue: nombre de deps_values != 3 pour opérateur ternaire');
-                }
+                AutoVarCalculationHandler.assert_has_3_deps(this.varConf.auto_operator, deps_values);
                 break;
 
             default:
@@ -202,7 +199,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         /**
          * On fait le calcul
          */
-        return AutoVarCalculationHandler.do_calculation(deps_values, this.varConf.auto_operator);
+        return AutoVarCalculationHandler.do_calculation(varDAGNode, deps_values, this.varConf.auto_operator, this.varConf);
     }
 
     private get_params_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): VarDataBaseVO[] {

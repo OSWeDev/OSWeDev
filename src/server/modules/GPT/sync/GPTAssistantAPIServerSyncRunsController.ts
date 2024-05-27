@@ -14,6 +14,7 @@ import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServ
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncRunStepsController from './GPTAssistantAPIServerSyncRunStepsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncRunsController {
 
@@ -62,7 +63,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                 throw new Error('No run_vo provided');
             }
 
-            let gpt_obj: Run = vo.gpt_run_id ? await ModuleGPTServer.openai.beta.threads.runs.retrieve(vo.gpt_thread_id, vo.gpt_run_id) : null;
+            let gpt_obj: Run = vo.gpt_run_id ? await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, vo.gpt_thread_id, vo.gpt_run_id) : null;
 
             // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
@@ -84,21 +85,23 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
                 }
 
-                gpt_obj = await ModuleGPTServer.openai.beta.threads.runs.create(vo.gpt_thread_id, {
-
-                    assistant_id: vo.gpt_assistant_id,
-                    instructions: vo.instructions,
-                    model: vo.model,
-                    max_completion_tokens: vo.max_completion_tokens,
-                    max_prompt_tokens: vo.max_prompt_tokens,
-                    metadata: cloneDeep(vo.metadata),
-                    temperature: vo.temperature,
-                    response_format: cloneDeep(vo.response_format),
-                    tool_choice: cloneDeep(vo.tool_choice),
-                    tools: cloneDeep(vo.tools),
-                    top_p: vo.top_p,
-                    truncation_strategy: cloneDeep(vo.truncation_strategy),
-                });
+                gpt_obj = await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.threads.runs.create,
+                    vo.gpt_thread_id,
+                    {
+                        assistant_id: vo.gpt_assistant_id,
+                        instructions: vo.instructions,
+                        model: vo.model,
+                        max_completion_tokens: vo.max_completion_tokens,
+                        max_prompt_tokens: vo.max_prompt_tokens,
+                        metadata: cloneDeep(vo.metadata),
+                        temperature: vo.temperature,
+                        response_format: cloneDeep(vo.response_format),
+                        tool_choice: cloneDeep(vo.tool_choice),
+                        tools: cloneDeep(vo.tools),
+                        top_p: vo.top_p,
+                        truncation_strategy: cloneDeep(vo.truncation_strategy),
+                    });
 
                 if (!gpt_obj) {
                     throw new Error('Error while creating run in OpenAI');
@@ -115,10 +118,12 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     }
 
                     // On doit mettre à jour
-                    await ModuleGPTServer.openai.beta.threads.runs.update(vo.gpt_thread_id, vo.gpt_run_id, {
-
-                        metadata: cloneDeep(vo.metadata),
-                    });
+                    await GPTAssistantAPIServerController.wrap_api_call(
+                        ModuleGPTServer.openai.beta.threads.runs.update,
+                        vo.gpt_thread_id, vo.gpt_run_id,
+                        {
+                            metadata: cloneDeep(vo.metadata),
+                        });
 
                     if (!gpt_obj) {
                         throw new Error('Error while creating run in OpenAI');
@@ -195,7 +200,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
     public static async sync_runs(gpt_thread_id: string) {
 
         if (ConfigurationService.node_configuration.debug_openai_sync) {
-            ConsoleHandler.log('sync_runs: Syncing runs');
+            ConsoleHandler.log('sync_runs: Syncing runs for thread : ' + gpt_thread_id);
         }
 
         const runs: Run[] = await GPTAssistantAPIServerSyncRunsController.get_all_runs(gpt_thread_id);
@@ -258,21 +263,21 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
     private static async get_all_runs(gpt_thread_id: string): Promise<Run[]> {
 
-        const res: Run[] = [];
+        let res: Run[] = [];
 
-        let runs_page: RunsPage = await ModuleGPTServer.openai.beta.threads.runs.list(gpt_thread_id);
+        let runs_page: RunsPage = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.list, gpt_thread_id);
 
         if (!runs_page) {
             return res;
         }
 
         if (runs_page.data && runs_page.data.length) {
-            res.concat(runs_page.data);
+            res = res.concat(runs_page.data);
         }
 
         while (runs_page.hasNextPage()) {
             runs_page = await runs_page.getNextPage();
-            res.concat(runs_page.data);
+            res = res.concat(runs_page.data);
         }
 
         return res;
@@ -291,29 +296,30 @@ export default class GPTAssistantAPIServerSyncRunsController {
             return true;
         }
 
-        return (run_vo.gpt_run_id != run_gpt.id) ||
-            (run_vo.gpt_assistant_id != run_gpt.assistant_id) ||
-            (run_vo.gpt_thread_id != run_gpt.thread_id) ||
-            (run_vo.cancelled_at != run_gpt.cancelled_at) ||
-            (run_vo.completed_at != run_gpt.completed_at) ||
-            (run_vo.expires_at != run_gpt.expires_at) ||
-            (run_vo.failed_at != run_gpt.failed_at) ||
-            (run_vo.started_at != run_gpt.started_at) ||
-            (run_vo.status != GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) ||
-            (run_vo.instructions != run_gpt.instructions) ||
-            (run_vo.max_completion_tokens != run_gpt.max_completion_tokens) ||
-            (run_vo.max_prompt_tokens != run_gpt.max_prompt_tokens) ||
-            (run_vo.model != run_gpt.model) ||
-            (run_vo.temperature != run_gpt.temperature) ||
-            (run_vo.top_p != run_gpt.top_p) ||
-            (JSON.stringify(run_vo.truncation_strategy) != JSON.stringify(run_gpt.truncation_strategy)) ||
-            (JSON.stringify(run_vo.response_format) != JSON.stringify(run_gpt.response_format)) ||
-            (JSON.stringify(run_vo.tool_choice) != JSON.stringify(run_gpt.tool_choice)) ||
-            (JSON.stringify(run_vo.tools) != JSON.stringify(run_gpt.tools)) ||
-            (JSON.stringify(run_vo.metadata) != JSON.stringify(run_gpt.metadata)) ||
-            (JSON.stringify(run_vo.incomplete_details) != JSON.stringify(run_gpt.incomplete_details)) ||
-            (JSON.stringify(to_openai_last_error) != JSON.stringify(run_gpt.last_error)) ||
-            (JSON.stringify(run_vo.required_action) != JSON.stringify(run_gpt.required_action));
+        return !(
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.gpt_run_id, run_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.gpt_assistant_id, run_gpt.assistant_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.gpt_thread_id, run_gpt.thread_id) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.cancelled_at, run_gpt.cancelled_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.completed_at, run_gpt.completed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.expires_at, run_gpt.expires_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.failed_at, run_gpt.failed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.started_at, run_gpt.started_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.status, GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.instructions, run_gpt.instructions) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.max_completion_tokens, run_gpt.max_completion_tokens) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.max_prompt_tokens, run_gpt.max_prompt_tokens) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.model, run_gpt.model) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.temperature, run_gpt.temperature) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.top_p, run_gpt.top_p) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.truncation_strategy, run_gpt.truncation_strategy) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.response_format, run_gpt.response_format) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.tool_choice, run_gpt.tool_choice) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.tools, run_gpt.tools) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.metadata, run_gpt.metadata) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.incomplete_details, run_gpt.incomplete_details) &&
+            GPTAssistantAPIServerSyncController.compare_values(to_openai_last_error, run_gpt.last_error) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.required_action, run_gpt.required_action));
     }
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIRunVO, gpt_obj: Run) {

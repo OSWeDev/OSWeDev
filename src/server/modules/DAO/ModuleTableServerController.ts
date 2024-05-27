@@ -118,7 +118,7 @@ export default class ModuleTableServerController {
                         const trans_ = e[field.field_name] ? ModuleTableServerController.translate_vos_to_db(e[field.field_name], true) : null;
                         res[field.field_name] = trans_ ? JSON.stringify(trans_) : null;
                     } else if (e[field.field_name]) {
-                        res[field.field_name] = JSON.stringify(e[field.field_name]);
+                        res[field.field_name] = (typeof e[field.field_name] == 'object') ? JSON.stringify(e[field.field_name]) : e[field.field_name];
                     } else {
                         res[field.field_name] = null;
                     }
