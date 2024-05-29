@@ -78,6 +78,11 @@ export default abstract class VarsProcessBase {
 
             // // if (!has_client_nodes) {
             // if (!has_node) {
+            if (this.has_nodes_to_process_in_current_tree) {
+                // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
+                CurrentVarDAGHolder.check_current_vardag_throttler();
+            }
+
             if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.has_running_or_waiting_promises))) {
 
                 // On checke une invalidation en attente

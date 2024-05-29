@@ -11,7 +11,7 @@ export default class ManualTasksController {
 
     private static instance: ManualTasksController = null;
 
-    public registered_manual_tasks_by_name: { [name: string]: () => Promise<any> } = {};
+    public registered_manual_tasks_by_name: { [name: string]: (...params: any[]) => Promise<any> } = {};
 
     private constructor() { }
 }

@@ -1,3 +1,6 @@
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import VarDataInvalidatorVO from '../../../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
@@ -5,9 +8,13 @@ import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import CurrentBatchDSCacheHolder from '../../CurrentBatchDSCacheHolder';
 import VarsDatasVoUpdateHandler from '../../VarsDatasVoUpdateHandler';
+import VarsdatasComputerBGThread from '../VarsdatasComputerBGThread';
 import VarsComputationHole from './VarsComputationHole';
 
 export default class VarsProcessInvalidator {
+
+    public static WARN_MAX_EXECUTION_TIME_SECOND: number = 60;
+    public static ALERT_MAX_EXECUTION_TIME_SECOND: number = 120;
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -19,13 +26,18 @@ export default class VarsProcessInvalidator {
 
     private static instance: VarsProcessInvalidator = null;
 
+    private last_registration: number = null;
+
     protected constructor(
         protected name: string = 'VarsProcessInvalidator',
         protected thread_sleep: number = 1000) { } // Le push invalidator est fait toutes les secondes de toutes manières
 
     public async work(): Promise<void> {
+        VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND, 60);
+        VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND, 120);
 
         while (true) {
+            this.last_registration = Dates.now();
 
             let did_something = false;
 
@@ -37,6 +49,13 @@ export default class VarsProcessInvalidator {
         }
     }
 
+    /**
+     * Permet de calculer le délai (en secondes) de la dernière exécution
+     * @returns le délai en secondes
+     */
+    public get_last_registration_delay(): number {
+        return Dates.diff(Dates.now(), this.last_registration, TimeSegment.TYPE_SECOND);
+    }
 
     private async handle_batch_worker(): Promise<boolean> {
 

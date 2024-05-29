@@ -484,11 +484,20 @@ export default class VarDAGNode extends DAGNodeBase {
 
         let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, this, outgoing_node);
 
+        if (!this.outgoing_deps) {
+            this.outgoing_deps = {};
+        }
+
         this.outgoing_deps[dep.dep_name] = dep;
+
+        if (!dep.outgoing_node.incoming_deps) {
+            dep.outgoing_node.incoming_deps = {};
+        }
 
         if (!dep.outgoing_node.incoming_deps[dep.dep_name]) {
             dep.outgoing_node.incoming_deps[dep.dep_name] = [];
         }
+
         dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
         if (ConfigurationService.node_configuration.DEBUG_VARS_CURRENT_TREE) {
@@ -571,7 +580,10 @@ export default class VarDAGNode extends DAGNodeBase {
                         ':incoming_dep:' + incoming_dep.dep_name +
                         ':incoming_node:' + (incoming_dep.incoming_node as VarDAGNode).var_data.index);
                 }
-                delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
+
+                if (incoming_dep?.incoming_node?.outgoing_deps) {
+                    delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
+                }
 
                 if (!ObjectHandler.hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
                     dag.leafs[(incoming_dep.incoming_node as VarDAGNode).var_data.index] = incoming_dep.incoming_node as VarDAGNode;
@@ -583,7 +595,7 @@ export default class VarDAGNode extends DAGNodeBase {
         for (let i in keys) {
             let outgoing_dep = this.outgoing_deps[keys[i]];
 
-            let incoming_deps = outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+            let incoming_deps = outgoing_dep?.outgoing_node?.incoming_deps ? outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name] : null;
             for (let j in incoming_deps) {
                 let incoming_dep = incoming_deps[j];
 
@@ -601,7 +613,7 @@ export default class VarDAGNode extends DAGNodeBase {
                 }
             }
 
-            if (!incoming_deps.length) {
+            if (!incoming_deps?.length) {
                 delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
             }
 
