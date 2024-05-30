@@ -98,4 +98,5 @@ export default interface IEnvParam {
     BLOCK_TEAMS_MESSAGES?: boolean;
 
     EXPRESS_SECRET: string;
+    LOGO_PATH?: string;
 }

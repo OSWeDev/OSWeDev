@@ -1,5 +1,5 @@
-import IAPIParamTranslator from "../../../../shared/modules/API/interfaces/IAPIParamTranslator";
-import IAPIParamTranslatorStatic from "../../../../shared/modules/API/interfaces/IAPIParamTranslatorStatic";
+import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 import TimeParamClockifyTimeEntry from "./TimeParamClockifyTimeEntry";
 
 export default class ClockifyTimeEntryParam implements IAPIParamTranslator<ClockifyTimeEntryParam> {

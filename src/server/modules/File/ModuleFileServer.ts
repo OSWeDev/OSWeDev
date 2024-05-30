@@ -68,6 +68,10 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             { 'fr-fr': 'Fichier introuvable : {file_id}' },
             'file_datatable_field.introuvable.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Télécharger' },
+            'file_datatable_field.download.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fichiers' },

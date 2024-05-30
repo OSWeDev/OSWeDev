@@ -1193,6 +1193,7 @@ export default class VueComponentBase extends Vue
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 case ModuleTableField.FIELD_TYPE_translatable_text:
                 case ModuleTableField.FIELD_TYPE_password:
@@ -1304,6 +1305,7 @@ export default class VueComponentBase extends Vue
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_color:
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 case ModuleTableField.FIELD_TYPE_translatable_text:
                 case ModuleTableField.FIELD_TYPE_password:

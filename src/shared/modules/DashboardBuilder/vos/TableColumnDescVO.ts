@@ -72,7 +72,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     get datatable_field_uid() {
         switch (this.type) {
             case TableColumnDescVO.TYPE_crud_actions:
-                return 'crud_actions';
+                return '__crud_actions';
             case TableColumnDescVO.TYPE_vo_field_ref:
                 return this.api_type_id + '___' + this.field_id;
             case TableColumnDescVO.TYPE_var_ref:
@@ -80,7 +80,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             case TableColumnDescVO.TYPE_select_box:
                 return 'select_box';
             case TableColumnDescVO.TYPE_component:
-                return this.component_name;
+                return this.component_name + '___' + this.id.toString();
             case TableColumnDescVO.TYPE_header:
                 return this.header_name;
         }
@@ -175,6 +175,10 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
      */
     public colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }>;
 
+    public custom_label: string;
+    public custom_class_css: string;
+    public custom_values: any[];
+
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
             return false;
@@ -215,6 +219,10 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     }
 
     public get_translatable_name_code_text(page_widget_id: number): string {
+
+        if (this.custom_label) {
+            return this.custom_label;
+        }
 
         if (!page_widget_id) {
             return null;

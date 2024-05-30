@@ -1,0 +1,215 @@
+.suivi_competences_rapport_pdf {
+    * {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    caption,
+    .groupe_name {
+        caption-side: top;
+        text-align: center;
+        background: #00184e !important;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+        vertical-align: middle;
+    }
+
+    .item_name {
+        min-width: 400px;
+    }
+
+    .etat_des_lieux,
+    .plan_action {
+        min-width: 300px;
+    }
+
+    .indicateur {
+        width: 80px;
+        max-width: 80px;
+    }
+
+    .sous_groupe_name span {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    table .multiselect {
+        min-width: inherit;
+    }
+
+    table .multiselect .multiselect__tags {
+        background: inherit;
+        border: 0;
+        text-align: center;
+    }
+
+    table .multiselect .multiselect__tags .multiselect__single {
+        background: inherit;
+    }
+
+    table .multiselect .multiselect__option {
+        padding: 0;
+    }
+
+    table .multiselect .multiselect__option .option__tag {
+        display: block;
+        padding: 12px;
+    }
+
+    table .multiselect .multiselect__option .option__tag:after {
+        display: none !important;
+    }
+
+    table .multiselect .multiselect__option:after {
+        display: none !important;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid lightgray;
+    }
+
+    tr {
+        &.sous_groupe {
+            td {
+                background: #002d93 !important;
+
+                &,
+                * {
+                    color: white !important;
+                }
+            }
+        }
+    }
+
+    td .form-group {
+        margin-bottom: 0;
+    }
+
+    .indicateur_value_1 {
+        color: #721c24;
+        background-color: #f8d7da;
+    }
+
+    .indicateur_value_2 {
+        color: #664200;
+        background-color: #ffc107;
+    }
+
+    .indicateur_value_3 {
+        color: #856404;
+        background-color: #fff3cd;
+    }
+
+    .indicateur_value_4 {
+        color: #155724;
+        background-color: #d4edda;
+    }
+
+    .prct_niveau_maturite_tsp {
+        float: left;
+    }
+
+    .prct_niveau_maturite_tsp.no_float {
+        float: none;
+    }
+
+    .prct_niveau_maturite_tsp .var-data--intersector-wrapper {
+        padding: 5px 15px;
+    }
+
+    .quill-editor {
+        vertical-align: middle;
+    }
+
+    .quill-editor .ql-toolbar {
+        display: none;
+    }
+
+    .quill-editor .ql-container {
+        border: 0;
+    }
+
+    .break-page td {
+        background: white !important;
+    }
+
+    .btn-success {
+        background-color: #dd231b !important;
+        border-color: #dd231b !important;
+    }
+
+    table thead th:not(.empty) {
+        background-color: #dd231b;
+        color: white;
+        text-align: center;
+    }
+
+    .multiselect__input {
+        display: none;
+    }
+
+    .logo_app {
+        max-height: 30px;
+        margin-bottom: 30px;
+    }
+
+    .logo_grille {
+        max-height: 30px;
+        margin-bottom: 30px;
+        float: right;
+    }
+
+    .d-ib {
+        display: inline-block;
+    }
+
+    .mt-2 {
+        margin-top: 10px;
+    }
+
+    .mb-1 {
+        margin-bottom: 5px;
+    }
+
+    .mb-2 {
+        margin-bottom: 10px;
+    }
+
+    .mb-3 {
+        margin-bottom: 15px;
+    }
+
+    .mb-4 {
+        margin-bottom: 20px;
+    }
+
+    .mb-5 {
+        margin-bottom: 25px;
+    }
+
+    .mt-1 {
+        margin-top: 5px;
+    }
+
+    .mt-2 {
+        margin-top: 10px;
+    }
+
+    .mt-3 {
+        margin-top: 15px;
+    }
+
+    .mt-4 {
+        margin-top: 20px;
+    }
+
+    .mt-5 {
+        margin-top: 25px;
+    }
+}

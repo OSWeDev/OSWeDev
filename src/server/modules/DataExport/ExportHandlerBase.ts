@@ -85,9 +85,17 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
                 content = default_mail_html_template;
 
+                let formatted_path: string = exported_file.path.replace(/^[.][/]/, '/');
+
+                if (envParam.BASE_URL.endsWith('/') && formatted_path.startsWith('/')) {
+                    formatted_path = formatted_path.substring(1);
+                } else if (!envParam.BASE_URL.endsWith('/') && !formatted_path.startsWith('/')) {
+                    formatted_path = '/' + formatted_path;
+                }
+
                 mail_param = {
                     EXPORT_TYPE_ID: exhi.export_type_id,
-                    FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
+                    FILE_URL: envParam.BASE_URL + formatted_path
                 };
 
             } else {

@@ -328,6 +328,10 @@
                                         template(v-for='custom_filter in get_custom_filters')
                                             .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
+                .custom_class_css.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.custom_class_css') }}
+                    input.form-control(type="text" v-model="tmp_custom_class_css")
 
                 hr.my-12
                 .color_configuration_section.mt-3
@@ -395,7 +399,7 @@
                                     i.fa-solid.fa-plus(aria-hidden="true")
                                     span {{ label('table_widget_column_conf.editable_column.conditional_cell_color.add') }}
 
-                
+
                 hr.my-12
 
                 .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')

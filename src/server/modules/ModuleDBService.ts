@@ -5,14 +5,15 @@ import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableDBService from './ModuleTableDBService';
+import PreloadedModuleServerController from './PreloadedModuleServerController';
 
 export default class ModuleDBService {
 
     public static reloadParamsTimeout: number = 300000;
 
-    public static getInstance(db): ModuleDBService {
+    public static getInstance(): ModuleDBService {
         if (!ModuleDBService.instance) {
-            ModuleDBService.instance = new ModuleDBService(db);
+            ModuleDBService.instance = new ModuleDBService();
         }
         return ModuleDBService.instance;
     }
@@ -25,45 +26,13 @@ export default class ModuleDBService {
 
     private bdd_owner: string;
 
-    private has_preloaded_modules_is_actif: boolean = false;
-    private preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
     /**
      * ----- Local thread cache
      */
 
-    private constructor(private db) {
+    private constructor() {
         ModuleDBService.instance = this;
         this.bdd_owner = ConfigurationService.node_configuration.BDD_OWNER;
-    }
-
-    public async preload_modules_is_actif() {
-        if (this.has_preloaded_modules_is_actif) {
-            return;
-        }
-        this.has_preloaded_modules_is_actif = true;
-
-        let rows = await this.db.query('SELECT "name", "actif" FROM admin.modules;');
-        for (let i in rows) {
-            let row = rows[i];
-
-            this.preloaded_modules_is_actif[row.name] = row.actif;
-        }
-    }
-
-    public async load_or_create_module_is_actif(module: Module) {
-
-        if (!this.has_preloaded_modules_is_actif) {
-            await this.preload_modules_is_actif();
-        }
-
-        let is_actif = this.preloaded_modules_is_actif[module.name];
-        if (typeof is_actif === "undefined") {
-            // La ligne n'existe pas, on l'ajoute
-            module.actif = module.activate_on_installation;
-            await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
-        } else {
-            module.actif = is_actif;
-        }
     }
 
     /**
@@ -87,7 +56,7 @@ export default class ModuleDBService {
 
         // On lance aussi la configuration des tables
         for (let i in module.datatables) {
-            await ModuleTableDBService.getInstance(this.db).datatable_configure(module.datatables[i]);
+            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_configure(module.datatables[i]);
         }
 
         // On appelle le hook
@@ -107,7 +76,7 @@ export default class ModuleDBService {
 
         // console.log('Rechargement de la conf du module ' + module.name);
 
-        let rows = await this.db.query('select * from admin.module_' + module.name + ';');
+        let rows = await PreloadedModuleServerController.db.query('select * from admin.module_' + module.name + ';');
 
         if ((!rows) || (!rows[0])) {
             console.error("Les paramètres du module ne sont pas disponibles");
@@ -161,18 +130,18 @@ export default class ModuleDBService {
             pgSQL += ', CONSTRAINT module_' + module.name + '_pkey PRIMARY KEY (id)';
             pgSQL += ');';
 
-            await this.db.none(pgSQL);
+            await PreloadedModuleServerController.db.none(pgSQL);
 
-            await this.db.none('GRANT ALL ON TABLE admin.module_' + module.name + ' TO ' + this.bdd_owner + ';');
+            await PreloadedModuleServerController.db.none('GRANT ALL ON TABLE admin.module_' + module.name + ' TO ' + this.bdd_owner + ';');
 
             // Ajouter une ligne avec les valeurs par défaut (donc un simple insert puisque normalement on a déjà pris en compte les valeurs par défaut avant)
             //  Si la ligne existe pas encore, sinon on charge les fields.
-            let rows = await this.db.query('select * from admin.module_' + module.name + ';');
+            let rows = await PreloadedModuleServerController.db.query('select * from admin.module_' + module.name + ';');
 
             if ((!rows) || (!rows[0])) {
                 // La ligne n'existe pas encore, on la crée
                 first_install = true;
-                await this.db.query('INSERT INTO admin.module_' + module.name + ' DEFAULT VALUES;');
+                await PreloadedModuleServerController.db.query('INSERT INTO admin.module_' + module.name + ' DEFAULT VALUES;');
 
                 await this.loadParams(module);
                 return true;
@@ -185,7 +154,7 @@ export default class ModuleDBService {
     // ETAPE 3 de l'installation
     private async add_module_to_modules_table(module: Module) {
 
-        await this.load_or_create_module_is_actif(module);
+        await PreloadedModuleServerController.load_or_create_module_is_actif(module);
 
         return true;
     }
@@ -207,8 +176,8 @@ export default class ModuleDBService {
             //     promises = [];
             // }
 
-            await ModuleTableDBService.getInstance(this.db).datatable_install(datatable);
-            // promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
+            await ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable);
+            // promises.push(ModuleTableDBService.getInstance(PreloadedModuleServerController.db).datatable_install(datatable));
         }
         // if (promises && promises.length) {
         //     await all_promises(promises);

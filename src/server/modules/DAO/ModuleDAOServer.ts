@@ -693,6 +693,24 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Format incorrect"
         }, 'crud.field_error_format.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Formulaire de création / modification"
+        }, 'crud.insert_or_update_target.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Champs requis"
+        }, 'validation.ko.required'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Minimum 8 caractères"
+        }, 'validation.ko.length_min_8'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Il faut au moins un nombre"
+        }, 'validation.ko.need_number'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Il faut au moins une minuscule"
+        }, 'validation.ko.need_lowercase'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Il faut au moins une majuscule"
+        }, 'validation.ko.need_uppercase'));
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -2264,6 +2282,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     switch (field.field_type) {
                         case ModuleTableField.FIELD_TYPE_string:
+                        case ModuleTableField.FIELD_TYPE_color:
                         case ModuleTableField.FIELD_TYPE_email:
                         case ModuleTableField.FIELD_TYPE_html:
                         case ModuleTableField.FIELD_TYPE_password:

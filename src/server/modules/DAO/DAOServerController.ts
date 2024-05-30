@@ -165,6 +165,7 @@ export default class DAOServerController {
 
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
                 if (intersector_range.range_type == TSRange.RANGE_TYPE) {
@@ -287,6 +288,7 @@ export default class DAOServerController {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
                 if (filter_field_type == ModuleTableField.FIELD_TYPE_tsrange) {

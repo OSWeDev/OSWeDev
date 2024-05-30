@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleClockifyAPI from '../../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
+import TimeParamClockifyTimeEntry from '../../../shared/modules/ClockifyAPI/params/TimeParamClockifyTimeEntry';
 import ClockifyClientVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyClientVO';
 import ClockifyProjetVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyProjetVO';
 import ClockifyTacheVO from '../../../shared/modules/ClockifyAPI/vos/ClockifyTacheVO';
@@ -19,7 +20,6 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import TimeParamClockifyTimeEntry from './vos/TimeParamClockifyTimeEntry';
 
 export default class ModuleClockifyAPIServer extends ModuleServerBase {
 

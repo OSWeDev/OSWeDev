@@ -301,6 +301,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
                     return res_tstz_array;
 
+                case ModuleTableField.FIELD_TYPE_html_array:
+                    return field_value;
+
                 case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
@@ -460,6 +463,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return '{' + values + '}';
 
                 case ModuleTableField.FIELD_TYPE_html_array:
+                    return value;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (this.segmentation_type) {

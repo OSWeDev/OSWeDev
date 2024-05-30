@@ -65,6 +65,7 @@ export default class VOsTypesHandler {
             case ModuleTableField.FIELD_TYPE_html_array:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_color:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_translatable_text:

@@ -1496,6 +1496,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Bouton pour rafraîchir les données ?'
         }, 'table_widget_options_component.refresh_button.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Archiver"'
+        }, 'table_widget_options_component.archive_button.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Oui'
         }, 'table_widget_options_component.refresh_button.visible.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -1910,6 +1913,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.bg_color_header.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Classe CSS personnalisé" },
+            'table_widget_column_conf.editable_column.custom_class_css.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur du texte de l'entête" },
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
         ));
@@ -2131,6 +2138,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },
             'dashboard_viewer.group_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Voir les filtres par défaut" },
+            'dashboard_viewer.collapse_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Problème lors du chargement du Tableau de bord" },
@@ -2560,6 +2571,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_bulk_edit.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Légende du tableau" },
+            'table_widget_options_component.legende_tableau.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Sélectionner Tout" },
             'field_value_filter_widget_component.can_select_all_option.___LABEL___'
         ));
@@ -2705,6 +2720,30 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Arrondi" },
             'hour_filter_options.rounded.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Composant à utiliser dans la colonne" },
+            'table_widget_options_component.column_dynamic_component.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtre à utiliser pour les colonnes dynamiques" },
+            'table_widget_options_component.column_dynamic_page_widget_id.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Segment de date" },
+            'table_widget_options_component.column_dynamic_time_segment.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner les filtres à ne pas utiliser" },
+            'table_widget_options_component.do_not_use_page_widget_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Utiliser un filtre pour avoir des colonnes dynamiques dans le tableau" },
+            'table_widget_options_component.has_column_dynamic.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter un nouvel indicateur" },
+            'crud.field.custom_field.add_new_indicateur.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

@@ -1,6 +1,5 @@
 .grid_item_wrapper(
-    @click="select_widget(item)"
-    :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name]: true, ['item__' + item.id]: true, hide: isHide(item) && !editable, shaded: isHide(item) && editable}"
+    :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name]: true, ['item__' + item.id]: true, hide: isHide(item) && !editable, shaded: isHide(item) && editable}" 
 )
     Griditem(
         :static="(!editable) || item.static"
@@ -24,7 +23,7 @@
             :is_selected='selected_widget && (item.i == selected_widget.i)'
             :key="'Dashboardbuilderboarditemcomponent__' + item.id + '__' + item_key[item.id]"
 
-            
+
             @delete_widget='delete_widget'
             @select_widget='select_widget'
             @select_page='select_page'

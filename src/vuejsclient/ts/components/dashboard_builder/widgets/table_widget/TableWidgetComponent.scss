@@ -181,6 +181,29 @@
         }
     }
 
+    .legende_tableau {
+        p {
+            margin: 0 0 2px 0;
+
+            span {
+                display: block;
+                padding: 2px 4px;
+            }
+
+            &.ql-align-right {
+                text-align: right;
+            }
+
+            &.ql-align-left {
+                text-align: left;
+            }
+
+            &.ql-align-center {
+                text-align: center;
+            }
+        }
+    }
+
     @media (max-width: 767px) {
         .upper_pagination {
             flex-direction: column;

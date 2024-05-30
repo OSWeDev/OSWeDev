@@ -59,6 +59,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_placeholder: boolean;
 
+    @Prop({ default: false })
+    private show_delete_button: boolean;
+
     private editableVO: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
@@ -424,6 +427,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                 self.updating_vo = false;
 
                 self.$emit(updatedVO._type + '_update', updatedVO);
+                self.$emit('vo_update', updatedVO);
                 await self.callCallbackFunctionUpdate();
 
                 if (self.close_on_submit) {
@@ -495,5 +499,35 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
     private async cancel() {
         this.$emit('cancel');
+    }
+
+    private async deleteVO() {
+        this.snotify.confirm(this.label('TableWidgetComponent.confirm_delete.body'), this.label('TableWidgetComponent.confirm_delete.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: this.t('YES'),
+                    action: async (toast) => {
+                        this.$snotify.remove(toast.id);
+
+                        await query(this.selected_vo._type).filter_by_id(this.selected_vo.id).delete_vos();
+
+                        if (this.close_on_submit) {
+                            this.$emit('close');
+                        }
+                    },
+                    bold: false
+                },
+                {
+                    text: this.t('NO'),
+                    action: (toast) => {
+                        this.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 }

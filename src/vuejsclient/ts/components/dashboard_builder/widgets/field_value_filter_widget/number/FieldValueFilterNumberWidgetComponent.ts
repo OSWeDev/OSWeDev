@@ -75,7 +75,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     private filter_visible_options: DataFilterOption[] = [];
 
-    private advanced_filters: boolean = true;
+    private advanced_filters: boolean = false;
     private advanced_number_filters: AdvancedNumberFilter[] = [new AdvancedNumberFilter()];
 
     private warn_existing_external_filters: boolean = false;
@@ -363,6 +363,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     return;
                 }
             }
+
+            this.advanced_filters = this.advanced_mode;
         }
 
         /**
@@ -538,23 +540,25 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             let tmp_active_filter_options: DataFilterOption[] = [];
 
-            for (let i in filter.param_textarray) {
-                let text = filter.param_textarray[i];
+            let i: number = 0;
+            RangeHandler.foreach_ranges_sync(filter.param_numranges, (num) => {
                 let datafilter = new DataFilterOption(
                     DataFilterOption.STATE_SELECTED,
-                    text,
+                    num.toString(),
                     parseInt(i.toString())
                 );
-                datafilter.string_value = text;
+                datafilter.string_value = num.toString();
+                datafilter.numeric_value = num;
                 tmp_active_filter_options.push(datafilter);
-            }
+                i++;
+            });
             this.tmp_active_filter_options = tmp_active_filter_options;
         }
         return true;
     }
 
     private has_advanced_filter(filter: ContextFilterVO): boolean {
-        if ((filter.filter_type == ContextFilterVO.TYPE_NUMERIC_INTERSECTS) && (filter.param_textarray != null) && (filter.param_textarray.length > 0)) {
+        if ((filter.filter_type == ContextFilterVO.TYPE_NUMERIC_INTERSECTS) && (filter.param_numranges != null) && (filter.param_numranges.length > 0)) {
             return false;
         }
 
@@ -885,5 +889,13 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         return !!this.widget_options.autovalidate_advanced_filter;
+    }
+
+    get advanced_mode(): boolean {
+        return this.widget_options.advanced_mode;
+    }
+
+    get hide_btn_switch_advanced(): boolean {
+        return this.widget_options.hide_btn_switch_advanced;
     }
 }

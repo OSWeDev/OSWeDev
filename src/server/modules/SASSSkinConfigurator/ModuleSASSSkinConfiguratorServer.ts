@@ -24,6 +24,8 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private static instance: ModuleSASSSkinConfiguratorServer = null;
 
+    private in_generating: boolean = false;
+
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
@@ -49,10 +51,14 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
     }
 
     public async generate() {
+        if (this.in_generating) {
+            return;
+        }
 
         return new Promise(async (resolve, reject) => {
 
             try {
+                this.in_generating = true;
 
                 let max = ConfigurationService.node_configuration.MAX_POOL / 2;
                 let promise_pipeline = new PromisePipeline(max, 'ModuleSASSSkinConfiguratorServer.generate');
@@ -77,8 +83,10 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             } catch (error) {
                 ConsoleHandler.error(error);
                 reject(error);
+                this.in_generating = false;
                 return;
             }
+            this.in_generating = false;
             resolve(null);
         });
     }
@@ -119,6 +127,8 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             return;
         }
 
-        await this.generate();
+        if (!this.in_generating) {
+            await this.generate();
+        }
     }
 }

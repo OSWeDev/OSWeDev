@@ -147,7 +147,7 @@ export default class ForkServerController {
         for (let i in ForkServerController.forks) {
             let forked: IFork = ForkServerController.forks[i];
 
-            if (ForkServerController.forks_availability[i]) {
+            if (!ForkServerController.forks_availability[i]) {
                 continue;
             }
 

@@ -24,7 +24,7 @@
                 template(v-else-if="field_type == 'text[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value") {{ value }}
-                template(v-else-if="field_type == 'html[]'")
+                template(v-else-if="field_type == 'html_array'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value")
                             template(v-if="explicit_html")
@@ -72,6 +72,7 @@
                     :is="field.component_name" 
                     :vo="vo" 
                     :columns="columns" 
+                    :column="column" 
                     :param="vo[field.parameter_datatable_field_uid]" 
                     :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']"
                     :dashboard_page="dashboard_page"

@@ -891,6 +891,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(page);
     }
 
+    private async switch_collapse_filters(page: DashboardPageVO) {
+        page.collapse_filters = !page.collapse_filters;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(page);
+    }
+
     get dashboards_options() {
 
         if (!this.dashboards) {

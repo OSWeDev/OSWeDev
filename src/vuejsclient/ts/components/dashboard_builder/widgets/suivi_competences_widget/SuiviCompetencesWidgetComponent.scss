@@ -1,0 +1,145 @@
+.widget_name__SuiviCompetences {
+    .vue-grid-item {
+        background: none !important;
+        box-shadow: none !important;
+    }
+}
+
+.suivi_competences_widget_component {
+    overflow-y: scroll;
+
+    caption,
+    .groupe_name {
+        caption-side: top;
+        text-align: center;
+        background: #8f8f93 !important;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+        vertical-align: middle;
+    }
+
+    .item_name {
+        min-width: 400px;
+    }
+
+    .etat_des_lieux,
+    .plan_action {
+        min-width: 300px;
+    }
+
+    .indicateur {
+        width: 80px;
+        max-width: 80px;
+    }
+
+    .sous_groupe_name {
+        span {
+            font-weight: bold;
+            font-size: 18px;
+        }
+    }
+
+    table {
+
+        .multiselect {
+            min-width: inherit;
+
+            .multiselect__tags {
+                background: inherit;
+                border: 0;
+
+                .multiselect__single {
+                    background: inherit;
+                }
+            }
+
+            .multiselect__option {
+                padding: 0;
+
+                .option__tag {
+                    display: block;
+                    padding: 12px;
+
+                    &:after {
+                        display: none !important;
+                    }
+                }
+
+                &:after {
+                    display: none !important;
+                }
+            }
+        }
+    }
+
+    td {
+        padding: 5px;
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
+    .indicateur_value_1 {
+        color: #721c24;
+        background-color: #f8d7da;
+    }
+
+    .indicateur_value_2 {
+        color: #664200;
+        background-color: #ffc107;
+    }
+
+    .indicateur_value_3 {
+        color: #856404;
+        background-color: #fff3cd;
+    }
+
+    .indicateur_value_4 {
+        color: #155724;
+        background-color: #d4edda;
+    }
+
+    .prct_niveau_maturite_tsp {
+        float: left;
+
+        &.no_float {
+            float: none;
+        }
+
+        .var-data--intersector-wrapper {
+            padding: 5px 15px;
+        }
+    }
+
+    .quill-editor {
+        vertical-align: middle;
+
+        .ql-toolbar {
+            display: none;
+        }
+
+        .ql-container {
+            border: 0;
+        }
+    }
+
+    .break-page {
+        td {
+            background: white !important;
+        }
+    }
+}
+
+.suivi_competences_bilaterales {
+    @media print {
+        .dashboard_viewer {
+
+            .header,
+            .widget_name__fieldvaluefilter {
+                display: none;
+            }
+        }
+    }
+}

@@ -145,6 +145,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<DashboardPageVO>().weight, ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField(field_names<DashboardPageVO>().hide_navigation, ModuleTableField.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false),
             new ModuleTableField(field_names<DashboardPageVO>().group_filters, ModuleTableField.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false),
+            new ModuleTableField(field_names<DashboardPageVO>().collapse_filters, ModuleTableField.FIELD_TYPE_boolean, 'Voir les filtres par défaut', false, true, false),
         ];
 
         let res = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
@@ -343,11 +344,14 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().enum_fg_colors, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Enum FG colors"),
 
             new ModuleTableField(field_names<TableColumnDescVO>().children, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Enfants"),
-            new ModuleTableField(field_names<TableColumnDescVO>().bg_color_header, ModuleTableField.FIELD_TYPE_string, "Header BG color"),
-            new ModuleTableField(field_names<TableColumnDescVO>().font_color_header, ModuleTableField.FIELD_TYPE_string, "Header FG color"),
+            new ModuleTableField(field_names<TableColumnDescVO>().bg_color_header, ModuleTableField.FIELD_TYPE_color, "Header BG color"),
+            new ModuleTableField(field_names<TableColumnDescVO>().font_color_header, ModuleTableField.FIELD_TYPE_color, "Header FG color"),
             new ModuleTableField(field_names<TableColumnDescVO>().kanban_column, ModuleTableField.FIELD_TYPE_boolean, "Colonne Kanban", true, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().kanban_use_weight, ModuleTableField.FIELD_TYPE_boolean, "Utiliser le poids pour le kanban", true, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().colors_by_value_and_conditions, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Colors by value and conditions"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_label, ModuleTableField.FIELD_TYPE_string, "Label personnalisé"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_class_css, ModuleTableField.FIELD_TYPE_string, "Classe CSS personnalisé"),
+            new ModuleTableField(field_names<TableColumnDescVO>().custom_values, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
@@ -672,6 +676,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('semaphore_auto_update_datatable_field_uid_with_vo_type', ModuleTableField.FIELD_TYPE_boolean, 'semaphore_auto_update_datatable_field_uid_with_vo_type', true, true, false),
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'type'),
             new ModuleTableField('datatable_field_uid', ModuleTableField.FIELD_TYPE_string, 'datatable_field_uid'),
+            new ModuleTableField('max_range_offset', ModuleTableField.FIELD_TYPE_int, 'max_range_offset'),
         ];
 
         this.datatables.push(new ModuleTable(this, SimpleDatatableFieldVO.API_TYPE_ID, () => new SimpleDatatableFieldVO(), datatable_fields, null, "SimpleDatatableFieldVO"));
