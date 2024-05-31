@@ -133,7 +133,9 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
                             null,
                             null,
                             item.id,
-                            this.selected_rapport.id
+                            this.selected_rapport.id,
+                            null,
+                            null,
                         );
                     }
                 }
@@ -387,11 +389,90 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
     }
 
+    get delais_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().delais).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+    }
+
+    get cible_editable_field() {
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().cible).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+    }
+
     get points_cles_editable_field() {
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
     }
 
     get objectif_prochaine_visite_editable_field() {
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
+    }
+
+    get nb_visible_fields(): number {
+        let res: number = 0;
+
+        if (this.grille?.show_column_rapport_plan_action) {
+            res++;
+        }
+        if (this.grille?.show_column_rapport_etat_des_lieux) {
+            res++;
+        }
+        if (this.grille?.show_column_rapport_cible) {
+            res++;
+        }
+        if (this.grille?.show_column_rapport_delais) {
+            res++;
+        }
+        if (this.grille?.show_column_rapport_indicateur) {
+            res++;
+        }
+
+        return res;
+    }
+
+    get colspan_break_page(): number {
+        let res: number = 2 + this.nb_visible_fields;
+
+        if (this.show_details) {
+            res += 2;
+        }
+
+        return res;
+    }
+
+    get colspan_sous_groupe(): number {
+        let res: number = 1 + this.nb_visible_fields;
+
+        if (this.show_details) {
+            res += 2;
+        }
+
+        return res;
+    }
+
+    get top_fields(): Array<SimpleDatatableFieldVO<any, any>> {
+        let res: Array<SimpleDatatableFieldVO<any, any>> = [];
+
+        if (this.grille?.show_points_cles) {
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+        }
+        if (this.grille?.show_objectif_prochaine_visite) {
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+        }
+
+        return res;
+    }
+
+    get bottom_fields(): Array<SimpleDatatableFieldVO<any, any>> {
+        let res: Array<SimpleDatatableFieldVO<any, any>> = [];
+
+        if (this.grille?.show_commentaire_1) {
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_1).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+        }
+        if (this.grille?.show_commentaire_2) {
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_2).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+        }
+        if (this.grille?.show_prochain_suivi) {
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().prochain_suivi).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+        }
+
+        return res;
     }
 }

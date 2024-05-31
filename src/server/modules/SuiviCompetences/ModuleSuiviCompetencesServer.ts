@@ -194,6 +194,15 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             "fr-fr": 'Objectif de la prochaine visite'
         }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Commentaire 1'
+        }, 'suivi_competences_widget_component.commentaire_1.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Commentaire 2'
+        }, 'suivi_competences_widget_component.commentaire_2.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": 'Prochain suivi'
+        }, 'suivi_competences_widget_component.prochain_suivi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": 'KPI'
         }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -208,6 +217,12 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             "fr-fr": "Plan d'action"
         }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": "Cible"
+        }, 'suivi_competences_widget_component.cible.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            "fr-fr": "Délais"
+        }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }

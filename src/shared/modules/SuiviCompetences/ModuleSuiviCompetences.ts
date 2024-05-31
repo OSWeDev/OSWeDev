@@ -183,7 +183,18 @@ export default class ModuleSuiviCompetences extends Module {
             suivi_comp_activite_id,
             new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().calcul_niveau_maturite, ModuleTableField.FIELD_TYPE_boolean, 'Utilisation du calcul du niveau de maturité ?', true, true, true),
             new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().logo, ModuleTableField.FIELD_TYPE_string, 'URL du logo'),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().base_export_file_name, ModuleTableField.FIELD_TYPE_string, 'Base du nom du fichier exporté (sans espace)'),
             new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().move_indicateur_to_end, ModuleTableField.FIELD_TYPE_boolean, 'Déplacer l\'indicateur en fin de tableau ?', true, true, false),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_column_rapport_plan_action, ModuleTableField.FIELD_TYPE_boolean, "Afficher colonne rapport : plan d'action", true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_column_rapport_etat_des_lieux, ModuleTableField.FIELD_TYPE_boolean, 'Afficher colonne rapport : etat des lieux', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_column_rapport_cible, ModuleTableField.FIELD_TYPE_boolean, 'Afficher colonne rapport : cible', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_column_rapport_delais, ModuleTableField.FIELD_TYPE_boolean, 'Afficher colonne rapport : delais', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_column_rapport_indicateur, ModuleTableField.FIELD_TYPE_boolean, 'Afficher colonne rapport : indicateur', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_commentaire_1, ModuleTableField.FIELD_TYPE_boolean, 'Afficher champ : commentaire 1', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_commentaire_2, ModuleTableField.FIELD_TYPE_boolean, 'Afficher champ : commentaire 2', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_prochain_suivi, ModuleTableField.FIELD_TYPE_boolean, 'Afficher champ : prochain suivi', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_points_cles, ModuleTableField.FIELD_TYPE_boolean, 'Afficher champ : points clés', true, true, true),
+            new ModuleTableField(field_names<SuiviCompetencesGrilleVO>().show_objectif_prochaine_visite, ModuleTableField.FIELD_TYPE_boolean, 'Afficher champ : objectif prochaine visite', true, true, true),
         ];
 
         let datatable = new ModuleTable(this, SuiviCompetencesGrilleVO.API_TYPE_ID, () => new SuiviCompetencesGrilleVO(), datatable_fields, name, "Suivi Competences Grille");
@@ -207,6 +218,9 @@ export default class ModuleSuiviCompetences extends Module {
             new ModuleTableField(field_names<SuiviCompetencesRapportVO>().date, ModuleTableField.FIELD_TYPE_tstz, "Date du rapport", true).set_segmentation_type(TimeSegment.TYPE_DAY),
             new ModuleTableField(field_names<SuiviCompetencesRapportVO>().points_cles, ModuleTableField.FIELD_TYPE_html, "Points clés").hide_from_datatable(),
             new ModuleTableField(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite, ModuleTableField.FIELD_TYPE_html, "Objectifs de la prochaine visite").hide_from_datatable(),
+            new ModuleTableField(field_names<SuiviCompetencesRapportVO>().commentaire_1, ModuleTableField.FIELD_TYPE_html, "Commentaire 1").hide_from_datatable(),
+            new ModuleTableField(field_names<SuiviCompetencesRapportVO>().commentaire_2, ModuleTableField.FIELD_TYPE_html, "Commentaire 2").hide_from_datatable(),
+            new ModuleTableField(field_names<SuiviCompetencesRapportVO>().prochain_suivi, ModuleTableField.FIELD_TYPE_html, "Prochain suivi").hide_from_datatable(),
         ];
 
         let datatable = new ModuleTable(this, SuiviCompetencesRapportVO.API_TYPE_ID, () => new SuiviCompetencesRapportVO(), datatable_fields, name, "Suivi Competences Rapport");
@@ -227,6 +241,8 @@ export default class ModuleSuiviCompetences extends Module {
             rapport_id,
             new ModuleTableField(field_names<SuiviCompetencesItemRapportVO>().plan_action, ModuleTableField.FIELD_TYPE_html, "Plan d'action"),
             new ModuleTableField(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux, ModuleTableField.FIELD_TYPE_html, "Etat des lieux"),
+            new ModuleTableField(field_names<SuiviCompetencesItemRapportVO>().cible, ModuleTableField.FIELD_TYPE_html, "Cible"),
+            new ModuleTableField(field_names<SuiviCompetencesItemRapportVO>().delais, ModuleTableField.FIELD_TYPE_html, "Délais"),
             new ModuleTableField(field_names<SuiviCompetencesItemRapportVO>().indicateur, ModuleTableField.FIELD_TYPE_int, "Indicateur"),
         ];
 

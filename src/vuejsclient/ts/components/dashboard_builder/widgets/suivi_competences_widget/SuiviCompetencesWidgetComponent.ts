@@ -246,6 +246,9 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                             this.selected_rapport.user_id,
                             this.selected_rapport.points_cles,
                             this.selected_rapport.objectif_prochaine_visite,
+                            this.selected_rapport.commentaire_1,
+                            this.selected_rapport.commentaire_2,
+                            this.selected_rapport.prochain_suivi,
                         );
 
                         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_rapport);

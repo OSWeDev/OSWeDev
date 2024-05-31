@@ -59,8 +59,8 @@ export default class SuiviCompetencesWidgetController {
 
                     await promise_pipeline.end();
 
-                    let sous_rep: string = 'SUIVI_COMPETENCES';
-                    let file_name: string = 'SUIVI_COMPETENCES_' + Dates.format(rapport.date, 'DD-MM-YYYY', false) + '_' + user.id + '.pdf';
+                    let sous_rep: string = grille.base_export_file_name;
+                    let file_name: string = grille.base_export_file_name + '_' + Dates.format(rapport.date, 'DD-MM-YYYY', false) + '_' + user.id + '.pdf';
 
                     let logo_html: string =
                         '<div class="logo">' +

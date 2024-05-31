@@ -26,9 +26,20 @@ export default class SuiviCompetencesGrilleVO implements IVersionedVO {
     public suivi_comp_activite_id: number;
     public calcul_niveau_maturite: boolean;
     public logo: string;
+    public base_export_file_name: string;
 
     // Ajout pour déplacement OK/NOK fin de tableau sur bilatérales
     public move_indicateur_to_end: boolean;
+    public show_column_rapport_plan_action: boolean;
+    public show_column_rapport_etat_des_lieux: boolean;
+    public show_column_rapport_cible: boolean;
+    public show_column_rapport_delais: boolean;
+    public show_column_rapport_indicateur: boolean;
+    public show_commentaire_1: boolean;
+    public show_commentaire_2: boolean;
+    public show_prochain_suivi: boolean;
+    public show_points_cles: boolean;
+    public show_objectif_prochaine_visite: boolean;
 
     public parent_id: number;
     public trashed: boolean;
