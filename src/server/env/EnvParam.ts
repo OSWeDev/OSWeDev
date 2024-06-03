@@ -117,7 +117,7 @@ export default class EnvParam implements IEnvParam {
 
     public TEAMS_WEBHOOK__THROTTLE_MS?: number = 15000;
     public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number = 10000;
-    public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean = true;
+    public TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean = false;
 
     public EXPRESS_SECRET: string = null;
 }

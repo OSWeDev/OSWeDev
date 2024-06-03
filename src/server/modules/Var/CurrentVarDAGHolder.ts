@@ -14,7 +14,7 @@ import ConfigurationService from "../../env/ConfigurationService";
 
 export default class CurrentVarDAGHolder {
 
-    public static previous_vardag_current_step_tags: { [tag: string]: string[] } = null;
+    public static previous_vardag_deps: { [dep_name: string]: { tags: string[], outgoing_deps: string[], incoming_deps: string[] } } = null;
     public static current_vardag: VarDAG = null;
     public static has_send_kill_bgthread: boolean = false;
     public static check_current_vardag_throttler = ThrottleHelper.declare_throttle_without_args(this.check_current_vardag.bind(this), 2000);
@@ -63,33 +63,54 @@ export default class CurrentVarDAGHolder {
 
         // Si on est en dessous du warn, on sort car pas de pb pour l'instant
         if (last_registration_delay < VarsProcessInvalidator.WARN_MAX_EXECUTION_TIME_SECOND) {
+            this.previous_vardag_deps = null;
             return;
         }
 
         // On va récupérer current_step_tags pour voir si identique au précédent
-        let previous_vardag_current_step_tags: { [tag: string]: string[] } = {};
+        let previous_vardag_deps: { [dep_name: string]: { tags: string[], outgoing_deps: string[], incoming_deps: string[] } } = {};
 
-        for (let tag in CurrentVarDAGHolder.current_vardag.current_step_tags) {
-            for (let name in CurrentVarDAGHolder.current_vardag.current_step_tags[tag]) {
-                if (!previous_vardag_current_step_tags[tag]) {
-                    previous_vardag_current_step_tags[tag] = [];
+        for (let n_name in CurrentVarDAGHolder.current_vardag.nodes) {
+            let node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[n_name];
+
+            if (!node) {
+                continue;
+            }
+
+            if (!previous_vardag_deps[n_name]) {
+                previous_vardag_deps[n_name] = {
+                    incoming_deps: [],
+                    outgoing_deps: [],
+                    tags: []
+                };
+            }
+
+            for (let dep_name in node.incoming_deps) {
+                previous_vardag_deps[n_name].incoming_deps.push(dep_name);
+            }
+
+            for (let dep_name in node.outgoing_deps) {
+                previous_vardag_deps[n_name].outgoing_deps.push(dep_name);
+            }
+
+            for (let tag_name in node.tags) {
+                if (node.tags[tag_name]) {
+                    previous_vardag_deps[n_name].tags.push(tag_name);
                 }
-
-                previous_vardag_current_step_tags[tag].push(name);
             }
         }
 
         // Si pas le même, on va attendre un peu car ça veut dire que le VarDAG est en train de s'exécuter
-        if (this.previous_vardag_current_step_tags && !isEqual(this.previous_vardag_current_step_tags, previous_vardag_current_step_tags)) {
+        if (this.previous_vardag_deps && !isEqual(this.previous_vardag_deps, previous_vardag_deps)) {
             // On sauvegarde la donnée
-            this.previous_vardag_current_step_tags = previous_vardag_current_step_tags;
+            this.previous_vardag_deps = previous_vardag_deps;
             return;
         }
 
         // On sauvegarde la donnée
-        this.previous_vardag_current_step_tags = previous_vardag_current_step_tags;
+        this.previous_vardag_deps = previous_vardag_deps;
 
-        this.console_log_throttler({ [0]: previous_vardag_current_step_tags, [1]: last_registration_delay });
+        this.console_log_throttler({ [0]: previous_vardag_deps, [1]: last_registration_delay });
 
         // Si on est en dessous de l'alerte, on va juste faire un log
         if (last_registration_delay < VarsProcessInvalidator.ALERT_MAX_EXECUTION_TIME_SECOND) {
@@ -103,17 +124,17 @@ export default class CurrentVarDAGHolder {
                 await ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + VarsBGThreadNameHolder.bgthread_name](false);
                 TeamsAPIServerController.send_teams_error(
                     '[' + ConfigurationService.node_configuration.APP_TITLE + '] Thread VAR ERROR - On kill le process',
-                    'last_registration_delay : ' + last_registration_delay + 'seconds<br/>previous_vardag_current_step_tags:' + JSON.stringify(previous_vardag_current_step_tags)
+                    'last_registration_delay : ' + last_registration_delay + 'seconds<br/>previous_vardag_deps:' + JSON.stringify(previous_vardag_deps)
                 );
             }
         }
     }
 
     private static console_log(values: { [index_: number]: { [tag: string]: string[] } }) {
-        ConsoleHandler.warn('CurrentVarDAGHolder.check_current_vardag:last_registration_delay:' + values[1] + 'seconds:previous_vardag_current_step_tags:' + JSON.stringify(values[0]));
+        ConsoleHandler.warn('CurrentVarDAGHolder.check_current_vardag:last_registration_delay:' + values[1] + 'seconds:previous_vardag_deps:' + JSON.stringify(values[0]));
         TeamsAPIServerController.send_teams_warn(
             '[' + ConfigurationService.node_configuration.APP_TITLE + '] Thread VAR - WARNING',
-            'last_registration_delay : ' + values[1] + 'seconds<br/>previous_vardag_current_step_tags:' + JSON.stringify(values[0])
+            'last_registration_delay : ' + values[1] + 'seconds<br/>previous_vardag_deps:' + JSON.stringify(values[0])
         );
     }
 }
