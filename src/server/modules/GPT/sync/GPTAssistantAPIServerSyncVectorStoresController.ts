@@ -301,6 +301,7 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
 
     private static assign_vo_from_gpt(vector_store_vo: GPTAssistantAPIVectorStoreVO, vector_store_gpt: VectorStore) {
         vector_store_vo.gpt_id = vector_store_gpt.id;
+        vector_store_vo.name = vector_store_gpt.name;
         vector_store_vo.created_at = vector_store_gpt.created_at;
         vector_store_vo.usage_bytes = vector_store_gpt.usage_bytes;
         vector_store_vo.file_counts_in_progress = vector_store_gpt.file_counts?.in_progress ? vector_store_gpt.file_counts?.in_progress : 0;

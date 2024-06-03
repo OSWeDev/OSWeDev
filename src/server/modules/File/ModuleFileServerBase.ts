@@ -88,7 +88,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return FileServerController.getInstance().dirCreate(filepath);
     }
 
-    public async writeFile(filepath: string, fileContent: string) {
+    public async writeFile(filepath: string, fileContent: any) {
         return FileServerController.getInstance().writeFile(filepath, fileContent);
     }
 
@@ -104,9 +104,6 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     public getWriteStream(filepath: string, flags: string): fs.WriteStream {
         return FileServerController.getInstance().getWriteStream(filepath, flags);
     }
-
-    protected abstract getNewVo(): T;
-    protected abstract get_vo_type(): string;
 
     private async uploadFile(req: Request, res: Response) {
 
@@ -182,4 +179,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         }
         return false;
     }
+
+    protected abstract getNewVo(): T;
+    protected abstract get_vo_type(): string;
 }

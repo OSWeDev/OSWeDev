@@ -27,7 +27,7 @@ export default class Patch20240524InitExistingGPTMessageThreadAndRunGPTIds imple
             "SELECT m.id, t.gpt_thread_id " +
             "FROM ref.module_gpt_gpt_assistant_thread_msg m " +
             "JOIN ref.module_gpt_gpt_assistant_thread t ON m.thread_id = t.id " +
-            "WHERE m.gpt_id IS NOT NULL " +
+            "WHERE m.thread_id IS NOT NULL " +
             ") AS t " +
             "WHERE ref.module_gpt_gpt_assistant_thread_msg.id = t.id;");
 
@@ -38,7 +38,7 @@ export default class Patch20240524InitExistingGPTMessageThreadAndRunGPTIds imple
             "SELECT m.id, r.gpt_run_id " +
             "FROM ref.module_gpt_gpt_assistant_thread_msg m " +
             "JOIN ref.module_gpt_gpt_assistant_run r ON m.run_id = r.id " +
-            "WHERE m.gpt_id IS NOT NULL " +
+            "WHERE m.run_id IS NOT NULL " +
             ") AS r " +
             "WHERE ref.module_gpt_gpt_assistant_thread_msg.id = r.id;");
 
@@ -49,7 +49,7 @@ export default class Patch20240524InitExistingGPTMessageThreadAndRunGPTIds imple
             "SELECT m.id, a.gpt_assistant_id " +
             "FROM ref.module_gpt_gpt_assistant_thread_msg m " +
             "JOIN ref.module_gpt_gpt_assistant_assistant a ON m.assistant_id = a.id " +
-            "WHERE m.gpt_id IS NOT NULL " +
+            "WHERE m.assistant_id IS NOT NULL " +
             ") AS a " +
             "WHERE ref.module_gpt_gpt_assistant_thread_msg.id = a.id;");
     }

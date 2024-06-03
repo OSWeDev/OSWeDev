@@ -19,6 +19,10 @@ export default class GPTAssistantAPIServerSyncController {
 
     public static from_openai_error(gpt_obj: Run.LastError | RunStep.LastError | VectorStoreFile.LastError): GPTAssistantAPIErrorVO {
 
+        if (!gpt_obj) {
+            return null;
+        }
+
         const res: GPTAssistantAPIErrorVO = new GPTAssistantAPIErrorVO();
 
         res.code = GPTAssistantAPIErrorVO.FROM_OPENAI_CODE_MAP[gpt_obj.code];
@@ -28,6 +32,10 @@ export default class GPTAssistantAPIServerSyncController {
     }
 
     public static to_openai_error(vo: GPTAssistantAPIErrorVO): Run.LastError | RunStep.LastError | VectorStoreFile.LastError {
+
+        if (!vo) {
+            return null;
+        }
 
         return {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,7 +52,9 @@ export default class GPTAssistantAPIServerSyncController {
      */
     public static compare_values<A>(oswedev_value: A, gpt_value: A): boolean {
         if (oswedev_value == null) {
-            return (gpt_value == null) || (gpt_value == '{}'); // On considère que les {} sont équivalents à des null côté GPT
+            return (gpt_value == null) || (gpt_value == '{}') ||
+                ((typeof gpt_value == 'object') && (Object.keys(gpt_value).length == 0)) ||
+                ((typeof gpt_value == 'string') && (gpt_value == '')); // On considère que les {} sont équivalents à des null côté GPT
         }
 
         if (gpt_value == null) {

@@ -1839,6 +1839,7 @@ export default class ContextQueryServerController {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[context_field.api_type_id];
 
+            // JNE : WTF ?
             if ((!!moduletable) && context_field.field_name) {
                 const all_required_field_names = all_required_fields?.map((field) => field.field_name);
 
@@ -1872,7 +1873,7 @@ export default class ContextQueryServerController {
              *
              * Dans le cas d'un join entre contextquery, on arrive aussi ici a condition d'avoir un field issue du join
              */
-            if (!query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
+            if (context_field.api_type_id && !query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
 
                 aliases_n = await ContextQueryServerController.join_api_type_id(
                     context_query,
@@ -1896,10 +1897,25 @@ export default class ContextQueryServerController {
                 context_field.api_type_id,
                 context_field.field_name,
                 context_field.aggregator,
-                context_field.alias ?? context_field.field_name
+                context_field.alias ?? context_field.field_name,
             );
 
-            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_name ?? context_field.alias);
+            let field_full_name = '';
+
+            // On tente de gérer un CONCAT mais au plus simple. Pas de récursion, certainement beaucoup de cas ignorés ... à retravailler suivant les besoins
+            if (context_field.operator == ContextQueryFieldVO.FIELD_OPERATOR_CONCAT) {
+
+                field_full_name = "CONCAT(" + context_field.operator_fields.map((field_to_concat: ContextQueryFieldVO) => {
+                    if (field_to_concat.static_value) {
+                        return field_to_concat.static_value;
+                    } else {
+                        return query_wrapper.tables_aliases_by_type[field_to_concat.api_type_id] + "." + (field_to_concat.field_name ?? field_to_concat.alias);
+                    }
+                }).join(", ") + ")";
+
+            } else {
+                field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_name ?? context_field.alias);
+            }
 
             if (
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||

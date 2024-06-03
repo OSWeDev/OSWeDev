@@ -365,6 +365,24 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Ajouter un field construit par ailleurs
+     */
+    public add_field_obj(
+        field: ContextQueryFieldVO,
+    ): ContextQueryVO {
+
+        if (!this.fields) {
+            this.fields = [];
+        }
+
+        this.fields.push(field);
+
+        this.update_active_api_type_ids_from_fields([field]);
+
+        return this;
+    }
+
+    /**
      * has_field
      *  - Check if the given field_id is in the fields
      */

@@ -94,6 +94,7 @@ import Patch20240514AddAssistantFunctionGetVoTypeDescription from './patchs/post
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240524InitExistingGPTMessageThreadAndRunGPTIds from './patchs/postmodules/Patch20240524InitExistingGPTMessageThreadAndRunGPTIds';
+import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -180,6 +181,7 @@ export default abstract class GeneratorBase {
             Patch20240415Adduniqmail_id.getInstance(),
             Patch20240515RunStatusToEnum.getInstance(),
             Patch20240521ChangeFormatDbAssistants.getInstance(),
+            Patch20240530AddUniqNameMailCategory.getInstance(),
         ];
 
         this.post_modules_workers = [

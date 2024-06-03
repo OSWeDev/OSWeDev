@@ -9,14 +9,16 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncRunStepsController from './GPTAssistantAPIServerSyncRunStepsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
-import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncRunsController {
+
+    private static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
     /**
      * GPTAssistantAPIRunVO
@@ -82,7 +84,8 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     ConsoleHandler.log('push_run_to_openai: Creating run in OpenAI : ' + vo.id);
                 }
 
-                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai &&
+                    !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant_run) {
                     throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
                 }
 
@@ -202,66 +205,74 @@ export default class GPTAssistantAPIServerSyncRunsController {
      */
     public static async sync_runs(gpt_thread_id: string) {
 
-        if (ConfigurationService.node_configuration.debug_openai_sync) {
-            ConsoleHandler.log('sync_runs: Syncing runs for thread : ' + gpt_thread_id);
+        if (GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id]) {
+            return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];
         }
 
-        const runs: Run[] = await GPTAssistantAPIServerSyncRunsController.get_all_runs(gpt_thread_id);
-        const runs_vos: GPTAssistantAPIRunVO[] = await query(GPTAssistantAPIRunVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIRunVO>();
-        const runs_vos_by_gpt_id: { [gpt_run_id: string]: GPTAssistantAPIRunVO } = {};
-
-        for (const i in runs_vos) {
-            const run_vo = runs_vos[i];
-            runs_vos_by_gpt_id[run_vo.gpt_run_id] = run_vo;
-        }
-
-        for (const i in runs) {
-            const run = runs[i];
-            let found_vo: GPTAssistantAPIRunVO = runs_vos_by_gpt_id[run.id];
-            let needs_update = false;
-
-            if (!found_vo) {
-                found_vo = new GPTAssistantAPIRunVO();
-                needs_update = true;
-            }
-
-            needs_update = needs_update ||
-                GPTAssistantAPIServerSyncRunsController.run_has_diff(found_vo, GPTAssistantAPIServerSyncController.to_openai_error(found_vo.last_error) as Run.LastError, run);
-
-            if (!needs_update) {
-                continue;
-            }
-
+        GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id] = (async () => {
             if (ConfigurationService.node_configuration.debug_openai_sync) {
-                ConsoleHandler.log('sync_runs: Updating run in Osélia : ' + run.id + ' - ' + run.thread_id);
+                ConsoleHandler.log('sync_runs: Syncing runs for thread : ' + gpt_thread_id);
             }
 
-            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(found_vo, run);
+            const runs: Run[] = await GPTAssistantAPIServerSyncRunsController.get_all_runs(gpt_thread_id);
+            const runs_vos: GPTAssistantAPIRunVO[] = await query(GPTAssistantAPIRunVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIRunVO>();
+            const runs_vos_by_gpt_id: { [gpt_run_id: string]: GPTAssistantAPIRunVO } = {};
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
-        }
-
-        // Les runs qu'on trouve dans Osélia mais pas dans OpenAI, on les archive
-        for (const gpt_run_id in runs_vos_by_gpt_id) {
-
-            if (runs_vos_by_gpt_id[gpt_run_id]) {
-                continue;
+            for (const i in runs_vos) {
+                const run_vo = runs_vos[i];
+                runs_vos_by_gpt_id[run_vo.gpt_run_id] = run_vo;
             }
 
-            const found_vo = runs_vos_by_gpt_id[gpt_run_id];
+            for (const i in runs) {
+                const run = runs[i];
+                let found_vo: GPTAssistantAPIRunVO = runs_vos_by_gpt_id[run.id];
+                let needs_update = false;
 
-            if (found_vo.archived) {
-                continue;
+                if (!found_vo) {
+                    found_vo = new GPTAssistantAPIRunVO();
+                    needs_update = true;
+                }
+
+                needs_update = needs_update ||
+                    GPTAssistantAPIServerSyncRunsController.run_has_diff(found_vo, GPTAssistantAPIServerSyncController.to_openai_error(found_vo.last_error) as Run.LastError, run);
+
+                if (!needs_update) {
+                    continue;
+                }
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('sync_runs: Updating run in Osélia : ' + run.id + ' - ' + run.thread_id);
+                }
+
+                await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(found_vo, run);
+
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }
 
-            if (ConfigurationService.node_configuration.debug_openai_sync) {
-                ConsoleHandler.log('sync_runs: Archiving run in Osélia : ' + found_vo.id + ' - ' + found_vo.thread_id);
+            // Les runs qu'on trouve dans Osélia mais pas dans OpenAI, on les archive
+            for (const gpt_run_id in runs_vos_by_gpt_id) {
+
+                if (runs_vos_by_gpt_id[gpt_run_id]) {
+                    continue;
+                }
+
+                const found_vo = runs_vos_by_gpt_id[gpt_run_id];
+
+                if (found_vo.archived) {
+                    continue;
+                }
+
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('sync_runs: Archiving run in Osélia : ' + found_vo.id + ' - ' + found_vo.thread_id);
+                }
+
+                found_vo.archived = true;
+
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }
+        })();
 
-            found_vo.archived = true;
-
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
-        }
+        return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];
     }
 
     private static async get_all_runs(gpt_thread_id: string): Promise<Run[]> {
@@ -305,6 +316,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
             GPTAssistantAPIServerSyncController.compare_values(run_vo.gpt_thread_id, run_gpt.thread_id) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.cancelled_at, run_gpt.cancelled_at) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.completed_at, run_gpt.completed_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.created_at, run_gpt.created_at) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.expires_at, run_gpt.expires_at) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.failed_at, run_gpt.failed_at) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.started_at, run_gpt.started_at) &&
@@ -356,6 +368,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
         }
 
         vo.cancelled_at = gpt_obj.cancelled_at;
+        vo.created_at = gpt_obj.created_at;
         vo.completed_at = gpt_obj.completed_at;
         vo.expires_at = gpt_obj.expires_at;
         vo.failed_at = gpt_obj.failed_at;

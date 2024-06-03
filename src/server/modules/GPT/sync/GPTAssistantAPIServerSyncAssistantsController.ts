@@ -327,7 +327,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
                 needs_update = needs_update ||
                     GPTAssistantAPIServerSyncAssistantsController.assistant_has_diff(found_vo, tools, tool_resources, assistant) ||
-                    (!found_vo.archived);
+                    (found_vo.archived);
 
                 if (needs_update) {
 

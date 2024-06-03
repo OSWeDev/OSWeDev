@@ -22,6 +22,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -29,7 +30,6 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-import ConfigurationService from '../../env/ConfigurationService';
 
 export default class GPTAssistantAPIServerController {
 
@@ -783,93 +783,132 @@ export default class GPTAssistantAPIServerController {
         thread_vo.current_oselia_assistant_id = assistant_vo.id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
-        if ((!thread_vo) || (!thread_vo.gpt_thread_id)) {
+        if (!thread_vo) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: thread not created');
             return null;
         }
 
-        const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
-            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
-            .set_limit(1)
-            .exec_as_server()
-            .select_vo<GPTAssistantAPIThreadMessageVO>();
-
-        const asking_message_vo: GPTAssistantAPIThreadMessageVO = await this.get_asking_message(
-            thread_vo,
-            last_thread_msg,
-            user_id,
-            content_text,
-            files
-        );
-
-        //  La discussion est en place, on peut demander à l'assistant de répondre
-        const run_vo = new GPTAssistantAPIRunVO();
-        run_vo.assistant_id = assistant_vo.id;
-        run_vo.thread_id = thread_vo.id;
-        run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
-        run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
-
-        // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
-        // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
-        const referrer: OseliaReferrerVO =
-            await query(OseliaReferrerVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
-                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
-                .exec_as_server()
-                .set_limit(1)
-                .select_vo<OseliaReferrerVO>();
-        const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
-            await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
-                .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
-                .exec_as_server()
-                .select_vos<OseliaReferrerExternalAPIVO>()
-            : [];
-        const referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO } = {};
-
-        for (const i in referrer_external_apis) {
-            const referrer_external_api = referrer_external_apis[i];
-            referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
+        if (!thread_vo.gpt_thread_id) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: thread not created in OpenAI');
+            thread_vo.oselia_is_running = false;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+            return null;
         }
 
-        await GPTAssistantAPIServerController.handle_run(
-            run_vo,
-            thread_vo,
-            availableFunctions,
-            availableFunctionsParameters,
-            referrer,
-            referrer_external_api_by_name,
-        );
+        let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
+        let new_messages: GPTAssistantAPIThreadMessageVO[] = null;
+        try {
 
-        // Par défaut ça charge les 20 derniers messages, et en ajoutant after on a les messages après le asking_message - donc les réponses finalement
-        // const thread_messages = await ModuleGPTServer.openai.beta.threads.messages.list(thread_vo.gpt_thread_id, (asking_message_vo && asking_message_vo.gpt_id) ? {
-        //     before: asking_message_vo.gpt_id
-        // } : null);
+            const last_thread_msg: GPTAssistantAPIThreadMessageVO = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                .set_limit(1)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIThreadMessageVO>();
 
-        // const res: GPTAssistantAPIThreadMessageVO[] = [];
+            asking_message_vo = await this.get_asking_message(
+                thread_vo,
+                last_thread_msg,
+                user_id,
+                content_text,
+                files
+            );
 
-        // for (const i in thread_messages.data) {
-        //     const thread_message: Message = thread_messages.data[i];
+            //  La discussion est en place, on peut demander à l'assistant de répondre
+            const run_vo = new GPTAssistantAPIRunVO();
+            run_vo.assistant_id = assistant_vo.id;
+            run_vo.thread_id = thread_vo.id;
+            run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
+            run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
+            // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
+            const referrer: OseliaReferrerVO =
+                await query(OseliaReferrerVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                    .exec_as_server()
+                    .set_limit(1)
+                    .select_vo<OseliaReferrerVO>();
+            const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
+                await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
+                    .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
+                    .exec_as_server()
+                    .select_vos<OseliaReferrerExternalAPIVO>()
+                : [];
+            const referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO } = {};
+
+            for (const i in referrer_external_apis) {
+                const referrer_external_api = referrer_external_apis[i];
+                referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
+            }
+
+            await GPTAssistantAPIServerController.handle_run(
+                run_vo,
+                thread_vo,
+                availableFunctions,
+                availableFunctionsParameters,
+                referrer,
+                referrer_external_api_by_name,
+            );
+
+            // Par défaut ça charge les 20 derniers messages, et en ajoutant after on a les messages après le asking_message - donc les réponses finalement
+            // const thread_messages = await ModuleGPTServer.openai.beta.threads.messages.list(thread_vo.gpt_thread_id, (asking_message_vo && asking_message_vo.gpt_id) ? {
+            //     before: asking_message_vo.gpt_id
+            // } : null);
+
+            // const res: GPTAssistantAPIThreadMessageVO[] = [];
+
+            // for (const i in thread_messages.data) {
+            //     const thread_message: Message = thread_messages.data[i];
 
 
-        //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
-        // }
+            //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
+            // }
 
-        const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-            ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
-        await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
+            const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
+            await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
 
-        await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
+            await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
 
-        const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
-            .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
-            .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().weight, asking_message_vo.weight)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIThreadMessageVO>();
+            const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().weight, asking_message_vo.weight)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIThreadMessageVO>();
+
+            return new_messages;
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
+        } finally {
+
+            try {
+                const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+                    ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
+                await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
+            } catch (error) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
+            }
+
+            try {
+                await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
+
+                new_messages = asking_message_vo ? await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
+                    .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
+                    .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().weight, asking_message_vo.weight)
+                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                    .exec_as_server()
+                    .select_vos<GPTAssistantAPIThreadMessageVO>() : null;
+            } catch (error) {
+                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
+            }
+        }
 
         return new_messages;
     }

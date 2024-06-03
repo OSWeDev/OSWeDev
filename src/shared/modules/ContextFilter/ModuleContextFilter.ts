@@ -395,14 +395,16 @@ export default class ModuleContextFilter extends Module {
 
     private init_ContextQueryFieldVO() {
 
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', true),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', true),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Aggrégateur', false).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', false).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS),
-            ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false),
-        ];
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'Api_type_id', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du champs', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().alias, ModuleTableFieldVO.FIELD_TYPE_string, 'Alias', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Aggrégateur', true, true, VarConfVO.NO_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().modifier, ModuleTableFieldVO.FIELD_TYPE_enum, 'Modificateur', true, true, ContextQueryFieldVO.FIELD_MODIFIER_NONE).setEnumValues(ContextQueryFieldVO.FIELD_MODIFIER_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().cast_with, ModuleTableFieldVO.FIELD_TYPE_string, 'Caster avec', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().operator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Opérateur', true, true, ContextQueryFieldVO.FIELD_OPERATOR_NONE).setEnumValues(ContextQueryFieldVO.FIELD_OPERATOR_LABELS);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().operator_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champs de l\'opérateur', false);
+        ModuleTableFieldController.create_new(ContextQueryFieldVO.API_TYPE_ID, field_names<ContextQueryFieldVO>().static_value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur statique', false);
+
         const datatable = ModuleTableController.create_new(this.name, ContextQueryFieldVO, null, "Champs de requête");
     }
 

@@ -12,6 +12,6 @@ export default class ParameterizedQueryWrapperField {
         public api_type_id: string,
         public field_id: string,
         public aggregator: number,
-        public row_col_alias: string
+        public row_col_alias: string,
     ) { }
 }

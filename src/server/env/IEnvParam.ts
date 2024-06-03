@@ -105,4 +105,7 @@ export default interface IEnvParam {
     debug_openai_sync?: boolean;
 
     block_openai_sync_push_to_openai?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant_run?: boolean;
 }

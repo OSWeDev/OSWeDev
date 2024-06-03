@@ -28,6 +28,19 @@ export default class GPTAssistantAPIServerSyncThreadsController {
      */
     public static async pre_update_trigger_handler_for_ThreadVO(params: DAOUpdateVOHolder<GPTAssistantAPIThreadVO>, exec_as_server?: boolean): Promise<boolean> {
         try {
+
+            /**
+             * Si on ne change rien d'utile, pas la peine de pousser
+             */
+            if ((params.pre_update_vo.archived == params.post_update_vo.archived) &&
+                (params.pre_update_vo.gpt_thread_id == params.post_update_vo.gpt_thread_id) &&
+                (params.pre_update_vo.created_at == params.post_update_vo.created_at) &&
+                (params.pre_update_vo.metadata == params.post_update_vo.metadata) &&
+                (params.pre_update_vo.tool_resources == params.post_update_vo.tool_resources)) {
+                return true;
+            }
+
+
             await GPTAssistantAPIServerSyncThreadsController.push_thread_to_openai(params.post_update_vo);
         } catch (error) {
             ConsoleHandler.error('Error while pushing thread to OpenAI : ' + error);
@@ -86,7 +99,8 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                     ConsoleHandler.log('GPTAssistantAPIServerSyncThreadsController:push_thread_to_openai - creating thread');
                 }
 
-                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai &&
+                    !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant_thread) {
                     throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai');
                 }
 
