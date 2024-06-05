@@ -1096,11 +1096,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let updated_vo_id = null;
             let vos_by_ids = vos_by_vo_tablename_and_ids[tablename].vos;
-            for (let vo_id in vos_by_ids) {
-
-                if (vo_id == 'null') {
-                    vo_id = null;
-                }
+            for (const vo_id_s in vos_by_ids) {
+                const vo_id = vo_id_s == 'null' ? null : parseInt(vo_id_s);
 
                 let vos_values = [];
                 let setters: any[] = [];
