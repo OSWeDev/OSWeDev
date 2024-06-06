@@ -17,6 +17,7 @@ import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import VarChartScalesOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO';
 
 export interface IChartOptions {
     responsive?: boolean;
@@ -38,8 +39,7 @@ export interface IChartDataset {
     backgroundColor: string[];
     borderColor: string[];
     borderWidth: number[];
-    fill?: number;
-    yAxisID: string;
+    yAxisID?: string;
 }
 
 const date_adapter = DatesChartJsAdapters.get_adapters();
@@ -68,6 +68,9 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public charts_var_dataset_descriptor: { [chart_index: string]: VarMixedChartDataSetDescriptor };
+
+    @Prop({ default: null })
+    public charts_scales_options: { [chart_index: string]: VarChartScalesOptionsVO };
 
     @Prop({ default: null })
     public options: IChartOptions;
@@ -170,7 +173,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
      */
     private var_datas_updater(): Promise<void> {
 
-        if ((!this.charts_var_params) || (!this.charts_var_dataset_descriptor)) {
+        if ((!this.charts_var_params) || (!this.charts_var_dataset_descriptor) || (!this.charts_scales_options)) {
             this.charts_var_datas = null;
 
             return;
@@ -228,16 +231,21 @@ export default class VarMixedChartComponent extends VueComponentBase {
         const chart_var_dataset_descriptor = this.charts_var_dataset_descriptor[chart_id];
         const chart_var_params = this.charts_var_params[chart_id];
         const chart_var_datas = this.charts_var_datas[chart_id];
+        const charts_scales_options = this.charts_scales_options[chart_id];
 
         const data: number[] = [];
         const backgroundColor = [];
         const borderColor = [];
         const borderWidth = [];
-        const yAxisID = null;
+        let yAxisID = null;
 
-        if (!chart_var_params || !chart_var_datas || !chart_var_dataset_descriptor) {
+        if (!charts_scales_options || !chart_var_params || !chart_var_datas || !chart_var_dataset_descriptor) {
             return null;
         }
+
+
+        yAxisID = this.t(new VarChartScalesOptionsVO().from(charts_scales_options).get_title_name_code_text(charts_scales_options.page_widget_id, charts_scales_options.chart_id));
+
 
         for (const var_key in chart_var_params) {
             const var_param: VarDataBaseVO = chart_var_params[var_key];
@@ -249,7 +257,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.backgroundColor[0]) {
                 backgroundColor.push(chart_var_dataset_descriptor.backgroundColor[0]);
             } else {
-                backgroundColor.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
+                backgroundColor.push('#000000');
             }
 
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderColor[var_key]) {
@@ -257,7 +265,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             } else if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderColor[0]) {
                 borderColor.push(chart_var_dataset_descriptor.borderColor[0]);
             } else {
-                borderColor.push('#fff');
+                borderColor.push('#000000');
             }
 
             if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.borderWidth[var_key]) {
@@ -270,17 +278,23 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
 
         if (chart_var_dataset_descriptor && chart_var_dataset_descriptor.type) {
-            return {
-                label: (!!chart_var_dataset_descriptor.label_translatable_code) ?
+            let obj = {
+                label: chart_var_dataset_descriptor.label_translatable_code != '' ?
                     this.t(chart_var_dataset_descriptor.label_translatable_code) :
-                    '',
+                    'Label' + Object.values(this.charts_var_dataset_descriptor).indexOf(chart_var_dataset_descriptor).toString(),
                 type: chart_var_dataset_descriptor.type,
                 backgroundColor: backgroundColor,
                 borderColor: borderColor,
                 borderWidth: borderWidth,
                 data: data,
-                yAxisID: yAxisID
+                fill: charts_scales_options.fill ? charts_scales_options.fill : false,
             };
+            if (yAxisID != null) {
+                return Object.assign({}, obj, { yAxisID: yAxisID });
+            } else {
+                return obj
+            }
+
         } else {
             return
         }
@@ -307,7 +321,8 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         if (
             !(this.charts_var_dataset_descriptor) ||
-            !(this.charts_var_params)
+            !(this.charts_var_params) ||
+            !(this.charts_scales_options)
         ) {
             return false;
         }
@@ -318,7 +333,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (let i in chart_var_params) {
                 const var_param: VarDataBaseVO = chart_var_params[i];
 
-                if (
+                if ((!this.charts_var_datas) ||
                     (!this.charts_var_datas[chart_key]) ||
                     (!this.charts_var_datas[chart_key][var_param.id]) ||
                     (typeof this.charts_var_datas[chart_key][var_param.id].value === 'undefined')

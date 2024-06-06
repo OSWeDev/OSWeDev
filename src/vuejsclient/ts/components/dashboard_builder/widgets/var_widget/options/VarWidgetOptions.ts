@@ -1,4 +1,5 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
+import VarWidgetOptionsElementsVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsElementsVO";
 import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
@@ -14,6 +15,8 @@ export interface IVarWidgetOptionsProps {
     bg_color?: string;
     fg_color_value?: string;
     fg_color_text?: string;
+    icon?: string;
+    elements_array: VarWidgetOptionsElementsVO[];
 }
 
 export default class VarWidgetOptions implements IExportableWidgetOptions {
@@ -32,6 +35,8 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
         public bg_color?: string,
         public fg_color_value?: string,
         public fg_color_text?: string,
+        public icon?: string,
+        public elements_array: VarWidgetOptionsElementsVO[] = [],
     ) { }
 
     /**
@@ -50,6 +55,8 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
         this.filter_type = props.filter_type ?? this.filter_type;
         this.bg_color = props.bg_color ?? this.bg_color;
         this.var_id = props.var_id ?? this.var_id;
+        this.icon = props.icon ?? this.icon;
+        this.elements_array = props.elements_array ?? this.elements_array;
 
         return this;
     }

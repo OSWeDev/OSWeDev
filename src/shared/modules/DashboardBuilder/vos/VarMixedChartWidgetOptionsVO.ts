@@ -88,8 +88,6 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
             false,
             false,
             null,
-            "#666",
-            "#666",
             null,
             null
         );
@@ -151,8 +149,6 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         public show_scale_x?: boolean,
         public show_scale_y?: boolean,
         public scale_options_x?: Partial<Scale>,
-        public scale_x_color?: string,
-        public scale_y_color?: string,
         public scale_options_y?: Partial<Scale>,
         public scale_options_r?: Partial<Scale>,
     ) {
@@ -187,13 +183,13 @@ export default class VarMixedChartWidgetOptionsVO extends AbstractVO {
         return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + '.scale_y' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
-    public get_var_name_code_text(page_widget_id: number, var_id: number): string {
+    public get_var_name_code_text(page_widget_id: number, var_id: number, chart_id?: number): string {
 
-        if ((!page_widget_id) || (!var_id)) {
+        if ((!page_widget_id) || (!var_id) || (!chart_id)) {
             return null;
         }
 
-        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
+        return VarMixedChartWidgetOptionsVO.TITLE_CODE_PREFIX + var_id + '.' + page_widget_id + '.' + chart_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {

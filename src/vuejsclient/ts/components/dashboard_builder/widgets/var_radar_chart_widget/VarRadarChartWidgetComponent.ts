@@ -117,7 +117,11 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
+        if (this.t(this.widget_options.get_title_name_code_text(this.page_widget.id)) != this.widget_options.get_title_name_code_text(this.page_widget.id)) {
+            return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
+        }
+
+        return 'Title'
     }
 
     private get_bool_option(option: string, default_value: boolean): boolean {
@@ -194,9 +198,9 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             },
             scales: {
                 r: {
-                  ticks: {
-                    callback: this.getLabels
-                  },
+                    ticks: {
+                        callback: this.getLabels
+                    },
                 }
             },
 
@@ -259,8 +263,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
 
                 return new VarRadarDataSetDescriptor(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name,
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))
-                )
+                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) != this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) : '')
                     .set_backgrounds(colors)
                     .set_bordercolors([this.widget_options.border_color_1])
                     .set_borderwidths([this.widget_options.border_width_1]);
@@ -270,7 +273,7 @@ export default class VarRadarChartWidgetComponent extends VueComponentBase {
             if (this.widget_options.var_id_1 && VarsController.var_conf_by_id[this.widget_options.var_id_1]) {
                 return new VarRadarDataSetDescriptor(
                     VarsController.var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
-                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))) // ?? flou le label à utiliser ici
+                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) != this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1) ? this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)) : '')
                     .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
                     .set_bordercolors([this.widget_options.border_color_1, this.widget_options.border_color_2])
                     .set_borderwidths([this.widget_options.border_width_1, this.widget_options.border_width_2]);

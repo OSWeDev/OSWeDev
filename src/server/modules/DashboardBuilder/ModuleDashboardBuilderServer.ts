@@ -168,7 +168,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
         }, 'var_radar_chart_widget_options_component.separator.widget_options.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre personnalisé'
+        }, 'var_radar_chart_widget_options_component.field_that_could_get_custom_filter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre'
         }, 'var_radar_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
@@ -340,6 +342,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du widget'
         }, 'var_mixed_charts_widget_options_component.separator.widget_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pas de données, veuillez vérifier que les tables nécessaires sont présentes.'
+        }, 'var_mixed_charts_widget.error_message'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
@@ -550,9 +556,58 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Supprimer la variable du graphique'
         }, 'var_charts_options_component.remove_var_chart_options_button.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des ordonnées'
+        }, 'var_charts_scales_options_component.separator.var_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ajouter une ordonnée'
+        }, 'var_chart_scales_options_component.add_var_chart_scales_options_button.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options graphiques'
+        }, 'var_chart_scales_options_item_component.separator.var_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'ID de l\'ordonnée'
+        }, 'var_chart_scales_options_item_component.chart_id.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Titre de l\'ordonnée'
+        }, 'var_chart_scales_options_item_component.scale_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher le titre'
+        }, 'var_chart_scales_options_item.show_scale_title.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Couleur de l\'axe'
+        }, 'var_chart_scales_options_item.scale_axis_color.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Position de l\'axe'
+        }, 'var_chart_scales_options_item_component.separator.scale_position.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de filtrage des valeurs'
+        }, 'var_chart_scales_options_item_component.separator.datas_filter_options.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options de l\'unité de temps'
         }, 'chart_js_scale_time_options_component.unit_options_selector.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Supprimer l\'ordonnée du graphique'
+        }, 'var_chart_scales_options_component.remove_var_chart_scales_options_button.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de tri des dimensions'
+        }, 'var_chart_scales_options_component.separator.datas_filter_options.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre personnalisé'
+        }, 'var_chart_options_item_component.field_that_could_get_custom_filter.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
@@ -1711,6 +1766,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du widget'
         }, 'var_pie_chart_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Filtre personnalisé'
+        }, 'var_pie_chart_widget_options_component.field_that_could_get_custom_filter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Titre du widget'
         }, 'var_pie_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));

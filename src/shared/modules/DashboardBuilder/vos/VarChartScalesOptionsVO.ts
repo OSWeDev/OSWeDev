@@ -13,15 +13,18 @@ export default class VarChartScalesOptionsVO extends AbstractVO {
 
     public constructor(
         public chart_id?: number,
-        public scale_title?: string,
-        public scale_color?: string,
         public scale_options?: Partial<Scale>,
         public filter_type?: string,
         public filter_additional_params?: string,
-        public show_scale_title?: boolean
+        public show_scale_title?: boolean,
+        public page_widget_id?: number,
+        public selected_position?: string,
+        public fill?: boolean,
+        public stacked?: boolean
     ) {
         super();
     }
+
     public get_title_name_code_text(page_widget_id: number, chart_id: number): string {
 
         if (!page_widget_id) {

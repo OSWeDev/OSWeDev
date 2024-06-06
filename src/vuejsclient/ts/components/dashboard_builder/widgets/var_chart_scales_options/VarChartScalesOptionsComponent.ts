@@ -25,7 +25,7 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
     private page_widget_id: number;
 
     @Prop({ default: null })
-    private get_var_name_code_text: (page_widget_id: number, var_id: number) => string;
+    private get_var_name_code_text: (page_widget_id: number, var_id: number, chart_id: number) => string;
 
     private options_props: VarChartScalesOptionsVO[] = [];
 
@@ -85,7 +85,7 @@ export default class VarChartScalesOptionsComponent extends VueComponentBase {
 
         this.options_props = options;
 
-        // this.emit_change();
+        this.emit_change();
     }
 
     private emit_change() {

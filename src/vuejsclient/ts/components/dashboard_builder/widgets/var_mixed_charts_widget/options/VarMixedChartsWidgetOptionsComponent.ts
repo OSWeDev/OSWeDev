@@ -78,8 +78,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
     private show_scale_y: boolean = false;
     private scale_options_x?: Partial<Scale> = null;
     private scale_options_y?: Partial<Scale> = null;
-    private scale_x_color?: string = null;
-    private scale_y_color?: string = null;
 
     private tmp_selected_legend_position: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
@@ -657,8 +655,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.bg_color = this.bg_color;
         this.next_update_options.legend_font_color = this.legend_font_color;
         this.next_update_options.title_font_color = this.title_font_color;
-        this.next_update_options.scale_x_color = this.scale_x_color;
-        this.next_update_options.scale_y_color = this.scale_y_color;
 
         await this.throttled_update_options();
     }
@@ -682,32 +678,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         this.next_update_options.dimension_custom_filter_name = this.dimension_custom_filter_name;
 
         this.throttled_update_options();
-    }
-
-    private handle_scale_x_color_change(color: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_x_color = color;
-        this.throttled_update_colors();
-    }
-
-    private handle_scale_y_color_change(color: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        this.scale_y_color = color;
-        this.throttled_update_colors();
     }
 
     /**
@@ -737,17 +707,17 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      * @returns {void}
      */
     private handle_var_chart_scales_options_change(var_chart_scales_options: VarChartScalesOptionsVO[]): void {
-        // if (!this.widget_options) {
-        //     return;
-        // }
+        if (!this.widget_options) {
+            return;
+        }
 
-        // if (!this.next_update_options) {
-        //     this.next_update_options = this.get_default_options();
-        // }
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
 
-        // this.var_chart_scales_options = var_chart_scales_options;
-        // this.next_update_options.var_chart_scales_options = this.var_chart_scales_options;
-        // this.throttled_update_options();
+        this.var_chart_scales_options = var_chart_scales_options;
+        this.next_update_options.var_chart_scales_options = this.var_chart_scales_options;
+        this.throttled_update_options();
     }
 
     /**
@@ -893,8 +863,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
             this.scale_y_title = null;
             this.scale_options_x = null;
             this.scale_options_y = null;
-            this.scale_x_color = '#666';
-            this.scale_y_color = '#666';
 
             return;
         }
@@ -953,12 +921,6 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
         }
         if (this.bg_color != this.widget_options.bg_color) {
             this.bg_color = this.widget_options.bg_color;
-        }
-        if (this.scale_x_color != this.widget_options.scale_x_color) {
-            this.scale_x_color = this.widget_options.scale_x_color;
-        }
-        if (this.scale_y_color != this.widget_options.scale_y_color) {
-            this.scale_y_color = this.widget_options.scale_y_color;
         }
         if (this.legend_font_color != this.widget_options.legend_font_color) {
             this.legend_font_color = this.widget_options.legend_font_color;
@@ -1026,7 +988,7 @@ export default class VarMixedChartsWidgetOptionsComponent extends VueComponentBa
      *
      * @returns {string}
      */
-    private get_var_name_code_text(): (page_widget_id: number, var_id: number) => string {
+    private get_var_name_code_text(): (page_widget_id: number, var_id: number, chart_id?: number) => string {
         if (!this.widget_options) {
             return null;
         }
