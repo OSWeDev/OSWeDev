@@ -144,11 +144,12 @@ export default class VarsProcessInvalidator {
         const vos_types: { [vo_type: string]: boolean } = {};
 
         for (const i in ordered_vos_cud) {
-            const vo = ordered_vos_cud[i];
+            const vo_as_DAOUpdateVOHolder = ordered_vos_cud[i] as DAOUpdateVOHolder<IDistantVOBase>;
+            const vo = ordered_vos_cud[i] as IDistantVOBase;
 
-            if (vo instanceof DAOUpdateVOHolder) {
-                vos_types[vo.pre_update_vo._type] = true;
-                vos_types[vo.post_update_vo._type] = true; // logiquement c'est le même mais bon...
+            if (vo_as_DAOUpdateVOHolder && vo_as_DAOUpdateVOHolder.pre_update_vo && vo_as_DAOUpdateVOHolder.post_update_vo && vo_as_DAOUpdateVOHolder.pre_update_vo._type && vo_as_DAOUpdateVOHolder.post_update_vo._type) {
+                vos_types[vo_as_DAOUpdateVOHolder.pre_update_vo._type] = true;
+                vos_types[vo_as_DAOUpdateVOHolder.post_update_vo._type] = true; // logiquement c'est le même mais bon...
             } else {
                 vos_types[vo._type] = true;
             }

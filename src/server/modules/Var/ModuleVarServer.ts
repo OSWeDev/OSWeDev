@@ -1334,6 +1334,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
+        // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
+        CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+
         for (const i in datasources_deps) {
             const datasource_dep = datasources_deps[i];
 

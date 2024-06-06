@@ -621,14 +621,18 @@ export default class VarsDatasVoUpdateHandler {
 
             const node: VarDAGNode = CurrentVarDAGHolder.current_vardag.nodes[invalidator.var_data.index];
 
+            if (!node) {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                    ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index + ': NOT FOUND');
+                }
+
+                return null;
+            }
+
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_invalidator:EXACT:' + invalidator.var_data.index +
                     ':!!node:' + !!node + ':!!node.var_data:' + !!node.var_data + ':value_type:' + node.var_data.value_type +
                     ':invalidate_denied:' + invalidator.invalidate_denied + ':invalidate_imports:' + invalidator.invalidate_imports);
-            }
-
-            if (!node) {
-                return null;
             }
 
             if ((node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
