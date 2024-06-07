@@ -1,8 +1,3 @@
-import ConfigurationService from '../../../env/ConfigurationService';
-import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
-import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
-import VarsServerController from '../../../modules/Var/VarsServerController';
-import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
@@ -10,6 +5,11 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../../env/ConfigurationService';
+import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
+import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
+import VarsServerController from '../../../modules/Var/VarsServerController';
+import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ModuleTableServerController from '../../DAO/ModuleTableServerController';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
@@ -243,12 +243,7 @@ export default class VarDAGNode extends DAGNodeBase {
         const parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
 
         let fields: string = 't.id';
-        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-            _type,
-            'id',
-            null,
-            'id'
-        );
+        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.get_id_field(_type);
 
         parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
 
@@ -256,12 +251,7 @@ export default class VarDAGNode extends DAGNodeBase {
         for (const i in base_moduletable_fields) {
             const field = base_moduletable_fields[i];
 
-            parameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                _type,
-                field.field_name,
-                null,
-                field.field_name
-            );
+            parameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_ModuleTableFieldVO(field);
             parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
             fields += ', t.' + field.field_name;
         }

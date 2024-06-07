@@ -1893,23 +1893,38 @@ export default class ContextQueryServerController {
             }
             first = false;
 
-            const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                context_field.api_type_id,
-                context_field.field_name,
-                context_field.aggregator,
-                context_field.alias ?? context_field.field_name,
-            );
+            const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_ContextQueryFieldVO(context_field);
 
             let field_full_name = '';
 
             // On tente de gérer un CONCAT mais au plus simple. Pas de récursion, certainement beaucoup de cas ignorés ... à retravailler suivant les besoins
+            // Bon on ajoute le COALESCE à nouveau pour un cas ultra spécifique, il faut généraliser l'écriture des opérateurs...
             if (context_field.operator == ContextQueryFieldVO.FIELD_OPERATOR_CONCAT) {
 
                 field_full_name = "CONCAT(" + context_field.operator_fields.map((field_to_concat: ContextQueryFieldVO) => {
-                    if (field_to_concat.static_value) {
-                        return field_to_concat.static_value;
-                    } else {
+                    if (field_to_concat.static_value != null) {
+                        return "'" + field_to_concat.static_value + "'";
+                    } else if (!field_to_concat.operator) {
                         return query_wrapper.tables_aliases_by_type[field_to_concat.api_type_id] + "." + (field_to_concat.field_name ?? field_to_concat.alias);
+                    } else if (field_to_concat.operator == ContextQueryFieldVO.FIELD_OPERATOR_COALESCE) {
+                        return "COALESCE(" + field_to_concat.operator_fields.map((field_to_coalesce: ContextQueryFieldVO) => {
+                            if (field_to_coalesce.static_value != null) {
+                                return "'" + field_to_coalesce.static_value + "'";
+                            } else if (!field_to_coalesce.operator) {
+                                return query_wrapper.tables_aliases_by_type[field_to_coalesce.api_type_id] + "." + (field_to_coalesce.field_name ?? field_to_coalesce.alias);
+                            } else if (field_to_coalesce.operator == ContextQueryFieldVO.FIELD_OPERATOR_NULLIF) {
+                                // No comment
+                                return "NULLIF(" + field_to_coalesce.operator_fields.map((field_to_nullif: ContextQueryFieldVO) => {
+                                    if (field_to_nullif.static_value != null) {
+                                        return "'" + field_to_nullif.static_value + "'";
+                                    } else if (!field_to_nullif.operator) {
+                                        return query_wrapper.tables_aliases_by_type[field_to_nullif.api_type_id] + "." + (field_to_nullif.field_name ?? field_to_nullif.alias);
+                                    } else {
+                                        throw new Error('Not Implemented');
+                                    }
+                                }).join(", ") + ")";
+                            }
+                        }).join(", ") + ")";
                     }
                 }).join(", ") + ")";
 
@@ -1933,7 +1948,16 @@ export default class ContextQueryServerController {
                 alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
             }
 
-            const field_alias = ((alias && context_field.field_name) ? " as " + alias : '');
+            let field_alias = '';
+
+            /**
+             * Dans le cas d'un champs classique, on peut utiliser un alias
+             * Dans le cas d'un opérateur, on peut aussi utiliser un alias (c'est d'ailleurs presque nécessaire)
+             */
+            if (alias && (context_field.field_name || (context_field.operator != null))) {
+                field_alias = ' as ' + alias;
+            }
+
             let handled = false;
 
             switch (context_field.aggregator) {
@@ -2320,8 +2344,7 @@ export default class ContextQueryServerController {
                             `(${query_wrapper.tables_aliases_by_type[sort_by.vo_type]}.${sort_by.field_name}) as ` +
                             `${sort_alias}`;
 
-                        const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                            sort_by.vo_type, sort_by.field_name, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
+                        const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_SortByVO(sort_by, sort_alias);
 
                         query_wrapper.fields.push(parameterizedQueryWrapperField);
 

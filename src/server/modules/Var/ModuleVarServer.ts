@@ -43,6 +43,7 @@ import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler'
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import SemaphoreHandler from '../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -59,6 +60,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkServerController from '../Fork/ForkServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -1257,16 +1259,13 @@ export default class ModuleVarServer extends ModuleServerBase {
     /**
      * Appelé côté client et sur le main thread pour obtenir des infos sur les imports / données aggrégées de ce paramètre.
      *  On ajoute à un arbre fictif, qui sera donc drop en sortant de la fonction.
+     * On utilise un sémaphore, pour pouvoir clear le cache des datasources
      * @param param
      * @returns
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        const var_dag: VarDAG = new VarDAG();
-        const deployed_vars_datas: { [index: string]: boolean } = {};
-        const vars_datas: { [index: string]: VarDataBaseVO } = {
-            [param.index]: param
-        };
 
+        const var_dag: VarDAG = new VarDAG();
         const node = await VarDAGNode.getInstance(var_dag, param, false);
 
         if (!node) {
@@ -1280,90 +1279,101 @@ export default class ModuleVarServer extends ModuleServerBase {
         return node.aggregated_datas ? node.aggregated_datas : {};
     }
 
+    /**
+     * On utilise un sémaphore, pour pouvoir clear le cache des datasources
+     */
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
         if (!param) {
             return null;
         }
 
-        /**
-         * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
-         */
-        // const varconf = VarsController.var_conf_by_id[param.var_id];
-        // if (varconf.pixel_activated) {
-        //     let is_pixel = true;
-        //     for (const i in varconf.pixel_fields) {
-        //         const pixel_field = varconf.pixel_fields[i];
-
-        //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
-        //             is_pixel = false;
-        //             break;
-        //         }
-        //     }
-
-        //     if (!is_pixel) {
-        //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
-        //         return null;
-        //     }
-        // }
-
-        /**
-         * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
-         *  a filtré et garder un json valide
-         */
-        const value_size_limit: number = 10000;
-
-        if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
-            return null;
+        if (!ForkServerController.is_main_process()) {
+            throw new Error('getParamDependencies must be called on main process for var explanation');
         }
 
-        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.getVarParamDatas', async () => {
 
-        if (!var_controller) {
-            return null;
-        }
 
-        const datasources_values: { [ds_name: string]: any; } = {};
-        const datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
+            /**
+             * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
+             */
+            // const varconf = VarsController.var_conf_by_id[param.var_id];
+            // if (varconf.pixel_activated) {
+            //     let is_pixel = true;
+            //     for (const i in varconf.pixel_fields) {
+            //         const pixel_field = varconf.pixel_fields[i];
 
-        // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        const dag: VarDAG = new VarDAG();
-        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+            //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
+            //             is_pixel = false;
+            //             break;
+            //         }
+            //     }
 
-        if (!varDAGNode) {
-            return null;
-        }
+            //     if (!is_pixel) {
+            //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+            //         return null;
+            //     }
+            // }
 
-        // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
-        CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            /**
+             * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
+             *  a filtré et garder un json valide
+             */
+            const value_size_limit: number = 10000;
 
-        for (const i in datasources_deps) {
-            const datasource_dep = datasources_deps[i];
-
-            await datasource_dep.load_node_data(varDAGNode);
-            const data = varDAGNode.datasources[datasource_dep.name];
-
-            let data_jsoned: string = null;
-            try {
-                data_jsoned = JSON.stringify(data);
-            } catch (error) {
-                ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
+            if (!param.check_param_is_valid(param._type)) {
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
+                return null;
             }
 
-            if ((!data_jsoned) || (!data_jsoned.length)) {
-                continue;
-            }
-            if (data_jsoned.length > value_size_limit) {
-                datasources_values[datasource_dep.name] = "[... >10ko ...]";
-            } else {
-                datasources_values[datasource_dep.name] = data_jsoned;
-            }
-        }
+            const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
-        // TEMP DEBUG JFE :
-        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+            if (!var_controller) {
+                return null;
+            }
 
-        return datasources_values;
+            const datasources_values: { [ds_name: string]: any; } = {};
+            const datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
+
+            // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
+            const dag: VarDAG = new VarDAG();
+            const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+
+            if (!varDAGNode) {
+                return null;
+            }
+
+            // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
+            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+
+            for (const i in datasources_deps) {
+                const datasource_dep = datasources_deps[i];
+
+                await datasource_dep.load_node_data(varDAGNode);
+                const data = varDAGNode.datasources[datasource_dep.name];
+
+                let data_jsoned: string = null;
+                try {
+                    data_jsoned = JSON.stringify(data);
+                } catch (error) {
+                    ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
+                }
+
+                if ((!data_jsoned) || (!data_jsoned.length)) {
+                    continue;
+                }
+                if (data_jsoned.length > value_size_limit) {
+                    datasources_values[datasource_dep.name] = "[... >10ko ...]";
+                } else {
+                    datasources_values[datasource_dep.name] = data_jsoned;
+                }
+            }
+
+            // TEMP DEBUG JFE :
+            // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+
+            return datasources_values;
+        });
     }
 
     /**

@@ -133,7 +133,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         // Si on change de type de valeur on recharge les deps et les aggregated
         if (this.var_data && (!this.var_data.is_computing) && (old_value_type != null) && (old_value_type != this.var_data.value_type)) {
-            promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
+            promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies_main_thread(this.var_param))());
             promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
             promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
         }

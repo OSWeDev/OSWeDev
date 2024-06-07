@@ -23,9 +23,13 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
 
     public static FIELD_OPERATOR_NONE: number = 0;
     public static FIELD_OPERATOR_CONCAT: number = 1;
+    public static FIELD_OPERATOR_COALESCE: number = 2;
+    public static FIELD_OPERATOR_NULLIF: number = 3;
     public static FIELD_OPERATOR_LABELS: string[] = [
         'ContextQueryFieldVO.FIELD_OPERATOR_NONE',
-        'ContextQueryFieldVO.FIELD_OPERATOR_CONCAT'
+        'ContextQueryFieldVO.FIELD_OPERATOR_CONCAT',
+        'ContextQueryFieldVO.FIELD_OPERATOR_COALESCE',
+        'ContextQueryFieldVO.FIELD_OPERATOR_NULLIF'
     ];
 
     public id: number;
@@ -62,7 +66,7 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public cast_with: string;
 
     /**
-     * Pour l'ajout d'opérateurs, de type CONCAT(field_a, '_', field_b)
+     * Pour l'ajout d'opérateurs, de type CONCAT(field_a, '_', field_b), ou COALESCE(field_a, field_b, field_c), etc
      */
     public operator: number;
     public operator_fields: ContextQueryFieldVO[];
@@ -85,8 +89,85 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
         this.cast_with = cast_with;
     }
 
+    /**
+     * Fonction NULLIF de postgresql
+     * (a == b) ? null : a
+     * @param fields
+     */
+    public static nullif(...fields: ContextQueryFieldVO[]): ContextQueryFieldVO {
+        const res: ContextQueryFieldVO = new ContextQueryFieldVO(
+            null,
+            null,
+            null,
+            VarConfVO.NO_AGGREGATOR,
+            ContextQueryFieldVO.FIELD_MODIFIER_NONE
+        );
+
+        res.operator = ContextQueryFieldVO.FIELD_OPERATOR_NULLIF;
+
+        let alias = '';
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (!!field.field_name) {
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(field.field_name);
+                alias = ((alias == '') ? '' : '_') + field.field_name;
+            } else {
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(field.static_value);
+                alias = ((alias == '') ? '' : '_') + field.static_value;
+            }
+        }
+        res.alias = alias;
+
+        res.operator_fields = fields;
+
+        return res;
+    }
+
+    /**
+     * Fonction COALESCE de postgresql
+     * (a == null) ? ((b == null) ? c : b) : a
+     * @param fields
+     */
+    public static coalesce(...fields: ContextQueryFieldVO[]): ContextQueryFieldVO {
+        const res: ContextQueryFieldVO = new ContextQueryFieldVO(
+            null,
+            null,
+            null,
+            VarConfVO.NO_AGGREGATOR,
+            ContextQueryFieldVO.FIELD_MODIFIER_NONE
+        );
+
+        res.operator = ContextQueryFieldVO.FIELD_OPERATOR_COALESCE;
+
+        let alias = '';
+
+        for (const i in fields) {
+            const field = fields[i];
+
+            if (!!field.field_name) {
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(field.field_name);
+                alias = ((alias == '') ? '' : '_') + field.field_name;
+            } else {
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(field.static_value);
+                alias = ((alias == '') ? '' : '_') + field.static_value;
+            }
+        }
+        res.alias = alias;
+
+        res.operator_fields = fields;
+
+        return res;
+    }
+
+    /**
+     * Fonction CONCAT de postgresql
+     * a || b || c || ...
+     * @param fields
+     */
     public static concat(...fields: ContextQueryFieldVO[]): ContextQueryFieldVO {
-        let res: ContextQueryFieldVO = new ContextQueryFieldVO(
+        const res: ContextQueryFieldVO = new ContextQueryFieldVO(
             null,
             null,
             null,
