@@ -34,7 +34,7 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
          */
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(CronWorkerPlanification.API_TYPE_ID, this, this.postCCreateSupervisedItem);
         preUpdateTrigger.registerHandler(CronWorkerPlanification.API_TYPE_ID, this, this.preUUpdateSupervisedItem);
@@ -127,11 +127,13 @@ export default class SupervisedCRONServerController extends SupervisedItemServer
         return true;
     }
 
-    private async preDDeleteSupervisedItem(e: CronWorkerPlanification) {
+    private async preDDeleteSupervisedItem(e: CronWorkerPlanification): Promise<boolean> {
 
         await query(SupervisedCRONVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<SupervisedCRONVO>().planification_uid, e.planification_uid)
             .filter_by_text_eq(field_names<SupervisedCRONVO>().worker_uid, e.worker_uid)
             .delete_vos();
+
+        return true;
     }
 }

@@ -896,6 +896,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_align_content_right() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.align_content_right = !this.column.align_content_right;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_sum_numeral_datas() {
         if (!this.column) {
             return;

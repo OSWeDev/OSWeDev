@@ -65,6 +65,9 @@ export default class DatatableComponentField extends VueComponentBase {
     private show_tooltip: boolean;
 
     @Prop({ default: false })
+    private align_content_right: boolean;
+
+    @Prop({ default: false })
     private disabled_many_to_one_link: boolean;
 
     @Prop({ default: null })

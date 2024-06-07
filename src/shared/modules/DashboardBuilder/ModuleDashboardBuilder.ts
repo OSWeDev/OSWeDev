@@ -318,6 +318,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().disabled_many_to_one_link, ModuleTableField.FIELD_TYPE_boolean, 'Désactiver les liens ManyToOne'),
             new ModuleTableField(field_names<TableColumnDescVO>().is_nullable, ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
             new ModuleTableField(field_names<TableColumnDescVO>().show_tooltip, ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
+            new ModuleTableField(field_names<TableColumnDescVO>().align_content_right, ModuleTableField.FIELD_TYPE_boolean, "Aligner le contenu à droite", false, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().sum_numeral_datas, ModuleTableField.FIELD_TYPE_boolean, "Somme les datas", false, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().explicit_html, ModuleTableField.FIELD_TYPE_boolean, "HTML avec mise en forme", false, true, false),
             new ModuleTableField(field_names<TableColumnDescVO>().is_sticky, ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
