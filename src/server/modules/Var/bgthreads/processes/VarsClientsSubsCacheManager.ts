@@ -55,7 +55,7 @@ export default class VarsClientsSubsCacheManager {
                 } catch (error) {
                     ConsoleHandler.error('Error in update_clients_subs_indexes_cache');
                 }
-            });
+            }, true);
     }
 
     private static throttle_add_new_subs = ThrottleHelper.declare_throttle_with_stackable_args(VarsClientsSubsCacheManager.throttled_add_new_subs.bind(VarsClientsSubsCacheManager), 1);

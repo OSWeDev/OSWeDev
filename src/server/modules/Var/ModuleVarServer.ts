@@ -1256,7 +1256,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
             return var_controller.getParamDependencies(varDAGNode);
-        });
+        }, false);
     }
 
     /**
@@ -1282,7 +1282,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 true);
 
             return node.aggregated_datas ? node.aggregated_datas : {};
-        });
+        }, false);
     }
 
     /**
@@ -1379,7 +1379,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
             return datasources_values;
-        });
+        }, false);
     }
 
     /**
