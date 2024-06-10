@@ -1232,28 +1232,31 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
-        if (!var_controller) {
-            return null;
-        }
+            const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
-        const dag: VarDAG = new VarDAG();
-        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+            if (!var_controller) {
+                return null;
+            }
 
-        if (!varDAGNode) {
-            return null;
-        }
+            const dag: VarDAG = new VarDAG();
+            const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
 
-        const predeps = var_controller.getDataSourcesPredepsDependencies();
-        if (predeps && predeps.length) {
-            await DataSourcesController.load_node_datas(predeps, varDAGNode);
-        }
+            if (!varDAGNode) {
+                return null;
+            }
 
-        // TEMP DEBUG JFE :
-        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+            const predeps = var_controller.getDataSourcesPredepsDependencies();
+            if (predeps && predeps.length) {
+                await DataSourcesController.load_node_datas(predeps, varDAGNode);
+            }
 
-        return var_controller.getParamDependencies(varDAGNode);
+            // TEMP DEBUG JFE :
+            // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+
+            return var_controller.getParamDependencies(varDAGNode);
+        });
     }
 
     /**
@@ -1265,18 +1268,21 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
 
-        const var_dag: VarDAG = new VarDAG();
-        const node = await VarDAGNode.getInstance(var_dag, param, false);
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
-        if (!node) {
-            return null;
-        }
+            const var_dag: VarDAG = new VarDAG();
+            const node = await VarDAGNode.getInstance(var_dag, param, false);
 
-        await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
-            node,
-            true);
+            if (!node) {
+                return null;
+            }
 
-        return node.aggregated_datas ? node.aggregated_datas : {};
+            await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
+                node,
+                true);
+
+            return node.aggregated_datas ? node.aggregated_datas : {};
+        });
     }
 
     /**
@@ -1291,7 +1297,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             throw new Error('getParamDependencies must be called on main process for var explanation');
         }
 
-        return await SemaphoreHandler.semaphore_async('ModuleVarServer.getVarParamDatas', async () => {
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
 
             /**
