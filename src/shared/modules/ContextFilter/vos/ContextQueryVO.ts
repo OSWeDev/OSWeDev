@@ -916,6 +916,10 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
                 const matroid_field_id = matroid_field.field_id;
                 const target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
 
+                if (!target_moduletable.getFieldFromId(target_field_id)) {
+                    continue;
+                }
+
                 let this_filter = null;
                 switch (matroid_field.field_type) {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
