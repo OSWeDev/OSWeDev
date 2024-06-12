@@ -17,6 +17,8 @@ export default class OseliaServerController {
     public static PROMPT_PARAM_PREFIX: string = '{{PROMPT_PARAM.';
     public static PROMPT_PARAM_SUFFIX: string = '}}';
 
+    public static authorized_oselia_partners: string[] = [];
+
     public static wrap_param_name_for_prompt(param_name: string): string {
         return OseliaServerController.PROMPT_PARAM_PREFIX + param_name + OseliaServerController.PROMPT_PARAM_SUFFIX;
     }

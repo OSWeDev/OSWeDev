@@ -103,6 +103,7 @@ export default interface IEnvParam {
     logo_path?: string;
 
     debug_openai_sync?: boolean;
+    debug_oselia_referrer_origin?: boolean;
 
     block_openai_sync_push_to_openai?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;

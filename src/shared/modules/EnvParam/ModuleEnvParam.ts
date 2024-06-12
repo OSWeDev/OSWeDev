@@ -247,7 +247,13 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().logo_path, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo');
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_openai_sync, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug OpenAI Sync', true, true, true);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().debug_oselia_referrer_origin, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Debug Oselia Referrer Origin', true, true, false);
+
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_openai_sync_push_to_openai, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les push OpenAI', true, true, false);
+
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_thread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Thread', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_thread_msg, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Thread Msg', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_run, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Run', true, true, false);
 
         ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }

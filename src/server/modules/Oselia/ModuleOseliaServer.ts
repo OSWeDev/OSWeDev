@@ -36,6 +36,7 @@ import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssist
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import OseliaServerController from './OseliaServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -130,6 +131,17 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+
+        const oselia_partners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<OseliaReferrerVO>();
+        for (const i in oselia_partners) {
+            OseliaServerController.authorized_oselia_partners.push(oselia_partners[i].referrer_origin);
+        }
+
+        postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.update_authorized_oselia_partners_onc);
+        postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.update_authorized_oselia_partners_onu);
+        postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.update_authorized_oselia_partners_ond);
     }
 
     /**
@@ -773,5 +785,39 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 referrer.triggers_hook_external_api_authentication_id
             );
         };
+    }
+
+    private async update_authorized_oselia_partners_onc(referrer: OseliaReferrerVO) {
+        if (!referrer.referrer_origin) {
+            return;
+        }
+
+        OseliaServerController.authorized_oselia_partners.push(referrer.referrer_origin);
+    }
+
+    private async update_authorized_oselia_partners_ond(referrer: OseliaReferrerVO) {
+        if (!referrer.referrer_origin) {
+            return;
+        }
+
+        const index = OseliaServerController.authorized_oselia_partners.indexOf(referrer.referrer_origin);
+        if (index > -1) {
+            OseliaServerController.authorized_oselia_partners.splice(index, 1);
+        }
+    }
+
+    private async update_authorized_oselia_partners_onu(update: DAOUpdateVOHolder<OseliaReferrerVO>) {
+
+        if (!!update.pre_update_vo.referrer_origin) {
+            const index = OseliaServerController.authorized_oselia_partners.indexOf(update.pre_update_vo.referrer_origin);
+            if (index > -1) {
+                OseliaServerController.authorized_oselia_partners.splice(index, 1);
+            }
+        }
+
+        if (!update.post_update_vo.referrer_origin) {
+            return;
+        }
+        OseliaServerController.authorized_oselia_partners.push(update.post_update_vo.referrer_origin);
     }
 }

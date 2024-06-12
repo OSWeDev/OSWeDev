@@ -70,6 +70,7 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import IFork from './modules/Fork/interfaces/IFork';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
+import OseliaServerController from './modules/Oselia/OseliaServerController';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -541,6 +542,28 @@ export default abstract class ServerBase {
         this.app.use('/.well-known', express.static('.well-known'));
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
+
+        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
+        this.app.use((req, res, next) => {
+            const origin = req.get('Origin');
+
+            if (OseliaServerController.authorized_oselia_partners.includes(origin)) {
+                res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
+                }
+
+            } else {
+                res.setHeader('X-Frame-Options', 'DENY');
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
+                }
+            }
+
+            next();
+        });
 
         /**
          * @depracated : DELETE When ok
