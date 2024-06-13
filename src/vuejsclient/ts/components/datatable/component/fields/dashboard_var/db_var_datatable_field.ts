@@ -98,6 +98,23 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
     }
 
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    get var_filter(): string {
+        return this.filter_type ? this.const_filters[this.filter_type].read : undefined;
+    }
+
+    get var_filter_additional_params(): string {
+        return this.filter_additional_params ? ObjectHandler.try_get_json(this.filter_additional_params) : undefined;
+    }
+
+    @Watch('row_value', { immediate: true })
+    private async onchange_row() {
+        await this.throttled_do_init_param();
+    }
+
     @Watch('dashboard_id')
     @Watch('var_id')
     @Watch('filter_type')
@@ -144,15 +161,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         }
 
         await this.throttled_do_init_param();
-    }
-
-    @Watch('row_value', { immediate: true })
-    private async onchange_row() {
-        await this.throttled_do_init_param();
-    }
-
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     private has_widget_validation_filtres(): boolean {
@@ -270,13 +278,5 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         }
 
         return var_value.value;
-    }
-
-    get var_filter(): string {
-        return this.filter_type ? this.const_filters[this.filter_type].read : undefined;
-    }
-
-    get var_filter_additional_params(): string {
-        return this.filter_additional_params ? ObjectHandler.try_get_json(this.filter_additional_params) : undefined;
     }
 }
