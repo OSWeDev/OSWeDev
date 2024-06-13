@@ -16,6 +16,8 @@
                     .edit.display_inline_block.ml-3(v-if='can_edit')
                         router-link.btn.btn-primary(:to="{ name: 'DashboardBuilder_id', params: { dashboard_id : dashboard.id }}")
                             i.fa-duotone.fa-pencil.btn-primary
+                    .edit.display_inline_block.ml-3(v-if='can_edit')
+                        i.fa-duotone.fa-file-pdf.btn.btn-primary(@click="print_dashboard")
         .row.pages_wrapper
             .col-sm-12
                 template(v-if='!pages')

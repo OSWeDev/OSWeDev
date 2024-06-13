@@ -2,7 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import ModuleTableController from '../DAO/ModuleTableController';
@@ -78,7 +78,8 @@ export default class ModuleDashboardBuilder extends Module {
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_PRINT_DB,
-            [DashboardVO.API_TYPE_ID]
+            [DashboardVO.API_TYPE_ID],
+            NumberParamVOStatic
         ));
     }
 
