@@ -1,6 +1,6 @@
 .chart_js_scale_options_component
     .types_options_selector 
-        .input_label {{ label('chart_js_scale_options_component.types_options_selector') }}
+        //- .input_label {{ label('chart_js_scale_options_component.types_options_selector') }}
         .input_wrapper
             multiselect.types_options_selector(
                 :preselect-first="false"
@@ -25,7 +25,7 @@
             )
     
     .time_options_selector(v-if="type === 'time'")
-        .input_label {{ label('chart_js_scale_options_component.time_options_selector') }}
+        //- .input_label {{ label('chart_js_scale_options_component.time_options_selector') }}
         .input_wrapper
             Chartjsscaletimeoptionscomponent(
                 @on_change="handle_time_options_change"

@@ -1034,6 +1034,7 @@ export default class GPTAssistantAPIServerController {
             ConsoleHandler.error('GPTAssistantAPIServerController.handle_run: run not created');
             throw new Error('GPTAssistantAPIServerController.handle_run: run not created');
         }
+        console.dir(availableFunctions)
 
         let run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
 

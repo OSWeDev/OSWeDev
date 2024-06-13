@@ -1,5 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import TimeSegment from "../../../../../../../shared/modules/DataRender/vos/TimeSegment";
 import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
@@ -42,6 +43,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
          * Paramètres du graph
          */
         public legend_display: boolean,
+        public label_display: boolean,
         public legend_position: string,
         public legend_font_color: string,
         public legend_font_size: number,
@@ -85,6 +87,9 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
 
         public filter_custom_field_filters_1: { [field_id: string]: string },
 
+        public color_palette: string[],
+        public bg_colors: string[],
+        public bg_gradient: boolean,
         public bg_color_1: string,
         public border_color_1: string,
         public border_width_1: number,
@@ -160,5 +165,83 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
         }
 
         return res;
+    }
+
+    public static createDefault() {
+        return new VarPieChartWidgetOptions(
+
+            /**
+             * Paramètres du widget
+             */
+            '#f0210a',
+
+            /**
+             * Paramètres du graph
+             */
+            true,
+            true,
+            'top',
+            '#666',
+            12,
+            40,
+            10,
+            false,
+
+            false,
+            '#666',
+            16,
+            10,
+
+            0, // 0-100 - exemples : donut 50, camembert 0
+            0, // 0-360 - exemples : donut 270, camembert 0
+            360, // 0-180 - exemples : donut 180, camembert 0
+
+            true,
+            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
+            null,
+            true,
+
+            /**
+             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
+             */
+            true,
+            null,
+            null,
+            TimeSegment.TYPE_YEAR,
+
+            /**
+             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
+             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
+             */
+            'none',
+            null,
+
+            /**
+             * Var 1
+             */
+            null,
+
+            {},
+            [],
+            [],
+            null,
+
+            null,
+            null,
+            0,
+
+            /**
+             * Var 2 si pas de dimension
+             */
+            null,
+
+            {},
+
+            null,
+            null,
+            0,
+
+            false,
+        );
     }
 }
