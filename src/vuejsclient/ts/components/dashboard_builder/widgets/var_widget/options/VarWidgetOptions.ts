@@ -23,10 +23,6 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarWidgetOptions.title.";
 
-    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        return {};
-    }
-
     public constructor(
         public var_id?: number,
         public filter_type?: string,
@@ -38,6 +34,10 @@ export default class VarWidgetOptions implements IExportableWidgetOptions {
         public icon?: string,
         public elements_array: VarWidgetOptionsElementsVO[] = [],
     ) { }
+
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+        return {};
+    }
 
     /**
      * Fill this VarWidgetOptions with the given properties

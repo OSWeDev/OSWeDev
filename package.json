@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.32.0-pre.17",
+    "version": "0.32.0-pre.18",
     "description": "",
     "repository": {
         "type": "git",
@@ -36,6 +36,7 @@
     "author": "Wedev",
     "license": "Apache-2.0",
     "dependencies": {
+        "@playwright/test": "1.44.1",
         "@godaddy/terminus": "4.4.1",
         "@growthbunker/vueflags": "0.0.6",
         "@maxgraph/core": "0.1.0",
@@ -96,6 +97,7 @@
         "openai": "4.47.1",
         "oswedev-autodetect-decoder-stream": "2.0.4",
         "oswedev-connect-pg-simple": "7.0.1",
+        "playwright": "1.44.1",
         "pg": "8.11.0",
         "pg-copy-streams": "6.0.5",
         "pg-promise": "11.5.0",
@@ -146,7 +148,6 @@
         "zlib": "1.0.5"
     },
     "devDependencies": {
-        "@playwright/test": "^1.35.1",
         "@stylistic/eslint-plugin": "^1.6.3",
         "@types/adm-zip": "0.5.0",
         "@types/express-fileupload": "1.1.3",
@@ -165,7 +166,7 @@
         "node": "19.8.1",
         "npm-watch": "0.11.0",
         "nyc": "^15.0.0",
-        "playwright-test-coverage": "^1.2.12",
+        "playwright-test-coverage": "1.2.12",
         "source-map-support": "0.5.16",
         "ts-node": "8.8.2",
         "tsc-watch": "6.0.4",

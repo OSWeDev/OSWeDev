@@ -25,6 +25,11 @@ export default class DashboardBuilderController {
     public static ROUTE_NAME_CRUD: string = "__CRUD";
     public static ROUTE_NAME_CRUD_ALL: string = "__all";
 
+    private static instance: DashboardBuilderController = null;
+
+    protected constructor() {
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderController {
         if (!DashboardBuilderController.instance) {
@@ -33,12 +38,12 @@ export default class DashboardBuilderController {
         return DashboardBuilderController.instance;
     }
 
-    private static instance: DashboardBuilderController = null;
+    public addRouteForDashboard(
+        path: string,
+        name: string,
+        component: any,
+        crud: boolean): RouteConfig[] {
 
-    protected constructor() {
-    }
-
-    public addRouteForDashboard(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
         const routes = [{
             path: path,
             name: name,

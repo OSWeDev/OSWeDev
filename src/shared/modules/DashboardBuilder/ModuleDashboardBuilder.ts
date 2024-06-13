@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import ModuleTableController from '../DAO/ModuleTableController';
@@ -43,9 +44,12 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
+    public static APINAME_PRINT_DB: string = ModuleDashboardBuilder.MODULE_NAME + '__' + "print_db";
 
     private static instance: ModuleDashboardBuilder = null;
+
     public start_export_favorites_filters_datatable: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE);
+    public print_db: (db_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_PRINT_DB); // TODO Remplacer le param par une conf d'init des filtres / paginations / ... pour pouvoir imprimer un dashboard "en l'état" / tel que visualisé
 
     private constructor() {
 
@@ -69,6 +73,12 @@ export default class ModuleDashboardBuilder extends Module {
             DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             [FavoritesFiltersVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_PRINT_DB,
+            [DashboardVO.API_TYPE_ID]
         ));
     }
 

@@ -9,6 +9,7 @@ import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -18,6 +19,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
+import { chromium } from 'playwright';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -3385,6 +3387,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ModuleDashboardBuilder.APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE,
             this.start_export_favorites_filters_datatable.bind(this)
         );
+
+        APIControllerWrapper.registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_PRINT_DB,
+            this.print_db.bind(this)
+        );
     }
 
     /**
@@ -3498,5 +3505,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         e.i = max_i + 1;
 
         return;
+    }
+
+    private async print_db(db_id: number) {
+
+        const browser = await chromium.launch();
+        const page = await browser.newPage();
+        await page.goto(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/print/' + db_id);
+        await page.pdf({ path: 'test_print_db.pdf' }); // TODO FIXME renvoyer en download et générer un fichier FileVO + nom unique
+        await browser.close();
     }
 }

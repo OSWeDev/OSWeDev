@@ -12,7 +12,6 @@ import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFiel
 import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -25,8 +24,8 @@ import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/Os
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
-import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
+import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -62,34 +61,45 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         }
 
         // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
-        let url: string = "/dashboard/view/:dashboard_id";
-        let main_route_name: string = 'Dashboard View';
+        const view_url: string = "/dashboard/view/:dashboard_id";
+        const view_route_name: string = 'Dashboard View';
 
+        // Les routes pour view les dashboards
         this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
+            view_url,
+            view_route_name,
             () => import('./viewer/DashboardViewerComponent'),
             true,
         ));
 
-        url = "/dashboard_builder";
-        main_route_name = 'DashboardBuilder';
+        // Les routes pour print les dashboards
+        const print_url: string = "/dashboard/print/:dashboard_id";
+        const print_route_name: string = 'Dashboard Print';
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            view_url,
+            view_route_name,
+            () => import('./printer/DashboardPrinterComponent'),
+            false,
+        ));
+
+        const build_url = "/dashboard_builder";
+        const build_route_name = 'DashboardBuilder';
 
         this.routes.push({
-            path: url,
-            name: main_route_name,
+            path: build_url,
+            name: build_route_name,
             component: () => import('./DashboardBuilderComponent'),
             props: (route) => ({
                 dashboard_id: null
             })
         });
 
-        url = "/dashboard_builder" + "/:dashboard_id";
-        main_route_name = 'DashboardBuilder_id';
+        const build_dbid_url = "/dashboard_builder" + "/:dashboard_id";
+        const build_dbid_route_name = 'DashboardBuilder_id';
 
         this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
+            build_dbid_url,
+            build_dbid_route_name,
             () => import('./DashboardBuilderComponent'),
             true,
         ));
