@@ -13,15 +13,8 @@ export default class VersionedVOController implements IVOController {
 
     public static INTERFACE_VERSIONED: string = 'IVERSIONED';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VersionedVOController {
-        if (!VersionedVOController.instance) {
-            VersionedVOController.instance = new VersionedVOController();
-        }
-        return VersionedVOController.instance;
-    }
-
     private static instance: VersionedVOController = null;
+
     private static VERSIONED_DATABASE: string = 'versioned';
     private static TRASHED_DATABASE: string = 'trashed';
     private static VERSIONED_TRASHED_DATABASE: string = VersionedVOController.TRASHED_DATABASE + '__' + VersionedVOController.VERSIONED_DATABASE;
@@ -35,6 +28,14 @@ export default class VersionedVOController implements IVOController {
      */
 
     private constructor() {
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VersionedVOController {
+        if (!VersionedVOController.instance) {
+            VersionedVOController.instance = new VersionedVOController();
+        }
+        return VersionedVOController.instance;
     }
 
     public registerModuleTable(moduleTable: ModuleTableVO) {
@@ -51,7 +52,7 @@ export default class VersionedVOController implements IVOController {
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_num, ModuleTableFieldVO.FIELD_TYPE_int, 'Numéro de version', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().trashed, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Supprimé', false);
-        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().parent_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Parent', false);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().parent_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Parent', false).index();
 
         // On copie les champs, pour les 3 tables à créer automatiquement :
         //  - La table versioned
@@ -90,6 +91,11 @@ export default class VersionedVOController implements IVOController {
                 cloned_field.enum_values = vofield.enum_values;
                 cloned_field.is_inclusive_data = vofield.is_inclusive_data;
                 cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
+
+                if (vofield.is_indexed) {
+                    cloned_field.index();
+                }
+
                 fields.push(cloned_field);
             }
 
@@ -98,14 +104,14 @@ export default class VersionedVOController implements IVOController {
              */
             ModuleTableController.vo_constructor_by_vo_type[vo_type] = ModuleTableController.vo_constructor_wrapper(class implements IDistantVOBase {
 
+                public id: number;
+                public _type: string;
+
                 public constructor() {
                     let res = new ModuleTableController.vo_constructor_by_vo_type[moduleTable.vo_type]();
                     res._type = vo_type;
                     return res;
                 }
-
-                public id: number;
-                public _type: string;
             });
 
             // TODO FIXME le constructeur est clairement pas bon, on utilise le constructeur du main vo, pour les versioned. a priori pas d'impact aujourd'hui, mais c'est complètement faux

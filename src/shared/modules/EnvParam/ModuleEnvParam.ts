@@ -255,6 +255,8 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_thread_msg, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Thread Msg', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_run, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Run', true, true, false);
 
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().silent_no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Silent "no sort by but query limit"', true, true, true);
+
         ModuleTableController.create_new(this.name, EnvParamsVO, null, 'Static Env Params');
     }
 }

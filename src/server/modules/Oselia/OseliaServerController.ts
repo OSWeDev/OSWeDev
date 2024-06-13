@@ -88,6 +88,14 @@ export default class OseliaServerController {
                 thread = new_thread.thread_vo;
             }
 
+            // Si on a des paramètres on les ajoute aux metadatas du thread
+            if (prompt_parameters) {
+                for (const i in prompt_parameters) {
+                    thread.metadata[i] = prompt_parameters[i];
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+            }
+
             thread.current_oselia_prompt_id = prompt.id;
             if (assistant) {
                 thread.current_default_assistant_id = assistant.id;

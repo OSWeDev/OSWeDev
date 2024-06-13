@@ -109,4 +109,6 @@ export default interface IEnvParam {
     unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_run?: boolean;
+
+    silent_no_sort_by_but_query_limit?: boolean;
 }

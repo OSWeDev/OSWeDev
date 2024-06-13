@@ -2817,7 +2817,7 @@ export default class ContextQueryServerController {
         if (context_query.query_limit) {
 
             // Si on a une limite, mais pas de sort à ce stade il faut alerter
-            if ((context_query.query_limit > 1) && ((!context_query.sort_by || !context_query.sort_by.length))) {
+            if ((context_query.query_limit > 1) && ((!context_query.sort_by || !context_query.sort_by.length)) && !ConfigurationService.node_configuration.silent_no_sort_by_but_query_limit) {
                 ConsoleHandler.error('get_limit:No sort_by, but query_limit:' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
                     'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
                     'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
@@ -2857,9 +2857,12 @@ export default class ContextQueryServerController {
 
             // Si on a une limite, mais pas de sort à ce stade il faut alerter
             if (!context_query.sort_by || !context_query.sort_by.length) {
-                ConsoleHandler.warn('check_limit:No sort_by, but query_limit: AUTO SETTING ORDER TO FIRST COL :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
-                    'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
-                    'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+
+                if (!ConfigurationService.node_configuration.silent_no_sort_by_but_query_limit) {
+                    ConsoleHandler.warn('check_limit:No sort_by, but query_limit: AUTO SETTING ORDER TO FIRST COL :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
+                        'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
+                        'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+                }
 
                 if ((!context_query.fields) || (!context_query.fields.length)) {
                     ConsoleHandler.error('check_limit:No sort_by, but query_limit: NO FIELD :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +

@@ -132,4 +132,6 @@ export default class EnvParam implements IEnvParam {
     public unblock_openai_push_to_openai_gpt_assistant_thread?: boolean = false;
     public unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean = false;
     public unblock_openai_push_to_openai_gpt_assistant_run?: boolean = false;
+
+    public silent_no_sort_by_but_query_limit: boolean = true;
 }

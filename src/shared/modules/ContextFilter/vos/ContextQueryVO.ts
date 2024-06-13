@@ -714,6 +714,14 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     }
 
     /**
+     * Filtrer via une REGEXP
+     * @param regexp le texte qui représente la regexp
+     */
+    public filter_by_reg_exp(field_id: string, regexp: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_reg_exp(regexp)]);
+    }
+
+    /**
      * Filtrer par text strictement égal
      * @param field_id le field qu'on veut filtrer
      * @param alias

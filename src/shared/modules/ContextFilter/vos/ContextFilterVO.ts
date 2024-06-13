@@ -402,6 +402,17 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
     }
 
     /**
+     * Filtrer via une REGEXP
+     * @param regexp le texte qui représente la regexp
+     */
+    public by_reg_exp(regexp: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_REGEXP_ANY;
+        this.param_text = regexp;
+
+        return this;
+    }
+
+    /**
      * Filtrer par text en début de la valeur du champ
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      */
