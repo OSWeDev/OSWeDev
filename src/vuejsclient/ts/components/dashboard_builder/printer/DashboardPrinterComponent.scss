@@ -1,0 +1,4 @@
+// Objectif : On supprime tout sur la page pour l'impression, sauf le dashboard viewer et tout ce qu'il contient.
+body>div:not(.dashboard-viewer):not(.dashboard-viewer *) {
+    display: none;
+}
