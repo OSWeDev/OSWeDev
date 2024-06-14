@@ -37,6 +37,10 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
+import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
+import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -104,6 +108,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Echec de la copie' },
             'oselia_thread_message.copy_failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Osélia' },
+            'TeamsAPIServerController.open_oselia.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Modifier' },
@@ -200,6 +208,18 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'fr-fr': 'Feedback sur les threads d\'Osélia'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
+
+    public async open_oselia_db_from_action_url(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
+
+        if (!action_url.params_json) {
+            ConsoleHandler.error('Impossible de trouver la discussion Oselia pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
+        }
+
+        res.redirect('/f/oselia/' + action_url.params_json);
+        return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
+    }
+
 
     private async open_oselia_db(
         referrer_user_ott: string,

@@ -112,29 +112,37 @@ export default class GPTAssistantAPIServerSyncRunsController {
                     throw new Error('Error while creating run in OpenAI');
                 }
             } else {
-                if (GPTAssistantAPIServerSyncRunsController.run_has_diff(vo, to_openai_last_error, gpt_obj)) {
 
-                    if (ConfigurationService.node_configuration.debug_openai_sync) {
-                        ConsoleHandler.log('push_run_to_openai: Updating run in OpenAI : ' + vo.gpt_run_id);
-                    }
-
-                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
-                        throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
-                    }
-
-                    // On doit mettre à jour
-                    await GPTAssistantAPIServerController.wrap_api_call(
-                        ModuleGPTServer.openai.beta.threads.runs.update,
-                        ModuleGPTServer.openai.beta.threads.runs,
-                        vo.gpt_thread_id, vo.gpt_run_id,
-                        {
-                            metadata: cloneDeep(vo.metadata),
-                        });
-
-                    if (!gpt_obj) {
-                        throw new Error('Error while creating run in OpenAI');
-                    }
+                // Gestion d'un cas vu, mais bizarre et ingérable, où le run n'est plus associé à un assistant...
+                if (!gpt_obj.assistant_id) {
+                    ConsoleHandler.warn('Error while pushing run to OpenAI : run has no assistant_id : ' + vo.gpt_run_id + ' on peut pas le supprimer a priori de OpenAI... donc pas grand chose à faire à part l\'ignorer...');
+                    return null;
                 }
+
+                // On peut pas push un run en update. Si ya une diff, c'est à nous de prendre en compte
+                // if (GPTAssistantAPIServerSyncRunsController.run_has_diff(vo, to_openai_last_error, gpt_obj)) {
+
+                //     if (ConfigurationService.node_configuration.debug_openai_sync) {
+                //         ConsoleHandler.log('push_run_to_openai: Updating run in OpenAI : ' + vo.gpt_run_id);
+                //     }
+
+                //     if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                //         throw new Error('Error while pushing run to OpenAI : block_openai_sync_push_to_openai');
+                //     }
+
+                //     // On doit mettre à jour
+                //     await GPTAssistantAPIServerController.wrap_api_call(
+                //         ModuleGPTServer.openai.beta.threads.runs.update,
+                //         ModuleGPTServer.openai.beta.threads.runs,
+                //         vo.gpt_thread_id, vo.gpt_run_id,
+                //         {
+                //             metadata: cloneDeep(vo.metadata),
+                //         });
+
+                //     if (!gpt_obj) {
+                //         throw new Error('Error while creating run in OpenAI');
+                //     }
+                // }
             }
 
             // // Si on repère une diff de données, alors qu'on est en push, c'est un pb de synchro à remonter

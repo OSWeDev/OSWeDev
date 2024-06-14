@@ -33,6 +33,8 @@ export default class ModuleOselia extends Module {
 
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
 
+    public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
+
     /**
      * Droit d'accès aux discussions sur le front
      */

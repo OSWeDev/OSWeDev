@@ -225,6 +225,15 @@ export default class ModuleEnvParam extends Module {
         // OPEN_API_API_KEY ?: string;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().open_api_api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé API Open API', false);
 
+        // teams_webhook__oselia_error
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_error, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les erreurs Oselia', false);
+        // teams_webhook__oselia_warn
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_warn, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les warnings Oselia', false);
+        // teams_webhook__oselia_info
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_info, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les infos Oselia', false);
+        // teams_webhook__oselia_success
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_success, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les succès Oselia', false);
+
         // TEAMS_WEBHOOK__TECH_ERROR ?: string;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__tech_error, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les erreurs techniques', false);
         // TEAMS_WEBHOOK__TECH_WARN ?: string;
@@ -254,6 +263,7 @@ export default class ModuleEnvParam extends Module {
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_thread, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Thread', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_thread_msg, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Thread Msg', true, true, false);
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant_run, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant Run', true, true, false);
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().unblock_openai_push_to_openai_gpt_assistant, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Débloquer les push OpenAI GPT Assistant', true, true, false);
 
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().silent_no_sort_by_but_query_limit, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Silent "no sort by but query limit"', true, true, true);
 

@@ -113,6 +113,11 @@ export default class EnvParam implements IEnvParam {
 
     public block_teams_messages?: boolean = true;
 
+    public teams_webhook__oselia_error?: string = null;
+    public teams_webhook__oselia_warn?: string = null;
+    public teams_webhook__oselia_info?: string = null;
+    public teams_webhook__oselia_success?: string = null;
+
     public teams_webhook__tech_error?: string = null;
     public teams_webhook__tech_warn?: string = null;
     public teams_webhook__tech_info?: string = null;
@@ -132,6 +137,7 @@ export default class EnvParam implements IEnvParam {
     public unblock_openai_push_to_openai_gpt_assistant_thread?: boolean = false;
     public unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean = false;
     public unblock_openai_push_to_openai_gpt_assistant_run?: boolean = false;
+    public unblock_openai_push_to_openai_gpt_assistant?: boolean = false;
 
-    public silent_no_sort_by_but_query_limit: boolean = true;
+    public silent_no_sort_by_but_query_limit?: boolean = true;
 }

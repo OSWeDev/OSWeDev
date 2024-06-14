@@ -137,7 +137,7 @@ export default class GPTAssistantAPIServerController {
             let thread_gpt: Thread = null;
             if (!thread_id) {
 
-                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai && !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant_thread) {
                     return null;
                 }
 

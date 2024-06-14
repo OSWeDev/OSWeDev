@@ -88,6 +88,11 @@ export default interface IEnvParam {
 
     open_api_api_key?: string;
 
+    teams_webhook__oselia_error?: string;
+    teams_webhook__oselia_warn?: string;
+    teams_webhook__oselia_info?: string;
+    teams_webhook__oselia_success?: string;
+
     teams_webhook__tech_error?: string;
     teams_webhook__tech_warn?: string;
     teams_webhook__tech_info?: string;
@@ -109,6 +114,7 @@ export default interface IEnvParam {
     unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_thread_msg?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_run?: boolean;
+    unblock_openai_push_to_openai_gpt_assistant?: boolean;
 
     silent_no_sort_by_but_query_limit?: boolean;
 }

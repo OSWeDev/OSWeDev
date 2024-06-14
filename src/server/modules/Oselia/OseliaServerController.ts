@@ -90,6 +90,9 @@ export default class OseliaServerController {
 
             // Si on a des paramètres on les ajoute aux metadatas du thread
             if (prompt_parameters) {
+                if (!thread.metadata) {
+                    thread.metadata = {};
+                }
                 for (const i in prompt_parameters) {
                     thread.metadata[i] = prompt_parameters[i];
                 }

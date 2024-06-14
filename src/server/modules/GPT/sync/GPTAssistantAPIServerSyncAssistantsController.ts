@@ -18,11 +18,11 @@ import RangeHandler from '../../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
-import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
@@ -181,7 +181,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                     ConsoleHandler.log('push_assistant_to_openai: Creating assistant in OpenAI : ' + vo.nom);
                 }
 
-                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai && !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant) {
                     throw new Error('Error while pushing assistant to OpenAI : push to OpenAI is blocked');
                 }
 
@@ -214,7 +214,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         ConsoleHandler.log('push_assistant_to_openai: Updating assistant in OpenAI : ' + vo.nom);
                     }
 
-                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai && !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant) {
                         throw new Error('Error while pushing assistant to OpenAI : push to OpenAI is blocked');
                     }
 
