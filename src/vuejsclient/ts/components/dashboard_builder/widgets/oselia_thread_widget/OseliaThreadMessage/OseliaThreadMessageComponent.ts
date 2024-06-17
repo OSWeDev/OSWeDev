@@ -21,6 +21,7 @@ import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import TablePaginationComponent from '../../table_widget/pagination/TablePaginationComponent';
 import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionURL/OseliaThreadMessageActionURLComponent';
 import './OseliaThreadMessageComponent.scss';
+import VueMarkdown from 'vue-markdown-render';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
@@ -34,7 +35,8 @@ import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadF
         Oseliathreadmessageactionurlcomponent: OseliaThreadMessageActionURLComponent,
         Mailideventscomponent: MailIDEventsComponent,
         Oseliathreadmessageemailcomponent: MailIDEventsComponent,
-        Oseliathreadfeedbackcomponent: OseliaThreadFeedbackComponent
+        Oseliathreadfeedbackcomponent: OseliaThreadFeedbackComponent,
+        VueMarkdown
     }
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {
@@ -70,6 +72,12 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private changed_input: boolean[] = [];
 
     private show_feedback: boolean = false;
+
+    private markdown_options = {
+        html: true,
+        linkify: true,
+        typographer: true,
+    };
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
 

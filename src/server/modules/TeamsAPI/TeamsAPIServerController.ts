@@ -100,8 +100,8 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static async send_teams_oselia_level(level: string, title: string, message: string, thread_id: number, webhook_param_name: string = null, webhook_default_value: string = null) {
         try {
-            const webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
-                ConfigurationService.node_configuration['teams_webhook__oselia_' + level.toLowerCase()];
+            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) : null;
+            webhook = webhook ? webhook : ConfigurationService.node_configuration['teams_webhook__oselia_' + level.toLowerCase()];
 
             if (webhook) {
 
@@ -138,8 +138,8 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static async send_teams_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         try {
-            const webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
-                ConfigurationService.node_configuration['teams_webhook__tech_' + level.toLowerCase()];
+            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) : null;
+            webhook = webhook ? webhook : ConfigurationService.node_configuration['teams_webhook__tech_' + level.toLowerCase()];
 
             if (webhook) {
 

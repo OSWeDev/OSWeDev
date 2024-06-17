@@ -53,7 +53,7 @@
                                 button.btn.btn-primary(@click='save_edit_thread_message_content(message_content, i)' :disabled='!changed_input[i]') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.save') }}
                     template(v-else)
                         template(v-if='message_content.type == message_content_type_text')
-                            .thread_message_body_text(v-html='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"')
+                            vue-markdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
                             .thread_message_footer_actions
                                 .thread_message_footer_action
                                     .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
