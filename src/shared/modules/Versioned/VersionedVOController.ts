@@ -56,7 +56,7 @@ export default class VersionedVOController implements IVOController {
 
         moduleTable.push_field((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
 
-        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_int, 'Parent', false);
+        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_int, 'Parent', false).index();
         parent_id.setModuleTable(moduleTable);
         moduleTable.push_field(parent_id);
 
@@ -94,6 +94,11 @@ export default class VersionedVOController implements IVOController {
                 cloned_field.enum_values = vofield.enum_values;
                 cloned_field.is_inclusive_data = vofield.is_inclusive_data;
                 cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
+
+                if (vofield.is_indexed) {
+                    cloned_field.index();
+                }
+
                 fields.push(cloned_field);
             }
 
