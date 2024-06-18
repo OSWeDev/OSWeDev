@@ -862,7 +862,8 @@ export default abstract class ServerBase {
         this.app.use(
             async (req, res, next) => {
                 if (req.url.indexOf('/f/') >= 0) {
-                    req.session.last_fragmented_url = req.url;
+                    // req.session.last_fragmented_url = req.url;
+                    // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
                     res.redirect(307, req
                         .url
                         .replace(/\/f\//, '/#/'));
