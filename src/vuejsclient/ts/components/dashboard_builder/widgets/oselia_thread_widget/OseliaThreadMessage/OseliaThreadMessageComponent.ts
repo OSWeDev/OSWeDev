@@ -25,6 +25,7 @@ import VueMarkdown from 'vue-markdown-render';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
+import ImageViewComponent from '../../../../image/View/ImageViewComponent';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -36,7 +37,8 @@ import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadF
         Mailideventscomponent: MailIDEventsComponent,
         Oseliathreadmessageemailcomponent: MailIDEventsComponent,
         Oseliathreadfeedbackcomponent: OseliaThreadFeedbackComponent,
-        VueMarkdown
+        Vuemarkdown: VueMarkdown,
+        Imageviewcomponent: ImageViewComponent,
     }
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {

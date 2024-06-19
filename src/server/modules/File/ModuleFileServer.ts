@@ -71,6 +71,10 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Télécharger' },
+            'image_view_component.download.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Télécharger' },
             'file_datatable_field.download.___LABEL___'
         ));
 

@@ -53,7 +53,7 @@
                                 button.btn.btn-primary(@click='save_edit_thread_message_content(message_content, i)' :disabled='!changed_input[i]') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.save') }}
                     template(v-else)
                         template(v-if='message_content.type == message_content_type_text')
-                            vue-markdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
+                            Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
                             .thread_message_footer_actions
                                 .thread_message_footer_action
                                     .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
@@ -82,10 +82,12 @@
                             .thread_message_body_email
                                 Oseliathreadmessageemailcomponent(:mail_id='message_content.content_type_email_id')
 
-                        //- TODO
-                        //- template(v-else-if='message_content.type == message_content_type_image')
-                        //-     .thread_message_body_image
-                        //-         img(:src='message_content.assistant_file_id')
+                        template(v-else-if='message_content.type == message_content_type_image')
+                            .thread_message_body_image
+                                Imageviewcomponent(
+                                    :download_link='true'
+                                    :imagevo_id='message_content.content_type_image_file.file_id'
+                                )
         
         template(v-if='thread_message.role == role_assistant')
             template(v-if='show_feedback')

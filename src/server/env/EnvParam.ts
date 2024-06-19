@@ -132,6 +132,7 @@ export default class EnvParam implements IEnvParam {
 
     public debug_openai_sync?: boolean = true;
     public debug_oselia_referrer_origin?: boolean = false;
+    public debug_openai_generate_image?: boolean = false;
 
     public block_openai_sync_push_to_openai?: boolean = false;
     public unblock_openai_push_to_openai_gpt_assistant_thread?: boolean = false;

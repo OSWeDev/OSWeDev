@@ -109,6 +109,7 @@ export default interface IEnvParam {
 
     debug_openai_sync?: boolean;
     debug_oselia_referrer_origin?: boolean;
+    debug_openai_generate_image?: boolean;
 
     block_openai_sync_push_to_openai?: boolean;
     unblock_openai_push_to_openai_gpt_assistant_thread?: boolean;

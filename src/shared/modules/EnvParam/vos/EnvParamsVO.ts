@@ -246,6 +246,7 @@ export default class EnvParamsVO implements IDistantVOBase {
 
     public debug_openai_sync: boolean;
     public debug_oselia_referrer_origin: boolean;
+    public debug_openai_generate_image: boolean;
 
     public block_openai_sync_push_to_openai: boolean;
     public unblock_openai_push_to_openai_gpt_assistant_thread: boolean;

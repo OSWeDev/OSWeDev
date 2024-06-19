@@ -95,6 +95,8 @@ import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunSt
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240524InitExistingGPTMessageThreadAndRunGPTIds from './patchs/postmodules/Patch20240524InitExistingGPTMessageThreadAndRunGPTIds';
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
+import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodules/Patch20240619DeclareFunctionOseliaGenerateImages';
+import Patch20240619AddRightsSeeGeneratedImages from './patchs/postmodules/Patch20240619AddRightsSeeGeneratedImages';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -209,6 +211,8 @@ export default abstract class GeneratorBase {
             Patch20240507AddDefaultRightsAPIsOselia.getInstance(),
             Patch20240514AddAssistantFunctionGetVoTypeDescription.getInstance(),
             Patch20240524InitExistingGPTMessageThreadAndRunGPTIds.getInstance(),
+            Patch20240619DeclareFunctionOseliaGenerateImages.getInstance(),
+            Patch20240619AddRightsSeeGeneratedImages.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

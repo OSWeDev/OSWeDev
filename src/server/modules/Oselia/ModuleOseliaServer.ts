@@ -1,4 +1,7 @@
+import axios from 'axios';
 import { Request, Response } from 'express';
+import { createWriteStream } from 'fs';
+import { ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -6,10 +9,18 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
+import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIThreadMessageContentImageFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageFileVO';
+import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
@@ -21,10 +32,12 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PasswordInitialisation from '../AccessPolicy/PasswordInitialisation/PasswordInitialisation';
+import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -32,15 +45,13 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssistantAPIServerSyncAssistantsController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
-import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
-import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
-import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import FileServerController from '../File/FileServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -153,6 +164,77 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     /**
+     * Fonction qui permet à Osélia de générer des images via OpenAI
+     * @param model 
+     * @param prompt 
+     * @param size 
+     * @param thread_vo 
+     */
+    public async generate_images(thread_vo: GPTAssistantAPIThreadVO, model: string, prompt: string, size: string, n: number) {
+        try {
+
+            if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                ConsoleHandler.log('ModuleOseliaServer:generate_image:Generating image with model:' + model + ':prompt:' + prompt + ':size:' + size + ':n:' + n + ':thread_vo gptid:' + thread_vo.gpt_thread_id);
+            }
+
+            const response: ImagesResponse = await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.images.generate,
+                ModuleGPTServer.openai.images,
+                {
+                    prompt: prompt,
+                    model: model,
+                    n: n,
+                    size: size as "256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792",
+                });
+
+            for (const i in response.data) {
+                const image = response.data[i];
+
+                if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                    ConsoleHandler.log('ModuleOseliaServer:generate_image:Generated image:' + i + '/' + response.data.length + ':url:' + image.url);
+                }
+
+                // On crée un fileVO, et on ajoute un message content de type image du coup dans le thread
+                const output_path: string = ModuleFile.SECURED_FILES_ROOT + 'oselia_generated_images/' + Dates.year(Dates.now()) + '/' + Dates.month(Dates.now()) + '/' +
+                    Math.round(Dates.now_ms()) + '_' + Math.floor(Math.random() * 1000000) + '.png';
+
+                if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                    ConsoleHandler.log('ModuleOseliaServer:generate_image:output_path:' + output_path);
+                }
+
+                const new_file_vo = await ModuleOseliaServer.getInstance().download_image_form_openai_url(image.url, output_path);
+
+                if (new_file_vo) {
+
+                    const new_thread_message = new GPTAssistantAPIThreadMessageVO();
+                    new_thread_message.thread_id = thread_vo.id;
+                    new_thread_message.date = Dates.now();
+                    new_thread_message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
+                    new_thread_message.user_id = thread_vo.user_id;
+                    new_thread_message.assistant_id = thread_vo.current_default_assistant_id;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_thread_message);
+
+                    const image_content = new GPTAssistantAPIThreadMessageContentVO();
+                    image_content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
+                    image_content.thread_message_id = new_thread_message.id;
+                    image_content.content_type_image_file = new GPTAssistantAPIThreadMessageContentImageFileVO();
+                    image_content.content_type_image_file.file_id = new_file_vo.id;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_content);
+
+                    if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                        ConsoleHandler.log('ModuleOseliaServer:generate_image:created message:' + new_thread_message.id + ' with content:' + image_content.id);
+                    }
+                }
+            }
+
+            return n > 1 ? 'Images générées avec succès' : 'Image générée avec succès';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:generate_image:Error while generating image:" + error);
+            return 'Erreur lors de la génération de l\'image:' + error;
+        }
+    }
+
+    /**
      * On définit les droits d'accès du module
      */
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -182,6 +264,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         POLICY_FO_ACCESS.translatable_name = ModuleOselia.POLICY_FO_ACCESS;
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès à la discussion avec Osélia'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_GENERATED_IMAGES_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_GENERATED_IMAGES_FO_ACCESS.group_id = group.id;
+        POLICY_GENERATED_IMAGES_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_GENERATED_IMAGES_FO_ACCESS.translatable_name = ModuleOselia.POLICY_GENERATED_IMAGES_FO_ACCESS;
+        POLICY_GENERATED_IMAGES_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_GENERATED_IMAGES_FO_ACCESS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Accès aux images générées par Osélia'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let POLICY_GET_REFERRER_NAME: AccessPolicyVO = new AccessPolicyVO();
@@ -839,5 +929,58 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return;
         }
         OseliaServerController.authorized_oselia_partners.push(update.post_update_vo.referrer_origin);
+    }
+
+    /**
+     * Méthode qui télécharge l'image chez OpenAI et la sauvegarde en local et crée le fileVO et le renvoie
+     * @param openai_image_url 
+     * @param local_path 
+     * @returns 
+     */
+    private async download_image_form_openai_url(
+        openai_image_url: string,
+        local_path: string,
+        is_secured: boolean = true,
+        secured_access_name: string = ModuleOselia.POLICY_GENERATED_IMAGES_FO_ACCESS,
+    ): Promise<FileVO> {
+        return new Promise((resolve, reject) => {
+
+            try {
+
+                axios({
+                    url: openai_image_url,
+                    responseType: 'stream',
+                }).then(async (axios_response) => {
+
+                    await FileServerController.getInstance().makeSureThisFolderExists(local_path.substring(0, local_path.lastIndexOf('/')));
+                    axios_response.data.pipe(createWriteStream(local_path))
+                        .on('finish', async () => {
+                            if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                                ConsoleHandler.log('ModuleOseliaServer:generate_image:Image downloaded and saved successfully.');
+                            }
+
+                            const file_vo = new FileVO();
+                            file_vo.file_access_policy_name = secured_access_name;
+                            file_vo.is_secured = is_secured;
+                            file_vo.path = local_path;
+                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file_vo);
+
+                            // On push l'image à GPT
+
+                            resolve(file_vo);
+                        })
+                        .on('error', (err) => {
+                            ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:', err);
+                            reject(err);
+                        })
+                }).catch(err => {
+                    ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :', err);
+                    reject(err);
+                });
+            } catch (error) {
+                ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image:', error);
+                reject(error);
+            }
+        });
     }
 }
