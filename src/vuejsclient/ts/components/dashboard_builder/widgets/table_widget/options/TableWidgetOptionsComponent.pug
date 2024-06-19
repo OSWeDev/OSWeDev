@@ -452,6 +452,30 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
+            .column_dynamic_var
+                .input_label {{ label('table_widget_options_component.column_dynamic_var') }}
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="column_dynamic_var"
+                        :placeholder="label('table_widget_column.column_dynamic_var')"
+                        :options="vars_options"
+                        :custom-label="var_label"
+                        :allow-empty="false",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        id="column_dynamic_var"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
     .do_not_use_page_widget_ids
         .input_label {{ label('table_widget_options_component.do_not_use_page_widget_ids') }}
         multiselect(

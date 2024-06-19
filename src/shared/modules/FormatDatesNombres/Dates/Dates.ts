@@ -77,6 +77,11 @@ export default class Dates {
                  * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
                  */
                 return moment.unix(date).utc().add(nb, 'month').unix();
+            case TimeSegment.TYPE_QUARTER:
+                /**
+                 * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
+                 */
+                return moment.unix(date).utc().add(nb, 'quarter').unix();
             case TimeSegment.TYPE_SECOND:
                 return Math.floor(nb + date);
             case TimeSegment.TYPE_WEEK:
@@ -120,6 +125,9 @@ export default class Dates {
             case TimeSegment.TYPE_YEAR:
                 let my = moment.unix(date).utc();
                 return my.startOf('year').unix();
+            case TimeSegment.TYPE_QUARTER:
+                let mq = moment.unix(date).utc();
+                return mq.startOf('quarter').unix();
 
             default:
                 return date;
@@ -156,6 +164,9 @@ export default class Dates {
             case TimeSegment.TYPE_YEAR:
                 let my = moment.unix(date).utc();
                 return my.endOf('year').unix();
+            case TimeSegment.TYPE_QUARTER:
+                let mq = moment.unix(date).utc();
+                return mq.endOf('quarter').unix();
 
             default:
                 return date;
@@ -190,6 +201,8 @@ export default class Dates {
                 return Dates.format(Dates.startOf(date, TimeSegment.TYPE_WEEK), LocaleManager.getInstance().t('Y-MM-DD'), localized);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(date).toString();
+            case TimeSegment.TYPE_QUARTER:
+                return LocaleManager.getInstance().label('time_segment.quarter') + Dates.quarter(date).toString();
             case TimeSegment.TYPE_DAY:
             default:
                 return Dates.format(date, LocaleManager.getInstance().t('Y-MM-DD'), localized);
@@ -232,6 +245,10 @@ export default class Dates {
                 let mya = moment.unix(a).utc();
                 let myb = moment.unix(b).utc();
                 return mya.diff(myb, 'year', precise);
+            case TimeSegment.TYPE_QUARTER:
+                let mqa = moment.unix(a).utc();
+                let mqb = moment.unix(b).utc();
+                return mqa.diff(mqb, 'quarter', precise);
 
             default:
                 return null;
@@ -565,6 +582,28 @@ export default class Dates {
         }
 
         return moment.unix(date).utc().month(set_month).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_quarter if omitted the function return the current quarter in the year, else it sets it (1 to 4) and return the updated time.
+     *  Bubbles on the year
+     */
+    public static quarter(date?: number, set_quarter?: number): number {
+
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+
+        if (set_quarter == null) {
+            return moment.unix(date).utc().quarter();
+        }
+
+        if (isNaN(set_quarter)) {
+            return date;
+        }
+
+        return moment.unix(date).utc().quarter(set_quarter).unix();
     }
 
     /**

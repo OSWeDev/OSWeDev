@@ -352,6 +352,10 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField(field_names<TableColumnDescVO>().custom_label, ModuleTableField.FIELD_TYPE_string, "Label personnalisé"),
             new ModuleTableField(field_names<TableColumnDescVO>().custom_class_css, ModuleTableField.FIELD_TYPE_string, "Classe CSS personnalisé"),
             new ModuleTableField(field_names<TableColumnDescVO>().custom_values, ModuleTableField.FIELD_TYPE_plain_vo_obj, "Valeurs personnalisées"),
+            new ModuleTableField(field_names<TableColumnDescVO>().column_dynamic_page_widget_id, ModuleTableField.FIELD_TYPE_int, "Widget de la colonne dynamique"),
+            new ModuleTableField(field_names<TableColumnDescVO>().column_dynamic_component, ModuleTableField.FIELD_TYPE_string, "Composant de la colonne dynamique"),
+            new ModuleTableField(field_names<TableColumnDescVO>().column_dynamic_var, ModuleTableField.FIELD_TYPE_string, "Variable de la colonne dynamique"),
+            new ModuleTableField(field_names<TableColumnDescVO>().column_dynamic_time_segment, ModuleTableField.FIELD_TYPE_int, "Segment de la colonne dynamique"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

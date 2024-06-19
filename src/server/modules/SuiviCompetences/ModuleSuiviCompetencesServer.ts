@@ -37,6 +37,8 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import DefaultTranslationsServerManager from '../Translation/DefaultTranslationsServerManager';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SuiviCompetencesRapportExportHandler from './exports/SuiviCompetencesRapportExportHandler';
+import VarDayLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDayLastSuiviCompetencesNiveauMaturiteGroupeController';
+import VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
 
@@ -410,6 +412,8 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
     private async configure_vars() {
         await VarDaySuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
         await VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
+        await VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
+        await VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
     }
 
     private registerTranslations() {

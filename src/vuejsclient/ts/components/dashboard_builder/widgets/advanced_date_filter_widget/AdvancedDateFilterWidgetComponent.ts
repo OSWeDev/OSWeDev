@@ -35,10 +35,14 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
+    @ModuleDashboardPageGetter
+    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
     @ModuleDashboardPageAction
     private clear_active_field_filters: () => void;
 
@@ -64,6 +68,10 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             this.page_widget,
             this.reset_visible_options.bind(this),
         );
+        this.set_page_widget_component_by_pwid({
+            pwid: this.page_widget.id,
+            page_widget_component: this
+        });
     }
 
     @Watch('widget_options', { immediate: true })
@@ -87,16 +95,38 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             this.tmp_filter_active_opt = null;
         }
 
-        this.tmp_ts_range = null;
+        if (this.widget_options.is_relative_to_today) {
+            if (
+                (this.widget_options.auto_select_relative_date_min != null) &&
+                (this.widget_options.auto_select_relative_date_max != null) &&
+                this.tmp_filter_active_opt
+            ) {
+                const now = Dates.now();
+
+                this.tmp_ts_range = RangeHandler.createNew(
+                    TSRange.RANGE_TYPE,
+                    Dates.add(now, this.widget_options.auto_select_relative_date_min, this.tmp_filter_active_opt.segmentation_type),
+                    Dates.add(now, this.widget_options.auto_select_relative_date_max, this.tmp_filter_active_opt.segmentation_type),
+                    true,
+                    true,
+                    this.tmp_filter_active_opt.segmentation_type
+                );
+            }
+        } else {
+            this.tmp_ts_range = null;
+        }
     }
 
     get is_auto_selectable_choice() {
         return (this.opts && (this.opts.length == 1) && (this.opts[0].search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM));
     }
 
-    @Watch('tmp_ts_range')
+    @Watch('tmp_ts_range', { immediate: true })
     @Watch('tmp_filter_active_opt')
     private onchange_selected_months() {
+        if (!this.tmp_filter_active_opt && !this.tmp_ts_range) {
+            return;
+        }
 
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = this.vo_field_ref ?
@@ -250,6 +280,15 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
     }
 
+    @Watch('other_filter_tmp_ts_range', { immediate: true, deep: true })
+    private onchange_other_filter_tmp_ts_range() {
+        if (!this.relative_to_this_filter) {
+            return;
+        }
+
+        this.tmp_ts_range = cloneDeep(this.other_filter_tmp_ts_range);
+    }
+
     get is_vo_field_ref(): boolean {
         if (!this.widget_options) {
             return true;
@@ -350,6 +389,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     options.hide_opts,
                     options.refuse_left_open,
                     options.refuse_right_open,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.is_relative_to_today,
+                    options.auto_select_relative_date_min,
+                    options.auto_select_relative_date_max,
                 ) : null;
             }
         } catch (error) {
@@ -426,5 +471,31 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     get base_filter(): string {
         return 'filter_opt_' + this.page_widget.id + '_';
+    }
+
+    get relative_to_this_filter(): AdvancedDateFilterWidgetComponent {
+
+        if (!this.widget_options.is_relative_to_other_filter) {
+            return null;
+        }
+
+        if (!this.widget_options.relative_to_other_filter_id) {
+            return null;
+        }
+
+        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as AdvancedDateFilterWidgetComponent;
+    }
+
+    get other_filter_tmp_ts_range(): TSRange {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let tmp_ts_range = this.relative_to_this_filter.tmp_ts_range;
+        if (!tmp_ts_range) {
+            return null;
+        }
+
+        return tmp_ts_range;
     }
 }

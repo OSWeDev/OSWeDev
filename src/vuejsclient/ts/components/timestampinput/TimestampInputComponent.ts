@@ -247,6 +247,7 @@ export default class TimestampInputComponent extends VueComponentBase {
                 case TimeSegment.TYPE_YEAR:
                 case TimeSegment.TYPE_MONTH:
                 case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                case TimeSegment.TYPE_QUARTER:
                 case TimeSegment.TYPE_WEEK:
                 case TimeSegment.TYPE_DAY:
                     break;

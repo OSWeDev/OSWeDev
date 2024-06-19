@@ -997,6 +997,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajouter une colonne dynamique'
+        }, 'table_widget_column.add_dynamic_column.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ajouter une entête'
         }, 'table_widget_column.new_header_column_select_type_label.___LABEL___'));
 
@@ -2689,6 +2693,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Ne pas mettre à jour la donnée du filtre si pas de date de fin" },
             'advanced_date_filter_widget_component.refuse_right_open.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à un autre filtre'
+        }, 'advanced_date_filter_widget_component.is_relative_to_other_filter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à ce filtre'
+        }, 'advanced_date_filter_widget_component.relative_to_other_filter_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Pré-sélection relative à aujourd'hui"
+        }, 'advanced_date_filter_widget_component.is_relative_to_today.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Masquer le filtre"
+        }, 'advanced_date_filter_widget_component.hide_filter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Heure" },
             'filters.names.__hour__.___LABEL___'
@@ -2722,8 +2738,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'hour_filter_options.rounded.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Composant à utiliser dans la colonne" },
+            { 'fr-fr': "Composant à utiliser dans la colonne dynamique" },
             'table_widget_options_component.column_dynamic_component.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Variable à utiliser dans la colonne dynamique" },
+            'table_widget_options_component.column_dynamic_var.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtre à utiliser pour les colonnes dynamiques" },

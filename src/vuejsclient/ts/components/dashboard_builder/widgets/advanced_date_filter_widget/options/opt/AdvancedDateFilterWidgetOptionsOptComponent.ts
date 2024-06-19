@@ -73,6 +73,12 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
                     options.hide_opts,
                     options.refuse_left_open,
                     options.refuse_right_open,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.is_relative_to_today,
+                    options.auto_select_relative_date_min,
+                    options.auto_select_relative_date_max,
                 ) : null;
             }
         } catch (error) {

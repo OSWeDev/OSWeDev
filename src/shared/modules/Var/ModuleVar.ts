@@ -679,6 +679,14 @@ export default class ModuleVar extends Module {
                     }
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    if (
+                        column?.custom_values?.length
+                    ) {
+                        var_param[matroid_field.field_id] = column.custom_values;
+                        break;
+                    }
+
+                    // TODO MDE
                     if (!!custom_filters[matroid_field.field_id]) {
                         // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                         // on compte en nombre de range et non en cardinal

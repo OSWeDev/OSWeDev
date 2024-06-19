@@ -283,7 +283,7 @@ export default class VarWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
+        return (this.widget_options.filter_type && this.const_filters[this.widget_options.filter_type]) ? this.const_filters[this.widget_options.filter_type].read : undefined;
     }
 
     get var_filter_additional_params(): string {

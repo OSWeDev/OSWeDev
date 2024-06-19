@@ -21,7 +21,7 @@ export default class PeriodHandler {
     private constructor() {
     }
 
-    public lower(period: string, base: unitOfTime.Base = 'days'): string {
+    public lower(period: string, base: unitOfTime.DurationConstructor = 'days'): string {
 
         let m = this.lowerMoment(period, base);
         if (!m) {
@@ -30,7 +30,7 @@ export default class PeriodHandler {
         return DateHandler.getInstance().formatDayForIndex(m.unix());
     }
 
-    public lowerMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
+    public lowerMoment(period: string, base: unitOfTime.DurationConstructor = 'days'): Moment {
         let split = this.split(period);
 
         if ((!split) || (!split[2]) || (split[2] == '')) {
@@ -59,7 +59,7 @@ export default class PeriodHandler {
         return res;
     }
 
-    public upper(period: string, base: unitOfTime.Base = 'days'): string {
+    public upper(period: string, base: unitOfTime.DurationConstructor = 'days'): string {
 
         let m = this.upperMoment(period, base);
         if (!m) {
@@ -68,7 +68,7 @@ export default class PeriodHandler {
         return DateHandler.getInstance().formatDayForIndex(m.unix());
     }
 
-    public upperMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
+    public upperMoment(period: string, base: unitOfTime.DurationConstructor = 'days'): Moment {
 
         let split = this.split(period);
 
@@ -79,14 +79,14 @@ export default class PeriodHandler {
         return (split[4] == ']') ? moment(split[3]).utc(true) : moment(split[3]).utc(true).add(-1, base);
     }
 
-    public hasUpper(period: string, base: unitOfTime.Base = 'days'): boolean {
+    public hasUpper(period: string, base: unitOfTime.DurationConstructor = 'days'): boolean {
 
         let split = this.split(period, true);
 
         return !((!split) || (!split[3]) || (split[3] == ''));
     }
 
-    public hasLower(period: string, base: unitOfTime.Base = 'days'): boolean {
+    public hasLower(period: string, base: unitOfTime.DurationConstructor = 'days'): boolean {
 
         let split = this.split(period, true);
 

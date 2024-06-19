@@ -29,6 +29,7 @@ import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuil
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -91,6 +92,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private column_dynamic_page_widget_id: number = null;
     private do_not_use_page_widget_ids: number[] = null;
     private column_dynamic_component: string = null;
+    private column_dynamic_var: string = null;
     private column_dynamic_page_widget: DashboardPageWidgetVO = null;
     private do_not_use_page_widgets: DashboardPageWidgetVO[] = [];
     private page_widget_options: DashboardPageWidgetVO[] = [];
@@ -243,6 +245,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.column_dynamic_component) {
                 this.column_dynamic_component = null;
             }
+            if (!!this.column_dynamic_var) {
+                this.column_dynamic_var = null;
+            }
             if (!!this.column_dynamic_page_widget) {
                 this.column_dynamic_page_widget = null;
             }
@@ -359,6 +364,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.column_dynamic_component != this.widget_options.column_dynamic_component) {
             this.column_dynamic_component = this.widget_options.column_dynamic_component;
         }
+        if (this.column_dynamic_var != this.widget_options.column_dynamic_var) {
+            this.column_dynamic_var = this.widget_options.column_dynamic_var;
+        }
 
         this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
@@ -442,6 +450,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.column_dynamic_page_widget?.id != this.next_update_options.column_dynamic_page_widget_id) {
             this.next_update_options.column_dynamic_page_widget_id = this.column_dynamic_page_widget?.id;
+            this.column_dynamic_page_widget_id = this.column_dynamic_page_widget?.id;
 
             await this.throttled_update_options();
         }
@@ -472,6 +481,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.column_dynamic_component != this.next_update_options.column_dynamic_component) {
             this.next_update_options.column_dynamic_component = this.column_dynamic_component;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('column_dynamic_var')
+    private async onchange_column_dynamic_var() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.column_dynamic_var != this.next_update_options.column_dynamic_var) {
+            this.next_update_options.column_dynamic_var = this.column_dynamic_var;
 
             await this.throttled_update_options();
         }
@@ -1338,6 +1362,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    private var_label(var_name: string): string {
+        return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.get_translatable_name_code(var_name));
+    }
+
     get is_archived_api_type_id(): boolean {
         if (!this.widget_options?.crud_api_type_id) {
             return false;
@@ -1468,5 +1496,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    get vars_options(): string[] {
+        return Object.keys(VarsController.var_conf_by_name);
     }
 }

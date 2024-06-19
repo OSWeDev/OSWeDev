@@ -58,6 +58,9 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             'fr-fr': 'Heure'
         }, 'timesegment.hour.type_name'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Trimestre'
+        }, 'timesegment.quarter.type_name'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Minute'
         }, 'timesegment.minute.type_name'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

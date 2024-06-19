@@ -92,6 +92,7 @@ export default class TableWidgetOptionsVO extends AbstractVO {
         public has_column_dynamic?: boolean,
         public column_dynamic_page_widget_id?: number,
         public column_dynamic_component?: string,
+        public column_dynamic_var?: string,
         public column_dynamic_time_segment?: number,
         public do_not_use_page_widget_ids?: number[],
         public legende_tableau?: string,

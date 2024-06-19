@@ -23,6 +23,7 @@ import SuiviCompetencesIndicateurTableFieldTypeController from './fields/indicat
 import SuiviCompetencesIndicateurVO from './fields/indicateur/vos/SuiviCompetencesIndicateurVO';
 import SuiviCompetencesRapportGroupeDataRangesVO from './vars/vos/SuiviCompetencesRapportGroupeDataRangesVO';
 import SuiviCompetencesRapportSousGroupeDataRangesVO from './vars/vos/SuiviCompetencesRapportSousGroupeDataRangesVO';
+import SuiviCompetencesRapportItemDataRangesVO from './vars/vos/SuiviCompetencesRapportItemDataRangesVO';
 import SuiviCompetencesUserDataRangesVO from './vars/vos/SuiviCompetencesUserDataRangesVO';
 import SuiviCompetencesActiviteVO from './vos/SuiviCompetencesActiviteVO';
 import SuiviCompetencesGrilleVO from './vos/SuiviCompetencesGrilleVO';
@@ -31,6 +32,8 @@ import SuiviCompetencesItemRapportVO from './vos/SuiviCompetencesItemRapportVO';
 import SuiviCompetencesItemVO from './vos/SuiviCompetencesItemVO';
 import SuiviCompetencesRapportVO from './vos/SuiviCompetencesRapportVO';
 import SuiviCompetencesSousGroupeVO from './vos/SuiviCompetencesSousGroupeVO';
+import SuiviCompetencesGroupeUserTsRangesDataRangesVO from './vars/vos/SuiviCompetencesGroupeUserTsRangesDataRangesVO';
+import SuiviCompetencesSousGroupeUserTsRangesDataRangesVO from './vars/vos/SuiviCompetencesSousGroupeUserTsRangesDataRangesVO';
 
 export default class ModuleSuiviCompetences extends Module {
 
@@ -97,6 +100,9 @@ export default class ModuleSuiviCompetences extends Module {
         this.initializeSuiviCompetencesUserDataRangesVO();
         this.initializeSuiviCompetencesRapportGroupeDataRangesVO();
         this.initializeSuiviCompetencesRapportSousGroupeDataRangesVO();
+        this.initializeSuiviCompetencesRapportItemDataRangesVO();
+        this.initializeSuiviCompetencesGroupeUserTsRangesDataRangesVO();
+        this.initializeSuiviCompetencesSousGroupeUserTsRangesDataRangesVO();
     }
 
     private initializeSuiviCompetencesGroupe() {
@@ -303,5 +309,64 @@ export default class ModuleSuiviCompetences extends Module {
         suivi_comp_rapport_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
         suivi_comp_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesGroupeVO.API_TYPE_ID]);
         suivi_comp_sous_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesSousGroupeVO.API_TYPE_ID]);
+    }
+
+    private initializeSuiviCompetencesRapportItemDataRangesVO() {
+
+        let suivi_comp_rapport_id_ranges = new ModuleTableField(field_names<SuiviCompetencesRapportItemDataRangesVO>().suivi_comp_rapport_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Rapports', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_item_id_ranges = new ModuleTableField(field_names<SuiviCompetencesRapportItemDataRangesVO>().suivi_comp_item_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Items', true).set_segmentation_type(NumSegment.TYPE_INT);
+
+        let datatable_fields = [
+            suivi_comp_rapport_id_ranges,
+            suivi_comp_item_id_ranges,
+            new ModuleTableField(field_names<SuiviCompetencesRapportItemDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+        ];
+
+        let datatable: ModuleTable<any> = VarsInitController.getInstance().register_var_data(SuiviCompetencesRapportItemDataRangesVO.API_TYPE_ID, () => new SuiviCompetencesRapportItemDataRangesVO(), datatable_fields, this);
+        suivi_comp_rapport_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
+        suivi_comp_item_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemVO.API_TYPE_ID]);
+    }
+
+    private initializeSuiviCompetencesGroupeUserTsRangesDataRangesVO() {
+
+        let suivi_comp_groupe_id_ranges = new ModuleTableField(field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().suivi_comp_groupe_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'TSP Groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_grille_id_ranges = new ModuleTableField(field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().suivi_comp_grille_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Grilles', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = new ModuleTableField(field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let ts_ranges = new ModuleTableField(field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates', true).set_segmentation_type(TimeSegment.TYPE_DAY);
+
+        let datatable_fields = [
+            suivi_comp_groupe_id_ranges,
+            suivi_comp_grille_id_ranges,
+            user_id_ranges,
+            ts_ranges,
+        ];
+
+        let datatable: ModuleTable<any> = VarsInitController.getInstance().register_var_data(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, () => new SuiviCompetencesGroupeUserTsRangesDataRangesVO(), datatable_fields, this);
+        suivi_comp_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesGroupeVO.API_TYPE_ID]);
+        suivi_comp_grille_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesGrilleVO.API_TYPE_ID]);
+        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+    }
+
+    private initializeSuiviCompetencesSousGroupeUserTsRangesDataRangesVO() {
+
+        let suivi_comp_groupe_id_ranges = new ModuleTableField(field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_groupe_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'TSP Groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_sous_groupe_id_ranges = new ModuleTableField(field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_sous_groupe_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'TSP Sous groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_grille_id_ranges = new ModuleTableField(field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_grille_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Grilles', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = new ModuleTableField(field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().user_id_ranges, ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let ts_ranges = new ModuleTableField(field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().ts_ranges, ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates', true).set_segmentation_type(TimeSegment.TYPE_DAY);
+
+        let datatable_fields = [
+            suivi_comp_groupe_id_ranges,
+            suivi_comp_sous_groupe_id_ranges,
+            suivi_comp_grille_id_ranges,
+            user_id_ranges,
+            ts_ranges,
+        ];
+
+        let datatable: ModuleTable<any> = VarsInitController.getInstance().register_var_data(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, () => new SuiviCompetencesSousGroupeUserTsRangesDataRangesVO(), datatable_fields, this);
+        suivi_comp_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesGroupeVO.API_TYPE_ID]);
+        suivi_comp_sous_groupe_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesSousGroupeVO.API_TYPE_ID]);
+        suivi_comp_grille_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesGrilleVO.API_TYPE_ID]);
+        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 }
