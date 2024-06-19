@@ -41,6 +41,7 @@ export default interface IEnvParam {
     DEBUG_VARS?: boolean;
     DEBUG_VARS_PROCESSES?: boolean;
     DEBUG_VARS_INVALIDATION?: boolean;
+    DEBUG_VARS_INVALIDATION_PARAM_INTERSECTOR?: boolean;
     DEBUG_VARS_CURRENT_TREE?: boolean;
     DEBUG_VARS_DB_PARAM_BUILDER?: boolean;
     DEBUG_VARS_SERVER_SUBS_CBS?: boolean;

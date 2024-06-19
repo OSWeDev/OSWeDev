@@ -116,6 +116,9 @@ export default class EnvParamsVO implements IDistantVOBase {
     // DEBUG_VARS_INVALIDATION?: boolean;
     public DEBUG_VARS_INVALIDATION: boolean;
 
+    // DEBUG_VARS_INVALIDATION_PARAM_INTERSECTOR?: boolean;
+    public DEBUG_VARS_INVALIDATION_PARAM_INTERSECTOR: boolean;
+
     // DEBUG_VARS_CURRENT_TREE?: boolean;
     public DEBUG_VARS_CURRENT_TREE: boolean;
 

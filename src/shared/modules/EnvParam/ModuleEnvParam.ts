@@ -158,6 +158,8 @@ export default class ModuleEnvParam extends Module {
             new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_PROCESSES, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars processes', true),
             // DEBUG_VARS_INVALIDATION ?: boolean;
             new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_INVALIDATION, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars invalidation', true),
+            // DEBUG_VARS_INVALIDATION_PARAM_INTERSECTOR ?: boolean;
+            new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_INVALIDATION_PARAM_INTERSECTOR, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars invalidation param intersector', true),
             // DEBUG_VARS_CURRENT_TREE ?: boolean;
             new ModuleTableField(field_names<EnvParamsVO>().DEBUG_VARS_CURRENT_TREE, ModuleTableField.FIELD_TYPE_boolean, 'Debug vars current tree', true),
             // DEBUG_VARS_DB_PARAM_BUILDER ?: boolean;
