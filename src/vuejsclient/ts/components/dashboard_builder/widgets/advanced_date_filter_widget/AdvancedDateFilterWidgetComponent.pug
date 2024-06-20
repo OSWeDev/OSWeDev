@@ -37,9 +37,19 @@
 
                 template(v-if="is_type_custom")
                     .type_custom(:class="{['col-sm-5']: !hide_opts, ['col-sm-12']: hide_opts}")
-                        Tsrangeinputcomponent(
-                            v-model="tmp_ts_range"
-                            :field="field_date"
-                            :segmentation_type="tmp_filter_active_opt.segmentation_type"
-                            @input="change_value_tsrange"
-                        )
+                        template(v-if="is_type_quarter && !relative_to_this_filter")
+                            //- On affiche pas volontairement si c'est un filtre qui fait référence à un autre sinon ça ne fonctionne pas
+                            //- Il doit y avoir un soucis dans le component qu'on utilise, bref c'est pas grave car en général c'est un filtre masqué
+                            Tsrangesinputcomponent(
+                                v-model="tmp_ts_ranges"
+                                :field="field_date"
+                                :segmentation_type="tmp_filter_active_opt.segmentation_type"
+                                @input="change_value_tsranges"
+                            )
+                        template(v-else)
+                            Tsrangeinputcomponent(
+                                v-model="tmp_ts_range"
+                                :field="field_date"
+                                :segmentation_type="tmp_filter_active_opt.segmentation_type"
+                                @input="change_value_tsrange"
+                            )

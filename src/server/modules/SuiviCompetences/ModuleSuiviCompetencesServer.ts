@@ -41,6 +41,8 @@ import VarDayLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/Var
 import VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
+import VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController';
+import VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 
 export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
@@ -410,6 +412,8 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
     }
 
     private async configure_vars() {
+        await VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
+        await VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
         await VarDaySuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
         await VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
         await VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();

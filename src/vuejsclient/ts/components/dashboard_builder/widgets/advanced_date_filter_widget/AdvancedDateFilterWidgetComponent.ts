@@ -23,12 +23,13 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
-import e from 'express';
+import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 
 @Component({
     template: require('./AdvancedDateFilterWidgetComponent.pug'),
     components: {
-        Tsrangeinputcomponent: TSRangeInputComponent
+        Tsrangeinputcomponent: TSRangeInputComponent,
+        Tsrangesinputcomponent: TSRangesInputComponent,
     }
 })
 export default class AdvancedDateFilterWidgetComponent extends VueComponentBase {
@@ -60,6 +61,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     private tmp_filter_active_opt: AdvancedDateFilterOptDescVO = null;
     private tmp_ts_range: TSRange = null;
+    private tmp_ts_ranges: TSRange[] = [];
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
 
     private async mounted() {
@@ -111,9 +113,12 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     true,
                     this.tmp_filter_active_opt.segmentation_type
                 );
+
+                this.tmp_ts_ranges = [this.tmp_ts_range];
             }
         } else {
             this.tmp_ts_range = null;
+            this.tmp_ts_ranges = [];
         }
     }
 
@@ -122,9 +127,10 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     @Watch('tmp_ts_range', { immediate: true })
+    @Watch('tmp_ts_ranges', { immediate: true })
     @Watch('tmp_filter_active_opt')
     private onchange_selected_months() {
-        if (!this.tmp_filter_active_opt && !this.tmp_ts_range) {
+        if (!this.tmp_filter_active_opt && !this.tmp_ts_range && !this.tmp_ts_ranges?.length) {
             return;
         }
 
@@ -141,7 +147,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             context_filter = ContextFilterVOHandler.find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
-        let ts_range: TSRange = null;
+        let ts_ranges: TSRange[] = null;
 
         if (this.tmp_filter_active_opt) {
             switch (this.tmp_filter_active_opt.search_type) {
@@ -162,14 +168,14 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         end_date = Dates.add(now, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
                     }
 
-                    ts_range = RangeHandler.createNew(
+                    ts_ranges = [RangeHandler.createNew(
                         TSRange.RANGE_TYPE,
                         start_date,
                         end_date,
                         true,
                         true,
                         this.tmp_filter_active_opt.segmentation_type
-                    );
+                    )];
                     break;
                 case AdvancedDateFilterOptDescVO.SEARCH_TYPE_YTD:
                     if ((this.tmp_filter_active_opt.value == null) || (this.tmp_filter_active_opt.segmentation_type == null)) {
@@ -180,20 +186,24 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                     let end_ytd_date: number = Dates.add(now_ytd, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
                     let start_ytd_date: number = Dates.startOf(end_ytd_date, TimeSegment.TYPE_YEAR);
 
-                    ts_range = RangeHandler.createNew(
+                    ts_ranges = [RangeHandler.createNew(
                         TSRange.RANGE_TYPE,
                         start_ytd_date,
                         end_ytd_date,
                         true,
                         true,
                         this.tmp_filter_active_opt.segmentation_type
-                    );
+                    )];
                     break;
                 case AdvancedDateFilterOptDescVO.SEARCH_TYPE_CALENDAR:
-                    ts_range = this.tmp_filter_active_opt.ts_range;
+                    ts_ranges = [this.tmp_filter_active_opt.ts_range];
                     break;
                 case AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM:
-                    ts_range = this.tmp_ts_range;
+                    if (this.is_type_quarter) {
+                        ts_ranges = this.tmp_ts_ranges;
+                    } else {
+                        ts_ranges = [this.tmp_ts_range];
+                    }
                     break;
             }
         }
@@ -201,7 +211,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         /**
          * Si on a pas de contextfilter actuellement et qu'on a pas besoin d'en avoir, inutile de continuer
          */
-        if ((!context_filter) && (!ts_range)) {
+        if ((!context_filter) && (!ts_ranges?.length)) {
             return;
         }
 
@@ -211,7 +221,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         if (!context_filter) {
             context_filter = new ContextFilterVO();
             context_filter.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-            context_filter.param_tsranges = [ts_range];
+            context_filter.param_tsranges = ts_ranges;
 
             if (this.is_vo_field_ref) {
                 context_filter.vo_type = this.vo_field_ref.api_type_id;
@@ -242,7 +252,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         /**
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
-        if ((!!context_filter) && (!ts_range)) {
+        if ((!!context_filter) && (!ts_ranges?.length)) {
             let new_root = ContextFilterVOHandler.remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
@@ -265,8 +275,8 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.are_same(context_filter.param_tsranges, [ts_range])) {
-                context_filter.param_tsranges = [ts_range];
+            if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
+                context_filter.param_tsranges = ts_ranges;
 
                 let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
@@ -287,6 +297,15 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
 
         this.tmp_ts_range = cloneDeep(this.other_filter_tmp_ts_range);
+    }
+
+    @Watch('other_filter_tmp_ts_ranges', { immediate: true, deep: true })
+    private onchange_other_filter_tmp_ts_ranges() {
+        if (!this.relative_to_this_filter) {
+            return;
+        }
+
+        this.tmp_ts_ranges = cloneDeep(this.other_filter_tmp_ts_ranges);
     }
 
     get is_vo_field_ref(): boolean {
@@ -315,6 +334,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
 
         this.tmp_ts_range = null;
+        this.tmp_ts_ranges = [];
     }
 
     private onchange_filter_opt_input(input: any, opt: AdvancedDateFilterOptDescVO) {
@@ -360,6 +380,26 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
 
         this.tmp_ts_range = ts_range;
+    }
+
+    private change_value_tsranges(ts_ranges: TSRange[]) {
+        if (this.widget_options?.refuse_left_open) {
+            for (let i in ts_ranges) {
+                if (RangeHandler.is_left_open(ts_ranges[i])) {
+                    return;
+                }
+            }
+        }
+
+        if (this.widget_options?.refuse_right_open) {
+            for (let i in ts_ranges) {
+                if (RangeHandler.is_right_open(ts_ranges[i])) {
+                    return;
+                }
+            }
+        }
+
+        this.tmp_ts_ranges = ts_ranges;
     }
 
     get vo_field_ref_label(): string {
@@ -497,5 +537,22 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
 
         return tmp_ts_range;
+    }
+
+    get other_filter_tmp_ts_ranges(): TSRange[] {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let tmp_ts_ranges = this.relative_to_this_filter.tmp_ts_ranges;
+        if (!tmp_ts_ranges) {
+            return null;
+        }
+
+        return tmp_ts_ranges;
+    }
+
+    get is_type_quarter(): boolean {
+        return this.tmp_filter_active_opt?.segmentation_type == TimeSegment.TYPE_QUARTER;
     }
 }

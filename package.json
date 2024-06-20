@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.31.9-15",
+    "version": "0.31.9-16",
     "description": "",
     "repository": {
         "type": "git",
@@ -143,6 +143,7 @@
         "zlib": "1.0.5"
     },
     "devDependencies": {
+        "@3scarecrow/vue-quarter-select": "2.0.0",
         "@playwright/test": "^1.35.1",
         "@types/adm-zip": "0.5.0",
         "@types/express-fileupload": "1.1.3",

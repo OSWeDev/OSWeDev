@@ -2746,6 +2746,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.column_dynamic_var.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Variable à utiliser dans la colonne dynamique" },
+            'table_widget_column.column_dynamic_var.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtre à utiliser pour les colonnes dynamiques" },
             'table_widget_options_component.column_dynamic_page_widget_id.___LABEL___'
         ));
@@ -2764,6 +2768,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Ajouter un nouvel indicateur" },
             'crud.field.custom_field.add_new_indicateur.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Trimestres" },
+            'ts_ranges_input.placeholder.quarters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Q" },
+            'time_segment.quarter.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

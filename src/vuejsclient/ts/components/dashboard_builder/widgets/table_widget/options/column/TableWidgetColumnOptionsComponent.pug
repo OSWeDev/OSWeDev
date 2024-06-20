@@ -407,7 +407,7 @@
                 hr.my-12
 
                 template(v-if="column.type == 6")
-                    .column_dynamic_page_widget_id
+                    .column_dynamic_page_widget_id.mt-1
                         .input_label {{ label('table_widget_options_component.column_dynamic_page_widget_id') }}
                         multiselect(
                             :preselect-first="false"
@@ -435,7 +435,7 @@
 
                     template(v-if="column_dynamic_page_widget_id")
                         template(v-if="column_dynamic_page_widget_is_type_date")
-                            .column_dynamic_time_segment 
+                            .column_dynamic_time_segment.mt-1
                                 .input_label {{ label('table_widget_options_component.column_dynamic_time_segment') }}
                                 .input_wrapper
                                     multiselect(
@@ -459,7 +459,7 @@
                                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                     )
 
-                        .column_dynamic_component
+                        .column_dynamic_component.mt-1
                             .input_label {{ label('table_widget_options_component.column_dynamic_component') }}
                             .input_wrapper
                                 multiselect(
@@ -482,7 +482,7 @@
                                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                 )
 
-                        .column_dynamic_var
+                        .column_dynamic_var.mt-1.mb-1
                             .input_label {{ label('table_widget_options_component.column_dynamic_var') }}
                             .input_wrapper
                                 multiselect(

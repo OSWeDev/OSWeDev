@@ -82,6 +82,7 @@ import VOFieldRefVOHandler from '../../../../../../../shared/modules/DashboardBu
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1049,31 +1050,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                                         new_column.var_unicity_id = Dates.now();
                                     }
 
-                                    let format: string = null;
-                                    switch (column.column_dynamic_time_segment) {
-                                        case TimeSegment.TYPE_DAY:
-                                            format = 'DD/MM/YYYY';
-                                            break;
-
-                                        case TimeSegment.TYPE_MONTH:
-                                            format = 'MM/YYYY';
-                                            break;
-
-                                        case TimeSegment.TYPE_YEAR:
-                                            format = 'YYYY';
-                                            break;
-
-                                        default:
-                                            break;
-                                    }
-
-                                    if (!format) {
-                                        return;
-                                    }
-
                                     new_weight++;
 
-                                    new_column.custom_label = Dates.format(date, format);
+                                    new_column.custom_label = Dates.format_segment(date, column.column_dynamic_time_segment);
                                     new_column.custom_values = [RangeHandler.create_single_elt_TSRange(date, column.column_dynamic_time_segment)];
                                     res.push(new_column);
                                 }, column.column_dynamic_time_segment);
