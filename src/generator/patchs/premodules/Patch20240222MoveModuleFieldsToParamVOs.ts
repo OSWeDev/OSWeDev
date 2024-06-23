@@ -336,7 +336,7 @@ export default class Patch20240222MoveModuleFieldsToParamVOs implements IGenerat
             // Il existe la table "admin.modules" normalement qu'il est normal d'avoir et qu'on veut pas prendre en compte du coup
             try {
 
-                const remaining_tables = await db.manyOrNone("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
+                const remaining_tables = await db.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'admin' AND table_name != 'modules';");
                 if (remaining_tables && (remaining_tables.length > 0)) {
                     ConsoleHandler.error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
                     throw new Error('Il reste des tables dans le schéma admin, il faut les migrer vers des ParamVOs et les supprimer de la base de données. Tables restantes : ' + remaining_tables.map((table) => table.table_name).join(', '));
