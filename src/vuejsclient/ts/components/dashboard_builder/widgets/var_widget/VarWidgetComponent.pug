@@ -1,17 +1,42 @@
 .var_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit", color: widget_options.fg_color_value ? widget_options.fg_color_value : "inherit"} : {}')
 
-    .var_data
-        var-data(
-            :var_param="var_param"
-            :filter='var_filter'
-            :filter_additional_params='var_filter_additional_params'
-            :show_import='true'
-            :show_tooltip='true'
-            :show_tooltip_import='true'
-            :show_tooltip_maj='false'
-            :show_tooltip_prefix='false'
-        )
-        i.fa-duotone(:class='widget_options ? widget_options.icon : ""')
+    //- .var_data
+    //-     var-data(
+    //-         :var_param="var_param"
+    //-         :filter='var_filter'
+    //-         :filter_additional_params='var_filter_additional_params'
+    //-         :show_import='true'
+    //-         :show_tooltip='true'
+    //-         :show_tooltip_import='true'
+    //-         :show_tooltip_maj='false'
+    //-         :show_tooltip_prefix='false'
+    //-     )
+    template(v-for='element in widget_options.elements_array')
+        template(v-if='element.type == "title"')
+            .var_title
+                template(v-if='element.show_title')
+                    .var_title_wrapper(:style="element.title_style ? {background: element.title_style.bg_color ? element.title_style.bg_color : 'inherit', color: element.title_style.text_color ? element.title_style.text_color : 'inherit', fontSize: element.title_style.font_size ? element.title_style.font_size+'px' : 'inherit', fontFamily: element.title_style.font_family ? element.title_style.font_family : 'inherit', textAlign : element.title_style.text_align ? element.title_style.text_align  : 'inherit' } : {}")
+                        Inlinetranslatabletext(
+                            :code_text="get_code_text(element)" 
+                            :is_editable="false"
+                        ) 
+
+        template(v-else-if='element.type == "var"')
+            .var_text
+                var-data(
+                    :var_param="element.var_params ? element.var_params : undefined"
+                    :filter='element.filter_type ? element.filter_type : undefined'
+                    :filter_additional_params='element.filter_additional_params ? element.filter_additional_params : undefined'
+                    :show_import='true'
+                    :show_tooltip='true'
+                    :show_tooltip_import='true'
+                    :show_tooltip_maj='false'
+                    :show_tooltip_prefix='false'
+                )
+        template(v-else-if='element.type == "icon"')
+            .var_icon
+                i.fa-duotone(:class='element.icon_text ? (element.icon_style ? (element.icon_style.icon_size ? element.icon_text+" fa-"+ element.icon_style.icon_size + "x" : "") : "") : ""' )
+        
 
     .var_label 
         Inlinetranslatabletext(:code_text="title_name_code_text" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')

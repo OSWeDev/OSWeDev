@@ -21,6 +21,7 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import './VarWidgetComponent.scss';
 import VarWidgetOptions from './options/VarWidgetOptions';
+import VarWidgetOptionsElementsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsElementsVO';
 
 @Component({
     template: require('./VarWidgetComponent.pug'),
@@ -107,6 +108,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         await this.throttled_update_visible_options();
     }
 
+
     get var_custom_filters(): { [var_param_field_name: string]: string } {
         if (!this.widget_options) {
             return null;
@@ -192,7 +194,8 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        const
+            custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         /**
          * Pour les dates il faut réfléchir....
@@ -251,6 +254,22 @@ export default class VarWidgetComponent extends VueComponentBase {
         }
 
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+
+
+    private get_code_text(element: VarWidgetOptionsElementsVO) {
+        if (!element) {
+            return null;
+        }
+
+        let tmp_element = new VarWidgetOptionsElementsVO().from(element)
+
+        if (tmp_element.get_title_name_code_text(this.page_widget.id)) {
+            return tmp_element.get_title_name_code_text(this.page_widget.id);
+        }
+
+        return
     }
 
     get widget_options() {

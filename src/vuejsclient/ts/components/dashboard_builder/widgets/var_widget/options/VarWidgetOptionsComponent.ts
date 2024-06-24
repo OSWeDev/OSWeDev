@@ -292,13 +292,11 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = this.get_default_next_update_options();
         }
 
-        this.next_update_options.elements_array = this.next_update_options.elements_array.find(
-            (el) => {
-                if (el.id == element.id) {
-                    el = element;
-                }
+        for (let el in this.next_update_options.elements_array) {
+            if (this.next_update_options.elements_array[el].id == element.id) {
+                this.next_update_options.elements_array[el] = element;
             }
-        )
+        }
         await this.throttled_update_options();
     }
 
