@@ -1,0 +1,47 @@
+.var_chart_scales_options_item_component 
+    .var_chart_scales_options_item_component_wrapper
+
+        .options_separator_lvl2 {{ label('var_chart_scales_options_item_component.separator.var_options') }}
+    
+        .chart_id
+            .input_label {{ label('var_chart_scales_options_item_component.chart_id') }}
+            .input_wrapper 
+                input(
+                    v-model="id"
+                    :disabled="true"
+                    type="text"
+                )
+        .scales_options
+            .scale_options 
+                
+            .scale_position {{label("var_chart_scales_options_item_component.separator.scale_position")}}
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="selected_position"
+                        :options="positions"
+                        :allow-empty="false",
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        select-label=''
+                        select-group-label=''
+                        selected-label=''
+                        deselect-label=''
+                        deselect-group-label=''
+
+                        placeholder=''
+
+                        name=""
+                    )
+
+            .options_separator_lvl2 {{ label('var_chart_scales_options_component.separator.datas_filter_options') }}
+            .scale_filter_options
+                .scale_filter_options_wrapper
+                    Widgetfilteroptionscomponent(
+                        :actual_additional_options="filter_additional_params"
+                        :actual_filter_type="filter_type"
+                        @update_additional_options="update_additional_options"
+                        @update_filter_type="update_filter_type"
+                    )

@@ -9,8 +9,8 @@ import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/Dashboar
 import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VarLineChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarLineChartWidgetOptionsVO';
 import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
+import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -26,6 +26,7 @@ import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSw
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
+import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -106,8 +107,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CurrentUserFilter();
 
         await this.initializeWidget_VarPieChart();
-        await this.initializeWidget_VarLineChart();
+        await this.initializeWidget_VarRadarChart();
         await this.initializeWidget_VarMixedChart();
+        await this.initializeWidget_VarChoroplethChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -394,100 +396,49 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => new VarPieChartWidgetOptions(
-
-            /**
-             * Paramètres du widget
-             */
-            null,
-
-            /**
-             * Paramètres du graph
-             */
-            true,
-            'top',
-            '#666',
-            12,
-            40,
-            10,
-            false,
-
-            false,
-            '#666',
-            16,
-            10,
-
-            50, // 0-100 - exemples : donut 50, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-
-            false,
-            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
-            null,
-            true,
-
-            /**
-             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
-             */
-            true,
-            null,
-            null,
-            TimeSegment.TYPE_YEAR,
-
-            /**
-             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
-             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
-             */
-            null,
-            null,
-
-            /**
-             * Var 1
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            /**
-             * Var 2 si pas de dimension
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            false,
-        ), VarPieChartWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptions.createDefault(), VarPieChartWidgetOptions.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
         Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
     }
 
-    private async initializeWidget_VarLineChart() {
-        let VarLineChart = new DashboardWidgetVO();
+    private async initializeWidget_VarChoroplethChart() {
+        const VarChoroplethChart = new DashboardWidgetVO();
 
-        VarLineChart.default_height = 10;
-        VarLineChart.default_width = 2;
-        VarLineChart.name = DashboardWidgetVO.WIDGET_NAME_varlinechart;
-        VarLineChart.widget_component = 'Varlinechartwidgetcomponent';
-        VarLineChart.options_component = 'Varlinechartwidgetoptionscomponent';
-        VarLineChart.weight = 15;
-        VarLineChart.default_background = '#f5f5f5';
-        VarLineChart.icon_component = 'Varlinechartwidgeticoncomponent';
+        VarChoroplethChart.default_height = 10;
+        VarChoroplethChart.default_width = 2;
+        VarChoroplethChart.name = DashboardWidgetVO.WIDGET_NAME_varchoroplethchart;
+        VarChoroplethChart.widget_component = 'Varchoroplethchartwidgetcomponent';
+        VarChoroplethChart.options_component = 'Varchoroplethchartwidgetoptionscomponent';
+        VarChoroplethChart.weight = 15;
+        VarChoroplethChart.default_background = '#f5f5f5';
+        VarChoroplethChart.icon_component = 'Varchoroplethchartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarLineChart, () => VarLineChartWidgetOptionsVO.createDefault(), VarLineChartWidgetOptionsVO.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
 
-        Vue.component('Varlinechartwidgetcomponent', () => import('./widgets/var_line_chart_widget/VarLineChartWidgetComponent'));
-        Vue.component('Varlinechartwidgetoptionscomponent', () => import('./widgets/var_line_chart_widget/options/VarLineChartWidgetOptionsComponent'));
-        Vue.component('Varlinechartwidgeticoncomponent', () => import('./widgets/var_line_chart_widget/icon/VarLineChartWidgetIconComponent'));
+        Vue.component('Varchoroplethchartwidgetcomponent', () => import('./widgets/var_choropleth_chart_widget/VarChoroplethChartWidgetComponent'));
+        Vue.component('Varchoroplethchartwidgetoptionscomponent', () => import('./widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptionsComponent'));
+        Vue.component('Varchoroplethchartwidgeticoncomponent', () => import('./widgets/var_choropleth_chart_widget/icon/VarChoroplethChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarRadarChart() {
+        let VarRadarChart = new DashboardWidgetVO();
+
+        VarRadarChart.default_height = 10;
+        VarRadarChart.default_width = 2;
+        VarRadarChart.name = DashboardWidgetVO.WIDGET_NAME_varradarchart;
+        VarRadarChart.widget_component = 'Varradarchartwidgetcomponent';
+        VarRadarChart.options_component = 'Varradarchartwidgetoptionscomponent';
+        VarRadarChart.weight = 15;
+        VarRadarChart.default_background = '#f5f5f5';
+        VarRadarChart.icon_component = 'Varradarchartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
+
+        Vue.component('Varradarchartwidgetcomponent', () => import('./widgets/var_radar_chart_widget/VarRadarChartWidgetComponent'));
+        Vue.component('Varradarchartwidgetoptionscomponent', () => import('./widgets/var_radar_chart_widget/options/VarRadarChartWidgetOptionsComponent'));
+        Vue.component('Varradarchartwidgeticoncomponent', () => import('./widgets/var_radar_chart_widget/icon/VarRadarChartWidgetIconComponent'));
     }
 
     private async initializeWidget_VarMixedChart() {
