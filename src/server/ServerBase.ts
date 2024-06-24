@@ -71,7 +71,6 @@ import IFork from './modules/Fork/interfaces/IFork';
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
-require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
 
