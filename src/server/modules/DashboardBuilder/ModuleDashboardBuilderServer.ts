@@ -2774,8 +2774,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'ts_ranges_input.placeholder.quarters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Q" },
+            { 'fr-fr': "T" },
             'time_segment.quarter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Relative date min" },
+            'advanced_date_filter_widget_component.auto_select_relative_date_min.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Relative date max" },
+            'advanced_date_filter_widget_component.auto_select_relative_date_max.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
