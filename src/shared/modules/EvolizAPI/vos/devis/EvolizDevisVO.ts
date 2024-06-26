@@ -241,7 +241,7 @@ export default class EvolizDevisVO {
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_price_vat_exclude: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Item classification information
         sale_classification: {
