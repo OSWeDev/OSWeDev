@@ -248,7 +248,7 @@ export default class EvolizDevisVO {
             // Classification id
             id: number,
             // Classification code
-            code: number,
+            code: string,
             // Classification label
             label: string
         }
