@@ -126,6 +126,41 @@ export default class VarWidgetComponent extends VueComponentBase {
     //     await this.throttled_update_visible_options();
     // }
 
+    private get_var_filter(element: VarWidgetOptionsElementsVO): string {
+        if (element.filter_type == 'none') {
+            return null;
+        }
+        return element.filter_type ? VueComponentBase.const_filters[element.filter_type].read : undefined;
+    }
+
+    private get_var_filter_additional_params(element: VarWidgetOptionsElementsVO): string {
+        if (!element.filter_additional_params) {
+            return null;
+        }
+
+        return element.filter_additional_params ? ObjectHandler.try_get_json(element.filter_additional_params) : undefined;
+    }
+
+    // get var_filter(): string {
+    //     if (!this.widget_options) {
+    //         return null;
+    //     }
+
+    //     if (this.widget_options.filter_type == 'none') {
+    //         return null;
+    //     }
+
+    //     return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
+    // }
+
+    // get var_filter_additional_params(): string {
+    //     if (!this.widget_options) {
+    //         return null;
+    //     }
+
+    //     return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
+    // }
+
     private async update_visible_options(force: boolean = false) {
 
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
@@ -299,23 +334,5 @@ export default class VarWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    get var_filter(): string {
-        if (!this.widget_options) {
-            return null;
-        }
 
-        if (this.widget_options.filter_type == 'none') {
-            return null;
-        }
-
-        return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
-    }
-
-    get var_filter_additional_params(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
-    }
 }

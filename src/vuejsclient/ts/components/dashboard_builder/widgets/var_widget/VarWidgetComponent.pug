@@ -25,8 +25,8 @@
             .var_text
                 var-data(
                     :var_param="element.var_params ? element.var_params : undefined"
-                    :filter='element.filter_type ? element.filter_type : undefined'
-                    :filter_additional_params='element.filter_additional_params ? element.filter_additional_params : undefined'
+                    :filter='get_var_filter(element)'
+                    :filter_additional_params='get_var_filter_additional_params(element)'
                     :show_import='true'
                     :show_tooltip='true'
                     :show_tooltip_import='true'

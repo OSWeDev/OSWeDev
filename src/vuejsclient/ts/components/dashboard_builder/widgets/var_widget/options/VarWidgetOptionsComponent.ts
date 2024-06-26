@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, forEach } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -46,7 +46,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
     private tmp_selected_var_name: string = null;
     private custom_filter_names: { [field_id: string]: string } = {};
-
     private fg_color_value: string = null;
     private fg_color_text: string = null;
     private bg_color: string = null;
@@ -95,6 +94,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
         await this.throttled_update_options();
     }
+
 
     get fields_that_could_get_custom_filter(): string[] {
         const res: string[] = [];
@@ -283,7 +283,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-    private async update_element(element: VarWidgetOptionsElementsVO) {
+    private async update_element(element: VarWidgetOptionsElementsVO, index: number) {
         if (!this.widget_options) {
             return;
         }
@@ -294,7 +294,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         for (let el in this.next_update_options.elements_array) {
             if (this.next_update_options.elements_array[el].id == element.id) {
-                this.next_update_options.elements_array[el] = element;
+                this.next_update_options.elements_array[el] = new VarWidgetOptionsElementsVO().from(element);
             }
         }
         await this.throttled_update_options();
@@ -308,8 +308,8 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_next_update_options();
         }
-
-        this.next_update_options.elements_array = this.widget_options.elements_array.splice(index, 1);
+        this.elements_array.splice(index, 1);
+        this.next_update_options.elements_array = this.elements_array;
         await this.throttled_update_options();
     }
 
@@ -324,6 +324,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
     }
+
 
     get title_name_code_text(): string {
         if (!this.widget_options) {

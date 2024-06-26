@@ -1,194 +1,245 @@
 .var_widget_options_elements 
     .var_widget_options_elements_wrapper
 
-        .options_separator_lvl2 {{ label('var_widget_options_elements.separator.var_options') }}
-    
-        .chart_id
-            .input_label {{ label('var_widget_options_elements.chart_id') }}
-            .input_wrapper 
-                input(
-                    v-model="id"
-                    :disabled="true"
-                    type="text"
-                )
-        .elements_options
-            .element_type {{label("var_widget_options_elements.separator.element_type")}}
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="selected_type"
-                        :options="types"
-                        :allow-empty="false",
-
-                        :searchable="true"
-                        :internal-search="true"
-
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
-
-                        placeholder=''
-
-                        name=""
-                    )
-            template(v-if="selected_type === 'title'")
-                .options_separator_lvl1 {{ label('var_widget_options_elements.separator.widget_options') }}
-                .widget_title(v-if='title_name_code_text')
-                    .widget_title_label {{ label('var_widget_options_elements.widget_title.title_name_code_text') }}
-                    .widget_title_wrapper
-                        Inlinetranslatabletext(
-                            :code_text="title_name_code_text" 
-                            :is_editable="true")
-                .widget_show_title
-                    .input_label {{ label('var_widget_options_elements.widget_title.show_title') }}
-                    toggle-button(
-                        @change="switch_show_title" 
-                        :value="show_title" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
-                .widget_title_options(v-if='show_title')
-                    .widget_title_bgcolor 
-                        .explication {{ label("var_widget_options_elements.widget_title.bg_color") }}
-                        color-picker(v-model="title_bg_color")
-                    .widget_title_text_color
-                        .explication {{ label("var_widget_options_elements.widget_title.text_color") }}
-                        color-picker(v-model="title_text_color")
-                    .widget_title_font_size
-                        .explication {{ label("var_widget_options_elements.widget_title.font_size") }}
+        .dropdown_menu
+            .options_separator_lvl2 {{ label('var_widget_options_elements.separator.var_options') }}
+            template(v-if="hide_options")
+                span
+                i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_options()")
+            template(v-if="!hide_options")
+                span
+                i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_options()")
+                .chart_id
+                    .input_label {{ label('var_widget_options_elements.chart_id') }}
+                    .input_wrapper 
                         input(
-                            type="number"
-                            v-model="title_font_size"
-                            :min="15"
-                            :max="200"
+                            v-model="id"
+                            :disabled="true"
+                            type="text"
                         )
-                    .element_position {{label("var_widget_options_elements.widget_title.title_position")}}
-                        multiselect(
-                            :preselect-first="false"
-                            :multiple="false"
-                            v-model="title_position"
-                            :options="text_positions"
-                            :allow-empty="false",
+                .elements_options
+                    .element_type {{label("var_widget_options_elements.separator.element_type")}}
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="selected_type"
+                                :options="types"
+                                :allow-empty="false",   
 
-                            :searchable="true"
-                            :internal-search="true"
+                                :searchable="true"
+                                :internal-search="true"
 
-                            select-label=''
-                            select-group-label=''
-                            selected-label=''
-                            deselect-label=''
-                            deselect-group-label=''
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
 
-                            placeholder=''
+                                placeholder=''
 
-                            name=""
-                        )
+                                name=""
+                            )
+                    template(v-if="selected_type === 'title'")
+                        .options_separator_lvl1 {{ label('var_widget_options_elements.separator.widget_options') }}
+                        .widget_title(v-if='title_name_code_text')
+                            .widget_title_label {{ label('var_widget_options_elements.widget_title.title_name_code_text') }}
+                            .widget_title_wrapper
+                                Inlinetranslatabletext(
+                                    :code_text="title_name_code_text" 
+                                    :is_editable="true")
+                        .widget_show_title
+                            .input_label {{ label('var_widget_options_elements.widget_title.show_title') }}
+                            toggle-button(
+                                @change="switch_show_title" 
+                                :value="show_title" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            )
+                        .widget_title_options(v-if='show_title')
+                            .widget_title_bgcolor 
+                                .explication {{ label("var_widget_options_elements.widget_title.bg_color") }}
+                                color-picker(v-model="title_bg_color")
+                            .widget_title_text_color
+                                .explication {{ label("var_widget_options_elements.widget_title.text_color") }}
+                                color-picker(v-model="title_text_color")
+                            .widget_title_font_size
+                                .explication {{ label("var_widget_options_elements.widget_title.font_size") }}
+                                input(
+                                    type="number"
+                                    v-model="title_font_size"
+                                    :min="15"
+                                    :max="200"
+                                )
+                            .element_position {{label("var_widget_options_elements.widget_title.title_position")}}
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="title_position"
+                                    :options="text_positions"
+                                    :allow-empty="false",
 
-            template(v-if="selected_type === 'var'")
-                .var_name 
-                    .input_label {{ label('var_widget_options_component.var_name') }}
-                    .input_wrapper
-                        multiselect.var_name_selector(
-                            :preselect-first="false"
-                            :multiple="false"
-                            v-model="tmp_selected_var_name"
-                            :options="var_names"
-                            :allow-empty="false",
+                                    :searchable="true"
+                                    :internal-search="true"
 
-                            :searchable="true"
-                            :internal-search="true"
-                            
-                            select-label=''
-                            select-group-label=''
-                            selected-label=''
-                            deselect-label=''
-                            deselect-group-label=''
+                                    select-label=''
+                                    select-group-label=''
+                                    selected-label=''
+                                    deselect-label=''
+                                    deselect-group-label=''
 
-                            placeholder=''
-                            
-                            name="var_name_selector"
-                        )
-                            .lang_selector_option(slot="noOptions") -
+                                    placeholder=''
 
-                .element_position {{label("var_widget_options_elements.separator.element_position")}}
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="selected_position"
-                        :options="positions"
-                        :allow-empty="false",
+                                    name=""
+                                )
 
-                        :searchable="true"
-                        :internal-search="true"
+                    template(v-if="selected_type === 'var'")
+                        .var_name 
+                            .input_label {{ label('var_widget_options_component.var_name') }}
+                            .input_wrapper
+                                multiselect.var_name_selector(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="tmp_selected_var_name"
+                                    :options="var_names"
+                                    :allow-empty="false",
 
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
+                                    :searchable="true"
+                                    :internal-search="true"
+                                    
+                                    select-label=''
+                                    select-group-label=''
+                                    selected-label=''
+                                    deselect-label=''
+                                    deselect-group-label=''
 
-                        placeholder=''
+                                    placeholder=''
+                                    
+                                    name="var_name_selector"
+                                )
+                                    .lang_selector_option(slot="noOptions") -
 
-                        name=""
-                    )
-                template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length>0')
-                    .fields_that_could_get_custom_filter
-                        template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
-                            .field_that_could_get_custom_filter
-                                .field_label {{ label('var_widget_options_elements.field_that_could_get_custom_filter') }}
-                                .custom_filter 
-                                    input(
-                                        type="text"
-                                        v-model="custom_filter_names[field_that_could_get_custom_filter]"
-                                        :disabled="true"
+                        .element_position {{label("var_widget_options_elements.separator.element_position")}}
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="selected_position"
+                                :options="positions"
+                                :allow-empty="false",
+
+                                :searchable="true"
+                                :internal-search="true"
+
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
+
+                                placeholder=''
+
+                                name=""
+                            )
+                        template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length>0')
+                            .fields_that_could_get_custom_filter
+                                template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                                    .field_that_could_get_custom_filter
+                                        .field_label {{ label('var_widget_options_elements.field_that_could_get_custom_filter') }}
+                                        .custom_filter 
+                                            input(
+                                                type="text"
+                                                v-model="dimension_custom_filter_name"
+                                                :disabled="true"
+                                            )
+                                        .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                            template(v-for='custom_filter in get_custom_filters')
+                                                .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+
+                        .options_separator_lvl2 {{ label('var_chart_elements_options_component.separator.datas_filter_options') }}
+                            .element_filter_options
+                                .element_filter_options_wrapper
+                                    Widgetfilteroptionscomponent(
+                                        :actual_additional_options="filter_additional_params"
+                                        :actual_filter_type="filter_type"
+                                        @update_additional_options="update_additional_options"
+                                        @update_filter_type="update_filter_type"
                                     )
-                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                                    template(v-for='custom_filter in get_custom_filters')
-                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                            .conditional_color_wrapper
+                                .label.mb-0
+                                    label {{ label('var_widget_options_elements.conditional_color') }}
+                                    .conditional_colors(v-for='(conditional_color, index) in conditional_colors')
+                                        .row.conditional_color_form
+                                                .col-md-12.toolbar
+                                                    span.pull-right
+                                                        i.fa-solid.fa-trash(@click="handle_remove_conditional_color(index, conditional_color)")
+                                                .col-md-12
+                                                    .row
+                                                        .col-md-6.condition_select
+                                                            label.col-md-6 {{ label('var_widget_options_elements.conditional_color.conditional_color.condition') }}
+                                                            select.col-md-6(v-model='conditional_color.condition')
+                                                                option(v-for='condition in selectionable_color_conditions' :value='condition.value') {{ condition.label }}
+                                                        .col-md-6.value_input
+                                                            label.col-md-6 {{ label('var_widget_options_elements.conditional_color.conditional_color.value') }}
+                                                            input.col-md-6(type='number' min='0' v-model='conditional_color.threshold')
+                                                .col-md-12.bg_color
+                                                    .row
+                                                        label.col-md-6 {{ label('var_widget_options_elements.conditional_color.conditional_color.value.color') }}
+                                                        .col-md-6
+                                                            color-picker(v-model="conditional_color.color.bg")
+                                                    .row
+                                                        label.col-md-6 {{ label('var_widget_options_elements.conditional_color.conditional_color.text.color') }}
+                                                        .col-md-6
+                                                            color-picker(v-model="conditional_color.color.text")
+                                                .col-md-12
+                                                    template(v-for='(target, target_index) in conditional_color.targets')
+                                                        .input_wrapper
+                                                            input(
+                                                                v-model='target.id'
+                                                                :disabled="true"
+                                                                type="text"
+                                                            )
+                                                            span
+                                                                i.fa-solid.fa-trash(@click="handle_remove_target(target_index)")
+                                                    
+                                                    template(v-for='(element) in selectionable_elements')
+                                                        .row(v-if='element.type != ""')
+                                                            label.col-md-6(@click='add_target_element(index,element)') {{ element.id }}
+                                                        
+                                    .add_conditional_cell_color
+                                        .btn.btn-success(@click='handle_add_conditional_color')
+                                            i.fa-solid.fa-plus(aria-hidden="true")
+                                            span {{ label('var_widget_options_elements.conditional_color.add') }}
+                    template(v-else-if="selected_type === 'icon'")
+                        .element_position {{label("var_widget_options_elements.separator.element_position")}}
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="selected_position"
+                                :options="positions"
+                                :allow-empty="false",
 
-                .options_separator_lvl2 {{ label('var_chart_elements_options_component.separator.datas_filter_options') }}
-                .element_filter_options
-                    .element_filter_options_wrapper
-                        Widgetfilteroptionscomponent(
-                            :actual_additional_options="filter_additional_params"
-                            :actual_filter_type="filter_type"
-                            @update_additional_options="update_additional_options"
-                            @update_filter_type="update_filter_type"
-                        )
+                                :searchable="true"
+                                :internal-search="true"
 
-            template(v-else-if="selected_type === 'icon'")
-                .element_position {{label("var_widget_options_elements.separator.element_position")}}
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="selected_position"
-                        :options="positions"
-                        :allow-empty="false",
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
 
-                        :searchable="true"
-                        :internal-search="true"
+                                placeholder=''
 
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
+                                name=""
+                            )
 
-                        placeholder=''
-
-                        name=""
-                    )
-                .options_separator_lvl2 {{ label('var_chart_elements_options_component.separator.datas_filter_options') }}
-                .element_icon_text 
-                    input(v-model="icon_text", type="text")
-                    .icon_size
-                        .explication {{ label("var_widget_options_elements.icon.size") }}
-                        input(
-                            type="number"
-                            v-model="icon_size"
-                            :min="1"
-                            :max="10"
-                        )
+                        .options_separator_lvl2 {{ label('var_chart_elements_options_component.separator.datas_filter_options') }}
+                        .element_icon_text 
+                            input(v-model="icon_text", type="text")
+                            .icon_size
+                                .explication {{ label("var_widget_options_elements.icon.size") }}
+                                input(
+                                    type="number"
+                                    v-model="icon_size"
+                                    :min="1"
+                                    :max="10"
+                                )

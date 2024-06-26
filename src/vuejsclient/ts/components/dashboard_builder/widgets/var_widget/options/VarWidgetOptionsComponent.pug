@@ -67,17 +67,17 @@
 
 .var_widget_options_selector 
         .add_var_widget_options_button_wrapper
-            button.btn-success.btn-lg.btn-block.add_var_widget_options_element_button(
+            button.btn-outline-success.btn-block.add_var_widget_options_element_button(
                 @click="add_element"
             ) {{ label('var_widget_options_component.add_var_widget_options_element_button') }}
         template
             .input_wrapper(v-for="(element, index) in elements_array")
                 Varwidgetoptionselementscomponent(
+                    :elements_array="elements_array"
                     :element="element"
                     :page_widget_id="page_widget.id"
                     @on_change="update_element"
                 )
-                //- Todo
-                button.btn-danger.btn-lg.btn-block.remove_var_widget_options_button(
+                button.btn-outline-danger.btn-block.remove_var_widget_options_button(
                     @click="remove_element(index)"
                 ) {{ label('var_widget_options_component.remove_var_widget_options_button') }}

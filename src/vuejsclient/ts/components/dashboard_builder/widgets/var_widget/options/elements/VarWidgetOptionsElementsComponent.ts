@@ -1,5 +1,5 @@
 import { Scale } from "chart.js";
-import { isEqual } from "lodash";
+import { cloneDeep, forEach, isEqual } from "lodash";
 import { Component, Prop, Watch } from "vue-property-decorator";
 import VarChartScalesOptionsVO from "../../../../../../../../shared/modules/DashboardBuilder/vos/VarChartScalesOptionsVO";
 import ThrottleHelper from "../../../../../../../../shared/tools/ThrottleHelper";
@@ -17,6 +17,7 @@ import ObjectHandler from "../../../../../../../../shared/tools/ObjectHandler";
 import ModuleTableController from "../../../../../../../../shared/modules/DAO/ModuleTableController";
 import ModuleTableFieldVO from "../../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import InlineTranslatableText from "../../../../../InlineTranslatableText/InlineTranslatableText";
+import { ConditionStatement } from "../../../../../../../../shared/tools/ConditionHandler";
 
 @Component({
     template: require('./VarWidgetOptionsElementsComponent.pug'),
@@ -32,6 +33,9 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
 
     @Prop({ default: null })
     private element: VarWidgetOptionsElementsVO;
+
+    @Prop({ default: null })
+    private elements_array: VarWidgetOptionsElementsVO[];
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -72,8 +76,17 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
     private title_position: string = null;
     private text_positions = ['center', 'right', 'left'];
     private icon_size: number = null;
+    private dimension_custom_filter_name: string = null;
+    private conditional_colors: Array<{ value: string, condition: string, color: { bg: string, text: string }, targets: VarWidgetOptionsElementsVO[] }> = [];
+    private selectionable_color_conditions: Array<{ value: string, label: string }> = [];
+    private selectionable_elements: Array<VarWidgetOptionsElementsVO> = [];
+    private hide_options: boolean = false;
+    private throttled_update_conditional_colors = ThrottleHelper.declare_throttle_without_args(
+        this.update_conditional_colors.bind(this),
+        800,
+        { leading: false, trailing: true }
+    );
     private throttled_emit_changes = ThrottleHelper.declare_throttle_without_args(this.emit_change.bind(this), 50, { leading: false, trailing: true });
-
 
     @Watch('element', { immediate: true, deep: true })
     private on_input_element_changed() {
@@ -82,6 +95,19 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         }
 
         this.current_element = this.element ? new VarWidgetOptionsElementsVO().from(this.element) : null
+    }
+
+    @Watch('elements_array', { immediate: true, deep: true })
+    private on_input_elements_array_changed() {
+        if (isEqual(this.elements_array, this.selectionable_elements)) {
+            return;
+        }
+        this.selectionable_elements = [];
+        forEach(this.elements_array, (element) => {
+            if (element.type) {
+                this.selectionable_elements.push(new VarWidgetOptionsElementsVO().from(element));
+            }
+        });
     }
 
     @Watch('current_element', { immediate: true, deep: true })
@@ -138,6 +164,29 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
             this.show_title = this.current_element.show_title;
         }
 
+        if (this.dimension_custom_filter_name != this.current_element.dimension_custom_filter_name) {
+            this.dimension_custom_filter_name = this.current_element.dimension_custom_filter_name;
+        }
+
+        if (this.hide_options != this.current_element.hide_options) {
+            this.hide_options = this.current_element.hide_options;
+        }
+
+        if (this.conditional_colors != this.current_element.conditional_colors) {
+            this.conditional_colors = cloneDeep(this.current_element.conditional_colors);
+        }
+
+        if (this.selectionable_color_conditions.length == 0) {
+            for (const i in ConditionStatement) {
+                const condition = ConditionStatement[i];
+
+                this.selectionable_color_conditions.push({
+                    value: condition,
+                    label: condition,
+                });
+            }
+        }
+
         if ((this.current_element.title_style)) {
             if (this.title_bg_color != this.current_element.title_style.bg_color) {
                 this.title_bg_color = this.current_element.title_style.bg_color;
@@ -158,6 +207,21 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
                 this.icon_size = this.current_element.icon_style.icon_size;
             }
         }
+    }
+
+    private async add_target_element(index: number, element: VarWidgetOptionsElementsVO) {
+        let found = false;
+        forEach(this.conditional_colors[index].targets, (target) => {
+            if (target.id == element.id) {
+                found = true;
+            }
+        });
+
+        if (!found) {
+            this.conditional_colors[index].targets.push(element);
+
+        }
+        await this.throttled_update_conditional_colors();
     }
 
     private async update_additional_options(additional_options: string) {
@@ -222,6 +286,25 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         await this.throttled_emit_changes();
     }
 
+    /**
+     * handle_remove_conditional_cell_color
+     *  - remove the color at the given index
+     *
+     * @param {number} index
+     * @returns {void}
+     */
+    private async handle_remove_conditional_color(index: number) {
+        this.conditional_colors.splice(index, 1);
+
+        await this.throttled_update_conditional_colors();
+    }
+
+    private async handle_remove_target(index: number) {
+        this.conditional_colors[index].targets.splice(index, 1);
+
+        await this.throttled_update_conditional_colors();
+    }
+
     private async emit_change() {
         // Set up all params fields
         this.current_element.page_widget_id = this.page_widget_id;
@@ -242,7 +325,9 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         this.current_element.title_style.font_size = this.title_font_size;
         this.current_element.title_style.text_align = this.title_position;
         this.current_element.icon_style.icon_size = this.icon_size;
-
+        this.current_element.dimension_custom_filter_name = this.dimension_custom_filter_name;
+        this.current_element.conditional_colors = this.conditional_colors;
+        this.current_element.hide_options = this.hide_options;
         this.$emit('on_change', this.current_element);
     }
 
@@ -252,6 +337,11 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         }
 
         return ObjectHandler.hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
+    }
+
+    private async switch_hide_options() {
+        this.hide_options = !this.hide_options;
+        await this.throttled_emit_changes();
     }
 
     @Watch('icon_size')
@@ -306,6 +396,7 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
 
         this.custom_filter_names[field_id] = custom_filter;
         this.filter_custom_field_filters = this.custom_filter_names;
+        this.dimension_custom_filter_name = custom_filter;
 
         if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
             const custom_filters = Array.from(this.get_custom_filters);
@@ -326,13 +417,14 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         }
     }
     private async update_var_params() {
-        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetOptionsElementsComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetOptionsElementsComponent.get_var_custom_filters(this.custom_filter_names, this.get_active_field_filters);
 
         if (!this.var_id) {
             this.var_params = null;
             await this.emit_change();
             return;
         }
+
 
         this.var_params = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.var_conf_by_id[this.var_id].name,
@@ -344,6 +436,18 @@ export default class VarWidgetOptionsElementsComponent extends VueComponentBase 
         await this.emit_change();
     }
 
+    private async handle_add_conditional_color() {
+        this.conditional_colors.push({ value: null, condition: null, color: { bg: null, text: null }, targets: [] });
+        await this.throttled_emit_changes();
+    }
+
+    private async update_conditional_colors() {
+        if (isEqual(this.current_element.conditional_colors, this.conditional_colors)) {
+            return;
+        }
+
+        await this.throttled_emit_changes();
+    }
     private async switch_show_title() {
         this.show_title = !this.show_title;
         await this.throttled_emit_changes();

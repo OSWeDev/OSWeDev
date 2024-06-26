@@ -1,7 +1,5 @@
 import { createReadStream, writeFileSync } from 'fs';
 import { FileObject } from 'openai/resources';
-import { Assistant } from 'openai/resources/beta/assistants/assistants';
-import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages/messages';
 import { Run, RunCreateParams } from 'openai/resources/beta/threads/runs/runs';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { Uploadable } from 'openai/uploads';
@@ -34,6 +32,7 @@ import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/Osel
 import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
+import { Assistant } from 'openai/resources/beta/assistants';
 
 export default class GPTAssistantAPIServerController {
 

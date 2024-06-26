@@ -2,6 +2,7 @@
 import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VarDataBaseVO from "../../Var/vos/VarDataBaseVO";
+import ObjectHandler from "../../../tools/ObjectHandler";
 export default class VarWidgetOptionsElementsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "VarWidgetOptionsElements.title.";
@@ -12,12 +13,14 @@ export default class VarWidgetOptionsElementsVO extends AbstractVO {
         public filter_additional_params?: string,
         public page_widget_id?: number,
         public selected_position?: string, // ?
+        public hide_options?: boolean,
         public style?: {       // ?
             bg_color?: string,
             text_color?: string,
             font_size?: string,
             font_family?: string
         },
+        public dimension_custom_filter_name?: string,
         public type?: string,
         public icon_text?: string,
         public var_params?: VarDataBaseVO,
@@ -33,7 +36,8 @@ export default class VarWidgetOptionsElementsVO extends AbstractVO {
         public icon_style?: {
             bg_color?: string,
             icon_size?: number,
-        }
+        },
+        public conditional_colors: Array<{ value: string, condition: string, color: { bg: string, text: string }, targets: VarWidgetOptionsElementsVO[] }> = [],
     ) {
         super();
     }
