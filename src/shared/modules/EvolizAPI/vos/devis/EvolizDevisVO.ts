@@ -233,7 +233,7 @@ export default class EvolizDevisVO {
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Document total amounts in currency
         currency_total: {
