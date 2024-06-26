@@ -6,6 +6,8 @@
             :default-value="selectedDates"
             :disabled="disabled"
             :placeholder="label('ts_ranges_input.placeholder.quarters')"
+            :option-format="option_format_quarter"
+            :format="option_format_quarter_selected"
             @change="onchange_selected_quarters"
         )
     template(v-else)

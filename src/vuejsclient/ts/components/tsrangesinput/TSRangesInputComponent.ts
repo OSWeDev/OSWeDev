@@ -144,6 +144,14 @@ export default class TSRangesInputComponent extends VueComponentBase {
         this.$emit('input_with_infos', new_value, this.field, this.vo);
     }
 
+    private option_format_quarter(quarter: number): string {
+        return this.label('time_segment.quarter') + quarter;
+    }
+
+    private option_format_quarter_selected(year: number, quarter: number): string {
+        return year + ' ' + this.option_format_quarter(quarter);
+    }
+
     get disabled_dates(): any {
         if (!this.disabled) {
             return null;

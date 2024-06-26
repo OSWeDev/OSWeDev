@@ -310,8 +310,10 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     }
 
     private var_value_callback(var_value: VarDataValueResVO, component: VarDataRefComponent): number {
-        if (!var_value || !this.widget_options?.niveau_maturite_styles?.length) {
-            return null;
+        if (!var_value || !this.widget_options?.niveau_maturite_styles?.length || (var_value.value == null)) {
+            component.$el['style'].background = '';
+            component.$el['style'].color = '';
+            return var_value?.value;
         }
 
         let niveau_maturite_styles: NiveauMaturiteStyle[] = NiveauMaturiteStyle.get_value(this.widget_options?.niveau_maturite_styles);

@@ -179,7 +179,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         if (this.widget_options.auto_select_relative_date_min != this.auto_select_relative_date_min) {
             this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_relative_date_min = this.auto_select_relative_date_min;
+            this.next_update_options.auto_select_relative_date_min = ((this.auto_select_relative_date_min != null) ? parseInt(this.auto_select_relative_date_min.toString()) : null);
 
             this.throttled_update_options();
         }
@@ -193,7 +193,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
         if (this.widget_options.auto_select_relative_date_max != this.auto_select_relative_date_max) {
             this.next_update_options = this.widget_options;
-            this.next_update_options.auto_select_relative_date_max = this.auto_select_relative_date_max;
+            this.next_update_options.auto_select_relative_date_max = ((this.auto_select_relative_date_max != null) ? parseInt(this.auto_select_relative_date_max.toString()) : null);
 
             this.throttled_update_options();
         }
