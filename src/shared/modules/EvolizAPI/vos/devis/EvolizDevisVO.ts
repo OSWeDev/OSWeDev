@@ -204,7 +204,7 @@ export default class EvolizDevisVO {
     // Quote template
     public template: { templateid: number, label: string };
     // Document item
-    public items: {
+    public items: Array<{
         // Item id
         itemid: number,
         // Article unique identifier
@@ -229,7 +229,7 @@ export default class EvolizDevisVO {
         vat: number,
         // Document total amounts
         total: {
-            rebate: null,
+            rebate: { amount_vat_exclude: number, percent: number },
             vat_exclude: number,
             vat: number,
             vat_include: number,
@@ -252,5 +252,5 @@ export default class EvolizDevisVO {
             // Classification label
             label: string
         }
-    };
+    }>;
 }
