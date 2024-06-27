@@ -33,6 +33,7 @@ import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import { Assistant } from 'openai/resources/beta/assistants';
+import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages/messages';
 
 export default class GPTAssistantAPIServerController {
 
