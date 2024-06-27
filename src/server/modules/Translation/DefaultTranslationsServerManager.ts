@@ -7,7 +7,6 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
@@ -26,7 +25,7 @@ export default class DefaultTranslationsServerManager {
     public async saveDefaultTranslations(force: boolean = false) {
 
         // Il faut utiliser la var d'en NODE_INSTALL = true pour lancer ce process (très long potentiellement)
-        if (!ConfigurationService.nodeInstall) {
+        if (!ConfigurationService.nodeInstall && !force) {
             return;
         }
 
@@ -130,7 +129,7 @@ export default class DefaultTranslationsServerManager {
             translatable = new TranslatableTextVO();
             translatable.code_text = default_translation.code_text;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(translatable);
-            ConsoleHandler.error("Ajout de translatable : " + JSON.stringify(translatable));
+            ConsoleHandler.log("Ajout de translatable : " + JSON.stringify(translatable));
             translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_id(translatable.id).exec_as_server().select_vo<TranslatableTextVO>();
         }
 

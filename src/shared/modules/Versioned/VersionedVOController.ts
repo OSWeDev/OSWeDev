@@ -51,7 +51,7 @@ export default class VersionedVOController implements IVOController {
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_timestamp, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().version_num, ModuleTableFieldVO.FIELD_TYPE_int, 'Numéro de version', false);
         ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().trashed, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Supprimé', false);
-        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().parent_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Parent', false);
+        ModuleTableFieldController.create_new(moduleTable.vo_type, field_names<IVersionedVO>().parent_id, ModuleTableFieldVO.FIELD_TYPE_int, 'Parent', false).index();
 
         // On copie les champs, pour les 3 tables à créer automatiquement :
         //  - La table versioned
@@ -90,6 +90,11 @@ export default class VersionedVOController implements IVOController {
                 cloned_field.enum_values = vofield.enum_values;
                 cloned_field.is_inclusive_data = vofield.is_inclusive_data;
                 cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
+
+                if (vofield.is_indexed) {
+                    cloned_field.index();
+                }
+
                 fields.push(cloned_field);
             }
 

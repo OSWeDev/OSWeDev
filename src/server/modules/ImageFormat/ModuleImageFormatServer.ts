@@ -127,7 +127,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             return null;
         }
 
-        if (!(/\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(src))) {
+        if (!(/\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(src.toLowerCase()))) {
             return null;
         }
 

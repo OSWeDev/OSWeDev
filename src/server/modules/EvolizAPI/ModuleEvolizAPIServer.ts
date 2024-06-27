@@ -3,28 +3,35 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
-import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizContactClientVO from '../../../shared/modules/EvolizAPI/vos/contact_clients/EvolizContactClientVO';
 import EvolizContactProspectVO from '../../../shared/modules/EvolizAPI/vos/contact_prospects/EvolizContactProspectVO';
-import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
-import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
-import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
 import EvolizProspectVO from '../../../shared/modules/EvolizAPI/vos/prospects/EvolizProspectVO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import EvolizAPIToken from './vos/EvolizAPIToken';
+import EvolizDevisVO from '../../../shared/modules/EvolizAPI/vos/devis/EvolizDevisVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import EvolizArticleVO from '../../../shared/modules/EvolizAPI/vos/articles/EvolizArticleVO';
+import EvolizInvoicePOSTVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoicePOSTVO';
+import EvolizPaymentTermsVO from '../../../shared/modules/EvolizAPI/vos/payment_terms/EvolizPaymentTermsVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import EvolizSalesClassificationVO from '../../../shared/modules/EvolizAPI/vos/sales_classification/EvolizSalesClassificationVO';
+import EvolizUnitCodeVO from '../../../shared/modules/EvolizAPI/vos/unit_codes/EvolizUnitCodeVO';
+import EvolizPayTypeVO from '../../../shared/modules/EvolizAPI/vos/pay_type/EvolizPayTypeVO';
+import EvolizCompanyVO from '../../../shared/modules/EvolizAPI/vos/company/EvolizCompanyVO';
+import EvolizInvoiceEmailVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceEmailVO';
+import EvolizCreditVO from '../../../shared/modules/EvolizAPI/vos/credit/EvolizCreditVO';
+import EvolizAdvanceVO from '../../../shared/modules/EvolizAPI/vos/advance/EvolizAdvanceVO';
+import EvolizDocumentLinksVO from '../../../shared/modules/EvolizAPI/vos/document_links/EvolizDocumentLinksVO';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -97,6 +104,14 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_prospects, this.list_contact_prospects.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_prospect, this.create_contact_prospect.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_payment_terms, this.list_payment_terms.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_sale_classification, this.list_sale_classification.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_unit_code, this.list_unit_code.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_companies, this.list_companies.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_paytypes, this.list_paytypes.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_send_mail_invoice, this.send_mail_invoice.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_credits, this.list_credits.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_advances, this.list_advances.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_get_document_links, this.get_document_links.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -108,8 +123,6 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             let expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
             if (expiration) {
 
-                ConsoleHandler.log('Temps actuel: ' + now + ' - Temps expiration: ' + evoliz_time);
-                ConsoleHandler.log('Token EvolizAPI encore valide. Token = ' + this.token.access_token.substring(0, 10) + '...');
                 return this.token;
             }
         }
@@ -144,6 +157,113 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
             console.log("Connexion à l'API Evoliz réussie. Token = " + this.token.access_token.substring(0, 10) + "...");
         } else {
             console.error("Erreur connexion à l'API Evoliz (demande de token).");
+        }
+    }
+
+    /**
+     * @param doc_type "payment", "invoice", "advance", "credit", "quote", "corder", "delivery", "cash-deposit"
+     */
+    public async get_document_links(doc_type: string, doc_id: number): Promise<EvolizDocumentLinksVO> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let document_links: EvolizDocumentLinksVO = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                ('/api/v1/links/' + doc_type + '/' + doc_id),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            return document_links;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Company
+    public async list_companies(): Promise<EvolizCompanyVO> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let company_id: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
+
+            let companies: EvolizCompanyVO = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                ('/api/v1/companies/' + company_id),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            return companies;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Credit
+    public async list_credits(): Promise<EvolizCreditVO[]> {
+        try {
+            let credits: EvolizCreditVO[] = await this.get_all_pages('/api/v1/credits') as EvolizCreditVO[];
+
+            return credits;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Advance
+    public async list_advances(): Promise<EvolizAdvanceVO[]> {
+        try {
+            let advances: EvolizAdvanceVO[] = await this.get_all_pages('/api/v1/advances') as EvolizAdvanceVO[];
+
+            return advances;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Pay Types
+    public async list_paytypes(): Promise<EvolizPayTypeVO[]> {
+        try {
+            let sales_classification: EvolizPayTypeVO[] = await this.get_all_pages('/api/v1/paytypes') as EvolizPayTypeVO[];
+
+            return sales_classification;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Sales Classification
+    public async list_sale_classification(): Promise<EvolizSalesClassificationVO[]> {
+        try {
+            let sales_classification: EvolizSalesClassificationVO[] = await this.get_all_pages('/api/v1/sale-classifications') as EvolizSalesClassificationVO[];
+
+            return sales_classification;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Unit Code
+    public async list_unit_code(): Promise<EvolizUnitCodeVO[]> {
+        try {
+            let unit_codes: EvolizUnitCodeVO[] = await this.get_all_pages('/api/v1/unit-codes') as EvolizUnitCodeVO[];
+
+            return unit_codes;
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -286,8 +406,36 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 false,
                 true,
             );
+
+            return create_invoice.invoiceid;
         } catch (error) {
             console.error("Erreur Evoliz: invoice: " + invoice.object + " - Erreur: " + error);
+        }
+    }
+
+    public async send_mail_invoice(invoiceid: number, params: EvolizInvoiceEmailVO): Promise<boolean> {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let email = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/invoices/' + invoiceid + '/send',
+                params,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Erreur Evoliz: send mail invoice: " + invoiceid + " - Erreur: " + error);
+            return false;
         }
     }
 

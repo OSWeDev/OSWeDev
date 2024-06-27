@@ -175,6 +175,7 @@ export default class ModuleSuiviCompetences extends Module {
             suivi_comp_item_id_ranges,
             suivi_comp_activite_id,
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().calcul_niveau_maturite, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utilisation du calcul du niveau de maturité ?', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().logo, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo'),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().move_indicateur_to_end, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Déplacer l\'indicateur en fin de tableau ?', true, true, false),
         ];
 

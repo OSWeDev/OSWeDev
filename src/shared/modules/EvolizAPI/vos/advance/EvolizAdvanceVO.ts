@@ -1,13 +1,11 @@
-export default class EvolizInvoiceVO {
-    public static API_TYPE_ID: string = "evoliz_invoice";
+export default class EvolizAdvanceVO {
+    public static API_TYPE_ID: string = "evoliz_advance";
 
     public id: number;
-    public _type: string = EvolizInvoiceVO.API_TYPE_ID;
+    public _type: string = EvolizAdvanceVO.API_TYPE_ID;
 
     // ID unique Evoliz
-    public invoiceid: number;
-    // Invoice's type: invoice, situation, benefit
-    public typedoc: string;
+    public advanceid: number;
     // Document number
     public document_number: string;
     // Document’s creator ID
@@ -62,8 +60,6 @@ export default class EvolizInvoiceVO {
             // Total margin amount
             amount: number
         },
-        // Total amount of advance on this document
-        advance: number,
         // Paid amount on document
         paid: number,
         // Total amount remaining on this document
@@ -139,20 +135,7 @@ export default class EvolizInvoiceVO {
     public links: string;
     // Webdocument link
     public webdoc: string;
-    // Number of recoveries sent for the current invoice
-    public recovery_number: number;
-    // Document retention information
-    public retention: {
-        // Retention percent
-        percent: number,
-        // Retention amount
-        amount: number,
-        // Retention amount in currency
-        currency_amount: number,
-        // Retention Date
-        date: string
-    };
-    // Invoice template
+    // Advance template
     public template: { templateid: number, label: string };
     // Document item
     public items: Array<{

@@ -76,6 +76,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -2010,18 +2011,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throw new Error('selectUsersForCheckUnicity: name and email must be defined');
             }
 
-            const filters = [
+            let has_sms_activation: boolean = false;
+
+            if (ModuleSendInBlue.getInstance().actif) {
+                has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
+            }
+
+            let filters = [
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(name, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(name, true),
-                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(email, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(email, true),
-                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true)
             ];
+
+            if (has_sms_activation) {
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true));
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true));
+            }
+
             if (!!phone) {
                 filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(phone, true));
                 filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(phone, true));
-                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true));
+
+                if (has_sms_activation) {
+                    filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true));
+                }
             }
             // NEW method with query
             return await query(UserVO.API_TYPE_ID)

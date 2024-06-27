@@ -145,6 +145,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public many_to_many_aggregate: boolean;
     public is_nullable: boolean;
     public show_tooltip: boolean;
+    public align_content_right: boolean;
     public disabled_many_to_one_link: boolean;
 
     /**
