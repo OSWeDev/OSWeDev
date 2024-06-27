@@ -186,27 +186,27 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             return;
         }
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Points clés'
-        }, 'suivi_competences_widget_component.points_cles.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.points_cles.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Objectif de la prochaine visite'
-        }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'KPI'
-        }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Maturité'
-        }, 'suivi_competences_widget_component.indicateur.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.indicateur.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Détails'
-        }, 'suivi_competences_widget_component.indicateur_detail.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.indicateur_detail.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Commentaire"
-        }, 'suivi_competences_widget_component.commentaires.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.commentaires.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Plan d'action"
-        }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }
@@ -430,7 +430,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Télécharger'
         }, 'suivi_competences_download_rapport.download.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Composant téléchargement rapport PDF'
         }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_comp_rapport___suivi_competences_download_rapport.___LABEL___'));
     }
