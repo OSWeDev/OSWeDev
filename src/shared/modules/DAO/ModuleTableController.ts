@@ -56,7 +56,7 @@ export default class ModuleTableController {
     /**
      * Les constructeurs des vos par vo_type
      */
-    public static vo_constructor_by_vo_type: { [vo_type: string]: { new(): IDistantVOBase } } = {};
+    public static vo_constructor_by_vo_type: { [vo_type: string]: new () => IDistantVOBase } = {};
     /**
      * Les vo_types déclarés par module
      */

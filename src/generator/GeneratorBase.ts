@@ -87,7 +87,7 @@ import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch20240329Adduniqroleconstraint';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
-import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+// import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
@@ -196,7 +196,7 @@ export default abstract class GeneratorBase {
             Patch20231123AddRightsSharedFilters.getInstance(),
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
-            Patch20240409RetrieveOpenAIRunStats.getInstance(),
+            // Patch20240409RetrieveOpenAIRunStats.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

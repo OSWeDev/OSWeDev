@@ -1,9 +1,11 @@
-import { cloneDeep, forEach } from 'lodash';
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import VarWidgetOptionsElementsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsElementsVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
@@ -14,10 +16,8 @@ import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_fi
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import VarWidgetOptions from './VarWidgetOptions';
 import './VarWidgetOptionsComponent.scss';
-import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
-import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
-import VarWidgetOptionsElementsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsElementsVO';
 import VarWidgetOptionsElementsComponent from './elements/VarWidgetOptionsElementsComponent';
+import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
 
 @Component({
     template: require('./VarWidgetOptionsComponent.pug'),
@@ -55,47 +55,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private elements_array: VarWidgetOptionsElementsVO[] = [];
     private selected_var_name: string = null;
 
-    private get_default_next_update_options(): VarWidgetOptions {
-        return new VarWidgetOptions(
-            this.widget_options.var_id,
-            this.widget_options.filter_type,
-            this.widget_options.filter_custom_field_filters,
-            this.widget_options.filter_additional_params,
-            this.widget_options.bg_color,
-            this.widget_options.fg_color_value,
-            this.widget_options.fg_color_text,
-            this.widget_options.icon,
-            this.widget_options.elements_array)
-    }
-
-    private async update_colors() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_next_update_options();
-        }
-        this.widget_options.fg_color_value = this.fg_color_value;
-        this.widget_options.fg_color_text = this.fg_color_text;
-        this.widget_options.bg_color = this.bg_color;
-        await this.throttled_update_options();
-    }
-
-    private async change_custom_filter(field_id: string, custom_filter: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_next_update_options();
-        }
-        this.custom_filter_names[field_id] = custom_filter;
-        this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
-        await this.throttled_update_options();
-    }
-
-
     get fields_that_could_get_custom_filter(): string[] {
         const res: string[] = [];
 
@@ -128,43 +87,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
-    private async update_additional_options(additional_options: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_next_update_options();
-        }
-        this.next_update_options.filter_additional_params = additional_options;
-        await this.throttled_update_options();
-    }
-
-    private async update_filter_type(filter_type: string) {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_next_update_options();
-        }
-        this.next_update_options.filter_type = filter_type;
-        await this.throttled_update_options();
-    }
-
-    @Watch('icon')
-    private async handle_icon_change() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_next_update_options();
-        }
-        this.next_update_options.icon = this.icon;
-        await this.throttled_update_options();
-    }
-
     get var_names(): string[] {
 
         const res: string[] = [];
@@ -188,6 +110,109 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return 0;
         });
         return res;
+    }
+
+    get title_name_code_text(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    get default_title_translation(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        if (!this.widget_options.var_id) {
+            return null;
+        }
+
+        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
+    }
+
+    @Watch('icon')
+    private async handle_icon_change() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_next_update_options();
+        }
+        this.next_update_options.icon = this.icon;
+        await this.throttled_update_options();
+    }
+
+    @Watch('page_widget', { immediate: true })
+    @Watch('widget_options')
+    private async onchange_widget_options() {
+        await this.throttled_reload_options();
+    }
+
+    private get_default_next_update_options(): VarWidgetOptions {
+        return new VarWidgetOptions(
+            this.widget_options.var_id,
+            this.widget_options.filter_type,
+            this.widget_options.filter_custom_field_filters,
+            this.widget_options.filter_additional_params,
+            this.widget_options.bg_color,
+            this.widget_options.fg_color_value,
+            this.widget_options.fg_color_text,
+            this.widget_options.icon,
+            this.widget_options.elements_array);
+    }
+
+    private async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_next_update_options();
+        }
+        this.widget_options.fg_color_value = this.fg_color_value;
+        this.widget_options.fg_color_text = this.fg_color_text;
+        this.widget_options.bg_color = this.bg_color;
+        await this.throttled_update_options();
+    }
+
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_next_update_options();
+        }
+        this.custom_filter_names[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
+        await this.throttled_update_options();
+    }
+
+    private async update_additional_options(additional_options: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_next_update_options();
+        }
+        this.next_update_options.filter_additional_params = additional_options;
+        await this.throttled_update_options();
+    }
+
+    private async update_filter_type(filter_type: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_next_update_options();
+        }
+        this.next_update_options.filter_type = filter_type;
+        await this.throttled_update_options();
     }
 
     private reload_options() {
@@ -270,12 +295,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    @Watch('page_widget', { immediate: true })
-    @Watch('widget_options')
-    private async onchange_widget_options() {
-        await this.throttled_reload_options();
-    }
-
     private async add_element() {
         const var_widget_options_element = new VarWidgetOptionsElementsVO().initialize();
 
@@ -292,7 +311,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = this.get_default_next_update_options();
         }
 
-        for (let el in this.next_update_options.elements_array) {
+        for (const el in this.next_update_options.elements_array) {
             if (this.next_update_options.elements_array[el].id == element.id) {
                 this.next_update_options.elements_array[el] = new VarWidgetOptionsElementsVO().from(element);
             }
@@ -323,26 +342,5 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-    }
-
-
-    get title_name_code_text(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        return this.widget_options.get_title_name_code_text(this.page_widget.id);
-    }
-
-    get default_title_translation(): string {
-        if (!this.widget_options) {
-            return null;
-        }
-
-        if (!this.widget_options.var_id) {
-            return null;
-        }
-
-        return this.t(VarsController.get_translatable_name_code_by_var_id(this.widget_options.var_id));
     }
 }
