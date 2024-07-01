@@ -1,83 +1,72 @@
-//- .var_widget_options_component
-//-     template(v-for='(element, index) in elements_array')
-//-         .input_label {{ label('var_chart_scales_options_item.show_scale_title') }}
-//-     .var_name 
-//-         .input_label {{ label('var_widget_options_component.var_name') }}
-//-         .input_wrapper
-//-             multiselect.var_name_selector(
-//-                 :preselect-first="false"
-//-                 :multiple="false"
-//-                 v-model="tmp_selected_var_name"
-//-                 :options="var_names"
-//-                 :allow-empty="false",
+.var_widget_options_component
+    .var_name 
+        .input_label {{ label('var_widget_options_component.var_name') }}
+        .input_wrapper
+            multiselect.var_name_selector(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_selected_var_name"
+                :options="var_names"
+                :allow-empty="false",
 
-//-                 :searchable="true"
-//-                 :internal-search="true"
+                :searchable="true"
+                :internal-search="true"
                 
-//-                 select-label=''
-//-                 select-group-label=''
-//-                 selected-label=''
-//-                 deselect-label=''
-//-                 deselect-group-label=''
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
 
-//-                 placeholder=''
+                placeholder=''
                 
-//-                 name="var_name_selector"
-//-             )
-//-                 .lang_selector_option(slot="noOptions") -
+                name="var_name_selector"
+            )
+                .lang_selector_option(slot="noOptions") -
 
-//-     .widget_title(v-if='title_name_code_text')
-//-         .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
-//-         .widget_title_wrapper
-//-             Inlinetranslatabletext(
-//-                 :code_text="title_name_code_text" 
-//-                 :is_editable="true"
-//-                 :default_translation="default_title_translation")
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")
 
-//-     .widget_filter_options(v-if='title_name_code_text && widget_options')
-//-         .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
-//-         .widget_filter_options_wrapper
-//-             Widgetfilteroptionscomponent(
-//-                 :actual_additional_options="widget_options.filter_additional_params"
-//-                 :actual_filter_type="widget_options.filter_type"
-//-                 @update_additional_options="update_additional_options"
-//-                 @update_filter_type="update_filter_type"
-//-             )
-//-     .icon_option 
-//-        .input_label {{ label('.icon_input') }}
-//-             .input_wrapper
-//-                 input(
-//-                     type="text"
-//-                     v-model="icon"
-//-                     v-tooltip="label('var_widget_options_component.icon_input.tooltip')"
-//-                 )
-//-     .color_options 
-//-         .color_option
-//-             .bg_color
-//-                 .explication {{ label("var_widget_options_component.bg_color") }}
-//-                 color-picker(v-model="bg_color" @change='throttled_update_colors')
-//-             .fg_color_value
-//-                 .explication {{ label("var_widget_options_component.fg_color_value") }}
-//-                 color-picker(v-model="fg_color_value" @change='throttled_update_colors')
-//-             .fg_color_text
-//-                 .explication {{ label("var_widget_options_component.fg_color_text") }}
-//-                 color-picker(v-model="fg_color_text" @change='throttled_update_colors')
+    .widget_filter_options(v-if='title_name_code_text && widget_options')
+        .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+        .widget_filter_options_wrapper
+            Widgetfilteroptionscomponent(
+                :actual_additional_options="widget_options.filter_additional_params"
+                :actual_filter_type="widget_options.filter_type"
+                @update_additional_options="update_additional_options"
+                @update_filter_type="update_filter_type"
+            )
+
+    template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+        .fields_that_could_get_custom_filter
+            template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                .field_that_could_get_custom_filter
+                    .field_id {{ field_that_could_get_custom_filter }}
+                    .custom_filter 
+                        input(
+                            type="text"
+                            v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                            :disabled="true"
+                        )
+                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                        template(v-for='custom_filter in get_custom_filters')
+                            .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+
+    .color_options 
+        .color_option
+            .bg_color
+                .explication {{ label("var_widget_options_component.bg_color") }}
+                color-picker(v-model="bg_color" @change='throttled_update_colors')
+            .fg_color_value
+                .explication {{ label("var_widget_options_component.fg_color_value") }}
+                color-picker(v-model="fg_color_value" @change='throttled_update_colors')
+            .fg_color_text
+                .explication {{ label("var_widget_options_component.fg_color_text") }}
+                color-picker(v-model="fg_color_text" @change='throttled_update_colors')
                 
-
-
-.var_widget_options_selector 
-        .add_var_widget_options_button_wrapper
-            button.btn-outline-success.btn-block.add_var_widget_options_element_button(
-                @click="add_element"
-            ) {{ label('var_widget_options_component.add_var_widget_options_element_button') }}
-        template
-            .input_wrapper(v-for="(element, index) in elements_array")
-                Varwidgetoptionselementscomponent(
-                    :elements_array="elements_array"
-                    :element="element"
-                    :page_widget_id="page_widget.id"
-                    @on_change="update_element"
-                )
-                button.btn-outline-danger.btn-block.remove_var_widget_options_button(
-                    @click="remove_element(index)"
-                ) {{ label('var_widget_options_component.remove_var_widget_options_button') }}
+            .preview(:style='{background: bg_color, color: fg_color_value}') {{ t(title_name_code_text) }}

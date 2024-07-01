@@ -21,7 +21,6 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import './VarWidgetComponent.scss';
 import VarWidgetOptions from './options/VarWidgetOptions';
-import VarWidgetOptionsElementsVO from '../../../../../../shared/modules/DashboardBuilder/vos/VarWidgetOptionsElementsVO';
 
 @Component({
     template: require('./VarWidgetComponent.pug'),
@@ -108,7 +107,6 @@ export default class VarWidgetComponent extends VueComponentBase {
         await this.throttled_update_visible_options();
     }
 
-
     get var_custom_filters(): { [var_param_field_name: string]: string } {
         if (!this.widget_options) {
             return null;
@@ -124,41 +122,6 @@ export default class VarWidgetComponent extends VueComponentBase {
     //     }
 
     //     await this.throttled_update_visible_options();
-    // }
-
-    private get_var_filter(element: VarWidgetOptionsElementsVO): string {
-        if (element.filter_type == 'none') {
-            return null;
-        }
-        return element.filter_type ? VueComponentBase.const_filters[element.filter_type].read : undefined;
-    }
-
-    private get_var_filter_additional_params(element: VarWidgetOptionsElementsVO): string {
-        if (!element.filter_additional_params) {
-            return null;
-        }
-
-        return element.filter_additional_params ? ObjectHandler.try_get_json(element.filter_additional_params) : undefined;
-    }
-
-    // get var_filter(): string {
-    //     if (!this.widget_options) {
-    //         return null;
-    //     }
-
-    //     if (this.widget_options.filter_type == 'none') {
-    //         return null;
-    //     }
-
-    //     return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
-    // }
-
-    // get var_filter_additional_params(): string {
-    //     if (!this.widget_options) {
-    //         return null;
-    //     }
-
-    //     return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
     // }
 
     private async update_visible_options(force: boolean = false) {
@@ -229,8 +192,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        const
-            custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         /**
          * Pour les dates il faut réfléchir....
@@ -291,22 +253,6 @@ export default class VarWidgetComponent extends VueComponentBase {
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
-
-
-    private get_code_text(element: VarWidgetOptionsElementsVO) {
-        if (!element) {
-            return null;
-        }
-
-        let tmp_element = new VarWidgetOptionsElementsVO().from(element)
-
-        if (tmp_element.get_title_name_code_text(this.page_widget.id)) {
-            return tmp_element.get_title_name_code_text(this.page_widget.id);
-        }
-
-        return
-    }
-
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -323,9 +269,7 @@ export default class VarWidgetComponent extends VueComponentBase {
                     options.filter_additional_params,
                     options.bg_color,
                     options.fg_color_value,
-                    options.fg_color_text,
-                    options.icon,
-                    options.elements_array) : null;
+                    options.fg_color_text) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -334,5 +278,19 @@ export default class VarWidgetComponent extends VueComponentBase {
         return options;
     }
 
+    get var_filter(): string {
+        if (!this.widget_options) {
+            return null;
+        }
 
+        return this.widget_options.filter_type ? this.const_filters[this.widget_options.filter_type].read : undefined;
+    }
+
+    get var_filter_additional_params(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.filter_additional_params ? ObjectHandler.try_get_json(this.widget_options.filter_additional_params) : undefined;
+    }
 }
