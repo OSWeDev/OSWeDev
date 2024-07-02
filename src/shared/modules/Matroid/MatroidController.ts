@@ -1,29 +1,39 @@
 import cloneDeep from 'lodash/cloneDeep';
 import RangeHandler from '../../tools/RangeHandler';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IRange from '../DataRender/interfaces/IRange';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
-import IMatroid from './interfaces/IMatroid';
 import MatroidBaseController from './MatroidBaseController';
+import IMatroid from './interfaces/IMatroid';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import MatroidCutResult from './vos/MatroidCutResult';
 
 export default class MatroidController {
 
+    private constructor() { }
+
     public static async initialize() {
     }
 
+    /**
+     * On vérifie que les bases ne sont pas des max_ranges, et ne sont pas nulles
+     * @param matroid
+     * @returns
+     */
     public static check_bases_not_max_ranges(matroid: IMatroid): boolean {
-        let matroid_bases = this.getMatroidBases(matroid);
+        const matroid_bases = this.getMatroidBases(matroid);
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
 
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
+            if (!matroid_base) {
+                return false;
+            }
 
-            for (let j in matroid_base.ranges) {
-                let range = matroid_base.ranges[j];
-                if (RangeHandler.is_one_max_range(range)) {
+            for (const j in matroid_base.ranges) {
+                const range = matroid_base.ranges[j];
+                if ((!range) || RangeHandler.is_one_max_range(range)) {
                     return false;
                 }
             }
@@ -42,13 +52,13 @@ export default class MatroidController {
             return 0;
         }
 
-        let matroid_bases = this.getMatroidBases(matroid);
+        const matroid_bases = this.getMatroidBases(matroid);
 
         let res = null;
 
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
-            let matroid_base_cardinal = (matroid_base != null) ? MatroidBaseController.getInstance().get_cardinal(matroid_base) : 0;
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
+            const matroid_base_cardinal = (matroid_base != null) ? MatroidBaseController.getInstance().get_cardinal(matroid_base) : 0;
 
             res = (res != null) ? res * matroid_base_cardinal : matroid_base_cardinal;
         }
@@ -63,10 +73,10 @@ export default class MatroidController {
 
         let res: string = matroid._type;
 
-        let fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
+        const fields: ModuleTableFieldVO[] = this.getMatroidFields(matroid._type);
 
-        for (let i in fields) {
-            let field = fields[i];
+        for (const i in fields) {
+            const field = fields[i];
 
             res += '_' + RangeHandler.getIndexRanges(matroid[field.field_type]);
         }
@@ -79,28 +89,28 @@ export default class MatroidController {
     //  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
     //  si on trouve plus d'une base différente
     public static union<T extends IMatroid>(matroids: T[]): T[] {
-        let res: T[] = [];
+        const res: T[] = [];
 
         if ((!matroids) || (!matroids.length)) {
             return null;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[matroids[0]._type];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[matroids[0]._type];
 
         if (!moduletable) {
             return null;
         }
 
-        let ranges_need_union: { [res_i: number]: { [field_id: string]: boolean } } = {};
-        for (let i in matroids) {
+        const ranges_need_union: { [res_i: number]: { [field_id: string]: boolean } } = {};
+        for (const i in matroids) {
 
-            let tested_matroid = matroids[i];
+            const tested_matroid = matroids[i];
             let ignore_matroid: boolean = false;
 
-            for (let j in res) {
-                let matroid = res[j];
+            for (const j in res) {
+                const matroid = res[j];
 
-                let different_field_ids: string[] = this.get_different_field_ids(tested_matroid, matroid);
+                const different_field_ids: string[] = this.get_different_field_ids(tested_matroid, matroid);
 
                 if ((!different_field_ids) || (different_field_ids.length == 0)) {
                     ignore_matroid = true;
@@ -130,13 +140,13 @@ export default class MatroidController {
                 continue;
             }
 
-            res.push(this.cloneFrom(tested_matroid));
+            res.push(this.cloneFrom<T, T>(tested_matroid));
         }
 
-        for (let i in ranges_need_union) {
-            let matroid: T = res[i];
+        for (const i in ranges_need_union) {
+            const matroid: T = res[i];
 
-            for (let field_id in ranges_need_union[i]) {
+            for (const field_id in ranges_need_union[i]) {
                 matroid[field_id] = RangeHandler.getRangesUnion(matroid[field_id]);
             }
 
@@ -151,25 +161,25 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public static getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+    public static getMatroidFields(api_type_id: string): ModuleTableFieldVO[] {
+        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         if (!moduleTable) {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableField<any>> = [];
-        let mt_fields = moduleTable.get_fields();
-        for (let i in mt_fields) {
-            let field = mt_fields[i];
+        const matroid_fields: ModuleTableFieldVO[] = [];
+        const mt_fields = moduleTable.get_fields();
+        for (const i in mt_fields) {
+            const field = mt_fields[i];
 
             switch (field.field_type) {
-                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                // case ModuleTableFieldVO.FIELD_TYPE_daterange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     break;
 
                 default:
@@ -192,16 +202,16 @@ export default class MatroidController {
             return null;
         }
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
-        let matroid_bases: MatroidBase[] = [];
+        const matroid_fields: ModuleTableFieldVO[] = this.getMatroidFields(matroid._type);
+        const matroid_bases: MatroidBase[] = [];
 
         if ((!matroid_fields) || (!matroid_fields.length)) {
             return null;
         }
 
-        for (let i in matroid_fields) {
+        for (const i in matroid_fields) {
 
-            let field = matroid_fields[i];
+            const field = matroid_fields[i];
             matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, matroid[field.field_id]));
         }
 
@@ -221,26 +231,26 @@ export default class MatroidController {
      */
     public static get_different_field_ids(a: IMatroid, b: IMatroid): string[] {
 
-        let res: string[] = [];
+        const res: string[] = [];
 
         if ((!a) || (!b)) {
             return null;
         }
 
-        let moduletablea = VOsTypesManager.moduleTables_by_voType[a._type];
-        let moduletableb = VOsTypesManager.moduleTables_by_voType[b._type];
+        const moduletablea = ModuleTableController.module_tables_by_vo_type[a._type];
+        const moduletableb = ModuleTableController.module_tables_by_vo_type[b._type];
 
         if (moduletablea != moduletableb) {
             return null;
         }
 
-        let matroid_fields = this.getMatroidFields(a._type);
+        const matroid_fields = this.getMatroidFields(a._type);
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        for (const i in matroid_fields) {
+            const matroid_field = matroid_fields[i];
 
-            let a_ranges = a[matroid_field.field_id];
-            let b_ranges = b[matroid_field.field_id];
+            const a_ranges = a[matroid_field.field_id];
+            const b_ranges = b[matroid_field.field_id];
 
             if ((!a_ranges) || (!a_ranges.length) || (!b_ranges) || (!b_ranges.length)) {
                 return null;
@@ -275,8 +285,8 @@ export default class MatroidController {
             return false;
         }
 
-        let moduletablea = VOsTypesManager.moduleTables_by_voType[a._type];
-        let moduletableb = VOsTypesManager.moduleTables_by_voType[b._type];
+        const moduletablea = ModuleTableController.module_tables_by_vo_type[a._type];
+        const moduletableb = ModuleTableController.module_tables_by_vo_type[b._type];
 
         if (moduletablea != moduletableb) {
 
@@ -295,19 +305,19 @@ export default class MatroidController {
             }
         }
 
-        let matroid_fields = this.getMatroidFields(a._type);
+        const matroid_fields = this.getMatroidFields(a._type);
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        for (const i in matroid_fields) {
+            const matroid_field = matroid_fields[i];
 
-            let a_ranges = a[matroid_field.field_id];
+            const a_ranges = a[matroid_field.field_id];
 
             // Si ce champ est mappé à null, on ignore
             if (fields_mapping && (fields_mapping[matroid_field.field_id] === null)) {
                 continue;
             }
 
-            let b_ranges = (fields_mapping && fields_mapping[matroid_field.field_id]) ? b[fields_mapping[matroid_field.field_id]] : b[matroid_field.field_id];
+            const b_ranges = (fields_mapping && fields_mapping[matroid_field.field_id]) ? b[fields_mapping[matroid_field.field_id]] : b[matroid_field.field_id];
 
             if ((!a_ranges) || (!a_ranges.length) || (!b_ranges) || (!b_ranges.length)) {
                 continue;
@@ -315,13 +325,13 @@ export default class MatroidController {
 
             let intersects: boolean = false;
             switch (matroid_field.field_type) {
-                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    for (let j in a_ranges) {
+                // case ModuleTableFieldVO.FIELD_TYPE_daterange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                    for (const j in a_ranges) {
 
                         if (RangeHandler.range_intersects_any_range(a_ranges[j], b_ranges)) {
                             intersects = true;
@@ -345,7 +355,7 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      */
     public static matroid_intersects_any_matroid(a: IMatroid, bs: IMatroid[]): boolean {
-        for (let i in bs) {
+        for (const i in bs) {
             if (this.matroid_intersects_matroid(a, bs[i])) {
                 return true;
             }
@@ -365,8 +375,8 @@ export default class MatroidController {
 
         for (let i = 0; i < (matroids.length - 1); i++) {
             for (let j = i + 1; j < matroids.length; j++) {
-                let a = matroids[i];
-                let b = matroids[j];
+                const a = matroids[i];
+                const b = matroids[j];
 
                 if (this.matroid_intersects_matroid(a, b)) {
                     return true;
@@ -378,11 +388,11 @@ export default class MatroidController {
 
     public static cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
-        let res: Array<MatroidCutResult<T>> = [];
-        for (let i in matroids_to_cut) {
-            let matroid_to_cut: T = matroids_to_cut[i];
+        const res: Array<MatroidCutResult<T>> = [];
+        for (const i in matroids_to_cut) {
+            const matroid_to_cut: T = matroids_to_cut[i];
 
-            let cut_result: MatroidCutResult<T> = this.cut_matroid(matroid_cutter, matroid_to_cut);
+            const cut_result: MatroidCutResult<T> = this.cut_matroid(matroid_cutter, matroid_to_cut);
 
             if (!cut_result) {
                 continue;
@@ -398,14 +408,14 @@ export default class MatroidController {
 
         let remaining_matroids: T[] = [];
         remaining_matroids = matroids_to_cut;
-        for (let j in matroid_cutters) {
+        for (const j in matroid_cutters) {
 
-            let matroid_cutter = matroid_cutters[j];
+            const matroid_cutter = matroid_cutters[j];
 
-            let cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, remaining_matroids);
+            const cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, remaining_matroids);
 
             remaining_matroids = [];
-            for (let k in cut_results) {
+            for (const k in cut_results) {
                 if (cut_results[k].remaining_items && cut_results[k].remaining_items.length) {
                     remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
                 }
@@ -420,20 +430,20 @@ export default class MatroidController {
      */
     public static matroids_cut_matroids<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): MatroidCutResult<T> {
 
-        let res: MatroidCutResult<T> = new MatroidCutResult<T>([], this.cloneFromRanges(matroids_to_cut));
+        const res: MatroidCutResult<T> = new MatroidCutResult<T>([], this.cloneFromRanges(matroids_to_cut));
 
-        for (let j in matroid_cutters) {
+        for (const j in matroid_cutters) {
 
-            let matroid_cutter = matroid_cutters[j];
+            const matroid_cutter = matroid_cutters[j];
 
-            let cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, res.remaining_items);
+            const cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, res.remaining_items);
 
-            for (let k in cut_results) {
+            for (const k in cut_results) {
                 res.chopped_items = res.chopped_items.concat(cut_results[k].chopped_items);
             }
 
             res.remaining_items = [];
-            for (let k in cut_results) {
+            for (const k in cut_results) {
                 res.remaining_items = res.remaining_items.concat(cut_results[k].remaining_items);
             }
         }
@@ -447,7 +457,7 @@ export default class MatroidController {
             return null;
         }
 
-        let res: MatroidCutResult<T> = new MatroidCutResult<T>([], []);
+        const res: MatroidCutResult<T> = new MatroidCutResult<T>([], []);
 
         if (!this.matroid_intersects_matroid(matroid_cutter, matroid_to_cut)) {
             res.remaining_items.push(matroid_to_cut);
@@ -457,14 +467,14 @@ export default class MatroidController {
         // On choisit (arbitrairement) de projeter la coupe selon une base du matroid
         //  de manière totalement arbitraire aussi, on priorise la base de cardinal la plus élevée
         // on limite l'utilisation du get_cardinal très lourd pour peu de gain a priori let matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut, true, false);
-        let matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut);
+        const matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
-        let chopped_matroid = this.cloneFrom<T, T>(matroid_to_cut);
+        const chopped_matroid = this.cloneFrom(matroid_to_cut);
 
         // On coupe sur chaque base, si elle a une intersection
-        for (let i in matroid_to_cut_bases) {
-            let matroid_to_cut_base = matroid_to_cut_bases[i];
+        for (const i in matroid_to_cut_bases) {
+            const matroid_to_cut_base = matroid_to_cut_bases[i];
 
             // Pour chaque base:
             //  - on cherche le résultat de la coupe.
@@ -475,49 +485,49 @@ export default class MatroidController {
                 continue;
             }
 
-            let cutter_field_ranges: IRange[] = matroid_cutter[matroid_to_cut_base.field_id];
+            const cutter_field_ranges: IRange[] = matroid_cutter[matroid_to_cut_base.field_id];
 
-            let matroidbase_cutter = MatroidBase.createNew(
+            const matroidbase_cutter = MatroidBase.createNew(
                 matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id,
                 cutter_field_ranges);
-            let cut_result: MatroidBaseCutResult = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
+            const cut_result: MatroidBaseCutResult = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
             // ça marche que si il y a un remaining sur cette dimension, sinon on veut pas stocker des bases null...
             if (!cut_result) {
                 continue;
             }
 
-            if (!!cut_result.remaining_items) {
+            if (cut_result.remaining_items) {
 
                 // Le but est de créer le matroid lié à la coupe sur cette dimension
-                let this_base_remaining_matroid = this.cloneFrom<T, T>(chopped_matroid);
+                const this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
 
                 this_base_remaining_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.remaining_items.ranges);
 
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
-                for (let k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
-                    let range = this_base_remaining_matroid[matroid_to_cut_base.field_id][k];
-                    delete range.field_id;
-                    delete range.api_type_id;
+                for (const k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
+                    const range = this_base_remaining_matroid[matroid_to_cut_base.field_id][k];
+                    // delete range.field_id; ??????
+                    // delete range.api_type_id; ???????
                 }
 
-                res.remaining_items.push(this_base_remaining_matroid);
+                res.remaining_items.push(this_base_remaining_matroid as unknown as T);
             }
 
-            if (!!cut_result.chopped_items) {
+            if (cut_result.chopped_items) {
 
                 chopped_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.chopped_items.ranges);
 
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
-                for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
-                    let range = chopped_matroid[matroid_to_cut_base.field_id][k];
-                    delete range.field_id;
-                    delete range.api_type_id;
+                for (const k in chopped_matroid[matroid_to_cut_base.field_id]) {
+                    const range = chopped_matroid[matroid_to_cut_base.field_id][k];
+                    // delete range.field_id; ??????
+                    // delete range.api_type_id; ???????
                 }
 
             }
         }
-        res.chopped_items.push(chopped_matroid);
+        res.chopped_items.push(chopped_matroid as unknown as T);
 
         return res;
     }
@@ -527,7 +537,7 @@ export default class MatroidController {
      * @param from
      */
     public static createEmptyFrom<T extends IMatroid>(from: T): T {
-        let res: T = {
+        const res: T = {
             _type: from._type,
             id: undefined
         } as T;
@@ -537,24 +547,30 @@ export default class MatroidController {
 
     /**
      * Clones all but id and value, value_type, value_ts for vars
+     * TODO FIXME un jour trouver un moyen de typer ce truc correctement. ya 2 cas d'usages, 1 où on accepte d'étendre le type, et un autre où on veut pas
+     *   j'ai fait plein de tests de typages mais c'est à la fois très contraignant et incomplet, donc on fait simple et pratique quitte à être incomplet.
      * @param from
      */
-    public static cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
+    public static cloneFrom<T extends IMatroid, U extends IMatroid>(
+        from: T,
+        to_type: string = null,
+        clone_fields: boolean = true,
+        static_fields: { [field_id: string]: IRange[] } = null): U {
 
         if (!from) {
             return null;
         }
 
-        let _type: string = to_type ? to_type : from._type;
-        let moduletable_from = VOsTypesManager.moduleTables_by_voType[from._type];
-        let moduletable_to = VOsTypesManager.moduleTables_by_voType[_type];
+        const _type: string = to_type ? to_type : from._type;
+        const moduletable_from = ModuleTableController.module_tables_by_vo_type[from._type];
+        const moduletable_to = ModuleTableController.module_tables_by_vo_type[_type];
 
-        let res: U = moduletable_to.voConstructor();
+        const res: U = Object.assign(new ModuleTableController.vo_constructor_by_vo_type[_type]() as U, static_fields);
         res._type = _type;
 
         // Compatibilité avec les vars
         if (typeof from['var_id'] !== 'undefined') {
-            res['var_id'] = from['var_id'];
+            (res as U)['var_id'] = from['var_id'];
         }
         // if (typeof from['value'] !== 'undefined') {
         //     res['value'] = from['value'];
@@ -566,26 +582,26 @@ export default class MatroidController {
         //     res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
         // }
 
-        let needs_mapping: boolean = moduletable_from != moduletable_to;
-        let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
+        const needs_mapping: boolean = moduletable_from != moduletable_to;
+        const mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids ? moduletable_from.mapping_by_api_type_ids[_type] : undefined;
 
         // if (needs_mapping && (typeof mappings === 'undefined')) {
         //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
         // }
 
-        let to_fields = MatroidController.getMatroidFields(_type);
-        for (let to_fieldi in to_fields) {
-            let to_field = to_fields[to_fieldi];
+        const to_fields = MatroidController.getMatroidFields(_type);
+        for (const to_fieldi in to_fields) {
+            const to_field = to_fields[to_fieldi];
 
-            let from_field_id = to_field.field_id;
+            let from_field_id = to_field.field_name;
             if (needs_mapping) {
                 /**
                  * Si on a un mapping predef on l'utilise
                  */
                 if (typeof mappings !== 'undefined') {
-                    for (let mappingi in mappings) {
+                    for (const mappingi in mappings) {
 
-                        if (mappings[mappingi] == to_field.field_id) {
+                        if (mappings[mappingi] == to_field.field_name) {
                             from_field_id = mappingi;
                         }
                     }
@@ -593,34 +609,34 @@ export default class MatroidController {
                     /**
                      * Sinon on check que le champ existait dans le type from
                      */
-                    let from_field = moduletable_from.get_field_by_id(to_field.field_id);
-                    from_field_id = from_field ? to_field.field_id : null;
+                    const from_field = moduletable_from.get_field_by_id(to_field.field_name);
+                    from_field_id = from_field ? to_field.field_name : null;
                 }
             }
 
-            if (!!from_field_id) {
-                res[to_field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
+            if (from_field_id) {
+                (res as U)[to_field.field_name] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
             } else {
                 switch (to_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                        (res as U)[to_field.field_name] = [RangeHandler.getMaxRange(to_field)];
                         break;
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                    case ModuleTableField.FIELD_TYPE_hourrange:
-                    case ModuleTableField.FIELD_TYPE_daterange:
-                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
+                    case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+                    case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                        (res as U)[to_field.field_name] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     default:
                 }
             }
         }
 
-        if (res['_index']) {
-            res['rebuild_index']();
+        if ((res as U)['_index']) {
+            (res as U)['rebuild_index']();
         }
         return res;
     }
@@ -636,14 +652,12 @@ export default class MatroidController {
             return null;
         }
 
-        let res: T[] = [];
+        const res: T[] = [];
 
-        for (let i in from) {
-            res[i] = this.cloneFrom(from[i]);
+        for (const i in from) {
+            res[i] = this.cloneFrom<T, T>(from[i]);
         }
 
         return res;
     }
-
-    private constructor() { }
 }

@@ -93,7 +93,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
     public namespaced: boolean = true;
 
     protected constructor() {
-        let self = this;
+        const self = this;
         this.module_name = "DataImportStore";
 
 
@@ -111,8 +111,8 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
 
         this.getters = {
             getsegments(state: IDataImportState): TimeSegment[] {
-                let res: TimeSegment[] = [];
-                let medium_segment_i: number = Math.floor(state.segment_number / 2);
+                const res: TimeSegment[] = [];
+                const medium_segment_i: number = Math.floor(state.segment_number / 2);
 
                 if (state.segment_number < 1) {
                     return res;

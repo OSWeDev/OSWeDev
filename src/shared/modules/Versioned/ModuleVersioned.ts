@@ -29,8 +29,6 @@ export default class ModuleVersioned extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
     public registerApis() {

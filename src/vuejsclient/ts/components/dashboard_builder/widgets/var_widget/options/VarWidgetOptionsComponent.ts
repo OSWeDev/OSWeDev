@@ -2,20 +2,20 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
 import VarWidgetOptions from './VarWidgetOptions';
 import './VarWidgetOptionsComponent.scss';
+import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./VarWidgetOptionsComponent.pug'),
@@ -92,13 +92,13 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     }
 
     get fields_that_could_get_custom_filter(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.widget_options || !this.widget_options.var_id) {
             return null;
         }
 
-        let var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
+        const var_param_type = VarsController.var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
         }
@@ -107,12 +107,12 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             this.custom_filter_names = {};
         }
 
-        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = ModuleTableController.module_tables_by_vo_type[var_param_type].get_fields();
+        for (const i in fields) {
+            const field = fields[i];
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+            if ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)) {
                 res.push(field.field_id);
                 if (typeof this.custom_filter_names[field.field_id] === "undefined") {
                     this.custom_filter_names[field.field_id] = null;
@@ -163,16 +163,16 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
     get var_names(): string[] {
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in VarsController.var_conf_by_name) {
-            let var_conf = VarsController.var_conf_by_name[i];
+        for (const i in VarsController.var_conf_by_name) {
+            const var_conf = VarsController.var_conf_by_name[i];
             res.push(var_conf.id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(var_conf.id)));
         }
 
         res.sort((a, b) => {
-            let a_ = a.split(' | ')[1];
-            let b_ = b.split(' | ')[1];
+            const a_ = a.split(' | ')[1];
+            const b_ = b.split(' | ')[1];
 
             if (a_ < b_) {
                 return -1;
@@ -193,7 +193,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
             let options: VarWidgetOptions = null;
             try {
-                if (!!this.page_widget.json_options) {
+                if (this.page_widget.json_options) {
                     options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
                     if (this.widget_options &&
                         (this.widget_options.var_id == options.var_id) &&
@@ -280,7 +280,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
         try {
 
-            let selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
+            const selected_var_id: number = parseInt(this.tmp_selected_var_name.split(' | ')[0]);
 
             if (this.widget_options.var_id != selected_var_id) {
                 this.next_update_options = this.widget_options;

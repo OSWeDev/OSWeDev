@@ -32,7 +32,7 @@ export default class HourFilterOptionsComponent extends VueComponentBase {
         }
 
         try {
-            let options = JSON.parse(this.actual_additional_options);
+            const options = JSON.parse(this.actual_additional_options);
 
             this.rounded = options[0];
             this.negativeValue = options[1];
@@ -45,7 +45,7 @@ export default class HourFilterOptionsComponent extends VueComponentBase {
     }
 
     private onchange_inputs() {
-        let options = [
+        const options = [
             this.rounded,
             this.negativeValue,
             this.positiveSign,

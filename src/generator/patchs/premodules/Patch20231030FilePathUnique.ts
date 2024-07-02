@@ -25,41 +25,41 @@ export default class Patch20231030FilePathUnique implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
         try {
 
-            let path_rows = await db.query("select t2.path from ref.module_file_file t1 join ref.module_file_file t2 on t1.id < t2.id WHERE t1.path = t2.path;");
+            const path_rows = await db.query("select t2.path from ref.module_file_file t1 join ref.module_file_file t2 on t1.id < t2.id WHERE t1.path = t2.path;");
             if (path_rows && path_rows.length) {
 
-                let unique_path_rows: { [path: string]: boolean } = {};
-                for (let i in path_rows) {
-                    let path_row = path_rows[i];
-                    let path = path_row.path;
+                const unique_path_rows: { [path: string]: boolean } = {};
+                for (const i in path_rows) {
+                    const path_row = path_rows[i];
+                    const path = path_row.path;
 
                     unique_path_rows[path] = true;
                 }
-                let paths: string[] = Object.keys(unique_path_rows);
+                const paths: string[] = Object.keys(unique_path_rows);
 
-                let ref_fields: Array<{
+                const ref_fields: Array<{
                     table: string,
                     field: string
                 }> = await this.get_reffields(db);
 
-                for (let i in paths) {
-                    let path = paths[i];
+                for (const i in paths) {
+                    const path = paths[i];
 
                     ConsoleHandler.log('Patch20231030FilePathUnique:work:' + i + '/' + paths.length + ':path:' + path);
 
-                    let ids_rows = await db.query("select id from ref.module_file_file where path = $1 order by id desc", [path]);
+                    const ids_rows = await db.query("select id from ref.module_file_file where path = $1 order by id desc", [path]);
                     if ((!ids_rows) || (!ids_rows.length) || (ids_rows.length < 2)) {
                         continue;
                     }
 
-                    let kept_id = ids_rows[0].id;
-                    let throwed_ids = [];
+                    const kept_id = ids_rows[0].id;
+                    const throwed_ids = [];
                     for (let j = 1; j < ids_rows.length; j++) {
-                        let throwed_id = ids_rows[j].id;
+                        const throwed_id = ids_rows[j].id;
 
                         throwed_ids.push(throwed_id);
-                        for (let k in ref_fields) {
-                            let ref_field = ref_fields[k];
+                        for (const k in ref_fields) {
+                            const ref_field = ref_fields[k];
 
                             await db.none("update " + ref_field.table + " set " + ref_field.field + " = $1 where " + ref_field.field + " = $2", [kept_id, throwed_id]);
                         }
@@ -119,19 +119,19 @@ export default class Patch20231030FilePathUnique implements IGeneratorWorker {
         field: string
     }>> {
 
-        let constraints_rows = await db.query("SELECT conrelid::regclass AS table_name, confrelid::regclass AS foreign_table_name, a.attname AS column_name, af.attname AS foreign_column_name " +
+        const constraints_rows = await db.query("SELECT conrelid::regclass AS table_name, confrelid::regclass AS foreign_table_name, a.attname AS column_name, af.attname AS foreign_column_name " +
             "FROM pg_constraint c JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey) JOIN pg_attribute af ON af.attrelid = c.confrelid AND af.attnum = ANY (c.confkey) WHERE confrelid = 'ref.module_file_file'::regclass;");
         if ((!constraints_rows) || (!constraints_rows.length)) {
             return null;
         }
 
-        let ref_fields: Array<{
+        const ref_fields: Array<{
             table: string,
             field: string
         }> = [];
 
-        for (let i in constraints_rows) {
-            let constraints_row = constraints_rows[i];
+        for (const i in constraints_rows) {
+            const constraints_row = constraints_rows[i];
 
             ref_fields.push({
                 table: constraints_row.table_name,

@@ -10,18 +10,18 @@ import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessLoadDatas extends VarsProcessBase {
 
+    private static instance: VarsProcessLoadDatas = null;
+
+    private constructor() {
+        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!VarsProcessLoadDatas.instance) {
             VarsProcessLoadDatas.instance = new VarsProcessLoadDatas();
         }
         return VarsProcessLoadDatas.instance;
-    }
-
-    private static instance: VarsProcessLoadDatas = null;
-
-    private constructor() {
-        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.MAX_VarsProcessLoadDatas);
     }
 
     protected async worker_async_batch(nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
@@ -33,9 +33,9 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
-        let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+        const dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
         if ((!dss) || (!dss.length)) {
             return true;
@@ -44,7 +44,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
         // TODO FIXME JNE DELETE when proven unuseful ==>
         // On ne doit surtout pas charger des datas sources sur des vars de type pixel mais qui n'en sont pas (card > 1)
         if (controller.varConf.pixel_activated) {
-            let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
+            const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
             if (prod_cardinaux != 1) {
                 return true;
@@ -55,7 +55,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
 
         await DataSourcesController.load_node_datas(dss, node);
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.debug_vars) {
             ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
         }
 

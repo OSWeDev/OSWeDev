@@ -26,7 +26,8 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldController from '../../../../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -52,7 +53,9 @@ import CRUDFormServices from '../CRUDFormServices';
 import './CRUDComponentField.scss';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DAOController from '../../../../../../shared/modules/DAO/DAOController';
-let debounce = require('lodash/debounce');
+const debounce = require('lodash/debounce');
+import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
+import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
 
 @Component({
     template: require('./CRUDComponentField.pug'),
@@ -67,6 +70,8 @@ let debounce = require('lodash/debounce');
         Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
+        Crudupdateformcomponent: CRUDUpdateFormComponent,
+        Crudcreateformcomponent: CRUDCreateFormComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase
@@ -230,6 +235,9 @@ export default class CRUDComponentField extends VueComponentBase
     private select_options_enabled_by_id: { [id: number]: number } = {};
 
     private is_readonly: boolean = false;
+    private show_inline_form_in_crud: boolean = false;
+    private show_inline_form_in_crud_is_create: boolean = false;
+    private vo_of_field_value: IDistantVOBase = null;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 30);
     private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
@@ -238,9 +246,163 @@ export default class CRUDComponentField extends VueComponentBase
 
     private debounced_validate_inline_input_auto = null;
 
+    get targetModuleTable_count(): number {
+        const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
+            return ObjectHandler.arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
+        }
+
+        return null;
+    }
+
+    get field_value_length(): number {
+        return this.field_value ? this.field_value.length : 0;
+    }
+
+    get is_custom_field_type(): boolean {
+        return !!this.custom_field_types[this.field_type];
+    }
+
+    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
+        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
+    }
+
+    get field_type(): string {
+        if (this.field.type == 'Simple') {
+            return (this.field as SimpleDatatableFieldVO<any, any>).field_type;
+        }
+
+        return this.field.type;
+    }
+
+    get random_number(): number {
+        return Math.floor(Math.random() * 1000);
+    }
+
+    get show_mandatory_star(): boolean {
+        return this.field.is_required && (this.field_type != 'boolean');
+    }
+
+    get hide_inline_controls(): boolean {
+        return this.field.is_required && (this.field_type == 'boolean');
+    }
+
+    get placeholder_string(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
+    }
+
+    get needs_options(): boolean {
+        const simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
+        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
+            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum));
+    }
+
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
+
+    get alert_path(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.alert_path;
+    }
+
+    get is_segmented_day_tsrange_array() {
+        const field = (this.field as SimpleDatatableFieldVO<any, any>);
+        if ((!!field) && (!!field.moduleTableField)) {
+            return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        }
+    }
+
+    get input_elt_id() {
+
+        if (this.vo && this.vo.id) {
+            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
+        }
+        if (this.vo) {
+            return this.vo._type + '.' + this.field.datatable_field_uid;
+        }
+        if (this.field && this.field.vo_type_id) {
+            return this.field.vo_type_id + '.' + this.field.datatable_field_uid;
+        }
+
+        return this.field.datatable_field_uid;
+    }
+
+    /**
+     * Fonction liée au param option
+     * Vérifie si l'option concerne le composant des tsrange
+     * Si oui, transmet la chaîne de caractères complète
+     * Sinon, ne transmet rien (option_ts_range = null)
+     */
+    get option_ts_range(): string {
+        if (!this.option) {
+            return null;
+        }
+        const option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 2 || option_arr[0] !== 'tsrange') {
+            return null;
+        }
+        return this.option;
+    }
+
+    get filtered_value() {
+
+        if (this.field_value == null) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return this.field_value;
+        }
+
+        let params = [this.field_value];
+
+        if (this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
+    }
+
+    get is_auto_validating() {
+        return this.auto_validate_inline_input && !!this.auto_validate_start;
+    }
+
+    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
+    // @Watch('field_select_options_enabled')
+    @Watch('field', { immediate: true })
+    @Watch('vo', { deep: true })
+    @Watch('datatable')
+    @Watch('default_field_data')
+    @Watch('targetModuleTable_count')
+    public async on_reload_field_value() {
+        this.debounced_reload_field_value();
+    }
+
     @Watch('auto_validate_inline_input_delay_sec', { immediate: true })
     public onchange_auto_validate_inline_input_delay_sec() {
         this.debounced_validate_inline_input_auto = debounce(this.validate_inline_input, this.auto_validate_inline_input_delay_sec * 1000);
+    }
+
+    @Watch('inline_input_read_value', { immediate: true })
+    private onchange_inline_input_read_value() {
+        if ((!this.inline_input_mode) || (!this.field)) {
+            return;
+        }
+        const tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+        if (this.field_value != tmp) {
+            this.field_value = tmp;
+        }
     }
 
     public async mounted() {
@@ -248,7 +410,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
         this.inline_input_is_editing = this.force_input_is_editing;
         if (this.inline_input_mode && this.force_input_is_editing && this.$refs.input_elt && !!this.$refs.input_elt['focus']) {
-            let self = this;
+            const self = this;
             if (this.autofocus) {
                 this.$nextTick(() => self.$refs.input_elt['focus']());
             }
@@ -289,7 +451,7 @@ export default class CRUDComponentField extends VueComponentBase
     //         //     field = (this.field as OneToManyReferenceDatatableFieldVO<any>).destField;
     //         //     break;
     //         // case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-    //         //     field = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>).interModuleTable.getFieldFromId('id');
+    //         //     field = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>).interModuleTable.getFieldFromId(field_names<IDistantVOBase>().id);
     //         //     break;
     //         // case DatatableField.REF_RANGES_FIELD_TYPE:
     //         //     field = (this.field as RefRangesReferenceDatatableFieldVO<any>).srcField;
@@ -335,28 +497,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.debounced_onchangevo_emitter();
     }
 
-    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
-    // @Watch('field_select_options_enabled')
-    @Watch('field', { immediate: true })
-    @Watch('vo', { deep: true })
-    @Watch('datatable')
-    @Watch('default_field_data')
-    @Watch('targetModuleTable_count')
-    public async on_reload_field_value() {
-        this.debounced_reload_field_value();
-    }
-
-    @Watch('inline_input_read_value', { immediate: true })
-    private onchange_inline_input_read_value() {
-        if ((!this.inline_input_mode) || (!this.field)) {
-            return;
-        }
-        let tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
-        if (this.field_value != tmp) {
-            this.field_value = tmp;
-        }
-    }
-
     private async reload_field_value() {
 
         if (!this.field) {
@@ -387,8 +527,8 @@ export default class CRUDComponentField extends VueComponentBase
         // }
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
-        if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
-            let date: string[] = this.field_value.toString().split('-');
+        if (this.field_type == ModuleTableFieldVO.FIELD_TYPE_daterange && this.field_value) {
+            const date: string[] = this.field_value.toString().split('-');
 
             if (date && date.length > 0) {
                 Vue.set(this.field_value_range, this.field.datatable_field_uid + '_start', this.formatDateForField(date[0]));
@@ -396,7 +536,7 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        let self = this;
+        const self = this;
         if ((!this.has_loaded_can_insert_or_update_target) && (
             (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
@@ -426,15 +566,15 @@ export default class CRUDComponentField extends VueComponentBase
 
             if ((!this.select_options) || (RangeHandler.getCardinalFromArray(this.field_value) > this.select_options.length)) {
                 // Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
-                for (let i in this.select_options) {
-                    let id = parseInt(this.select_options[i].toString());
+                for (const i in this.select_options) {
+                    const id = parseInt(this.select_options[i].toString());
                     if (RangeHandler.elt_intersects_any_range(id, this.field_value)) {
                         this.field_value_refranges_selected_ids.push(id);
                     }
                 }
             } else {
 
-                let options_by_id: { [id: number]: boolean } = ObjectHandler.mapFromIdsArray(this.select_options);
+                const options_by_id: { [id: number]: boolean } = ObjectHandler.mapFromIdsArray(this.select_options);
                 // sinon on commence par le range
                 RangeHandler.foreach_ranges_sync(this.field_value, (id: number) => {
                     if (options_by_id[id]) {
@@ -443,7 +583,7 @@ export default class CRUDComponentField extends VueComponentBase
                 });
             }
         }
-        if (!!this.isLoadingOptions) {
+        if (this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
     }
@@ -453,7 +593,7 @@ export default class CRUDComponentField extends VueComponentBase
             return null;
         }
 
-        let dateCut: string[] = date.split(separator);
+        const dateCut: string[] = date.split(separator);
 
         return DateHandler.getInstance().formatDayForIndex(Dates.date(Dates.month(Dates.year(Dates.now(), parseInt(dateCut[2])), parseInt(dateCut[1]) - 1), parseInt(dateCut[0])));
     }
@@ -468,14 +608,14 @@ export default class CRUDComponentField extends VueComponentBase
         let input_value: any = null;
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_html)) {
             input_value = input;
         } else {
             input_value = input.value;
         }
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_boolean) &&
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_boolean) &&
             this.field.is_required) {
             input_value = input.checked;
         }
@@ -488,24 +628,24 @@ export default class CRUDComponentField extends VueComponentBase
                 switch (this.field.type) {
                     case DatatableField.SIMPLE_FIELD_TYPE:
                         switch ((this.field as SimpleDatatableFieldVO<any, any>).field_type) {
-                            case ModuleTableField.FIELD_TYPE_boolean:
-                            case ModuleTableField.FIELD_TYPE_daterange:
-                            case ModuleTableField.FIELD_TYPE_hourrange_array:
-                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            case ModuleTableField.FIELD_TYPE_refrange_array:
-                            case ModuleTableField.FIELD_TYPE_numrange_array:
-                            case ModuleTableField.FIELD_TYPE_isoweekdays:
-                            case ModuleTableField.FIELD_TYPE_html:
+                            case ModuleTableFieldVO.FIELD_TYPE_boolean:
+                            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+                            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                            case ModuleTableFieldVO.FIELD_TYPE_html:
                                 break;
 
                             default:
-                                input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableField.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableField.VALIDATION_CODE_TEXT_required));
+                                input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableFieldVO.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableFieldVO.VALIDATION_CODE_TEXT_required));
                                 return;
                         }
                         break;
 
                     default:
-                        input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableField.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableField.VALIDATION_CODE_TEXT_required));
+                        input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableFieldVO.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableFieldVO.VALIDATION_CODE_TEXT_required));
                         return;
                 }
             }
@@ -515,7 +655,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let error: string = this.field.validate(input_value);
+        const error: string = this.field.validate(input_value);
         let msg;
 
         if ((!error) || (error == "")) {
@@ -524,7 +664,7 @@ export default class CRUDComponentField extends VueComponentBase
             msg = this.t(error);
         }
         if ((this.field.type != DatatableField.SIMPLE_FIELD_TYPE) || ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).field_type != ModuleTableField.FIELD_TYPE_html))) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type != ModuleTableFieldVO.FIELD_TYPE_html))) {
 
             input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
         }
@@ -538,13 +678,12 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateInput(input: any, wait_endofchange: boolean = false) {
-
         if (this.inline_input_mode) {
             await this.prepare_auto_validate(false, null, wait_endofchange);
             return;
         }
 
-        let tmp = input ? this.getInputValue(input) : this.field_value;
+        const tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }
@@ -573,14 +712,9 @@ export default class CRUDComponentField extends VueComponentBase
      * @returns
      */
     private async validateEndOfInput(input: any, force_save: boolean = false) {
-
-        //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
-        // if (!this.inline_input_mode) {
-        //     return;
-        // }
         let is_input_html_null = false;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableField.FIELD_TYPE_html)) {
+            ((this.field as SimpleDatatableFieldVO<any, any>).field_type == ModuleTableFieldVO.FIELD_TYPE_html)) {
 
             // Si le champ est vide, on le met à null
             if (input.root.innerText == "\n" || input.root.innerText.trim().length == 0) {
@@ -638,7 +772,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let error: string = this.field.validate(this.field_value);
+        const error: string = this.field.validate(this.field_value);
         let msg;
 
         if ((!error) || (error == "")) {
@@ -701,24 +835,24 @@ export default class CRUDComponentField extends VueComponentBase
         if (!datatable) {
             return;
         }
-        for (let i in datatable.fields) {
-            let field_datatable: DatatableField<any, any> = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field_datatable: DatatableField<any, any> = datatable.fields[i];
 
             if (field_datatable.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
 
-                let OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field_datatable as OneToManyReferenceDatatableFieldVO<any>);
+                const OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field_datatable as OneToManyReferenceDatatableFieldVO<any>);
                 let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
 
-                if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+                if (OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
                     options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(vo, options);
                 }
 
-                let newOptions: IDistantVOBase[] = [];
+                const newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = this.get_check_field_options_enabled(OneToManyField);
+                const select_options_enabled_by_id = this.get_check_field_options_enabled(OneToManyField);
 
-                for (let j in options) {
-                    let option: IDistantVOBase = options[j];
+                for (const j in options) {
+                    const option: IDistantVOBase = options[j];
 
                     if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
@@ -732,19 +866,19 @@ export default class CRUDComponentField extends VueComponentBase
 
             if (field_datatable.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
 
-                let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field_datatable as ManyToManyReferenceDatatableFieldVO<any, any>);
+                const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field_datatable as ManyToManyReferenceDatatableFieldVO<any, any>);
                 let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
 
-                if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+                if (manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
                     options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(vo, options);
                 }
 
-                let newOptions: IDistantVOBase[] = [];
+                const newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = this.get_check_field_options_enabled(manyToManyField);
+                const select_options_enabled_by_id = this.get_check_field_options_enabled(manyToManyField);
 
-                for (let j in options) {
-                    let option: IDistantVOBase = options[j];
+                for (const j in options) {
+                    const option: IDistantVOBase = options[j];
 
                     if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
@@ -758,19 +892,19 @@ export default class CRUDComponentField extends VueComponentBase
 
             if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
-                let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field_datatable as ManyToOneReferenceDatatableFieldVO<any>);
+                const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field_datatable as ManyToOneReferenceDatatableFieldVO<any>);
                 let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
 
-                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                if (manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
                 }
 
-                let newOptions: IDistantVOBase[] = [];
+                const newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = this.get_check_field_options_enabled(manyToOneField);
+                const select_options_enabled_by_id = this.get_check_field_options_enabled(manyToOneField);
 
-                for (let j in options) {
-                    let option: IDistantVOBase = options[j];
+                for (const j in options) {
+                    const option: IDistantVOBase = options[j];
 
                     if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
@@ -784,19 +918,19 @@ export default class CRUDComponentField extends VueComponentBase
 
             if (field_datatable.type == DatatableField.REF_RANGES_FIELD_TYPE) {
 
-                let refrangesField: RefRangesReferenceDatatableFieldVO<any> = (field_datatable as RefRangesReferenceDatatableFieldVO<any>);
+                const refrangesField: RefRangesReferenceDatatableFieldVO<any> = (field_datatable as RefRangesReferenceDatatableFieldVO<any>);
                 let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
 
-                if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                if (refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
                     options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
                 }
 
-                let newOptions: IDistantVOBase[] = [];
+                const newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = this.get_check_field_options_enabled(refrangesField);
+                const select_options_enabled_by_id = this.get_check_field_options_enabled(refrangesField);
 
-                for (let j in options) {
-                    let option: IDistantVOBase = options[j];
+                for (const j in options) {
+                    const option: IDistantVOBase = options[j];
 
                     if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
@@ -818,8 +952,8 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         // On veut stocker au format "day day"
-        let start = this.field_value_range[this.field.datatable_field_uid + '_start'];
-        let end = this.field_value_range[this.field.datatable_field_uid + '_end'];
+        const start = this.field_value_range[this.field.datatable_field_uid + '_start'];
+        const end = this.field_value_range[this.field.datatable_field_uid + '_end'];
 
         let res = "";
         if (start) {
@@ -865,7 +999,7 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
 
-            let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+            const manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             /**
@@ -880,35 +1014,35 @@ export default class CRUDComponentField extends VueComponentBase
             }
 
             if (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
-                let OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
-                if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+                const OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
+                if (OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
                     options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
                 }
             }
 
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-                let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
-                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
+                if (manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
                 }
             }
 
             if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
-                let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
-                if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+                const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
+                if (manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
                     options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
                 }
             }
 
             if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
-                let refRangesReferenceDatatableField: RefRangesReferenceDatatableFieldVO<any> = (this.field as RefRangesReferenceDatatableFieldVO<any>);
-                if (!!refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                const refRangesReferenceDatatableField: RefRangesReferenceDatatableFieldVO<any> = (this.field as RefRangesReferenceDatatableFieldVO<any>);
+                if (refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges) {
                     options = refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
                 }
             }
 
             //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
-            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+            const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
             let doit = false;
             if ((!this.select_options_enabled_by_id) && this.field.select_options_enabled) {
@@ -916,12 +1050,12 @@ export default class CRUDComponentField extends VueComponentBase
             } else if (this.select_options_enabled_by_id && !this.field.select_options_enabled) {
                 doit = true;
             } else if (this.select_options_enabled_by_id && this.field.select_options_enabled) {
-                let a = Object.keys(this.select_options_enabled_by_id).length;
+                const a = Object.keys(this.select_options_enabled_by_id).length;
                 if (a != this.field.select_options_enabled.length) {
                     doit = true;
                 } else {
 
-                    for (let i in this.field.select_options_enabled) {
+                    for (const i in this.field.select_options_enabled) {
                         if (!this.select_options_enabled_by_id[i]) {
                             doit = true;
                             break;
@@ -934,16 +1068,16 @@ export default class CRUDComponentField extends VueComponentBase
                 this.select_options_enabled_by_id = this.get_check_field_options_enabled(this.field);
             }
 
-            let newOptions: number[] = [];
-            for (let index in ordered_option_array) {
-                let option: IDistantVOBase = ordered_option_array[index];
+            const newOptions: number[] = [];
+            for (const index in ordered_option_array) {
+                const option: IDistantVOBase = ordered_option_array[index];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
 
-            if (!!this.isLoadingOptions) {
+            if (this.isLoadingOptions) {
                 this.isLoadingOptions = false;
             }
             this.select_options = newOptions;
@@ -951,19 +1085,19 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-            let simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
+            const simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
 
-            if (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+            if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_enum) {
                 let newOptions: number[] = [];
 
-                for (let j in simpleField.enum_values) {
-                    let id: number = parseInt(j.toString());
+                for (const j in simpleField.enum_values) {
+                    const id: number = parseInt(j.toString());
 
                     if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[id] != null)) {
                         newOptions.push(id);
                     }
                 }
-                if (!!this.isLoadingOptions) {
+                if (this.isLoadingOptions) {
                     this.isLoadingOptions = false;
                 }
 
@@ -987,15 +1121,15 @@ export default class CRUDComponentField extends VueComponentBase
                 (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
                 (this.field.type != DatatableField.REF_RANGES_FIELD_TYPE))) {
             this.snotify.warning(this.label('crud.multiselect.search.error'));
-            if (!!this.isLoadingOptions) {
+            if (this.isLoadingOptions) {
                 this.isLoadingOptions = false;
             }
             return;
         }
 
-        let manyToOne: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
-        let OneToMany: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
-        let manyToMany: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
+        const manyToOne: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
+        const OneToMany: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
+        const manyToMany: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
 
@@ -1004,23 +1138,23 @@ export default class CRUDComponentField extends VueComponentBase
             options = VOsTypesManager.vosArray_to_vosByIds(await query(manyToOne.targetModuleTable.vo_type).select_vos());
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
-        if (!!OneToMany.filterOptionsForUpdateOrCreateOnOneToMany) {
+        if (OneToMany.filterOptionsForUpdateOrCreateOnOneToMany) {
             options = OneToMany.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
         }
-        if (!!manyToOne.filterOptionsForUpdateOrCreateOnManyToOne) {
+        if (manyToOne.filterOptionsForUpdateOrCreateOnManyToOne) {
             options = manyToOne.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
         }
-        if (!!manyToMany.filterOptionsForUpdateOrCreateOnManyToMany) {
+        if (manyToMany.filterOptionsForUpdateOrCreateOnManyToMany) {
             options = manyToMany.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
         }
 
         //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
-        let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+        const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-        let newOptions: number[] = [];
+        const newOptions: number[] = [];
 
-        for (let index in ordered_option_array) {
-            let option: IDistantVOBase = ordered_option_array[index];
+        for (const index in ordered_option_array) {
+            const option: IDistantVOBase = ordered_option_array[index];
 
             if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
@@ -1030,7 +1164,7 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        if (!!this.isLoadingOptions) {
+        if (this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
         this.select_options = newOptions;
@@ -1044,16 +1178,16 @@ export default class CRUDComponentField extends VueComponentBase
         if ((!this.field) ||
             ((this.field.type != DatatableField.SIMPLE_FIELD_TYPE))) {
             this.snotify.warning(this.label('crud.multiselect.search.error'));
-            if (!!this.isLoadingOptions) {
+            if (this.isLoadingOptions) {
                 this.isLoadingOptions = false;
             }
             return;
         }
 
-        let simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
+        const simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
         let newOptions: number[] = [];
 
-        for (let i in simpleField.enum_values) {
+        for (const i in simpleField.enum_values) {
 
             if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
@@ -1063,7 +1197,7 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        if (!!this.isLoadingOptions) {
+        if (this.isLoadingOptions) {
             this.isLoadingOptions = false;
         }
 
@@ -1078,8 +1212,8 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
             let ranges: NumRange[] = [];
-            for (let i in this.field_value_refranges_selected_ids) {
-                let id = parseInt(this.field_value_refranges_selected_ids[i].toString());
+            for (const i in this.field_value_refranges_selected_ids) {
+                const id = parseInt(this.field_value_refranges_selected_ids[i].toString());
 
                 ranges.push(RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT));
             }
@@ -1094,7 +1228,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
 
-            let refrangesField: RefRangesReferenceDatatableFieldVO<any> = (this.field as RefRangesReferenceDatatableFieldVO<any>);
+            const refrangesField: RefRangesReferenceDatatableFieldVO<any> = (this.field as RefRangesReferenceDatatableFieldVO<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
@@ -1103,16 +1237,16 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
+            if (refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
                 options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
             }
 
             //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
-            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+            const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-            let newOptions: number[] = [];
-            for (let index in ordered_option_array) {
-                let option: IDistantVOBase = ordered_option_array[index];
+            const newOptions: number[] = [];
+            for (const index in ordered_option_array) {
+                const option: IDistantVOBase = ordered_option_array[index];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
@@ -1123,7 +1257,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
 
-            let OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
+            const OneToManyField: OneToManyReferenceDatatableFieldVO<any> = (this.field as OneToManyReferenceDatatableFieldVO<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
@@ -1132,15 +1266,15 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: OneToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+            if (OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
                 options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
             }
 
-            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+            const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-            let newOptions: number[] = [];
-            for (let j in ordered_option_array) {
-                let option = ordered_option_array[j];
+            const newOptions: number[] = [];
+            for (const j in ordered_option_array) {
+                const option = ordered_option_array[j];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
@@ -1151,7 +1285,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
 
-            let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
+            const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (this.field as ManyToManyReferenceDatatableFieldVO<any, any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
@@ -1160,15 +1294,15 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+            if (manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
                 options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
             }
 
-            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+            const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-            let newOptions: number[] = [];
-            for (let j in ordered_option_array) {
-                let option = ordered_option_array[j];
+            const newOptions: number[] = [];
+            for (const j in ordered_option_array) {
+                const option = ordered_option_array[j];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
@@ -1179,7 +1313,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
-            let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
+            const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (this.field as ManyToOneReferenceDatatableFieldVO<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
@@ -1188,15 +1322,15 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+            if (manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
             }
 
-            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+            const ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-            let newOptions: number[] = [];
-            for (let j in ordered_option_array) {
-                let option = ordered_option_array[j];
+            const newOptions: number[] = [];
+            for (const j in ordered_option_array) {
+                const option = ordered_option_array[j];
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
@@ -1226,6 +1360,11 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+
+        // Si on est en affichage du formulaire inline, on met à jour le vo
+        if (this.show_inline_form_in_crud) {
+            this.set_show_inline_form_in_crud(this.show_inline_form_in_crud_is_create);
+        }
     }
 
     private async inputValue(value: any) {
@@ -1307,7 +1446,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let self = this;
+        const self = this;
         this.$snotify.confirm(self.label('inline_clear_value.confirm.body'), self.label('inline_clear_value.confirm.title'), {
             timeout: 10000,
             showProgressBar: true,
@@ -1320,15 +1459,15 @@ export default class CRUDComponentField extends VueComponentBase
                         self.$snotify.remove(toast.id);
                         await self.inline_clear_value_confirmed();
                     },
-                    bold: false
+                    bold: false,
                 },
                 {
                     text: self.t('NO'),
                     action: (toast) => {
                         self.$snotify.remove(toast.id);
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         });
     }
 
@@ -1351,44 +1490,45 @@ export default class CRUDComponentField extends VueComponentBase
             event.stopPropagation();
         }
 
-        let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
+        // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+        // let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
 
-        if ((this.field_type == ModuleTableField.FIELD_TYPE_email) || (this.field_type == ModuleTableField.FIELD_TYPE_string)) {
-            if (!alerts || !alerts.length) {
-                if (!!(this.$refs.input_elt as any) && !!(this.$refs.input_elt as any).checkValidity && !(this.$refs.input_elt as any).checkValidity()) {
-                    if (!alerts) {
-                        alerts = [];
-                    }
+        // if ((this.field_type == ModuleTableFieldVO.FIELD_TYPE_email) || (this.field_type == ModuleTableFieldVO.FIELD_TYPE_string)) {
+        //     if (!alerts || !alerts.length) {
+        //         if (!!(this.$refs.input_elt as any) && !!(this.$refs.input_elt as any).checkValidity && !(this.$refs.input_elt as any).checkValidity()) {
+        //             if (!alerts) {
+        //                 alerts = [];
+        //             }
 
-                    alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
-                }
-            }
-        }
+        //             alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
+        //         }
+        //     }
+        // }
 
-        // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
-        this.replace_alerts({
-            alert_path: this.field.alert_path,
-            alerts: alerts
-        });
+        // // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
+        // this.replace_alerts({
+        //     alert_path: this.field.alert_path,
+        //     alerts: alerts
+        // });
 
-        if (alerts && alerts.length) {
+        // if (alerts && alerts.length) {
 
-            for (let i in alerts) {
-                let alert = alerts[i];
+        //     for (let i in alerts) {
+        //         let alert = alerts[i];
 
-                if (alert.type >= Alert.TYPE_ERROR) {
-                    this.snotify.error(this.label('field.validate_input.error'));
-                    return;
-                }
-            }
-        }
+        //         if (alert.type >= Alert.TYPE_ERROR) {
+        //             this.snotify.error(this.label('field.validate_input.error'));
+        //             return;
+        //         }
+        //     }
+        // }
 
         await this.change_inline_field_value();
     }
 
     private async change_inline_field_value() {
 
-        let old_value: any = this.vo[this.field.datatable_field_uid];
+        const old_value: any = this.vo[this.field.datatable_field_uid];
 
         this.inline_input_is_busy = true;
 
@@ -1396,7 +1536,7 @@ export default class CRUDComponentField extends VueComponentBase
 
             // En édition inline + autoupdate, on veut pouvoir aller au plus rapide / simple et donc sauvegarder asap et informer également asap
 
-            let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.vo);
+            const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.vo);
 
             if ((!result) || (!result.id)) {
 
@@ -1448,7 +1588,7 @@ export default class CRUDComponentField extends VueComponentBase
                 timeout: 500,
                 showProgressBar: false,
                 closeOnClick: true,
-                pauseOnHover: true
+                pauseOnHover: true,
             });
         }
     }
@@ -1466,10 +1606,10 @@ export default class CRUDComponentField extends VueComponentBase
          */
         if (this.inline_input_mode_semaphore && CRUDComponentManager.getInstance().inline_input_mode_semaphore) {
 
-            let self = this;
-            for (let idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
-                let id = parseInt(idstr.toString());
-                let cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
+            const self = this;
+            for (const idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
+                const id = parseInt(idstr.toString());
+                const cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
 
                 if (id == self.this_CRUDComp_UID) {
                     continue;
@@ -1534,7 +1674,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.replace_alerts({
             alert_path: this.field.alert_path,
-            alerts: null
+            alerts: null,
         });
     }
 
@@ -1563,9 +1703,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let keynum;
-
-        keynum = e.key;
+        const keynum = e.key;
 
         if (keynum == 'Enter') {
 
@@ -1622,29 +1760,6 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.update_input_field_value_from_vo_field_value();
         this.inline_input_is_editing = false;
-    }
-
-    get filtered_value() {
-
-        if (this.field_value == null) {
-            return null;
-        }
-
-        if (!this.filter) {
-            return this.field_value;
-        }
-
-        let params = [this.field_value];
-
-        if (!!this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
-        }
-
-        return this.filter.apply(null, params);
-    }
-
-    get is_auto_validating() {
-        return this.auto_validate_inline_input && !!this.auto_validate_start;
     }
 
     private update_input_field_value_from_vo_field_value() {
@@ -1715,107 +1830,6 @@ export default class CRUDComponentField extends VueComponentBase
         return '/admin#' + this.getCRUDUpdateLink(api_type_id, vo_id);
     }
 
-    get targetModuleTable_count(): number {
-        let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
-            return ObjectHandler.arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
-        }
-
-        return null;
-    }
-
-    get field_value_length(): number {
-        return this.field_value ? this.field_value.length : 0;
-    }
-
-    get is_custom_field_type(): boolean {
-        return !!this.custom_field_types[this.field_type];
-    }
-
-    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
-        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
-    }
-
-    get field_type(): string {
-        if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).field_type;
-        }
-
-        return this.field.type;
-    }
-
-    get random_number(): number {
-        return Math.floor(Math.random() * 1000);
-    }
-
-    get show_mandatory_star(): boolean {
-        return this.field.is_required && (this.field_type != 'boolean');
-    }
-
-    get hide_inline_controls(): boolean {
-        return this.field.is_required && (this.field_type == 'boolean');
-    }
-
-    get needs_options(): boolean {
-        let simpleField: SimpleDatatableFieldVO<any, any> = (this.field as SimpleDatatableFieldVO<any, any>);
-        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
-            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
-            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.field_type == ModuleTableField.FIELD_TYPE_enum));
-    }
-
-    get hourrange_input_component() {
-        return HourrangeInputComponent;
-    }
-
-    get alert_path(): string {
-        if (!this.field) {
-            return null;
-        }
-
-        return this.field.alert_path;
-    }
-
-    get is_segmented_day_tsrange_array() {
-        let field = (this.field as SimpleDatatableFieldVO<any, any>);
-        if ((!!field) && (!!field.moduleTableField)) {
-            return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
-        }
-    }
-
-    get input_elt_id() {
-
-        if (this.vo && this.vo.id) {
-            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
-        }
-        if (this.vo) {
-            return this.vo._type + '.' + this.field.datatable_field_uid;
-        }
-        if (this.field && this.field.vo_type_id) {
-            return this.field.vo_type_id + '.' + this.field.datatable_field_uid;
-        }
-
-        return this.field.datatable_field_uid;
-    }
-
-    /**
-     * Fonction liée au param option
-     * Vérifie si l'option concerne le composant des tsrange
-     * Si oui, transmet la chaîne de caractères complète
-     * Sinon, ne transmet rien (option_ts_range = null)
-     */
-    get option_ts_range(): string {
-        if (!this.option) {
-            return null;
-        }
-        let option_arr: string[] = this.option.split('_');
-        if (option_arr.length < 2 || option_arr[0] !== 'tsrange') {
-            return null;
-        }
-        return this.option;
-    }
-
     private get_check_field_options_enabled(field: DatatableField<any, any>): { [id: number]: number } {
         let res: { [id: number]: number } = {};
 
@@ -1844,21 +1858,13 @@ export default class CRUDComponentField extends VueComponentBase
         // }
 
         res = field.select_options_enabled ? {} : null;
-        for (let i in field.select_options_enabled) {
-            let option = field.select_options_enabled[i];
+        for (const i in field.select_options_enabled) {
+            const option = field.select_options_enabled[i];
 
             res[option] = option;
         }
 
         return res;
-    }
-
-    get placeholder_string(): string {
-        if (!this.field) {
-            return null;
-        }
-
-        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
     }
 
     private async prepare_auto_validate(force_live_validation: boolean = false, event: any = null, wait_endofchange: boolean = false) {
@@ -1874,8 +1880,8 @@ export default class CRUDComponentField extends VueComponentBase
                 /**
                  * Pour recharger les animations, il faut sortir du cas !!this.auto_validate_start
                  */
-                if (!!this.auto_validate_start) {
-                    let self = this;
+                if (this.auto_validate_start) {
+                    const self = this;
 
                     this.auto_validate_start = null;
                     setTimeout(() => {
@@ -1889,5 +1895,47 @@ export default class CRUDComponentField extends VueComponentBase
                 await this.validate_inline_input(event);
             }
         }
+    }
+
+    private set_show_inline_form_in_crud(to_create: boolean) {
+        if ((this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)
+        ) {
+            if (!(this.field as ReferenceDatatableField<any>).targetModuleTable) {
+                return;
+            }
+
+            if (to_create) {
+                if (!(this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor) {
+                    return;
+                }
+
+                this.vo_of_field_value = (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor();
+            } else {
+                if (!this.field_value) {
+                    return;
+                }
+
+                this.vo_of_field_value = this.getStoredDatas[(this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type][this.field_value];
+            }
+        }
+
+        this.show_inline_form_in_crud_is_create = to_create;
+        this.show_inline_form_in_crud = true;
+    }
+
+    private close_inline_form_in_crud() {
+        this.show_inline_form_in_crud = false;
+    }
+
+    private async create_inline_form_in_crud(vo: IDistantVOBase) {
+        this.field_value = vo.id;
+        await this.onChangeField();
+    }
+
+    private async update_inline_form_in_crud(vo: IDistantVOBase) {
+        await this.onChangeField();
     }
 }

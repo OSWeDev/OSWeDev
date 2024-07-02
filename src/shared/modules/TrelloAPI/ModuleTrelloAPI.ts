@@ -20,7 +20,5 @@ export default class ModuleTrelloAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

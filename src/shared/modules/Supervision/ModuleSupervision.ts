@@ -5,12 +5,14 @@ import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2Par
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import SupervisedCRONController from './SupervisedCRONController';
 import SupervisionController from './SupervisionController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 import SupervisedCRONVO from './vos/SupervisedCRONVO';
+import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class ModuleSupervision extends Module {
 
@@ -18,6 +20,7 @@ export default class ModuleSupervision extends Module {
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleSupervision.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".FO_ACCESS";
 
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
@@ -43,13 +46,13 @@ export default class ModuleSupervision extends Module {
 
     public registerApis() {
         APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
-            ModuleSupervision.POLICY_BO_ACCESS,
+            ModuleSupervision.POLICY_FO_ACCESS,
             ModuleSupervision.APINAME_execute_manually,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<String2ParamVO, void>(
-            ModuleSupervision.POLICY_BO_ACCESS,
+            ModuleSupervision.POLICY_FO_ACCESS,
             ModuleSupervision.APINAME_refresh_one_manually,
             (param: String2ParamVO) => [param.text],
             String2ParamVOStatic
@@ -57,34 +60,28 @@ export default class ModuleSupervision extends Module {
     }
 
     public initialize() {
-        this.datatables = [];
-
         this.initializeSupervisedCategoryVO();
         this.initializeSupervisedCRONVO();
     }
 
     private initializeSupervisedCategoryVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        const name_field = ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, "Nom", true);
 
-        let fields = [
+        const fields = [
             name_field,
-            new ModuleTableField('notify', ModuleTableField.FIELD_TYPE_boolean, "Notification", true, true, false),
+            ModuleTableFieldController.create_new(SupervisedCategoryVO.API_TYPE_ID, field_names<SupervisedCategoryVO>().notify, ModuleTableFieldVO.FIELD_TYPE_boolean, "Notification", true, true, false),
         ];
 
-        let datatable = new ModuleTable(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
-
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, SupervisedCategoryVO, name_field, "Supervision - Catégorie");
     }
 
     private initializeSupervisedCRONVO() {
 
-        let fields = [
-            new ModuleTableField(field_names<SupervisedCRONVO>().planification_uid, ModuleTableField.FIELD_TYPE_string, "Planification UID", true),
-            new ModuleTableField(field_names<SupervisedCRONVO>().worker_uid, ModuleTableField.FIELD_TYPE_string, "Worker UID", true),
-        ];
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Planification UID", true);
+        ModuleTableFieldController.create_new(SupervisedCRONVO.API_TYPE_ID, field_names<SupervisedCRONVO>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, "Worker UID", true);
 
-        let datatable = new ModuleTable(this, SupervisedCRONVO.API_TYPE_ID, () => new SupervisedCRONVO(), fields, null, "Supervision - CRON");
-        this.datatables.push(datatable);
-        SupervisionController.getInstance().registerModuleTable(datatable, SupervisedCRONController.getInstance());
+        SupervisionController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(this.name, SupervisedCRONVO, null, "Supervision - CRON"),
+            SupervisedCRONController.getInstance());
     }
 }

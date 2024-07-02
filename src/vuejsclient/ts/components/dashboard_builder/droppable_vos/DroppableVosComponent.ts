@@ -5,6 +5,7 @@ import VueComponentBase from '../../VueComponentBase';
 import DroppableVoFieldsController from '../droppable_vo_fields/DroppableVoFieldsController';
 import './DroppableVosComponent.scss';
 import { ModuleDroppableVosAction, ModuleDroppableVosGetter } from './DroppableVosStore';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./DroppableVosComponent.pug'),
@@ -33,9 +34,9 @@ export default class DroppableVosComponent extends VueComponentBase {
     }
 
     get api_type_ids(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let vo_type in VOsTypesManager.moduleTables_by_voType) {
+        for (const vo_type in ModuleTableController.module_tables_by_vo_type) {
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                 (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
@@ -51,11 +52,11 @@ export default class DroppableVosComponent extends VueComponentBase {
     }
 
     get api_type_titles(): { [api_type_id: string]: string } {
-        let res: { [api_type_id: string]: string } = {};
+        const res: { [api_type_id: string]: string } = {};
 
-        for (let i in this.api_type_ids) {
-            let vo_type = this.api_type_ids[i];
-            res[vo_type] = this.t(VOsTypesManager.moduleTables_by_voType[vo_type].label.code_text);
+        for (const i in this.api_type_ids) {
+            const vo_type = this.api_type_ids[i];
+            res[vo_type] = this.t(ModuleTableController.module_tables_by_vo_type[vo_type].label.code_text);
         }
 
         return res;

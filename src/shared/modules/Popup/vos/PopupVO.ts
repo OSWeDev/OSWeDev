@@ -1,4 +1,5 @@
 
+import NumRange from '../../DataRender/vos/NumRange';
 import TSRange from '../../DataRender/vos/TSRange';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
@@ -13,6 +14,7 @@ export default class PopupVO implements IVersionedVO {
     public cookie_name: string;
     public btn_txt: string;
     public activated_ts_range: TSRange;
+    public only_roles: NumRange[];
 
     public parent_id: number;
     public trashed: boolean;

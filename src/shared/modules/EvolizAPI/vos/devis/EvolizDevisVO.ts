@@ -1,6 +1,7 @@
 export default class EvolizDevisVO {
     public static API_TYPE_ID: string = "evoliz_devis";
 
+    public static STATUS_EN_ATTENTE: number = 0;
     public static STATUS_CONTRAT_EFFECTUE: number = 0;
     public static STATUS_PROPOSITION_EFFECTUEE: number = 1;
     public static STATUS_NEGOCITATION: number = 2;
@@ -8,6 +9,7 @@ export default class EvolizDevisVO {
     public static STATUS_FACTUREE: number = 4;
     public static STATUS_PERDUE: number = 5;
 
+    public static STATUS_EN_ATTENTE_LABEL: string = 'evoliz_devis.status_en_attente.___LABEL___';
     public static STATUS_CONTRAT_EFFECTUE_LABEL: string = 'evoliz_devis.status_contrat_effectue.___LABEL___';
     public static STATUS_PROPOSITION_EFFECTUEE_LABEL: string = 'evoliz_devis.status_proposition_effectuee.___LABEL___';
     public static STATUS_NEGOCITATION_LABEL: string = 'evoliz_devis.status_negociation.___LABEL___';
@@ -16,6 +18,7 @@ export default class EvolizDevisVO {
     public static STATUS_PERDUE_LABEL: string = 'evoliz_devis.status_perdue.___LABEL___';
 
     public static STATE_LABELS: { [id: number]: string } = {
+        [EvolizDevisVO.STATUS_EN_ATTENTE]: EvolizDevisVO.STATUS_EN_ATTENTE_LABEL,
         [EvolizDevisVO.STATUS_CONTRAT_EFFECTUE]: EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL,
         [EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE]: EvolizDevisVO.STATUS_PROPOSITION_EFFECTUEE_LABEL,
         [EvolizDevisVO.STATUS_NEGOCITATION]: EvolizDevisVO.STATUS_NEGOCITATION_LABEL,
@@ -28,6 +31,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE;
@@ -51,6 +55,7 @@ export default class EvolizDevisVO {
 
         switch (status_code) {
             case 0:
+                return EvolizDevisVO.STATUS_EN_ATTENTE_LABEL;
             case 1:
             case 2:
                 return EvolizDevisVO.STATUS_CONTRAT_EFFECTUE_LABEL;
@@ -199,7 +204,7 @@ export default class EvolizDevisVO {
     // Quote template
     public template: { templateid: number, label: string };
     // Document item
-    public items: {
+    public items: Array<{
         // Item id
         itemid: number,
         // Article unique identifier
@@ -224,11 +229,11 @@ export default class EvolizDevisVO {
         vat: number,
         // Document total amounts
         total: {
-            rebate: null,
+            rebate: { amount_vat_exclude: number, percent: number },
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Document total amounts in currency
         currency_total: {
@@ -236,16 +241,16 @@ export default class EvolizDevisVO {
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_price_vat_exclude: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Item classification information
         sale_classification: {
             // Classification id
             id: number,
             // Classification code
-            code: number,
+            code: string,
             // Classification label
             label: string
         }
-    };
+    }>;
 }

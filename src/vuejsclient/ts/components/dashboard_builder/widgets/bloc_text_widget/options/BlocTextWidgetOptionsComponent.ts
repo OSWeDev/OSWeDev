@@ -122,7 +122,7 @@ export default class BlocTextWidgetOptionsComponent extends VueComponentBase {
 
         let options: BlocTextWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as BlocTextWidgetOptionsVO;
                 options = options ? new BlocTextWidgetOptionsVO().from(options) : null;
             }

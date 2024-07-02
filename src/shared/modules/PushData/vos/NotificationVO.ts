@@ -34,7 +34,7 @@ export default class NotificationVO implements IDistantVOBase {
     public static TYPE_NOTIF_VO_DELETED: number = 12;
 
     public static TECH_DISCONNECT_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_DISCONNECT_AND_REDIRECT_HOME";
-    public static TECH_LOGGED_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT_HOME";
+    public static TECH_LOGGED_AND_REDIRECT: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT";
     public static TECH_RELOAD: string = "TYPE_NOTIF_TECH_RELOAD";
 
     public static SIMPLE_NAMES: string[] = ['notification.SIMPLE_SUCCESS', 'notification.SIMPLE_INFO', 'notification.SIMPLE_WARN', 'notification.SIMPLE_ERROR'];
@@ -83,6 +83,8 @@ export default class NotificationVO implements IDistantVOBase {
     public room_id: string;
 
     // For Redirection Notification
+    public redirect_uri: string;
+
     public notif_route: string;
     public notif_route_params_name: string[];
     public notif_route_params_values: string[];

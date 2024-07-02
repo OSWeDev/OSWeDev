@@ -8,6 +8,6 @@ export default class VarConfAutoParamFieldVO implements IDistantVOBase {
     public _type: string = VarConfAutoParamFieldVO.API_TYPE_ID;
 
     public api_type_id: string;
-    public field_id: string;
+    public field_name: string;
 
 }

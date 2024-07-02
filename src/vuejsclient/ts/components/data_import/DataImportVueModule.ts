@@ -7,6 +7,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import ReimportComponent from './reimport_component/reimport_component';
 import './scss/data_import.scss';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class DataImportVueModule extends VueModuleBase {
 
@@ -27,9 +28,9 @@ export default class DataImportVueModule extends VueModuleBase {
 
     public initialize() {
         Vue.component('Reimportcomponent', async () => (await import('./reimport_component/reimport_component')));
-        TableWidgetController.getInstance().register_component(
+        TableWidgetController.register_component(
             ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id')
-                .setModuleTable(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID])
+                .setModuleTable(ModuleTableController.module_tables_by_vo_type[DataImportHistoricVO.API_TYPE_ID])
         );
     }
 }

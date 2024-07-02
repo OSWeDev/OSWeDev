@@ -34,7 +34,7 @@ export default class VarsComputationHole {
 
         return new Promise(async (resolve, reject) => {
 
-            let wrapped_cb = async () => {
+            const wrapped_cb = async () => {
                 try {
                     await cb();
                 } catch (error) {
@@ -79,7 +79,7 @@ export default class VarsComputationHole {
 
         // On fait les cbs à la suite, pas en // par ce que si on demande un trou c'est probablement pour être seul sur l'arbre
         while (VarsComputationHole.current_cbs_stack.length) {
-            let cb = VarsComputationHole.current_cbs_stack.shift();
+            const cb = VarsComputationHole.current_cbs_stack.shift();
             await cb();
         }
 
@@ -91,7 +91,7 @@ export default class VarsComputationHole {
         while (true) {
 
             let all_ready = true;
-            for (let i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+            for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
                 if (!VarsComputationHole.processes_waiting_for_computation_hole_end[i]) {
                     all_ready = false;
                     break;
@@ -108,7 +108,7 @@ export default class VarsComputationHole {
 
     private static async free_everyone(): Promise<void> {
 
-        for (let i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+        for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
             VarsComputationHole.processes_waiting_for_computation_hole_end[i] = false;
         }
     }

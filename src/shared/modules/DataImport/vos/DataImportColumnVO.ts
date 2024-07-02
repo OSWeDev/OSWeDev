@@ -11,7 +11,7 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public static createNew(
         title: string, data_import_format_id: number,
         type: string = DataImportColumnVO.TYPE_STRING = DataImportColumnVO.TYPE_STRING): DataImportColumnVO {
-        let res: DataImportColumnVO = new DataImportColumnVO();
+        const res: DataImportColumnVO = new DataImportColumnVO();
 
         res.title = title;
         res.data_import_format_id = data_import_format_id;

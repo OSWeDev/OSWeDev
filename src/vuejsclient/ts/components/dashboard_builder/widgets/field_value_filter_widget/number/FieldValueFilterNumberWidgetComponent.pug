@@ -1,13 +1,15 @@
 .field_value_filter_number_widget_component
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
-        //- .vo_field_ref_advanced
-        //-     toggle-button(
-        //-         @change="switch_advanced_filters" 
-        //-         :value="advanced_filters" 
-        //-         :sync="true"
-        //-         :width="100"
-        //-         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+            template(v-if="!hide_btn_switch_advanced")
+                .vo_field_ref_advanced
+                    toggle-button(
+                        @change="switch_advanced_filters" 
+                        :value="advanced_filters" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}" 
+                    )
 
         template(v-if='advanced_filters')
             .vo_field_advanced_number_filters
@@ -30,7 +32,7 @@
                                     :hide-selected="false"
 
                                     :key="'advanced_number_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
-                                    
+
                                     :select-label='label("multiselect.selectLabel")'
                                     :select-group-label='label("multiselect.selectGroupLabel")'
                                     :selected-label='label("multiselect.selectedLabel")'
@@ -71,9 +73,9 @@
                     :hide-selected="true"
 
                     track-by="text_uid"
-                    
+
                     :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                    
+
                     :select-label='label("multiselect.selectLabel")'
                     :select-group-label='label("multiselect.selectGroupLabel")'
                     :selected-label='label("multiselect.selectedLabel")'
@@ -82,13 +84,13 @@
 
                     @search-change="query_update_visible_options"
                 )
-                    
+
                     span(slot="noOptions") -
 
-                    template(slot="option", slot-scope="props")
+                    template(slot="option" slot-scope="props")
                         span.option__title {{ props.option.label }}
 
-                    template(slot="tag", slot-scope="props")
+                    template(slot="tag" slot-scope="props")
                         .pill_wrapper.bg-success
                             span.option__tag {{ props.option.label }}
                             i.fa-solid.fa-square-x(@click='props.remove(props.option)')

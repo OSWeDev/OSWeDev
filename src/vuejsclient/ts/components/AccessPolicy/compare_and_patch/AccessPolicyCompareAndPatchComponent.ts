@@ -37,7 +37,7 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
     }
 
     private async select_role(role: RoleVO) {
-        if (!!this.role_a) {
+        if (this.role_a) {
             this.role_b = role;
             await this.compare();
         } else {
@@ -54,14 +54,14 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
             return;
         }
 
-        let access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
+        const access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
 
-        let rights_in_a_not_in_b: AccessPolicyVO[] = [];
-        let rights_in_b_not_in_a: AccessPolicyVO[] = [];
+        const rights_in_a_not_in_b: AccessPolicyVO[] = [];
+        const rights_in_b_not_in_a: AccessPolicyVO[] = [];
 
-        let promises = [];
-        for (let policy_id in access_matrix) {
-            let policy_access_matrix = access_matrix[policy_id];
+        const promises = [];
+        for (const policy_id in access_matrix) {
+            const policy_access_matrix = access_matrix[policy_id];
 
             if ((!policy_access_matrix[this.role_a.id]) && !!policy_access_matrix[this.role_b.id]) {
                 promises.push((async () => {
@@ -93,7 +93,7 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
             await this.compare();
         }
 
-        let class_name = 'Patch' + Dates.format(Dates.now(), 'YYYYMMDD') + 'UpdateRightsOfRoleId' + this.role_b.id;
+        const class_name = 'Patch' + Dates.format(Dates.now(), 'YYYYMMDD') + 'UpdateRightsOfRoleId' + this.role_b.id;
         let patch_code =
             '/* istanbul ignore file: no unit tests on patchs */' + '\n' +
             '\n' +
@@ -123,8 +123,8 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
             '   ) {' + '\n';
 
         // Ajout des droits manquants
-        for (let i in this.comparison_summary.rights_in_a_not_in_b) {
-            let access_policy = this.comparison_summary.rights_in_a_not_in_b[i];
+        for (const i in this.comparison_summary.rights_in_a_not_in_b) {
+            const access_policy = this.comparison_summary.rights_in_a_not_in_b[i];
 
             patch_code +=
                 '       await this.activate_policy(' + '\n' +
@@ -134,8 +134,8 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
         }
 
         // Retrait des droits en trop
-        for (let i in this.comparison_summary.rights_in_b_not_in_a) {
-            let access_policy = this.comparison_summary.rights_in_b_not_in_a[i];
+        for (const i in this.comparison_summary.rights_in_b_not_in_a) {
+            const access_policy = this.comparison_summary.rights_in_b_not_in_a[i];
 
             patch_code +=
                 '       await this.revoke_policy(' + '\n' +
@@ -160,7 +160,7 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
             await this.compare();
         }
 
-        let self = this;
+        const self = this;
         self.snotify.confirm(self.label('AccessPolicyCompareAndPatchComponent.do_update.confirmation.body'), self.label('AccessPolicyCompareAndPatchComponent.do_update.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
@@ -177,15 +177,15 @@ export default class AccessPolicyCompareAndPatchComponent extends VueComponentBa
                                 try {
 
                                     // Ajout des droits manquants
-                                    for (let i in self.comparison_summary.rights_in_a_not_in_b) {
-                                        let access_policy = self.comparison_summary.rights_in_a_not_in_b[i];
+                                    for (const i in self.comparison_summary.rights_in_a_not_in_b) {
+                                        const access_policy = self.comparison_summary.rights_in_a_not_in_b[i];
 
                                         await ModuleAccessPolicy.getInstance().togglePolicy(access_policy.id, self.role_b.id);
                                     }
 
                                     // Retrait des droits en trop
-                                    for (let i in self.comparison_summary.rights_in_b_not_in_a) {
-                                        let access_policy = self.comparison_summary.rights_in_b_not_in_a[i];
+                                    for (const i in self.comparison_summary.rights_in_b_not_in_a) {
+                                        const access_policy = self.comparison_summary.rights_in_b_not_in_a[i];
 
                                         await ModuleAccessPolicy.getInstance().togglePolicy(access_policy.id, self.role_b.id);
                                     }

@@ -86,7 +86,7 @@ test('PeriodHandler: split', () => {
 
     expect(PeriodHandler.getInstance().split(null, null)).toStrictEqual(null);
 
-    let res = PeriodHandler.getInstance().split("['2019-06-30','2019-07-01']");
+    const res = PeriodHandler.getInstance().split("['2019-06-30','2019-07-01']");
     expect(res[0]).toStrictEqual("['2019-06-30','2019-07-01']");
     expect(res[1]).toStrictEqual("[");
     expect(res[2]).toStrictEqual("'2019-06-30'");

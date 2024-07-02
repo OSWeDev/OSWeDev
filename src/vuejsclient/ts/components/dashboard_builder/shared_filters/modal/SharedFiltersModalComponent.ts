@@ -834,10 +834,10 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
             [api_type_id: string]: { [field_id: string]: boolean }
         } = cloneDeep(this.selected_field_filters) ?? {};
 
-        for (let api_type_id in field_filters) {
+        for (const api_type_id in field_filters) {
             const filter = field_filters[api_type_id];
 
-            for (let field_id in filter) {
+            for (const field_id in filter) {
                 selected_field_filters[api_type_id] = selected_field_filters[api_type_id] ?? {};
                 selected_field_filters[api_type_id][field_id] = value;
             }
@@ -905,7 +905,7 @@ export default class SharedFiltersModalComponent extends VueComponentBase {
      */
     get selectionnable_readable_field_filters(): { [label: string]: IReadableFieldFilters } {
         const selectionnable_field_filters = cloneDeep(this.selectionnable_field_filters);
-        let readable_field_filters: { [label: string]: IReadableFieldFilters } = {};
+        const readable_field_filters: { [label: string]: IReadableFieldFilters } = {};
 
         if (!this.selectionnable_field_filters) {
             return readable_field_filters;

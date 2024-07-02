@@ -20,7 +20,7 @@ export default class AccessPolicyVueController {
 
     public async conf_precreate_uservo_unicity() {
 
-        let user_crud: CRUD<UserVO> = CRUDComponentManager.getInstance().cruds_by_api_type_id[UserVO.API_TYPE_ID];
+        const user_crud: CRUD<UserVO> = CRUDComponentManager.getInstance().cruds_by_api_type_id[UserVO.API_TYPE_ID];
         user_crud.preCreate = this.dockeck.bind(this);
         user_crud.preUpdate = this.dockeck.bind(this);
     }
@@ -30,9 +30,9 @@ export default class AccessPolicyVueController {
         /**
          * On check l'unicité des login / emails / mobile
          */
-        let name = dataVO.name.trim();
-        let email = dataVO.email.trim();
-        let phone = dataVO.phone ? dataVO.phone.trim() : null;
+        const name = dataVO.name.trim();
+        const email = dataVO.email.trim();
+        const phone = dataVO.phone ? dataVO.phone.trim() : null;
 
         if (!await ModuleDAO.getInstance().selectUsersForCheckUnicity(name, email, phone, dataVO.id)) {
             return 'AccessPolicyVueController.precreate_uservo_unicity.error';

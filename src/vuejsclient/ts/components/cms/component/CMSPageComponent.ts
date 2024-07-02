@@ -52,10 +52,10 @@ export default class CMSPageComponent extends VueComponentBase {
     private hidden_admin: boolean = true;
 
     get template_components(): TemplateComponentVO[] {
-        let res: TemplateComponentVO[] = [];
+        const res: TemplateComponentVO[] = [];
 
-        for (let i in this.getStoredDatas[TemplateComponentVO.API_TYPE_ID]) {
-            let templateComponent: TemplateComponentVO = this.getStoredDatas[TemplateComponentVO.API_TYPE_ID][i] as TemplateComponentVO;
+        for (const i in this.getStoredDatas[TemplateComponentVO.API_TYPE_ID]) {
+            const templateComponent: TemplateComponentVO = this.getStoredDatas[TemplateComponentVO.API_TYPE_ID][i] as TemplateComponentVO;
             res.push(templateComponent);
         }
         WeightHandler.getInstance().sortByWeight(res);
@@ -75,9 +75,9 @@ export default class CMSPageComponent extends VueComponentBase {
         }
 
         this.startLoading();
-        let self = this;
+        const self = this;
 
-        let promises: Array<Promise<any>> = [];
+        const promises: Array<Promise<any>> = [];
         promises.push((async () => {
             self.page_vo = await query(PageVO.API_TYPE_ID).filter_by_id(self.page_id).select_vo<PageVO>();
         })());
@@ -114,16 +114,16 @@ export default class CMSPageComponent extends VueComponentBase {
     }
 
     private async onChangeOrder(event, ui) {
-        let instantiated_page_component_vo_type: string = $(ui.item).attr('instantiated_page_component_vo_type');
+        const instantiated_page_component_vo_type: string = $(ui.item).attr('instantiated_page_component_vo_type');
         if (!instantiated_page_component_vo_type) {
             return;
         }
 
         this.snotify.info(this.label('cms.change_order.start'));
 
-        let instantiated_page_component_id: number = parseInt($(ui.item).attr('instantiated_page_component_id').toString());
-        let instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
-        let index = ui.item.index();
+        const instantiated_page_component_id: number = parseInt($(ui.item).attr('instantiated_page_component_id').toString());
+        const instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
+        const index = ui.item.index();
 
         if (!await this.updateWeights()) {
             this.snotify.error(this.label('cms.change_order.failure'));
@@ -139,20 +139,20 @@ export default class CMSPageComponent extends VueComponentBase {
      * On met simplement à jour les poids pour correspondre à l'ordre actuel
      */
     private async updateWeights(): Promise<boolean> {
-        let items = $("#sortable_page_component_list>");
+        const items = $("#sortable_page_component_list>");
 
         for (let i = 0; i < items.length; i++) {
-            let item = items[i];
+            const item = items[i];
 
-            let instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
+            const instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
             if (!instantiated_page_component_vo_type) {
                 continue;
             }
 
-            let instantiated_page_component_id: number = parseInt($(item).attr('instantiated_page_component_id').toString());
-            let instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
+            const instantiated_page_component_id: number = parseInt($(item).attr('instantiated_page_component_id').toString());
+            const instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
 
-            let index: number = parseInt(i.toString());
+            const index: number = parseInt(i.toString());
 
             if (index == instantiated_page_component.weight) {
                 continue;
@@ -160,7 +160,7 @@ export default class CMSPageComponent extends VueComponentBase {
 
             instantiated_page_component.weight = index;
 
-            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
+            const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                 return false;
             }
@@ -172,7 +172,7 @@ export default class CMSPageComponent extends VueComponentBase {
     private async onReceiveNewTemplateComponent(event, ui) {
         this.snotify.info(this.label('cms.insert_new_composant.start'));
 
-        let template_component: TemplateComponentVO = $(ui.item).data('template_component');
+        const template_component: TemplateComponentVO = $(ui.item).data('template_component');
 
         // On met à jour les poids, en profitant de la présence du placeholder que l'on va supprimer ensuite
         if (!await this.updateWeights()) {
@@ -185,10 +185,10 @@ export default class CMSPageComponent extends VueComponentBase {
 
         // L'index fournit est absurde, donc on va le chercher nous-mêmes en nettoyant au passage le dom
         let index: number = 0;
-        let items = $('#sortable_page_component_list>');
+        const items = $('#sortable_page_component_list>');
         for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            let instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
+            const item = items[i];
+            const instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
             if (instantiated_page_component_vo_type) {
                 continue;
             }
@@ -198,14 +198,14 @@ export default class CMSPageComponent extends VueComponentBase {
         }
         $('#sortable_page_component_list>:nth-child(' + (index + 1) + ')').remove();
 
-        let new_composant_constructor: IInstantiatedPageComponent = {
+        const new_composant_constructor: IInstantiatedPageComponent = {
             id: null,
             _type: template_component.type_id,
             page_id: this.page_id,
             weight: index
         };
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_composant_constructor);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_composant_constructor);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             this.snotify.error(this.label('cms.insert_new_composant.failure'));
             return;
@@ -216,7 +216,7 @@ export default class CMSPageComponent extends VueComponentBase {
     }
 
     private async deleteComponent(instantiated_page_component: IInstantiatedPageComponent) {
-        let self = this;
+        const self = this;
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression
@@ -232,7 +232,7 @@ export default class CMSPageComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('cms.delete.start'));
 
-                        let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([instantiated_page_component]);
+                        const insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([instantiated_page_component]);
                         if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != 1)) {
                             self.snotify.error(self.label('cms.delete.error'));
                             return;
@@ -255,8 +255,8 @@ export default class CMSPageComponent extends VueComponentBase {
     private async update_list(force: boolean = false) {
 
         if (force) {
-            for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
-                let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+            for (const i in ModuleCMS.getInstance().registered_template_components_by_type) {
+                const registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([registered_template_component.type_id]);
             }
             AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([TemplateComponentVO.API_TYPE_ID]);
@@ -281,7 +281,7 @@ export default class CMSPageComponent extends VueComponentBase {
         // });
 
         // Waiting for an update of the lists
-        let self = this;
+        const self = this;
         this.$nextTick(() => {
             // $("#sortable_page_component_list").sortable("refresh");
             $("#sortable_page_component_list").sortable({

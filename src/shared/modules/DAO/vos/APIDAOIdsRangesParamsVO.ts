@@ -19,11 +19,11 @@ export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APID
             return null;
         }
 
-        let ranges_txt: string[] = req.params.ranges.split('_');
-        let ranges: NumRange[] = [];
-        for (let i in ranges_txt) {
+        const ranges_txt: string[] = req.params.ranges.split('_');
+        const ranges: NumRange[] = [];
+        for (const i in ranges_txt) {
 
-            let range_elts = ranges_txt[i].split('-');
+            const range_elts = ranges_txt[i].split('-');
             ranges.push(NumRange.createNew(parseFloat(range_elts[0]), parseFloat(range_elts[1]), range_elts[2] == 'i', range_elts[3] == 'i', parseFloat(range_elts[4])));
         }
         return new APIDAOIdsRangesParamsVO(req.params.api_type_id, ranges);
@@ -41,7 +41,7 @@ export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APID
     public translateToURL(): string {
 
         let range_txt: string = "";
-        for (let i in this.ranges) {
+        for (const i in this.ranges) {
 
             range_txt += (range_txt == "") ? "" : "_";
             range_txt += this.ranges[i].min + "-";

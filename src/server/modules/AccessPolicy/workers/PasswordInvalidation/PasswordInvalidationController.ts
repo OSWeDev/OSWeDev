@@ -29,8 +29,8 @@ export default class PasswordInvalidationController {
         users_to_remind_2: UserVO[],
         users_to_invalidate: UserVO[]): void {
 
-        for (let i in users) {
-            let user: UserVO = users[i];
+        for (const i in users) {
+            const user: UserVO = users[i];
 
             if (user.blocked) {
                 continue;
@@ -48,10 +48,10 @@ export default class PasswordInvalidationController {
             }
 
             // combien de jours depuis date de changement de mdp ?
-            let nb_days: number = (Dates.now() - user.password_change_date) / 60 / 60 / 24; // Result of diff should be negativ
+            const nb_days: number = (Dates.now() - user.password_change_date) / 60 / 60 / 24; // Result of diff should be negativ
 
-            let expiration_date: number = Dates.add(user.password_change_date, invalid_days, TimeSegment.TYPE_DAY);
-            let nb_days_to_invalidation: number = invalid_days - nb_days;
+            const expiration_date: number = Dates.add(user.password_change_date, invalid_days, TimeSegment.TYPE_DAY);
+            const nb_days_to_invalidation: number = invalid_days - nb_days;
 
             // Le cas de l'invalidation
             // cas où la date de changement de mdp est passée de plus de PARAM_NAME_PWD_INVALIDATION_DAYS jours

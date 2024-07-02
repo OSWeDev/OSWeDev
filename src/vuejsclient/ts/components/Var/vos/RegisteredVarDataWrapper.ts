@@ -20,8 +20,8 @@ export default class RegisteredVarDataWrapper {
     ) { }
 
     public async add_callbacks(callbacks: { [cb_uid: number]: VarUpdateCallback }): Promise<RegisteredVarDataWrapper> {
-        for (let uid in callbacks) {
-            let callback = callbacks[uid];
+        for (const uid in callbacks) {
+            const callback = callbacks[uid];
 
             /**
              * Si on a déjà une valeur pour ce param, on peut appeler le callback directement, on attend rien de plus
@@ -32,7 +32,7 @@ export default class RegisteredVarDataWrapper {
                     (typeof VarsClientController.cached_var_datas[this.var_param.index].value !== 'undefined') &&
                     (VarsClientController.cached_var_datas[this.var_param.index].value_ts))) {
 
-                    if (!!callback.callback) {
+                    if (callback.callback) {
                         await callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
 
                         if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -42,7 +42,7 @@ export default class RegisteredVarDataWrapper {
                 }
             } else {
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_ALL)) {
-                    if (!!callback.callback) {
+                    if (callback.callback) {
                         await callback.callback(VarsClientController.cached_var_datas[this.var_param.index]);
 
                         if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -59,7 +59,7 @@ export default class RegisteredVarDataWrapper {
     }
 
     public remove_callbacks(callbacks: { [cb_uid: number]: VarUpdateCallback }): RegisteredVarDataWrapper {
-        for (let uid in callbacks) {
+        for (const uid in callbacks) {
             delete this.callbacks[uid];
         }
 

@@ -105,7 +105,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
 
     @Watch('widget_options', { immediate: true, deep: true })
     private onchange_widget_options() {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -173,7 +173,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return;
         }
 
-        let year = (this.min_year == null) ? null : parseInt(this.min_year.toString());
+        const year = (this.min_year == null) ? null : parseInt(this.min_year.toString());
         if (this.widget_options.min_year != year) {
             this.next_update_options = this.widget_options;
             this.next_update_options.min_year = year;
@@ -188,7 +188,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return;
         }
 
-        let year = (this.auto_select_year_min == null) ? null : parseInt(this.auto_select_year_min.toString());
+        const year = (this.auto_select_year_min == null) ? null : parseInt(this.auto_select_year_min.toString());
         if (this.widget_options.auto_select_year_min != year) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_year_min = year;
@@ -203,7 +203,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return;
         }
 
-        let year = (this.auto_select_year_max == null) ? null : parseInt(this.auto_select_year_max.toString());
+        const year = (this.auto_select_year_max == null) ? null : parseInt(this.auto_select_year_max.toString());
         if (this.widget_options.auto_select_year_max != year) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_year_max = year;
@@ -218,7 +218,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return;
         }
 
-        let year = (this.max_year == null) ? null : parseInt(this.max_year.toString());
+        const year = (this.max_year == null) ? null : parseInt(this.max_year.toString());
         if (this.widget_options.max_year != year) {
             this.next_update_options = this.widget_options;
             this.next_update_options.max_year = year;
@@ -421,7 +421,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
 
         let options: YearFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptionsVO;
                 options = options ? new YearFilterWidgetOptionsVO().from(options) : null;
             }
@@ -441,7 +441,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             );
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
@@ -482,10 +482,10 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return null;
         }
 
-        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+        const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
 
-        for (let i in this.all_years_page_widgets) {
-            let year_page_widget = this.all_years_page_widgets[i];
+        for (const i in this.all_years_page_widgets) {
+            const year_page_widget = this.all_years_page_widgets[i];
 
             if (year_page_widget.id == this.page_widget.id) {
                 continue;
@@ -505,13 +505,13 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
                 continue;
             }
 
-            if (!!other_filter_options.is_vo_field_ref) {
+            if (other_filter_options.is_vo_field_ref) {
                 if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
                     continue;
                 }
 
                 const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (!!res[name]) {
+                if (res[name]) {
                     continue;
                 }
                 res[name] = year_page_widget;
@@ -521,7 +521,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
                 }
 
                 const name = 'Widget ID:' + year_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (!!res[name]) {
+                if (res[name]) {
                     continue;
                 }
                 res[name] = year_page_widget;
@@ -536,7 +536,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
             return null;
         }
 
-        let other_filter_selected_years = this.relative_to_this_filter.selected_years;
+        const other_filter_selected_years = this.relative_to_this_filter.selected_years;
         if (!other_filter_selected_years) {
             return null;
         }
@@ -549,7 +549,7 @@ export default class YearFilterWidgetOptionsButtonSetterComponent extends VueCom
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: YearFilterWidgetOptionsVO = this.widget_options;
+        const options: YearFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;

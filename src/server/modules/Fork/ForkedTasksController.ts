@@ -26,6 +26,11 @@ export default class ForkedTasksController {
     public static registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
     public static registered_tasks: { [task_uid: string]: (...task_params) => boolean | Promise<boolean> } = {};
 
+    public static broadexec_with_valid_promise_for_await_TASK_UID: string = 'ForkedTasksController.broadexec_with_valid_promise_for_await';
+
+    private static result_task_prefix_thread_uid: number = process.pid;
+    private static result_task_uid: number = 1;
+
     public static init() {
         ThreadHandler.set_interval(ForkedTasksController.handle_fork_message_callback_timeout.bind(this), 10000, 'ForkedTasksController.handle_fork_message_callback_timeout', true);
     }
@@ -33,6 +38,8 @@ export default class ForkedTasksController {
     /**
      * Objectif : Exécuter la fonction sur tous les threads, et le plus vite possible (et en synchrone) en local
      *  donc on envoie un message pour tous les autres threads, mais on indique bien que nous c'est fait
+     * TODO FIXME est_il utile d'avoir une version qui await pas vraiment l'exécution de la tache sur les autres threads avant de resolve ?
+     *  @see broadexec_with_valid_promise_for_await
      * @param task_uid
      * @param task_params
      */
@@ -53,6 +60,71 @@ export default class ForkedTasksController {
     }
 
     /**
+     * Objectif : Exécuter la fonction sur tous les threads, et le plus vite possible (et en synchrone) en local
+     *  donc on envoie un message pour tous les autres threads, mais on indique bien que nous c'est fait
+     * @param task_uid
+     * @param task_params
+     */
+    public static async broadexec_with_valid_promise_for_await(task_uid: string, ...task_params): Promise<void> {
+
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                if (!ForkServerController.is_main_process()) {
+
+                    return await ForkedTasksController.exec_self_on_main_process_and_return_value(
+                        reject,
+                        ForkedTasksController.broadexec_with_valid_promise_for_await_TASK_UID,
+                        resolve,
+                        [task_uid, ...task_params]);
+                } else {
+
+                    const promises = [];
+                    const done_bgt_uid: { [uid: number]: boolean } = {};
+                    const forks = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType];
+
+                    for (const fork_name in forks) {
+
+                        const fork = forks[fork_name];
+
+                        if (!fork) {
+                            continue;
+                        }
+
+                        if (done_bgt_uid[fork.uid]) {
+                            continue;
+                        }
+                        done_bgt_uid[fork.uid] = true;
+
+                        if (!fork.child_process) {
+                            continue;
+                        }
+
+                        promises.push(new Promise(async (res, rej) => {
+
+                            await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                                rej,
+                                fork_name,
+                                task_uid,
+                                res,
+                                ...task_params
+                            );
+                        }));
+                    }
+                    promises.push(ForkedTasksController.registered_tasks[task_uid](...task_params));
+
+                    await Promise.all(promises);
+
+                    resolve();
+                }
+            } catch (error) {
+                ConsoleHandler.error('broadexec_with_valid_promise_for_await error: ' + error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
      * Objectif : Exécuter la fonction sur le thread principal et récupérer la valeur de retour.
      *  On envoie la demande au thread maitre si besoin, sinon on exécute directement
      * @param task_uid
@@ -62,7 +134,7 @@ export default class ForkedTasksController {
     public static async exec_self_on_main_process_and_return_value(thrower, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!ForkServerController.is_main_process()) {
 
-            let result_task_uid = ForkedTasksController.get_result_task_uid();
+            const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
                 thrower,
@@ -127,7 +199,7 @@ export default class ForkedTasksController {
     public static async exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!BGThreadServerController.valid_bgthreads_names[bgthread]) {
 
-            let result_task_uid = ForkedTasksController.get_result_task_uid();
+            const result_task_uid = ForkedTasksController.get_result_task_uid();
             ForkedTasksController.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
                 thrower,
@@ -147,7 +219,7 @@ export default class ForkedTasksController {
                     return false;
                 }
 
-                let fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+                const fork = ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
 
                 if (!ForkServerController.forks_alive[fork.uid]) {
                     delete ForkedTasksController.registered_task_result_wrappers[result_task_uid];
@@ -194,8 +266,6 @@ export default class ForkedTasksController {
         ForkedTasksController.registered_tasks[task_uid] = handler;
     }
 
-    private static result_task_prefix_thread_uid: number = process.pid;
-    private static result_task_uid: number = 1;
     /**
      * ----- Local thread cache
      */
@@ -222,28 +292,28 @@ export default class ForkedTasksController {
      */
     private static handle_fork_message_callback_timeout() {
 
-        let to_delete = [];
+        const to_delete = [];
 
         let nb_waiting = 0;
         let time_waiting = 0;
         let max_time_waiting = 0;
-        let now = Dates.now();
+        const now = Dates.now();
 
-        for (let i in ForkedTasksController.registered_task_result_wrappers) {
-            let wrapper = ForkedTasksController.registered_task_result_wrappers[i];
+        for (const i in ForkedTasksController.registered_task_result_wrappers) {
+            const wrapper = ForkedTasksController.registered_task_result_wrappers[i];
 
             if ((wrapper.creation_time + wrapper.timeout) < now) {
                 to_delete.push(i);
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
-                if ((wrapper.creation_time + ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_threshold) < now) {
+            if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers) {
+                if ((wrapper.creation_time + ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers_threshold) < now) {
                     nb_waiting++;
                     time_waiting += (now - wrapper.creation_time);
 
                     max_time_waiting = Math.max(max_time_waiting, (now - wrapper.creation_time));
 
-                    if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers_verbose_result_task_uid) {
+                    if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers_verbose_result_task_uid) {
                         ConsoleHandler.warn('Waiting for task result:' + wrapper.task_uid + ' for ' + (now - wrapper.creation_time) + ' s');
                         continue;
                     }
@@ -251,16 +321,16 @@ export default class ForkedTasksController {
             }
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_waiting_registered_task_result_wrappers) {
+        if (ConfigurationService.node_configuration.debug_waiting_registered_task_result_wrappers) {
             if (nb_waiting > 0) {
                 ConsoleHandler.warn('Waiting for task result:' + nb_waiting + ' for ' + Math.round(time_waiting / nb_waiting) + ' s on average - ' + max_time_waiting + ' s max');
             }
         }
 
-        for (let i in to_delete) {
-            let callback_id = to_delete[i];
-            let wrapper = ForkedTasksController.registered_task_result_wrappers[callback_id];
-            let thrower = wrapper.thrower;
+        for (const i in to_delete) {
+            const callback_id = to_delete[i];
+            const wrapper = ForkedTasksController.registered_task_result_wrappers[callback_id];
+            const thrower = wrapper.thrower;
             thrower('MSG has timedout:' + wrapper.timeout + ' secs');
             delete ForkedTasksController.registered_task_result_wrappers[callback_id];
         }

@@ -1,3 +1,5 @@
+import EvolizSalesClassificationVO from "../sales_classification/EvolizSalesClassificationVO";
+
 export default class EvolizArticleVO {
     public static API_TYPE_ID: string = "evoliz_article";
 
@@ -15,14 +17,7 @@ export default class EvolizArticleVO {
     //Article Type: Enum: product, service
     public nature: string;
     //Item sell classification information
-    public sale_classifiaction: {
-        //Classification id
-        id: number,
-        //Classification code
-        code: string,
-        //Classification label
-        label: string
-    };
+    public sale_classification: EvolizSalesClassificationVO;
     //Article designation with html
     public designation: string;
     //Article designation without html
@@ -87,7 +82,7 @@ export default class EvolizArticleVO {
     //Custom field
     public custom_fields: {
         //Hash of the custom field id
-        custom_field_api: {
+        '3c565485bbd2c54bb0ebe05c7ec741fc': {
             label: string,
             value: string
         },

@@ -8,7 +8,7 @@ export default class ClockifyClientVO {
         archived: boolean,
         note: string
     ): ClockifyClientVO {
-        let client: ClockifyClientVO = new ClockifyClientVO();
+        const client: ClockifyClientVO = new ClockifyClientVO();
 
         client.clockify_id = clockify_id;
         client.name = name;

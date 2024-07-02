@@ -4,7 +4,7 @@ export default class SendInBlueSmsFormatVO {
     public static DEFAULT_CODE_PAYS: string = '+33';
 
     public static createNew(tel: string, code_pays: string = SendInBlueSmsFormatVO.DEFAULT_CODE_PAYS): SendInBlueSmsFormatVO {
-        let res: SendInBlueSmsFormatVO = new SendInBlueSmsFormatVO();
+        const res: SendInBlueSmsFormatVO = new SendInBlueSmsFormatVO();
 
         res.tel = tel;
         res.code_pays = code_pays;

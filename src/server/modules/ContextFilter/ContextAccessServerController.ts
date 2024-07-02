@@ -4,13 +4,14 @@ import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQue
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
 export default class ContextAccessServerController {
 
-    public static check_access_to_api_type_ids_field_ids(
+    public static check_access_to_api_type_ids_fields(
         context_query: ContextQueryVO,
         base_api_type_id: string,
         fields: ContextQueryFieldVO[],
@@ -20,7 +21,7 @@ export default class ContextAccessServerController {
             return true;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getUsersRoles(false, null);
@@ -29,20 +30,19 @@ export default class ContextAccessServerController {
         }
 
         if (fields && fields.length) {
-            for (let i in fields) {
-                let field = fields[i];
+            for (const i in fields) {
+                const field = fields[i];
 
-                if (!ContextAccessServerController.check_access_to_field(field.api_type_id, field.field_id, access_type, roles)) {
+                if (!ContextAccessServerController.check_access_to_field(field.api_type_id, field.field_name, access_type, roles)) {
                     return false;
                 }
             }
         } else {
-            let table = VOsTypesManager.moduleTables_by_voType[base_api_type_id];
-            let table_fields = table.get_fields();
-            for (let i in table_fields) {
-                let table_field = table_fields[i];
+            const table_fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[base_api_type_id];
+            for (const i in table_fields) {
+                const table_field = table_fields[i];
 
-                if (!ContextAccessServerController.check_access_to_field(base_api_type_id, table_field.field_id, access_type, roles)) {
+                if (!ContextAccessServerController.check_access_to_field(base_api_type_id, table_field.field_name, access_type, roles)) {
                     return false;
                 }
             }
@@ -60,7 +60,7 @@ export default class ContextAccessServerController {
             return true;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getUsersRoles(false, null);
@@ -68,9 +68,9 @@ export default class ContextAccessServerController {
             roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
 
-        for (let i in fields) {
-            let api_type_id = fields[i].field.module_table.vo_type;
-            let field_id = fields[i].field.field_id;
+        for (const i in fields) {
+            const api_type_id = fields[i].field.module_table_vo_type;
+            const field_id = fields[i].field.field_id;
 
             if (!ContextAccessServerController.check_access_to_field(api_type_id, field_id, access_type, roles)) {
                 return false;
@@ -90,7 +90,7 @@ export default class ContextAccessServerController {
             return true;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getUsersRoles(false, null);
@@ -113,7 +113,7 @@ export default class ContextAccessServerController {
         /**
          * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
          */
-        let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        const table = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
         /**
          * Si on ne retrouve pas la table, on est sur un champ calculé, on ne peut pas vérifier les droits
@@ -127,7 +127,7 @@ export default class ContextAccessServerController {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(
+        const target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(
             DAOController.getAccessPolicyName(tmp_access_type, api_type_id)
         );
 

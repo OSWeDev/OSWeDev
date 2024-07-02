@@ -17,6 +17,31 @@ import ThrottledSelectQueryParam from "./vos/ThrottledSelectQueryParam";
 
 export default class ThrottledQueryServerController {
 
+
+    private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
+    private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
+
+    /**
+     * Les params du throttled_select_query
+     */
+    private static throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
+
+    private static throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+            ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
+        }
+    }, 10000, { leading: true, trailing: true });
+
+    private static throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
+        if (ConfigurationService.node_configuration.debug_azure_memory_check) {
+            ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
+        }
+    }, 10000, { leading: true, trailing: true });
+
+    private static throttled_shift_select_queries_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
+        ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
+    }, 10000, { leading: true, trailing: true });
+
     /**
      * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
      * @returns {Promise<any>} résultat potentiellement freeze à tester avec Object.isFrozen
@@ -28,13 +53,13 @@ export default class ThrottledQueryServerController {
         context_query: ContextQueryVO = null
     ): Promise<any> {
 
-        let self = this;
+        const self = this;
 
         return new Promise(async (resolve, reject) => {
 
-            let param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
+            const param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
-            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.debug_throttled_select) {
                 ConsoleHandler.log('throttle_select_query:' + param.parameterized_full_query);
             }
 
@@ -57,20 +82,17 @@ export default class ThrottledQueryServerController {
      */
     public static async shift_select_queries(): Promise<void> {
 
-        let promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL, 'ThrottledQueryServerController.shift_select_queries', true);
-        let force_freeze: { [parameterized_full_query: string]: boolean } = {};
-        let freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
-        let MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.MAX_NB_AUTO_UNION_IN_SELECT;
-        let waiter = 1;
-        let throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            ConsoleHandler.warn('ModuleDAOServer:shift_select_queries:dao_server_coef == 0');
-        }, 10000, { leading: true, trailing: true });
+        const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool, 'ThrottledQueryServerController.shift_select_queries', true);
+        const force_freeze: { [parameterized_full_query: string]: boolean } = {};
+        const freeze_check_passed_and_refused: { [parameterized_full_query: string]: boolean } = {};
+        const MAX_NB_AUTO_UNION_IN_SELECT = ConfigurationService.node_configuration.max_nb_auto_union_in_select;
+        const waiter = 1;
 
         while (true) {
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             if (AzureMemoryCheckServerController.dao_server_coef == 0) {
-                throttled_log_dao_server_coef_0();
+                ThrottledQueryServerController.throttled_shift_select_queries_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:shift_select_queries:dao_server_coef == 0");
                 continue;
             }
@@ -79,32 +101,32 @@ export default class ThrottledQueryServerController {
             //     await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
             //     continue;
             // }
-            let fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
+            const fields_labels: string = ObjectHandler.getFirstAttributeName(ThrottledQueryServerController.throttled_select_query_params_by_fields_labels);
             if (!fields_labels) {
                 await ThreadHandler.sleep(waiter, "ModuleDAOServer:shift_select_queries");
                 continue;
             }
 
             // waiter = 1;
-            let same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
+            const same_field_labels_params: ThrottledSelectQueryParam[] = ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
             delete ThrottledQueryServerController.throttled_select_query_params_by_fields_labels[fields_labels];
 
             // "dedoublonned" - JNE Copyright 2023
-            let dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
+            const dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } } = {};
 
-            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.debug_throttled_select) {
                 ConsoleHandler.log('shift_select_queries:pushing param');
             }
 
             let group_id = 0;
             let nb_union_in_current_group_id = 0;
-            let request_by_group_id: { [group_id: number]: string } = {};
-            for (let i in same_field_labels_params) {
-                let same_field_labels_param = same_field_labels_params[i];
+            const request_by_group_id: { [group_id: number]: string } = {};
+            for (const i in same_field_labels_params) {
+                const same_field_labels_param = same_field_labels_params[i];
 
                 same_field_labels_param.register_unstack_stats();
 
-                let doublon_promise = ThrottledQueryServerController.dedoublonnage(same_field_labels_param, force_freeze, freeze_check_passed_and_refused);
+                const doublon_promise = ThrottledQueryServerController.dedoublonnage(same_field_labels_param, force_freeze, freeze_check_passed_and_refused);
                 if (doublon_promise) {
                     continue;
                 }
@@ -126,7 +148,7 @@ export default class ThrottledQueryServerController {
                 }
                 StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'not_from_cache');
 
-                let current_promise = new Promise(async (resolve, reject) => {
+                const current_promise = new Promise(async (resolve, reject) => {
                     ThrottledQueryServerController.current_promise_resolvers[same_field_labels_param.index] = resolve;
                 });
 
@@ -149,7 +171,7 @@ export default class ThrottledQueryServerController {
                 /**
                  * On doit faire l'union
                  */
-                let this_request = "(SELECT " + same_field_labels_param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" +
+                const this_request = "(SELECT " + same_field_labels_param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" +
                     same_field_labels_param.parameterized_full_query + ") ___throttled_select_query___query)";
 
                 if (request_by_group_id[group_id]) {
@@ -169,14 +191,6 @@ export default class ThrottledQueryServerController {
         }
     }
 
-    private static current_select_query_promises: { [parameterized_full_query: string]: Promise<any> } = {};
-    private static current_promise_resolvers: { [query_index: number]: (value: unknown) => void } = {};
-
-    /**
-     * Les params du throttled_select_query
-     */
-    private static throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
-
     private static async handle_groups_queries(
         dedoublonned_same_field_labels_params_by_group_id: { [group_id: number]: { [query_index: number]: ThrottledSelectQueryParam } },
         request_by_group_id: { [group_id: number]: string },
@@ -184,34 +198,23 @@ export default class ThrottledQueryServerController {
         force_freeze: { [parameterized_full_query: string]: boolean },
         promise_pipeline: PromisePipeline
     ) {
-        let self = this;
-        let throttled_log_dao_server_coef_0 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
-                ConsoleHandler.warn('ModuleDAOServer:handle_groups_queries:dao_server_coef == 0');
-            }
-        }, 10000, { leading: true, trailing: true });
+        const self = this;
+        const old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
 
-        let throttled_log_dao_server_coef_not_1 = ThrottleHelper.declare_throttle_without_args(() => {
-            if (ConfigurationService.node_configuration.DEBUG_AZURE_MEMORY_CHECK) {
-                ConsoleHandler.log('ModuleDAOServer:handle_groups_queries:dao_server_coef < 0.5');
-            }
-        }, 10000, { leading: true, trailing: true });
-        let old_promise_pipeline_max_concurrent_promises = promise_pipeline.max_concurrent_promises;
+        for (const group_id_s in request_by_group_id) {
+            const gr_id = parseInt(group_id_s);
 
-        for (let group_id_s in request_by_group_id) {
-            let gr_id = parseInt(group_id_s);
-
-            let request = request_by_group_id[gr_id];
-            let dedoublonned_same_field_labels_params = dedoublonned_same_field_labels_params_by_group_id[gr_id];
+            const request = request_by_group_id[gr_id];
+            const dedoublonned_same_field_labels_params = dedoublonned_same_field_labels_params_by_group_id[gr_id];
 
             // On doit temporiser si on est sur un coef 0 lié à la charge mémoire de la BDD
             while (AzureMemoryCheckServerController.dao_server_coef == 0) {
-                throttled_log_dao_server_coef_0();
+                ThrottledQueryServerController.throttled_log_dao_server_coef_0();
                 await ThreadHandler.sleep(100, "ModuleDAOServer:handle_groups_queries:dao_server_coef == 0");
             }
 
             if (AzureMemoryCheckServerController.dao_server_coef < 0.5) {
-                throttled_log_dao_server_coef_not_1();
+                ThrottledQueryServerController.throttled_log_dao_server_coef_not_1();
             }
 
             promise_pipeline.max_concurrent_promises = Math.max(Math.floor(old_promise_pipeline_max_concurrent_promises * AzureMemoryCheckServerController.dao_server_coef), 1);
@@ -235,8 +238,8 @@ export default class ThrottledQueryServerController {
     private static handle_load_from_cache(
         same_field_labels_param: ThrottledSelectQueryParam
     ): () => Promise<void> {
-        let res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
-        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+        const res = DAOCacheHandler.get_cache(same_field_labels_param.parameterized_full_query);
+        if (ConfigurationService.node_configuration.debug_throttled_select) {
             ConsoleHandler.log('shift_select_queries:do_shift_select_queries:cache:' + same_field_labels_param.parameterized_full_query);
         }
         StatsController.register_stat_COMPTEUR('ModuleDAO', 'shift_select_queries', 'from_cache');
@@ -245,9 +248,9 @@ export default class ThrottledQueryServerController {
 
             same_field_labels_param.register_precbs_stats();
 
-            let promises = [];
-            for (let cbi in same_field_labels_param.cbs) {
-                let cb = same_field_labels_param.cbs[cbi];
+            const promises = [];
+            for (const cbi in same_field_labels_param.cbs) {
+                const cb = same_field_labels_param.cbs[cbi];
 
                 promises.push((async () => {
                     await cb(res);
@@ -274,7 +277,7 @@ export default class ThrottledQueryServerController {
         //  promises en cours
         if (ThrottledQueryServerController.current_select_query_promises[param.parameterized_full_query]) {
 
-            if (!!freeze_check_passed_and_refused[param.parameterized_full_query]) {
+            if (freeze_check_passed_and_refused[param.parameterized_full_query]) {
                 // si on a bloqué l'usage du current_select_query_promises, on ne doit pas en relancer avec la même requête
                 // on doit attendre la fin de la précédente. Donc on attend la suppression du current_select_query_promises
                 // ThrottledQueryServerController.throttled_select_query_params.push(param);
@@ -287,14 +290,14 @@ export default class ThrottledQueryServerController {
                 return ThrottledQueryServerController.current_select_query_promises[param.parameterized_full_query];
             }
 
-            let res = new Promise<string>(async (resolve, reject) => {
+            const res = new Promise<string>(async (resolve, reject) => {
 
                 force_freeze[param.parameterized_full_query] = true;
-                let results = await ThrottledQueryServerController.current_select_query_promises[param.parameterized_full_query];
+                const results = await ThrottledQueryServerController.current_select_query_promises[param.parameterized_full_query];
                 param.register_precbs_stats();
-                let promises = [];
-                for (let cbi in param.cbs) {
-                    let cb = param.cbs[cbi];
+                const promises = [];
+                for (const cbi in param.cbs) {
+                    const cb = param.cbs[cbi];
 
                     promises.push((async () => {
                         await cb(results);
@@ -329,11 +332,11 @@ export default class ThrottledQueryServerController {
     ): Promise<void> {
 
         let results = null;
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'do_select_query', 'IN');
 
         try {
-            let uid = LogDBPerfServerController.log_db_query_perf_start('do_select_query', request);
+            const uid = LogDBPerfServerController.log_db_query_perf_start('do_select_query', request);
             results = await ModuleServiceBase.db.query(request, values);
             LogDBPerfServerController.log_db_query_perf_end(uid, 'do_select_query', request);
 
@@ -346,11 +349,11 @@ export default class ThrottledQueryServerController {
         /**
          * On ventile les résultats par index
          */
-        let results_by_index: { [index: number]: any[] } = {};
-        for (let i in results) {
-            let result = results[i];
+        const results_by_index: { [index: number]: any[] } = {};
+        for (const i in results) {
+            const result = results[i];
 
-            let index = result['___throttled_select_query___index'];
+            const index = result['___throttled_select_query___index'];
             if (!results_by_index[index]) {
                 results_by_index[index] = [];
             }
@@ -358,17 +361,17 @@ export default class ThrottledQueryServerController {
             results_by_index[index].push(result);
         }
 
-        let all_params_promises = [];
-        let self = this;
-        for (let i in params_by_query_index) {
-            let index = parseInt(i);
-            let results_of_index = results_by_index[index];
-            let param = params_by_query_index[index];
-            let this_param_promises = [];
+        const all_params_promises = [];
+        const self = this;
+        for (const i in params_by_query_index) {
+            const index = parseInt(i);
+            const results_of_index = results_by_index[index];
+            const param = params_by_query_index[index];
+            const this_param_promises = [];
 
             all_params_promises.push((async () => {
 
-                if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+                if (ConfigurationService.node_configuration.debug_throttled_select) {
                     ConsoleHandler.log('do_select_query:results_of_index:' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
                 }
 
@@ -392,10 +395,10 @@ export default class ThrottledQueryServerController {
                 }
 
                 param.register_precbs_stats();
-                let cbs_time_in = Dates.now_ms();
+                const cbs_time_in = Dates.now_ms();
 
-                for (let cbi in param.cbs) {
-                    let cb = param.cbs[cbi];
+                for (const cbi in param.cbs) {
+                    const cb = param.cbs[cbi];
 
                     this_param_promises.push(cb(results_of_index ? results_of_index : null));
                 }

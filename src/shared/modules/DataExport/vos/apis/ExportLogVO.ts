@@ -10,7 +10,7 @@ export default class ExportLogVO implements INamedVO {
         log_time: number,
         user_id: number,
     ): ExportLogVO {
-        let res = new ExportLogVO();
+        const res = new ExportLogVO();
 
         res.name = name;
         res.log_time = log_time;

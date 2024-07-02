@@ -8,7 +8,7 @@ export default class SendInBlueContactVO {
         lastname: string = null,
         firstname: string = null,
     ): SendInBlueContactVO {
-        let res: SendInBlueContactVO = new SendInBlueContactVO();
+        const res: SendInBlueContactVO = new SendInBlueContactVO();
 
         res.email = email;
         res.lastname = lastname;

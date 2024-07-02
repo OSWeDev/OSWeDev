@@ -8,7 +8,7 @@ export default class UserRoleVO implements IDistantVOBase {
         user_id: number,
         role_id: number
     ): UserRoleVO {
-        let user_group: UserRoleVO = new UserRoleVO();
+        const user_group: UserRoleVO = new UserRoleVO();
 
         user_group.user_id = user_id;
         user_group.role_id = role_id;

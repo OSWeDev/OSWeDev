@@ -26,12 +26,12 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
 
         await this.load_logo_url();
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
-        if (!!logged_id) {
+        const logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (logged_id) {
             window.location = this.redirect_to as any;
         }
 
-        for (let j in this.$route.query) {
+        for (const j in this.$route.query) {
             switch (j) {
                 case 'email':
                     this.email = this.$route.query[j];
@@ -53,7 +53,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     }
 
     private async recover() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('recover.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -89,7 +89,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     }
 
     private async recoversms() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('recover.start'), () =>
             new Promise(async (resolve, reject) => {
 

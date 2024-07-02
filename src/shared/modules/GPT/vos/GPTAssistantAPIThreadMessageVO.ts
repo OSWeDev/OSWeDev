@@ -25,8 +25,16 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
 
     public role_type: number;
     public user_id: number;
-    public assistant_id: number;
     public run_id: number;
+
+    /**
+     * L'assistant si c'est un message de l'assistant
+     */
+    public assistant_id: number;
+    /**
+     * Le prompt, si l'assistant vient de répondre à un prompt l'assistant_id est aussi saisi, sinon c'est le prompt en lui même
+     */
+    public prompt_id: number;
 
     public date: number;
 

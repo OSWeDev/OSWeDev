@@ -9,7 +9,7 @@ export default class DocumentHandlerReloadListVO {
         d_by_ids: { [id: number]: DocumentVO },
         has_docs_route_name: { [route_name: string]: boolean },
     ): DocumentHandlerReloadListVO {
-        let res: DocumentHandlerReloadListVO = new DocumentHandlerReloadListVO();
+        const res: DocumentHandlerReloadListVO = new DocumentHandlerReloadListVO();
 
         res.ds_by_dt_ids_and_by_ids = ds_by_dt_ids_and_by_ids;
         res.list = list;

@@ -130,8 +130,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.getCrsByIds) {
-            let cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
+        for (const i in this.getCrsByIds) {
+            const cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
 
             if (cr.rdv_id == this.selected_rdv.id) {
                 return cr;
@@ -149,9 +149,9 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        let res: IPlanFacilitator[] = [];
-        for (let i in this.getFacilitatorsByIds) {
-            let facilitator = this.getFacilitatorsByIds[i];
+        const res: IPlanFacilitator[] = [];
+        for (const i in this.getFacilitatorsByIds) {
+            const facilitator = this.getFacilitatorsByIds[i];
 
             if (facilitator.user_id == this.user.id) {
                 res.push(facilitator);
@@ -170,9 +170,9 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        let res: IPlanManager[] = [];
-        for (let i in this.getManagersByIds) {
-            let manager = this.getManagersByIds[i];
+        const res: IPlanManager[] = [];
+        for (const i in this.getManagersByIds) {
+            const manager = this.getManagersByIds[i];
 
             if (manager.user_id == this.user.id) {
                 res.push(manager);
@@ -189,7 +189,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('programplan.rdv_modal.update_rdv.start'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -197,14 +197,14 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                 try {
 
                     self.selected_rdv.target_validation = self.rdv_confirmed;
-                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(self.selected_rdv);
+                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(self.selected_rdv);
                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                         throw new Error('Erreur serveur');
                     }
 
                     // TODO passer par une synchro via les notifs de dao ...
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
-                    let rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(self.selected_rdv.id).select_vo<IPlanRDV>();
+                    const rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(self.selected_rdv.id).select_vo<IPlanRDV>();
                     self.updateRdv(rdv);
                 } catch (error) {
                     ConsoleHandler.error(error);
@@ -245,8 +245,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.getPrepsByIds) {
-            let prep: IPlanRDVPrep = this.getPrepsByIds[i] as IPlanRDVPrep;
+        for (const i in this.getPrepsByIds) {
+            const prep: IPlanRDVPrep = this.getPrepsByIds[i] as IPlanRDVPrep;
 
             if (prep.rdv_id == this.selected_rdv.id) {
                 return prep;
@@ -307,7 +307,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -320,12 +320,12 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
 
-        let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
+        const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
         if (!manager) {
             return null;
         }
@@ -362,8 +362,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                     // Test si user est facilitator
                     if ((!!this.user_s_facilitators) && (this.user_s_facilitators.length > 0)) {
-                        for (let i in this.user_s_facilitators) {
-                            let facilitator = this.user_s_facilitators[i];
+                        for (const i in this.user_s_facilitators) {
+                            const facilitator = this.user_s_facilitators[i];
 
                             if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == facilitator.manager_id) {
                                 return true;
@@ -374,8 +374,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                     // Test si user est manager
                     if ((!!this.user_s_managers) && (this.user_s_managers.length > 0)) {
-                        for (let i in this.user_s_managers) {
-                            let manager = this.user_s_managers[i];
+                        for (const i in this.user_s_managers) {
+                            const manager = this.user_s_managers[i];
 
                             if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == manager.id) {
                                 return true;
@@ -420,7 +420,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.confirm(self.label('programplan.create_prep.confirmation.body'), self.label('programplan.create_prep.confirmation.title'), {
             timeout: 10000,
@@ -439,7 +439,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
                                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                                         throw new Error('Erreur serveur');
                                     }
@@ -448,7 +448,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+                                    const rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);
@@ -496,7 +496,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.confirm(self.label('programplan.update_prep.confirmation.body'), self.label('programplan.update_prep.confirmation.title'), {
             timeout: 10000,
@@ -517,7 +517,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
                                     if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != prep.id)) {
                                         throw new Error('Erreur serveur');
                                     }
@@ -525,7 +525,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+                                    const rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);
@@ -584,7 +584,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.confirm(self.label('programplan.delete_prep.confirmation.body'), self.label('programplan.delete_prep.confirmation.title'), {
             timeout: 10000,
@@ -605,7 +605,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                 try {
 
-                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
                                     if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != prep.id)) {
                                         throw new Error('Erreur serveur');
                                     }

@@ -1,6 +1,6 @@
 
 import IDistantVOBase from '../../IDistantVOBase';
-import DefaultTranslation from '../../Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../Translation/vos/DefaultTranslationVO';
 
 export default class MenuElementVO implements IDistantVOBase {
 
@@ -19,7 +19,7 @@ export default class MenuElementVO implements IDistantVOBase {
         target_blank: boolean = false,
     ): MenuElementVO {
 
-        let res = new MenuElementVO();
+        const res = new MenuElementVO();
 
         res.access_policy_name = access_policy_name;
         res.app_name = app_name;
@@ -63,6 +63,6 @@ export default class MenuElementVO implements IDistantVOBase {
     public version_edit_timestamp: number;
 
     get translatable_title(): string {
-        return "menu.menuelements." + this.app_name + '.' + this.name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "menu.menuelements." + this.app_name + '.' + this.name + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

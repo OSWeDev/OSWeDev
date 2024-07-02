@@ -18,18 +18,23 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
     private on_hidden_initialized: boolean = false;
     private show_insert_or_update_target: boolean = false;
+    private show_delete_button: boolean = false;
 
     private onclose_callback: () => Promise<void> = null;
+    private vo_update_callback: (vo: IDistantVOBase) => Promise<void> = null;
 
     public async open_modal(
         vo: IDistantVOBase,
         onclose_callback: () => Promise<void>,
         show_insert_or_update_target: boolean = true,
+        show_delete_button: boolean = false,
+        vo_update_callback: (vo: IDistantVOBase) => Promise<void> = null,
     ) {
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
         this.api_type_id = vo._type;
 
         this.show_insert_or_update_target = show_insert_or_update_target;
+        this.show_delete_button = show_delete_button;
 
         if (crud) {
             crud.updateDatatable.refresh();
@@ -42,6 +47,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
         this.vo = vo;
         this.onclose_callback = onclose_callback;
+        this.vo_update_callback = vo_update_callback;
 
         this.$nextTick(() => {
             $('#crud_update_modal_' + this.api_type_id).modal('show');
@@ -60,7 +66,7 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
     private async close_modal() {
         $('#crud_update_modal_' + this.api_type_id).modal('hide');
 
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
         if (crud) {
             crud.updateDatatable.refresh();
             (this.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).update_key();
@@ -71,6 +77,12 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
         if (this.onclose_callback) {
             await this.onclose_callback();
+        }
+    }
+
+    private async vo_update(vo: IDistantVOBase) {
+        if (this.vo_update_callback) {
+            await this.vo_update_callback(vo);
         }
     }
 }

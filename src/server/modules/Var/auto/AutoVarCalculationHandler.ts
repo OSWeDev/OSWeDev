@@ -7,7 +7,7 @@ export default class AutoVarCalculationHandler {
 
     public static do_calculation(deps_values: number[], auto_operator: number): number {
 
-        let res = null;
+        const res = null;
         switch (auto_operator) {
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_VOFIELDREF:
@@ -303,7 +303,7 @@ export default class AutoVarCalculationHandler {
             return null;
         }
 
-        for (let i in deps_values) {
+        for (const i in deps_values) {
             if ((deps_values[i] == null) || (isNaN(deps_values[i]))) {
                 return null;
             }

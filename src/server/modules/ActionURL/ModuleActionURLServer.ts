@@ -9,10 +9,10 @@ import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -43,21 +43,21 @@ export default class ModuleActionURLServer extends ModuleServerBase {
     public async configure() {
         ModuleDAOServer.getInstance().registerContextAccessHook(ActionURLVO.API_TYPE_ID, this, this.filterActionURLVOContextAccessHook);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Cette action n'existe pas ou vous n'y avez pas accès."
         }, 'action_url.not_found.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "En cours..."
-        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.encours.___LABEL___'));
+        }, 'OseliaThreadMessageActionURLComponent.execute_action_url.encours.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Echec de l'action"
-        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.failed.___LABEL___'));
+        }, 'OseliaThreadMessageActionURLComponent.execute_action_url.failed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Action effectuée avec succès"
-        }, 'CeliaThreadMessageActionURLComponent.execute_action_url.ok.___LABEL___'));
+        }, 'OseliaThreadMessageActionURLComponent.execute_action_url.ok.___LABEL___'));
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -65,9 +65,9 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleActionURL.APINAME_action_url, this.action_url.bind(this));
     }
 
-    private async filterActionURLVOContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterActionURLVOContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        let res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
+        const res: ContextQueryVO = query(ActionURLVO.API_TYPE_ID);
 
         if (!uid) {
             return ContextFilterVOHandler.get_empty_res_context_hook_query(moduletable.vo_type);
@@ -84,7 +84,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      */
     private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
 
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
 
         /**
          * On ne gère pas d'action anonyme pour le moment
@@ -94,7 +94,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return false;
         }
 
-        let action_url = await query(ActionURLVO.API_TYPE_ID)
+        const action_url = await query(ActionURLVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<ActionURLUserVO>().user_id, uid, ActionURLUserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<ActionURLVO>().action_code, code)
             .exec_as_server()
@@ -106,7 +106,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         }
 
         try {
-            let action_res = await this.do_action_url(action_url, code, uid, req, res);
+            const action_res = await this.do_action_url(action_url, code, uid, req, res);
             if ((!res.headersSent) && (!do_not_redirect)) {
                 // par défaut on redirige vers la page de consultation des crs de cette action_url si aucune redirection n'a été faite
                 res.redirect('/#/action_url_cr/' + action_url.id);
@@ -130,7 +130,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             return false;
         }
 
-        let module_instance = ModulesManager.getInstance().getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
+        const module_instance = ModulesManager.getInstance().getModuleByNameAndRole(action_url.action_callback_module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME);
 
         if (!module_instance) {
             ConsoleHandler.error('No module found for action_url:' + code + ': module_name:' + action_url.action_callback_module_name);
@@ -148,7 +148,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
         }
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
 
-        let action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
+        const action_cr: ActionURLCRVO = await module_instance[action_url.action_callback_function_name](action_url, uid, req, res);
 
         if (action_cr) {
             action_cr.action_url_id = action_url.id;

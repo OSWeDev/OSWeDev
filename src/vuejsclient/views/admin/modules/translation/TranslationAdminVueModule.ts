@@ -1,3 +1,4 @@
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
@@ -7,7 +8,6 @@ import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleT
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
 import MenuController from '../../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
@@ -32,7 +32,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
         super(ModuleTranslation.getInstance().name);
         this.policies_needed = [
             ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
-            ModuleTranslation.POLICY_BO_OTHERS_ACCESS
+            ModuleTranslation.POLICY_BO_OTHERS_ACCESS,
         ];
     }
 
@@ -42,7 +42,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let translationMenuBranch: MenuElementVO =
+        const translationMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
@@ -50,8 +50,8 @@ export default class TranslationAdminVueModule extends VueModuleBase {
                     "TranslationAdminVueModule",
                     "fa-language",
                     30 - 1,
-                    null
-                )
+                    null,
+                ),
             );
 
         await CRUDComponentManager.getInstance().registerCRUD(
@@ -65,7 +65,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
                 10,
                 null,
                 null,
-                translationMenuBranch.id
+                translationMenuBranch.id,
             ),
             this.routes);
 
@@ -84,7 +84,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
                 50,
                 null,
                 null,
-                translationMenuBranch.id
+                translationMenuBranch.id,
             ),
             this.routes);
 
@@ -99,38 +99,38 @@ export default class TranslationAdminVueModule extends VueModuleBase {
                 30,
                 null,
                 null,
-                translationMenuBranch.id
+                translationMenuBranch.id,
             ),
             this.routes);
     }
 
     protected getTranslationCRUD(): CRUD<TranslationVO> {
-        let crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
+        const crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
-            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID],
+            ModuleTableController.module_tables_by_vo_type[LangVO.API_TYPE_ID],
             [
-                SimpleDatatableFieldVO.createNew("code_lang")
-            ]
+                SimpleDatatableFieldVO.createNew("code_lang"),
+            ],
         ));
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "text_id",
-            VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
+            ModuleTableController.module_tables_by_vo_type[TranslatableTextVO.API_TYPE_ID],
             [
-                SimpleDatatableFieldVO.createNew("code_text")
-            ]
+                SimpleDatatableFieldVO.createNew("code_text"),
+            ],
         ));
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("translated"));
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, ModuleTableController.module_tables_by_vo_type[TranslationVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, ModuleTableController.module_tables_by_vo_type[TranslationVO.API_TYPE_ID]);
 
         return crud;
     }
 
     protected getLangCRUD(): CRUD<LangVO> {
-        let crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
+        const crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_lang"));
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_flag"));

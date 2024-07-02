@@ -58,7 +58,7 @@ export default class DocumentHandlerComponent extends VueComponentBase {
 
     public async mounted() {
         this.$nextTick(async () => {
-            let datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
+            const datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
 
             this.all_d_by_ids = datas.all_d_by_ids;
             this.all_dt_by_ids = datas.all_dt_by_ids;
@@ -75,7 +75,7 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     }
 
     private reload_list() {
-        let datas_list: DocumentHandlerReloadListVO = DocumentHandlerController.getInstance().reload_list(
+        const datas_list: DocumentHandlerReloadListVO = DocumentHandlerController.getInstance().reload_list(
             this.d_dts,
             this.all_d_by_ids,
             this.get_only_routename,
@@ -92,7 +92,7 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     }
 
     get options() {
-        let self = this;
+        const self = this;
         return {
             itemSelector: '.grid-item',
             layoutMode: 'masonry',

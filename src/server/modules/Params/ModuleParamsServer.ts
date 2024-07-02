@@ -9,8 +9,9 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -26,15 +27,6 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 export default class ModuleParamsServer extends ModuleServerBase {
 
     public static TASK_NAME_delete_params_cache = 'ModuleAccessPolicyServer.delete_params_cache';
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleParamsServer.instance) {
-            ModuleParamsServer.instance = new ModuleParamsServer();
-        }
-        return ModuleParamsServer.instance;
-    }
-
     private static instance: ModuleParamsServer = null;
 
     private throttled_param_cache_value: { [param_name: string]: any } = {};
@@ -48,24 +40,32 @@ export default class ModuleParamsServer extends ModuleServerBase {
         ForkedTasksController.register_task(ModuleParamsServer.TASK_NAME_delete_params_cache, this.delete_params_cache.bind(this));
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleParamsServer.instance) {
+            ModuleParamsServer.instance = new ModuleParamsServer();
+        }
+        return ModuleParamsServer.instance;
+    }
+
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Paramètres' },
             'menu.menuelements.admin.param.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Paramètres' },
             'menu.menuelements.admin.ParamsAdminVueModule.___LABEL___'));
 
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostCreateParam);
 
-        let postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postUpateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpateTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostUpdateParam);
 
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         postDeleteTrigger.registerHandler(ParamVO.API_TYPE_ID, this, this.handleTriggerPostDeleteParam);
     }
 
@@ -87,7 +87,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleParams.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Params'
         }));
 
@@ -95,7 +95,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleParams.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des Params'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -114,9 +114,9 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
 
-        if (!!param) {
+        if (param) {
             return;
         }
 
@@ -244,13 +244,13 @@ export default class ModuleParamsServer extends ModuleServerBase {
             let param: ParamVO = null;
             try {
                 param = await query(ParamVO.API_TYPE_ID)
-                    .filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true)
+                    .filter_by_text_eq(field_names<ParamVO>().name, text, ParamVO.API_TYPE_ID, true)
                     .exec_as_server(exec_as_server)
                     .select_vo<ParamVO>();
             } catch (error) {
                 ConsoleHandler.error('getParamValue:' + text + ':' + error);
             }
-            let res = param ? transformer(param.value) : default_if_undefined;
+            const res = param ? transformer(param.value) : default_if_undefined;
 
             this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
             this.throttled_param_cache_value[text] = res;
@@ -262,7 +262,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private async _setParamValue(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = false) {
         let param: ParamVO = await query(ParamVO.API_TYPE_ID)
-            .filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true)
+            .filter_by_text_eq(field_names<ParamVO>().name, param_name, ParamVO.API_TYPE_ID, true)
             .exec_as_server(exec_as_server)
             .select_vo<ParamVO>();
 

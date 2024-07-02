@@ -52,9 +52,9 @@ export default class AlertsListContainerComponent extends VueComponentBase {
             return [];
         }
 
-        let res: string[] = [];
-        for (let path in this.get_alerts_list) {
-            if (!!this.get_alerts_list[path]) {
+        const res: string[] = [];
+        for (const path in this.get_alerts_list) {
+            if (this.get_alerts_list[path]) {
                 res.push(path);
             }
         }

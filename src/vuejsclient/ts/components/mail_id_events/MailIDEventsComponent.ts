@@ -57,8 +57,8 @@ export default class MailIDEventsComponent extends VueComponentBase {
     get last_event(): MailEventVO {
         let last_event = null;
 
-        for (let e in this.mail_events) {
-            let event = this.mail_events[e];
+        for (const e in this.mail_events) {
+            const event = this.mail_events[e];
 
             if ((!last_event) || (last_event.event_date < event.event_date)) {
                 last_event = event;

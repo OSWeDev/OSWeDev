@@ -8,7 +8,8 @@ import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/I
 import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
 import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../shared/tools/WeightHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -46,7 +47,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCMS.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'CMS'
         }));
 
@@ -54,7 +55,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = ModuleCMS.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès aux pages CMS'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
@@ -62,7 +63,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleCMS.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -80,11 +81,11 @@ export default class ModuleCMSServer extends ModuleServerBase {
     private async getPageComponents(num: number): Promise<IInstantiatedPageComponent[]> {
         let res: IInstantiatedPageComponent[] = [];
 
-        for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
+        for (const i in ModuleCMS.getInstance().registered_template_components_by_type) {
 
-            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+            const registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
-            let type_page_components: IInstantiatedPageComponent[] = await query(registered_template_component.type_id).filter_by_num_eq('page_id', num).select_vos<IInstantiatedPageComponent>();
+            const type_page_components: IInstantiatedPageComponent[] = await query(registered_template_component.type_id).filter_by_num_eq(field_names<IInstantiatedPageComponent>().page_id, num).select_vos<IInstantiatedPageComponent>();
 
             res = res.concat(type_page_components);
         }

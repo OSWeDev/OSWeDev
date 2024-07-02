@@ -32,7 +32,7 @@ export default class YearFilterWidgetHandler {
             available_years
         );
 
-        for (let year in selected_years) {
+        for (const year in selected_years) {
             if (selected_years[year] != selected_years_from_context_filter[year]) {
                 has_changed = true;
                 break;

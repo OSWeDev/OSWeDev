@@ -3,7 +3,7 @@
     template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only) && (!auto_validate_inline_input)')
         template(v-if='!inline_input_is_editing')
             template(v-if='inline_input_show_clear && !field.is_required')
-                i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
+                i.inline_input_show_clear.fa.fa-duotone.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
             template(v-else)
                 i.inline_input_hide_clear.fa.fa-circle-arrow-right.btn-info(:class="{busy: inline_input_is_busy}")
         template(v-else)
@@ -22,6 +22,8 @@
         input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" :type="field_type" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
+    template(v-else-if="(field_type == 'color')")
+        color-picker.ml-2(v-model="field_value", @input="validateInput($event.target, true)" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))")
     template(v-else-if="field_type == 'textarea'")
         textarea(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
@@ -169,6 +171,10 @@
             Vuequilleditor.valign-middle(v-model="field_value" ref="input_elt" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event, true)"  @blur="validateEndOfInput($event, true)" :id="input_elt_id")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
         Filecomponent(ref="input_elt" :filevo="vo" @uploaded="uploadedFile(...arguments)" :id="input_elt_id" :disabled="is_readonly")
+    template(v-else-if="(field_type == 'file')")
+        template(v-if="field_value")
+            .download_link
+                a.btn.btn-primary(:href="field_value" target="_blank") {{ label('crud.field.file.download') }}
     template(v-else-if="(field_type == 'image')")
         Imagecomponent(ref="input_elt" :imagevo="vo" :field="field" @uploaded="uploadedFile(...arguments)", :id="input_elt_id" :disabled="is_readonly")
     template(v-else-if="field_type == 'timewithouttimezone'")
@@ -240,7 +246,7 @@
             v-model="field_value", :id="input_elt_id" :vo="vo", :field="field", :required="field.is_required",
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text",
             @input_with_infos="validateMultiInput")
-    template(v-else-if="field_type == 'html[]'")
+    template(v-else-if="field_type == 'html_array'")
         Multiinputcomponent(
             :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"

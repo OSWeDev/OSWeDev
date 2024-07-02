@@ -32,8 +32,8 @@ export default class MenuController {
         this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         this.access_by_name = {};
-        for (let i in this.menus_by_ids) {
-            let menu = this.menus_by_ids[i];
+        for (const i in this.menus_by_ids) {
+            const menu = this.menus_by_ids[i];
 
             if (!menu.access_policy_name) {
                 continue;
@@ -41,8 +41,8 @@ export default class MenuController {
             this.access_by_name[menu.access_policy_name] = null;
         }
 
-        let promises = [];
-        for (let policy_name in this.access_by_name) {
+        const promises = [];
+        for (const policy_name in this.access_by_name) {
 
             promises.push((async () => {
                 this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
@@ -72,7 +72,7 @@ export default class MenuController {
             // Si le parent n'est pas valide on a pas accès au menu fils (récursivement)
             let parent_menu = elt;
             while (parent_menu && !!parent_menu.menu_parent_id) {
-                let parent_id = parent_menu.menu_parent_id;
+                const parent_id = parent_menu.menu_parent_id;
                 parent_menu = this.menus_by_ids[parent_id];
             }
 
@@ -81,7 +81,7 @@ export default class MenuController {
                 return;
             }
 
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(elt);
+            const res = await ModuleDAO.getInstance().insertOrUpdateVO(elt);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error("Failed declare_menu_element:" + elt);
                 return null;
@@ -123,10 +123,10 @@ export default class MenuController {
 
     private init(menus: MenuElementVO[]) {
 
-        for (let i in menus) {
-            let menu = menus[i];
+        for (const i in menus) {
+            const menu = menus[i];
 
-            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
+            const parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
             if (!this.menus_by_parent_id[parent_id]) {
                 this.menus_by_parent_id[parent_id] = [];
             }
@@ -141,7 +141,7 @@ export default class MenuController {
             this.menus_by_app_names[menu.app_name].push(menu);
         }
 
-        for (let i in this.menus_by_parent_id) {
+        for (const i in this.menus_by_parent_id) {
             WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[i]);
         }
     }

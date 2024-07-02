@@ -52,7 +52,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
 
         let options: ValidationFiltersWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ValidationFiltersWidgetOptions;
                 options = options ? new ValidationFiltersWidgetOptions() : null;
             }

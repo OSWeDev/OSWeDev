@@ -4,7 +4,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueAppBase from '../../../VueAppBase';
 import EditablePageEditInfo from './EditablePageEditInfo';
 
-let debounce = require('lodash/debounce');
+const debounce = require('lodash/debounce');
 
 export default class EditablePageController {
     public static getInstance(): EditablePageController {
@@ -47,8 +47,8 @@ export default class EditablePageController {
             return;
         }
 
-        for (let i in list) {
-            let e = list[i];
+        for (const i in list) {
+            const e = list[i];
 
             if ((edit_info.UID == e.UID) || ((!!edit_info.vo.id) && (e.vo.id == edit_info.vo.id) && (e.vo._type == edit_info.vo._type))) {
 
@@ -81,21 +81,21 @@ export default class EditablePageController {
         VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('EditablePageController.save.start'));
 
         let has_errors: boolean = false;
-        for (let i in this.edit_infos_waiting_for_save) {
-            let edit_info: EditablePageEditInfo = this.edit_infos_waiting_for_save[i];
+        for (const i in this.edit_infos_waiting_for_save) {
+            const edit_info: EditablePageEditInfo = this.edit_infos_waiting_for_save[i];
 
             let edit_info_result: boolean = true;
 
-            if (!!edit_info.field) {
+            if (edit_info.field) {
 
-                let tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
+                const tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
                 try {
 
                     // VarsController.stageUpdateVoUpdate(edit_info.vo, null);
 
                     edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
 
-                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;
@@ -105,14 +105,14 @@ export default class EditablePageController {
                     ConsoleHandler.error(error);
                     edit_info_result = false;
 
-                    if (!!edit_info.vo) {
+                    if (edit_info.vo) {
                         edit_info.vo[edit_info.field.module_table_field_id] = tmp;
                     }
                 }
             } else {
 
                 try {
-                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = res.id;
@@ -128,7 +128,7 @@ export default class EditablePageController {
                 has_errors = true;
             }
 
-            if (!!edit_info.callback) {
+            if (edit_info.callback) {
                 await edit_info.callback(edit_info, edit_info_result);
             }
         }

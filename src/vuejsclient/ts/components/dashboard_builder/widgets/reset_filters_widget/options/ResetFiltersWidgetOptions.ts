@@ -1,4 +1,4 @@
-import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../../../../../shared/modules/Translation/vos/DefaultTranslationVO";
 
 export default class ResetFiltersWidgetOptions {
 
@@ -11,6 +11,6 @@ export default class ResetFiltersWidgetOptions {
         if (!page_widget_id) {
             return null;
         }
-        return ResetFiltersWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return ResetFiltersWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

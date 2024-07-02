@@ -32,16 +32,16 @@ export default class TimeSegment implements ISegment {
         [TimeSegment.TYPE_SECOND]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_SECOND],
     };
 
+    private constructor(public index: number, public type: number) { }
+
+    get dateIndex(): string {
+        return this.index ? Dates.format(this.index, 'Y-MM-DD') : null;
+    }
+
     /**
      * DON'T USE this method to create TimeSegments, use only the TimeSegmentHandler to get corresponding segment from Moment and segment_type
      */
     public static createNew(date: number, type: number): TimeSegment {
         return new TimeSegment(date, type);
-    }
-
-    private constructor(public index: number, public type: number) { }
-
-    get dateIndex(): string {
-        return this.index ? Dates.format(this.index, 'Y-MM-DD') : null;
     }
 }

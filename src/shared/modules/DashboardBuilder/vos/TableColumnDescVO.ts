@@ -1,9 +1,9 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import IDistantVOBase from "../../IDistantVOBase";
-import ModuleTableField from "../../ModuleTableField";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class TableColumnDescVO extends AbstractVO implements IDistantVOBase, IWeightedItem {
@@ -80,7 +80,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             case TableColumnDescVO.TYPE_select_box:
                 return 'select_box';
             case TableColumnDescVO.TYPE_component:
-                return this.component_name;
+                return this.component_name + '___' + this.id.toString();
             case TableColumnDescVO.TYPE_header:
                 return this.header_name;
         }
@@ -145,6 +145,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     public many_to_many_aggregate: boolean;
     public is_nullable: boolean;
     public show_tooltip: boolean;
+    public align_content_right: boolean;
     public disabled_many_to_one_link: boolean;
 
     /**
@@ -174,6 +175,10 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
      */
     public colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }>;
 
+    public custom_label: string;
+    public custom_class_css: string;
+    public custom_values: any[];
+
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
             return false;
@@ -183,12 +188,12 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             return false;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[this.api_type_id].getFieldFromId(this.field_id);
         if (!field) {
             return false;
         }
 
-        return (field.field_type == ModuleTableField.FIELD_TYPE_enum);
+        return (field.field_type == ModuleTableFieldVO.FIELD_TYPE_enum);
     }
 
     get is_number(): boolean {
@@ -200,7 +205,7 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
             return false;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[this.api_type_id].getFieldFromId(this.field_id);
 
         if (!field) {
             return false;
@@ -214,6 +219,10 @@ export default class TableColumnDescVO extends AbstractVO implements IDistantVOB
     }
 
     public get_translatable_name_code_text(page_widget_id: number): string {
+
+        if (this.custom_label) {
+            return this.custom_label;
+        }
 
         if (!page_widget_id) {
             return null;

@@ -15,9 +15,4 @@ export default class ModuleCommerce extends Module {
     private constructor() {
         super("commerce", "Commerce");
     }
-
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
 }

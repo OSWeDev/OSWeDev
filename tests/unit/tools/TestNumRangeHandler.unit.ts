@@ -595,7 +595,7 @@ test('NumRangeHandler: test createNew', () => {
 
 test('NumRangeHandler: test rangesFromIndex', () => {
 
-    let ranges = [
+    const ranges = [
         RangeHandler.createNew(NumRange.RANGE_TYPE, 0, 1, true, false, NumSegment.TYPE_INT),
         RangeHandler.createNew(NumRange.RANGE_TYPE, 0, 2, true, false, NumSegment.TYPE_INT),
         RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 5, true, false, NumSegment.TYPE_INT),

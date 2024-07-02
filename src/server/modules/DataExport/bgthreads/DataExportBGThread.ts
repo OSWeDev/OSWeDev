@@ -6,6 +6,7 @@ import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHi
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
@@ -43,7 +44,7 @@ export default class DataExportBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         try {
 
             StatsController.register_stat_COMPTEUR('DataExportBGThread', 'work', 'IN');
@@ -51,13 +52,13 @@ export default class DataExportBGThread implements IBGThread {
             // Objectif, on prend l'export en attente le plus ancien, et on l'exécute. Si un export est en cours, à ce stade on devrait pas
             //  le voir, donc il y a eu une erreur, on l'indique (c'est peut-être juste un redémarrage serveur) et on relance.
 
-            let exhi: ExportHistoricVO = await query(ExportHistoricVO.API_TYPE_ID)
+            const exhi: ExportHistoricVO = await query(ExportHistoricVO.API_TYPE_ID)
                 .add_filters([
                     ContextFilterVO.or([
-                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
-                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
+                        filter(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().state).by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
+                        filter(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().state).by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
                     ])]
-                ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, 'creation_date', true)).select_vo<ExportHistoricVO>();
+                ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, field_names<ExportHistoricVO>().creation_date, true)).select_vo<ExportHistoricVO>();
 
             if (!exhi) {
                 this.stats_out('inactive', time_in);
@@ -86,7 +87,7 @@ export default class DataExportBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('DataExportBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('DataExportBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
@@ -110,11 +111,11 @@ export default class DataExportBGThread implements IBGThread {
 
         try {
 
-            if (!!exhi.export_to_uid) {
+            if (exhi.export_to_uid) {
                 await PushDataServerController.getInstance().notifySimpleINFO(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.start");
             }
 
-            let datas: IExportableDatas = await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].prepare_datas(exhi);
+            const datas: IExportableDatas = await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].prepare_datas(exhi);
 
             if (!datas || !datas.datas) {
                 await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].send(exhi);
@@ -139,7 +140,7 @@ export default class DataExportBGThread implements IBGThread {
             exhi.state = ExportHistoricVO.EXPORT_STATE_DONE;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(exhi);
 
-            if (!!exhi.export_to_uid) {
+            if (exhi.export_to_uid) {
                 await PushDataServerController.getInstance().notifySimpleSUCCESS(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.success");
             }
 
@@ -149,7 +150,7 @@ export default class DataExportBGThread implements IBGThread {
             ConsoleHandler.error(error);
             await this.failExport(exhi);
 
-            if (!!exhi.export_to_uid) {
+            if (exhi.export_to_uid) {
                 await PushDataServerController.getInstance().notifySimpleERROR(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.failed");
             }
 

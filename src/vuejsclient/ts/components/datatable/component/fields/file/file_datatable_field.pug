@@ -7,6 +7,4 @@
             .text-left(v-if="show_file_name")
                 p {{ file_name }}
             .text-center
-                a.btn.btn-primary(@click="cb_download" :href="path" :download='file_name' target='_blank'  v-tooltip='show_tooltip ? path : null') {{ button_label ? button_label : label('file_datatable_field.download') }}
-        template(v-else)
-            .introuvable {{ label('file_datatable_field.introuvable', { file_id: file_id }) }}
+                a.btn.btn-primary(@click="cb_download" :href="path" :download='file_name' target='_blank' v-tooltip='show_tooltip ? path : null') {{ button_label ? button_label : label('file_datatable_field.download') }}

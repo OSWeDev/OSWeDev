@@ -3,14 +3,15 @@ import UserRoleVO from "../../../../src/shared/modules/AccessPolicy/vos/UserRole
 import UserVO from "../../../../src/shared/modules/AccessPolicy/vos/UserVO";
 import AnonymizationFieldConfVO from "../../../../src/shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
 import AnonymizationUserConfVO from "../../../../src/shared/modules/Anonymization/vos/AnonymizationUserConfVO";
+import ModuleTableController from "../../../../src/shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldController from "../../../../src/shared/modules/DAO/ModuleTableFieldController";
+import ModuleTableVO from "../../../../src/shared/modules/DAO/vos/ModuleTableVO";
 import TimeSegment from "../../../../src/shared/modules/DataRender/vos/TimeSegment";
-import ModuleTable from "../../../../src/shared/modules/ModuleTable";
-import ModuleTableField from "../../../../src/shared/modules/ModuleTableField";
-import DefaultTranslation from "../../../../src/shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../../src/shared/modules/Translation/vos/DefaultTranslationVO";
 import LangVO from "../../../../src/shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../src/shared/modules/Translation/vos/TranslatableTextVO";
 import TranslationVO from "../../../../src/shared/modules/Translation/vos/TranslationVO";
-import VOsTypesManager from "../../../../src/shared/modules/VO/manager/VOsTypesManager";
+import { field_names } from "../../../../src/shared/tools/ObjectHandler";
 
 export default class ContextFilterTestsTools {
     public static getInstance(): ContextFilterTestsTools {
@@ -38,120 +39,121 @@ export default class ContextFilterTestsTools {
 
     private initializeAnonymizationFieldConfVO() {
 
-        let datatable_fields = [
-            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
-            new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
-            new ModuleTableField('anonymizer_type', ModuleTableField.FIELD_TYPE_enum, 'Fonction', true).setEnumValues(AnonymizationFieldConfVO.TYPE_ANONYMIZER_LABELS),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID', true),
+            ModuleTableFieldController.create_new(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FIELD ID', true),
+            ModuleTableFieldController.create_new(AnonymizationFieldConfVO.API_TYPE_ID, field_names<AnonymizationFieldConfVO>().anonymizer_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Fonction', true).setEnumValues(AnonymizationFieldConfVO.TYPE_ANONYMIZER_LABELS),
         ];
 
-        let datatable = new ModuleTable(null, AnonymizationFieldConfVO.API_TYPE_ID, () => new AnonymizationFieldConfVO(), datatable_fields, null, "Anonymisation").define_default_label_function((vo: AnonymizationFieldConfVO) => vo.vo_type + "." + vo.field_id, null);
+        const datatable = ModuleTableController.create_new(null.name, AnonymizationFieldConfVO, null, "Anonymisation");
+        ModuleTableController.set_label_function(AnonymizationFieldConfVO.API_TYPE_ID, (vo: AnonymizationFieldConfVO) => vo.vo_type + "." + vo.field_name, null);
         datatable.set_bdd_ref('ref', AnonymizationFieldConfVO.API_TYPE_ID);
     }
 
     private initializeAnonymizationUserConfVO() {
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let anon_field_id = new ModuleTableField('anon_field_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Champs anonymisé', true);
-        let datatable_fields = [
+        const user_id = ModuleTableFieldController.create_new(AnonymizationUserConfVO.API_TYPE_ID, field_names<AnonymizationUserConfVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        const anon_field_name = ModuleTableFieldController.create_new(AnonymizationUserConfVO.API_TYPE_ID, field_names<AnonymizationUserConfVO>().anon_field_name, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Champs anonymisé', true);
+        const datatable_fields = [
             user_id,
-            anon_field_id
+            anon_field_name
         ];
-        let datatable = new ModuleTable(null, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
-        anon_field_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        const datatable = ModuleTableController.create_new(null.name, AnonymizationUserConfVO, null, "Lien anonymisation/utilisateur");
+        anon_field_name.set_many_to_one_target_moduletable_name(AnonymizationFieldConfVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', AnonymizationUserConfVO.API_TYPE_ID);
     }
 
     private initializeRole() {
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
-        let parent_role_id = new ModuleTableField('parent_role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent');
+        const label_field = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true);
+        const parent_role_id = ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().parent_role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle parent');
 
-        let datatable_fields = [
+        const datatable_fields = [
             label_field,
             parent_role_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            ModuleTableFieldController.create_new(RoleVO.API_TYPE_ID, field_names<RoleVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(null, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Rôles" }));
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, RoleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles" }));
         parent_role_id.donotCascadeOnDelete();
-        parent_role_id.addManyToOneRelation(datatable);
+        parent_role_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
         datatable.set_bdd_ref('ref', RoleVO.API_TYPE_ID);
     }
 
     private initializeUserRoles() {
-        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
-        let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
-        let datatable_fields = [
+        const field_user_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        const field_role_id = ModuleTableFieldController.create_new(UserRoleVO.API_TYPE_ID, field_names<UserRoleVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
+        const datatable_fields = [
             field_user_id,
             field_role_id,
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(null, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Rôles des utilisateurs" }));
-        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, UserRoleVO, null, DefaultTranslationVO.create_new({ 'fr-fr': "Rôles des utilisateurs" }));
+        field_user_id.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        field_role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', UserRoleVO.API_TYPE_ID);
     }
 
     private declare_LangVO_modultable() {
-        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_lang, ModuleTableFieldVO.FIELD_TYPE_string, 'Code de la langue', true).unique();
+        const datatable_fields = [
             label_field,
-            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
-            new ModuleTableField('code_phone', ModuleTableField.FIELD_TYPE_string, 'Indicatif (+33)', false),
+            ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_flag, ModuleTableFieldVO.FIELD_TYPE_string, 'Code du drapeau', false),
+            ModuleTableFieldController.create_new(LangVO.API_TYPE_ID, field_names<LangVO>().code_phone, ModuleTableFieldVO.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
-        let datatable: ModuleTable<any> = new ModuleTable(null, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, LangVO, label_field, "Langues");
         datatable.set_bdd_ref('ref', LangVO.API_TYPE_ID);
     }
 
     private declare_TranslatableTextVO_modultable() {
-        let label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(TranslatableTextVO.API_TYPE_ID, field_names<TranslatableTextVO>().code_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Id du text', true).unique();
+        const datatable_fields = [
             label_field
         ];
-        let datatable: ModuleTable<any> = new ModuleTable(null, TranslatableTextVO.API_TYPE_ID, () => new TranslatableTextVO(), datatable_fields, label_field, "Codes");
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, TranslatableTextVO, label_field, "Codes");
         datatable.set_bdd_ref('ref', TranslatableTextVO.API_TYPE_ID);
     }
 
     private declare_TranslationVO_modultable() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
-        let field_text_id = new ModuleTableField('text_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Text', true);
-        let label_field = new ModuleTableField('translated', ModuleTableField.FIELD_TYPE_string, 'Texte traduit', true);
-        let datatable_fields = [
+        const field_lang_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true);
+        const field_text_id = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().text_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Text', true);
+        const label_field = ModuleTableFieldController.create_new(TranslationVO.API_TYPE_ID, field_names<TranslationVO>().translated, ModuleTableFieldVO.FIELD_TYPE_string, 'Texte traduit', true);
+        const datatable_fields = [
             field_lang_id,
             field_text_id,
             label_field
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(null, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
-        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
-        field_text_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, TranslationVO, label_field, "Traductions");
+        field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
+        field_text_id.set_many_to_one_target_moduletable_name(TranslatableTextVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', TranslationVO.API_TYPE_ID);
     }
 
     private declare_UserVO_modultable() {
 
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': 'Langue' }), true);
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), true);
-        let datatable_fields = [
+        const field_lang_id = ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, DefaultTranslationVO.create_new({ 'fr-fr': 'Langue' }), true);
+        const label_field = ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), true);
+        const datatable_fields = [
             label_field,
-            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Prénom' }), false),
-            new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), false),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ 'fr-fr': 'E-mail' }), true),
-            new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Téléphone' })),
-            new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte bloqué' }), true, true, false),
-            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ 'fr-fr': 'Mot de passe' }), true),
-            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de changement du mot de passe' }), false),
-            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),
-            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Second rappel envoyé' }), true, true, false),
-            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Mot de passe expiré' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().firstname, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Prénom' }), false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().lastname, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Nom' }), false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().email, ModuleTableFieldVO.FIELD_TYPE_email, DefaultTranslationVO.create_new({ 'fr-fr': 'E-mail' }), true),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().phone, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Téléphone' })),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().blocked, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Compte bloqué' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().password, ModuleTableFieldVO.FIELD_TYPE_password, DefaultTranslationVO.create_new({ 'fr-fr': 'Mot de passe' }), true),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().password_change_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de changement du mot de passe' }), false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().reminded_pwd_1, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().reminded_pwd_2, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Second rappel envoyé' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().invalidated, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Mot de passe expiré' }), true, true, false),
             field_lang_id,
-            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Challenge de récupération' }), false, true, ""),
-            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('logged_once', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Connecté au moins 1 fois' }), true, true, false),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().recovery_challenge, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Challenge de récupération' }), false, true, ""),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().recovery_expiration, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().logged_once, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Connecté au moins 1 fois' }), true, true, false),
+            ModuleTableFieldController.create_new(UserVO.API_TYPE_ID, field_names<UserVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Date de création' })).set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(null, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(null.name, UserVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }));
+        field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', UserVO.API_TYPE_ID);
     }
 }

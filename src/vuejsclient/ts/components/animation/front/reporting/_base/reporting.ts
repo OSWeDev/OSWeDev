@@ -115,12 +115,12 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
          * On lance une demande d'export BGThread et on renvoie null pour éviter de passer par l'export client
          */
 
-        let exhi: ExportHistoricVO = new ExportHistoricVO();
+        const exhi: ExportHistoricVO = new ExportHistoricVO();
 
         exhi.export_file_access_policy_name = ModuleAnimation.POLICY_FO_ACCESS;
         exhi.export_is_secured = true;
 
-        let export_params: AnimationReportingParamVO = new AnimationReportingParamVO(
+        const export_params: AnimationReportingParamVO = new AnimationReportingParamVO(
             this.get_filter_anim_theme_active_options,
             this.get_filter_anim_module_active_options,
             this.get_filter_role_active_options,
@@ -144,12 +144,12 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = {};
         let all_role_by_ids: { [id: number]: RoleVO } = {};
         let all_user_by_ids: { [id: number]: UserVO } = {};
-        let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
+        const all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
 
-        let user_ids: number[] = [];
+        const user_ids: number[] = [];
         let role_ids: number[] = [];
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () =>
             all_anim_theme_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
@@ -161,18 +161,18 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
 
         await all_promises(promises);
 
-        let aums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
+        const aums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
 
-        for (let i in aums) {
-            let aum: AnimationUserModuleVO = aums[i];
+        for (const i in aums) {
+            const aum: AnimationUserModuleVO = aums[i];
 
-            let module: AnimationModuleVO = all_anim_module_by_ids[aum.module_id];
+            const module: AnimationModuleVO = all_anim_module_by_ids[aum.module_id];
 
             if (!module) {
                 continue;
             }
 
-            let theme: AnimationThemeVO = all_anim_theme_by_ids[module.theme_id];
+            const theme: AnimationThemeVO = all_anim_theme_by_ids[module.theme_id];
 
             if (!theme) {
                 continue;
@@ -221,9 +221,9 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     }
 
     private async reloadAums() {
-        let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
+        const all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
 
-        let aums: AnimationUserModuleVO[] = await ModuleAnimation.getInstance().getAumsFiltered(
+        const aums: AnimationUserModuleVO[] = await ModuleAnimation.getInstance().getAumsFiltered(
             this.get_filter_anim_theme_active_options,
             this.get_filter_anim_module_active_options,
             this.get_filter_role_active_options,
@@ -232,16 +232,16 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             this.get_filter_module_valide_active_option,
         );
 
-        for (let i in aums) {
-            let aum: AnimationUserModuleVO = aums[i];
+        for (const i in aums) {
+            const aum: AnimationUserModuleVO = aums[i];
 
-            let module: AnimationModuleVO = this.get_all_anim_module_by_ids[aum.module_id];
+            const module: AnimationModuleVO = this.get_all_anim_module_by_ids[aum.module_id];
 
             if (!module) {
                 continue;
             }
 
-            let theme: AnimationThemeVO = this.get_all_anim_theme_by_ids[module.theme_id];
+            const theme: AnimationThemeVO = this.get_all_anim_theme_by_ids[module.theme_id];
 
             if (!theme) {
                 continue;
@@ -306,11 +306,11 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     }
 
     private get_roles_anim_module(anim_module: AnimationModuleVO): string {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (anim_module && anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
             RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
-                let role: RoleVO = this.get_all_role_by_ids[role_id];
+                const role: RoleVO = this.get_all_role_by_ids[role_id];
 
                 if (!role) {
                     return;

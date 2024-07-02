@@ -79,22 +79,22 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
 
-        let code_text = this.code_text;
-        let known_translation = this.translation;
-        let default_translation = this.default_translation;
-        let code_lang = this.code_lang;
+        const code_text = this.code_text;
+        const known_translation = this.translation;
+        const default_translation = this.default_translation;
+        const code_lang = this.code_lang;
 
         if (!known_translation) {
 
             // On a pas la trad pour le moment, mais elle existe peut-etre quand même côté serveur et on a juste pas l'info dans le store
-            let lang = await ModuleTranslation.getInstance().getLang(code_lang);
+            const lang = await ModuleTranslation.getInstance().getLang(code_lang);
             if (!lang) {
                 // Bon faut pas abuser non plus
                 return;
             }
 
             if (!this.get_flat_locale_translations[code_text]) {
-                let text = await ModuleTranslation.getInstance().getTranslatableText(code_text);
+                const text = await ModuleTranslation.getInstance().getTranslatableText(code_text);
                 if (!text) {
                     // le translatable existe pas on le crée si on a une trad par défaut
                     if (default_translation) {
@@ -110,7 +110,7 @@ export default class InlineTranslatableText extends VueComponentBase {
                     return;
                 }
 
-                let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
+                const translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
                 if (translation) {
                     this.set_flat_locale_translation({ code_text: code_text, value: known_translation });
                     return;
@@ -187,10 +187,10 @@ export default class InlineTranslatableText extends VueComponentBase {
             return res;
         }
 
-        for (let i in this.translation_params) {
-            let translation_param = this.translation_params[i];
+        for (const i in this.translation_params) {
+            const translation_param = this.translation_params[i];
 
-            let regexp = new RegExp('\{' + i + '\}', 'ig');
+            const regexp = new RegExp('\{' + i + '\}', 'ig');
             res = res.replace(regexp, (translation_param != null) ? translation_param.toString() : 'N/A');
         }
 
@@ -203,7 +203,7 @@ export default class InlineTranslatableText extends VueComponentBase {
 
     private async save_translation(translation: string, muted: boolean = false, code_lang: string = null, code_text: string = null) {
 
-        let self = this;
+        const self = this;
 
         if ((!this.is_editable) || (!this.semaphore)) {
             return;

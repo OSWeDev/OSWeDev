@@ -8,6 +8,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ChangeResetPWDMailContent implements IGeneratorWorker {
 
@@ -30,11 +31,11 @@ export default class ChangeResetPWDMailContent implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         try {
-            let code_trad: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', 'mails.pwd.recovery.html').select_one();
-            let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', 'fr-fr').select_one();
-            let trad: TranslationVO = await query(TranslationVO.API_TYPE_ID)
-                .filter_by_num_eq('lang_id', lang.id)
-                .filter_by_num_eq('text_id', code_trad.id)
+            const code_trad: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq(field_names<TranslatableTextVO>().code_text, 'mails.pwd.recovery.html').select_one();
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').select_one();
+            const trad: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<TranslationVO>().lang_id, lang.id)
+                .filter_by_num_eq(field_names<TranslationVO>().text_id, code_trad.id)
                 .select_one();
 
             trad.translated = 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.';

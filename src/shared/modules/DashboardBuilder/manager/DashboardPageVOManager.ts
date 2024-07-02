@@ -3,6 +3,7 @@ import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import DashboardPageVO from "../vos/DashboardPageVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import { field_names } from "../../../tools/ObjectHandler";
 
 /**
  * DashboardPageVOManager
@@ -68,7 +69,7 @@ export default class DashboardPageVOManager {
         }
 
         const context_query = query(DashboardPageVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', dashboard_id);
+            .filter_by_num_eq(field_names<DashboardPageVO>().dashboard_id, dashboard_id);
 
         if (pagination?.sorts?.length > 0) {
             // TODO: check if SortByVO is valid (field_id, order)
@@ -174,7 +175,7 @@ export default class DashboardPageVOManager {
         // Initialize dashboards_pages (all_page_widget in dashboard) of DashboardPageVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const dashboards_pages = await query(DashboardPageVO.API_TYPE_ID)
-            .filter_by_num_has('dashboard_id', dashboard_ids)
+            .filter_by_num_has(field_names<DashboardPageVO>().dashboard_id, dashboard_ids)
             .select_vos<DashboardPageVO>();
 
         dashboard_ids.map((dashboard_id) => {

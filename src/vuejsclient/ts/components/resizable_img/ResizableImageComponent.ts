@@ -33,7 +33,7 @@ export default class ResizableImageComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        let self = this;
+        const self = this;
         this.$nextTick(async () => {
             await self.load_formatted_img();
         });

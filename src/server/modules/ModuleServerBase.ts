@@ -14,7 +14,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
     }
 
     get actif(): boolean {
-        let shared_module = this.shared_module;
+        const shared_module = this.shared_module;
         return shared_module ? shared_module.actif : false;
     }
 

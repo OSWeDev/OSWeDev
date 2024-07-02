@@ -1,11 +1,10 @@
-import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
-import ModuleTable from "../../../../../../shared/modules/ModuleTable";
-import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
+import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
@@ -32,10 +31,10 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
     public add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
 
         //On évite les jointures supprimées.
-        for (let vo_type in discarded_field_paths) {
-            let discarded_field_paths_vo_type = discarded_field_paths[vo_type];
+        for (const vo_type in discarded_field_paths) {
+            const discarded_field_paths_vo_type = discarded_field_paths[vo_type];
 
-            for (let field_id in discarded_field_paths_vo_type) {
+            for (const field_id in discarded_field_paths_vo_type) {
                 q.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }
@@ -57,9 +56,9 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
         let has_segmented_too_much_options: boolean = false;
         let has_segmented_too_much_options_api_type_id: string = null;
 
-        for (let i in api_type_ids) {
-            let api_type_id: string = api_type_ids[i];
-            let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        for (const i in api_type_ids) {
+            const api_type_id: string = api_type_ids[i];
+            const module_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -70,7 +69,7 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
 
                 has_segmented = true;
 
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, query_, ignore_self_filter);
+                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, query_, ignore_self_filter);
 
                 if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + has_segmented_too_much_options_api_type_id + ', on ne filtre pas sur cette table');
@@ -81,9 +80,9 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
         }
 
         if (has_segmented_too_much_options && has_segmented_too_much_options_api_type_id) {
-            let new_filters = [];
-            for (let i in query_.filters) {
-                let filter_: ContextFilterVO = query_.filters[i];
+            const new_filters = [];
+            for (const i in query_.filters) {
+                const filter_: ContextFilterVO = query_.filters[i];
 
                 if (filter_.vo_type == has_segmented_too_much_options_api_type_id) {
                     continue;
@@ -97,11 +96,11 @@ export default class FieldValueFilterWidgetController extends FieldValueFilterWi
             });
             FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, discarded_field_paths);
 
-            let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
-            let fields = segmented_moduletable.get_fields();
-            for (let i in fields) {
-                let field: ModuleTableField<any> = fields[i];
-                if (!field.manyToOne_target_moduletable) {
+            const segmented_moduletable = ModuleTableController.module_tables_by_vo_type[has_segmented_too_much_options_api_type_id];
+            const fields = segmented_moduletable.get_fields();
+            for (const i in fields) {
+                const field: ModuleTableFieldVO = fields[i];
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
                 query_.discard_field_path(has_segmented_too_much_options_api_type_id, field.field_id);

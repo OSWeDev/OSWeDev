@@ -25,7 +25,7 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
     private mounted() {
 
         // store data so the calendar knows to render an event upon drop
-        let event: any = {};
+        const event: any = {};
 
         event.title = this.event_name;
         event._type = this.event_type;

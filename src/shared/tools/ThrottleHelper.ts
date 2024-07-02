@@ -1,13 +1,21 @@
-import { Cancelable, isArray, throttle, ThrottleSettings } from 'lodash';
+import { isArray, throttle, ThrottleSettings } from 'lodash';
+import EnvHandler from './EnvHandler';
+import ConsoleHandler from './ConsoleHandler';
 
 export default class ThrottleHelper {
+
+    protected static UID: number = 0;
+    protected static throttles: { [throttle_id: number]: ((...args: any) => any) } = {};
+    protected static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
+    protected static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
+    protected static throttles_semaphore: { [throttle_id: number]: boolean } = {};
 
     public static declare_throttle_without_args(
         func: () => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.get_next_UID();
         ThrottleHelper.throttles[UID] = throttle(async () => {
             ThrottleHelper.throttles_semaphore[UID] = false;
             await func();
@@ -22,10 +30,10 @@ export default class ThrottleHelper {
         wait_ms: number,
         options?: ThrottleSettings) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.get_next_UID();
         ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = ThrottleHelper.throttles_mappable_args[UID];
+            const params = ThrottleHelper.throttles_mappable_args[UID];
             ThrottleHelper.throttles_mappable_args[UID] = {};
             ThrottleHelper.throttles_semaphore[UID] = false;
             await func(params);
@@ -40,26 +48,20 @@ export default class ThrottleHelper {
         options?: ThrottleSettings
     ) {
 
-        let UID = ThrottleHelper.UID++;
+        const UID = ThrottleHelper.get_next_UID();
         ThrottleHelper.throttles[UID] = throttle(async () => {
 
-            let params = ThrottleHelper.throttles_stackable_args[UID];
+            const params = ThrottleHelper.throttles_stackable_args[UID];
             ThrottleHelper.throttles_stackable_args[UID] = [];
 
             await func(params);
         }, wait_ms, options);
 
         return (stackable_args?: any | any[]) => {
-            let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
+            const stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
             return ThrottleHelper.throttle_with_stackable_args(UID, stack);
         };
     }
-
-    protected static UID: number = 0;
-    protected static throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
-    protected static throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
-    protected static throttles_stackable_args: { [throttle_id: number]: any[] } = {};
-    protected static throttles_semaphore: { [throttle_id: number]: boolean } = {};
 
     private static throttle_without_args(throttle_id: number) {
         if (!ThrottleHelper.throttles[throttle_id]) {
@@ -101,5 +103,15 @@ export default class ThrottleHelper {
         }
 
         return ThrottleHelper.throttles[throttle_id]();
+    }
+
+    private static get_next_UID() {
+
+        const new_UID = ThrottleHelper.UID++;
+        if (EnvHandler.debug_throttle_uid) {
+            ConsoleHandler.log('ThrottleHelper:get_next_UID:ThrottleHelper.UID++:' + new_UID);
+        }
+
+        return new_UID;
     }
 }

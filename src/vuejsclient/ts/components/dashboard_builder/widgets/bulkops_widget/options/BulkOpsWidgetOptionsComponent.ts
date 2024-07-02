@@ -14,6 +14,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BulkOpsWidgetOptions from './BulkOpsWidgetOptions';
 import './BulkOpsWidgetOptionsComponent.scss';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./BulkOpsWidgetOptionsComponent.pug'),
@@ -50,13 +51,13 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     }
 
     private api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(ModuleTableController.module_tables_by_vo_type[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })
     private onchange_page_widget() {
         if ((!this.page_widget) || (!this.widget_options)) {
-            if (!!this.api_type_id_selected) {
+            if (this.api_type_id_selected) {
                 this.api_type_id_selected = null;
             }
             return;
@@ -96,8 +97,8 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -120,7 +121,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
 
         let options: BulkOpsWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
                 options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
             }

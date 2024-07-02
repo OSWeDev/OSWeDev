@@ -84,8 +84,8 @@ export default class DataRenderController {
 
     public getCount(rows: IRenderedData[], conditionFunc: (row: IRenderedData) => boolean): number {
         let res = 0;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
+        for (const i in rows) {
+            const row: IRenderedData = rows[i];
 
             if (!row) {
                 continue;
@@ -103,8 +103,8 @@ export default class DataRenderController {
     public getColSomme(rows: IRenderedData[], field_name: string, conditionFunc: (row: IRenderedData) => boolean): number {
         let res = 0;
         let has_data: boolean = false;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
+        for (const i in rows) {
+            const row: IRenderedData = rows[i];
 
             if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] === null)) {
                 continue;
@@ -127,8 +127,8 @@ export default class DataRenderController {
     public getColMean(rows: IRenderedData[], field_name: string, conditionFunc: (row: IRenderedData) => boolean): number {
         let res = 0;
         let nb_datas: number = 0;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
+        for (const i in rows) {
+            const row: IRenderedData = rows[i];
 
             if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] === null)) {
                 continue;
@@ -153,8 +153,8 @@ export default class DataRenderController {
         let nb_datas: number = 0;
         let ponderation: number = 0;
 
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
+        for (const i in rows) {
+            const row: IRenderedData = rows[i];
 
             if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name]) || (row[field_name] === null))) {
                 continue;
@@ -181,9 +181,9 @@ export default class DataRenderController {
     }
 
     public filterDataBySegment(rows: IRenderedData[], timeSegment: TimeSegment): IRenderedData[] {
-        let res: IRenderedData[] = [];
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
+        const res: IRenderedData[] = [];
+        for (const i in rows) {
+            const row: IRenderedData = rows[i];
 
             if ((!row) || (typeof row.data_dateindex == 'undefined')) {
                 continue;
@@ -206,10 +206,10 @@ export default class DataRenderController {
         let timeSegment_prec: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment);
 
         let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-        let value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
+        const value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
         let hasPreviousValue: boolean = TypesHandler.getInstance().isNumber(previousCumul);
-        let hasValue: boolean = TypesHandler.getInstance().isNumber(value);
+        const hasValue: boolean = TypesHandler.getInstance().isNumber(value);
         let isInSameSegmentType: boolean = TimeSegmentHandler.isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
 
         if (hasValue && hasPreviousValue && isInSameSegmentType) {
@@ -256,15 +256,15 @@ export default class DataRenderController {
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment);
-        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment_mm1);
+        const timeSegment_mm1: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment);
+        const timeSegment_mm2: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment_mm1);
         let value_m: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
         let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
         let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
-        let hasValue_m: boolean = TypesHandler.getInstance().isNumber(value_m);
-        let hasValue_mm1: boolean = TypesHandler.getInstance().isNumber(value_mm1);
-        let hasValue_mm2: boolean = TypesHandler.getInstance().isNumber(value_mm2);
+        const hasValue_m: boolean = TypesHandler.getInstance().isNumber(value_m);
+        const hasValue_mm1: boolean = TypesHandler.getInstance().isNumber(value_mm1);
+        const hasValue_mm2: boolean = TypesHandler.getInstance().isNumber(value_mm2);
 
         value_m = value_m ? value_m : 0;
         value_mm1 = value_mm1 ? value_mm1 : 0;
@@ -284,7 +284,7 @@ export default class DataRenderController {
         let value: number = 0;
 
         let current_cumulSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(cumulSegment.index, type_segmentation);
-        let end_cumul_dateindex: number = TimeSegmentHandler.getEndTimeSegment(cumulSegment);
+        const end_cumul_dateindex: number = TimeSegmentHandler.getEndTimeSegment(cumulSegment);
         while (end_cumul_dateindex >= TimeSegmentHandler.getEndTimeSegment(current_cumulSegment)) {
 
             if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index]) ||
@@ -294,7 +294,7 @@ export default class DataRenderController {
                 current_cumulSegment = TimeSegmentHandler.getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
                 continue;
             }
-            let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name];
+            const segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name];
             value += segment_value;
 
             current_cumulSegment = TimeSegmentHandler.getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);

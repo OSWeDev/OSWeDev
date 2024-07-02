@@ -19,9 +19,4 @@ export default class ModuleDataSource extends Module {
         super("datasource", ModuleDataSource.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
-
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
 }

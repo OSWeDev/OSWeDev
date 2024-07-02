@@ -1,17 +1,18 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import RoleVO from '../AccessPolicy/vos/RoleVO';
-import UserVO from '../AccessPolicy/vos/UserVO';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import DocumentDocumentTagVO from './vos/DocumentDocumentTagVO';
 import DocumentLangVO from './vos/DocumentLangVO';
 import DocumentRoleVO from './vos/DocumentRoleVO';
@@ -73,8 +74,6 @@ export default class ModuleDocument extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeDocumentVO();
         this.initializeDocumentTagVO();
@@ -90,152 +89,143 @@ export default class ModuleDocument extends Module {
     }
 
     private initializeDocumentVO() {
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
-        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier', false).not_add_to_crud();
+        const name = ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const file_id = ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().file_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Fichier', false).not_add_to_crud();
 
-        let fields = [
+        const fields = [
             name,
             file_id,
-            new ModuleTableField('document_url', ModuleTableField.FIELD_TYPE_string, 'URL', false),
-            new ModuleTableField('target_route_name', ModuleTableField.FIELD_TYPE_string, 'Page (route_name)', false),
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de document', true, true, DocumentVO.DOCUMENT_TYPE_OTHER).setEnumValues(DocumentVO.DOCUMENT_TYPE_LABELS),
-            new ModuleTableField('importance', ModuleTableField.FIELD_TYPE_enum, 'Importance du document', true, true, DocumentVO.DOCUMENT_IMPORTANCE_M).setEnumValues(DocumentVO.DOCUMENT_IMPORTANCE_LABELS),
-            new ModuleTableField('show_icon', ModuleTableField.FIELD_TYPE_boolean, 'afficher icone', true, true, true),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().document_url, ModuleTableFieldVO.FIELD_TYPE_string, 'URL', false),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().target_route_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Page (route_name)', false),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de document', true, true, DocumentVO.DOCUMENT_TYPE_OTHER).setEnumValues(DocumentVO.DOCUMENT_TYPE_LABELS),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().importance, ModuleTableFieldVO.FIELD_TYPE_enum, 'Importance du document', true, true, DocumentVO.DOCUMENT_IMPORTANCE_M).setEnumValues(DocumentVO.DOCUMENT_IMPORTANCE_LABELS),
+            ModuleTableFieldController.create_new(DocumentVO.API_TYPE_ID, field_names<DocumentVO>().show_icon, ModuleTableFieldVO.FIELD_TYPE_boolean, 'afficher icone', true, true, true),
         ];
 
-        let table = new ModuleTable(this, DocumentVO.API_TYPE_ID, () => new DocumentVO(), fields, name, 'Documents');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentVO, name, 'Documents');
 
-        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        file_id.set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }
 
     private initializeDocumentTagVO() {
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        const name = ModuleTableFieldController.create_new(DocumentTagVO.API_TYPE_ID, field_names<DocumentTagVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
 
-        let fields = [
+        const fields = [
             name,
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(DocumentTagVO.API_TYPE_ID, field_names<DocumentTagVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(DocumentTagVO.API_TYPE_ID, field_names<DocumentTagVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let table = new ModuleTable(this, DocumentTagVO.API_TYPE_ID, () => new DocumentTagVO(), fields, name, 'Documents - Tags');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentTagVO, name, 'Documents - Tags');
     }
 
     private initializeDocumentRoleVO() {
-        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
-        let role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Role', true);
+        const d_id = ModuleTableFieldController.create_new(DocumentRoleVO.API_TYPE_ID, field_names<DocumentRoleVO>().d_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Document', true);
+        const role_id = ModuleTableFieldController.create_new(DocumentRoleVO.API_TYPE_ID, field_names<DocumentRoleVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Role', true);
 
-        let fields = [
+        const fields = [
             d_id,
             role_id
         ];
 
-        let table = new ModuleTable(this, DocumentRoleVO.API_TYPE_ID, () => new DocumentRoleVO(), fields, null, 'Roles d\'accès aux Documents');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentRoleVO, null, 'Roles d\'accès aux Documents');
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        role_id.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
     }
 
 
     private initializeDocumentLangVO() {
-        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
-        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+        const d_id = ModuleTableFieldController.create_new(DocumentLangVO.API_TYPE_ID, field_names<DocumentLangVO>().d_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Document', true);
+        const lang_id = ModuleTableFieldController.create_new(DocumentLangVO.API_TYPE_ID, field_names<DocumentLangVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true);
 
-        let fields = [
+        const fields = [
             d_id,
             lang_id
         ];
 
-        let table = new ModuleTable(this, DocumentLangVO.API_TYPE_ID, () => new DocumentLangVO(), fields, null, 'Langues des Documents');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentLangVO, null, 'Langues des Documents');
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
     private initializeDocumentTagLangVO() {
-        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
-        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+        const dt_id = ModuleTableFieldController.create_new(DocumentTagLangVO.API_TYPE_ID, field_names<DocumentTagLangVO>().dt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tag', true);
+        const lang_id = ModuleTableFieldController.create_new(DocumentTagLangVO.API_TYPE_ID, field_names<DocumentTagLangVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true);
 
-        let fields = [
+        const fields = [
             dt_id,
             lang_id
         ];
 
-        let table = new ModuleTable(this, DocumentTagLangVO.API_TYPE_ID, () => new DocumentTagLangVO(), fields, null, 'Langues des Tags');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentTagLangVO, null, 'Langues des Tags');
 
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
     private initializeDocumentTagGroupVO() {
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        const name = ModuleTableFieldController.create_new(DocumentTagGroupVO.API_TYPE_ID, field_names<DocumentTagGroupVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
 
-        let fields = [
+        const fields = [
             name,
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            ModuleTableFieldController.create_new(DocumentTagGroupVO.API_TYPE_ID, field_names<DocumentTagGroupVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(DocumentTagGroupVO.API_TYPE_ID, field_names<DocumentTagGroupVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let table = new ModuleTable(this, DocumentTagGroupVO.API_TYPE_ID, () => new DocumentTagGroupVO(), fields, name, 'Documents - TagGroups');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentTagGroupVO, name, 'Documents - TagGroups');
     }
 
 
     private initializeDocumentTagGroupLangVO() {
-        let dtg_id = new ModuleTableField('dtg_id', ModuleTableField.FIELD_TYPE_foreign_key, 'TagGroup', true);
-        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+        const dtg_id = ModuleTableFieldController.create_new(DocumentTagGroupLangVO.API_TYPE_ID, field_names<DocumentTagGroupLangVO>().dtg_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'TagGroup', true);
+        const lang_id = ModuleTableFieldController.create_new(DocumentTagGroupLangVO.API_TYPE_ID, field_names<DocumentTagGroupLangVO>().lang_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Langue', true);
 
-        let fields = [
+        const fields = [
             dtg_id,
             lang_id
         ];
 
-        let table = new ModuleTable(this, DocumentTagGroupLangVO.API_TYPE_ID, () => new DocumentTagGroupLangVO(), fields, null, 'Langues des TagGroups');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentTagGroupLangVO, null, 'Langues des TagGroups');
 
-        dtg_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
-        lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        dtg_id.set_many_to_one_target_moduletable_name(DocumentTagGroupVO.API_TYPE_ID);
+        lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
     }
 
 
     private initializeDocumentTagDocumentTagGroupVO() {
-        let dtg_id = new ModuleTableField('dtg_id', ModuleTableField.FIELD_TYPE_foreign_key, 'TagGroup', true);
-        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
+        const dtg_id = ModuleTableFieldController.create_new(DocumentTagDocumentTagGroupVO.API_TYPE_ID, field_names<DocumentTagDocumentTagGroupVO>().dtg_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'TagGroup', true);
+        const dt_id = ModuleTableFieldController.create_new(DocumentTagDocumentTagGroupVO.API_TYPE_ID, field_names<DocumentTagDocumentTagGroupVO>().dt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tag', true);
 
-        let fields = [
+        const fields = [
             dtg_id,
             dt_id
         ];
 
-        let table = new ModuleTable(this, DocumentTagDocumentTagGroupVO.API_TYPE_ID, () => new DocumentTagDocumentTagGroupVO(), fields, null, 'Groupes des Tags');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentTagDocumentTagGroupVO, null, 'Groupes des Tags');
 
-        dtg_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+        dtg_id.set_many_to_one_target_moduletable_name(DocumentTagGroupVO.API_TYPE_ID);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
     }
 
 
     private initializeDocumentDocumentTagVO() {
-        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
-        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
+        const d_id = ModuleTableFieldController.create_new(DocumentDocumentTagVO.API_TYPE_ID, field_names<DocumentDocumentTagVO>().d_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Document', true);
+        const dt_id = ModuleTableFieldController.create_new(DocumentDocumentTagVO.API_TYPE_ID, field_names<DocumentDocumentTagVO>().dt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Tag', true);
 
-        let fields = [
+        const fields = [
             d_id,
             dt_id
         ];
 
-        let table = new ModuleTable(this, DocumentDocumentTagVO.API_TYPE_ID, () => new DocumentDocumentTagVO(), fields, null, 'Tags des Documents');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, DocumentDocumentTagVO, null, 'Tags des Documents');
 
-        d_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
-        dt_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+        d_id.set_many_to_one_target_moduletable_name(DocumentVO.API_TYPE_ID);
+        dt_id.set_many_to_one_target_moduletable_name(DocumentTagVO.API_TYPE_ID);
     }
 }

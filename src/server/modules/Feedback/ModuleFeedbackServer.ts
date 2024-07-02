@@ -15,6 +15,8 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
@@ -25,9 +27,10 @@ import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vo
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import StackContext from '../../StackContext';
@@ -35,6 +38,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -48,6 +52,8 @@ const { parse } = require('flatted/cjs');
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
+    public static FEEDBACK_ASSISTANT_ID: string = 'FEEDBACK_ASSISTANT_ID';
+    public static FEEDBACK_ASSISTANT_NAME: string = 'Feedback - Assistant pour résumer';
 
     public static FEEDBACK_TRELLO_LIST_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_LIST_ID';
     public static TEAMS_WEBHOOK_PARAM_NAME: string = 'ModuleFeedbackServer.TEAMS_WEBHOOK';
@@ -63,14 +69,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     public static FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT';
     public static FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_ROUTE_LIMIT';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleFeedbackServer.instance) {
-            ModuleFeedbackServer.instance = new ModuleFeedbackServer();
-        }
-        return ModuleFeedbackServer.instance;
-    }
-
     private static TRELLO_LINE_SEPARATOR: string = '\x0A';
     private static TRELLO_SECTION_SEPARATOR: string = ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '---' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
 
@@ -81,11 +79,19 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         super(ModuleFeedback.getInstance().name);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleFeedbackServer.instance) {
+            ModuleFeedbackServer.instance = new ModuleFeedbackServer();
+        }
+        return ModuleFeedbackServer.instance;
+    }
+
     // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFeedback.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Feedbacks'
         }));
 
@@ -93,7 +99,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleFeedback.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des feedbacks'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -106,7 +112,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         POLICY_FO_ACCESS.group_id = group.id;
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleFeedback.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès front - Feedbacks'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
@@ -114,145 +120,145 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Un incident technique - un comportement inhabituel de la solution - , qui induit une indisponibilité partielle ou totale du service' },
             'feedback_handler.type.incident.tooltip.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Une erreur logicielle reproductible par rapport au fonctionnement attendu au sein de l\'application' },
             'feedback_handler.type.bug.tooltip.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Une demande d\'évolution ou une suggestion pour améliorer la solution et répondre mieux à votre besoin' },
             'feedback_handler.type.request.tooltip.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Tout autre message adressé aux équipes techniques, relatif à une page / un fonctionnement de l\'application' },
             'feedback_handler.type.not_set.tooltip.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Fermer' },
             'feedback_handler.hide.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nécessite au moins une capture écran.' },
             'FeedbackHandlerComponent.needs_at_least_one_screenshot.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Message ou titre obligatoire.' },
             'FeedbackHandlerComponent.needs_message_or_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Message et titre obligatoires.' },
             'FeedbackHandlerComponent.needs_message_and_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Utilisateur et email obligatoires.' },
             'FeedbackHandlerComponent.needs_user_and_email.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Merci de renseigner un téléphone pour être rappelé.' },
             'FeedbackHandlerComponent.needs_phone.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.on.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.off.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Fichiers' },
             'feedback_handler.attachments.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Captures écran' },
             'feedback_handler.captures.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Vider' },
             'feedback_handler.clear.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'E-mail' },
             'feedback_handler.email.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Faites-nous part de vos suggestions, informez-nous d\'un incident ou d\'un bug, ou laissez-nous simplement un message' },
             'feedback_handler.header.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Message' },
             'feedback_handler.message.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Téléphone' },
             'feedback_handler.phone.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Envoyer' },
             'feedback_handler.submit.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Titre' },
             'feedback_handler.title.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Bug' },
             'feedback_handler.type.bug.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Incident' },
             'feedback_handler.type.incident.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Type de message' },
             'feedback_handler.type.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Autre' },
             'feedback_handler.type.not_set.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Demande d\'évolution ou proposition d\'amélioration' },
             'feedback_handler.type.request.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Utilisateur' },
             'feedback_handler.user.label.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Demande d\'évolution' },
             'feedback.FEEDBACK_TYPE.ENHANCEMENT_REQUEST'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Bug' },
             'feedback.FEEDBACK_TYPE.BUG'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Incident technique' },
             'feedback.FEEDBACK_TYPE.INCIDENT'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Autre' },
             'feedback.FEEDBACK_TYPE.NOT_SET'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Votre retour d\'expérience a bien été transmis. Merci.' },
             'feedback.feedback.success'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Erreur lors de la transmission. Merci de contacter l\'équipe projet pour les en informer.' },
             'feedback.feedback.error'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': '[FEEDBACK:%%VAR%%FEEDBACK_ID%%] Confirmation de réception de votre retour d\'expérience' },
             'mails.feedback.confirmation.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nous avons bien reçu votre retour d\'expérience intitulé "%%VAR%%FEEDBACK_TITLE%%" et allons le traiter rapidement. Nous vous tiendrons informé de son évolution. A des fins de suivi, votre retour d\'expérience porte le numéro %%VAR%%FEEDBACK_ID%%. Toute l\'équipe vous remercie de faire progresser notre solution.' },
             'mails.feedback.confirmation.html'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'error_sending_feedback.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Le nom du fichier n\'est pas conforme, pas d\'espace ou de caractères spéciaux' },
             'file_format_error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nous contacter', 'es-es': 'Contáctenos' },
             'feedback_handler.btn.title.___LABEL___')
         );
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Horaires de préférence', 'es-es': 'Horas preferidas' },
             'feedback_handler.preferred_times_called.label.___LABEL___')
         );
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.label.___LABEL___')
         );
 
         //SurveyComponent - Enquête de satisfaction
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
             'survey.btn.title.___LABEL___')
         );
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 
@@ -268,7 +274,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         if (!feedback.state_id) {
-            let default_state = await query(FeedbackStateVO.API_TYPE_ID).filter_is_true('is_default_state').select_vo<FeedbackStateVO>();
+            const default_state = await query(FeedbackStateVO.API_TYPE_ID)
+                .filter_is_true(field_names<FeedbackStateVO>().is_default_state).select_vo<FeedbackStateVO>();
             if (!default_state) {
                 ConsoleHandler.error('pre_create_feedback_assigne_default_state:Aucun état par défaut n\'est défini pour les retours d\'expérience');
                 return true;
@@ -289,31 +296,31 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return null;
         }
 
-        let time_in: number = Dates.now_ms();
+        const time_in: number = Dates.now_ms();
         StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
 
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
-            let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+            const user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
                 return null;
             }
 
-            let FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
             if (!FEEDBACK_TRELLO_LIST_ID) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
             }
 
-            let FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
-            let FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_BUG_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_BUG_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
+            const FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
@@ -327,7 +334,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             feedback.is_impersonated = false;
             if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
-                let admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
+                const admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
                 feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;
                 feedback.impersonated_from_user_id = admin_user_session.uid;
                 feedback.impersonated_from_user_login_date = admin_user_session.creation_date_unix;
@@ -335,7 +342,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Puis créer le feedback en base
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
@@ -344,22 +351,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // Créer le Trello associé
             let response;
-            let idLabels: string[] = [];
+            const idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
-            let user_infos = await this.user_infos_to_string(feedback);
+            const user_infos = await this.user_infos_to_string(feedback);
             trello_message += user_infos;
-            let feedback_infos = await this.feedback_infos_to_string(feedback);
+            const feedback_infos = await this.feedback_infos_to_string(feedback);
             trello_message += feedback_infos;
 
-            let screen_captures = await this.screen_captures_to_string(feedback);
+            const screen_captures = await this.screen_captures_to_string(feedback);
             trello_message += screen_captures;
-            let attachments = await this.attachments_to_string(feedback);
+            const attachments = await this.attachments_to_string(feedback);
             trello_message += attachments;
 
-            let routes = await this.routes_to_string(feedback);
+            const routes = await this.routes_to_string(feedback);
             trello_message += routes;
-            let console_logs_errors = await this.console_logs_to_string(feedback);
+            const console_logs_errors = await this.console_logs_to_string(feedback);
             trello_message += console_logs_errors;
 
             // let api_logs = await this.api_logs_to_string(feedback);
@@ -381,7 +388,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let card_name: string = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + feedback.title;
+            let card_name: string = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + feedback.title;
 
             if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
                 idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
@@ -391,12 +398,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
             // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
 
-            let feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
+            const feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
             await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 
-            let envParam: EnvParam = ConfigurationService.node_configuration;
-            let file_url = envParam.BASE_URL + feedback_file_patch;
+            const envParam: EnvParam = ConfigurationService.node_configuration;
+            const file_url = envParam.base_url + feedback_file_patch;
 
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
@@ -427,7 +434,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     'Impossible de créer la carte Trello pour le feedback ' + feedback.id + ' : ' + feedback.title);
             }
 
-            let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            const ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!ires) || (!ires.id)) {
                 StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
                 throw new Error('Failed feedback creation');
@@ -440,7 +447,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
-            let mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
+            const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
             feedback.confirmation_mail_id = mail ? mail.id : null;
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
@@ -460,30 +467,38 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
         // , api_logs: string
     ) {
-        let FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+        const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
         if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
-            // //TODO FIXME simple test remplacer par un assistant dédié ( et lié au projet ) en gérant correctement les fichiers / captures, ou juste revenir à l'ancienne version
-            // let gtp_4_brief_msg = await GPTServerController.ask_assistant(
-            //     'g-4dPuTN6RY-celia-c-dms-mail-writer',
-            //     'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
-            //     // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-            //     'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
-            //     'Ci-après les éléments constituant le formulaire de contact client : {' +
+            // const gpt_assistant_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
+
+            // if (!gpt_assistant_id) {
+            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: Le paramètre ' + ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID + ' doit être renseigné pour envoyer les réponses GPT aux équipes');
+            //     return;
+            // }
+
+            // const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_id(gpt_assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>();
+
+            // if (!assistant) {
+            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: L\'assistant GPT ' + gpt_assistant_id + ' n\'existe pas');
+            //     return;
+            // }
+
+            // const gtp_4_brief: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
+            //     assistant.gpt_assistant_id,
+            //     null,
             //     ' - Titre du formulaire : ' + feedback.title + ' ' +
             //     ' - Message : ' + feedback.message + ' ' +
             //     ' - Infos de l\'utilisateur : ' + user_infos +
-            //     ' - feedback_infos : ' + feedback_infos +
-            //     ' - console_logs_errors : ' + console_logs_errors);
-            // let gtp_4_brief = {
-            //     content: gtp_4_brief_msg
-            // };
+            //     ' - feedback_infos : ' + feedback_infos,
+            //     null,
+            //     uid);
 
 
-            let gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+            const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
                 GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
                 uid,
-                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.APP_TITLE + '. ' +
+                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
                 // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
                 'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
                 'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. Le format HTML doit être compatible avec Teams. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
@@ -495,10 +510,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 ' - console_logs_errors : ' + console_logs_errors
                 // ' - api_logs : ' + api_logs
             ));
-            let TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+            const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
-                let teamsWebhookContent = new TeamsWebhookContentVO();
-                teamsWebhookContent.title = (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.BASE_URL;
+                const teamsWebhookContent = new TeamsWebhookContentVO();
+                teamsWebhookContent.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url;
                 teamsWebhookContent.summary = gtp_4_brief.content;
 
                 if (feedback.screen_capture_1_id) {
@@ -526,11 +541,11 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                         '<p>' + gtp_4_brief.content + '</p>'));
 
                 // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-                let dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+                const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
                 if ((!!feedback.id) && !!dashboard_feedback_id) {
                     teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                         new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                            ConfigurationService.node_configuration.BASE_URL + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                            ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
                 }
 
                 await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
@@ -539,22 +554,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
-        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.base_url + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
     }
 
     private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
-        let file_url = ConfigurationService.node_configuration.BASE_URL + file.path;
+        const file_url = ConfigurationService.node_configuration.base_url + file.path;
 
         message.sections.push(
             new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
@@ -594,7 +609,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     //                 break;
     //         }
 
-    //         let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
+    //         let BASE_URL: string = ConfigurationService.node_configuration.base_url;
     //         let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
     //         apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
     //     }
@@ -607,8 +622,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
-        let CONSOLE_LOG_LIMIT: number = FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT.toString()) : 100;
+        const FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
+        const CONSOLE_LOG_LIMIT: number = FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT.toString()) : 100;
         let limited: boolean = false;
 
         if (feedback.console_logs && (feedback.console_logs.length > CONSOLE_LOG_LIMIT)) {
@@ -616,7 +631,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             limited = true;
         }
 
-        let console_logs_message: string = (feedback.console_logs && feedback.console_logs.length) ?
+        const console_logs_message: string = (feedback.console_logs && feedback.console_logs.length) ?
             ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ' + feedback.console_logs.join(ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '1. ') :
             '';
 
@@ -628,16 +643,16 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async routes_to_string(feedback: FeedbackVO): Promise<string> {
-        let FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
+        const FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
         let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let routes_message: string = '';
         ROUTE_LIMIT = ROUTE_LIMIT - feedback.routes_fullpaths.length;
-        let limited: boolean = ROUTE_LIMIT < 0;
+        const limited: boolean = ROUTE_LIMIT < 0;
 
-        for (let i in feedback.routes_fullpaths) {
-            let route: string = feedback.routes_fullpaths[i];
+        for (const i in feedback.routes_fullpaths) {
+            const route: string = feedback.routes_fullpaths[i];
 
             ROUTE_LIMIT++;
             if (ROUTE_LIMIT <= 0) {
@@ -646,7 +661,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
             routes_message += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
-            routes_message += '1. [' + route + '](' + envParam.BASE_URL + '#' + route + ')';
+            routes_message += '1. [' + route + '](' + envParam.base_url + '#' + route + ')';
         }
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
@@ -657,17 +672,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async user_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.name + ' | UID ' + feedback.user_id + '](' +
-            envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.user_id) + ')';
+            envParam.base_url + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.user_id) + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Connection : ' + Dates.format(feedback.user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Login : ' + Dates.format(feedback.user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         if (feedback.is_impersonated) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : [Admin user | UID ' + feedback.impersonated_from_user_id + '](' +
-                envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id) + ')';
+                envParam.base_url + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id) + ')';
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Connection : ' + Dates.format(feedback.impersonated_from_user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Login : ' + Dates.format(feedback.impersonated_from_user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         }
@@ -689,7 +704,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async feedback_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##FEEDBACK INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -710,10 +725,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 break;
         }
 
-        let start_url = envParam.BASE_URL + '#' + feedback.feedback_start_url;
+        const start_url = envParam.base_url + '#' + feedback.feedback_start_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start URL : [' + start_url + '](' + start_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start date : ' + Dates.format(feedback.feedback_start_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-        let end_url = envParam.BASE_URL + '#' + feedback.feedback_end_url;
+        const end_url = envParam.base_url + '#' + feedback.feedback_end_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission URL : [' + end_url + '](' + end_url + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission date : ' + Dates.format(feedback.feedback_end_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission type : ' + type;
@@ -721,7 +736,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.file_attachment_1_id) {
             return '';
@@ -734,7 +749,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        let file_url = envParam.BASE_URL + file.path;
+        let file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 1 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_2_id) {
             return res;
@@ -744,7 +759,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 2 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_3_id) {
             return res;
@@ -754,14 +769,14 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 3 : ' + file_url + '](' + file_url + ')';
 
         return res;
     }
 
     private async screen_captures_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.screen_capture_1_id) {
             return '';
@@ -774,7 +789,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
-        let file_url = envParam.BASE_URL + file.path;
+        let file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
@@ -787,7 +802,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
@@ -800,7 +815,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
-        file_url = envParam.BASE_URL + file.path;
+        file_url = envParam.base_url + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';
         if (ModuleParams.APINAME_feedback_display_screenshots) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';

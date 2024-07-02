@@ -33,7 +33,7 @@ export default class ImageAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let importsMenuBranch: MenuElementVO =
+        const importsMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleImage.POLICY_BO_ACCESS,

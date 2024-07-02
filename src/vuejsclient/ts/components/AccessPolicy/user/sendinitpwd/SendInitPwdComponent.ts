@@ -37,8 +37,8 @@ export default class SendInitPwdComponent extends VueComponentBase {
     }
 
     get mail_field_id() {
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
             if (column.api_type_id != UserVO.API_TYPE_ID) {
                 continue;
             }
@@ -59,7 +59,7 @@ export default class SendInitPwdComponent extends VueComponentBase {
 
         await ModuleAccessPolicy.getInstance().begininitpwd(this.vo[this.mail_field_id]);
         this.snotify.success(this.label('sendinitpwd.ok'));
-        let self = this;
+        const self = this;
         setTimeout(() => {
             if (self.$refs['mailstatsevents'] && self.$refs['mailstatsevents']['sendinblue_refresh_mail_events']) {
                 self.$refs['mailstatsevents']['sendinblue_refresh_mail_events']();

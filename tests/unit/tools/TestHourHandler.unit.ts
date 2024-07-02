@@ -9,7 +9,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 test('HourHandler: test: formatHourForIHM', () => {
     expect(HourHandler.getInstance().formatHourForIHM(null, null)).toStrictEqual(null);
     expect(HourHandler.getInstance().formatHourForIHM(null, 2)).toStrictEqual('');
-    var duration = Durations.from_segmentation(2.2555, HourSegment.TYPE_HOUR); // deux heures 15 minutes et 8 dixième
+    const duration = Durations.from_segmentation(2.2555, HourSegment.TYPE_HOUR); // deux heures 15 minutes et 8 dixième
     expect(HourHandler.getInstance().formatHourForIHM(duration, 0)).toStrictEqual("02h");
     expect(HourHandler.getInstance().formatHourForIHM(duration, 1)).toStrictEqual("02:15");
     expect(HourHandler.getInstance().formatHourForIHM(duration, 2)).toStrictEqual("02:15:19");
@@ -19,7 +19,7 @@ test('HourHandler: test:formatHourFromIHM', () => {
     expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", null)).toStrictEqual(null);
     expect(HourHandler.getInstance().formatHourFromIHM(null, 1)).toStrictEqual(null);
     expect(HourHandler.getInstance().formatHourFromIHM(null, null)).toStrictEqual(null);
-    var duration = Durations.from_segmentation(28800);
+    let duration = Durations.from_segmentation(28800);
     expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 0)).toStrictEqual(duration);
     duration = Durations.from_segmentation(29400);
     expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 1)).toStrictEqual(duration);
@@ -28,10 +28,10 @@ test('HourHandler: test:formatHourFromIHM', () => {
 });
 
 test('HourHandler: test: force2DigitMin', () => {
-    let s = ((22 * 60) + 59 * 60) + 45;
-    let e = ((22 * 60) + 59 * 60) + 47;
-    let start = Durations.from_segmentation(s);
-    var end = Durations.from_segmentation(e);
+    const s = ((22 * 60) + 59 * 60) + 45;
+    const e = ((22 * 60) + 59 * 60) + 47;
+    const start = Durations.from_segmentation(s);
+    const end = Durations.from_segmentation(e);
     expect(HourHandler.getInstance()['force2DigitMin'](null)).toStrictEqual("00");
     expect(HourHandler.getInstance()['force2DigitMin'](2)).toStrictEqual("02");
     expect(HourHandler.getInstance()['force2DigitMin'](867)).toStrictEqual("867");
@@ -40,10 +40,10 @@ test('HourHandler: test: force2DigitMin', () => {
 
 
 test('HourHandler: test: force3Digit', () => {
-    let s = ((22 * 60) + 59 * 60) + 45;
-    let e = ((22 * 60) + 59 * 60) + 47;
-    let start = Durations.from_segmentation(s);
-    var end = Durations.from_segmentation(e);
+    const s = ((22 * 60) + 59 * 60) + 45;
+    const e = ((22 * 60) + 59 * 60) + 47;
+    const start = Durations.from_segmentation(s);
+    const end = Durations.from_segmentation(e);
     expect(HourHandler.getInstance()['force3Digit'](null)).toStrictEqual("000");
     expect(HourHandler.getInstance()['force3Digit'](2)).toStrictEqual("002");
     expect(HourHandler.getInstance()['force3Digit'](45)).toStrictEqual("045");

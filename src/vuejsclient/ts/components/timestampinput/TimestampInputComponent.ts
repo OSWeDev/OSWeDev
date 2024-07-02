@@ -157,7 +157,7 @@ export default class TimestampInputComponent extends VueComponentBase {
 
     get language(): string {
 
-        if (!!VueAppController.getInstance().data_user_lang) {
+        if (VueAppController.getInstance().data_user_lang) {
             return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
         }
 
@@ -177,7 +177,7 @@ export default class TimestampInputComponent extends VueComponentBase {
 
     @Watch('field', { immediate: true })
     private onchange_field() {
-        if (!!this.field) {
+        if (this.field) {
             if (this.segmentation_type == null) {
                 this.segmentation_type_ = this.field.segmentation_type;
                 return;
@@ -200,7 +200,7 @@ export default class TimestampInputComponent extends VueComponentBase {
             return;
         }
 
-        let date: moment.Moment = moment(this.value, 'DD/MM/YYYY HH:mm:ss').utc(true);
+        const date: moment.Moment = moment(this.value, 'DD/MM/YYYY HH:mm:ss').utc(true);
 
         if (!date.isValid()) {
             return;
@@ -219,20 +219,20 @@ export default class TimestampInputComponent extends VueComponentBase {
     @Watch('date_time')
     private emitInput(): void {
 
-        let old_new = this.new_value;
+        const old_new = this.new_value;
         this.reload_new_value();
 
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if (old_value == this.new_value) {
             this.new_value = old_new;
             return;
         }
 
         this.$emit('input', this.new_value);
-        if (!!this.vo) {
+        if (this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }
     }

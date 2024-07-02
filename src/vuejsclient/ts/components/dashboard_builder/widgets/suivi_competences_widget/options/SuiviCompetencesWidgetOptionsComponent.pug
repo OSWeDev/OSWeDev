@@ -1,0 +1,82 @@
+.suivi_competences_widget_options_component
+    .suivi_competences_widget_options_component_wrapper
+        .niveau_maturite_styles
+            table.table
+                thead
+                    tr 
+                        th {{ label('niveau_maturite_style.min') }}
+                        th {{ label('niveau_maturite_style.max') }}
+                        th {{ label('niveau_maturite_style.background') }}
+                        th {{ label('niveau_maturite_style.color') }}
+                        th
+                tbody
+                    template(v-for="(niveau_maturite_style, index) in niveau_maturite_styles")
+                        tr
+                            td
+                                input.form-control(type="number" v-model="niveau_maturite_style.min" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="number" v-model="niveau_maturite_style.max" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="color" v-model="niveau_maturite_style.background" @change="onchange_niveau_maturite_styles")
+                            td
+                                input.form-control(type="color" v-model="niveau_maturite_style.color" @change="onchange_niveau_maturite_styles")
+                            td
+                                i.fa.fa-trash.btn.btn-danger(@click="delete_niveau_maturite_style(index)")
+
+                    tr
+                        td(colspan="5").text-center
+                            i.fa.fa-circle-plus.btn.btn-success(@click="add_niveau_maturite_style")
+
+        .field_filtered_roles 
+            .input_label {{ label('suivi_competences_widget_component.filtered_roles') }}
+            .filtered_roles
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="true"
+                        v-model="filtered_roles"
+                        :placeholder="label('suivi_competences_widget_component.filtered_roles')"
+                        :options="all_filtered_roles"
+                        :custom-label="filtered_roles_label"
+                        :allow-empty="true",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        track-by="id"
+                        id="filtered_roles"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+        .field_filtered_grilles 
+            .input_label {{ label('suivi_competences_widget_component.filtered_grilles') }}
+            .filtered_grilles
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="true"
+                        v-model="filtered_grilles"
+                        :placeholder="label('suivi_competences_widget_component.filtered_grilles')"
+                        :options="all_filtered_grilles"
+                        :custom-label="filtered_grilles_label"
+                        :allow-empty="true",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        track-by="id"
+                        id="filtered_grilles"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )

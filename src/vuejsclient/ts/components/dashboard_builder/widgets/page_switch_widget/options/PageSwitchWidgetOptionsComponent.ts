@@ -44,10 +44,10 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.dashboard_pages) {
-            let page = this.dashboard_pages[i];
+        for (const i in this.dashboard_pages) {
+            const page = this.dashboard_pages[i];
 
             if (this.dashboard_page.id == page.id) {
                 continue;
@@ -65,7 +65,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             this.tmp_selected_page_name = null;
             return;
         }
-        let page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
+        const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
         this.tmp_selected_page_name = page.id + ' | ' + this.t(page.translatable_name_code_text);
     }
 
@@ -86,7 +86,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
 
         try {
 
-            let selected_page_id: number = parseInt(this.tmp_selected_page_name.split(' | ')[0]);
+            const selected_page_id: number = parseInt(this.tmp_selected_page_name.split(' | ')[0]);
 
             if (this.widget_options.page_id != selected_page_id) {
                 this.next_update_options = this.widget_options;
@@ -128,7 +128,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        let page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
+        const page = this.dashboard_pages.find((p) => p.id == this.widget_options.page_id);
         return this.t(page.translatable_name_code_text);
     }
 
@@ -139,7 +139,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
 
         let options: PageSwitchWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
                 options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
             }

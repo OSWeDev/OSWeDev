@@ -27,9 +27,9 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
         }
 
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
-        let time_load_node_data_in = Dates.now_ms();
+        const time_load_node_data_in = Dates.now_ms();
 
-        let data_indexs: { [i: number]: { index: string, ts_ranges: TSRange[] } } = this.get_data_index(node.var_data);
+        const data_indexs: { [i: number]: { index: string, ts_ranges: TSRange[] } } = this.get_data_index(node.var_data);
 
         if ((!data_indexs)) {
             node.datasources[this.name] = null;
@@ -42,19 +42,19 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
             CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
         }
 
-        for (let i in data_indexs) {
-            let data_index: { index: string, ts_ranges: TSRange[] } = data_indexs[i];
+        for (const i in data_indexs) {
+            const data_index: { index: string, ts_ranges: TSRange[] } = data_indexs[i];
 
-            let is_max_range: boolean = ((this.zero_is_max_range) && (parseInt(i) == DataSourceControllerCustomIndexedBase.max_range_index_value)) ? true : false;
+            const is_max_range: boolean = ((this.zero_is_max_range) && (parseInt(i) == DataSourceControllerCustomIndexedBase.max_range_index_value)) ? true : false;
 
             if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
-                let time_in = Dates.now_ms();
+                const time_in = Dates.now_ms();
 
-                let data = await this.get_data(node.var_data);
+                const data = await this.get_data(node.var_data);
 
-                let time_out = Dates.now_ms();
+                const time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
                 StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
@@ -63,12 +63,12 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
                     CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index] = data;
                 }
 
-                let ts_ranges_index: string = RangeHandler.getIndexRanges(data_index.ts_ranges);
+                const ts_ranges_index: string = RangeHandler.getIndexRanges(data_index.ts_ranges);
 
-                for (let j in data) {
-                    let e = data[j];
+                for (const j in data) {
+                    const e = data[j];
 
-                    let fake_index: string = j + '_' + ts_ranges_index;
+                    const fake_index: string = j + '_' + ts_ranges_index;
 
                     /**
                      * On ne change pas les datas qu'on avait déjà
@@ -90,7 +90,7 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
             }
         }
 
-        let time_load_node_data_out = Dates.now_ms();
+        const time_load_node_data_out = Dates.now_ms();
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
         StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }

@@ -149,7 +149,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get language(): string {
 
-        if (!!VueAppController.getInstance().data_user_lang) {
+        if (VueAppController.getInstance().data_user_lang) {
             return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
         }
 
@@ -181,19 +181,19 @@ export default class TSTZInputComponent extends VueComponentBase {
     @Watch('date_value')
     @Watch('time_value')
     private emitInput(): void {
-        let new_value = this.tstz_value;
+        const new_value = this.tstz_value;
 
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if (old_value == new_value) {
             return;
         }
         this.new_value = new_value;
 
         this.$emit('input', new_value);
-        if (!!this.vo) {
+        if (this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }
     }
@@ -204,16 +204,16 @@ export default class TSTZInputComponent extends VueComponentBase {
         }
 
         let date = null;
-        let format = 'DD/MM/YYYY HH:mm:ss';
+        const format = 'DD/MM/YYYY HH:mm:ss';
 
         let hour_ts: number = null;
-        let hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
+        const hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
 
         if (hours && hours.length > 0) {
             hour_ts = Dates.minutes(Dates.hours(0, parseInt(hours[0])), parseInt(hours[1]));
         }
 
-        let date_string: string = this.date_value.toLocaleDateString();
+        const date_string: string = this.date_value.toLocaleDateString();
 
         switch (this.segmentation_type) {
             case TimeSegment.TYPE_YEAR:

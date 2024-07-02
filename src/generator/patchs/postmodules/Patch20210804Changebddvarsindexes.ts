@@ -2,8 +2,9 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VarsInitController from '../../../shared/modules/Var/VarsInitController';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
@@ -35,30 +36,30 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
         /**
          * Pour tous les types de vars
          */
-        for (let api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
+        for (const api_type_id of VarsInitController.registered_vars_datas_api_type_ids) {
 
-            let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
+            const table = ModuleTableController.module_tables_by_vo_type[api_type_id];
 
             if (!table) {
                 continue;
             }
 
-            let fields = table.get_fields();
+            const fields = ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name[api_type_id];
 
             /**
              * On doit lancer la requete autant de fois qu'on a de champs contenant des timestamps
              */
             let nb_runs = 0;
-            for (let i in fields) {
-                let field = fields[i];
+            for (const i in fields) {
+                const field = fields[i];
 
-                if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                if (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                     nb_runs++;
                 }
             }
 
             while (nb_runs > 0) {
-                let query = " update " + table.full_name + " a set _bdd_only_index=(" +
+                const query = " update " + table.full_name + " a set _bdd_only_index=(" +
                     " select (matches.parts[1] || to_char(to_number(matches.parts[2], '9999999999999')/1000, 'FM9999999999') || ',' || to_char(to_number(matches.parts[3], '9999999999999')/1000, 'FM9999999999') || matches.parts[4]) as new_index " +
                     " from (" +
                     "   select regexp_matches(_bdd_only_index, '^(?:(.*\\[\\[)(\\d{13}),(\\d{13})(\\)\\].*))+$', 'g') as parts " +

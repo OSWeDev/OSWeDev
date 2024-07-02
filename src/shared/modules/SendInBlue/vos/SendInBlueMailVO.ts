@@ -4,7 +4,7 @@ export default class SendInBlueMailVO {
         name: string,
         email: string
     ): SendInBlueMailVO {
-        let res: SendInBlueMailVO = new SendInBlueMailVO();
+        const res: SendInBlueMailVO = new SendInBlueMailVO();
 
         res.name = name;
         res.email = email;

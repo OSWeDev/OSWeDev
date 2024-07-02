@@ -60,8 +60,8 @@ export default class TSRangesInputComponent extends VueComponentBase {
     private emitInput(): void {
 
         let new_value = [];
-        for (let i in this.selectedDates) {
-            let selectedDate = this.selectedDates[i];
+        for (const i in this.selectedDates) {
+            const selectedDate = this.selectedDates[i];
 
             new_value.push(RangeHandler.create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.segmentation_type));
         }
@@ -70,7 +70,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.are_same(old_value, new_value))) {
             return;

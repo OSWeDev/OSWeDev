@@ -44,10 +44,10 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
     ];
 
     get filter_names(): { [filter_uid: string]: string } {
-        let res: { [filter_uid: string]: string } = {};
+        const res: { [filter_uid: string]: string } = {};
 
-        for (let i in this.filter_uids) {
-            let filter_uid = this.filter_uids[i];
+        for (const i in this.filter_uids) {
+            const filter_uid = this.filter_uids[i];
 
             res[filter_uid] = this.label('filters.names.__' + filter_uid + '__');
         }
@@ -55,10 +55,10 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
     }
 
     get filter_by_names(): { [filter_name: string]: string } {
-        let res: { [filter_name: string]: string } = {};
+        const res: { [filter_name: string]: string } = {};
 
-        for (let i in this.filter_uids) {
-            let filter_uid = this.filter_uids[i];
+        for (const i in this.filter_uids) {
+            const filter_uid = this.filter_uids[i];
 
             res[this.label('filters.names.__' + filter_uid + '__')] = filter_uid;
         }
@@ -68,7 +68,7 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
     @Watch('actual_filter_type', { immediate: true })
     private onchange_actual_filter_type() {
         if (this.filter_type) {
-            let ftype = this.filter_by_names[this.filter_type];
+            const ftype = this.filter_by_names[this.filter_type];
             if (ftype != this.actual_filter_type) {
                 this.filter_type = this.filter_names[this.actual_filter_type];
                 this.$emit('update_additional_options', null);
@@ -84,7 +84,7 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     @Watch('filter_type')
     private onchange_filter_type() {
-        let ftype = this.filter_by_names[this.filter_type];
+        const ftype = this.filter_by_names[this.filter_type];
         if (ftype != this.actual_filter_type) {
             this.$emit('update_filter_type', ftype);
         }

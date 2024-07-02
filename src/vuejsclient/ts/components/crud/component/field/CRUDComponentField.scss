@@ -64,6 +64,21 @@
         background-color: #aaa !important;
         cursor: wait;
     }
+
+    fieldset {
+        border: 2px solid black;
+        margin-top: 10px;
+        background: #f3f3f3;
+
+        legend {
+            display: inline-block;
+            width: auto;
+            padding: 5px 10px;
+            border: 0;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+    }
 }
 
 .inline_input_mode_simple_text {

@@ -107,7 +107,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private async send_feedback() {
 
         StatsController.register_stat_COMPTEUR("FeedbackHandlerComponent", "send_feedback", "IN");
-        let time_in: number = Dates.now_ms();
+        const time_in: number = Dates.now_ms();
 
         /**
          * On empêche d'appeler à nouveau la fonction tant que l'envoi n'a pas été effectué
@@ -152,7 +152,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
             return;
         }
 
-        let feedback: FeedbackVO = new FeedbackVO();
+        const feedback: FeedbackVO = new FeedbackVO();
 
         // feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
         // feedback.apis_log_json = "";
@@ -231,10 +231,10 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     private check_for_valid_format(path: string) {
-        let file_name_begin = path.lastIndexOf('/');
-        let file_name_end = path.lastIndexOf('.');
-        let file_name = path.slice(file_name_begin + 1, file_name_end);
-        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+        const file_name_begin = path.lastIndexOf('/');
+        const file_name_end = path.lastIndexOf('.');
+        const file_name = path.slice(file_name_begin + 1, file_name_end);
+        const format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
 
         if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
             this.set_hidden(true);
@@ -257,7 +257,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     private console_logs_tostring_array(keep_errors_only: boolean = true) {
-        let res: string[] = [];
+        const res: string[] = [];
         let console_logs: ConsoleLog[] = ConsoleLogLogger.getInstance().console_logs;
         if (keep_errors_only) {
             //On ne conserve que les erreurs
@@ -266,8 +266,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
             console_logs = console_logs_only_errors;
         }
-        for (let i in console_logs) {
-            let console_log = console_logs[i];
+        for (const i in console_logs) {
+            const console_log = console_logs[i];
 
             res.push(Dates.format(console_log.datetime, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
         }
@@ -276,10 +276,10 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     private routes_log_tostring_array() {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in VueAppController.getInstance().routes_log) {
-            let route_log = VueAppController.getInstance().routes_log[i];
+        for (const i in VueAppController.getInstance().routes_log) {
+            const route_log = VueAppController.getInstance().routes_log[i];
 
             res.push(route_log.fullPath);
         }

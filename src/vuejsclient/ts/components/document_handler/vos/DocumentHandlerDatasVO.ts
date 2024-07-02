@@ -13,7 +13,7 @@ export default class DocumentHandlerDatasVO {
         dtgs_by_weight: DocumentTagGroupVO[],
         d_dts: DocumentDocumentTagVO[],
     ): DocumentHandlerDatasVO {
-        let res: DocumentHandlerDatasVO = new DocumentHandlerDatasVO();
+        const res: DocumentHandlerDatasVO = new DocumentHandlerDatasVO();
 
         res.all_d_by_ids = all_d_by_ids;
         res.all_dt_by_ids = all_dt_by_ids;

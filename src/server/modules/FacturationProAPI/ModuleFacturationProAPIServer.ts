@@ -5,7 +5,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleFacturationProAPI from '../../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -39,7 +39,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFacturationProAPI.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'API FacturationPro'
         }));
 
@@ -47,7 +47,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleFacturationProAPI.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration API FacturationPro'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -60,7 +60,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         POLICY_FO_ACCESS.group_id = group.id;
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleFacturationProAPI.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès front - API FacturationPro'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
@@ -78,7 +78,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
     private async download_invoice(firm_id: number, invoice_id: string, original: boolean): Promise<string> {
         // Je récupère le pdf de la facture
-        let invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
+        const invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
             "www.facturation.pro",
             "/firms/" + firm_id + "/invoices/" + invoice_id + ".pdf" + (original ? "?original=1" : ""),
@@ -111,14 +111,14 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         }
 
         // On retourne l'URL du fichier créé en supprimant les 2 premiers caractères (./)
-        return ConfigurationService.node_configuration.BASE_URL + file_name.substring(2);
+        return ConfigurationService.node_configuration.base_url + file_name.substring(2);
     }
 
     private async send_email_facture(firm_id: number, bill_id: number, params: FactuProInvoicesEmailParams) {
 
         try {
 
-            let send_mail = await ModuleRequest.getInstance().sendRequestFromApp(
+            const send_mail = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 "www.facturation.pro",
                 "/firms/" + firm_id + "/emails.json?bill_id=" + bill_id,
@@ -142,7 +142,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
         try {
 
-            let finalise = await ModuleRequest.getInstance().sendRequestFromApp(
+            const finalise = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_PATCH,
                 "www.facturation.pro",
                 "/firms/" + firm_id + "/invoices/" + invoice_id + ".json",

@@ -111,6 +111,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     private new_value: TSRange = null;
 
+    private segmentation_type_: number = null;
     private format_datepicker_year: string = 'yyyy';
     private format_datepicker_month: string = 'MM/yyyy';
     private format_datepicker_day: string = 'dd/MM/yyyy';
@@ -169,16 +170,180 @@ export default class TSRangeInputComponent extends VueComponentBase {
         zhHK
     };
 
-    get language(): string {
 
-        if (!!VueAppController.getInstance().data_user_lang) {
-            return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
+    get is_segmentation_year(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_YEAR;
+    }
+
+    get is_segmentation_mois(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
+    }
+
+    get is_segmentation_week(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_WEEK;
+    }
+
+    get is_segmentation_day(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_DAY;
+    }
+
+    get is_segmentation_minute(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_MINUTE;
+    }
+
+    get ts_start(): number {
+        if (this.is_segmentation_minute) {
+            if (!this.tsrange_start) {
+                return null;
+            }
+
+            let start: number = moment(this.tsrange_start).utc(true).unix();
+            const hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
+
+            if (!hours) {
+                return null;
+            }
+
+            if (hours && hours.length > 0) {
+                start = Dates.minutes(Dates.hours(start, parseInt(hours[0])), parseInt(hours[1]));
+            }
+
+            return start;
+        }
+
+        if (!this.tsrange_start) {
+            return null;
+        }
+
+        return Dates.startOf(moment(this.tsrange_start).utc(true).unix(), this.segmentation_type_);
+    }
+
+    get ts_end(): number {
+        if (this.is_segmentation_minute) {
+            if (!this.tsrange_end) {
+                if (!this.tsrange_start) {
+                    return null;
+                }
+
+                this.tsrange_end = cloneDeep(this.tsrange_start);
+            }
+
+            let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
+            const hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
+
+            if (!hours) {
+                return null;
+            }
+
+            if (hours && hours.length > 0) {
+                end = Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
+                end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
+            }
+
+            if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
+                end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
+            }
+
+            return end;
+        }
+
+        if (!this.tsrange_end) {
+            return null;
+        }
+
+        const end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
+
+        return Dates.startOf(end_date_unix, this.segmentation_type_);
+    }
+
+    /**
+     * vérifie que la saisie est complete
+     */
+    get ts_start_is_usable(): boolean {
+        if (!this.tsrange_start) {
+            return false;
+        }
+
+        if (this.is_segmentation_minute) {
+            let start: number = moment(this.tsrange_start).utc(true).unix();
+            let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
+
+            if (!start || !hours || !hours.length || !hours[0] || isNaN(parseInt(hours[0])) || !hours[1] || isNaN(parseInt(hours[1]))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * vérifie que la saisie est complete
+     */
+    get ts_end_is_usable(): boolean {
+        if (this.is_segmentation_minute) {
+            if (!this.tsrange_end) {
+                if (!this.tsrange_start) {
+                    return false;
+                }
+
+                this.tsrange_end = cloneDeep(this.tsrange_start);
+            }
+
+            let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
+            let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
+
+            if (!end || !hours || !hours.length || !hours[0] || isNaN(parseInt(hours[0])) || !hours[1] || isNaN(parseInt(hours[1]))) {
+                return false;
+            }
+            return true;
+        }
+
+        if (!this.tsrange_end) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Fonction liée au param option
+     * Vérifie qu'il correspond à la partie date d'un tsrange
+     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
+     * Sinon, renvoie null
+     */
+    get date_option(): string {
+        if (!this.option) {
+            return null;
+        }
+        const option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
+            return null;
+        }
+        return option_arr[2];
+    }
+
+    get format_localized_time_(): boolean {
+
+        if (this.format_localized_time !== null) {
+            return this.format_localized_time;
+        }
+
+        if (this.field?.type == 'Simple') {
+            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
         }
 
         return null;
     }
 
-    private segmentation_type_: number = null;
+
+    get language(): string {
+
+        if (VueAppController.getInstance().data_user_lang) {
+            return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
+        }
+
+        return null;
+    }
 
     @Watch('vo', { immediate: true })
     private onchange_vo() {
@@ -193,7 +358,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     @Watch('field', { immediate: true })
     private onchange_field() {
-        if (!!this.field) {
+        if (this.field) {
             if (this.segmentation_type == null) {
                 if (this.field.moduleTableField) {
                     this.segmentation_type_ = this.field.segmentation_type;
@@ -219,7 +384,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
+        const min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
         let max: number = null;
 
         if (!RangeHandler.is_right_open(this.value)) {
@@ -273,18 +438,23 @@ export default class TSRangeInputComponent extends VueComponentBase {
             this.segmentation_type_
         );
 
+        // en acs de segmentation minute, on vérifie que les champs sont tous renseignés
+        if (this.is_segmentation_minute && (!this.ts_start_is_usable || !this.ts_end_is_usable)) {
+            new_value = null;
+        }
+
         // Quand on est en Week, on va vérifier qu'on a bien sélectionné le début et fin de la semaine
         // Sinon on modifie les valeurs
-        if (this.is_segmentation_week) {
+        if (!!new_value && this.is_segmentation_week) {
             let to_edit: boolean = false;
 
-            let start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
+            const start: number = RangeHandler.getSegmentedMin(new_value, TimeSegment.TYPE_DAY);
             if (this.tsrange_start && !Dates.isSame(start, moment(this.tsrange_start).utc(true).unix(), TimeSegment.TYPE_DAY)) {
                 this.tsrange_start = new Date(start * 1000);
                 to_edit = true;
             }
 
-            let end: number = RangeHandler.getSegmentedMax(new_value, TimeSegment.TYPE_DAY);
+            const end: number = RangeHandler.getSegmentedMax(new_value, TimeSegment.TYPE_DAY);
             if (this.tsrange_end && !Dates.isSame(end, moment(this.tsrange_end).utc(true).unix(), TimeSegment.TYPE_DAY)) {
                 this.tsrange_end = new Date(end * 1000);
                 to_edit = true;
@@ -298,7 +468,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.is_same(old_value, new_value))) {
             return;
@@ -309,120 +479,5 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (!!this.vo && this.field) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }
-    }
-
-    get is_segmentation_year(): boolean {
-        return this.segmentation_type_ == TimeSegment.TYPE_YEAR;
-    }
-
-    get is_segmentation_mois(): boolean {
-        return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
-    }
-
-    get is_segmentation_week(): boolean {
-        return this.segmentation_type_ == TimeSegment.TYPE_WEEK;
-    }
-
-    get is_segmentation_day(): boolean {
-        return this.segmentation_type_ == TimeSegment.TYPE_DAY;
-    }
-
-    get is_segmentation_minute(): boolean {
-        return this.segmentation_type_ == TimeSegment.TYPE_MINUTE;
-    }
-
-    get ts_start(): number {
-        if (this.is_segmentation_minute) {
-            if (!this.tsrange_start) {
-                return null;
-            }
-
-            let start: number = moment(this.tsrange_start).utc(true).unix();
-            let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
-
-            if (!hours) {
-                return null;
-            }
-
-            if (hours && hours.length > 0) {
-                start = Dates.minutes(Dates.hours(start, parseInt(hours[0])), parseInt(hours[1]));
-            }
-
-            return start;
-        }
-
-        if (!this.tsrange_start) {
-            return null;
-        }
-
-        return Dates.startOf(moment(this.tsrange_start).utc(true).unix(), this.segmentation_type_);
-    }
-
-    get ts_end(): number {
-        if (this.is_segmentation_minute) {
-            if (!this.tsrange_end) {
-                if (!this.tsrange_start) {
-                    return null;
-                }
-
-                this.tsrange_end = cloneDeep(this.tsrange_start);
-            }
-
-            let end: number = Dates.parse(this.tsrange_end.toLocaleDateString(), 'DD/MM/YYYY', false);
-            let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
-
-            if (!hours) {
-                return null;
-            }
-
-            if (hours && hours.length > 0) {
-                end = Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
-                end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
-            }
-
-            if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
-                end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
-            }
-
-            return end;
-        }
-
-        if (!this.tsrange_end) {
-            return null;
-        }
-
-        let end_date_unix: number = moment(this.tsrange_end).utc(true).unix();
-
-        return Dates.startOf(end_date_unix, this.segmentation_type_);
-    }
-
-    /**
-     * Fonction liée au param option
-     * Vérifie qu'il correspond à la partie date d'un tsrange
-     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
-     * Sinon, renvoie null
-     */
-    get date_option(): string {
-        if (!this.option) {
-            return null;
-        }
-        let option_arr: string[] = this.option.split('_');
-        if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
-            return null;
-        }
-        return option_arr[2];
-    }
-
-    get format_localized_time_(): boolean {
-
-        if (this.format_localized_time !== null) {
-            return this.format_localized_time;
-        }
-
-        if (this.field?.type == 'Simple') {
-            return (this.field as SimpleDatatableFieldVO<any, any>).format_localized_time;
-        }
-
-        return null;
     }
 }

@@ -1,17 +1,15 @@
-import { field_names } from '../../../../shared/tools/ObjectHandler';
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../../shared/modules/DAO/ModuleTableFieldController';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import StackContext from '../../../StackContext';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 export default class PasswordReset {
 
@@ -30,7 +28,7 @@ export default class PasswordReset {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -45,7 +43,7 @@ export default class PasswordReset {
 
     public async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -61,7 +59,7 @@ export default class PasswordReset {
 
     public async checkCode(email: string, challenge: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -76,7 +74,7 @@ export default class PasswordReset {
 
     public async checkCodeUID(uid: number, challenge: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -130,7 +128,9 @@ export default class PasswordReset {
 
         try {
 
-            let msg = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
+            const msg = ModuleTableFieldController.validate_field_value(
+                ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].getFieldFromId(field_names<UserVO>().password),
+                new_pwd1);
             if (!((!msg) || (msg == ""))) {
 
                 return false;
@@ -151,7 +151,7 @@ export default class PasswordReset {
 
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(
-            ModuleTable.default_get_api_version(user, false)
+            ModuleTableController.translate_vos_to_api(user, false)
         );
 
         return true;

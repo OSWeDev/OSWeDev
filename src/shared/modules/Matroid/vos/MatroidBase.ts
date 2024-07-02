@@ -8,16 +8,16 @@ export default class MatroidBase {
      * @param ranges on clone les ranges passés en param
      */
     public static createNew(api_type_id: string, field_id: string, ranges: IRange[]): MatroidBase {
-        let res: MatroidBase = new MatroidBase();
+        const res: MatroidBase = new MatroidBase();
 
-        for (let i in ranges) {
+        for (const i in ranges) {
 
-            let from_IRange: IRange = ranges[i];
+            const from_IRange: IRange = ranges[i];
             if (!from_IRange) {
                 return null;
             }
 
-            let res_IRange = RangeHandler.cloneFrom(from_IRange);
+            const res_IRange = RangeHandler.cloneFrom(from_IRange);
             res.ranges_.push(res_IRange);
         }
         res.api_type_id = api_type_id;
@@ -27,17 +27,17 @@ export default class MatroidBase {
     }
 
     public static cloneFrom(from: MatroidBase): MatroidBase {
-        let res: MatroidBase = new MatroidBase();
+        const res: MatroidBase = new MatroidBase();
         res.ranges_ = [];
 
-        for (let i in from.ranges) {
+        for (const i in from.ranges) {
 
-            let from_IRange: IRange = from.ranges[i];
+            const from_IRange: IRange = from.ranges[i];
             if (!from_IRange) {
                 return null;
             }
 
-            let res_IRange = RangeHandler.cloneFrom(from_IRange);
+            const res_IRange = RangeHandler.cloneFrom(from_IRange);
             res.ranges_.push(res_IRange);
         }
         res.api_type_id = from.api_type_id;

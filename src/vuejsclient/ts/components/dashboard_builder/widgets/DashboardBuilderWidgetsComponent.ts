@@ -33,6 +33,26 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     private loading: boolean = true;
 
+    get widgets_name(): string[] {
+        const res: string[] = [];
+
+        for (const i in this.widgets) {
+            const widget = this.widgets[i];
+
+            res.push(this.t(widget.translatable_name_code_text ?? null));
+        }
+
+        return res;
+    }
+
+    get selected_widget_type_label(): string {
+        if (!this.selected_widget_type) {
+            return null;
+        }
+
+        return this.t(this.selected_widget_type.translatable_name_code_text ?? null);
+    }
+
     @Watch('selected_widget', { immediate: true })
     private async onchange_selected_widget() {
         if (!this.selected_widget) {
@@ -67,31 +87,11 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
             ConsoleHandler.error("!add_widget_to_page_handler");
             return;
         }
-        let page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
+        const page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
         this.$emit('added_widget_to_page', page_widget);
     }
 
     private close_widget_options() {
         this.$emit('close_widget_options');
-    }
-
-    get widgets_name(): string[] {
-        let res: string[] = [];
-
-        for (let i in this.widgets) {
-            let widget = this.widgets[i];
-
-            res.push(this.t(widget.translatable_name_code_text ?? null));
-        }
-
-        return res;
-    }
-
-    get selected_widget_type_label(): string {
-        if (!this.selected_widget_type) {
-            return null;
-        }
-
-        return this.t(this.selected_widget_type.translatable_name_code_text ?? null);
     }
 }

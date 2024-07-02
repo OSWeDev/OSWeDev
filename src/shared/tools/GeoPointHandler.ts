@@ -32,19 +32,19 @@ export default class GeoPointHandler {
             return null;
         }
 
-        let regexpGeopoint = /(\()(.+),(.+)(\))/i;
-        let res: string[] = point.match(regexpGeopoint);
+        const regexpGeopoint = /(\()(.+),(.+)(\))/i;
+        const res: string[] = point.match(regexpGeopoint);
 
         if (!res) {
             return null;
         }
 
-        var x: number = parseFloat(res[2]);
+        const x: number = parseFloat(res[2]);
         if (res[2] === null || res[2] == '' || isNaN(x)) {
             return null;
         }
 
-        var y: number = parseFloat(res[3]);
+        const y: number = parseFloat(res[3]);
         if (res[3] === null || res[3] == '' || isNaN(y)) {
             return null;
         }
@@ -60,13 +60,13 @@ export default class GeoPointHandler {
     }
 
     public longitude(point: string): number {
-        let geopoint: GeoPointVO = this.geopoint(point);
+        const geopoint: GeoPointVO = this.geopoint(point);
 
         return geopoint ? geopoint.x : null;
     }
 
     public latitude(point: string): number {
-        let geopoint: GeoPointVO = this.geopoint(point);
+        const geopoint: GeoPointVO = this.geopoint(point);
 
         return geopoint ? geopoint.y : null;
     }

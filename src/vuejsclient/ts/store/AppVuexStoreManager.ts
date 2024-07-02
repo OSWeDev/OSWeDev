@@ -29,7 +29,7 @@ export default class AppVuexStoreManager {
     public configure_store() {
         Vue.use(Vuex);
 
-        let appStoreX = Object.assign({}, AppMainStoreModule.getInstance());
+        const appStoreX = Object.assign({}, AppMainStoreModule.getInstance());
         appStoreX['modules'] = this.registered_modules;
 
         this.appVuexStore = new Vuex.Store(appStoreX);

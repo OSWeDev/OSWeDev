@@ -65,10 +65,10 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         }
 
         if ((!this.page_widget) || (!this.widget_options)) {
-            if (!!this.checklist_selected) {
+            if (this.checklist_selected) {
                 this.checklist_selected = null;
             }
-            if (!!this.delete_all_button) {
+            if (this.delete_all_button) {
                 this.delete_all_button = false;
             }
             if (!this.export_button) {
@@ -131,8 +131,8 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -155,7 +155,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
 
         let options: ChecklistWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
                 options = options ? new ChecklistWidgetOptions(
                     options.limit, options.checklist_id,

@@ -23,7 +23,7 @@ export default class PeriodHandler {
 
     public lower(period: string, base: unitOfTime.Base = 'days'): string {
 
-        let m = this.lowerMoment(period, base);
+        const m = this.lowerMoment(period, base);
         if (!m) {
             return null;
         }
@@ -31,7 +31,7 @@ export default class PeriodHandler {
     }
 
     public lowerMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
-        let split = this.split(period);
+        const split = this.split(period);
 
         if ((!split) || (!split[2]) || (split[2] == '')) {
             return null;
@@ -41,8 +41,8 @@ export default class PeriodHandler {
     }
 
     public split(period: string, return_null_values: boolean = false): string[] {
-        let regexpPeriod = /(\(|\[)(.*),(.*)(\)|\])/i;
-        let res = (!!period) ? period.match(regexpPeriod) : null;
+        const regexpPeriod = /(\(|\[)(.*),(.*)(\)|\])/i;
+        const res = (period) ? period.match(regexpPeriod) : null;
 
         if (!res) {
             return null;
@@ -61,7 +61,7 @@ export default class PeriodHandler {
 
     public upper(period: string, base: unitOfTime.Base = 'days'): string {
 
-        let m = this.upperMoment(period, base);
+        const m = this.upperMoment(period, base);
         if (!m) {
             return null;
         }
@@ -70,7 +70,7 @@ export default class PeriodHandler {
 
     public upperMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
 
-        let split = this.split(period);
+        const split = this.split(period);
 
         if ((!split) || (!split[3]) || (split[3] == '')) {
             return null;
@@ -81,14 +81,14 @@ export default class PeriodHandler {
 
     public hasUpper(period: string, base: unitOfTime.Base = 'days'): boolean {
 
-        let split = this.split(period, true);
+        const split = this.split(period, true);
 
         return !((!split) || (!split[3]) || (split[3] == ''));
     }
 
     public hasLower(period: string, base: unitOfTime.Base = 'days'): boolean {
 
-        let split = this.split(period, true);
+        const split = this.split(period, true);
 
         return !((!split) || (!split[2]) || (split[2] == ''));
     }
@@ -102,16 +102,16 @@ export default class PeriodHandler {
             return false;
         }
 
-        let lower: Moment = this.lowerMoment(period, 'days');
-        let upper: Moment = this.upperMoment(period, 'days');
+        const lower: Moment = this.lowerMoment(period, 'days');
+        const upper: Moment = this.upperMoment(period, 'days');
 
         return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isSameOrBefore(upper));
     }
 
     public get_ts_range_from_period(period: string, segment_type: number): TSRange {
 
-        let ml = this.lowerMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
-        let mu = this.upperMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
+        const ml = this.lowerMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
+        const mu = this.upperMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
 
         if ((!ml) || (!mu)) {
             return null;

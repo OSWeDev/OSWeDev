@@ -104,7 +104,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     private async setExport() {
         this.startLoading();
 
-        let promises = [];
+        const promises = [];
         promises.push((async () => {
             this.modules = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
         })());
@@ -135,18 +135,18 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     private async set_modules_for_export(): Promise<AnimationImportModuleVO[]> {
         this.modules_for_export = [];
 
-        for (let module of this.modules) {
-            let data: AnimationImportModuleVO = new AnimationImportModuleVO();
+        for (const module of this.modules) {
+            const data: AnimationImportModuleVO = new AnimationImportModuleVO();
 
-            for (let property of this.column_titles) {
+            for (const property of this.column_titles) {
                 data[property] = this.exportData(module[property]);
             }
 
-            let associated_theme: AnimationThemeVO = this.themes.find((theme) => theme.id == module.theme_id);
+            const associated_theme: AnimationThemeVO = this.themes.find((theme) => theme.id == module.theme_id);
             data.theme_id_import = this.exportData(associated_theme.id_import);
 
-            let role_id_ranges: NumRange[] = module.role_id_ranges;
-            let role_names: string[] = await this.getRoleNamesFromRange(role_id_ranges);
+            const role_id_ranges: NumRange[] = module.role_id_ranges;
+            const role_names: string[] = await this.getRoleNamesFromRange(role_id_ranges);
             data.role_id_ranges = this.exportData(role_names);
 
             this.modules_for_export.push(data);
@@ -166,11 +166,11 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     }
 
     private async getRoleNamesFromRange(role_id_ranges: NumRange[]): Promise<string[]> {
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).filter_by_ids(role_id_ranges).select_vos<RoleVO>();
-        let names: string[] = [];
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).filter_by_ids(role_id_ranges).select_vos<RoleVO>();
+        const names: string[] = [];
 
         if (roles && roles.length > 0) {
-            for (let role of roles) {
+            for (const role of roles) {
                 names.push(role.translatable_name);
             }
         }

@@ -64,16 +64,16 @@ test('VarsImportsHandler: test aggregate_imports_and_remaining_datas', async () 
      * card C > card B
      */
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
-    let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
-    let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
+    const var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+    const selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
+    const remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
         [var_data_C, var_data_B],
         [var_data_F]);
 
-    let node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, true);
+    const node_F = await VarDAGNode.getInstance(new VarDAG(), var_data_F, true);
     await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
     expect(node_F.is_aggregator).toStrictEqual(true);
     expect(node_F.aggregated_datas).toStrictEqual({
@@ -105,9 +105,9 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
         [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
     });
 
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 31 jours après correction du param sur le segment de date puisqu'on déclare la var avant
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 31 jours après correction du param sur le segment de date puisqu'on déclare la var avant
 
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).toBeLessThanOrEqual(-1);
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_A)).toStrictEqual(0);
@@ -121,9 +121,9 @@ test('VarsImportsHandler: test sort_matroids_per_cardinal_desc with var_confs', 
 test('VarsImportsHandler: test sort_matroids_per_cardinal_desc', async () => {
 
     await FakeVarsInit.initAll();
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1 mois => var déclarée donc on corrige auto le segment_type => 31 day
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1 mois => var déclarée donc on corrige auto le segment_type => 31 day
 
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).toBeLessThanOrEqual(-1);
     expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_A)).toStrictEqual(0);
@@ -163,12 +163,12 @@ test('VarsImportsHandler: test get_selection_imports', async () => {
      * C dans F et indépendant de E et B
      * card C > card B
      */
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B(); // 2020-02-01 2 TYPE_MONTH
-    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E(); // 2020-02-01 3 TYPE_DAY
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F(); // 2020-02-01 4 TYPE_ROLLING_YEAR_MONTH_START
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C(); // 2020-03-01 2 TYPE_MONTH
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B(); // 2020-02-01 2 TYPE_MONTH
+    const var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E(); // 2020-02-01 3 TYPE_DAY
+    const var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F(); // 2020-02-01 4 TYPE_ROLLING_YEAR_MONTH_START
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C(); // 2020-03-01 2 TYPE_MONTH
 
-    let var_data_F2: FakeDataVO = FakeDataHandler.get_var_data_F();
+    const var_data_F2: FakeDataVO = FakeDataHandler.get_var_data_F();
     var_data_F2.var_id = 2;
     var_data_F2.ts_ranges.forEach((ts_range: TSRange) => {
         ts_range.segment_type = TimeSegment.TYPE_DAY;

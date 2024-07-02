@@ -38,7 +38,7 @@ export default class ImageComponent extends VueComponentBase {
 
     @Watch('imagevo')
     public async updateImageVO() {
-        let dropzone = (this.$refs['filedropzone' + this.uid] as any);
+        const dropzone = (this.$refs['filedropzone' + this.uid] as any);
 
         if (!dropzone) {
             return;
@@ -48,9 +48,9 @@ export default class ImageComponent extends VueComponentBase {
             return;
         }
 
-        let path: string = this.imagevo[this.field.module_table_field_id];
+        const path: string = this.imagevo[this.field.module_table_field_id];
 
-        var mock = {
+        const mock = {
             accepted: true,
             name: path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
             url: path
@@ -69,12 +69,12 @@ export default class ImageComponent extends VueComponentBase {
     }
 
     get dropzoneOptions() {
-        let self = this;
+        const self = this;
 
 
-        let onInit = (!!this.options) ? this.options.init : null;
-        let onSuccess = (!!this.options) ? this.options.success : null;
-        let dropoptions = {
+        const onInit = (this.options) ? this.options.init : null;
+        const onSuccess = (this.options) ? this.options.success : null;
+        const dropoptions = {
             url: '/ModuleImageServer/upload',
             headers: {
                 'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
@@ -104,7 +104,7 @@ export default class ImageComponent extends VueComponentBase {
                 });
 
                 try {
-                    if (!!onInit) {
+                    if (onInit) {
                         onInit();
                     }
                 } catch (error) {
@@ -115,11 +115,11 @@ export default class ImageComponent extends VueComponentBase {
             success: async (infos, res) => {
 
                 try {
-                    let newvo: ImageVO = JSON.parse(res);
+                    const newvo: ImageVO = JSON.parse(res);
                     self.storeData(newvo);
                     self.$emit('uploaded', newvo);
 
-                    if (!!onSuccess) {
+                    if (onSuccess) {
                         onSuccess(infos, res);
                     }
                     (self.$refs['filedropzone' + this.uid] as any).removeAllFiles();

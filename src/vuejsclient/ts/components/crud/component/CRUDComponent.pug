@@ -16,11 +16,11 @@ include ../../../../views/mixins/loading.pug
                     button.btn.btn-sm.btn-outline-dark.m-1(v-if="isExportableToXLSX && !embed" href="#", @click="export_to_xlsx()")
                         i.fa-duotone.fa-download.fa-lg.btn_icon
                         | {{ label('crud.actions.export') }}
-                    router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)" v-if='(!embed) && (!crud.forced_readonly) && (!isModuleParamTable)')
+                    router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)" v-if='(!embed) && (!crud.forced_readonly)')
                         i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                         | {{ label('crud.actions.create') }}
 
-                    //- template(v-if="(!crud.forced_readonly) && (!isModuleParamTable)")
+                    //- template(v-if="!crud.forced_readonly")
                     //-     template(v-if="embed")
                     //-         button.btn.btn-sm.btn-success.m-1(@click="showCreateModal()")
                     //-             i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
@@ -53,7 +53,7 @@ include ../../../../views/mixins/loading.pug
             )
 
         <!-- Create Modal HTML -->
-        .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' " v-if='!isModuleParamTable' tabindex='-1' role='dialog')
+        .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' " tabindex='-1' role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="createVO")
@@ -125,7 +125,7 @@ include ../../../../views/mixins/loading.pug
                             template(v-if="selectedVO && editableVO && !updating_vo && !is_only_readable")
                                 input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
 
-        .modal.fade.in(:id="(embed) ? 'deleteData_'+crud.readDatatable.API_TYPE_ID : 'deleteData' " v-if='!isModuleParamTable' tabindex='-1' role='dialog')
+        .modal.fade.in(:id="(embed) ? 'deleteData_'+crud.readDatatable.API_TYPE_ID : 'deleteData' " tabindex='-1' role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="deleteVO")

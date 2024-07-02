@@ -29,7 +29,7 @@ export default class DocumentHandlerController {
     public async reloadDatas(): Promise<DocumentHandlerDatasVO> {
         let promises: Array<Promise<any>> = [];
 
-        let res: DocumentHandlerDatasVO = new DocumentHandlerDatasVO();
+        const res: DocumentHandlerDatasVO = new DocumentHandlerDatasVO();
 
         let tmp_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = {};
         let tmp_dts_by_dtg_ids: { [dtg_id: number]: DocumentTagVO[] } = {};
@@ -51,18 +51,18 @@ export default class DocumentHandlerController {
 
         promises = [];
 
-        let valid_dt_by_ids: { [id: number]: DocumentTagVO } = {};
-        let valid_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = tmp_dtg_by_ids;
+        const valid_dt_by_ids: { [id: number]: DocumentTagVO } = {};
+        const valid_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = tmp_dtg_by_ids;
 
-        let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await query(DocumentTagDocumentTagGroupVO.API_TYPE_ID)
+        const dt_dtgs: DocumentTagDocumentTagGroupVO[] = await query(DocumentTagDocumentTagGroupVO.API_TYPE_ID)
             .filter_by_num_has(field_names<DocumentTagDocumentTagGroupVO>().dt_id, ObjectHandler.getIdsList(res.all_dt_by_ids))
             .filter_by_num_has(field_names<DocumentTagDocumentTagGroupVO>().dtg_id, ObjectHandler.getIdsList(tmp_dtg_by_ids))
             .select_vos<DocumentTagDocumentTagGroupVO>();
 
         tmp_dts_by_dtg_ids = {};
 
-        for (let i in dt_dtgs) {
-            let dt_dtg = dt_dtgs[i];
+        for (const i in dt_dtgs) {
+            const dt_dtg = dt_dtgs[i];
 
             if (!tmp_dts_by_dtg_ids[dt_dtg.dtg_id]) {
                 tmp_dts_by_dtg_ids[dt_dtg.dtg_id] = [];
@@ -97,18 +97,18 @@ export default class DocumentHandlerController {
         route_name: string,
         all_dt_by_ids: { [id: number]: DocumentTagVO }
     ): DocumentHandlerReloadListVO {
-        let tmp_ds_by_dt_ids_and_by_ids: { [dt_id: number]: { [d_id: number]: DocumentVO } } = {};
-        let tmp_list: DocumentVO[] = [];
-        let tmp_dts_by_weight: DocumentTagVO[] = [];
-        let valid_d_by_ids: { [id: number]: DocumentVO } = {};
-        let has_docs_route_name: { [route_name: string]: boolean } = {};
+        const tmp_ds_by_dt_ids_and_by_ids: { [dt_id: number]: { [d_id: number]: DocumentVO } } = {};
+        const tmp_list: DocumentVO[] = [];
+        const tmp_dts_by_weight: DocumentTagVO[] = [];
+        const valid_d_by_ids: { [id: number]: DocumentVO } = {};
+        const has_docs_route_name: { [route_name: string]: boolean } = {};
 
-        let already_add_dts: { [dt_id: number]: boolean } = {};
+        const already_add_dts: { [dt_id: number]: boolean } = {};
 
-        for (let i in d_dts) {
-            let d_dt = d_dts[i];
+        for (const i in d_dts) {
+            const d_dt = d_dts[i];
 
-            let doc: DocumentVO = all_d_by_ids[d_dt.d_id];
+            const doc: DocumentVO = all_d_by_ids[d_dt.d_id];
 
             if (doc.target_route_name) {
                 has_docs_route_name[doc.target_route_name] = true;

@@ -35,7 +35,7 @@ export default class MatroidBaseController {
 
         let cardinal = 0;
 
-        for (let i in matroid_base.ranges) {
+        for (const i in matroid_base.ranges) {
 
             if (!matroid_base.ranges[i]) {
                 return null;
@@ -59,8 +59,8 @@ export default class MatroidBaseController {
 
 
 
-        for (let i in a.ranges) {
-            let range_a = a.ranges[i];
+        for (const i in a.ranges) {
+            const range_a = a.ranges[i];
 
             if (RangeHandler.range_intersects_any_range(range_a, b.ranges)) {
                 return true;
@@ -73,7 +73,7 @@ export default class MatroidBaseController {
      * FIXME TODO ASAP WITH TU
      */
     public matroidbase_intersects_any_matroidbase(a: MatroidBase, bs: MatroidBase[]): boolean {
-        for (let i in bs) {
+        for (const i in bs) {
             if (this.matroidbase_intersects_matroidbase(a, bs[i])) {
                 return true;
             }
@@ -95,14 +95,14 @@ export default class MatroidBaseController {
             return new MatroidBaseCutResult(null, matroidbase_to_cut);
         }
 
-        let cut_result: RangesCutResult<IRange> = RangeHandler.cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
+        const cut_result: RangesCutResult<IRange> = RangeHandler.cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
 
-        let res_chopped = (cut_result && cut_result.chopped_items && cut_result.chopped_items.length) ?
+        const res_chopped = (cut_result && cut_result.chopped_items && cut_result.chopped_items.length) ?
             MatroidBase.createNew(
                 matroidbase_to_cut.api_type_id, matroidbase_to_cut.field_id,
                 cut_result.chopped_items) :
             null;
-        let res_remaining_items = (cut_result && cut_result.remaining_items && cut_result.remaining_items.length) ?
+        const res_remaining_items = (cut_result && cut_result.remaining_items && cut_result.remaining_items.length) ?
             MatroidBase.createNew(
                 matroidbase_to_cut.api_type_id, matroidbase_to_cut.field_id,
                 cut_result.remaining_items) :

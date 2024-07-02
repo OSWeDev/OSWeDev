@@ -20,35 +20,64 @@
     //- template(v-else)
     .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
         template(v-if="field_value")
-            a.btn.btn-sm.btn-primary(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
+            a.btn.btn-sm.btn-primary.mr-1(@click="set_show_inline_form_in_crud(false)")
                 i.fa-duotone.fa-pencil
-        template
-        a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
+        a.btn.btn-sm.btn-success(@click="set_show_inline_form_in_crud(true)")
             i.fa-duotone.fa-plus-circle
 
-    multiselect(
-        :class="{'valign-middle': show_pencil_btn}"
-        v-model="field_value",
-        :custom-label="field.voIdToHumanReadable",
-        :options="select_options",
-        autocomplete="off"
-        :placeholder="t(placeholder_string)",
-        :loading="isLoadingOptions",
-        :id="field.datatable_field_uid",
-        :searchable="searchable",
-        :internal-search="false",
-        :allow-empty="!field.is_required",
-        :preselect-first="field.is_required",
-        :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
-        @search-change="asyncLoadOptions",
-        @input="onChangeField"
+    template(v-if="!show_inline_form_in_crud || (show_inline_form_in_crud && !show_inline_form_in_crud_is_create)")
+        multiselect(
+            :class="{'valign-middle': show_pencil_btn}"
+            v-model="field_value",
+            :custom-label="field.voIdToHumanReadable",
+            :options="select_options",
+            autocomplete="off"
+            :placeholder="t(placeholder_string)",
+            :loading="isLoadingOptions",
+            :id="field.datatable_field_uid",
+            :searchable="searchable",
+            :internal-search="false",
+            :allow-empty="!field.is_required",
+            :preselect-first="field.is_required",
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
+            @search-change="asyncLoadOptions",
+            @input="onChangeField"
 
-        :select-label='label("multiselect.selectLabel")'
-        :select-group-label='label("multiselect.selectGroupLabel")'
-        :selected-label='label("multiselect.selectedLabel")'
-        :deselect-label='label("multiselect.deselectLabel")'
-        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-    )
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )
 
-    include ./CRUDComponentFieldFooter
+        include ./CRUDComponentFieldFooter
 
+    template(v-if="show_inline_form_in_crud")
+        fieldset
+            legend
+                span {{ label('crud.insert_or_update_target') }}
+
+            template(v-if="show_inline_form_in_crud_is_create")
+                Crudcreateformcomponent(
+                    ref="Crudcreateformcomponent"
+                    :close_on_submit="true"
+                    :show_insert_or_update_target="show_insert_or_update_target"
+                    :api_type_id="field.targetModuleTable.vo_type"
+                    :vo_init="vo_of_field_value"
+                    :show_placeholder="show_placeholder"
+                    @close='close_inline_form_in_crud'
+                    @cancel='close_inline_form_in_crud'
+                    @vo_create="create_inline_form_in_crud"
+                )
+
+            template(v-else)
+                Crudupdateformcomponent(
+                    ref="Crudupdateformcomponent"
+                    :close_on_submit="true"
+                    :selected_vo="vo_of_field_value"
+                    :show_insert_or_update_target="show_insert_or_update_target"
+                    :show_placeholder="show_placeholder"
+                    @close='close_inline_form_in_crud'
+                    @cancel='close_inline_form_in_crud'
+                    @vo_update="update_inline_form_in_crud"
+                )

@@ -45,10 +45,10 @@ export default class VarsClientsSubsCacheManager {
             async () => {
                 try {
 
-                    let subs_indexs = await VarsTabsSubsController.get_subs_indexs(force_update);
+                    const subs_indexs = await VarsTabsSubsController.get_subs_indexs(force_update);
 
-                    let new_cache = {};
-                    for (let index of subs_indexs) {
+                    const new_cache = {};
+                    for (const index of subs_indexs) {
                         new_cache[index] = true;
                     }
                     VarsClientsSubsCacheHolder.clients_subs_indexes_cache = new_cache;
@@ -73,7 +73,7 @@ export default class VarsClientsSubsCacheManager {
         VarsClientsSubsCacheManager.throttled_add_new_subs_on_bg_thread(var_indexs);
     }
     private static throttled_add_new_subs_on_bg_thread(var_indexs: string[]) {
-        for (let i in var_indexs) {
+        for (const i in var_indexs) {
             VarsClientsSubsCacheHolder.clients_subs_indexes_cache[var_indexs[i]] = true;
         }
     }
@@ -90,7 +90,7 @@ export default class VarsClientsSubsCacheManager {
         VarsClientsSubsCacheManager.throttled_remove_subs_on_bg_thread(var_indexs);
     }
     private static throttled_remove_subs_on_bg_thread(var_indexs: string[]) {
-        for (let i in var_indexs) {
+        for (const i in var_indexs) {
             delete VarsClientsSubsCacheHolder.clients_subs_indexes_cache[var_indexs[i]];
         }
     }

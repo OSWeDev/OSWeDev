@@ -2,6 +2,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import ISupervisedItemServerController from './interfaces/ISupervisedItemServerController';
 import SupervisionServerController from './SupervisionServerController';
 
@@ -17,10 +18,10 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
 
         try {
 
-            let supervised_pdvs: T[] = await query(this.api_type_id).select_vos<T>();
+            const supervised_pdvs: T[] = await query(this.api_type_id).select_vos<T>();
 
-            for (let i in supervised_pdvs) {
-                let supervised_pdv = supervised_pdvs[i];
+            for (const i in supervised_pdvs) {
+                const supervised_pdv = supervised_pdvs[i];
 
                 await this.work_one(supervised_pdv);
             }
@@ -34,12 +35,12 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
     public async work_invalid(): Promise<boolean> {
         try {
 
-            let supervised_pdvs: T[] = await query(this.api_type_id)
-                .filter_is_true('invalid')
+            const supervised_pdvs: T[] = await query(this.api_type_id)
+                .filter_is_true(field_names<ISupervisedItem>().invalid)
                 .select_vos<T>();
 
-            for (let i in supervised_pdvs) {
-                let supervised_pdv = supervised_pdvs[i];
+            for (const i in supervised_pdvs) {
+                const supervised_pdv = supervised_pdvs[i];
 
                 await this.work_one(supervised_pdv);
             }

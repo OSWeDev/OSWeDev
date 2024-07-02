@@ -7,9 +7,9 @@ export default class ThrottledRefuseServerController {
 
     private static async refuse(params: { [uid: number]: { [CLIENT_TAB_ID: string]: boolean } }) {
 
-        for (let uid_s in params) {
-            let uid: number = parseInt(uid_s.toString());
-            for (let CLIENT_TAB_ID in params[uid]) {
+        for (const uid_s in params) {
+            const uid: number = parseInt(uid_s.toString());
+            for (const CLIENT_TAB_ID in params[uid]) {
                 await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.global_update_blocker.actif', true);
             }
         }

@@ -1,11 +1,11 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 
@@ -34,7 +34,7 @@ export default class ModuleClientServer extends ModuleServerBase {
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {
         return await ModuleDAOServer.getInstance().selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
-            ' JOIN ' + VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
+            ' JOIN ' + ModuleTableController.module_tables_by_vo_type[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
             ' WHERE c.user_id = $1', [num]
         );
     }
@@ -44,7 +44,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        return await query(ClientVO.API_TYPE_ID).filter_by_num_eq('user_id', num).select_vos<ClientVO>();
+        return await query(ClientVO.API_TYPE_ID).filter_by_num_eq(field_names<ClientVO>().user_id, num).select_vos<ClientVO>();
     }
 
     public async getFirstClientByUser(user: UserVO): Promise<ClientVO> {
@@ -60,7 +60,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        let clients: ClientVO[] = await this.getClientsByUserId(uid);
+        const clients: ClientVO[] = await this.getClientsByUserId(uid);
 
         return (clients && clients.length > 0) ? clients[0] : null;
     }

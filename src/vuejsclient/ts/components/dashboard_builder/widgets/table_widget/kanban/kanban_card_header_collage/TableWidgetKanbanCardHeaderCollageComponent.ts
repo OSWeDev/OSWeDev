@@ -84,7 +84,7 @@ export default class TableWidgetKanbanCardHeaderCollageComponent extends VueComp
             return null;
         }
 
-        let nb_images = this.image_ids.length;
+        const nb_images = this.image_ids.length;
         let height = [this.single_row_height];
         let layout = [this.max_images_row_1];
         if (nb_images > this.max_images_row_1) {
@@ -92,9 +92,9 @@ export default class TableWidgetKanbanCardHeaderCollageComponent extends VueComp
             layout = [this.max_images_row_1, this.max_images_row_2];
         }
 
-        let photos: Array<{ source: string }> = [];
-        for (let i in this.image_ids) {
-            let image_url = this.image_ids[i];
+        const photos: Array<{ source: string }> = [];
+        for (const i in this.image_ids) {
+            const image_url = this.image_ids[i];
             photos.push({ source: image_url });
         }
 

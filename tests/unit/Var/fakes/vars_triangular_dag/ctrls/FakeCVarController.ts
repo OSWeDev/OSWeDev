@@ -14,14 +14,6 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
     public static DEP_G: string = 'G' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_H: string = 'H' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeCVarController {
-        if (!FakeCVarController.instance) {
-            FakeCVarController.instance = new FakeCVarController();
-        }
-        return FakeCVarController.instance;
-    }
-
     protected static instance: FakeCVarController = null;
 
     protected constructor() {
@@ -31,8 +23,14 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
             }, 3),
             {}, {}, {}, {}
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeCVarController {
+        if (!FakeCVarController.instance) {
+            FakeCVarController.instance = new FakeCVarController();
+        }
+        return FakeCVarController.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
@@ -56,10 +54,10 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
 
         switch (dep_id) {
             case FakeCVarController.DEP_H:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name);
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name);
 
             case FakeCVarController.DEP_G:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeDataVO[];
         }
 
         return null;
@@ -67,8 +65,8 @@ export default class FakeCVarController extends VarServerControllerBase<FakeData
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_G = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_G, 0);
-        let DEP_H = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_H, 0);
+        const DEP_G = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_G, 0);
+        const DEP_H = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeCVarController.DEP_H, 0);
 
         return DEP_G - DEP_H;
     }

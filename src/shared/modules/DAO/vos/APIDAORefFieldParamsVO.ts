@@ -17,13 +17,13 @@ export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDA
         if (!(req && req.params)) {
             return null;
         }
-        let has_null = (!!req.params.has_null) ? req.params.has_null == 'true' : false;
+        const has_null = (req.params.has_null) ? req.params.has_null == 'true' : false;
         let ids: any[] = req.params.ids ? req.params.ids.split('_') : null;
-        for (let i in ids) {
+        for (const i in ids) {
             ids[i] = parseInt(ids[i]);
         }
         if (has_null) {
-            if (!!ids) {
+            if (ids) {
                 ids.unshift([null]);
             } else {
                 ids = [null];
@@ -45,15 +45,15 @@ export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDA
     public translateToURL(): string {
 
         let has_null: boolean = false;
-        for (let i in this.ids) {
+        for (const i in this.ids) {
             if (this.ids[i] == null) {
                 has_null = true;
                 break;
             }
         }
 
-        let temp = this.ids.filter((v) => v != null);
-        let request = this.API_TYPE_ID + '/' + this.field_name + '/' + (has_null ? "true" : "false") + '/' + temp.join('_');
+        const temp = this.ids.filter((v) => v != null);
+        const request = this.API_TYPE_ID + '/' + this.field_name + '/' + (has_null ? "true" : "false") + '/' + temp.join('_');
 
         return request;
     }

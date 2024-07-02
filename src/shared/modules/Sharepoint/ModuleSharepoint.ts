@@ -32,7 +32,5 @@ export default class ModuleSharepoint extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

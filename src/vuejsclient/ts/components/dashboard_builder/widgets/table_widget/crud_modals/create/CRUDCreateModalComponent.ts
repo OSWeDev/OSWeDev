@@ -19,17 +19,19 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
     private show_insert_or_update_target: boolean = true;
 
     private onclose_callback: () => Promise<void> = null;
+    private vo_create_callback: (vo: IDistantVOBase) => Promise<void> = null;
 
     public async open_modal(
         api_type_id: string,
         onclose_callback: () => Promise<void>,
         vo_init: IDistantVOBase = null,
         show_insert_or_update_target: boolean = true,
+        vo_create_callback: (vo: IDistantVOBase) => Promise<void> = null,
     ) {
         this.api_type_id = api_type_id;
         this.show_insert_or_update_target = show_insert_or_update_target;
 
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
 
         if (crud) {
             crud.createDatatable.refresh();
@@ -41,6 +43,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         }
 
         this.onclose_callback = onclose_callback;
+        this.vo_create_callback = vo_create_callback;
 
         this.vo_init = vo_init;
 
@@ -60,7 +63,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
     private async close_modal() {
         $('#crud_create_modal_' + this.api_type_id).modal('hide');
-        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        const crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
         if (crud) {
             crud.createDatatable.refresh();
             await (this.$refs['Crudcreateformcomponent'] as CRUDCreateFormComponent).update_key(true);
@@ -71,6 +74,12 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
         if (this.onclose_callback) {
             await this.onclose_callback();
+        }
+    }
+
+    private async vo_create(vo: IDistantVOBase) {
+        if (this.vo_create_callback) {
+            await this.vo_create_callback(vo);
         }
     }
 }

@@ -111,8 +111,8 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     private async uploadFile(req: Request, res: Response) {
 
         let import_file: fileUpload.UploadedFile = null;
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
             import_file = req.files[Object.keys(req.files)[0]] as fileUpload.UploadedFile;
@@ -129,7 +129,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
 
         let file_name: string = import_file.name;
-        let folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
+        const folder_name: string = ModuleFile.FILES_ROOT + 'upload/';
         let filepath: string = folder_name + file_name;
 
         while (fs.existsSync(filepath)) {
@@ -154,7 +154,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
                 filevo = this.getNewVo();
                 filevo.path = filepath;
 
-                let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
+                const insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
                 if ((!insertres) || (!insertres.id)) {
                     await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                     res.json(JSON.stringify(null));
@@ -170,9 +170,9 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     private async testFileExistenz(num: number): Promise<boolean> {
 
         try {
-            let fileVo: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(num).select_vo<FileVO>();
+            const fileVo: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(num).select_vo<FileVO>();
 
-            if (!!fileVo) {
+            if (fileVo) {
                 return fs.existsSync(fileVo.path);
             }
             return false;

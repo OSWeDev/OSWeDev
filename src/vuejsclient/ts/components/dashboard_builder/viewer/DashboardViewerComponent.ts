@@ -20,6 +20,7 @@ import './DashboardViewerComponent.scss';
 import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/SharedFiltersVO';
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -110,10 +111,10 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return null;
         }
 
-        let res: DashboardPageVO[] = [];
+        const res: DashboardPageVO[] = [];
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
             if (!page.hide_navigation) {
                 res.push(page);
             }
@@ -225,8 +226,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
             dashboard_id,
             {
                 sorts: [
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
                 ]
             },
             options
@@ -250,14 +251,14 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     get pages_name_code_text(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         if (!this.pages) {
             return res;
         }
 
-        for (let i in this.pages) {
-            let page = this.pages[i];
+        for (const i in this.pages) {
+            const page = this.pages[i];
 
             res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
         }

@@ -23,10 +23,10 @@ test('HourSegmentHandler: test: getSmallestHourSegmentationType', () => {
 });
 
 test('HourSegmentHandler: test: getAllSegments', () => {
-    let duration1 = 1;
-    let duration2 = 2;
-    let duration3 = 3;
-    let segmentExpected = [HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_SECOND), HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_SECOND)];
+    const duration1 = 1;
+    const duration2 = 2;
+    const duration3 = 3;
+    const segmentExpected = [HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_SECOND), HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_SECOND)];
 
     expect(HourSegmentHandler.getAllSegments(null, duration2, HourSegment.TYPE_SECOND)).toStrictEqual(null);
     expect(HourSegmentHandler.getAllSegments(duration1, null, HourSegment.TYPE_SECOND)).toStrictEqual(null);
@@ -36,15 +36,15 @@ test('HourSegmentHandler: test: getAllSegments', () => {
 });
 
 test('HourSegmentHandler: test: getParentHourSegment', () => {
-    let duration = ((26 * 60) + 15) * 60 + 37;
+    const duration = ((26 * 60) + 15) * 60 + 37;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
 
-    let hourExpected = HourSegmentHandler.getCorrespondingHourSegment(26 * 60 * 60, HourSegment.TYPE_HOUR);
-    let minuteConverted = HourSegmentHandler.getCorrespondingHourSegment(((26 * 60) + 15) * 60, HourSegment.TYPE_MINUTE);
-    let secondConverted = HourSegmentHandler.getCorrespondingHourSegment(((26 * 60) + 15) * 60 + 37, HourSegment.TYPE_SECOND);
+    const hourExpected = HourSegmentHandler.getCorrespondingHourSegment(26 * 60 * 60, HourSegment.TYPE_HOUR);
+    const minuteConverted = HourSegmentHandler.getCorrespondingHourSegment(((26 * 60) + 15) * 60, HourSegment.TYPE_MINUTE);
+    const secondConverted = HourSegmentHandler.getCorrespondingHourSegment(((26 * 60) + 15) * 60 + 37, HourSegment.TYPE_SECOND);
 
     expect(HourSegmentHandler.getParentHourSegment(null)).toStrictEqual(null);
     expect(HourSegmentHandler.getParentHourSegment(hour)).toStrictEqual(null);
@@ -53,14 +53,14 @@ test('HourSegmentHandler: test: getParentHourSegment', () => {
 });
 
 test('HourSegmentHandler: test: getCumulHourSegments', () => {
-    let duration = ((26 * 60) + 15) * 60 + 37;
+    const duration = ((26 * 60) + 15) * 60 + 37;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
 
-    let minuteExpected = HourSegmentHandler.getAllSegments(26 * 60 * 60, ((26 * 60) + 15) * 60, HourSegment.TYPE_MINUTE, false);
-    let secondExpected = HourSegmentHandler.getAllSegments(((26 * 60) + 15) * 60, ((26 * 60) + 15) * 60 + 37, HourSegment.TYPE_SECOND, false);
+    const minuteExpected = HourSegmentHandler.getAllSegments(26 * 60 * 60, ((26 * 60) + 15) * 60, HourSegment.TYPE_MINUTE, false);
+    const secondExpected = HourSegmentHandler.getAllSegments(((26 * 60) + 15) * 60, ((26 * 60) + 15) * 60 + 37, HourSegment.TYPE_SECOND, false);
 
     expect(HourSegmentHandler.getCumulHourSegments(null)).toStrictEqual(null);
     expect(HourSegmentHandler.getCumulHourSegments(hour)).toStrictEqual(null);
@@ -94,15 +94,15 @@ test('HourSegmentHandler: test: getStartHour', () => {
 });
 
 test('HourSegmentHandler: test: getStartHourSegment', () => {
-    let duration = ((23 * 60) + 59) * 60 + 45;
+    const duration = ((23 * 60) + 59) * 60 + 45;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
 
-    let hourExpected = 23 * 60 * 60;
-    let minuteExpected = ((23 * 60) + 59) * 60;
-    let secondExpected = ((23 * 60) + 59) * 60 + 45;
+    const hourExpected = 23 * 60 * 60;
+    const minuteExpected = ((23 * 60) + 59) * 60;
+    const secondExpected = ((23 * 60) + 59) * 60 + 45;
 
     expect(HourSegmentHandler.getStartHourSegment(null)).toStrictEqual(null);
     expect(HourSegmentHandler.getStartHourSegment(hour)).toStrictEqual(hourExpected);
@@ -111,15 +111,15 @@ test('HourSegmentHandler: test: getStartHourSegment', () => {
 });
 
 test('HourSegmentHandler: test: getEndHourSegment', () => {
-    let duration = (23 * 60 + 55) * 60 + 45;
+    const duration = (23 * 60 + 55) * 60 + 45;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
 
-    let hourExpected = 24 * 60 * 60;
-    let minuteExpected = (23 * 60 + 56) * 60;
-    let secondExpected = (23 * 60 + 55) * 60 + 46;
+    const hourExpected = 24 * 60 * 60;
+    const minuteExpected = (23 * 60 + 56) * 60;
+    const secondExpected = (23 * 60 + 55) * 60 + 46;
 
     expect(HourSegmentHandler.getEndHourSegment(null)).toStrictEqual(null);
 
@@ -130,15 +130,15 @@ test('HourSegmentHandler: test: getEndHourSegment', () => {
 
 
 test('HourSegmentHandler: test: getInclusiveEndHourSegment', () => {
-    let date = (23 * 60 + 45) * 60 + 59;
+    const date = (23 * 60 + 45) * 60 + 59;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
 
-    let hourExpected = (24 * 60 + 0) * 60 - 1;
-    let minuteExpected = (23 * 60 + 46) * 60 - 1;
-    let secondExpected = (23 * 60 + 46) * 60 - 1;
+    const hourExpected = (24 * 60 + 0) * 60 - 1;
+    const minuteExpected = (23 * 60 + 46) * 60 - 1;
+    const secondExpected = (23 * 60 + 46) * 60 - 1;
 
     expect(HourSegmentHandler.getInclusiveEndHourSegment(null)).toStrictEqual(null);
 
@@ -148,15 +148,15 @@ test('HourSegmentHandler: test: getInclusiveEndHourSegment', () => {
 });
 
 test('HourSegmentHandler: test: getPreviousHourSegments', () => {
-    let date = (23 * 60 + 45) * 60 + 59;
+    const date = (23 * 60 + 45) * 60 + 59;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
 
-    let hourExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 0) * 60 + 0) + 0 - 60 * 60), HourSegment.TYPE_HOUR);
-    let minuteExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 45) * 60 + 0) + 0 - 1 * 60), HourSegment.TYPE_MINUTE);
-    let secondExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 45) * 60 + 59) + 0 - 1), HourSegment.TYPE_SECOND);
+    const hourExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 0) * 60 + 0) + 0 - 60 * 60), HourSegment.TYPE_HOUR);
+    const minuteExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 45) * 60 + 0) + 0 - 1 * 60), HourSegment.TYPE_MINUTE);
+    const secondExpected = HourSegmentHandler.getCorrespondingHourSegment((((23 * 60 + 45) * 60 + 59) + 0 - 1), HourSegment.TYPE_SECOND);
 
     expect(HourSegmentHandler.getPreviousHourSegments(null)).toStrictEqual(null);
     expect(HourSegmentHandler.getPreviousHourSegments([null])).toStrictEqual([null]);
@@ -165,15 +165,15 @@ test('HourSegmentHandler: test: getPreviousHourSegments', () => {
 });
 
 test('HourSegmentHandler: test: getPreviousHourSegment', () => {
-    let date = (23 * 60 + 45) * 60 + 59;
+    const date = (23 * 60 + 45) * 60 + 59;
 
-    let hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
-    let minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
-    let second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
+    const hour: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
+    const minute: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
+    const second: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
 
-    let hourExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 0) * 60 + 0 + 0 - 60 * 60), HourSegment.TYPE_HOUR);
-    let minuteExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 45) * 60 + 0 + 0 - 1 * 60), HourSegment.TYPE_MINUTE);
-    let secondExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 45) * 60 + 59 + 0 - 1), HourSegment.TYPE_SECOND);
+    const hourExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 0) * 60 + 0 + 0 - 60 * 60), HourSegment.TYPE_HOUR);
+    const minuteExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 45) * 60 + 0 + 0 - 1 * 60), HourSegment.TYPE_MINUTE);
+    const secondExpected = HourSegmentHandler.getCorrespondingHourSegment(((23 * 60 + 45) * 60 + 59 + 0 - 1), HourSegment.TYPE_SECOND);
 
     expect(HourSegmentHandler.getPreviousHourSegment(null)).toStrictEqual(null);
     expect(HourSegmentHandler.getPreviousHourSegment(hour)).toStrictEqual(hourExpected);
@@ -185,8 +185,8 @@ test('HourSegmentHandler: test: decHourSegment', () => {
     expect(HourSegmentHandler.decHourSegment(null, null, null)).toStrictEqual(null);
     expect(HourSegmentHandler.decHourSegment(null, null, 0)).toStrictEqual(null);
 
-    let duration = (18 * 60 + 27) * 60 + 49;
-    let hourSeg: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+    const duration = (18 * 60 + 27) * 60 + 49;
+    const hourSeg: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
 
     HourSegmentHandler.decHourSegment(hourSeg, HourSegment.TYPE_HOUR, 1);
     let hourSegExpected = HourSegmentHandler.getCorrespondingHourSegment(17 * 60 * 60, HourSegment.TYPE_HOUR);
@@ -246,10 +246,10 @@ test('HourSegmentHandler: test: decMoment', () => {
 });
 
 test('HourSegmentHandler: test: getCorrespondingHourSegment', () => {
-    let date = (23 * 60 + 45) * 60 + 59;
+    const date = (23 * 60 + 45) * 60 + 59;
 
-    let hourExpected = HourSegmentHandler.getCorrespondingHourSegment(date - 60 * 60, HourSegment.TYPE_HOUR);
-    let minuteExpected = HourSegmentHandler.getCorrespondingHourSegment(date + 60, HourSegment.TYPE_MINUTE);
+    const hourExpected = HourSegmentHandler.getCorrespondingHourSegment(date - 60 * 60, HourSegment.TYPE_HOUR);
+    const minuteExpected = HourSegmentHandler.getCorrespondingHourSegment(date + 60, HourSegment.TYPE_MINUTE);
 
     expect(HourSegmentHandler.getCorrespondingHourSegment(null, null, null)).toStrictEqual(null);
     expect(HourSegmentHandler.getCorrespondingHourSegment(null, null, 0)).toStrictEqual(null);
@@ -259,13 +259,13 @@ test('HourSegmentHandler: test: getCorrespondingHourSegment', () => {
 });
 
 test('HourSegmentHandler: test: getCorrespondingHourSegments', () => {
-    let date1 = (23 * 60 + 45) * 60 + 59;
-    let date2 = (18 * 60 + 39) * 60 + 21;
-    let dates = [date1, date2];
+    const date1 = (23 * 60 + 45) * 60 + 59;
+    const date2 = (18 * 60 + 39) * 60 + 21;
+    const dates = [date1, date2];
 
-    let segment11 = HourSegmentHandler.getCorrespondingHourSegment((24 * 60 + 45) * 60 + 59, HourSegment.TYPE_HOUR);
-    let segment12 = HourSegmentHandler.getCorrespondingHourSegment((19 * 60 + 39) * 60 + 21, HourSegment.TYPE_HOUR);
-    let Expected1 = [segment11, segment12];
+    const segment11 = HourSegmentHandler.getCorrespondingHourSegment((24 * 60 + 45) * 60 + 59, HourSegment.TYPE_HOUR);
+    const segment12 = HourSegmentHandler.getCorrespondingHourSegment((19 * 60 + 39) * 60 + 21, HourSegment.TYPE_HOUR);
+    const Expected1 = [segment11, segment12];
 
     expect(HourSegmentHandler.getCorrespondingHourSegments(null, null, null)).toStrictEqual([]);
     expect(HourSegmentHandler.getCorrespondingHourSegments(null, null, 0)).toStrictEqual([]);
@@ -274,8 +274,8 @@ test('HourSegmentHandler: test: getCorrespondingHourSegments', () => {
 });
 
 test('HourSegmentHandler: test: isEltInSegment', () => {
-    let date = (23 * 60 + 59) * 60 + 45;
-    let segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
+    const date = (23 * 60 + 59) * 60 + 45;
+    const segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
 
     expect(HourSegmentHandler.isEltInSegment(null, null)).toStrictEqual(false);
     expect(HourSegmentHandler.isEltInSegment(null, segment)).toStrictEqual(false);
@@ -297,8 +297,8 @@ test('HourSegmentHandler: test: isEltInSegment', () => {
 });
 
 test('HourSegmentHandler: test: isInSameSegmentType', () => {
-    let date = (22 * 60 + 59) * 60 + 45;
-    let segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
+    const date = (22 * 60 + 59) * 60 + 45;
+    const segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
     let otherDate = (22 * 60 + 59) * 60 + 59;
     let otherSegment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(otherDate, HourSegment.TYPE_MINUTE);
 
@@ -314,10 +314,10 @@ test('HourSegmentHandler: test: isInSameSegmentType', () => {
 });
 
 test('HourSegmentHandler: test: segmentsAreEquivalent', () => {
-    let date = (22 * 60 + 59) * 60 + 45;
-    let segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
-    let otherDate = (22 * 60 + 59) * 60 + 59;
-    let otherSegment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(otherDate, HourSegment.TYPE_SECOND);
+    const date = (22 * 60 + 59) * 60 + 45;
+    const segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
+    const otherDate = (22 * 60 + 59) * 60 + 59;
+    const otherSegment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(otherDate, HourSegment.TYPE_SECOND);
 
     expect(HourSegmentHandler.segmentsAreEquivalent(null, null)).toStrictEqual(true);
     expect(HourSegmentHandler.segmentsAreEquivalent(null, otherSegment)).toStrictEqual(false);
@@ -341,12 +341,12 @@ test('HourSegmentHandler: test: getCorrespondingMomentUnitOfTime', () => {
 });
 
 test('HourSegmentHandler: test: segmentsAreAquivalent', () => {
-    let duration1 = 1000;
-    let duration1bis = 1000;
-    let duration2 = 2000;
-    let segment1: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_SECOND);
-    let segment1bis: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1bis, HourSegment.TYPE_SECOND);
-    let segment3: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_SECOND);
+    const duration1 = 1000;
+    const duration1bis = 1000;
+    const duration2 = 2000;
+    const segment1: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_SECOND);
+    const segment1bis: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1bis, HourSegment.TYPE_SECOND);
+    const segment3: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_SECOND);
     expect(HourSegmentHandler.segmentsAreEquivalent(null, null)).toStrictEqual(true);
     expect(HourSegmentHandler.segmentsAreEquivalent(null, segment1)).toStrictEqual(false);
     expect(HourSegmentHandler.segmentsAreEquivalent(segment1, null)).toStrictEqual(false);
@@ -356,36 +356,36 @@ test('HourSegmentHandler: test: segmentsAreAquivalent', () => {
 });
 
 test('HourSegmentHandler: test: get_segment_from_range_start', () => {
-    let duration1 = (22 * 60 + 37) * 60 + 45;
-    let duration2 = (22 * 60 + 59) * 60 + 45;
-    let hourRange: HourRange = HourRange.createNew(duration1, duration2, true, true, HourSegment.TYPE_SECOND);
-    let segmentExpectedmin: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_MINUTE);
-    let segmentExpected: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
+    const duration1 = (22 * 60 + 37) * 60 + 45;
+    const duration2 = (22 * 60 + 59) * 60 + 45;
+    const hourRange: HourRange = HourRange.createNew(duration1, duration2, true, true, HourSegment.TYPE_SECOND);
+    const segmentExpectedmin: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_MINUTE);
+    const segmentExpected: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
     expect(HourSegmentHandler.get_segment_from_range_start(hourRange, HourSegment.TYPE_HOUR)).toStrictEqual(segmentExpected);
     expect(HourSegmentHandler.get_segment_from_range_start(hourRange, null)).toStrictEqual(segmentExpectedmin);
     expect(HourSegmentHandler.get_segment_from_range_start(null, HourSegment.TYPE_HOUR)).toStrictEqual(null);
 });
 
 test('HourSegmentHandler: test: get_segment_from_range_end', () => {
-    let duration1 = (22 * 60 + 37) * 60 + 45;
-    let duration2 = (22 * 60 + 59) * 60 + 45;
-    let hourRange: HourRange = HourRange.createNew(duration1, duration2, true, true, HourSegment.TYPE_SECOND);
-    let segmentExpectedmin: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_MINUTE);
-    let segmentExpected: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
+    const duration1 = (22 * 60 + 37) * 60 + 45;
+    const duration2 = (22 * 60 + 59) * 60 + 45;
+    const hourRange: HourRange = HourRange.createNew(duration1, duration2, true, true, HourSegment.TYPE_SECOND);
+    const segmentExpectedmin: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_MINUTE);
+    const segmentExpected: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
     expect(HourSegmentHandler.get_segment_from_range_start(hourRange, HourSegment.TYPE_HOUR)).toStrictEqual(segmentExpected);
     expect(HourSegmentHandler.get_segment_from_range_start(hourRange, null)).toStrictEqual(segmentExpectedmin);
     expect(HourSegmentHandler.get_segment_from_range_start(null, HourSegment.TYPE_HOUR)).toStrictEqual(null);
 });
 
 test('HourSegmentHandler: test: get_hour_ranges_', () => {
-    let duration1 = (22 * 60 + 37) * 60 + 45;
-    let duration2 = (22 * 60 + 59) * 60 + 45;
-    let segment1: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
-    let segment2: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_HOUR);
-    let segments = [segment1, segment2];
-    let hourRange1: HourRange = HourRange.createNew(22 * 60 * 60, 23 * 60 * 60, true, false, HourSegment.TYPE_HOUR);
-    let hourRange2: HourRange = HourRange.createNew(22 * 60 * 60, 23 * 60 * 60, true, false, HourSegment.TYPE_HOUR);
-    let hourRanges = [hourRange1, hourRange2];
+    const duration1 = (22 * 60 + 37) * 60 + 45;
+    const duration2 = (22 * 60 + 59) * 60 + 45;
+    const segment1: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration1, HourSegment.TYPE_HOUR);
+    const segment2: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(duration2, HourSegment.TYPE_HOUR);
+    const segments = [segment1, segment2];
+    const hourRange1: HourRange = HourRange.createNew(22 * 60 * 60, 23 * 60 * 60, true, false, HourSegment.TYPE_HOUR);
+    const hourRange2: HourRange = HourRange.createNew(22 * 60 * 60, 23 * 60 * 60, true, false, HourSegment.TYPE_HOUR);
+    const hourRanges = [hourRange1, hourRange2];
 
     expect(HourSegmentHandler["get_hour_ranges_"](segments)).toStrictEqual(hourRanges);
     expect(HourSegmentHandler["get_hour_ranges_"]([])).toStrictEqual([]);

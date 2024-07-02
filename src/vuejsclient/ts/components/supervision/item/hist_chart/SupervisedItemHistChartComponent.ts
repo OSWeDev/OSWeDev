@@ -100,7 +100,7 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
         let params = [last_value];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -108,13 +108,13 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     }
 
     get labels(): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         /**
          * On part de la segmentation
          */
         let current = RangeHandler.getSegmentedMin(this.graph_segmentation.range);
-        let max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
+        const max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
 
         while (current <= max) {
 
@@ -127,13 +127,13 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     }
 
     get values(): number[] {
-        let res: number[] = [];
+        const res: number[] = [];
 
         /**
          * On part de la segmentation
          */
         let current = RangeHandler.getSegmentedMin(this.graph_segmentation.range);
-        let max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
+        const max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
 
         let index_historique: number = 0;
         let last_historique_value: number = 0;
@@ -147,7 +147,7 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             /**
              * La valeur se défini par la moyenne des valeurs compatible, ou la valeur la plus proche
              */
-            let current_range: TSRange = RangeHandler.create_single_elt_TSRange(current, this.graph_segmentation.range.segment_type);
+            const current_range: TSRange = RangeHandler.create_single_elt_TSRange(current, this.graph_segmentation.range.segment_type);
             let somme_historique: number = null;
             let nb_historique: number = 0;
             while (this.historiques[index_historique] && RangeHandler.elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {

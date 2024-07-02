@@ -22,29 +22,29 @@ v-client-table(
                     i.fa-duotone.fa-pencil
             template(v-if="vocus_button")
                 template(v-if="!embed")
-                    router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+                    router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)")
                         i.fa-duotone.fa-search
             template(v-if="delete_button")
                 template(v-if="embed")
                     button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")
                         i.fa-duotone.fa-trash
                 template(v-else)
-                    router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+                    router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)")
                         i.fa-duotone.fa-trash
             template(v-if="archive_button")
                 template(v-if="!embed")
-                    .btn.btn-sm.btn-secondary.m-1(@click="confirm_archive(api_type_id, props.row.id)", v-if='!isModuleParamTable && is_archived_api_type_id')
+                    .btn.btn-sm.btn-secondary.m-1(@click="confirm_archive(api_type_id, props.row.id)", v-if='is_archived_api_type_id')
                         i.fa-duotone.fa-box-archive
 
-    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='display_filters')
         template(v-if="custom_filters_values[field.datatable_field_uid]")
             input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].start" :max="custom_filters_values[field.datatable_field_uid].end" @change="onChangeFilterValue()")
             input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].end" :min="custom_filters_values[field.datatable_field_uid].start" @change="onChangeFilterValue()")
 
-    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='display_filters')
         input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
 
-    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='display_filters')
         //- v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
         template(v-if="custom_filters_options[field.datatable_field_uid]")
             multiselect.d-print-none(
@@ -95,7 +95,7 @@ v-client-table(
         //- @search-change="asyncLoadOptions",
         //- @input="onChangeField"
 
-    template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+    template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='display_filters')
         //- v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
         multiselect.d-print-none(
             v-if="custom_filters_options[field.datatable_field_uid]"

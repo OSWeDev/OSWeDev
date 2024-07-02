@@ -2,13 +2,14 @@ import 'jquery-contextmenu';
 import 'jquery-contextmenu/dist/jquery.contextMenu.min.css';
 import { cloneDeep, debounce } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -18,15 +19,14 @@ import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdat
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FilterObj from '../../../../../../shared/tools/Filters';
 import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
-import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -119,13 +119,6 @@ export default class VarDataRefComponent extends VueComponentBase {
     private is_inline_editing: boolean = false;
     private var_data_editing: VarDataValueResVO = null;
 
-    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
-            this.var_data_updater.bind(this),
-            VarUpdateCallback.VALUE_TYPE_ALL
-        )
-    };
-
     private aggregated_var_param: VarDataBaseVO = null;
 
     private var_data_value_is_imported: boolean = false;
@@ -135,6 +128,373 @@ export default class VarDataRefComponent extends VueComponentBase {
     private filtered_value: any = null;
     private var_conf: VarConfVO = null;
     private editable_field: SimpleDatatableFieldVO<any, any> = null;
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
+            this.var_data_updater.bind(this),
+            VarUpdateCallback.VALUE_TYPE_ALL
+        )
+    };
+
+    // Si on est sur une var pixellisée, on peut avoir une valeur importée que sur un pixel
+    get can_edit(): boolean {
+        if (!this.can_inline_edit) {
+            return false;
+        }
+
+        if (!this.var_param) {
+            return false;
+        }
+
+        if (!this.var_conf) {
+            this.set_var_conf();
+        }
+
+        // Si on a une var optimisée pour l'import, on ne peut pas éditer et créer des imports puisqu'ils ne seront pas pris en compte
+        if (this.var_conf.optimization__has_no_imports) {
+            return false;
+        }
+
+        // Si on est sur une var pixellisée, on peut avoir une valeur importée que sur un pixel
+        if (!this.var_param.is_pixel) {
+            return !this.var_conf.pixel_activated;
+        }
+
+        return true;
+    }
+
+    get is_show_import_aggregated(): boolean {
+        return (this.show_import_aggregated && this.aggregated_var_param) ? true : false;
+    }
+
+    get var_data_value_tooltip() {
+        let toshow: boolean = false;
+
+        let res = null;
+
+        if (this.is_show_public_tooltip && this.has_public_tooltip) {
+            res = this.public_tooltip;
+        }
+
+        if (!this.show_tooltip) {
+            return res;
+        }
+
+        if ((this.var_data == null) || (this.var_data_value == null)) {
+            return res;
+        }
+
+        if (this.show_tooltip_prefix) {
+            res = (res ? res + '<hr>' : '') + this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
+        } else {
+            res = (res ? res : '') + '<ul>';
+        }
+
+
+        const formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+
+        let value: any = this.var_data_value;
+
+        if (this.filter) {
+            let params = [value];
+
+            if (this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params);
+            }
+
+            value = this.filter.apply(null, params);
+        }
+
+        if (this.show_tooltip_maj) {
+            res += this.label('VarDataRefComponent.var_data_value_tooltip', {
+                value: value,
+                formatted_date: formatted_date,
+            });
+
+            toshow = true;
+        }
+
+        if (!!this.var_data_value_import_tooltip && this.show_tooltip_import) {
+            res += this.var_data_value_import_tooltip;
+
+            toshow = true;
+        }
+
+        res += this.label('VarDataRefComponent.var_data_value_tooltip_suffix');
+
+        return toshow ? res : null;
+    }
+
+    get var_data_value_import_tooltip() {
+
+        if (!this.var_data_value_is_imported && !this.is_show_import_aggregated) {
+            return null;
+        }
+
+        let formatted_date: string = null;
+
+        if (this.is_show_import_aggregated) {
+            if ((this.aggregated_var_param as any).ts_ranges) {
+                formatted_date = Dates.format(RangeHandler.getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
+                    ModuleFormatDatesNombres.FORMAT_YYYYMMDD
+                );
+            } else {
+                formatted_date = Dates.format(this.aggregated_var_param.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+            }
+        } else {
+            formatted_date = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+        }
+
+        let value: any = (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value;
+
+        if (this.filter) {
+            let params = [value];
+
+            if (this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params);
+            }
+
+            value = this.filter.apply(null, params);
+        }
+
+        return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
+            value: value,
+            formatted_date: formatted_date,
+        });
+    }
+
+    get public_tooltip() {
+        if ((!this.var_conf) || (!this.var_conf.show_help_tooltip)) {
+            return null;
+        }
+
+        return this.t(this.public_explaination_code_text);
+    }
+
+    get has_public_tooltip(): boolean {
+        if ((!this.var_param) || (!this.public_tooltip)) {
+            return null;
+        }
+
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
+    }
+
+    /**
+     * cf VarDescExplainComponent
+     */
+    get public_explaination_code_text(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id);
+    }
+
+    get is_selected_var(): boolean {
+        if ((!this.isDescMode) || (!this.getDescSelectedVarParam)) {
+            return false;
+        }
+        return this.getDescSelectedVarParam.index == this.var_param.index;
+    }
+
+    get contextmenu_items(): any {
+        const contextmenu_items: any = {};
+
+        if (this.can_explain_var) {
+            // contextmenu_items['explain_var'] = {
+            //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
+            //     disabled: function (key, opt) {
+            //         let elt = opt.$trigger[0];
+
+            //         if (!elt) {
+            //             return true;
+            //         }
+
+            //         return elt.getAttribute('var_param_index') == null;
+            //     },
+            //     callback: async (key, opt) => {
+            //         let elt = opt.$trigger[0];
+
+            //         if (!elt) {
+            //             return;
+            //         }
+
+            //         // let raw_value = elt.getAttribute('var_data_raw_copyable_value');
+            //         // if (!raw_value) {
+            //         //     return;
+            //         // }
+
+            //         let var_param_index = elt.getAttribute('var_param_index');
+            //         if (!var_param_index) {
+            //             return;
+            //         }
+
+            //         ConsoleHandler.log(await ModuleVar.getInstance().explain_var(var_param_index));
+            //     }
+            // };
+        }
+
+        contextmenu_items['copy_raw_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
+            disabled: function (key, opt) {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_raw_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                const raw_value = elt.getAttribute('var_data_raw_copyable_value');
+                if (!raw_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(raw_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_formatted_value'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_formatted_value'),
+            disabled: function (key, opt) {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_data_formatted_copyable_value') == null;
+            },
+            callback: async (key, opt) => {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                const formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
+                if (!formatted_value) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(formatted_value.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['copy_var_param_index'] = {
+            name: this.label('VarDataRefComponent.contextmenu.copy_var_param_index'),
+            disabled: function (key, opt) {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return elt.getAttribute('var_param_index') == null;
+            },
+            callback: async (key, opt) => {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                const var_param_index = elt.getAttribute('var_param_index');
+                if (!var_param_index) {
+                    return;
+                }
+
+                await navigator.clipboard.writeText(var_param_index.toString());
+                await this.$snotify.success(this.label('copied_to_clipboard'));
+            }
+        };
+
+        contextmenu_items['sep1'] = "---------";
+
+        contextmenu_items['clearimport'] = {
+            name: this.label('VarDataRefComponent.contextmenu.clearimport'),
+            disabled: function (key, opt) {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return true;
+                }
+
+                return (elt.getAttribute('can_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
+            },
+            callback: async (key, opt) => {
+                const elt = opt.$trigger[0];
+
+                if (!elt) {
+                    return;
+                }
+
+                if ((elt.getAttribute('can_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
+                    return;
+                }
+
+                const var_param_index = elt.getAttribute('var_param_index');
+
+                if (!var_param_index) {
+                    return;
+                }
+
+                const param = VarDataBaseVO.from_index(var_param_index);
+
+                await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
+                await this.$snotify.success(this.label('VarDataRefComponent.contextmenu.importcleared'));
+            }
+        };
+
+
+        return contextmenu_items;
+    }
+
+    get var_data_formatted_copyable_value() {
+        let res = '';
+
+        if ((!!this.var_data) && ((this.var_data_value != 0) || (!this.consider_zero_value_as_null)) && ((this.var_data_value != null) || this.null_value_replacement)) {
+            if (this.prefix) {
+                res += this.prefix;
+            }
+
+            if ((this.var_data_value === 0) && this.zero_value_replacement) {
+                res += this.zero_value_replacement;
+            } else if ((this.var_data_value === null) && this.null_value_replacement) {
+                res += this.null_value_replacement;
+            }
+
+            if ((this.var_data_value !== 0) || ((this.var_data_value === 0) && (!this.zero_value_replacement))) {
+                if (this.filter) {
+                    res += this.filtered_value;
+                } else {
+                    res += this.var_data_value;
+                }
+            }
+
+            if (this.suffix) {
+                res += this.suffix;
+            }
+        } else {
+            if (!this.is_being_updated) {
+                res += this.null_value_replacement;
+            }
+        }
+        return res;
+    }
+
+    get var_data_raw_copyable_value() {
+        return this.var_data_value;
+    }
 
     @Watch('var_data')
     private onchange_var_data() {
@@ -166,9 +526,9 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    @Watch('can_inline_edit')
-    private onchange_can_inline_edit() {
-        if (!this.can_inline_edit) {
+    @Watch('can_edit')
+    private onchange_can_edit() {
+        if (!this.can_edit) {
             this.is_inline_editing = false;
         }
     }
@@ -191,7 +551,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        let clone = VarDataBaseVO.cloneFromVarId(this.var_param);
+        const clone = VarDataBaseVO.cloneFromVarId(this.var_param);
 
         if ((value == null) || isNaN(value) || (value === '')) {
 
@@ -222,7 +582,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         // On va enregistrer un cb qui attend le retour de validation de prise en compte de la nouvelle valeur importée
-        let cb = () => {
+        const cb = () => {
             // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
             if (VarsClientController.getInstance().inline_editing_cb) {
                 VarsClientController.getInstance().inline_editing_cb();
@@ -236,7 +596,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
             ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
-            let bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
+            const bdddata: VarDataBaseVO = await query(clone._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, clone.index).select_vo<VarDataBaseVO>();
             if (bdddata) {
                 ConsoleHandler.log('...trouvé on met à jour');
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
@@ -280,7 +640,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.set_var_conf();
         this.set_editable_field();
 
-        let self = this;
+        const self = this;
         await all_promises([
             this.intersect_in(),
             (async () => {
@@ -329,7 +689,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     let aggregated_var_param = null;
 
-                    for (let var_data_index in datas) {
+                    for (const var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
@@ -368,7 +728,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private selectVar() {
 
-        if (this.can_inline_edit && !this.is_inline_editing) {
+        if (this.can_edit && !this.is_inline_editing) {
             if (VarsClientController.getInstance().inline_editing_cb) {
                 VarsClientController.getInstance().inline_editing_cb();
             }
@@ -430,7 +790,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let params = [this.var_data_value];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -454,22 +814,22 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+        const res = SimpleDatatableFieldVO.createNew("value").setModuleTable(ModuleTableController.module_tables_by_vo_type[this.var_param._type]);
         if (this.filter_obj) {
-            let filter_type: string = this.filter_obj.type;
+            const filter_type: string = this.filter_obj.type;
 
             switch (filter_type) {
                 case FilterObj.FILTER_TYPE_tstz:
                     throw new Error('Not implemented');
 
                 case FilterObj.FILTER_TYPE_hour:
-                    res.field_type = ModuleTableField.FIELD_TYPE_hour;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_hour;
                     break;
                 case FilterObj.FILTER_TYPE_amount:
-                    res.field_type = ModuleTableField.FIELD_TYPE_amount;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_amount;
                     break;
                 case FilterObj.FILTER_TYPE_percent:
-                    res.field_type = ModuleTableField.FIELD_TYPE_prct;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_prct;
                     break;
                 case FilterObj.FILTER_TYPE_toFixedCeil:
                 case FilterObj.FILTER_TYPE_toFixedFloor:
@@ -477,353 +837,20 @@ export default class VarDataRefComponent extends VueComponentBase {
                 case FilterObj.FILTER_TYPE_padHour:
                 case FilterObj.FILTER_TYPE_positiveNumber:
                 case FilterObj.FILTER_TYPE_hideZero:
-                    res.field_type = ModuleTableField.FIELD_TYPE_float;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_float;
                     break;
                 case FilterObj.FILTER_TYPE_bignum:
-                    res.field_type = ModuleTableField.FIELD_TYPE_int;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_int;
                     break;
                 case FilterObj.FILTER_TYPE_boolean:
-                    res.field_type = ModuleTableField.FIELD_TYPE_boolean;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_boolean;
                     break;
                 case FilterObj.FILTER_TYPE_truncate:
-                    res.field_type = ModuleTableField.FIELD_TYPE_string;
+                    res.field_type = ModuleTableFieldVO.FIELD_TYPE_string;
                     break;
             }
         }
 
         this.editable_field = res;
-    }
-
-    get is_show_import_aggregated(): boolean {
-        return (this.show_import_aggregated && this.aggregated_var_param) ? true : false;
-    }
-
-    get var_data_value_tooltip() {
-        let toshow: boolean = false;
-
-        let res = null;
-
-        if (this.is_show_public_tooltip && this.has_public_tooltip) {
-            res = this.public_tooltip;
-        }
-
-        if (!this.show_tooltip) {
-            return res;
-        }
-
-        if ((this.var_data == null) || (this.var_data_value == null)) {
-            return res;
-        }
-
-        if (this.show_tooltip_prefix) {
-            res = (res ? res + '<hr>' : '') + this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
-        } else {
-            res = (res ? res : '') + '<ul>';
-        }
-
-
-        let formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-
-        let value: any = this.var_data_value;
-
-        if (this.filter) {
-            let params = [value];
-
-            if (!!this.filter_additional_params) {
-                params = params.concat(this.filter_additional_params);
-            }
-
-            value = this.filter.apply(null, params);
-        }
-
-        if (this.show_tooltip_maj) {
-            res += this.label('VarDataRefComponent.var_data_value_tooltip', {
-                value: value,
-                formatted_date: formatted_date,
-            });
-
-            toshow = true;
-        }
-
-        if (!!this.var_data_value_import_tooltip && this.show_tooltip_import) {
-            res += this.var_data_value_import_tooltip;
-
-            toshow = true;
-        }
-
-        res += this.label('VarDataRefComponent.var_data_value_tooltip_suffix');
-
-        return toshow ? res : null;
-    }
-
-    get var_data_value_import_tooltip() {
-
-        if (!this.var_data_value_is_imported && !this.is_show_import_aggregated) {
-            return null;
-        }
-
-        let formatted_date: string = null;
-
-        if (this.is_show_import_aggregated) {
-            if ((this.aggregated_var_param as any).ts_ranges) {
-                formatted_date = Dates.format(RangeHandler.getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
-                    ModuleFormatDatesNombres.FORMAT_YYYYMMDD
-                );
-            } else {
-                formatted_date = Dates.format(this.aggregated_var_param.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-            }
-        } else {
-            formatted_date = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
-        }
-
-        let value: any = (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value;
-
-        if (this.filter) {
-            let params = [value];
-
-            if (!!this.filter_additional_params) {
-                params = params.concat(this.filter_additional_params);
-            }
-
-            value = this.filter.apply(null, params);
-        }
-
-        return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
-            value: value,
-            formatted_date: formatted_date,
-        });
-    }
-
-    get public_tooltip() {
-        if ((!this.var_conf) || (!this.var_conf.show_help_tooltip)) {
-            return null;
-        }
-
-        return this.t(this.public_explaination_code_text);
-    }
-
-    get has_public_tooltip(): boolean {
-        if ((!this.var_param) || (!this.public_tooltip)) {
-            return null;
-        }
-
-        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
-    }
-
-    /**
-     * cf VarDescExplainComponent
-     */
-    get public_explaination_code_text(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return VarsController.get_translatable_public_explaination_by_var_id(this.var_param.var_id);
-    }
-
-    get is_selected_var(): boolean {
-        if ((!this.isDescMode) || (!this.getDescSelectedVarParam)) {
-            return false;
-        }
-        return this.getDescSelectedVarParam.index == this.var_param.index;
-    }
-
-    get contextmenu_items(): any {
-        let contextmenu_items: any = {};
-
-        if (this.can_explain_var) {
-            // contextmenu_items['explain_var'] = {
-            //     name: this.label('VarDataRefComponent.contextmenu.explain_var'),
-            //     disabled: function (key, opt) {
-            //         let elt = opt.$trigger[0];
-
-            //         if (!elt) {
-            //             return true;
-            //         }
-
-            //         return elt.getAttribute('var_param_index') == null;
-            //     },
-            //     callback: async (key, opt) => {
-            //         let elt = opt.$trigger[0];
-
-            //         if (!elt) {
-            //             return;
-            //         }
-
-            //         // let raw_value = elt.getAttribute('var_data_raw_copyable_value');
-            //         // if (!raw_value) {
-            //         //     return;
-            //         // }
-
-            //         let var_param_index = elt.getAttribute('var_param_index');
-            //         if (!var_param_index) {
-            //             return;
-            //         }
-
-            //         ConsoleHandler.log(await ModuleVar.getInstance().explain_var(var_param_index));
-            //     }
-            // };
-        }
-
-        contextmenu_items['copy_raw_value'] = {
-            name: this.label('VarDataRefComponent.contextmenu.copy_raw_value'),
-            disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return true;
-                }
-
-                return elt.getAttribute('var_data_raw_copyable_value') == null;
-            },
-            callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return;
-                }
-
-                let raw_value = elt.getAttribute('var_data_raw_copyable_value');
-                if (!raw_value) {
-                    return;
-                }
-
-                await navigator.clipboard.writeText(raw_value.toString());
-                await this.$snotify.success(this.label('copied_to_clipboard'));
-            }
-        };
-
-        contextmenu_items['copy_formatted_value'] = {
-            name: this.label('VarDataRefComponent.contextmenu.copy_formatted_value'),
-            disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return true;
-                }
-
-                return elt.getAttribute('var_data_formatted_copyable_value') == null;
-            },
-            callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return;
-                }
-
-                let formatted_value = elt.getAttribute('var_data_formatted_copyable_value');
-                if (!formatted_value) {
-                    return;
-                }
-
-                await navigator.clipboard.writeText(formatted_value.toString());
-                await this.$snotify.success(this.label('copied_to_clipboard'));
-            }
-        };
-
-        contextmenu_items['copy_var_param_index'] = {
-            name: this.label('VarDataRefComponent.contextmenu.copy_var_param_index'),
-            disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return true;
-                }
-
-                return elt.getAttribute('var_param_index') == null;
-            },
-            callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return;
-                }
-
-                let var_param_index = elt.getAttribute('var_param_index');
-                if (!var_param_index) {
-                    return;
-                }
-
-                await navigator.clipboard.writeText(var_param_index.toString());
-                await this.$snotify.success(this.label('copied_to_clipboard'));
-            }
-        };
-
-        contextmenu_items['sep1'] = "---------";
-
-        contextmenu_items['clearimport'] = {
-            name: this.label('VarDataRefComponent.contextmenu.clearimport'),
-            disabled: function (key, opt) {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return true;
-                }
-
-                return (elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true');
-            },
-            callback: async (key, opt) => {
-                let elt = opt.$trigger[0];
-
-                if (!elt) {
-                    return;
-                }
-
-                if ((elt.getAttribute('can_inline_edit') != 'true') || (elt.getAttribute('var_data_value_is_imported') != 'true')) {
-                    return;
-                }
-
-                let var_param_index = elt.getAttribute('var_param_index');
-
-                if (!var_param_index) {
-                    return;
-                }
-
-                let param = VarDataBaseVO.from_index(var_param_index);
-
-                await query(param._type).filter_by_text_eq(field_names<VarDataBaseVO>()._bdd_only_index, var_param_index).delete_vos();
-                await this.$snotify.success(this.label('VarDataRefComponent.contextmenu.importcleared'));
-            }
-        };
-
-
-        return contextmenu_items;
-    }
-
-    get var_data_formatted_copyable_value() {
-        let res = '';
-
-        if ((!!this.var_data) && ((this.var_data_value != 0) || (!this.consider_zero_value_as_null)) && ((this.var_data_value != null) || this.null_value_replacement)) {
-            if (!!this.prefix) {
-                res += this.prefix;
-            }
-
-            if ((this.var_data_value === 0) && this.zero_value_replacement) {
-                res += this.zero_value_replacement;
-            } else if ((this.var_data_value === null) && this.null_value_replacement) {
-                res += this.null_value_replacement;
-            }
-
-            if ((this.var_data_value !== 0) || ((this.var_data_value === 0) && (!this.zero_value_replacement))) {
-                if (this.filter) {
-                    res += this.filtered_value;
-                } else {
-                    res += this.var_data_value;
-                }
-            }
-
-            if (!!this.suffix) {
-                res += this.suffix;
-            }
-        } else {
-            if (!this.is_being_updated) {
-                res += this.null_value_replacement;
-            }
-        }
-        return res;
-    }
-
-    get var_data_raw_copyable_value() {
-        return this.var_data_value;
     }
 }

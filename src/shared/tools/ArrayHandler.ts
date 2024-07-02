@@ -1,7 +1,7 @@
 export default class ArrayHandler {
 
     public static removeDuplicateStrings(src: string[]): string[] {
-        let map_by_string: { [key: string]: boolean } = {};
+        const map_by_string: { [key: string]: boolean } = {};
 
         src.forEach((value) => {
             map_by_string[value] = true;
@@ -72,13 +72,13 @@ export default class ArrayHandler {
             return true;
         }
 
-        let c = Array.from(b);
-        for (let i in a) {
-            let ae = a[i];
+        const c = Array.from(b);
+        for (const i in a) {
+            const ae = a[i];
 
             let foundi = null;
-            for (let j in c) {
-                let ce = c[j];
+            for (const j in c) {
+                const ce = c[j];
 
                 if (ce == ae) {
                     foundi = j;

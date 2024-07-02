@@ -5,6 +5,11 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 
 export default class PixelVarDataController {
 
+    private static instance: PixelVarDataController = null;
+
+    protected constructor() {
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): PixelVarDataController {
         if (!PixelVarDataController.instance) {
@@ -13,25 +18,20 @@ export default class PixelVarDataController {
         return PixelVarDataController.instance;
     }
 
-    private static instance: PixelVarDataController = null;
-
-    protected constructor() {
-    }
-
     /**
      * Renvoie le nombre de pixels concernés par ce param. 1 => indique que le param est un pixel
      * @param var_data le vardata à tester
      */
     public get_pixel_card(var_data: VarDataBaseVO): number {
 
-        let varconf = VarsController.var_conf_by_id[var_data.var_id];
+        const varconf = VarsController.var_conf_by_id[var_data.var_id];
         let prod_cardinaux = 1;
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
+        const pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
-            let card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]);
+            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
+            const card = RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_name]);
             prod_cardinaux *= card;
         }
 

@@ -11,7 +11,7 @@ import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailEventVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailEventVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -20,6 +20,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import SendInBlueMailServerController from './SendInBlueMailServerController';
 import SendInBlueServerController from './SendInBlueServerController';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleSendInBlueServer extends ModuleServerBase {
 
@@ -46,19 +47,19 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SendInBlue'
         }, 'menu.menuelements.admin.SendInBlueAdminVueModule.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Paramètres'
         }, 'menu.menuelements.admin.SendInBlueVO.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'API'
         }, 'sendinblue.account.api'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'PARTNER'
         }, 'sendinblue.account.partner'));
 
@@ -72,7 +73,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSendInBlue.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'SendInBlue'
         }));
 
@@ -80,7 +81,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleSendInBlue.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration de SendInBlue'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
@@ -91,16 +92,16 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
+        const mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
 
         if ((!mail) || (!mail.message_id)) {
             ConsoleHandler.error('sendinblue_refresh_mail_events:mail not found or !message_id:' + mail_id);
             return;
         }
 
-        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq(field_names<MailEventVO>().mail_id, mail.id).select_vos<MailEventVO>();
 
-        let api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
+        const api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
             SendInBlueMailServerController.PATH_STATS_EVENTS + '?messageId=' + encodeURIComponent(mail.message_id) + '&email=' + mail.email + '&sort=desc');
 
@@ -114,7 +115,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             }
         });
 
-        for (let i in api_res.events) {
+        for (const i in api_res.events) {
             await this.update_mail_event(mail, api_res.events[i], bdd_events);
         }
     }
@@ -132,9 +133,9 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
         // Contexte serveur pour la suite
 
-        let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
-            .filter_by_text_eq('message_id', event.messageId)
-            .filter_by_text_eq('email', event.email)
+        const mails: MailVO[] = await query(MailVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<MailVO>().message_id, event.messageId)
+            .filter_by_text_eq(field_names<MailVO>().email, event.email)
             .exec_as_server()
             .select_vos<MailVO>();
 
@@ -145,20 +146,20 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let mail = mails[0];
+        const mail = mails[0];
 
         if (!mail) {
             ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
             return;
         }
 
-        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
+        const bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq(field_names<MailEventVO>().mail_id, mail.id).exec_as_server().select_vos<MailEventVO>();
 
         await this.update_mail_event(mail, event, bdd_events);
     }
 
     private async update_mail_event(mail: MailVO, event: SendInBlueMailEventVO, bdd_events: MailEventVO[]) {
-        let new_event = new MailEventVO();
+        const new_event = new MailEventVO();
 
         switch (event.event) {
             case 'request':
@@ -220,8 +221,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
          */
         let found = false;
 
-        for (let i in bdd_events) {
-            let bdd_event = bdd_events[i];
+        for (const i in bdd_events) {
+            const bdd_event = bdd_events[i];
 
             if ((bdd_event.event == new_event.event) &&
                 (bdd_event.event_date == new_event.event_date) &&

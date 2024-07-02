@@ -176,6 +176,14 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    .align_content_right.mt-2(v-tooltip='label("table_widget_column_conf.align_content_right")')
+                        toggle-button(
+                            @change="switch_align_content_right" 
+                            :value="column.align_content_right" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.align_content_right.right'), unchecked: label('table_widget_column_conf.editable_column.align_content_right.default')}")
+
                     template(v-if='is_type_number_vo_field_ref')
                         toggle-button(
                             @change="switch_sum_numeral_datas" 
@@ -320,6 +328,10 @@
                                         template(v-for='custom_filter in get_custom_filters')
                                             .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
+                .custom_class_css.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.custom_class_css') }}
+                    input.form-control(type="text" v-model="tmp_custom_class_css")
 
                 hr.my-12
                 .color_configuration_section.mt-3
@@ -387,7 +399,7 @@
                                     i.fa-solid.fa-plus(aria-hidden="true")
                                     span {{ label('table_widget_column_conf.editable_column.conditional_cell_color.add') }}
 
-                
+
                 hr.my-12
 
                 .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')

@@ -110,7 +110,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {Promise<void>}
      */
     private async save_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<void> {
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_viewer.save_favorites_filters.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -263,7 +263,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         let options: FavoritesFiltersWidgetOptionsVO = null;
 
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }

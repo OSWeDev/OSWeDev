@@ -294,15 +294,15 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: TimeSegment[] = [];
+        const res: TimeSegment[] = [];
 
         let date: number = Dates.startOf(start, time_segment_type);
-        let stop_at: number = Dates.startOf(end, time_segment_type);
+        const stop_at: number = Dates.startOf(end, time_segment_type);
 
         while (((!exclude_end) && (date <= stop_at)) || (exclude_end && ((date < stop_at) ||
             (Dates.isSame(date, stop_at, TimeSegment.TYPE_DAY) && Dates.isSame(stop_at, start, TimeSegment.TYPE_DAY))))) {
 
-            let timeSegment: TimeSegment = TimeSegment.createNew(date, time_segment_type);
+            const timeSegment: TimeSegment = TimeSegment.createNew(date, time_segment_type);
             res.push(timeSegment);
 
             date = Dates.add(date, 1, time_segment_type);
@@ -360,15 +360,15 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: TimeSegment[] = [];
-        let parentTimeSegment: TimeSegment = TimeSegmentHandler.getParentTimeSegment(timeSegment);
+        const res: TimeSegment[] = [];
+        const parentTimeSegment: TimeSegment = TimeSegmentHandler.getParentTimeSegment(timeSegment);
 
         if (!parentTimeSegment) {
             return null;
         }
 
-        let start_period = TimeSegmentHandler.getStartTimeSegment(parentTimeSegment);
-        let end_period = TimeSegmentHandler.getEndTimeSegment(timeSegment);
+        const start_period = TimeSegmentHandler.getStartTimeSegment(parentTimeSegment);
+        const end_period = TimeSegmentHandler.getEndTimeSegment(timeSegment);
 
         return TimeSegmentHandler.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
     }
@@ -447,9 +447,9 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: TimeSegment[] = [];
+        const res: TimeSegment[] = [];
 
-        for (let i in timeSegments) {
+        for (const i in timeSegments) {
             res.push(TimeSegmentHandler.getPreviousTimeSegment(timeSegments[i], type, offset));
         }
         return res;
@@ -467,7 +467,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: TimeSegment = TimeSegment.createNew(timeSegment.index, timeSegment.type);
+        const res: TimeSegment = TimeSegment.createNew(timeSegment.index, timeSegment.type);
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
 
         res.index = Dates.add(res.index, -offset, type);
@@ -505,9 +505,9 @@ export default class TimeSegmentHandler {
     }
 
     public static getCorrespondingTimeSegments(dates: number[], type: number, offset: number = 0): TimeSegment[] {
-        let res: TimeSegment[] = [];
+        const res: TimeSegment[] = [];
 
-        for (let i in dates) {
+        for (const i in dates) {
             res.push(TimeSegmentHandler.getCorrespondingTimeSegment(dates[i], type, offset));
         }
         return res;
@@ -519,7 +519,7 @@ export default class TimeSegmentHandler {
             type = TimeSegment.TYPE_DAY;
         }
 
-        let res: TimeSegment = TimeSegment.createNew(date, type);
+        const res: TimeSegment = TimeSegment.createNew(date, type);
         res.index = Dates.startOf(res.index, type);
 
         if (offset) {
@@ -534,7 +534,7 @@ export default class TimeSegmentHandler {
             return false;
         }
 
-        let end: number = Dates.add(time_segment.index, 1, time_segment.type);
+        const end: number = Dates.add(time_segment.index, 1, time_segment.type);
         return (date >= time_segment.index) && (date < end);
     }
 
@@ -553,8 +553,8 @@ export default class TimeSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: number = TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type).index;
-        let end: number = TimeSegmentHandler.getEndTimeSegment(TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type));
+        const start: number = TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type).index;
+        const end: number = TimeSegmentHandler.getEndTimeSegment(TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type));
 
         return (ts2.index >= start) && (ts2.index < end);
     }
@@ -585,9 +585,9 @@ export default class TimeSegmentHandler {
     }
 
     public static get_date_indexes(segments: TimeSegment[]): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in segments) {
+        for (const i in segments) {
             res.push(segments[i].dateIndex);
         }
 
@@ -607,7 +607,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let min = RangeHandler.getSegmentedMin(ts_range, segment_type);
+        const min = RangeHandler.getSegmentedMin(ts_range, segment_type);
         return TimeSegmentHandler.getCorrespondingTimeSegment(min, segment_type);
     }
 
@@ -616,7 +616,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let max = RangeHandler.getSegmentedMax(ts_range, segment_type);
+        const max = RangeHandler.getSegmentedMax(ts_range, segment_type);
         return TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
     }
 
@@ -642,10 +642,10 @@ export default class TimeSegmentHandler {
     }
 
     private static get_ts_ranges_(segments: TimeSegment[]): TSRange[] {
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
-        for (let i in segments) {
-            let range: TSRange = TSRange.createNew(
+        for (const i in segments) {
+            const range: TSRange = TSRange.createNew(
                 TimeSegmentHandler.getStartTimeSegment(segments[i]),
                 TimeSegmentHandler.getEndTimeSegment(segments[i]),
                 true,

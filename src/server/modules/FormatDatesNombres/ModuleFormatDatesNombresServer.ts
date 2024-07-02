@@ -1,6 +1,6 @@
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import DefaultTranslationManager from "../../../shared/modules/Translation/DefaultTranslationManager";
-import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import ModuleServerBase from "../ModuleServerBase";
 
 export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
@@ -23,7 +23,7 @@ export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             {
                 'fr-fr': 'DD/MM/YYYY',
                 'de-de': 'D.M.YYYY',

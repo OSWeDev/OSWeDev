@@ -33,6 +33,8 @@ export default class EvolizContactClientVO {
     public enabled: boolean;
     // Contact consent informations ; Default: "without" ; Enum: "without" "authorized" "unauthorized"
     public consent: string;
+    // Contact is client's favorite
+    public favorite: boolean;
     // Custom field
     public custom_fields: {
         [field_name: string]: {

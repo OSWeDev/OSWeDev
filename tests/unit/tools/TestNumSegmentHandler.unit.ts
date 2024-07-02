@@ -11,7 +11,7 @@ import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
 test('NumSegmentHandler: test decNumSegment', () => {
     expect(NumSegmentHandler.decNumSegment(null, NumSegment.TYPE_INT)).toStrictEqual(null);
 
-    let numSeg = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
+    const numSeg = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
     let numSegTest = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
 
     NumSegmentHandler.decNumSegment(null, NumSegment.TYPE_INT, 0);
@@ -30,7 +30,7 @@ test('NumSegmentHandler: test decNumSegment', () => {
 test('NumSegmentHandler: test incNumSegment', () => {
     expect(NumSegmentHandler.incNumSegment(null, NumSegment.TYPE_INT)).toStrictEqual(null);
 
-    let numSeg = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
+    const numSeg = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
     let numSegTest = NumSegment.fromNumAndType(2, NumSegment.TYPE_INT);
 
     NumSegmentHandler.incNumSegment(null, NumSegment.TYPE_INT, 0);
@@ -46,7 +46,7 @@ test('NumSegmentHandler: test incNumSegment', () => {
 });
 
 test('NumSegmentHandler: test isEltInSegment', () => {
-    let segment = { index: 1, type: NumSegment.TYPE_INT };
+    const segment = { index: 1, type: NumSegment.TYPE_INT };
     expect(NumSegmentHandler.isEltInSegment(2, null)).toStrictEqual(false);
     expect(NumSegmentHandler.isEltInSegment(null, segment)).toStrictEqual(false);
     expect(NumSegmentHandler.isEltInSegment(2, segment)).toStrictEqual(false);
@@ -54,7 +54,7 @@ test('NumSegmentHandler: test isEltInSegment', () => {
 });
 
 test('NumSegmentHandler: test incNum', () => {
-    let segment = { index: 1, type: NumSegment.TYPE_INT };
+    const segment = { index: 1, type: NumSegment.TYPE_INT };
     expect(NumSegmentHandler.incNum(2, null, 3)).toStrictEqual(5);
     expect(NumSegmentHandler.incNum(2, NumSegment.TYPE_INT, null)).toStrictEqual(2);
     expect(NumSegmentHandler.incNum(null, NumSegment.TYPE_INT, 13)).toStrictEqual(13);
@@ -62,7 +62,7 @@ test('NumSegmentHandler: test incNum', () => {
 });
 
 test('NumSegmentHandler: test decNum', () => {
-    let segment = { index: 1, type: NumSegment.TYPE_INT };
+    const segment = { index: 1, type: NumSegment.TYPE_INT };
     expect(NumSegmentHandler.decNum(2, null, 3)).toStrictEqual(-1);
     expect(NumSegmentHandler.decNum(2, NumSegment.TYPE_INT, null)).toStrictEqual(2);
     expect(NumSegmentHandler.decNum(null, NumSegment.TYPE_INT, 13)).toStrictEqual(-13);

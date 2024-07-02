@@ -1,0 +1,51 @@
+.OseliaReferrerNotFoundComponent {
+
+    padding-top: 50vh;
+    margin: auto;
+    width: fit-content;
+    margin-top: -16em;
+
+    .OseliaReferrerNotFoundComponent_content_wrapper {
+
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 1em;
+        background-color: #f9f9f9;
+
+        .OseliaReferrerNotFoundComponent__header {
+            text-align: left;
+            max-width: 320px;
+            margin: auto;
+
+            font-size: xx-large;
+        }
+
+        .OseliaReferrerNotFoundComponent__content {
+            text-align: left;
+            margin: auto;
+            max-width: 320px;
+
+            margin-bottom: 1em;
+            font-size: larger;
+            margin-top: 1em;
+        }
+
+        .OseliaReferrerNotFoundComponent__buttons {
+            text-align: right;
+            margin: auto;
+            max-width: 320px;
+
+            button.btn.btn-sm {
+                font-size: larger;
+
+                &.btn-secondary {
+                    margin-right: .4em;
+                }
+
+                i {
+                    margin-left: .4em;
+                }
+            }
+        }
+    }
+}

@@ -26,7 +26,7 @@ export default class ServerAPIController implements IAPIController {
     ): (...params) => Promise<U> {
 
         return async (...params) => {
-            let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
+            const apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
 
             if ((!apiDefinition) || !apiDefinition.SERVER_HANDLER) {
 

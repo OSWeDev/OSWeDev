@@ -28,7 +28,5 @@ export default class ModulePowershell extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

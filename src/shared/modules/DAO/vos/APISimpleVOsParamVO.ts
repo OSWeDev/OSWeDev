@@ -6,6 +6,9 @@ import IDistantVOBase from '../../IDistantVOBase';
 
 export default class APISimpleVOsParamVO implements IAPIParamTranslator<APISimpleVOsParamVO> {
 
+    public constructor(
+        public vos: IDistantVOBase[]) { }
+
     public static fromParams(
         vos: IDistantVOBase[]): APISimpleVOsParamVO {
 
@@ -15,9 +18,6 @@ export default class APISimpleVOsParamVO implements IAPIParamTranslator<APISimpl
     public static getAPIParams(param: APISimpleVOsParamVO): any[] {
         return [param.vos];
     }
-
-    public constructor(
-        public vos: IDistantVOBase[]) { }
 }
 
 export const APISimpleVOsParamVOStatic: IAPIParamTranslatorStatic<APISimpleVOsParamVO> = APISimpleVOsParamVO;

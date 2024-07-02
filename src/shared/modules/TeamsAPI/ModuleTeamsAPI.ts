@@ -20,7 +20,5 @@ export default class ModuleTeamsAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

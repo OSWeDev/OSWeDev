@@ -1,29 +1,28 @@
-import pg_promise from 'pg-promise';
-import { IDatabase } from 'pg-promise';
+import pg_promise, { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
 import LocaleManager from '../../../shared/tools/LocaleManager';
-import ConfigurationService from '../../env/ConfigurationService';
-import EnvParam from '../../env/EnvParam';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
 import MemoryUsageStat from '../../MemoryUsageStat';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ConfigurationService from '../../env/ConfigurationService';
+import EnvParam from '../../env/EnvParam';
 import ServerAPIController from '../API/ServerAPIController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
+import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 import ModuleServiceBase from '../ModuleServiceBase';
 import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import DBDisconnectionManager from '../../../shared/tools/DBDisconnectionManager';
-import DBDisconnectionServerHandler from '../DAO/disconnection/DBDisconnectionServerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -54,7 +53,7 @@ export default abstract class ForkedProcessWrapperBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
-        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
@@ -77,11 +76,11 @@ export default abstract class ForkedProcessWrapperBase {
             this.UID = parseInt(process.argv[2]);
 
             for (let i = 3; i < process.argv.length; i++) {
-                let arg = process.argv[i];
+                const arg = process.argv[i];
 
-                let splitted = arg.split(':');
-                let type: string = splitted[0];
-                let name: string = splitted[1];
+                const splitted = arg.split(':');
+                const type: string = splitted[0];
+                const name: string = splitted[1];
 
                 switch (type) {
                     case BGThreadServerController.ForkedProcessType:
@@ -114,33 +113,34 @@ export default abstract class ForkedProcessWrapperBase {
 
         const envParam: EnvParam = ConfigurationService.node_configuration;
 
-        let connectionString = envParam.CONNECTION_STRING;
+        const connectionString = envParam.connection_string;
 
-        let pgp: pg_promise.IMain = pg_promise({});
-        let db: IDatabase<any> = pgp(connectionString);
+        const pgp: pg_promise.IMain = pg_promise({});
+        const db: IDatabase<any> = pgp(connectionString);
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
         }
-        await this.modulesService.register_all_modules(db);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        await this.modulesService.init_db(db);
+        await this.modulesService.register_all_modules();
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:END');
         }
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(null);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 
@@ -149,23 +149,23 @@ export default abstract class ForkedProcessWrapperBase {
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations(false);
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
-        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
-        let locales_corrected = {};
-        for (let lang in locales) {
+        const locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        const locales_corrected = {};
+        for (const lang in locales) {
             if (lang && lang.indexOf('-') >= 0) {
-                let lang_parts = lang.split('-');
+                const lang_parts = lang.split('-');
                 if (lang_parts.length == 2) {
                     locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
                 }
             }
         }
-        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        const i18nextInit = I18nextInit.getInstance(locales_corrected);
         LocaleManager.getInstance().i18n = i18nextInit.i18next;
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 

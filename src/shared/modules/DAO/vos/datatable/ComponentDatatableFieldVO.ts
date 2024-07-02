@@ -1,6 +1,6 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 
 export default class ComponentDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
@@ -11,12 +11,14 @@ export default class ComponentDatatableFieldVO<T, U> extends DatatableField<T, U
         component_name: string,
         parameter_datatable_field_uid: string): ComponentDatatableFieldVO<any, any> {
 
-        let res = new ComponentDatatableFieldVO();
+        const res = new ComponentDatatableFieldVO();
         res.init(ComponentDatatableFieldVO.API_TYPE_ID, DatatableField.COMPONENT_FIELD_TYPE, datatable_field_uid);
         res.component_name = component_name;
         res.parameter_datatable_field_uid = parameter_datatable_field_uid;
         return res;
     }
+
+    public _type: string = ComponentDatatableFieldVO.API_TYPE_ID;
 
     public component_name: string;
     public parameter_datatable_field_uid: string;
@@ -34,7 +36,7 @@ export default class ComponentDatatableFieldVO<T, U> extends DatatableField<T, U
             return null;
         }
 
-        return "fields.labels." + this.vo_type_full_name + ".__component__" + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels." + this.vo_type_full_name + ".__component__" + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): U {

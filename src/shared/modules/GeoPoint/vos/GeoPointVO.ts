@@ -5,7 +5,7 @@ export default class GeoPointVO {
         if (!x || !y) {
             return null;
         }
-        let geopoint: GeoPointVO = new GeoPointVO();
+        const geopoint: GeoPointVO = new GeoPointVO();
 
         geopoint.x = x;
         geopoint.y = y;

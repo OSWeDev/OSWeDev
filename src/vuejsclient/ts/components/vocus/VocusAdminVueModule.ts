@@ -35,7 +35,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleVocus.POLICY_BO_ACCESS,
@@ -48,7 +48,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
             );
 
         let url: string = VocusAdminVueModule.ROUTE_PATH;
-        let main_route_name: string = 'Vocus';
+        const main_route_name: string = 'Vocus';
 
         this.routes.push({
             path: url,
@@ -72,7 +72,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             ModuleVocus.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

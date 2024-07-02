@@ -83,7 +83,7 @@ export default class Dates {
                 return Math.floor(60 * 60 * 24 * 7 * nb + date);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
-                let date_ys = new Date(date * 1000);
+                const date_ys = new Date(date * 1000);
                 return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
 
             default:
@@ -111,14 +111,14 @@ export default class Dates {
                 return date - date % 60;
             case TimeSegment.TYPE_MONTH:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                let mm = moment.unix(date).utc();
+                const mm = moment.unix(date).utc();
                 return mm.startOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date - ((date - 345600) % 604800); // 01/01/70 = jeudi
             case TimeSegment.TYPE_YEAR:
-                let my = moment.unix(date).utc();
+                const my = moment.unix(date).utc();
                 return my.startOf('year').unix();
 
             default:
@@ -144,17 +144,17 @@ export default class Dates {
             case TimeSegment.TYPE_MINUTE:
                 return date - date % 60 + 60 - 1;
             case TimeSegment.TYPE_MONTH:
-                let mm = moment.unix(date).utc();
+                const mm = moment.unix(date).utc();
                 return mm.endOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date - ((date - 345600) % 604800) + 604800 - 1;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                let mryms = moment.unix(date).utc();
+                const mryms = moment.unix(date).utc();
                 return mryms.endOf('month').add(1, 'year').unix();
             case TimeSegment.TYPE_YEAR:
-                let my = moment.unix(date).utc();
+                const my = moment.unix(date).utc();
                 return my.endOf('year').unix();
 
             default:
@@ -170,7 +170,7 @@ export default class Dates {
             return null;
         }
 
-        let mm = localized ? moment.unix(date) : moment.unix(date).utc();
+        const mm = localized ? moment.unix(date) : moment.unix(date).utc();
         return mm.format(formatstr);
     }
 
@@ -219,8 +219,8 @@ export default class Dates {
                 coef = 60;
                 break;
             case TimeSegment.TYPE_MONTH:
-                let mma = moment.unix(a).utc();
-                let mmb = moment.unix(b).utc();
+                const mma = moment.unix(a).utc();
+                const mmb = moment.unix(b).utc();
                 return mma.diff(mmb, 'month', precise);
             case TimeSegment.TYPE_SECOND:
                 return a - b;
@@ -229,16 +229,16 @@ export default class Dates {
                 break;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
-                let mya = moment.unix(a).utc();
-                let myb = moment.unix(b).utc();
+                const mya = moment.unix(a).utc();
+                const myb = moment.unix(b).utc();
                 return mya.diff(myb, 'year', precise);
 
             default:
                 return null;
         }
 
-        let start_a = Dates.startOf(a, segmentation);
-        let start_b = Dates.startOf(b, segmentation);
+        const start_a = Dates.startOf(a, segmentation);
+        const start_b = Dates.startOf(b, segmentation);
         return precise ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 

@@ -47,9 +47,9 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
             updaters = ResetFiltersWidgetController.getInstance().reseters[this.dashboard_page.dashboard_id][this.dashboard_page.id];
         }
 
-        let promises = [];
+        const promises = [];
 
-        for (let page_widget_id in updaters) {
+        for (const page_widget_id in updaters) {
             promises.push(updaters[page_widget_id]());
         }
 
@@ -67,7 +67,7 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
 
         let options: ResetFiltersWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ResetFiltersWidgetOptions;
                 options = options ? new ResetFiltersWidgetOptions() : null;
             }

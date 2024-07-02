@@ -20,7 +20,7 @@ export default class PushDataCronWorkersHandler {
     private constructor() {
         ModuleCronServer.getInstance().registerCronWorker(CleanOldNotifsCronWorker.getInstance());
 
-        let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
+        const planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
         planCronWorker.date_heure_planifiee = Dates.now();
         planCronWorker.intervale_recurrence = 1;

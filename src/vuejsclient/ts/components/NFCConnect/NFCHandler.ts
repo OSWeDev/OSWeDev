@@ -26,13 +26,13 @@ export default class NFCHandler {
     public async make_sure_nfc_is_initialized(): Promise<boolean> {
         try {
 
-            if (!!this.ndef) {
+            if (this.ndef) {
                 return true;
             }
 
             this.has_access_to_nfc = await ModuleAccessPolicy.getInstance().testAccess(ModuleNFCConnect.POLICY_FO_ACCESS);
 
-            let NDEFReader = window['NDEFReader'];
+            const NDEFReader = window['NDEFReader'];
 
             if (!NDEFReader) {
                 ConsoleHandler.log("NFCReader is not available");
@@ -51,7 +51,7 @@ export default class NFCHandler {
                 ConsoleHandler.log("Argh! Cannot read data from the NFC tag. Try another one?");
             });
 
-            let self = this;
+            const self = this;
 
             this.ndef.addEventListener("reading", async ({ message, serialNumber }) => {
 
@@ -65,14 +65,14 @@ export default class NFCHandler {
                     return;
                 }
 
-                let logged_user_id = VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null;
+                const logged_user_id = VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null;
 
                 if (!logged_user_id) {
 
                     // Si on est pas co :
                     //  - on tente la connexion. Si ça marche pas, on indique que le tag n'est pas reconnu.
 
-                    let connected = await ModuleNFCConnect.getInstance().connect(serialNumber);
+                    const connected = await ModuleNFCConnect.getInstance().connect(serialNumber);
                     if (!connected) {
                         VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.readinginfo.tag_not_registered'));
                         ConsoleHandler.log("NFC tag is not registered and needs to be linked to connected user first...");
@@ -87,7 +87,7 @@ export default class NFCHandler {
                 //      - si oui on propose de se connecter à ce compte
                 //      - si non on propose de lier le tag au compte
 
-                let is_other_account: boolean = await ModuleNFCConnect.getInstance().checktag_user(serialNumber, logged_user_id);
+                const is_other_account: boolean = await ModuleNFCConnect.getInstance().checktag_user(serialNumber, logged_user_id);
                 if (is_other_account) {
                     VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.switchconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.switchconfirmation.title'), {
                         timeout: 10000,
@@ -120,7 +120,7 @@ export default class NFCHandler {
                 }
 
                 // Pas un autre compte, mais tag existant : on est donc sur un tag assigné au compte, on propose pas de l'ajouter...
-                let own_tags = await ModuleNFCConnect.getInstance().get_own_tags();
+                const own_tags = await ModuleNFCConnect.getInstance().get_own_tags();
                 if (own_tags && own_tags.find((tag) => tag.name == serialNumber)) {
                     VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.tag_already_added'));
 
@@ -150,7 +150,7 @@ export default class NFCHandler {
     }
 
     private add_tag_confirmation(serialNumber: string) {
-        let self = this;
+        const self = this;
 
         VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.title'), {
             timeout: 10000,
@@ -191,7 +191,7 @@ export default class NFCHandler {
     }
 
     private write_url_to_tag_confirmation(serialNumber: string) {
-        let self = this;
+        const self = this;
 
         VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.title'), {
             timeout: 10000,

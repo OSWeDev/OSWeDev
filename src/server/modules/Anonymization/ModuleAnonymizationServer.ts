@@ -6,10 +6,9 @@ import ModuleAnonymization from '../../../shared/modules/Anonymization/ModuleAno
 import AnonymizationFieldConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
 import AnonymizationUserConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -46,7 +45,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAnonymization.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Anonymisation'
         }));
 
@@ -54,7 +53,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleAnonymization.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration de l\'anonymisation'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -66,57 +65,57 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Ville' },
             'anonym_conf.anonymizer.city'
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Prénom' },
             'anonym_conf.anonymizer.firstname',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nom' },
             'anonym_conf.anonymizer.lastname',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Prénom Nom' },
             'anonym_conf.anonymizer.fullname',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Téléphone' },
             'anonym_conf.anonymizer.phone',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Email' },
             'anonym_conf.anonymizer.email',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Code Postal' },
             'anonym_conf.anonymizer.postal',
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Adresse' },
             'anonym_conf.anonymizer.address'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.anonym_field_conf.___LABEL___'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.admin.AnonymizationAdminVueModule.___LABEL___'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Modification impossible sur data anonymisée.' },
-            "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION
+            "check_is_anonymise.failed" + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION
         ));
 
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         postCreateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postUpdateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
         postDeleteTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController, ServerAnonymizationController.reload_conf);
@@ -130,8 +129,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     }
 
     public async late_configuration(is_generator: boolean): Promise<void> {
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduletable = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const moduletable = ModuleTableController.module_tables_by_vo_type[i];
 
             // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.anonymise.bind(ServerAnonymizationController));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait

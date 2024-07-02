@@ -1,35 +1,37 @@
+import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import VueComponentBase from '../../../../VueComponentBase';
-import './ShowFavoritesFiltersWidgetComponent.scss';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
-import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
+import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManager';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import FavoritesFiltersWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import { cloneDeep, isEmpty, isEqual } from 'lodash';
+import { field_names } from '../../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import ReloadFiltersWidgetController from '../../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FavoritesFiltersModalComponent from '../modal/FavoritesFiltersModalComponent';
-import FieldValueFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
-import MonthFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
-import YearFilterWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManager';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
-import TableWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import FavoritesFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
-import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import './ShowFavoritesFiltersWidgetComponent.scss';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -126,7 +128,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options(): void {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -194,7 +196,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         this.tmp_active_favorites_filters_option = null;
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -210,7 +212,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         whole_active_field_filters = this.get_active_field_filters ?? null;
 
         // Say if has active field filter
-        let has_active_field_filter: boolean = !!(whole_active_field_filters);
+        const has_active_field_filter: boolean = !!(whole_active_field_filters);
 
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display active favorites filter application fail alert
@@ -220,15 +222,15 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(whole_active_field_filters);
         }
 
-        let field_sort: VOFieldRefVO = this.vo_field_ref;
+        const field_sort: VOFieldRefVO = this.vo_field_ref;
 
         let tmp: FavoritesFiltersVO[] = [];
 
-        let query_api_type_id: string = this.vo_field_ref.api_type_id;
+        const query_api_type_id: string = this.vo_field_ref.api_type_id;
 
-        tmp = await query(query_api_type_id)
-            .filter_by_text_eq('page_id', this.dashboard_page.id.toString())
-            .filter_by_text_eq('owner_id', this.data_user.id.toString())
+        tmp = await query(query_api_type_id) // ???????? FIXME TODO TESTER pourquoi c'est pas simplement FavoritesFiltersVO.API_TYPE_ID ?????
+            .filter_by_text_eq(field_names<FavoritesFiltersVO>().page_id, this.dashboard_page.id.toString())
+            .filter_by_text_eq(field_names<FavoritesFiltersVO>().owner_id, this.data_user.id.toString())
             .set_limit(this.widget_options?.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .select_vos<FavoritesFiltersVO>();
@@ -340,7 +342,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async reset_all_visible_active_field_filters() {
 
-        let promises = [];
+        const promises = [];
         for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
             const db_reseters = ResetFiltersWidgetController.getInstance().reseters[db_id];
 
@@ -500,7 +502,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_viewer.delete_favorites_filters.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -550,7 +552,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.async(self.label('dashboard_viewer.save_favorites_filters.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -596,7 +598,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         let options: FavoritesFiltersWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }
@@ -633,17 +635,17 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             return false;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id];
         if (!moduletable) {
             return false;
         }
 
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        const field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         if (!field) {
             return false;
         }
 
-        return field.field_type == ModuleTableField.FIELD_TYPE_translatable_text;
+        return field.field_type == ModuleTableFieldVO.FIELD_TYPE_translatable_text;
     }
 
     /**

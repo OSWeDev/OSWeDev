@@ -36,7 +36,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleCMS.POLICY_BO_ACCESS,
@@ -48,7 +48,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
                 )
             );
 
-        let contentsComponentsBranch: MenuElementVO =
+        const contentsComponentsBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleCMS.POLICY_BO_ACCESS,
@@ -75,7 +75,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        let pageComponentsBranch: MenuElementVO =
+        const pageComponentsBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleCMS.POLICY_BO_ACCESS,
@@ -87,8 +87,8 @@ export default class CMSAdminVueModule extends VueModuleBase {
                 )
             );
 
-        for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
-            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+        for (const i in ModuleCMS.getInstance().registered_template_components_by_type) {
+            const registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
             await CRUDComponentManager.getInstance().registerCRUD(
                 registered_template_component.type_id,
@@ -106,7 +106,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
-        let structureComponentsBranch: MenuElementVO =
+        const structureComponentsBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleCMS.POLICY_BO_ACCESS,

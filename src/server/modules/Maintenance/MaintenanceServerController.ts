@@ -85,20 +85,20 @@ export default class MaintenanceServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        let planned_maintenance = await this.get_planned_maintenance_vo();
+        const planned_maintenance = await this.get_planned_maintenance_vo();
 
         if (!(planned_maintenance && (!planned_maintenance.maintenance_over))) {
             return;
         }
 
-        let timeout_info: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES, 1, 180000);
+        const timeout_info: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES, 1, 180000);
         if ((!!this.informed_users_tstzs[user_id]) && (Dates.add(this.informed_users_tstzs[user_id], timeout_info, TimeSegment.TYPE_MINUTE) > Dates.now())) {
             return;
         }
 
-        let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
-        let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
-        let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
+        const timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
+        const timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
+        const timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
 
         if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text, true);

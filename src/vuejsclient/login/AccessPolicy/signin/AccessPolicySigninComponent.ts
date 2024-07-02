@@ -31,19 +31,19 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
 
     private async beforeCreate() {
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
-        if (!!logged_id) {
+        const logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (logged_id) {
             window.location = this.redirect_to as any;
         }
 
-        let signin_allowed: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
+        const signin_allowed: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
         if (!signin_allowed) {
             window.location = this.redirect_to as any;
         }
     }
     private async mounted() {
         await this.load_logo_url();
-        for (let j in this.$route.query) {
+        for (const j in this.$route.query) {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
@@ -62,7 +62,7 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
     // On log si possible, si oui on redirige
     private async signin() {
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('signin.start'), () =>
             new Promise(async (resolve, reject) => {
 

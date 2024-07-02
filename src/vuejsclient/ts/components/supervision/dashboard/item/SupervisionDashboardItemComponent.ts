@@ -9,6 +9,8 @@ import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./SupervisionDashboardItemComponent.pug'),
@@ -153,8 +155,8 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             return;
         }
 
-        const moduletable = VOsTypesManager.moduleTables_by_voType[item._type];
-        const field = moduletable.getFieldFromId('last_update');
+        const moduletable = ModuleTableController.module_tables_by_vo_type[item._type];
+        const field = moduletable.getFieldFromId(field_names<ISupervisedItem>().last_update);
 
         this.formatted_date = item.last_update ? Dates.format_segment(item.last_update, field.segmentation_type) : "-";
     }

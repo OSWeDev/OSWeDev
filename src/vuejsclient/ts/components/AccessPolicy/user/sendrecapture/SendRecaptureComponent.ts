@@ -33,8 +33,8 @@ export default class SendRecaptureComponent extends VueComponentBase {
     }
 
     get mail_field_id() {
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (const i in this.columns) {
+            const column = this.columns[i];
             if (column.api_type_id != UserVO.API_TYPE_ID) {
                 continue;
             }
@@ -59,7 +59,7 @@ export default class SendRecaptureComponent extends VueComponentBase {
 
         await ModuleAccessPolicy.getInstance().sendrecapture(this.vo[this.mail_field_id]);
         this.snotify.success(this.label('sendrecapture.ok'));
-        let self = this;
+        const self = this;
         setTimeout(() => {
             if (self.$refs['mailstatsevents'] && self.$refs['mailstatsevents']['sendinblue_refresh_mail_events']) {
                 self.$refs['mailstatsevents']['sendinblue_refresh_mail_events']();

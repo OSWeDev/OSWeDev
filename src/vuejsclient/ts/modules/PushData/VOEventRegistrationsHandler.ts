@@ -15,8 +15,8 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
         room_id: string,
         cb: (created_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
-        let room_fields: string[] = [];
-        for (let i in room_vo) {
+        const room_fields: string[] = [];
+        for (const i in room_vo) {
             room_fields.push(i);
             room_fields.push(JSON.stringify(room_vo[i]));
         }
@@ -26,7 +26,7 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
             ModulePushData.getInstance().join_io_room(room_fields);
         }
 
-        let cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+        const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
         VOEventRegistrationsHandler.registered_vo_create_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_CREATION, room_vo, room_fields, room_id, cb_id);
@@ -65,8 +65,8 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
         room_id: string,
         cb: (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
-        let room_fields: string[] = [];
-        for (let i in room_vo) {
+        const room_fields: string[] = [];
+        for (const i in room_vo) {
             room_fields.push(i);
             room_fields.push(JSON.stringify(room_vo[i]));
         }
@@ -76,7 +76,7 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
             await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
-        let cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+        const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
         VOEventRegistrationsHandler.registered_vo_update_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_UPDATE, room_vo, room_fields, room_id, cb_id);
@@ -87,8 +87,8 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
         room_id: string,
         cb: (deleted_vo: IDistantVOBase) => void): Promise<VOEventRegistrationKey> {
 
-        let room_fields: string[] = [];
-        for (let i in room_vo) {
+        const room_fields: string[] = [];
+        for (const i in room_vo) {
             room_fields.push(i);
             room_fields.push(JSON.stringify(room_vo[i]));
         }
@@ -98,7 +98,7 @@ export default class VOEventRegistrationsHandler extends VueModuleBase {
             await ModulePushData.getInstance().join_io_room(room_fields);
         }
 
-        let cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
+        const cb_id: number = VOEventRegistrationsHandler.VO_EVENTS_CB_ID++;
         VOEventRegistrationsHandler.registered_vo_delete_callbacks[room_id][cb_id] = cb;
 
         return new VOEventRegistrationKey(VOEventRegistrationKey.EVENT_TYPE_DELETION, room_vo, room_fields, room_id, cb_id);

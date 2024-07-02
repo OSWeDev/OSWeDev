@@ -64,7 +64,7 @@ export default class AnimationController {
     }
 
     public getMessageModuleForPrct(vo: AnimationModuleVO, prct: number): AnimationMessageModuleVO {
-        let mms: AnimationMessageModuleVO[] = this.getMessagesModule(vo);
+        const mms: AnimationMessageModuleVO[] = this.getMessagesModule(vo);
 
         if (!mms || !mms.length || prct == null) {
             return null;
@@ -88,14 +88,14 @@ export default class AnimationController {
             return false;
         }
 
-        let reponses: AnimationReponseVO[] = this.getReponses(qr);
+        const reponses: AnimationReponseVO[] = this.getReponses(qr);
 
         if (!reponses || !reponses.length) {
             return false;
         }
 
-        for (let i in reponses) {
-            let u_reponse: boolean = uqr.reponses.indexOf(reponses[i].id) >= 0;
+        for (const i in reponses) {
+            const u_reponse: boolean = uqr.reponses.indexOf(reponses[i].id) >= 0;
 
             if (reponses[i].valid != u_reponse) {
                 return false;
@@ -118,7 +118,7 @@ export default class AnimationController {
     }
 
     public isMobile(): boolean {
-        let screenWidth: number = window.innerWidth;
+        const screenWidth: number = window.innerWidth;
 
         if (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             return true;
@@ -136,7 +136,7 @@ export default class AnimationController {
             return true;
         }
 
-        let screenWidth: number = window.innerWidth;
+        const screenWidth: number = window.innerWidth;
 
         return (screenWidth <= 850) ? true : false;
     }

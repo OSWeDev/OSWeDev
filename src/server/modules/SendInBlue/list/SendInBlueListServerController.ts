@@ -45,7 +45,7 @@ export default class SendInBlueListServerController {
         }
 
         if (!folderId) {
-            let folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
+            const folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
 
             if (!folder) {
                 return null;
@@ -54,7 +54,7 @@ export default class SendInBlueListServerController {
             folderId = folder.id;
         }
 
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_LIST,
             { name: listName, folderId: folderId }
@@ -69,8 +69,8 @@ export default class SendInBlueListServerController {
 
     public async getOrCreateDefaultFolder(): Promise<SendInBlueFolderDetailVO> {
         let folder: SendInBlueFolderDetailVO = null;
-        let folders: SendInBlueFoldersVO = await this.getFolders();
-        let default_folder_list: string = await SendInBlueServerController.getInstance().getDefaultFolderList();
+        const folders: SendInBlueFoldersVO = await this.getFolders();
+        const default_folder_list: string = await SendInBlueServerController.getInstance().getDefaultFolderList();
 
         if (folders && folders.folders) {
             folder = folders.folders.find((f) => f.name == default_folder_list);
@@ -84,7 +84,7 @@ export default class SendInBlueListServerController {
     }
 
     public async createFolder(folderName: string): Promise<SendInBlueFolderDetailVO> {
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_FOLDER,
             { name: folderName }
@@ -126,7 +126,7 @@ export default class SendInBlueListServerController {
             return null;
         }
 
-        let postParams: any = {
+        const postParams: any = {
             email: contact.email,
             updateEnabled: updateEnabled,
         };
@@ -159,7 +159,7 @@ export default class SendInBlueListServerController {
             postParams.attributes.SMS = contact.sms;
         }
 
-        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
+        const res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_CONTACT,
             postParams
@@ -181,7 +181,7 @@ export default class SendInBlueListServerController {
     }
 
     public async createAndAddExistingContactsToList(name: string, contacts: SendInBlueContactVO[], force_create_or_update: boolean = false): Promise<SendInBlueListDetailVO> {
-        let list: SendInBlueListDetailVO = await this.createList(name);
+        const list: SendInBlueListDetailVO = await this.createList(name);
 
         if (!list) {
             return null;
@@ -198,9 +198,9 @@ export default class SendInBlueListServerController {
         }
 
         if (force_create_or_update) {
-            let promises: Array<Promise<any>> = [];
+            const promises: Array<Promise<any>> = [];
 
-            for (let i in contacts) {
+            for (const i in contacts) {
                 // On en profite pour ajouter ou mettre a jour
                 promises.push((async () => await this.createContact(contacts[i]))());
             }
@@ -208,7 +208,7 @@ export default class SendInBlueListServerController {
             await all_promises(promises);
         }
 
-        let emails: string[] = contacts.map((c) => c.email);
+        const emails: string[] = contacts.map((c) => c.email);
         let n: number = 0;
         let batch: string[];
 
@@ -233,7 +233,7 @@ export default class SendInBlueListServerController {
      * @param offset
      */
     public async purgeLists(limit: number, offset: number): Promise<boolean> {
-        let folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
+        const folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
 
         while (limit > 0) {
             let limit_query: number = limit;
@@ -242,7 +242,7 @@ export default class SendInBlueListServerController {
                 limit_query = 50;
             }
 
-            let lists: SendInBlueListsVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueListsVO>(
+            const lists: SendInBlueListsVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueListsVO>(
                 ModuleRequest.METHOD_GET,
                 SendInBlueListServerController.PATH_FOLDER + '/' + folder.id.toString() + '/lists?limit=' + limit_query + '&offset=' + offset
             );
@@ -251,7 +251,7 @@ export default class SendInBlueListServerController {
                 return true;
             }
 
-            for (let i in lists.lists) {
+            for (const i in lists.lists) {
                 await SendInBlueServerController.getInstance().sendRequestFromApp(ModuleRequest.METHOD_DELETE, SendInBlueListServerController.PATH_LIST + '/' + lists.lists[i].id.toString());
             }
 

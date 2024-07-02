@@ -56,7 +56,7 @@ export default class FavoritesFiltersVOService {
         const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
 
         // Get date offset (by using "every", "granularity" and "day_in_month")
-        let last_export_at_date = new Date(last_export_at_ts);
+        const last_export_at_date = new Date(last_export_at_ts);
         let offset_day_ts = null; // (timestamp)
         switch (granularity) {
             case 'day':
@@ -221,7 +221,7 @@ export default class FavoritesFiltersVOService {
             const favorites_filters: FavoritesFiltersVO = all_favorites_filters[fav_i];
 
             // Can I export ?
-            let can_export = FavoritesFiltersVOService.can_export_favorites_filters(favorites_filters);
+            const can_export = FavoritesFiltersVOService.can_export_favorites_filters(favorites_filters);
 
             if (!can_export) {
                 continue;

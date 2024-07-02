@@ -1,6 +1,8 @@
+import { field_names } from '../../tools/ObjectHandler';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import ExpressSessionVO from './vos/ExpressSessionVO';
 
 export default class ModuleExpressDBSessions extends Module {
@@ -24,23 +26,20 @@ export default class ModuleExpressDBSessions extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeExpressSessionVO();
     }
 
     private initializeExpressSessionVO() {
-        let sid = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, 'SID', true).unique(true);
+        const sid = ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, 'SID', true).unique();
 
-        let fields = [
+        const fields = [
             sid,
-            new ModuleTableField('sess', ModuleTableField.FIELD_TYPE_string, 'Session JSON', false),
-            new ModuleTableField('expire', ModuleTableField.FIELD_TYPE_tstz, 'Date d\'expiration', false),
+            ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().sess, ModuleTableFieldVO.FIELD_TYPE_string, 'Session JSON', false),
+            ModuleTableFieldController.create_new(ExpressSessionVO.API_TYPE_ID, field_names<ExpressSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'expiration', false),
         ];
 
-        let table = new ModuleTable(this, ExpressSessionVO.API_TYPE_ID, () => new ExpressSessionVO(), fields, sid, 'Sessions Express');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, ExpressSessionVO, sid, 'Sessions Express');
     }
 
 }

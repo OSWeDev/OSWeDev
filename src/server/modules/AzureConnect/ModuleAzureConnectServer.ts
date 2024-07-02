@@ -89,7 +89,7 @@ export default class ModuleAzureConnectServer extends ModuleServerBase {
             const accessToken = result.token.access_token;
             const refreshToken = result.token.refresh_token;
 
-            let holder: AzureConnectedUserVO = await query(AzureConnectedUserVO.API_TYPE_ID).filter_by_id(parseInt(state)).select_vo<AzureConnectedUserVO>();
+            const holder: AzureConnectedUserVO = await query(AzureConnectedUserVO.API_TYPE_ID).filter_by_id(parseInt(state)).select_vo<AzureConnectedUserVO>();
             holder.access_token = accessToken;
             holder.refresh_token = refreshToken;
 

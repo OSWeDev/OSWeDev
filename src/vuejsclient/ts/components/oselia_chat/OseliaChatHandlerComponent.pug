@@ -1,0 +1,9 @@
+.oselia_chat_handler(v-if="isActive")
+    .openclose_oselia_chat_handler_module_wrapper
+        template(v-if="!isOpened")
+            button.btn.btn-secondary(type="button" @click='openClick()') {{ label('on_page_translation.open_button_title') }}
+                span.badge
+        template(v-if="isOpened && oselia_url")
+            button.btn.btn-secondary(type="button" @click='closeClick()') {{ label('on_page_translation.close_button_title') }}
+                span.badge
+            iframe(:src="oselia_url" id="OseliaContainer")

@@ -1,8 +1,9 @@
 
 import { FunctionParameters } from 'openai/resources';
 import IDistantVOBase from '../../IDistantVOBase';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
-export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
+export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, IVersionedVO {
 
     public static API_TYPE_ID: string = "gpt_assistant_function_param";
 
@@ -44,9 +45,18 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
 
     public weight: number;
 
+    // IVersionedVO
+    public parent_id: number;
+    public trashed: boolean;
+    public version_num: number;
+    public version_author_id: number;
+    public version_timestamp: number;
+    public version_edit_author_id: number;
+    public version_edit_timestamp: number;
+
     public to_GPT_FunctionParameters(): FunctionParameters {
 
-        let res: FunctionParameters = {
+        const res: FunctionParameters = {
             type: GPTAssistantAPIFunctionParamVO.TYPE_LABELS[this.type],
             description: this.gpt_funcparam_description,
         };
@@ -60,10 +70,10 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase {
         }
 
         if ((this.type == GPTAssistantAPIFunctionParamVO.TYPE_OBJECT) && this.object_fields) {
-            let fields: { [field_name: string]: FunctionParameters } = {};
+            const fields: { [field_name: string]: FunctionParameters } = {};
 
-            for (let i in this.object_fields) {
-                let field: GPTAssistantAPIFunctionParamVO = this.object_fields[i];
+            for (const i in this.object_fields) {
+                const field: GPTAssistantAPIFunctionParamVO = this.object_fields[i];
 
                 fields[field.gpt_funcparam_name] = field.to_GPT_FunctionParameters();
             }

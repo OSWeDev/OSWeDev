@@ -23,8 +23,6 @@ export default class FakeFVarController extends VarServerControllerBase<FakeData
             }, 6),
             {}, {}, {}, {}
         );
-
-        this.optimization__has_no_imports = true;
     }
 
     protected getValue(varDAGNode: VarDAGNode): number {

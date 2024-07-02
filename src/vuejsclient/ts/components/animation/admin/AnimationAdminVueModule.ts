@@ -50,7 +50,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menubranch: MenuElementVO =
+        const menubranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleAnimation.POLICY_BO_ACCESS,
@@ -142,7 +142,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointerTheme = MenuElementVO.create_new(
+        const menuPointerTheme = MenuElementVO.create_new(
             ModuleAnimation.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             AnimationImportThemeAdminVue.ROUTE_NAME_IMPORT,
@@ -172,7 +172,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointerModule = MenuElementVO.create_new(
+        const menuPointerModule = MenuElementVO.create_new(
             ModuleAnimation.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             AnimationImportModuleAdminVue.ROUTE_NAME_IMPORT,
@@ -201,7 +201,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointerQR = MenuElementVO.create_new(
+        const menuPointerQR = MenuElementVO.create_new(
             ModuleAnimation.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             AnimationImportQRAdminVue.ROUTE_NAME_IMPORT,
@@ -266,13 +266,13 @@ export default class AnimationAdminVueModule extends VueModuleBase {
     }
 
     private pushFieldsCrud(cruds: Array<Datatable<any>>, field: DatatableField<any, any>) {
-        for (let i in cruds) {
+        for (const i in cruds) {
             cruds[i].pushField(field);
         }
     }
 
     private removeFieldsCrud(cruds: Array<Datatable<any>>, module_table_field_ids: string[]) {
-        for (let i in cruds) {
+        for (const i in cruds) {
             cruds[i].removeFields(module_table_field_ids);
         }
     }

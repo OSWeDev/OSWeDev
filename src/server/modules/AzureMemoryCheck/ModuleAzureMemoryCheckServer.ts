@@ -41,7 +41,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        let activated = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000);
+        const activated = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAzureMemoryCheckServer.AZURE_CHECK_MEMORY_ACTIVATION_PARAM_NAME, false, 180000);
 
         if (!activated) {
             return;
@@ -55,7 +55,7 @@ export default class ModuleAzureMemoryCheckServer extends ModuleServerBase {
     private async getAvailableMemory(): Promise<void> {
 
         // Get params
-        let promises = [];
+        const promises = [];
 
         let activated = false;
         let clientId: string = null;

@@ -44,17 +44,17 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
 
         registerPageTranslations(state: IOnPageTranslationState, infos: Array<{ translation_code: string, missing: boolean }>) {
 
-            for (let i in infos) {
+            for (const i in infos) {
                 OnPageTranslationStore_.mutations.registerPageTranslation(state, infos[i]);
             }
         },
 
         clear(state: IOnPageTranslationState) {
             // On clear tout sauf les traductions manquantes
-            let res: { [translation_code: string]: OnPageTranslationItem } = {};
+            const res: { [translation_code: string]: OnPageTranslationItem } = {};
 
-            for (let i in state.page_translations) {
-                let page_translation = state.page_translations[i];
+            for (const i in state.page_translations) {
+                const page_translation = state.page_translations[i];
 
                 if (page_translation.missing) {
                     res[page_translation.translation_code] = page_translation;

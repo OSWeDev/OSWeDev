@@ -31,15 +31,15 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
     public getters: GetterTree<IAlertState, AlertContext>;
     public mutations = {
         clear_alerts: (state: IAlertState): any => {
-            let alerts = state.alerts;
+            const alerts = state.alerts;
 
             state.alerts = {};
 
-            for (let i in alerts) {
-                let path_alerts = alerts[i];
+            for (const i in alerts) {
+                const path_alerts = alerts[i];
 
-                for (let j in path_alerts) {
-                    let alert = path_alerts[j];
+                for (const j in path_alerts) {
+                    const alert = path_alerts[j];
 
                     if (alert.pinned) {
 
@@ -59,9 +59,9 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                 return;
             }
 
-            for (let i in state.alerts[alert.path]) {
-                let a = state.alerts[alert.path][i];
-                let index = parseInt(i.toString());
+            for (const i in state.alerts[alert.path]) {
+                const a = state.alerts[alert.path][i];
+                const index = parseInt(i.toString());
 
                 if (a.type > alert.type) {
                     continue;
@@ -82,8 +82,8 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
         },
 
         register_alerts: (state: IAlertState, alerts: Alert[]) => {
-            for (let j in alerts) {
-                let alert = alerts[j];
+            for (const j in alerts) {
+                const alert = alerts[j];
 
                 if (!state.alerts[alert.path]) {
                     Vue.set(state.alerts as any, alert.path, [alert]);
@@ -91,9 +91,9 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                 }
 
                 let inserted: boolean = false;
-                for (let i in state.alerts[alert.path]) {
-                    let a = state.alerts[alert.path][i];
-                    let index = parseInt(i.toString());
+                for (const i in state.alerts[alert.path]) {
+                    const a = state.alerts[alert.path][i];
+                    const index = parseInt(i.toString());
 
                     if (a.type > alert.type) {
                         continue;
@@ -123,10 +123,10 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
             let new_alerts: Alert[] = [];
 
             // On reprend les alertes pinned :
-            if (!!state.alerts[params.alert_path]) {
+            if (state.alerts[params.alert_path]) {
 
-                for (let i in state.alerts[params.alert_path]) {
-                    let alert: Alert = state.alerts[params.alert_path][i];
+                for (const i in state.alerts[params.alert_path]) {
+                    const alert: Alert = state.alerts[params.alert_path][i];
 
                     if (!alert.pinned) {
                         continue;

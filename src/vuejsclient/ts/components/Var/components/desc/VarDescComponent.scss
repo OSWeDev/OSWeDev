@@ -1,5 +1,12 @@
 .var_desc {
 
+    i.is_pixel {
+        color: #002454;
+        font-size: large;
+        vertical-align: middle;
+        cursor: help;
+    }
+
     .var_desc_header {
         background: #2c3e50;
         text-align: right;

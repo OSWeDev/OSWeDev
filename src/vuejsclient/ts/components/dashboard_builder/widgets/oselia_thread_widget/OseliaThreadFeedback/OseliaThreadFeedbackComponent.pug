@@ -1,0 +1,14 @@
+.oselia_thread_feedback
+
+    template(v-for='current_user_feedback in current_user_feedbacks')
+        Oseliafeedbackeditorcomponent(
+            :feedback='current_user_feedback')
+    
+    .oselia_thread_feedback__add_feedback
+        .oselia_thread_feedback__add_feedback_container
+            .oselia_thread_feedback__add_feedback_text {{ label('oselia_thread_feedback.oselia_thread_feedback__add_feedback_text') }}
+            .oselia_thread_feedback__add_feedback_positive(v-on:click='add_feedback(true)')
+                i.fa-duotone.fa-thumbs-up
+            .oselia_thread_feedback__add_feedback_negative(v-on:click='add_feedback(false)')
+                i.fa-duotone.fa-thumbs-down
+

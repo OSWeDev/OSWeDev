@@ -1,0 +1,27 @@
+.var_chart_options_item_component {
+    .options_separator_lvl2 {
+        margin-top: 1em;
+        text-align: center;
+        text-decoration: underline;
+    }
+
+    > div {
+        margin-bottom: 0.5em;
+
+        .input_label {
+            font-size: small;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.3em;
+            border: solid 1px #bbb;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border: none;
+            }
+        }
+    }
+}
