@@ -4,12 +4,18 @@ import { VectorStoreFile } from "openai/resources/beta/vector-stores/files";
 import GPTAssistantAPIErrorVO from "../../../../shared/modules/GPT/vos/GPTAssistantAPIErrorVO";
 import GPTAssistantAPIServerSyncAssistantsController from "./GPTAssistantAPIServerSyncAssistantsController";
 import GPTAssistantAPIServerSyncFilesController from "./GPTAssistantAPIServerSyncFilesController";
+import GPTAssistantAPIServerSyncRunsController from "./GPTAssistantAPIServerSyncRunsController";
+import GPTAssistantAPIServerSyncThreadMessagesController from "./GPTAssistantAPIServerSyncThreadMessagesController";
 import GPTAssistantAPIServerSyncThreadsController from "./GPTAssistantAPIServerSyncThreadsController";
 import GPTAssistantAPIServerSyncVectorStoresController from "./GPTAssistantAPIServerSyncVectorStoresController";
 
 export default class GPTAssistantAPIServerSyncController {
 
     public static async sync_all_datas(): Promise<void> {
+
+        GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises = {};
+        GPTAssistantAPIServerSyncThreadMessagesController.already_syncing_thread_message = {};
+        GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises = {};
 
         await GPTAssistantAPIServerSyncAssistantsController.sync_assistants();
         await GPTAssistantAPIServerSyncFilesController.sync_files();

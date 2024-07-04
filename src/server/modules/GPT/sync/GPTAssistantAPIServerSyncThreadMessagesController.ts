@@ -29,9 +29,9 @@ import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerS
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
-    private static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
+    public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
-    private static already_syncing_thread_message: { [id: number]: boolean } = {};
+    public static already_syncing_thread_message: { [id: number]: boolean } = {};
 
     /**
      * GPTAssistantAPIThreadMessageContentVO
@@ -475,6 +475,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }
@@ -538,6 +539,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }
@@ -593,6 +595,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }

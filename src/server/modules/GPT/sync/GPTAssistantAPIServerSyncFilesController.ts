@@ -14,6 +14,7 @@ import FileServerController from '../../File/FileServerController';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
+import ModuleOselia from '../../../../shared/modules/Oselia/ModuleOselia';
 
 export default class GPTAssistantAPIServerSyncFilesController {
 
@@ -308,9 +309,16 @@ export default class GPTAssistantAPIServerSyncFilesController {
             .exec_as_server()
             .select_vo<GPTAssistantAPIFileVO>();
         const gpt_file_obj = await ModuleGPTServer.openai.files.retrieve(gpt_file_id);
-        const file_content = await ModuleGPTServer.openai.files.content(gpt_file_id);
+        let file_content: any = await ModuleGPTServer.openai.files.content(gpt_file_id);
+
+        if (typeof file_content === 'object') {
+            file_content = Buffer.from(await file_content.arrayBuffer());
+        }
+
+        const folder: string = ModuleFile.SECURED_FILES_ROOT + 'gpt';
+        const filepath: string = folder + '/' + gpt_file_id;
         let vo_file: FileVO = await query(FileVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, gpt_file_id, GPTAssistantAPIFileVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<FileVO>().path, filepath)
             .exec_as_server()
             .select_vo<FileVO>();
 
@@ -324,10 +332,9 @@ export default class GPTAssistantAPIServerSyncFilesController {
 
         if (!vo_file) {
             vo_file = new FileVO();
-            vo_file.is_secured = true;
+            vo_file.is_secured = false; // Pareil ici TODO FIXME voir ce qu'on sécurise et comment sur ces fichiers
 
-            const filepath: string = ModuleFile.SECURED_FILES_ROOT + 'gpt/' + gpt_file_id;
-            await FileServerController.getInstance().makeSureThisFolderExists(filepath);
+            await FileServerController.getInstance().makeSureThisFolderExists(folder);
             FileServerController.getInstance().writeFile(filepath, file_content);
             vo_file.path = filepath;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo_file);
