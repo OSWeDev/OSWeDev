@@ -20,6 +20,9 @@ export default class ChartJsPieComponent extends VueComponentBase {
     @Prop({ default: [] })
     private labels: string[];
 
+    @Prop({ default: {} })
+    private plugins: any[];
+
     @Prop({ default: [] })
     private datasets: ChartJsDataSetDescriptor[];
 
@@ -38,24 +41,38 @@ export default class ChartJsPieComponent extends VueComponentBase {
 
     @Watch('datasets')
     @Watch('chart_options_')
+    @Watch('chart_plugins')
     @Watch('labels')
     private onchanges() {
         this.debounced_rerender();
     }
 
     private rerender() {
-        this['renderChart'](this.chart_data, this.chart_options);
+        this['renderChart'](this.chart_data, this.chart_options, this.chart_plugins);
     }
 
     get chart_options() {
-        return Object.assign(
-            {
-                plugins: {
-                    labels: false,
-                }
-            },
-            this.options
-        );
+        // return Object.assign(
+        //     {
+        //         plugins: {
+        //             labels: false,
+        //         }
+        //     },
+        //     this.options
+        // );
+        if (this.options.plugins) {
+            return this.options;
+        } else {
+            return
+        }
+    }
+
+    get chart_plugins() {
+        if (this.plugins.length > 0) {
+            return this.plugins;
+        } else {
+            return
+        }
     }
 
     get chart_data() {

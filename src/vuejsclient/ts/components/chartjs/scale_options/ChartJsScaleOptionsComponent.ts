@@ -38,12 +38,17 @@ export default class ChartJsScaleOptionsComponent extends VueComponentBase {
         'linear',
         'logarithmic',
         'category',
+        // 'exponential',
         'time',
-        'radialLinear'
+        // 'radialLinear'
     ];
 
     @Watch('options', { immediate: true, deep: true })
     private on_input_options_changed() {
+        if (this.types_options.includes('')) {
+            this.types_options.splice(this.types_options.indexOf(''), 1);
+        }
+
         if (isEqual(this.options_props, this.options)) {
             return;
         }

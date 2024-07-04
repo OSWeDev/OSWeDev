@@ -8,7 +8,7 @@ import ModuleVar from "../../Var/ModuleVar";
 import VarsController from "../../Var/VarsController";
 import VarDataBaseVO from "../../Var/vos/VarDataBaseVO";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
-import VarLineChartWidgetOptionsVO from "../vos/VarLineChartWidgetOptionsVO";
+import VarRadarChartWidgetOptionsVO from "../vos/VarRadarChartWidgetOptionsVO";
 import VarPieChartWidgetOptionsVO from "../vos/VarPieChartWidgetOptionsVO";
 import FieldFiltersVOManager from "./FieldFiltersVOManager";
 import FieldValueFilterWidgetManager from "./FieldValueFilterWidgetManager";
@@ -37,7 +37,7 @@ export default class VarChartWidgetManager {
         dashboard_api_type_ids: string[],
         field_filters: FieldFiltersVO,
         var_custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        widget_options: VarLineChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
+        widget_options: VarRadarChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
     ): Promise<{
         var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO },
@@ -151,7 +151,7 @@ export default class VarChartWidgetManager {
         dashboard_api_type_ids: string[],
         field_filters: FieldFiltersVO,
         var_custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        widget_options: VarLineChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
+        widget_options: VarRadarChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
     ): Promise<{
         var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO },
@@ -275,7 +275,7 @@ export default class VarChartWidgetManager {
      * @returns {number[]}
      */
     public static get_dimension_values_from_field_filter(
-        widget_options: VarLineChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
+        widget_options: VarRadarChartWidgetOptionsVO | VarPieChartWidgetOptionsVO,
         field_filter: FieldFiltersVO,
     ): number[] {
 

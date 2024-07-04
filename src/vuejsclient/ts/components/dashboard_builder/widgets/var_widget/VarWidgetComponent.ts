@@ -269,7 +269,9 @@ export default class VarWidgetComponent extends VueComponentBase {
                     options.filter_additional_params,
                     options.bg_color,
                     options.fg_color_value,
-                    options.fg_color_text) : null;
+                    options.fg_color_text,
+                    options.icon,
+                    options.elements_array) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -280,6 +282,10 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     get var_filter(): string {
         if (!this.widget_options) {
+            return null;
+        }
+
+        if (this.widget_options.filter_type == 'none') {
             return null;
         }
 

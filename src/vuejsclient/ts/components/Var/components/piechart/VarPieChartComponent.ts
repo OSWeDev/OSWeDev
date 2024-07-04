@@ -14,7 +14,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-
+import VarPieChartWidgetOptions from '../../../dashboard_builder/widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 @Component({
     template: require('./VarPieChartComponent.pug'),
     components: {
@@ -32,13 +33,16 @@ export default class VarPieChartComponent extends VueComponentBase {
     public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
-    public getlabel: (var_param: VarDataBaseVO) => string;
+    public getlabel: (var_param: VarDataBaseVO) => string[];
 
     @Prop({ default: null })
     public var_dataset_descriptor: VarPieDataSetDescriptor;
 
     @Prop({ default: null })
     public options: any;
+
+    @Prop({ default: null })
+    public plugins: any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -54,6 +58,10 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private current_chart_data: any = null;
     private current_chart_options: any = null;
+    private current_chart_plugins: any = null;
+
+    private hovered_index: string = null;
+    private hovered: boolean = false;
 
     private throttled_update_chart_js = ThrottleHelper.declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
     private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
@@ -66,21 +74,25 @@ export default class VarPieChartComponent extends VueComponentBase {
     };
 
     public async created() {
-        window['Chart'] = Chart;
+        let chart = Chart;
+        chart.register(ChartDataLabels)
+        window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
-        await import("chart.js-plugin-labels-dv");
+        // await import("chart.js-plugin-labels-dv");
+        await import("chartjs-plugin-datalabels");
     }
-
+    @Watch('chart_plugins', { immediate: true })
     @Watch('chart_data')
     @Watch('chart_options')
     private async onChartDataChanged() {
-        if (!this.chart_data || !this.chart_options) {
+        if (!this.chart_data || !this.chart_options || !this.chart_plugins) {
             return;
         }
 
         this.current_chart_data = this.chart_data;
         this.current_chart_options = this.chart_options;
+        this.current_chart_plugins = this.chart_plugins;
     }
 
     /**
@@ -129,17 +141,20 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     private var_datas_updater() {
-
         if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
             this.var_datas = null;
             return;
         }
-        const res: { [index: string]: VarDataValueResVO } = {};
+
+        const res: { [id: number]: VarDataValueResVO } = {};
 
         for (const i in this.var_params) {
             const var_param = this.var_params[i];
-
-            res[var_param.index] = VarsClientController.cached_var_datas[var_param.index];
+            if (var_param.index == null) {
+                res[var_param.id] = new VarDataValueResVO().set_value(0);
+            } else {
+                res[var_param.id] = VarsClientController.cached_var_datas[var_param.index];
+            }
         }
         this.var_datas = res;
     }
@@ -165,7 +180,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (const i in this.var_params) {
             const var_param = this.var_params[i];
 
-            if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
+            if ((!this.var_datas) || (!this.var_datas[var_param.id]) || (typeof this.var_datas[var_param.id].value === 'undefined')) {
                 return false;
             }
         }
@@ -205,10 +220,12 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
+            console.log('unregister')
             await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
+            console.log('register')
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
@@ -260,10 +277,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         return Object.assign(
             {
                 options: {
+                    events: ['click', 'mousemove', 'mouseout']
                 },
-                plugins: {
-                    labels: false,
-                },
+
                 onClick: (point, event) => {
                     if (!self.isDescMode) {
                         return;
@@ -278,11 +294,34 @@ export default class VarPieChartComponent extends VueComponentBase {
                             scrollable: true
                         }
                     );
-                }
+                },
+                onHover: (event, chartElement) => {
+                    if (chartElement.length) {
+                        const index = chartElement[0].index;
+                        if (event.type === 'mousemove') {
+                            this.hovered_index = index.toString();
+                            this.hovered = true;
+                        }
+
+                    } else {
+                        this.hovered_index = 'null';
+                        this.hovered = false;
+                    }
+                },
             },
             this.options
         );
     }
+
+    get chart_plugins() {
+        const self = this;
+        let plugins = [
+            this.plugins
+        ]
+
+        return plugins;
+    }
+
 
     get datasets(): any[] {
 
@@ -296,19 +335,36 @@ export default class VarPieChartComponent extends VueComponentBase {
         const backgrounds: string[] = [];
         const bordercolors: string[] = [];
         const borderwidths: number[] = [];
-        for (const j in this.var_params) {
+        for (const j in this.var_params.filter((entry, id, self) =>
+            !self.slice(id + 1).some((otherEntry) => otherEntry.id === entry.id)
+        )) {
             const var_param: VarDataBaseVO = this.var_params[j];
-
             // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
-            dataset_datas.push(this.var_datas[var_param.index].value);
-            if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
-                backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
-            } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
-                backgrounds.push(this.var_dataset_descriptor.backgrounds[0]);
-            } else {
-                backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
-            }
+            dataset_datas.push(this.var_datas[var_param.id].value);
 
+            if (this.hovered) {
+                if (this.hovered_index == j) {
+                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
+                    } else {
+                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF')
+                    }
+                } else {
+                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
+                    } else {
+                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33')
+                    }
+                }
+            } else {
+                if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                    backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
+                } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
+                    backgrounds.push(this.var_dataset_descriptor.backgrounds[0]);
+                } else {
+                    backgrounds.push('#e1ddd5'); // pourquoi #e1ddd5 ? par défaut c'est 'rgba(0, 0, 0, 0.1)'
+                }
+            }
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[j]) {
                 bordercolors.push(this.var_dataset_descriptor.bordercolors[j]);
             } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.bordercolors[0]) {
@@ -324,12 +380,11 @@ export default class VarPieChartComponent extends VueComponentBase {
             } else {
                 borderwidths.push(2);
             }
+
         }
 
         const dataset = {
-            label: (this.var_dataset_descriptor.label_translatable_code) ?
-                this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.get_translatable_name_code(this.var_dataset_descriptor.var_name)),
+            label: '',
             data: dataset_datas,
             backgroundColor: backgrounds,
             borderColor: bordercolors,
@@ -360,11 +415,19 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         try {
 
-            // Issu de Pie
-            (this as any).renderChart(
-                this.chart_data,
-                this.chart_options
-            );
+            if (this.chart_plugins.length > 0) {
+                (this as any).renderChart(
+                    this.chart_data,
+                    this.chart_options,
+                    this.chart_plugins
+                );
+            } else {
+                // Issu de Pie
+                (this as any).renderChart(
+                    this.chart_data,
+                    this.chart_options
+                );
+            }
         } catch (error) {
             // ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
             ConsoleHandler.error('PB:render Pie Chart probablement trop tôt:' + error + ':');
@@ -394,9 +457,16 @@ export default class VarPieChartComponent extends VueComponentBase {
         const res = [];
 
         for (const i in this.var_params) {
-            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            if (this.getlabel && this.getlabel(this.var_params[i])) {
+                if (this.getlabel(this.var_params[i]).length <= 1) {
+                    res.push(this.getlabel(this.var_params[i]))
+                } else {
+                    res.push(this.getlabel(this.var_params[i])[i])
+                }
+            } else {
+                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)))
+            }
         }
-
         return res;
     }
 }
