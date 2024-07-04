@@ -62,6 +62,11 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
     public array_items_type: number;
 
+    /**
+     * A voir si on peut faire évoluer mais pour le moment à saisir en JSON ("1" si string 1 dans le champs de saisie, ou 1 si number 1, etc...)
+     */
+    public default_json_value: string;
+
     public weight: number;
 
     public archived: boolean;
@@ -85,6 +90,10 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
         res.type = GPTAssistantAPIFunctionParamVO.TYPE_FROM_OPENAI[from.type];
         res.gpt_funcparam_description = from.description;
+
+        if (from.default) {
+            res.default_json_value = JSON.stringify(from.default);
+        }
 
         if (from.enum) {
             if (res.type == GPTAssistantAPIFunctionParamVO.TYPE_STRING) {
@@ -128,6 +137,10 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
 
         if (((this.type == GPTAssistantAPIFunctionParamVO.TYPE_NUMBER) || (this.type == GPTAssistantAPIFunctionParamVO.TYPE_INTEGER)) && this.number_enum) {
             res['enum'] = this.number_enum;
+        }
+
+        if (this.default_json_value) {
+            res['default'] = JSON.parse(this.default_json_value);
         }
 
         if ((this.type == GPTAssistantAPIFunctionParamVO.TYPE_OBJECT) && this.object_fields) {

@@ -125,6 +125,7 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         api_type_id_param.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
         api_type_id_param.required = true;
         api_type_id_param.weight = 0;
+        api_type_id_param.default_json_value = null;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(api_type_id_param);
     }
 }

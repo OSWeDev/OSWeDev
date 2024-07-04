@@ -56,6 +56,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_target_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_target_id.string_enum = ["dall-e-2", "dall-e-3"]
             argument_target_id.weight = 1;
+            argument_target_id.default_json_value = "'dall-e-3'";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_target_id);
             const argument_degre_certitude = new GPTAssistantAPIFunctionParamVO();
             argument_degre_certitude.archived = false;
@@ -75,6 +76,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_size.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
             argument_size.weight = 3;
             argument_size.string_enum = ["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"];
+            argument_size.default_json_value = "'1024x1024'";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_size);
             const argument_n = new GPTAssistantAPIFunctionParamVO();
             argument_n.archived = false;
@@ -85,6 +87,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_n.type = GPTAssistantAPIFunctionParamVO.TYPE_INTEGER;
             argument_n.number_enum = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // On limite à 10 pour ne pas surcharger l'API
             argument_n.weight = 4;
+            argument_n.default_json_value = "1";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_n);
         }
     }
