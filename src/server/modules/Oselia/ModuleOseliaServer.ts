@@ -79,7 +79,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_link_user_to_oselia_referrer, this.link_user_to_oselia_referrer.bind(this));
 
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_referrer_name, this.get_referrer_name.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_token_oselia, this.get_token_oselia.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_token_oselia, this.get_token_oselia.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_accept_link, this.accept_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_refuse_link, this.refuse_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
