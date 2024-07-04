@@ -1073,58 +1073,51 @@ export default class GPTAssistantAPIServerController {
                                     const function_args = JSON.parse(tool_call.function.arguments);
 
                                     if (!function_vo) {
-
-                                        // si on a un referrer et des externals apis, on peut tenter de trouver dans ses fonctions
-                                        if (referrer_external_api_by_name && referrer_external_api_by_name[tool_call.function.name]) {
-                                            const referrer_external_api = referrer_external_api_by_name[tool_call.function.name];
-
-                                            try {
-                                                function_response = await ExternalAPIServerController.call_external_api(
-                                                    (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
-                                                    referrer_external_api.external_api_url,
-                                                    function_args,
-                                                    referrer_external_api.external_api_authentication_id
-                                                );
-
-                                                if (!function_response) {
-                                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - function_response null or undefined. Simulating ERROR response.');
-                                                    function_response = "FAILED";
-                                                }
-
-                                                tool_outputs.push({
-                                                    tool_call_id: tool_call.id,
-                                                    output: function_response,
-                                                });
-                                                return;
-                                            } catch (error) {
-                                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - Failed REFERRER ExternalAPI Call - referrer - ' +
-                                                    referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
-                                                function_response = "TECHNICAL MALFUNCTION : REFERRER ExternalAPI Call Failed.";
-                                                throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
-                                                    referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
-                                            }
-                                        }
-
                                         function_response = "UNKNOWN_FUNCTION : Check the name and retry.";
                                         throw new Error('function_vo not found: ' + tool_call.function.name);
+                                    }
+
+                                    // if (!function_vo) {
+
+                                    // si on a un referrer et des externals apis, on peut tenter de trouver dans ses fonctions
+                                    if (referrer_external_api_by_name && referrer_external_api_by_name[tool_call.function.name]) {
+                                        const referrer_external_api = referrer_external_api_by_name[tool_call.function.name];
+
+                                        try {
+                                            function_response = await ExternalAPIServerController.call_external_api(
+                                                (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
+                                                referrer_external_api.external_api_url,
+                                                function_args,
+                                                referrer_external_api.external_api_authentication_id
+                                            );
+
+                                            function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
+                                            return;
+
+                                        } catch (error) {
+                                            ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - Failed REFERRER ExternalAPI Call - referrer - ' +
+                                                referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
+                                            function_response = "TECHNICAL MALFUNCTION : REFERRER ExternalAPI Call Failed.";
+                                            throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
+                                                referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
+                                        }
                                     }
 
                                     const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
                                     function_response = await function_to_call.call(null, ...ordered_args);
+                                    function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
+                                    return;
 
-                                    if (!function_response) {
-                                        ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - function_response null or undefined. Simulating ERROR response.');
-                                        function_response = "FAILED";
-                                    }
                                 } catch (error) {
                                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
+                                    function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
                                 }
-
                                 tool_outputs.push({
                                     tool_call_id: tool_call.id,
                                     output: function_response,
                                 });
+
                             })());
                         }
 
@@ -1166,6 +1159,24 @@ export default class GPTAssistantAPIServerController {
                 return null;
             }
         }
+    }
+
+    private static async handle_function_response(function_response: any, tool_outputs: Array<{ tool_call_id: string; output: any; }>, function_vo: GPTAssistantAPIFunctionVO, tool_call_id: string): Promise<string> {
+        let res: string = function_response;
+
+        if (!function_response) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - function_response null or undefined. Simulating ERROR response.');
+            res = "FAILED";
+        } else if (function_vo.json_stringify_output) {
+            res = JSON.stringify(function_response);
+        }
+
+        tool_outputs.push({
+            tool_call_id: tool_call_id,
+            output: res,
+        });
+
+        return res;
     }
 
     private static async get_availableFunctions_and_availableFunctionsParameters(

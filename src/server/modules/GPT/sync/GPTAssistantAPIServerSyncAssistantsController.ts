@@ -637,6 +637,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
             needs_update = needs_update || !(
                 GPTAssistantAPIServerSyncController.compare_values(from_openai.array_items_type, found_vo.array_items_type) &&
                 GPTAssistantAPIServerSyncController.compare_values(from_openai.gpt_funcparam_description, found_vo.gpt_funcparam_description) &&
+                GPTAssistantAPIServerSyncController.compare_values(from_openai.default_json_value, found_vo.default_json_value) &&
                 GPTAssistantAPIServerSyncController.compare_values(from_openai.gpt_funcparam_name, found_vo.gpt_funcparam_name) &&
                 GPTAssistantAPIServerSyncController.compare_values(from_openai.number_enum, found_vo.number_enum) &&
                 GPTAssistantAPIServerSyncController.compare_values(from_openai.object_fields, found_vo.object_fields) &&
@@ -659,6 +660,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                 found_vo.type = from_openai.type;
                 found_vo.weight = weight;
                 found_vo.archived = false;
+                found_vo.default_json_value = from_openai.default_json_value;
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }

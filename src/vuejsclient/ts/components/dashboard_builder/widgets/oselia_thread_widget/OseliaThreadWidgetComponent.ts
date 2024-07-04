@@ -283,9 +283,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                         [],
                         VueAppController.getInstance().data_user.id
                     );
-                    if (!responses || !responses.length) {
-                        throw new Error('No response');
-                    }
+                    // if (!responses || !responses.length) {
+                    //     throw new Error('No response');
+                    // }
+                    /**
+                     * Il faut changer de technique pour identifier des erreurs de l'API
+                     * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
+                     */
 
                     self.new_message_text = null;
 

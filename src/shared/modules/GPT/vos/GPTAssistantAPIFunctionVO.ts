@@ -20,6 +20,11 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
 
     public prepend_thread_vo: boolean;
 
+    /**
+     * L'API GPT attend une string, donc si la fonction renvoie autre chose il faut le JSON.stringify
+     */
+    public json_stringify_output: boolean;
+
     public archived: boolean;
 
     // IVersionedVO
