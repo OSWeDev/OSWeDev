@@ -868,10 +868,6 @@ export default class GPTAssistantAPIServerController {
             //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
             // }
 
-            const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
-            await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
-
             await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
 
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
@@ -886,14 +882,6 @@ export default class GPTAssistantAPIServerController {
         } catch (error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
         } finally {
-
-            try {
-                const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
-                await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
-            } catch (error) {
-                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
-            }
 
             try {
                 await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
@@ -913,7 +901,19 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+    private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
+        try {
+            const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
+            await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.resync_thread_messages: ' + error);
+        }
+    }
+
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
+        await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
         thread_vo.oselia_is_running = false;
         thread_vo.current_oselia_assistant_id = null;
         thread_vo.current_oselia_prompt_id = null;
@@ -1055,6 +1055,8 @@ export default class GPTAssistantAPIServerController {
                     return null;
                 case "requires_action":
 
+                    await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
                     // On doit appeler la fonction suivante pour que l'assistant puisse répondre
                     if (run.required_action && run.required_action.type == 'submit_tool_outputs') {
 
@@ -1142,10 +1144,12 @@ export default class GPTAssistantAPIServerController {
                 case "queued":
                 case "in_progress":
                 default:
+                    await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
                     break;
             }
 
-            await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(300, 'GPTAssistantAPIServerController.ask_assistant');
+
             run = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.retrieve,
                 ModuleGPTServer.openai.beta.threads.runs,

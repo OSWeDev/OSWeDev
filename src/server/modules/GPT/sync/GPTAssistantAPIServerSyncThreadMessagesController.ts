@@ -293,6 +293,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             await promise_pipeline.end();
+
+            GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[thread_gpt.id] = null;
         })();
 
         return GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[thread_gpt.id];

@@ -278,6 +278,8 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }
+
+            GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id] = null;
         })();
 
         return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];

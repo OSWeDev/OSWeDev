@@ -4,6 +4,7 @@ import { createWriteStream } from 'fs';
 import { ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ExternalAPIAuthentificationVO from '../../../shared/modules/API/vos/ExternalAPIAuthentificationVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -42,6 +43,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import FileServerController from '../File/FileServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -147,9 +150,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+
         postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+
+        preCreateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp);
+        preUpdateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp_preu);
 
         const oselia_partners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID)
             .exec_as_server()
@@ -223,7 +232,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     image_content.content_type_image_file.file_id = new_file_vo.id;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_content);
 
-                    image_urls.push(new_file_vo.path);
+                    image_urls.push(' URL de téléchargement de l\'image dont le prompt est : [' + prompt.substring(0, 50) + ((prompt.length > 50) ? '...' : '') + '] : ' +
+                        ConfigurationService.node_configuration.base_url + (new_file_vo.path.startsWith('./') ? new_file_vo.path.substring(2) : new_file_vo.path));
 
                     if (ConfigurationService.node_configuration.debug_openai_generate_image) {
                         ConsoleHandler.log('ModuleOseliaServer:generate_image:created message:' + new_thread_message.id + ' with content:' + image_content.id);
@@ -233,7 +243,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 }
             }
 
-            return (n > 1 ? 'Images générées avec succès. URLs:' : 'Image générée avec succès. URL:') + image_urls.join(' - ');
+            return (n > 1 ? 'Images générées avec succès.' : 'Image générée avec succès.') + image_urls.join(' - ');
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:generate_image:Error while generating image:" + error);
             return 'Erreur lors de la génération de l\'image:' + error;
@@ -988,5 +998,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 reject(error);
             }
         });
+    }
+
+    private async init_api_key_from_mdp_preu(vos: DAOUpdateVOHolder<ExternalAPIAuthentificationVO>): Promise<boolean> {
+        return await this.init_api_key_from_mdp(vos.post_update_vo);
+    }
+    private async init_api_key_from_mdp(vo: ExternalAPIAuthentificationVO): Promise<boolean> {
+        if (vo.basic_login && vo.basic_password && !vo.api_key) {
+            switch (vo.type) {
+                case ExternalAPIAuthentificationVO.TYPE_API_KEY_BASIC:
+                    vo.api_key = 'Basic ' + Buffer.from(vo.basic_login + ':' + vo.basic_password).toString('base64');
+                    break;
+                case ExternalAPIAuthentificationVO.TYPE_API_KEY_BEARER:
+                    vo.api_key = 'Bearer ' + Buffer.from(vo.basic_login + ':' + vo.basic_password).toString('base64');
+                    break;
+            }
+        }
+        return true;
     }
 }
