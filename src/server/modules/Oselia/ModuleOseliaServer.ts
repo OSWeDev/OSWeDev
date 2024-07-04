@@ -43,6 +43,7 @@ import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import FileServerController from '../File/FileServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
@@ -51,7 +52,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
-import FileServerController from '../File/FileServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -187,6 +187,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     size: size as "256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792",
                 });
 
+            const image_urls: string[] = [];
+
             for (const i in response.data) {
                 const image = response.data[i];
 
@@ -221,13 +223,17 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     image_content.content_type_image_file.file_id = new_file_vo.id;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(image_content);
 
+                    image_urls.push(new_file_vo.path);
+
                     if (ConfigurationService.node_configuration.debug_openai_generate_image) {
                         ConsoleHandler.log('ModuleOseliaServer:generate_image:created message:' + new_thread_message.id + ' with content:' + image_content.id);
                     }
+                } else {
+                    throw new Error('ModuleOseliaServer:generate_image:Error while downloading image from OpenAI');
                 }
             }
 
-            return n > 1 ? 'Images générées avec succès' : 'Image générée avec succès';
+            return (n > 1 ? 'Images générées avec succès. URLs:' : 'Image générée avec succès. URL:') + image_urls.join(' - ');
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:generate_image:Error while generating image:" + error);
             return 'Erreur lors de la génération de l\'image:' + error;
@@ -940,8 +946,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     private async download_image_form_openai_url(
         openai_image_url: string,
         local_path: string,
-        is_secured: boolean = true,
-        secured_access_name: string = ModuleOselia.POLICY_GENERATED_IMAGES_FO_ACCESS,
+        is_secured: boolean = false, // On doit garder l'image publique si l'on veut pouvoir la partager et l'utiliser pour upload sur Wordpress par exemple
+        secured_access_name: string = null, // TODO FIXME sécuriser les images, en forçant des api de récupération de l'image et autorisation dans des cas spécifiques
     ): Promise<FileVO> {
         return new Promise((resolve, reject) => {
 
