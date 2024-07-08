@@ -1,11 +1,11 @@
 .field_value_filter_widget_options_component
     .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
-        .can_select_multiple 
+        .can_select_multiple
             .input_label {{ label('field_value_filter_widget_component.can_select_multiple') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_can_select_multiple" 
-                    :value="can_select_multiple" 
+                    @change="switch_can_select_multiple"
+                    :value="can_select_multiple"
                     :sync="false"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
@@ -15,7 +15,7 @@
             .input_wrapper
                 Inlinetranslatabletext(
                     v-if='widget_options && widget_options.get_placeholder_name_code_text(page_widget.id)'
-                    :code_text="widget_options.get_placeholder_name_code_text(page_widget.id)" 
+                    :code_text="widget_options.get_placeholder_name_code_text(page_widget.id)"
                     :is_editable="true"
                     :default_translation="default_placeholder_translation"
                 )
@@ -26,7 +26,7 @@
                     type="number"
                     v-model.number="max_visible_options"
                 )
-        .field_ref 
+        .field_ref
             .input_label {{ label('field_value_filter_widget_component.vo_field_ref') }}
             .input_wrapper
                 Singlevofieldrefholdercomponent(
@@ -38,26 +38,26 @@
             .input_label {{ label('field_value_filter_widget_component.hide_filter') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_hide_filter" 
-                    :value="hide_filter" 
+                    @change="switch_hide_filter"
+                    :value="hide_filter"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         .field_has_other_ref_api_type_id
             .input_label {{ label('field_value_filter_widget_component.has_other_ref_api_type_id') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_has_other_ref_api_type_id" 
-                    :value="has_other_ref_api_type_id" 
+                    @change="switch_has_other_ref_api_type_id"
+                    :value="has_other_ref_api_type_id"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         template(v-if='has_other_ref_api_type_id')
-            .field_other_ref_api_type_id 
+            .field_other_ref_api_type_id
                 .input_label {{ label('field_value_filter_widget_component.other_ref_api_type_id') }}
                 .crud_api_type_id_select
                     .input_wrapper
@@ -87,22 +87,22 @@
             .input_label {{ label('field_value_filter_widget_component.no_inter_filter') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_no_inter_filter" 
-                    :value="no_inter_filter" 
+                    @change="switch_no_inter_filter"
+                    :value="no_inter_filter"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         .autovalidate_advanced_filter
             .input_label {{ label('field_value_filter_widget_component.autovalidate_advanced_filter') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_autovalidate_advanced_filter" 
-                    :value="autovalidate_advanced_filter" 
+                    @change="switch_autovalidate_advanced_filter"
+                    :value="autovalidate_advanced_filter"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         template(v-if="autovalidate_advanced_filter")
@@ -110,33 +110,33 @@
                 .input_label {{ label('field_value_filter_widget_component.active_field_on_autovalidate_advanced_filter') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_active_field_on_autovalidate_advanced_filter" 
-                        :value="active_field_on_autovalidate_advanced_filter" 
+                        @change="switch_active_field_on_autovalidate_advanced_filter"
+                        :value="active_field_on_autovalidate_advanced_filter"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
         .add_is_null_selectable
             .input_label {{ label('field_value_filter_widget_component.add_is_null_selectable') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_add_is_null_selectable" 
-                    :value="add_is_null_selectable" 
+                    @change="switch_add_is_null_selectable"
+                    :value="add_is_null_selectable"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         .is_button(v-if="!is_type_date")
             .input_label {{ label('field_value_filter_widget_component.is_button') }}
             .input_wrapper
                 toggle-button(
-                    @change="switch_is_button" 
-                    :value="is_button" 
+                    @change="switch_is_button"
+                    :value="is_button"
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
         template(v-if="is_type_string || is_type_number || is_type_enum || is_type_date || is_type_boolean || is_type_ref_field")
@@ -144,36 +144,36 @@
                 .input_label {{ label('field_value_filter_widget_component.advanced_mode') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_advanced_mode" 
-                        :value="advanced_mode" 
+                        @change="switch_advanced_mode"
+                        :value="advanced_mode"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    ) 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
 
         template(v-if="is_type_string || is_type_enum")
             .can_select_all_option
                 .input_label {{ label('field_value_filter_widget_component.can_select_all_option') }}
                 .input_wrapper
                     toggle-button(
-                        @change="toggle_can_select_all" 
-                        :value="can_select_all" 
+                        @change="toggle_can_select_all"
+                        :value="can_select_all"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    ) 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
 
         template(v-if="is_type_string || is_type_enum || is_type_ref_field")
             .can_select_none_option
                 .input_label {{ label('field_value_filter_widget_component.can_select_none_option') }}
                 .input_wrapper
                     toggle-button(
-                        @change="toggle_can_select_none" 
-                        :value="can_select_none" 
+                        @change="toggle_can_select_none"
+                        :value="can_select_none"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    ) 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
 
             .default_advanced_string_filter_type(v-if="is_type_string || is_type_enum")
                 .input_label {{ label('field_value_filter_widget_component.default_advanced_string_filter_type') }}
@@ -214,7 +214,7 @@
                         :searchable="false"
                         :internal-search="false"
                         :hide-selected="false"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -226,19 +226,19 @@
                 .input_label {{ label('field_value_filter_widget_component.hide_btn_switch_advanced') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_hide_btn_switch_advanced" 
-                        :value="hide_btn_switch_advanced" 
+                        @change="switch_hide_btn_switch_advanced"
+                        :value="hide_btn_switch_advanced"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    ) 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
 
             .placeholder_advanced_string_filter
                 .input_label {{ label('field_value_filter_widget_component.placeholder_advanced_string_filter') }}
                 .input_wrapper
                     Inlinetranslatabletext(
                         v-if='widget_options && widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)'
-                        :code_text="widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)" 
+                        :code_text="widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)"
                         :is_editable="true"
                     )
 
@@ -246,24 +246,24 @@
                 .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_hide_advanced_string_filter_type" 
-                        :value="hide_advanced_string_filter_type" 
+                        @change="switch_hide_advanced_string_filter_type"
+                        :value="hide_advanced_string_filter_type"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
-                    ) 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
             .hide_advanced_ref_field_filter_type(v-if="is_type_ref_field")
                 .input_label {{ label('field_value_filter_widget_component.hide_advanced_ref_field_filter_type') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_hide_advanced_ref_field_filter_type" 
-                        :value="hide_advanced_ref_field_filter_type" 
+                        @change="switch_hide_advanced_ref_field_filter_type"
+                        :value="hide_advanced_ref_field_filter_type"
                         :sync="false"
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    ) 
+                    )
 
-            .vo_field_ref_multiple 
+            .vo_field_ref_multiple
                 .input_label {{ label('field_value_filter_widget_component.vo_field_ref_multiple') }}
                 .input_wrapper
                     Multiplevofieldrefholdercomponent(
@@ -272,7 +272,7 @@
                         :page_widget_id='page_widget ? page_widget.id : null'
                     )
 
-            .field_sort 
+            .field_sort
                 .input_label {{ label('field_value_filter_widget_component.vo_field_sort') }}
                 .input_wrapper
                     Singlevofieldrefholdercomponent(
@@ -284,11 +284,11 @@
                 .input_label {{ label('field_value_filter_widget_component.is_checkbox') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_is_checkbox" 
-                        :value="is_checkbox" 
+                        @change="switch_is_checkbox"
+                        :value="is_checkbox"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
             template(v-if="is_checkbox")
@@ -316,22 +316,22 @@
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
 
-                .show_search_field 
+                .show_search_field
                     .input_label {{ label('field_value_filter_widget_component.show_search_field') }}
                     .input_wrapper
                         toggle-button(
-                            @change="switch_show_search_field" 
-                            :value="show_search_field" 
+                            @change="switch_show_search_field"
+                            :value="show_search_field"
                             :sync="false"
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
-                .separation_active_filter 
+                .separation_active_filter
                     .input_label {{ label('field_value_filter_widget_component.separation_active_filter') }}
                     .input_wrapper
                         toggle-button(
-                            @change="switch_separation_active_filter" 
-                            :value="separation_active_filter" 
+                            @change="switch_separation_active_filter"
+                            :value="separation_active_filter"
                             :sync="false"
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
@@ -354,39 +354,39 @@
                                 :page_widget_id='page_widget ? page_widget.id : null'
                             )
 
-                    .hide_lvl2_if_lvl1_not_selected 
+                    .hide_lvl2_if_lvl1_not_selected
                         .input_label {{ label('field_value_filter_widget_component.hide_lvl2_if_lvl1_not_selected') }}
                         .input_wrapper
                             toggle-button(
-                                @change="switch_hide_lvl2_if_lvl1_not_selected" 
-                                :value="hide_lvl2_if_lvl1_not_selected" 
+                                @change="switch_hide_lvl2_if_lvl1_not_selected"
+                                :value="hide_lvl2_if_lvl1_not_selected"
                                 :sync="false"
                                 :width="60"
-                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                             )
 
         template(v-if="is_type_date")
-            .auto_select_date 
+            .auto_select_date
                 .input_label {{ label('field_value_filter_widget_component.auto_select_date') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_auto_select_date" 
-                        :value="auto_select_date" 
+                        @change="switch_auto_select_date"
+                        :value="auto_select_date"
                         :sync="false"
                         :width="150"
                         :labels="{checked: label('field_value_filter_widget_component.auto_select_date.data'), unchecked: label('field_value_filter_widget_component.auto_select_date.value')}")
 
-            .auto_select_date_relative_mode 
+            .auto_select_date_relative_mode
                 .input_label {{ label('field_value_filter_widget_component.auto_select_date_relative_mode') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_auto_select_date_relative_mode" 
-                        :value="auto_select_date_relative_mode" 
+                        @change="switch_auto_select_date_relative_mode"
+                        :value="auto_select_date_relative_mode"
                         :sync="false"
                         :width="150"
                         :labels="{checked: label('field_value_filter_widget_component.auto_select_date_relative_mode.data'), unchecked: label('field_value_filter_widget_component.auto_select_date_relative_mode.value')}")
 
-            .segmentation_type 
+            .segmentation_type
                 .input_label {{ label('field_value_filter_widget_component.segmentation_type') }}
                 .input_wrapper
                     multiselect(
@@ -426,7 +426,7 @@
                         v-model="auto_select_date_max"
                     )
 
-        .default_showed_filter_opt_values 
+        .default_showed_filter_opt_values
             .input_label {{ label('field_value_filter_widget_component.default_showed_filter_opt_values') }}
                 span.fa-stack.fa-lg(v-tooltip="{content: label('field_value_filter_widget_component.default_showed_filter_opt_values.ca_tooltip'), theme: 'info-tooltip'}")
                     i.fa-solid.fa-question-circle.fa-stack-1x
@@ -446,9 +446,9 @@
                         :hide-selected="true"
 
                         track-by="text_uid"
-                        
+
                         :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                        
+
                         :select-label='label("multiselect.selectLabel")'
                         :select-group-label='label("multiselect.selectGroupLabel")'
                         :selected-label='label("multiselect.selectedLabel")'
@@ -459,7 +459,7 @@
                     )
 
 
-        .default_filter_opt_values 
+        .default_filter_opt_values
             .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
             .input_wrapper
                 template(v-if="is_type_string || is_type_number || is_type_enum")
@@ -521,13 +521,13 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
-        .exclude_filter_opt_values(v-if="is_type_string || is_type_number || is_type_enum || is_type_date") 
+        .exclude_filter_opt_values(v-if="is_type_string || is_type_number || is_type_enum || is_type_date")
             .input_label {{ label('field_value_filter_widget_component.exclude_filter_opt_values') }}
             .input_wrapper
                 template(v-if="is_type_string || is_type_number || is_type_enum")
                     multiselect(
                         :preselect-first="false"
-                        :multiple="can_select_multiple"
+                        :multiple="true"
                         :close-on-select="false"
                         v-model="tmp_exclude_filter_opt_values"
                         :options="default_filter_visible_options"
@@ -559,26 +559,26 @@
                     )
 
         template(v-if="is_type_enum")
-            .show_count_value 
+            .show_count_value
                 .input_label {{ label('field_value_filter_widget_component.show_count_value') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_show_count_value" 
-                        :value="show_count_value" 
+                        @change="switch_show_count_value"
+                        :value="show_count_value"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
             .force_filter_by_all_api_type_ids
                 .input_label {{ label('field_value_filter_widget_component.force_filter_by_all_api_type_ids') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_force_filter_all_api_type_ids" 
-                        :value="force_filter_by_all_api_type_ids" 
+                        @change="switch_force_filter_all_api_type_ids"
+                        :value="force_filter_by_all_api_type_ids"
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
             .btn.btn-primary(@click="toggle_show_hide_enum_color_options") {{ label('field_value_filter_widget_component.show_hide_enum_color_options') }}
@@ -593,7 +593,7 @@
                                 color-picker(v-model="enum_fg_colors[visible_option.numeric_value]")
                             .enum_preview.btn.btn-primary(:style='getStyle(visible_option)') {{ filter_visible_label(visible_option) }}
 
-        .color_options 
+        .color_options
             .color_option
                 .bg_color
                     .explication {{ label("field_value_filter_widget_component.bg_color") }}
