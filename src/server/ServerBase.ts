@@ -549,7 +549,7 @@ export default abstract class ServerBase {
                 origin = req.get('Referer');
             }
 
-            if (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.authorized_oselia_partners.includes(origin)) {
+            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.authorized_oselia_partners.includes(origin))) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
                 if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
