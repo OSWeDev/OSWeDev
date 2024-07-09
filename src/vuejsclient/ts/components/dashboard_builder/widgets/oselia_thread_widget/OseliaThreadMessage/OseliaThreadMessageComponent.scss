@@ -76,6 +76,10 @@
         padding-left: 3em;
         transition: all 0.3s ease-in-out;
 
+        img {
+            max-width: 100% !important;
+        }
+
         .thread_message_footer_actions {
             margin-left: 0;
             transition: all 0.3s ease-in-out;

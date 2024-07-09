@@ -113,7 +113,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'OseliaReferrerNotFoundComponent.close.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
-            { 'fr-fr': 'Ajotuer un commentaire' },
+            { 'fr-fr': 'Ajouter un commentaire' },
             'oselia_thread_feedback.oselia_thread_feedback__add_feedback_text.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(

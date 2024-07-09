@@ -1086,12 +1086,20 @@ export default class GPTAssistantAPIServerController {
                                         const referrer_external_api = referrer_external_api_by_name[tool_call.function.name];
 
                                         try {
+                                            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                                                ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - params - ' + JSON.stringify(function_args));
+                                            }
+
                                             function_response = await ExternalAPIServerController.call_external_api(
                                                 (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
                                                 referrer_external_api.external_api_url,
                                                 function_args,
                                                 referrer_external_api.external_api_authentication_id
                                             );
+
+                                            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                                                ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
+                                            }
 
                                             function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                             return;

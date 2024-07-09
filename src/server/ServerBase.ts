@@ -544,7 +544,10 @@ export default abstract class ServerBase {
 
         // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
         this.app.use((req, res, next) => {
-            const origin = req.get('Origin');
+            let origin = req.get('Origin');
+            if ((!origin) || !(origin.length)) {
+                origin = req.get('Referer');
+            }
 
             if (OseliaServerController.authorized_oselia_partners.includes(origin)) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
