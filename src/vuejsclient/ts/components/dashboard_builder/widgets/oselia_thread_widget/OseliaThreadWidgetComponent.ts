@@ -272,52 +272,53 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         const self = this;
         this.assistant_is_busy = true;
-        self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
-            new Promise(async (resolve, reject) => {
+        // self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
+        //     new Promise(async (resolve, reject) => {
 
-                try {
-                    const responses = await ModuleGPT.getInstance().ask_assistant(
-                        self.assistant.gpt_assistant_id,
-                        self.thread.gpt_thread_id,
-                        self.new_message_text,
-                        [],
-                        VueAppController.getInstance().data_user.id
-                    );
-                    // if (!responses || !responses.length) {
-                    //     throw new Error('No response');
-                    // }
-                    /**
-                     * Il faut changer de technique pour identifier des erreurs de l'API
-                     * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
-                     */
+        try {
+            const responses = await ModuleGPT.getInstance().ask_assistant(
+                self.assistant.gpt_assistant_id,
+                self.thread.gpt_thread_id,
+                self.new_message_text,
+                [],
+                VueAppController.getInstance().data_user.id
+            );
+            // if (!responses || !responses.length) {
+            //     throw new Error('No response');
+            // }
+            /**
+             * Il faut changer de technique pour identifier des erreurs de l'API
+             * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
+             */
 
-                    self.new_message_text = null;
+            self.new_message_text = null;
 
-                    // self.throttle_load_thread();
+            // self.throttle_load_thread();
 
-                    resolve({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                    reject({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                }
-                self.assistant_is_busy = false;
-            }));
+            // resolve({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        } catch (error) {
+            ConsoleHandler.error(error);
+            this.snotify.error(self.label('OseliaThreadWidgetComponent.send_message.failed'));
+            // reject({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        }
+        self.assistant_is_busy = false;
+        // }));
     }
 
     private handle_new_message_text_keydown(event: KeyboardEvent) {
