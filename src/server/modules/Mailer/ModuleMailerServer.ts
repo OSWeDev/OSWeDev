@@ -146,7 +146,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                const mailtransport = await nodemailer.createTransport(this.get_transporter());
+                const mailtransport = await nodemailer.createTransport(await this.get_transporter());
 
                 ConsoleHandler.log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
