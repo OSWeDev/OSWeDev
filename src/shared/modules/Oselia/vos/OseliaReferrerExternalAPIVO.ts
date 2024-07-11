@@ -26,6 +26,12 @@ export default class OseliaReferrerExternalAPIVO implements IDistantVOBase, IVer
 
     public external_api_authentication_id: number;
     public external_api_method: number;
+
+    /**
+     * L'url de l'API externe, paramétrable
+     * exemple : https://api.example.com/assistant/<assistant_id>/function/<function_id>
+     * Et il faut bien déclarer dans ce cas des objets OseliaReferrerExternalAPIParamVO pour expliquer les paramètres à Osélia
+     */
     public external_api_url: string;
 
     public parent_id: number;
