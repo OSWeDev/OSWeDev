@@ -312,11 +312,11 @@ export default class ModuleGPT extends Module {
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', true, true, '');
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', true, true, '');
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Interpréteur de code', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_file_search, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Recherche de fichiers', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_functions, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Fonctions', true, true, false);
