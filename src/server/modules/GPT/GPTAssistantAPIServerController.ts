@@ -846,11 +846,22 @@ export default class GPTAssistantAPIServerController {
                 referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
             }
 
+            const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+            for (const i in availableFunctionsParameters) {
+                const function_id = parseInt(i);
+                availableFunctionsParametersByParamName[function_id] = {};
+                for (const j in availableFunctionsParameters[i]) {
+                    const param = availableFunctionsParameters[i][j];
+                    availableFunctionsParametersByParamName[function_id][param.gpt_funcparam_name] = param;
+                }
+            }
+
             await GPTAssistantAPIServerController.handle_run(
                 run_vo,
                 thread_vo,
                 availableFunctions,
                 availableFunctionsParameters,
+                availableFunctionsParametersByParamName,
                 referrer,
                 referrer_external_api_by_name,
             );
@@ -1027,6 +1038,7 @@ export default class GPTAssistantAPIServerController {
         thread_vo: GPTAssistantAPIThreadVO,
         availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
         availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] },
+        availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } },
         referrer: OseliaReferrerVO,
         referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO },
     ) {
@@ -1095,17 +1107,20 @@ export default class GPTAssistantAPIServerController {
                                             //  * Dans le cas où l'URL contiendrait des paramètres, on les remplace par les valeurs des arguments correspondants et on pop ces arguments avant d'appeler la fonction externe
                                             //  *  On identifie les params à la composition de l'URL /<param_name>/
                                             //  */
-                                            // const url_params = referrer_external_api.external_api_url.match(/\/<([^>]*)>/g);
+                                            const url_params = referrer_external_api.external_api_url.match(/<([^>]*)>/g);
                                             let external_api_url = referrer_external_api.external_api_url;
 
-                                            // if (url_params && url_params.length) {
-                                            //     for (const i in url_params) {
-                                            //         const url_param = url_params[i].replace(/\/<([^>]*)>/, '$1');
-                                            //         external_api_url = external_api_url.replace('/<' + url_param + '>', function_args['___url_param___' + url_param]);
-                                            //         delete function_args['___url_param___' + url_param];
-                                            //     }
-                                            // }
+                                            if (url_params && url_params.length) {
+                                                for (const i in url_params) {
+                                                    const url_param = url_params[i].replace(/<([^>]*)>/, '$1');
+                                                    external_api_url = external_api_url.replace('<' + url_param + '>', function_args[url_param]);
 
+                                                    const func_param: GPTAssistantAPIFunctionParamVO = availableFunctionsParametersByParamName[function_vo.id][url_param];
+                                                    if (func_param && func_param.not_in_function_params) {
+                                                        delete function_args[url_param];
+                                                    }
+                                                }
+                                            }
 
                                             function_response = await ExternalAPIServerController.call_external_api(
                                                 (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
