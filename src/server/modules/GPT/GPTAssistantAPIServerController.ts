@@ -1184,7 +1184,7 @@ export default class GPTAssistantAPIServerController {
                 case "queued":
                 case "in_progress":
                 default:
-                    await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+                    // await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
                     break;
             }
 
