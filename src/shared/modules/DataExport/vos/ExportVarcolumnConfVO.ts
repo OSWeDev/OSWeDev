@@ -9,7 +9,7 @@ export default class ExportVarcolumnConfVO implements IDistantVOBase {
         filter_type: string = null,
         filter_additional_params: string = null,
     ) {
-        let res: ExportVarcolumnConfVO = new ExportVarcolumnConfVO();
+        const res: ExportVarcolumnConfVO = new ExportVarcolumnConfVO();
 
         res.var_id = var_id;
         res.custom_field_filters = custom_field_filters;

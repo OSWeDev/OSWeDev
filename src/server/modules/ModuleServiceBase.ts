@@ -9,22 +9,24 @@ import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonym
 import ModuleAzureMemoryCheck from '../../shared/modules/AzureMemoryCheck/ModuleAzureMemoryCheck';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
+import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
 import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
 import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
 import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
-import ModuleClockifyAPI from '../../shared/modules/ClockifyAPI/ModuleClockifyAPI';
 import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
 import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
@@ -42,6 +44,7 @@ import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenanc
 import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
+import ModuleOselia from '../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
@@ -52,6 +55,7 @@ import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurato
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleStats from '../../shared/modules/Stats/ModuleStats';
 import StatsController from '../../shared/modules/Stats/StatsController';
+import ModuleSuiviCompetences from '../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
@@ -64,6 +68,7 @@ import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
+import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
 import { all_promises } from '../../shared/tools/PromiseTools';
 import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
@@ -76,13 +81,13 @@ import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer
 import ModuleAzureMemoryCheckServer from './AzureMemoryCheck/ModuleAzureMemoryCheckServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
+import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
 import ModuleClientServer from './Commerce/Client/ModuleClientServer';
 import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
-import ModuleClockifyAPIServer from './ClockifyAPI/ModuleClockifyAPIServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
@@ -91,6 +96,7 @@ import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
 import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
@@ -109,6 +115,7 @@ import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
+import ModuleOseliaServer from './Oselia/ModuleOseliaServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
@@ -119,6 +126,7 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleStatsServer from './Stats/ModuleStatsServer';
+import ModuleSuiviCompetencesServer from './SuiviCompetences/ModuleSuiviCompetencesServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
@@ -129,20 +137,11 @@ import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import DBDisconnectionManager from '../../shared/tools/DBDisconnectionManager';
-import ModuleEnvParam from '../../shared/modules/EnvParam/ModuleEnvParam';
-import ModuleEnvParamServer from './EnvParam/ModuleEnvParamServer';
-import ModuleSuiviCompetences from '../../shared/modules/SuiviCompetences/ModuleSuiviCompetences';
-import ModuleSuiviCompetencesServer from './SuiviCompetences/ModuleSuiviCompetencesServer';
 
 export default abstract class ModuleServiceBase {
 
     public static db;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleServiceBase {
-        return ModuleServiceBase.instance;
-    }
     private static instance: ModuleServiceBase;
 
     /**
@@ -173,6 +172,7 @@ export default abstract class ModuleServiceBase {
 
         ModuleServiceBase.db = {
             none: this.db_none.bind(this),
+            one: this.db_one.bind(this),
             oneOrNone: this.db_oneOrNone.bind(this),
             query: this.db_query.bind(this),
             tx: (options, cb) => this.db_.tx(options, cb)
@@ -180,7 +180,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.node_configuration.BDD_OWNER;
+        return ConfigurationService.node_configuration.bdd_owner;
     }
 
     get sharedModules(): Module[] {
@@ -193,12 +193,17 @@ export default abstract class ModuleServiceBase {
         return this.server_modules;
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleServiceBase {
+        return ModuleServiceBase.instance;
+    }
+
     public isBaseSharedModule(module: Module): boolean {
         if (!module) {
             return false;
         }
 
-        for (let i in this.registered_base_modules) {
+        for (const i in this.registered_base_modules) {
             if (this.registered_base_modules[i] == module) {
                 return true;
             }
@@ -210,7 +215,7 @@ export default abstract class ModuleServiceBase {
             return false;
         }
 
-        for (let i in this.login_base_modules) {
+        for (const i in this.login_base_modules) {
             if (this.login_base_modules[i] == module) {
                 return true;
             }
@@ -222,7 +227,7 @@ export default abstract class ModuleServiceBase {
             return false;
         }
 
-        for (let i in this.server_base_modules) {
+        for (const i in this.server_base_modules) {
             if (this.server_base_modules[i] == module) {
                 return true;
             }
@@ -230,20 +235,23 @@ export default abstract class ModuleServiceBase {
         return false;
     }
 
-    public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
+    public async init_db(db: IDatabase<any>) {
         this.db_ = db;
 
-        db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
+        db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         db.$pool.options.idleTimeoutMillis = 120000;
+    }
+
+    public async register_all_modules(is_generator: boolean = false) {
 
         // // On charge le actif /inactif depuis la BDD pour surcharger à l'init la conf de l'appli
         // //  VALIDE UNIQUEMENT si le module est déjà créé en base, le activate_on_install est pas pris en compte....
-        PreloadedModuleServerController.db = db;
+        PreloadedModuleServerController.db = ModuleServiceBase.db;
 
         // On va créer la structure de base de la BDD pour les modules
-        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
 
-            await this.create_modules_base_structure_in_db(db);
+            await this.create_modules_base_structure_in_db(this.db_);
         }
 
         await PreloadedModuleServerController.preload_modules_is_actif();
@@ -260,56 +268,57 @@ export default abstract class ModuleServiceBase {
         this.server_child_modules = this.getServerChildModules();
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
+        ModuleTableController.initialize();
         ModuleTableDBService.getInstance(ModuleServiceBase.db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
-        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
 
             // On lance l'installation des modules.
             await this.install_modules();
         } else {
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
-            for (let i in this.registered_modules) {
-                let registered_module = this.registered_modules[i];
+            for (const i in this.registered_modules) {
+                const registered_module = this.registered_modules[i];
 
                 await PreloadedModuleServerController.load_or_create_module_is_actif(registered_module);
             }
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
         await this.configure_server_modules_apis();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
-        // if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
+        // if ((!!is_generator) || (!ConfigurationService.node_configuration.server_start_booster)) {
 
         //     // On appelle le hook de configuration
         //     await this.configure_modules();
 
         // } else {
 
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             if (!registered_module.actif) {
                 continue;
@@ -320,21 +329,13 @@ export default abstract class ModuleServiceBase {
                 return false;
             }
 
-            // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
-            if (registered_module.fields && (registered_module.fields.length > 0)) {
-
-                await ModuleDBService.getInstance().loadParams(registered_module);
-
-                ModuleDBService.getInstance().reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
-            }
-
             // On appelle le hook de fin d'installation
             await registered_module.hook_module_install();
         }
         // }
 
-        for (let i in this.post_modules_installation_hooks) {
-            let post_modules_installation_hook = this.post_modules_installation_hooks[i];
+        for (const i in this.post_modules_installation_hooks) {
+            const post_modules_installation_hook = this.post_modules_installation_hooks[i];
 
             // Appel async
             post_modules_installation_hook();
@@ -342,8 +343,8 @@ export default abstract class ModuleServiceBase {
     }
 
     public async configure_server_modules_apis() {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
@@ -354,14 +355,14 @@ export default abstract class ModuleServiceBase {
 
     public async preload_segmented_known_databases() {
 
-        for (let i in this.registered_modules) {
-            let module_: Module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const module_: Module = this.registered_modules[i];
 
             if (!module_.actif) {
                 continue;
             }
-            for (let j in module_.datatables) {
-                let t = module_.datatables[j];
+            for (const vo_type in ModuleTableController.vo_type_by_module_name[module_.name]) {
+                const t = ModuleTableController.module_tables_by_vo_type[vo_type];
 
                 if (!t.is_segmented) {
                     continue;
@@ -377,10 +378,10 @@ export default abstract class ModuleServiceBase {
      *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
      */
     public async configure_server_modules(app: Express, is_generator: boolean = false) {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
@@ -392,34 +393,34 @@ export default abstract class ModuleServiceBase {
                     server_module.registerImport(),
                 ]);
 
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.debug_start_server) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
-                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.debug_start_server) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
-                    if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                    if (ConfigurationService.node_configuration.debug_start_server) {
                         ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }
 
     public async late_server_modules_configurations(is_generator: boolean) {
-        for (let i in this.server_modules) {
-            let server_module: ModuleServerBase = this.server_modules[i];
+        for (const i in this.server_modules) {
+            const server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 await server_module.late_configuration(is_generator);
@@ -439,7 +440,7 @@ export default abstract class ModuleServiceBase {
         retry_hook_func: (...any) => Promise<any>,
         retry_hook_func_params: any[] = null) {
 
-        let res = null;
+        const res = null;
         let sleep_id = 'ModuleServiceBase.handle_errors.'; // + func_name;
         let compteur_id = null; // func_name;
         if (error &&
@@ -482,7 +483,7 @@ export default abstract class ModuleServiceBase {
                 }
 
                 try {
-                    let res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
+                    const res_ = await retry_hook_func.call(this, ...retry_hook_func_params);
                     resolve(res_);
                 } catch (error2) {
                     ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
@@ -504,15 +505,13 @@ export default abstract class ModuleServiceBase {
         await db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
 
-    protected abstract getChildModules(): Module[];
     protected getLoginChildModules(): Module[] {
         return [];
     }
-    protected abstract getServerChildModules(): ModuleServerBase[];
 
     private async install_modules() {
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             try {
                 await ModuleDBService.getInstance().module_install(
@@ -534,8 +533,8 @@ export default abstract class ModuleServiceBase {
     }
 
     private async configure_modules() {
-        for (let i in this.registered_modules) {
-            let registered_module = this.registered_modules[i];
+        for (const i in this.registered_modules) {
+            const registered_module = this.registered_modules[i];
 
             try {
                 if (registered_module.actif) {
@@ -571,11 +570,13 @@ export default abstract class ModuleServiceBase {
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
+            ModuleContextFilter.getInstance(),
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
             ModuleBGThread.getInstance(),
-            ModuleAnonymization.getInstance()
+            ModuleParams.getInstance(),
+            ModuleAnonymization.getInstance(),
         ];
     }
 
@@ -642,6 +643,7 @@ export default abstract class ModuleServiceBase {
             ModuleActionURL.getInstance(),
             ModuleGPT.getInstance(),
             ModuleAzureMemoryCheck.getInstance(),
+            ModuleOselia.getInstance(),
             ModuleSuiviCompetences.getInstance(),
         ];
     }
@@ -707,13 +709,14 @@ export default abstract class ModuleServiceBase {
             ModuleActionURLServer.getInstance(),
             ModuleGPTServer.getInstance(),
             ModuleAzureMemoryCheckServer.getInstance(),
+            ModuleOseliaServer.getInstance(),
             ModuleSuiviCompetencesServer.getInstance(),
         ];
     }
 
     private async db_none(query: string, values?: []) {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
             await this.db_.none(query, values);
@@ -722,8 +725,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_none', this.db_none, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 
@@ -739,7 +742,7 @@ export default abstract class ModuleServiceBase {
     private async db_query(query: string, values?: []) {
 
         let res = null;
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -748,28 +751,28 @@ export default abstract class ModuleServiceBase {
             //  en les appliquant surtout en amont dans la création de la requete pour bloquer la création d'une requete trop grosse et qui ferait une erreur.
             //  Si la requete ne passe pas sur les vars, c'est pas une var interdite aujourd'hui, c'est un 0. il faut peut-etre réintroduire une var interdite pour les requetes trop grosses
 
-            if (ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY && (query.length > ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY)) {
+            if (ConfigurationService.node_configuration.max_size_per_query && (query.length > ConfigurationService.node_configuration.max_size_per_query)) {
 
                 // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
+                const fs = require('fs');
+                const path = require('path');
+                const filename = path.join(__dirname, 'query_too_big_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
-                ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
+                ConsoleHandler.error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ') ' + query.substring(0, 1000) + '...');
 
-                //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.MAX_SIZE_PER_QUERY + ')');
+                //     throw new Error('Query too big (' + query.length + ' > ' + ConfigurationService.node_configuration.max_size_per_query + ')');
             }
 
-            if (ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY)) {
+            if (ConfigurationService.node_configuration.max_union_all_per_query && (this.count_union_all_occurrences(query) > ConfigurationService.node_configuration.max_union_all_per_query)) {
 
                 // export query to txt file for debug
-                let fs = require('fs');
-                let path = require('path');
-                let filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
+                const fs = require('fs');
+                const path = require('path');
+                const filename = path.join(__dirname, 'too_many_union_all_' + Math.round(Dates.now_ms()) + '.txt');
                 fs.writeFile(filename, query);
-                ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ') ' + query.substring(0, 1000) + '...');
+                ConsoleHandler.error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ') ' + query.substring(0, 1000) + '...');
 
-                //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.MAX_UNION_ALL_PER_QUERY + ')');
+                //     throw new Error('Too many union all (' + this.count_union_all_occurrences(query) + ' > ' + ConfigurationService.node_configuration.max_union_all_per_query + ')');
             }
 
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
@@ -778,8 +781,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_query', this.db_query, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 
@@ -789,13 +792,37 @@ export default abstract class ModuleServiceBase {
         return res;
     }
 
+    private async db_one(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = null;
+        const time_in = Dates.now_ms();
+
+        try {
+            res = await this.db_.one(query, values);
+        } catch (error) {
+            return await this.handle_errors(error, 'db_one', this.db_one, [query, values]);
+        }
+
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
+
+        this.debug_slow_queries(query, values, duration);
+
+        StatsController.register_stat_COMPTEUR('db_one', 'ok', '-');
+        StatsController.register_stat_DUREE('db_one', 'time', '-', duration);
+        return res;
+    }
+
     private async db_oneOrNone(query: string, values?: []) {
 
         /**
          * Handle query cache update
          */
         let res = null;
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
             res = await this.db_.oneOrNone(query, values);
@@ -803,8 +830,8 @@ export default abstract class ModuleServiceBase {
             return await this.handle_errors(error, 'db_oneOrNone', this.db_oneOrNone, [query, values]);
         }
 
-        let time_out = Dates.now_ms();
-        let duration = time_out - time_in;
+        const time_out = Dates.now_ms();
+        const duration = time_out - time_in;
 
         this.debug_slow_queries(query, values, duration);
 
@@ -816,14 +843,17 @@ export default abstract class ModuleServiceBase {
     private debug_slow_queries(query: string, values: any[], duration: number) {
         duration = Math.round(duration);
         let query_s = query + (values ? ' ------- ' + JSON.stringify(values) : '');
-        query_s = (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_s : query_s.substring(0, 1000));
+        query_s = (ConfigurationService.node_configuration.debug_db_full_query_perf ? query_s : query_s.substring(0, 1000));
 
-        if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
-            (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+        if (ConfigurationService.node_configuration.debug_slow_queries &&
+            (duration > (10 * ConfigurationService.node_configuration.debug_slow_queries_ms_limit))) {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;VERYSLOW;' + duration + ' ms;' + query_s);
-        } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
-            (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+        } else if (ConfigurationService.node_configuration.debug_slow_queries &&
+            (duration > ConfigurationService.node_configuration.debug_slow_queries_ms_limit)) {
             ConsoleHandler.warn('DEBUG_SLOW_QUERIES;SLOW;' + duration + ' ms;' + query_s);
         }
     }
+
+    protected abstract getServerChildModules(): ModuleServerBase[];
+    protected abstract getChildModules(): Module[];
 }

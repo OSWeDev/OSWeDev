@@ -38,7 +38,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -47,7 +47,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
             /**
              * On dépile une demande d'export
              */
-            let next_export: ExportContextQueryToXLSXQueryVO = await query(ExportContextQueryToXLSXQueryVO.API_TYPE_ID)
+            const next_export: ExportContextQueryToXLSXQueryVO = await query(ExportContextQueryToXLSXQueryVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<ExportContextQueryToXLSXQueryVO>().state, ExportContextQueryToXLSXQueryVO.STATE_TODO)
                 .set_sort(new SortByVO(ExportContextQueryToXLSXQueryVO.API_TYPE_ID, field_names<ExportContextQueryToXLSXQueryVO>().id, true))
                 .set_limit(1)
@@ -106,7 +106,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT', time_out - time_in);
     }

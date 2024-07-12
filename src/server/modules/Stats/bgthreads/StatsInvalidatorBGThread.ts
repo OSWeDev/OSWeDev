@@ -49,17 +49,17 @@ export default class StatsInvalidatorBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
             StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', 'IN');
 
-            let invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
-            let invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
-            let invalidate_current_minute = await ModuleParams.getInstance().getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
+            const invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
+            const invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
+            const invalidate_current_minute = await ModuleParams.getInstance().getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
 
-            let now_sec = Dates.now();
+            const now_sec = Dates.now();
 
             if ((!this.last_update_date_sec) || (this.last_update_date_sec + invalidation_interval_sec < now_sec)) {
                 this.last_update_date_sec = now_sec;
@@ -85,22 +85,22 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('StatsInvalidatorBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async invalidateStats(invalidate_x_previous_minutes: number, invalidate_current_minute: boolean) {
 
-        let ts_range: TSRange = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now() - (invalidate_x_previous_minutes * 60), Dates.now() - (invalidate_current_minute ? 0 : 59), true, true, TimeSegment.TYPE_MINUTE);
+        const ts_range: TSRange = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now() - (invalidate_x_previous_minutes * 60), Dates.now() - (invalidate_current_minute ? 0 : 59), true, true, TimeSegment.TYPE_MINUTE);
 
-        let intersector: StatsGroupSecDataRangesVO = StatsGroupSecDataRangesVO.createNew(
+        const intersector: StatsGroupSecDataRangesVO = StatsGroupSecDataRangesVO.createNew(
             VarSecStatsGroupeController.getInstance().varConf.name,
             false,
             [RangeHandler.getMaxNumRange()],
             [ts_range]
         );
-        let invalidator = VarDataInvalidatorVO.create_new(
+        const invalidator = VarDataInvalidatorVO.create_new(
             intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
         await VarsDatasVoUpdateHandler.push_invalidators([invalidator]);
     }

@@ -14,17 +14,9 @@ import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
     /**
-     * OPTIMISATION qui permet d'éviter complètement les questions de résolution des imports
-     *  Par défaut on considère qu'on a aucun import sur les variables, et si jamais on doit en avoir on active cette option explicitement
-     *  dans le constructeur de la Var
+     * DIRTY : workaround pour le typage de this, dans le cadre de l'usage de get_cloned_invalidators_from_dep_controller(this) qui ne comprend pas le typage de this directement, mais de this.self_instance
      */
-    public optimization__has_no_imports: boolean = true;
-
-    /**
-     * OPTIMISATION qui indique qu'une var ne peut avoir que des imports indépendants, et donc sur lesquels il est inutile
-     *  de vérifier lors du chargement des imports qu'ils ne s'intersectent pas (par définition ils n'intersectent pas, donc on prend tous les imports)
-     */
-    public optimization__has_only_atomic_imports: boolean = false;
+    public self_instance: VarServerControllerBase<TData> = this;
 
     // /**
     //  * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
@@ -112,15 +104,15 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public computeValue(varDAGNode: VarDAGNode) {
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'computeValue', this.varConf.name);
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         let value: number;
         if (varDAGNode.is_aggregator) {
 
-            let values: number[] = [];
+            const values: number[] = [];
 
-            for (let i in varDAGNode.outgoing_deps) {
-                let dep = varDAGNode.outgoing_deps[i];
+            for (const i in varDAGNode.outgoing_deps) {
+                const dep = varDAGNode.outgoing_deps[i];
 
                 values.push((dep.outgoing_node as VarDAGNode).var_data.value);
             }
@@ -135,7 +127,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value_ts = Dates.now();
         // await VarsDatasProxy.update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'computeValue', this.varConf.name, time_out - time_in);
     }
 
@@ -181,11 +173,11 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name);
         StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, c_or_d_vos.length);
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
-        let res = await this.get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos);
+        const res = await this.get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos);
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, time_out - time_in);
 
         return res;
@@ -195,19 +187,19 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
      */
     public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
-        let intersectors_by_index: { [index: string]: TData } = {};
+        const intersectors_by_index: { [index: string]: TData } = {};
 
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
-        let promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group');
+        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.max_pool / 3 : 10;
+        const promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_C_POST_D_group');
 
-        for (let k in c_or_d_vos) {
-            let vo_create_or_delete = c_or_d_vos[k];
+        for (const k in c_or_d_vos) {
+            const vo_create_or_delete = c_or_d_vos[k];
 
             await promise_pipeline.push(async () => {
-                let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                const tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
                 if ((!tmp) || (!tmp.length)) {
                     return;
                 }
@@ -230,11 +222,11 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name);
         StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, u_vo_holders.length);
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
-        let res = await this.get_invalid_params_intersectors_on_POST_U_group(u_vo_holders);
+        const res = await this.get_invalid_params_intersectors_on_POST_U_group(u_vo_holders);
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, time_out - time_in);
 
         return res;
@@ -245,19 +237,19 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async get_invalid_params_intersectors_on_POST_U_group<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
 
-        let intersectors_by_index: { [index: string]: TData } = {};
+        const intersectors_by_index: { [index: string]: TData } = {};
 
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
-        let promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group');
+        const limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.max_pool / 3 : 10;
+        const promise_pipeline = new PromisePipeline(limit, 'VarServerControllerBase.get_invalid_params_intersectors_on_POST_U_group');
 
-        for (let k in u_vo_holders) {
-            let u_vo_holder = u_vo_holders[k];
+        for (const k in u_vo_holders) {
+            const u_vo_holder = u_vo_holders[k];
 
             await promise_pipeline.push(async () => {
-                let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
+                const tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
                 if ((!tmp) || (!tmp.length)) {
                     return;
                 }
@@ -299,11 +291,11 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
 
         StatsController.register_stat_COMPTEUR('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name);
         StatsController.register_stat_QUANTITE('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, intersectors.length);
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
-        let res = await this.get_invalid_params_intersectors_from_dep(dep_id, intersectors);
+        const res = await this.get_invalid_params_intersectors_from_dep(dep_id, intersectors);
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_DUREE('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, time_out - time_in);
 
         return res;

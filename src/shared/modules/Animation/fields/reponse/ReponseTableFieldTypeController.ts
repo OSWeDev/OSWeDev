@@ -1,8 +1,8 @@
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import ModuleTableFieldVO from '../../../DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableField from '../../../ModuleTableField';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import AnimationReponseVO from './vos/AnimationReponseVO';
 
@@ -43,10 +43,10 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
-        let responses: AnimationReponseVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
+        const responses: AnimationReponseVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
 
-        for (let i in responses) {
-            let reponse: AnimationReponseVO = responses[0];
+        for (const i in responses) {
+            const reponse: AnimationReponseVO = responses[0];
 
             if (!reponse) {
                 continue;
@@ -64,19 +64,19 @@ export default class ReponseTableFieldTypeController extends TableFieldTypeContr
         return res;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return field_value;
     }
-    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return value;
     }
 
-    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableField<any>) {
+    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO) {
 
-        if ((!e) || (!field) || (!e[field.field_id])) {
+        if ((!e) || (!field) || (!e[field.field_name])) {
             return;
         }
 
-        e[field.field_id] = JSON.parse(e[field.field_id]);
+        e[field.field_name] = JSON.parse(e[field.field_name]);
     }
 }

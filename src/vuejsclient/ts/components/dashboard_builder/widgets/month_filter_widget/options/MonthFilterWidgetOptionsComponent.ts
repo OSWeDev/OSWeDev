@@ -74,10 +74,10 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+        const res: { [filter_name: string]: DashboardPageWidgetVO } = {};
 
-        for (let i in this.get_page_widgets) {
-            let get_page_widget = this.get_page_widgets[i];
+        for (const i in this.get_page_widgets) {
+            const get_page_widget = this.get_page_widgets[i];
 
             if (get_page_widget.id == this.page_widget.id) {
                 continue;
@@ -91,18 +91,18 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
                 continue;
             }
 
-            let other_filter_options = JSON.parse(get_page_widget.json_options) as MonthFilterWidgetOptionsVO;
+            const other_filter_options = JSON.parse(get_page_widget.json_options) as MonthFilterWidgetOptionsVO;
             if (!other_filter_options) {
                 continue;
             }
 
-            if (!!other_filter_options.is_vo_field_ref) {
+            if (other_filter_options.is_vo_field_ref) {
                 if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
                     continue;
                 }
 
-                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
-                if (!!res[name]) {
+                const name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+                if (res[name]) {
                     continue;
                 }
                 res[name] = get_page_widget;
@@ -111,8 +111,8 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
                     continue;
                 }
 
-                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
-                if (!!res[name]) {
+                const name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+                if (res[name]) {
                     continue;
                 }
                 res[name] = get_page_widget;
@@ -135,10 +135,10 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in this.get_custom_filters) {
-            let get_custom_filter = this.get_custom_filters[i];
+        for (const i in this.get_custom_filters) {
+            const get_custom_filter = this.get_custom_filters[i];
 
             if (get_custom_filter == this.custom_filter_name) {
                 continue;
@@ -153,7 +153,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     private change_custom_filter(custom_filter: string) {
         this.custom_filter_name = custom_filter;
         if (this.get_custom_filters && (this.get_custom_filters.indexOf(custom_filter) < 0)) {
-            let custom_filters = Array.from(this.get_custom_filters);
+            const custom_filters = Array.from(this.get_custom_filters);
             custom_filters.push(custom_filter);
             this.set_custom_filters(custom_filters);
         }
@@ -262,7 +262,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let month = (this.min_month == null) ? null : parseInt(this.min_month);
+        const month = (this.min_month == null) ? null : parseInt(this.min_month);
         if (this.widget_options.min_month != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.min_month = month;
@@ -277,7 +277,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min);
+        const month = (this.auto_select_month_min == null) ? null : parseInt(this.auto_select_month_min);
         if (this.widget_options.auto_select_month_min != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_month_min = month;
@@ -292,7 +292,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max);
+        const month = (this.auto_select_month_max == null) ? null : parseInt(this.auto_select_month_max);
         if (this.widget_options.auto_select_month_max != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.auto_select_month_max = month;
@@ -307,7 +307,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let month = (this.ytd_option_m_minus_x == null) ? 1 : parseInt(this.ytd_option_m_minus_x);
+        const month = (this.ytd_option_m_minus_x == null) ? 1 : parseInt(this.ytd_option_m_minus_x);
         if (this.widget_options.ytd_option_m_minus_x != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.ytd_option_m_minus_x = month;
@@ -322,7 +322,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             return;
         }
 
-        let month = (this.max_month == null) ? null : parseInt(this.max_month);
+        const month = (this.max_month == null) ? null : parseInt(this.max_month);
         if (this.widget_options.max_month != month) {
             this.next_update_options = this.widget_options;
             this.next_update_options.max_month = month;
@@ -465,13 +465,13 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        const name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        const get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: MonthFilterWidgetOptionsVO = this.widget_options;
+        const options: MonthFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -512,7 +512,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
 
         let options: MonthFilterWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptionsVO;
                 options = options ? new MonthFilterWidgetOptionsVO().from(options) : null;
             }
@@ -532,7 +532,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             );
         }
 
-        let vo_field_ref = new VOFieldRefVO();
+        const vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;

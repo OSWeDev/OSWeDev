@@ -23,14 +23,14 @@ export default class TeamsAPIServerController {
      */
     public static async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
 
-        if (ConfigurationService.node_configuration.BLOCK_TEAMS_MESSAGES) {
+        if (ConfigurationService.node_configuration.block_teams_messages) {
             ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.title);
             return;
         }
 
-        let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
+        const TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
         // let msg = TextHandler.getInstance().sanityze_object(message);
-        let msg = TextHandler.getInstance().encode_object(message);
+        const msg = TextHandler.getInstance().encode_object(message);
 
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
@@ -70,19 +70,19 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static get_throttle_send_teams_level() {
         if (!TeamsAPIServerController.throttle_send_teams) {
-            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.TEAMS_WEBHOOK__THROTTLE_MS);
+            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_webhook__throttle_ms);
         }
         return TeamsAPIServerController.throttle_send_teams;
     }
     // istanbul ignore next: nothing to test : send_teams
     private static async send_teams_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         try {
-            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
+            const webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) :
                 ConfigurationService.node_configuration['TEAMS_WEBHOOK__TECH_' + level.toUpperCase()];
 
             if (webhook) {
 
-                let param = new SendTeamsLevelParam(level, title, message, webhook);
+                const param = new SendTeamsLevelParam(level, title, message, webhook);
                 await (TeamsAPIServerController.get_throttle_send_teams_level()(param));
             }
         } catch (error) {
@@ -98,20 +98,20 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : get_key
     private static async throttled_send_teams_level(params: SendTeamsLevelParam[]) {
 
-        let params_by_key: { [key: string]: SendTeamsLevelParam[] } = {};
+        const params_by_key: { [key: string]: SendTeamsLevelParam[] } = {};
 
         // On n'envoie pas 2 fois le même message
-        let messages: { [message: string]: boolean } = {};
+        const messages: { [message: string]: boolean } = {};
 
-        for (let i in params) {
-            let param = params[i];
+        for (const i in params) {
+            const param = params[i];
 
             if (messages[param.message]) {
                 continue;
             }
             messages[param.message] = true;
 
-            let key = TeamsAPIServerController.get_key(param.title, param.webhook);
+            const key = TeamsAPIServerController.get_key(param.title, param.webhook);
 
             if (!params_by_key[key]) {
                 params_by_key[key] = [];
@@ -120,42 +120,43 @@ export default class TeamsAPIServerController {
             params_by_key[key].push(param);
         }
 
-        for (let key in params_by_key) {
-            let key_params = params_by_key[key];
+        for (const key in params_by_key) {
+            const key_params = params_by_key[key];
 
-            let webhook: string = key_params[0].webhook;
-            let level: string = key_params[0].level;
-            let title: string = key_params[0].title;
+            const webhook: string = key_params[0].webhook;
+            const level: string = key_params[0].level;
+            const title: string = key_params[0].title;
 
-            let m: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+            const m: TeamsWebhookContentVO = new TeamsWebhookContentVO();
             m.title = title;
 
             let message: string = key_params.map((p) => p.message).join('<br><br>');
 
-            if (message.length > ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE) {
+            if (message.length > ConfigurationService.node_configuration.teams_webhook__message_max_size) {
 
-                if (ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE) {
-                    try {
+                // if (ConfigurationService.node_configuration.teams_webhook__message_max_size_auto_summarize) {
+                //     try {
 
-                        let response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
-                            GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
-                            null,
-                            'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
-                        ));
-                        message = response.content;
-                    } catch (error) {
-                        ConsoleHandler.error('Impossible de résumer le message trop long pour Teams via GPT:' + error);
-                        message = message.substring(0, ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE - 3) + '...';
-                    }
-                } else {
-                    message = message.substring(0, ConfigurationService.node_configuration.TEAMS_WEBHOOK__MESSAGE_MAX_SIZE - 3) + '...';
-                }
+                //         // TODO FIXME Passer en assistant et ATTENTION au coût potentiel de cet appel à l'API
+                //         const response: GPTCompletionAPIMessageVO = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+                //             GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
+                //             null,
+                //             'Ton objectif : Faire un résumé de ce message en moins de ' + (Math.round(ConfigurationService.node_configuration.teams_webhook__message_max_size * 0.9)) + ' caractères, formatté en HTML pour envoi dans un channel Teams :\n\n' + message
+                //         ));
+                //         message = response.content;
+                //     } catch (error) {
+                //         ConsoleHandler.error('Impossible de résumer le message trop long pour Teams via GPT:' + error);
+                //         message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+                //     }
+                // } else {
+                message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+                // }
             }
 
             m.summary = message;
             m.sections.push(
                 new TeamsWebhookContentSectionVO().set_text(message)
-                    .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
+                    .set_activityImage(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
             );
 
             await TeamsAPIServerController.send_to_teams_webhook(webhook, m);

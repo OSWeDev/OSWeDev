@@ -1,12 +1,13 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
 
 export default class ModuleCron extends Module {
@@ -70,18 +71,16 @@ export default class ModuleCron extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
-        let label_field = new ModuleTableField(field_names<CronWorkerPlanification>().planification_uid, ModuleTableField.FIELD_TYPE_string, 'planification_uid', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().planification_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'planification_uid', true).unique();
+        const datatable_fields = [
             label_field,
-            new ModuleTableField(field_names<CronWorkerPlanification>().worker_uid, ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
-            new ModuleTableField(field_names<CronWorkerPlanification>().date_heure_planifiee, ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),
-            new ModuleTableField(field_names<CronWorkerPlanification>().type_recurrence, ModuleTableField.FIELD_TYPE_enum, 'type_recurrence', true).setEnumValues(CronWorkerPlanification.TYPE_RECURRENCE_LABELS),
-            new ModuleTableField(field_names<CronWorkerPlanification>().intervale_recurrence, ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
+            ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().worker_uid, ModuleTableFieldVO.FIELD_TYPE_string, 'worker_uid', true),
+            ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().date_heure_planifiee, ModuleTableFieldVO.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),
+            ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().type_recurrence, ModuleTableFieldVO.FIELD_TYPE_enum, 'type_recurrence', true).setEnumValues(CronWorkerPlanification.TYPE_RECURRENCE_LABELS),
+            ModuleTableFieldController.create_new(CronWorkerPlanification.API_TYPE_ID, field_names<CronWorkerPlanification>().intervale_recurrence, ModuleTableFieldVO.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
-        this.datatables.push(new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, () => new CronWorkerPlanification(), datatable_fields, label_field, "Tâches planifiées"));
+        ModuleTableController.create_new(this.name, CronWorkerPlanification, label_field, "Tâches planifiées")
+            ;
     }
 }

@@ -1,13 +1,13 @@
-import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
 import ObjectHandler from "../../../tools/ObjectHandler";
 import RangeHandler from "../../../tools/RangeHandler";
+import ModuleTableFieldVO from "../../DAO/vos/ModuleTableFieldVO";
 import FieldFiltersVO from "../../DashboardBuilder/vos/FieldFiltersVO";
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
-import ContextFilterVO from "../vos/ContextFilterVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
-import ModuleTableField from "../../ModuleTableField";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ContextFilterVO from "../vos/ContextFilterVO";
 
 /**
  * ContextFilterVOManager
@@ -53,10 +53,10 @@ export default class ContextFilterVOManager {
         }
 
         // Le root est déjà rempli, on renvoie un nouvel operateur
-        let context_filter = new ContextFilterVO();
+        const context_filter = new ContextFilterVO();
 
         context_filter.vo_type = context_filter_to_add.vo_type;
-        context_filter.field_id = context_filter_to_add.field_id;
+        context_filter.field_name = context_filter_to_add.field_name;
         context_filter.filter_type = operator_type;
         context_filter.left_hook = context_filter_tree_root;
         context_filter.right_hook = context_filter_to_add;
@@ -69,70 +69,70 @@ export default class ContextFilterVOManager {
      *
      * @param {DataFilterOption} active_option
      * @param {TSRange} ts_range
-     * @param {ModuleTableField<any>} field
+     * @param {ModuleTableFieldVO} field
      * @param {VOFieldRefVO} vo_field_ref
      * @returns {ContextFilterVO}
      */
     public static create_context_filter_from_data_filter_option(
         active_option: DataFilterOption,
         ts_range: TSRange,
-        field: ModuleTableField<any>,
+        field: ModuleTableFieldVO,
         vo_field_ref: VOFieldRefVO
     ): ContextFilterVO {
 
-        let context_filter = new ContextFilterVO();
+        const context_filter = new ContextFilterVO();
 
-        context_filter.field_id = vo_field_ref.field_id;
+        context_filter.field_name = vo_field_ref.field_id;
         context_filter.vo_type = vo_field_ref.api_type_id;
 
         let field_type = null;
 
         if ((!field) && (vo_field_ref.field_id == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
+            field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
         }
 
         switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_color:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-            case ModuleTableField.FIELD_TYPE_string_array:
-            case ModuleTableField.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_string_array:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 context_filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
                 context_filter.param_textarray = [active_option.string_value];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
                 context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
                 context_filter.param_numranges = [RangeHandler.create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 context_filter.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
                 context_filter.param_tsranges = [ts_range];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
             default:
                 throw new Error('Not Implemented');
         }
@@ -182,8 +182,8 @@ export default class ContextFilterVOManager {
      *
      * TODO: to be continued (not finished)
      * TODO: case when we have multiple conditions on the same vo_type e.g.
-     * TODO: - we may search by the same field_id with different values
-     * TODO: - we may search by different field_id with any values
+     * TODO: - we may search by the same field_name with different values
+     * TODO: - we may search by different field_name with any values
      *
      * @param {ContextFilterVO} context_filter
      * @param {string} vo_type
@@ -300,14 +300,14 @@ export default class ContextFilterVOManager {
         }
 
         if (context_filter_tree_root.left_hook) {
-            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
+            const res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
             if (res) {
                 return res;
             }
         }
 
         if (context_filter_tree_root.right_hook) {
-            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
+            const res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
             if (res) {
                 return res;
             }

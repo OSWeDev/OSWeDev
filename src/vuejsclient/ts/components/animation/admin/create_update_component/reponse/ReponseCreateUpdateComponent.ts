@@ -40,7 +40,7 @@ export default class ReponseCreateUpdateComponent extends VueComponentBase imple
         }
 
         if (this.field_values.length == 0) {
-            let res: AnimationReponseVO = new AnimationReponseVO();
+            const res: AnimationReponseVO = new AnimationReponseVO();
             res.id = this.next_id;
             this.field_values.push(res);
         }
@@ -54,7 +54,7 @@ export default class ReponseCreateUpdateComponent extends VueComponentBase imple
     private async created() { }
 
     private add(): void {
-        let res: AnimationReponseVO = new AnimationReponseVO();
+        const res: AnimationReponseVO = new AnimationReponseVO();
         res.id = this.next_id;
         this.field_values.push(res);
     }

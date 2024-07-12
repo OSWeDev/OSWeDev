@@ -33,14 +33,14 @@ export default class InitFrontVarsPolicies2 implements IGeneratorWorker {
 
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-        let access_matrix: {
+        const access_matrix: {
             [policy_id: number]: {
                 [role_id: number]: boolean;
             };
         } = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
 
-        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
-        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+        const roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        const policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
         await this.activate_policies(
             policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, VarConfVO.API_TYPE_ID)],
@@ -56,11 +56,11 @@ export default class InitFrontVarsPolicies2 implements IGeneratorWorker {
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
-        let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
+        const roles_ids_by_name: { [role_name: string]: number } = {};
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
-        for (let i in roles) {
-            let role = roles[i];
+        for (const i in roles) {
+            const role = roles[i];
 
             roles_ids_by_name[role.translatable_name] = role.id;
         }
@@ -69,11 +69,11 @@ export default class InitFrontVarsPolicies2 implements IGeneratorWorker {
     }
 
     private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
-        let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
+        const policies_ids_by_name: { [role_name: string]: number } = {};
+        const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
-        for (let i in policies) {
-            let policy = policies[i];
+        for (const i in policies) {
+            const policy = policies[i];
 
             policies_ids_by_name[policy.translatable_name] = policy.id;
         }
@@ -104,7 +104,7 @@ export default class InitFrontVarsPolicies2 implements IGeneratorWorker {
             };
         }) {
 
-        for (let i in roles_ids) {
+        for (const i in roles_ids) {
             await this.activate_policy(policy_id, roles_ids[i], access_matrix);
         }
     }

@@ -32,7 +32,7 @@ export default class EnvParamsAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let envparamsMenuBranch: MenuElementVO =
+        const envparamsMenuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
@@ -44,15 +44,15 @@ export default class EnvParamsAdminVueModule extends VueModuleBase {
                 )
             );
 
-        let url: string = "/env_params";
-        let main_route_name: string = 'EnvParams';
+        const url: string = "/env_params";
+        const main_route_name: string = 'EnvParams';
 
         this.routes.push({
             path: url,
             name: main_route_name,
             component: () => import('./EnvParamsComponent')
         });
-        let menuelt = MenuElementVO.create_new(
+        const menuelt = MenuElementVO.create_new(
             ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
             VueAppController.getInstance().app_name,
             'EnvParams',

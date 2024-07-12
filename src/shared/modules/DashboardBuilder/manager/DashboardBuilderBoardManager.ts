@@ -1,3 +1,4 @@
+import { field_names } from "../../../tools/ObjectHandler";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
@@ -43,12 +44,12 @@ export default class DashboardBuilderBoardManager {
         }
 
         const db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', dashboard_id)
+            .filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, dashboard_id)
             .select_vos<DashboardGraphVORefVO>();
 
         // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-        let api_type_ids: string[] = [];
+        const discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+        const api_type_ids: string[] = [];
 
         for (const i in db_cells_source) {
             // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];

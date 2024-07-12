@@ -23,7 +23,7 @@ export default class ConsoleLogLogger {
 
     public prepare_console_logger() {
 
-        let any_console = console as any;
+        const any_console = console as any;
 
         if (any_console.ConsoleLogLogger === undefined) {
             any_console.ConsoleLogLogger = 'initialized';

@@ -7,8 +7,8 @@ export default class Humanizer {
         /**
          * On décide de toujours chercher une précision sur minimum 3 chiffres
          */
-        let ALPHABET = 'KMGTPEZY'.split('');
-        let TRESHOLD = 1e3;
+        const ALPHABET = 'KMGTPEZY'.split('');
+        const TRESHOLD = 1e3;
 
         let i = -1;
 

@@ -27,6 +27,18 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
 
     private field_values: AnimationMessageModuleVO[] = [];
 
+    get fields(): Array<DatatableField<any, any>> {
+        return AnimationMessageModuleVO.fields();
+    }
+
+    get next_id(): number {
+        if (!this.field_values.length) {
+            return 1;
+        }
+
+        return (Math.max(...this.field_values.map((f) => f.id)) + 1);
+    }
+
     @Watch('vo', { immediate: true })
     private init_field_values() {
         if (this.vo[this.field.module_table_field_id]) {
@@ -40,7 +52,7 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
         }
 
         if (this.field_values.length == 0) {
-            let res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
+            const res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
             res.id = this.next_id;
             this.field_values.push(res);
         }
@@ -54,24 +66,12 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
     private async created() { }
 
     private add(): void {
-        let res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
+        const res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
         res.id = this.next_id;
         this.field_values.push(res);
     }
 
     private remove(index: number): void {
         this.field_values.splice(index, 1);
-    }
-
-    get fields(): Array<DatatableField<any, any>> {
-        return AnimationMessageModuleVO.fields();
-    }
-
-    get next_id(): number {
-        if (!this.field_values.length) {
-            return 1;
-        }
-
-        return (Math.max(...this.field_values.map((f) => f.id)) + 1);
     }
 }

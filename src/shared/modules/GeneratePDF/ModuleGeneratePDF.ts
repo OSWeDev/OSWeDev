@@ -42,7 +42,5 @@ export default class ModuleGeneratePDF extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 }

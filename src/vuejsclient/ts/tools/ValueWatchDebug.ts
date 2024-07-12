@@ -4,8 +4,8 @@ export default class ValueWatchDebug {
 
         // this is directly from https://github.com/paulmillr/es6-shim
         function getPropertyDescriptor(obj_, name) {
-            var property = Object.getOwnPropertyDescriptor(obj_, name);
-            var proto = Object.getPrototypeOf(obj_);
+            let property = Object.getOwnPropertyDescriptor(obj_, name);
+            let proto = Object.getPrototypeOf(obj_);
             while (property === undefined && proto !== null) {
                 property = Object.getOwnPropertyDescriptor(proto, name);
                 proto = Object.getPrototypeOf(proto);
@@ -19,9 +19,9 @@ export default class ValueWatchDebug {
             }
         }
 
-        var enabled = true;
-        var originalProperty = getPropertyDescriptor(obj, propertyName);
-        var newProperty = { enumerable: originalProperty.enumerable };
+        let enabled = true;
+        const originalProperty = getPropertyDescriptor(obj, propertyName);
+        const newProperty = { enumerable: originalProperty.enumerable };
 
         // write
         if (originalProperty.set) {// accessor property

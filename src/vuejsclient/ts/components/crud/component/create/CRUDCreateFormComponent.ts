@@ -4,21 +4,22 @@ import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
-import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import VueComponentBase from '../../../VueComponentBase';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleCRUDGetter } from '../../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
-import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
@@ -82,6 +83,96 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
     private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
 
+    get CRUDTitle(): string {
+        if (!this.crud) {
+            return null;
+        }
+
+        return this.label('crud.read.title', {
+            datatable_title:
+                this.t(ModuleTableController.module_tables_by_vo_type[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+        });
+    }
+
+    get callback_route(): string {
+        let callback: string = this.getCRUDLink(this.api_type_id);
+        if (CRUDComponentManager.getInstance().getCallbackRoute(false)) {
+            callback = CRUDComponentManager.getInstance().getCallbackRoute();
+        }
+
+        return callback;
+    }
+
+    get has_createDatatable(): boolean {
+        if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Watch("api_type_id", { immediate: true })
+    private async onchange_api_type_id() {
+        if (!this.api_type_id) {
+            if (this.crud) {
+                this.crud = null;
+            }
+            return;
+        }
+
+        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id]) {
+            await CRUDComponentManager.getInstance().registerCRUD(
+                this.api_type_id,
+                null,
+                null,
+                null
+            );
+        }
+
+        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
+            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+
+            try {
+                this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                    .filter_is_false(field_names<CRUDFieldRemoverConfVO>().is_update)
+                    .select_vo<CRUDFieldRemoverConfVO>();
+            } catch (error) {
+                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
+                    /**
+                     * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
+                     */
+                    const doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<CRUDFieldRemoverConfVO>().module_table_vo_type, this.api_type_id)
+                        .filter_is_false(field_names<CRUDFieldRemoverConfVO>().is_update)
+                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, field_names<CRUDFieldRemoverConfVO>().id, true))
+                        .select_vos<CRUDFieldRemoverConfVO>();
+                    doublons.shift();
+                    await ModuleDAO.getInstance().deleteVOs(doublons);
+                }
+            }
+            if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
+                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
+            }
+        }
+    }
+
+    @Watch("vo_init")
+    private async on_change_vo_init() {
+        if (!this.crud) {
+            return;
+        }
+
+        await this.prepareNewVO();
+    }
+
+    @Watch("crud", { immediate: true })
+    private async updatedCRUD() {
+        if (this.crud) {
+            await this.reload_datas();
+        }
+    }
+
     public async update_key(force_new_vo: boolean) {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
             if (force_new_vo) {
@@ -103,12 +194,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
         this.crud_field_remover_conf.module_table_field_ids = this.crud_field_remover_conf.module_table_field_ids.filter((id) => id != module_table_field_id);
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('crud_create_form_body_delete_removed_crud_field_id.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
-                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed delete_removed_crud_field_id');
                     }
@@ -158,12 +249,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
         this.crud_field_remover_conf = crud_field_remover_conf;
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('crud_create_form_body_add_removed_crud_field_id.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
-                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    const res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
                     if (!res.id) {
                         throw new Error('Failed add_removed_crud_field_id');
                     }
@@ -210,61 +301,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.crud.createDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
-    @Watch("api_type_id", { immediate: true })
-    private async onchange_api_type_id() {
-        if (!this.api_type_id) {
-            if (this.crud) {
-                this.crud = null;
-            }
-            return;
-        }
-
-        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id]) {
-            await CRUDComponentManager.getInstance().registerCRUD(
-                this.api_type_id,
-                null,
-                null,
-                null
-            );
-        }
-
-        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
-            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
-
-            try {
-                this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                    .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                    .filter_is_false('is_update')
-                    .select_vo<CRUDFieldRemoverConfVO>();
-            } catch (error) {
-                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
-                    /**
-                     * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
-                     */
-                    let doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                        .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                        .filter_is_false('is_update')
-                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, 'id', true))
-                        .select_vos<CRUDFieldRemoverConfVO>();
-                    doublons.shift();
-                    await ModuleDAO.getInstance().deleteVOs(doublons);
-                }
-            }
-            if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
-            }
-        }
-    }
-
-    @Watch("vo_init")
-    private async on_change_vo_init() {
-        if (!this.crud) {
-            return;
-        }
-
-        await this.prepareNewVO();
-    }
-
     private async loaddatas() {
 
         this.isLoading = true;
@@ -285,13 +321,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         this.isLoading = false;
     }
 
-    @Watch("crud", { immediate: true })
-    private async updatedCRUD() {
-        if (this.crud) {
-            await this.reload_datas();
-        }
-    }
-
     private async prepareNewVO() {
         this.newVO = await CRUDFormServices.getInstance().getNewVO(
             this.crud, this.vo_init, this.onChangeVO
@@ -299,7 +328,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     private async createVO() {
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('crud.create.starting'), () =>
             new Promise(async (resolve, reject) => {
 
@@ -321,7 +350,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     return;
                 }
 
-                if (!!self.newVO.id) {
+                if (self.newVO.id) {
                     self.newVO.id = null;
                 }
 
@@ -343,11 +372,11 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     }
 
                     // On passe la traduction depuis IHM sur les champs
-                    let apiokVo = CRUDFormServices.getInstance().IHMToData(self.newVO, self.crud.createDatatable, false);
+                    const apiokVo = CRUDFormServices.getInstance().IHMToData(self.newVO, self.crud.createDatatable, false);
 
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preCreate) {
-                        let errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
+                        const errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
                         if (errorMsg) {
                             //comme il a eut une erreur on abandonne la création
                             self.creating_vo = false;
@@ -364,7 +393,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         }
                     }
 
-                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    const res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
                     if ((!res) || (!res.id)) {
                         self.creating_vo = false;
                         reject({
@@ -379,11 +408,11 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         return;
                     }
 
-                    let id = res.id ? res.id : null;
+                    const id = res.id ? res.id : null;
                     self.newVO.id = id;
                     apiokVo.id = id;
 
-                    let n_createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
+                    const n_createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
                     createdVO = n_createdVO ? n_createdVO : apiokVo;
                     /**
                      * A SUIVRE en prod suivant les projets
@@ -496,38 +525,5 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private async cancel() {
         this.$emit('cancel');
-    }
-
-    get CRUDTitle(): string {
-        if (!this.crud) {
-            return null;
-        }
-
-        return this.label('crud.read.title', {
-            datatable_title:
-                this.t(VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
-        });
-    }
-
-    get callback_route(): string {
-        let callback: string = this.getCRUDLink(this.api_type_id);
-        if (CRUDComponentManager.getInstance().getCallbackRoute(false)) {
-            callback = CRUDComponentManager.getInstance().getCallbackRoute();
-        }
-
-        return callback;
-    }
-
-    get isModuleParamTable() {
-        return VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
-            VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
-    }
-
-    get has_createDatatable(): boolean {
-        if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
-            return true;
-        }
-
-        return false;
     }
 }

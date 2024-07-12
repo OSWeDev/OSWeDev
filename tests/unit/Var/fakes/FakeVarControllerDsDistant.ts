@@ -28,8 +28,6 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, {
             ts_ranges: TimeSegment.TYPE_DAY
         }, 1), {}, {}, {}, {});
-
-        this.optimization__has_no_imports = true;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
@@ -51,7 +49,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
     public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<FakeDataVO[]> {
 
-        let typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeDistantVO>;
+        const typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as unknown as DAOUpdateVOHolder<FakeDistantVO>;
 
         if (((typed.pre_update_vo as FakeDistantVO).date == (typed.post_update_vo as FakeDistantVO).date) &&
             ((typed.pre_update_vo as FakeDistantVO).value == (typed.post_update_vo as FakeDistantVO).value)) {
@@ -76,7 +74,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let res = 0;
 
-        let datas: { [date_value: number]: FakeDistantVO } = varDAGNode.datasources[FakeDistantDatasourceController.getInstance().name];
+        const datas: { [date_value: number]: FakeDistantVO } = varDAGNode.datasources[FakeDistantDatasourceController.getInstance().name];
 
         RangeHandler.foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
 

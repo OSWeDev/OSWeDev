@@ -8,7 +8,10 @@ import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOM
 import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
 import CRUD from '../../DAO/vos/CRUD';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
 import CRUDActionsDatatableFieldVO from '../../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import ComponentDatatableFieldVO from '../../DAO/vos/datatable/ComponentDatatableFieldVO';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
@@ -17,8 +20,6 @@ import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableField
 import VarDatatableFieldVO from '../../DAO/vos/datatable/VarDatatableFieldVO';
 import ExportVarcolumnConfVO from '../../DataExport/vos/ExportVarcolumnConfVO';
 import ExportContextQueryToXLSXParamVO from '../../DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import ModuleTable from '../../ModuleTable';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import FieldFiltersVOHandler from '../handlers/FieldFiltersVOHandler';
 import BulkActionVO from '../vos/BulkActionVO';
@@ -71,11 +72,11 @@ export default class TableWidgetManager {
 
         let export_name: string = 'Export-';
 
-        if (!!dashboard?.translatable_name_code_text) {
+        if (dashboard?.translatable_name_code_text) {
             export_name += 'Dashboard-' + LocaleManager.getInstance().t(dashboard.translatable_name_code_text) + '-';
         }
 
-        if (!!dashboard_page?.translatable_name_code_text) {
+        if (dashboard_page?.translatable_name_code_text) {
             export_name += 'Page-' + LocaleManager.getInstance().t(dashboard_page.translatable_name_code_text) + '-';
         }
 
@@ -104,7 +105,7 @@ export default class TableWidgetManager {
             // The actual fields to be exported
             const fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
 
-            for (let i in widget_options_fields) {
+            for (const i in widget_options_fields) {
                 const field = widget_options_fields[i];
                 fields[field.datatable_field_uid] = field;
             }
@@ -264,7 +265,7 @@ export default class TableWidgetManager {
             }
         }
 
-        let columns_by_field_id = TableWidgetManager.get_table_columns_by_field_id_by_widget_options(
+        const columns_by_field_id = TableWidgetManager.get_table_columns_by_field_id_by_widget_options(
             widget_options,
             active_field_filters,
             all_page_widgets_by_id
@@ -329,7 +330,7 @@ export default class TableWidgetManager {
 
             let options: FieldValueFilterWidgetOptionsVO = null;
             try {
-                if (!!page_widget.json_options) {
+                if (page_widget.json_options) {
                     options = JSON.parse(page_widget.json_options);
                 }
             } catch (error) {
@@ -490,8 +491,8 @@ export default class TableWidgetManager {
             if (column?.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
                 // pour mettre a plat les colonne pour l affichage
                 for (const r in column.children) {
-                    let children = column.children[r];
-                    let index = column.children.indexOf(children);
+                    const children = column.children[r];
+                    const index = column.children.indexOf(children);
                     // column.children.push(Object.assign(new TableColumnDescVO(), children));
                     final_res.push(new TableColumnDescVO().from(children));
                     // res.push(Object.assign(new TableColumnDescVO(), children));
@@ -519,7 +520,7 @@ export default class TableWidgetManager {
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
@@ -527,12 +528,12 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        for (let i in columns) {
-            let column: TableColumnDescVO = columns[i];
+        for (const i in columns) {
+            const column: TableColumnDescVO = columns[i];
 
             if (column.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
-                    let child = column.children[key];
+                    const child = column.children[key];
                     if (!child.exportable) {
                         continue;
                     }
@@ -566,7 +567,7 @@ export default class TableWidgetManager {
         active_field_filters: FieldFiltersVO,
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): any {
-        let label_by_field_uid: { [field_uid: string]: string } = {};
+        const label_by_field_uid: { [field_uid: string]: string } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
@@ -607,7 +608,7 @@ export default class TableWidgetManager {
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): { [datatable_field_uid: string]: string } {
 
-        let custom_field_columns_by_field_uid: { [datatable_field_uid: string]: string } = {};
+        const custom_field_columns_by_field_uid: { [datatable_field_uid: string]: string } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
@@ -615,8 +616,8 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        for (let i in columns) {
-            let column: TableColumnDescVO = columns[i];
+        for (const i in columns) {
+            const column: TableColumnDescVO = columns[i];
 
             if (!column.exportable) {
                 continue;
@@ -644,7 +645,7 @@ export default class TableWidgetManager {
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): { [datatable_field_uid: string]: ExportVarcolumnConfVO } {
 
-        let res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
+        const res: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,
@@ -652,14 +653,14 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        for (let i in columns) {
-            let column = columns[i];
+        for (const i in columns) {
+            const column = columns[i];
 
             if (column?.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
             }
 
-            let varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+            const varcolumn_conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 column.var_id,
                 column.filter_custom_field_filters,
             );
@@ -685,7 +686,7 @@ export default class TableWidgetManager {
         // Get page_widgets (or all_page_widgets from dashboard)
         const { page_widgets } = DashboardPageWidgetVOManager.getInstance();
 
-        let columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+        const columns_custom_filters_by_field_uid: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
 
         active_field_filters = cloneDeep(active_field_filters);
 
@@ -695,8 +696,8 @@ export default class TableWidgetManager {
             all_page_widgets_by_id
         );
 
-        for (let i in columns) {
-            let column = columns[i];
+        for (const i in columns) {
+            const column = columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
@@ -757,10 +758,10 @@ export default class TableWidgetManager {
 
         for (const i in columns) {
             const column: TableColumnDescVO = columns[i];
-            let moduleTable: ModuleTable<any>;
+            let moduleTable: ModuleTableVO;
 
             if (column?.type != TableColumnDescVO.TYPE_header) {
-                moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
+                moduleTable = ModuleTableController.module_tables_by_vo_type[column.api_type_id];
             }
 
             switch (column?.type) {
@@ -782,19 +783,22 @@ export default class TableWidgetManager {
 
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
-                    let field = moduleTable.get_field_by_id(column.field_id);
+                    const field = moduleTable.get_field_by_id(column.field_id);
 
                     if (!field) {
                         field_by_column_id[column.id] = SimpleDatatableFieldVO.createNew(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
                         break;
                     }
 
-                    let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+                    const data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
                     // FIXME TODO : set_translatable_title a été supprimé pour éviter des trads appliquées côté front par des widgets et qui ne seraient pas valides en export côté serveur
-                    if (data_field['set_translatable_title']) {
-                        data_field['set_translatable_title'](field.field_label.code_text);
+                    if (data_field['set_translatable_title'] &&
+                        ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type] &&
+                        ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type][field.field_name]) {
+                        data_field['set_translatable_title'](
+                            ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[field.module_table_vo_type][field.field_name].code_text);
                     }
 
                     data_field.setModuleTable(moduleTable)
@@ -827,7 +831,7 @@ export default class TableWidgetManager {
         all_page_widgets_by_id: { [id: number]: DashboardPageWidgetVO }
     ): { [datatable_field_uid: string]: TableColumnDescVO } {
 
-        let columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
         const columns = TableWidgetManager.get_table_columns_by_widget_options(
             widget_options,

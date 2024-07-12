@@ -19,7 +19,7 @@ export default class SemaphoreHandler {
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;
-        let res = await cb();
+        const res = await cb();
         SemaphoreHandler.SEMAPHORES[key] = false;
 
         return res;
@@ -38,7 +38,7 @@ export default class SemaphoreHandler {
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;
-        let res = cb();
+        const res = cb();
         SemaphoreHandler.SEMAPHORES[key] = false;
 
         return res;
@@ -57,7 +57,7 @@ export default class SemaphoreHandler {
         }
 
         SemaphoreHandler.SEMAPHORES[key] = true;
-        let res = cb();
+        const res = cb();
 
         return res;
     }

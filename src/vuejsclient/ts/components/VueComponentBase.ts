@@ -3,15 +3,18 @@ import moment from "moment";
 import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ContextFilterVO, { filter } from "../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../../shared/modules/ContextFilter/vos/SortByVO";
+import ModuleTableFieldVO from "../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
+import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
-import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../../shared/modules/Translation/vos/DefaultTranslationVO";
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
@@ -25,14 +28,12 @@ import VOEventRegistrationKey from "../modules/PushData/VOEventRegistrationKey";
 import VOEventRegistrationsHandler from "../modules/PushData/VOEventRegistrationsHandler";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
-import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
-import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import VOsTypesHandler from "../../../shared/modules/VO/handler/VOsTypesHandler";
-import VOsTypesManager from "../../../shared/modules/VO/manager/VOsTypesManager";
-import ModuleTableField from "../../../shared/modules/ModuleTableField";
+import { Snotify, SnotifyType } from "vue-snotify";
+import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
+import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 
 // MONTHS MIXIN
-let months = [
+const months = [
     "label.month.janvier",
     "label.month.fevrier",
     "label.month.mars",
@@ -44,17 +45,17 @@ let months = [
     "label.month.septembre",
     "label.month.octobre",
     "label.month.novembre",
-    "label.month.decembre"
+    "label.month.decembre",
 ];
 
-let days = [
+const days = [
     "label.day.dimanche",
     "label.day.lundi",
     "label.day.mardi",
     "label.day.mercredi",
     "label.day.jeudi",
     "label.day.vendredi",
-    "label.day.samedi"
+    "label.day.samedi",
 ];
 
 export function FiltersHandler() {
@@ -92,7 +93,7 @@ export function FiltersHandler() {
     this.setPercentFilter = function (
         active = true,
         n = undefined,
-        pts = undefined
+        pts = undefined,
     ) {
         this.filter_percent = active;
         this.filter_percent_n = n;
@@ -142,7 +143,7 @@ export function FiltersHandler() {
         negative = false,
         positiveSign = false,
         formatted = false,
-        arrondi_minutes = false
+        arrondi_minutes = false,
     ) {
         this.filter_hour = active;
         this.filter_hour_arrondi = arrondi;
@@ -213,14 +214,14 @@ export function FiltersHandler() {
             value = amountFilter.read(
                 value,
                 this.filter_amount_n,
-                this.filter_amount_k
+                this.filter_amount_k,
             );
         }
         if (this.filter_percent) {
             value = percentFilter.read(
                 value,
                 this.filter_percent_n,
-                this.filter_percent_pts
+                this.filter_percent_pts,
             );
         }
         if (this.filter_toFixed) {
@@ -254,7 +255,7 @@ export function FiltersHandler() {
                 this.filter_hour_negative,
                 this.filter_hour_positive_sign,
                 this.filter_hour_formatted,
-                this.filter_hour_arrondi_minutes
+                this.filter_hour_arrondi_minutes,
             );
         }
         if (this.filter_planningCheck) {
@@ -284,7 +285,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
-        tstz: tstzFilter
+        tstz: tstzFilter,
     };
 
     public $snotify: any;
@@ -317,7 +318,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
-        tstz: tstzFilter
+        tstz: tstzFilter,
     };
 
 
@@ -328,6 +329,28 @@ export default class VueComponentBase extends Vue
 
     protected fullscreen = screenfull.isFullscreen;
 
+    //EDITION MIXIN
+    get editionMode() {
+        return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
+    }
+    // SNOTIFY
+    get snotify() {
+        return this.$snotify;
+    }
+
+    get isPrintable(): boolean {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
+    }
+    get onprint(): () => void {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.onprint;
+    }
+    get isExportableToXLSX(): boolean {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
+    }
+    get printComponent(): VueComponentBase {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
+    }
+
     // TRANSLATION MIXIN
     public t(txt, params = {}): string {
         if (!txt) {
@@ -337,7 +360,7 @@ export default class VueComponentBase extends Vue
         if (VueAppController.getInstance().has_access_to_onpage_translation) {
             VueAppController.getInstance().throttled_register_translation({
                 translation_code: txt,
-                missing: false
+                missing: false,
             });
         }
 
@@ -349,8 +372,8 @@ export default class VueComponentBase extends Vue
             return txt;
         }
         return this.t(
-            txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
-            params
+            txt + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION,
+            params,
         );
     }
 
@@ -360,11 +383,6 @@ export default class VueComponentBase extends Vue
 
     protected onFullscreenChange() {
         this.fullscreen = screenfull.isFullscreen;
-    }
-
-    // SNOTIFY
-    get snotify() {
-        return this.$snotify;
     }
 
     protected getVocusLink(API_TYPE_ID: string, vo_id: number): string {
@@ -390,9 +408,9 @@ export default class VueComponentBase extends Vue
 
     // Permet de savoir si un module est actif ou pas
     protected moduleIsActive(nom_module) {
-        let module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
+        const module: Module = ModulesManager.getInstance().getModuleByNameAndRole(
             nom_module,
-            Module.SharedModuleRoleName
+            Module.SharedModuleRoleName,
         ) as Module;
 
         return module && module.actif;
@@ -402,7 +420,7 @@ export default class VueComponentBase extends Vue
     protected formatDate_MonthDay(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_MonthDay(
-                dateToFormat
+                dateToFormat,
             );
         }
         return dateToFormat;
@@ -411,7 +429,7 @@ export default class VueComponentBase extends Vue
     protected formatDate_FullyearMonth(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(
-                dateToFormat
+                dateToFormat,
             );
         }
         return dateToFormat;
@@ -420,7 +438,7 @@ export default class VueComponentBase extends Vue
     protected formatDate_FullyearMonthDay(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(
-                dateToFormat
+                dateToFormat,
             );
         }
         return dateToFormat;
@@ -429,7 +447,7 @@ export default class VueComponentBase extends Vue
     protected formatDate_Fullyear(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_Fullyear(
-                dateToFormat
+                dateToFormat,
             );
         }
     }
@@ -444,7 +462,7 @@ export default class VueComponentBase extends Vue
     protected formatNumber_nodecimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(
-                numberToFormat
+                numberToFormat,
             );
         }
         return numberToFormat;
@@ -454,7 +472,7 @@ export default class VueComponentBase extends Vue
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
                 numberToFormat,
-                1
+                1,
             );
         }
         return numberToFormat;
@@ -464,7 +482,7 @@ export default class VueComponentBase extends Vue
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
                 numberToFormat,
-                2
+                2,
             );
         }
         return numberToFormat;
@@ -472,18 +490,18 @@ export default class VueComponentBase extends Vue
 
     protected invalidateCache() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
-            new RegExp(".*", "i")
+            new RegExp(".*", "i"),
         );
     }
 
     // DATE MIXIN
     protected parseDateWithFormat(date, format = "d-m-y") {
-        var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
-        var month =
+        const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+        const month =
             date.getMonth() + 1 < 10
                 ? "0" + (date.getMonth() + 1)
                 : date.getMonth() + 1;
-        var year = date.getFullYear();
+        const year = date.getFullYear();
 
         return format
             .replace("d", day)
@@ -542,8 +560,8 @@ export default class VueComponentBase extends Vue
 
     // MOMENT MIXIN
     protected getNbWeekInMonth(month: number) {
-        let month_tmp = month;
-        let res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
+        const month_tmp = month;
+        const res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
         return Dates.diff(
             res,
             Dates.startOf(Dates.startOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK),
@@ -571,11 +589,6 @@ export default class VueComponentBase extends Vue
         return (xs.length == 0 && !strict) || xs.indexOf(x) != -1;
     }
 
-    //EDITION MIXIN
-    get editionMode() {
-        return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
-    }
-
     protected varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
         return (!!value) && (!!value.value);
     }
@@ -598,8 +611,8 @@ export default class VueComponentBase extends Vue
         }
 
         let res: number = null;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -622,8 +635,8 @@ export default class VueComponentBase extends Vue
 
         let res: number = null;
         let length: number = 0;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -674,8 +687,8 @@ export default class VueComponentBase extends Vue
         }
 
         let res: number = null;
-        for (let i in values) {
-            let value = values[i];
+        for (const i in values) {
+            const value = values[i];
 
             if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
                 continue;
@@ -695,11 +708,20 @@ export default class VueComponentBase extends Vue
 
         try {
 
-            let a: number = datas[0].value;
-            let b: number = datas[1].value;
+            if ((!datas) || (datas.length < 2)) {
+                return null;
+            }
+
+            if ((!datas[0]) || (!datas[1])) {
+                return null;
+            }
+
+            const a: number = datas[0].value;
+            const b: number = datas[1].value;
 
             return b ? (a - b) / b : null;
         } catch (error) {
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -712,11 +734,12 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.round(res) / decimals_coef;
         } catch (error) {
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -729,11 +752,12 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.floor(res) / decimals_coef;
         } catch (error) {
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -746,11 +770,12 @@ export default class VueComponentBase extends Vue
                 return null;
             }
 
-            let decimals_coef = Math.pow(10, decimals);
-            let res = value * decimals_coef;
+            const decimals_coef = Math.pow(10, decimals);
+            const res = value * decimals_coef;
 
             return Math.ceil(res) / decimals_coef;
         } catch (error) {
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -761,14 +786,14 @@ export default class VueComponentBase extends Vue
             return;
         }
 
-        let classes = el.className.split(' ');
+        const classes = el.className.split(' ');
         if ((!classes) || (!classes.length)) {
             el.className = className;
             return;
         }
 
         let found = false;
-        for (let i in classes) {
+        for (const i in classes) {
             if (classes[i] == className) {
                 found = true;
                 return;
@@ -785,9 +810,9 @@ export default class VueComponentBase extends Vue
             return;
         }
 
-        let classes = el.className.split(' ');
+        const classes = el.className.split(' ');
         let res = null;
-        for (let i in classes) {
+        for (const i in classes) {
 
             if (classes[i] == className) {
                 continue;
@@ -799,36 +824,36 @@ export default class VueComponentBase extends Vue
     }
 
     protected on_every_update_green_if_supp_zero(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
-        let className = (simple_value >= 1) ? 'text-success' : '';
+        const className = (simple_value >= 1) ? 'text-success' : '';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value < 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
@@ -842,21 +867,21 @@ export default class VueComponentBase extends Vue
      * @param vnode
      */
     protected on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        let simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
         simple_value--;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
         this.removeClassName('text-warning', el);
 
-        let className = (!!simple_value) ?
+        const className = (simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
 
         this.addClassName(className, el);
     }
 
     protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+        const simple_value = (varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
@@ -872,25 +897,12 @@ export default class VueComponentBase extends Vue
         AppVuexStoreManager.getInstance().appVuexStore.commit("deactivateEdition");
     }
 
-    get isPrintable(): boolean {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
-    }
-    get onprint(): () => void {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.onprint;
-    }
-    get isExportableToXLSX(): boolean {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
-    }
-    get printComponent(): any {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
-    }
-
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
             // this.startLoading();
-            let param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
+            const param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
 
-            if (!!param) {
+            if (param) {
 
                 await ModuleDataExport.getInstance().exportDataToXLSX(
                     param.filename,
@@ -899,7 +911,7 @@ export default class VueComponentBase extends Vue
                     param.column_labels,
                     param.api_type_id,
                     param.is_secured,
-                    param.file_access_policy_name
+                    param.file_access_policy_name,
                 );
             }
             // this.stopLoading();
@@ -915,7 +927,7 @@ export default class VueComponentBase extends Vue
             return false;
         }
 
-        let resolved = this['$router'].resolve(url);
+        const resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {
             return true;
         }
@@ -923,9 +935,9 @@ export default class VueComponentBase extends Vue
     }
 
     protected async unregister_room_id_vo_event_callbacks(room_id: string) {
-        let promises = [];
-        for (let j in this.vo_events_registration_keys_by_room_id[room_id]) {
-            let vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
+        const promises = [];
+        for (const j in this.vo_events_registration_keys_by_room_id[room_id]) {
+            const vo_event_registration_key = this.vo_events_registration_keys_by_room_id[room_id][j];
 
             promises.push(VOEventRegistrationsHandler.unregister_vo_event_callback(vo_event_registration_key));
         }
@@ -934,8 +946,8 @@ export default class VueComponentBase extends Vue
     }
 
     protected async unregister_all_vo_event_callbacks() {
-        let promises = [];
-        for (let i in this.vo_events_registration_keys_by_room_id) {
+        const promises = [];
+        for (const i in this.vo_events_registration_keys_by_room_id) {
             promises.push(this.unregister_room_id_vo_event_callbacks(i));
         }
         await all_promises(promises);
@@ -956,13 +968,13 @@ export default class VueComponentBase extends Vue
             }
         }
 
-        let list = map_name ? this[map_name][list_name] : this[list_name];
+        const list = map_name ? this[map_name][list_name] : this[list_name];
 
-        let index = list.findIndex((vo) => vo.id == created_vo.id);
+        const index = list.findIndex((vo) => vo.id == created_vo.id);
         if (index < 0) {
 
             let insert_index = 0;
-            for (let i in list) {
+            for (const i in list) {
                 if (sort_function(created_vo, list[i]) > 0) {
                     insert_index++;
                 } else {
@@ -990,7 +1002,7 @@ export default class VueComponentBase extends Vue
         list_name: string,
         simple_filters_on_api_type_id: ContextFilterVO[] = [],
         simple_sorts_by_on_api_type_id: SortByVO[] = [],
-        map_name: string = null
+        map_name: string = null,
     ) {
 
         this.assert_compatibility_for_register_vo_list_updates(API_TYPE_ID, list_name, simple_filters_on_api_type_id, simple_sorts_by_on_api_type_id);
@@ -1003,68 +1015,68 @@ export default class VueComponentBase extends Vue
         } else {
             Vue.set(this, list_name, []);
         }
-        let sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
+        const sort_function: (a, b) => number = this.get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id);
 
-        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        let room_id = JSON.stringify(room_vo);
+        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        const room_id = JSON.stringify(room_vo);
 
         await this.unregister_room_id_vo_event_callbacks(room_id);
         this.vo_events_registration_keys_by_room_id[room_id] = [];
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => {
-            let vos = await query(API_TYPE_ID)
+            const vos = await query(API_TYPE_ID)
                 .add_filters(simple_filters_on_api_type_id)
                 .set_sorts(simple_sorts_by_on_api_type_id)
                 .select_vos();
 
-            for (let i in vos) {
-                let vo = vos[i];
+            for (const i in vos) {
+                const vo = vos[i];
                 this.handle_created_vo_event_callback(list_name, sort_function, vo, map_name);
             }
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_create_callback(
                 room_vo,
                 room_id,
                 (created_vo: IDistantVOBase) => {
                     this.handle_created_vo_event_callback(list_name, sort_function, created_vo, map_name);
-                }
+                },
             );
             this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
                 room_vo,
                 room_id,
                 async (deleted_vo: IDistantVOBase) => {
 
-                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
-                    let index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
+                    const index = list ? list.findIndex((vo) => vo.id == deleted_vo.id) : null;
                     if (index >= 0) {
                         list.splice(index, 1);
                     }
-                }
+                },
             );
             this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
                 room_vo,
                 room_id,
                 async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
-                    let list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
+                    const list = map_name ? (this[map_name] ? this[map_name][list_name] : null) : this[list_name];
 
-                    let index = list.findIndex((vo) => vo.id == post_update_vo.id);
+                    const index = list.findIndex((vo) => vo.id == post_update_vo.id);
                     if (index >= 0) {
                         list.splice(index, 1, post_update_vo);
                     }
-                }
+                },
             );
             this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
         })());
@@ -1087,7 +1099,7 @@ export default class VueComponentBase extends Vue
         API_TYPE_ID: string,
         vo_id: number,
         field_name: string,
-        vo_has_been_preloaded: boolean = true
+        vo_has_been_preloaded: boolean = true,
     ) {
 
         this.assert_compatibility_for_register_single_vo_updates(API_TYPE_ID, vo_id, field_name);
@@ -1096,20 +1108,20 @@ export default class VueComponentBase extends Vue
             this[field_name] = null;
         }
 
-        let simple_filters_on_api_type_id = [
-            filter(API_TYPE_ID).by_id(vo_id)
+        const simple_filters_on_api_type_id = [
+            filter(API_TYPE_ID).by_id(vo_id),
         ];
-        let room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
-        let room_id = JSON.stringify(room_vo);
+        const room_vo = this.get_room_vo_for_register_vo_updates(API_TYPE_ID, simple_filters_on_api_type_id);
+        const room_id = JSON.stringify(room_vo);
 
         await this.unregister_room_id_vo_event_callbacks(room_id);
         this.vo_events_registration_keys_by_room_id[room_id] = [];
 
-        let promises = [];
+        const promises = [];
 
         if (!vo_has_been_preloaded) {
             promises.push((async () => {
-                let vo = await query(API_TYPE_ID)
+                const vo = await query(API_TYPE_ID)
                     .add_filters(simple_filters_on_api_type_id)
                     .select_vo();
 
@@ -1118,23 +1130,23 @@ export default class VueComponentBase extends Vue
         }
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_delete_callback(
                 room_vo,
                 room_id,
                 async (deleted_vo: IDistantVOBase) => {
                     this[field_name] = null;
-                }
+                },
             );
             this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
         })());
 
         promises.push((async () => {
-            let vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
+            const vo_event_registration_key = await VOEventRegistrationsHandler.register_vo_update_callback(
                 room_vo,
                 room_id,
                 async (pre_update_vo: IDistantVOBase, post_update_vo: IDistantVOBase) => {
                     this[field_name] = post_update_vo;
-                }
+                },
             );
             this.vo_events_registration_keys_by_room_id[room_id].push(vo_event_registration_key);
         })());
@@ -1147,7 +1159,7 @@ export default class VueComponentBase extends Vue
         API_TYPE_ID: string,
         list_name: string,
         simple_filters_on_api_type_id: ContextFilterVO[] = [],
-        simple_sorts_by_on_api_type_id: SortByVO[] = []
+        simple_sorts_by_on_api_type_id: SortByVO[] = [],
     ) {
         if (!API_TYPE_ID) {
             throw new Error('API_TYPE_ID is mandatory');
@@ -1157,31 +1169,31 @@ export default class VueComponentBase extends Vue
             throw new Error('list_name is mandatory');
         }
 
-        for (let i in simple_filters_on_api_type_id) {
-            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+        for (const i in simple_filters_on_api_type_id) {
+            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
             if (simple_filter_on_api_type_id.vo_type != API_TYPE_ID) {
                 throw new Error('simple_filters_on_api_type_id must be on API_TYPE_ID');
             }
 
-            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_name);
+            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY)) {
                         throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
-                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
                     }
 
                     if (simple_filter_on_api_type_id.param_numeric == null) {
@@ -1189,20 +1201,20 @@ export default class VueComponentBase extends Vue
                     }
                     break;
 
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_color:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_color:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
                     if ((simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ALL) &&
                         (simple_filter_on_api_type_id.filter_type != ContextFilterVO.TYPE_TEXT_EQUALS_ANY)) {
                         throw new Error('simple_filters_on_api_type_id filter_type Not implemented :' + simple_filter_on_api_type_id.filter_type +
-                            ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                            ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
                     }
 
                     if (simple_filter_on_api_type_id.param_text == null) {
@@ -1212,11 +1224,11 @@ export default class VueComponentBase extends Vue
 
                 default:
                     throw new Error('simple_filters_on_api_type_id field_type Not implemented' +
-                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                        ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
             }
         }
 
-        for (let i in simple_sorts_by_on_api_type_id) {
+        for (const i in simple_sorts_by_on_api_type_id) {
             if (simple_sorts_by_on_api_type_id[i].vo_type != API_TYPE_ID) {
                 throw new Error('simple_sorts_by_on_api_type_id must be on API_TYPE_ID');
             }
@@ -1226,7 +1238,7 @@ export default class VueComponentBase extends Vue
     private assert_compatibility_for_register_single_vo_updates(
         API_TYPE_ID: string,
         vo_id: number,
-        field_name: string
+        field_name: string,
     ) {
         if (!API_TYPE_ID) {
             throw new Error('API_TYPE_ID is mandatory');
@@ -1243,19 +1255,19 @@ export default class VueComponentBase extends Vue
 
 
     private get_sort_function_for_register_vo_updates(simple_sorts_by_on_api_type_id: SortByVO[]): (a, b) => number {
-        let sort_function = (a, b) => {
+        const sort_function = (a, b) => {
             if ((!simple_sorts_by_on_api_type_id) || (!simple_sorts_by_on_api_type_id.length)) {
                 return a.id - b.id;
             }
 
-            for (let i in simple_sorts_by_on_api_type_id) {
-                let sort_by = simple_sorts_by_on_api_type_id[i];
+            for (const i in simple_sorts_by_on_api_type_id) {
+                const sort_by = simple_sorts_by_on_api_type_id[i];
 
-                let compare_a = a[sort_by.field_id];
-                let compare_b = b[sort_by.field_id];
+                let compare_a = a[sort_by.field_name];
+                let compare_b = b[sort_by.field_name];
 
                 if (!sort_by.sort_asc) {
-                    let tmp = compare_a;
+                    const tmp = compare_a;
                     compare_a = compare_b;
                     compare_b = tmp;
                 }
@@ -1277,46 +1289,48 @@ export default class VueComponentBase extends Vue
         return sort_function;
     }
 
-    private get_room_vo_for_register_vo_updates(API_TYPE_ID: string, simple_filters_on_api_type_id: ContextFilterVO[] = []): any {
-        let room_vo = {
-            _type: API_TYPE_ID
+    private get_room_vo_for_register_vo_updates(API_TYPE_ID: string, simple_filters_on_api_type_id: ContextFilterVO[] = []): {
+        _type: string;
+    } {
+        const room_vo = {
+            _type: API_TYPE_ID,
         };
-        for (let i in simple_filters_on_api_type_id) {
-            let simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
+        for (const i in simple_filters_on_api_type_id) {
+            const simple_filter_on_api_type_id = simple_filters_on_api_type_id[i];
 
-            let vo_field = VOsTypesManager.moduleTables_by_voType[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_id);
-            let field_type = vo_field ? vo_field.field_type : ModuleTableField.FIELD_TYPE_int;
+            const vo_field = ModuleTableController.module_tables_by_vo_type[simple_filter_on_api_type_id.vo_type].get_field_by_id(simple_filter_on_api_type_id.field_name);
+            const field_type = vo_field ? vo_field.field_type : ModuleTableFieldVO.FIELD_TYPE_int;
             switch (field_type) {
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
-                    room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_numeric;
+                case ModuleTableFieldVO.FIELD_TYPE_amount:
+                case ModuleTableFieldVO.FIELD_TYPE_float:
+                case ModuleTableFieldVO.FIELD_TYPE_int:
+                case ModuleTableFieldVO.FIELD_TYPE_date:
+                case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+                case ModuleTableFieldVO.FIELD_TYPE_enum:
+                case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+                case ModuleTableFieldVO.FIELD_TYPE_prct:
+                    room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_numeric;
                     break;
 
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_color:
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_image_field:
-                    room_vo[simple_filter_on_api_type_id.field_id] = simple_filter_on_api_type_id.param_text;
+                case ModuleTableFieldVO.FIELD_TYPE_html:
+                case ModuleTableFieldVO.FIELD_TYPE_textarea:
+                case ModuleTableFieldVO.FIELD_TYPE_email:
+                case ModuleTableFieldVO.FIELD_TYPE_string:
+                case ModuleTableFieldVO.FIELD_TYPE_color:
+                case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+                case ModuleTableFieldVO.FIELD_TYPE_password:
+                case ModuleTableFieldVO.FIELD_TYPE_file_field:
+                case ModuleTableFieldVO.FIELD_TYPE_image_field:
+                    room_vo[simple_filter_on_api_type_id.field_name] = simple_filter_on_api_type_id.param_text;
                     break;
 
                 default:
                     throw new Error('get_room_vo_for_register_vo_updates field_type Not implemented' +
-                        ' for field_id ' + simple_filter_on_api_type_id.field_id + ' of field_type ' + field_type);
+                        ' for field_id ' + simple_filter_on_api_type_id.field_name + ' of field_type ' + field_type);
             }
         }
         return room_vo;

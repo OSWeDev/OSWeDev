@@ -12,7 +12,7 @@ export default class VarCtrlDAGNode extends DAGNodeBase {
      *  Le nom du noeud est l'index du var_data
      */
     public static getInstance(dag: DAG<VarCtrlDAGNode>, var_controller: VarServerControllerBase<VarDataBaseVO>): VarCtrlDAGNode {
-        if (!!dag.nodes[var_controller.varConf.id]) {
+        if (dag.nodes[var_controller.varConf.id]) {
             return dag.nodes[var_controller.varConf.id];
         }
 
@@ -39,7 +39,7 @@ export default class VarCtrlDAGNode extends DAGNodeBase {
             return;
         }
 
-        let dep: DAGNodeDep<VarCtrlDAGNode> = new DAGNodeDep(dep_name, this, outgoing_node);
+        const dep: DAGNodeDep<VarCtrlDAGNode> = new DAGNodeDep(dep_name, this, outgoing_node);
 
         this.outgoing_deps[dep.dep_name] = dep;
 
@@ -48,11 +48,11 @@ export default class VarCtrlDAGNode extends DAGNodeBase {
         }
         dep.outgoing_node.incoming_deps[dep.dep_name].push(dep);
 
-        if (!!this.dag.roots[dep.outgoing_node.var_controller.varConf.id]) {
+        if (this.dag.roots[dep.outgoing_node.var_controller.varConf.id]) {
             delete this.dag.roots[dep.outgoing_node.var_controller.varConf.id];
         }
 
-        if (!!this.dag.leafs[this.var_controller.varConf.id]) {
+        if (this.dag.leafs[this.var_controller.varConf.id]) {
             delete this.dag.leafs[this.var_controller.varConf.id];
         }
     }

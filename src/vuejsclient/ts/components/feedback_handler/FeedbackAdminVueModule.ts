@@ -30,7 +30,7 @@ export default class FeedbackAdminVueModule extends VueModuleBase {
     public async initializeAsync() {
 
         if (this.policies_loaded[ModuleFeedback.POLICY_BO_ACCESS]) {
-            let menuBranch: MenuElementVO =
+            const menuBranch: MenuElementVO =
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(
                         ModuleFeedback.POLICY_BO_ACCESS,

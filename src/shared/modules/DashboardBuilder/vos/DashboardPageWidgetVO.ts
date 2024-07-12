@@ -1,8 +1,8 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardGridItem from "../interfaces/IDashboardGridItem";
-import AbstractVO from "../../VO/abstract/AbstractVO";
 import FieldValueFilterWidgetOptionsVO from "./FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "./MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "./YearFilterWidgetOptionsVO";
@@ -13,6 +13,36 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
     public id: number;
     public _type: string = DashboardPageWidgetVO.API_TYPE_ID;
 
+    public widget_id: number;
+
+    /**
+     * id de la page pour le widget en question.
+     */
+    public page_id: number;
+
+    // public isdraggable: boolean;
+    // public isresizable: boolean;
+    public static: boolean;
+    // public minh: number;
+    // public minw: number;
+    // public maxh: number;
+    // public maxw: number;
+    public x: number;
+    public y: number;
+    public w: number;
+    public h: number;
+    public i: number;
+    // public dragallowfrom: string;
+    // public dragignorefrom: string;
+    // public resizeignorefrom: string;
+    // public preserveaspectratio: boolean;
+
+    public weight: number;
+
+    public json_options: string;
+
+    public background: string;
+
     get translatable_name_code_text(): string {
 
         if (!this.widget_id) {
@@ -21,36 +51,6 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
         return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
     }
-
-    public widget_id: number;
-
-    /**
-     * id de la page pour le widget en question.
-     */
-    public page_id: number;
-
-    public isDraggable: boolean;
-    public isResizable: boolean;
-    public static: boolean;
-    public minH: number;
-    public minW: number;
-    public maxH: number;
-    public maxW: number;
-    public x: number;
-    public y: number;
-    public w: number;
-    public h: number;
-    public i: number;
-    public dragAllowFrom: string;
-    public dragIgnoreFrom: string;
-    public resizeIgnoreFrom: string;
-    public preserveAspectRatio: boolean;
-
-    public weight: number;
-
-    public json_options: string;
-
-    public background: string;
 
     /**
      * Create a new instance from a widget_options object

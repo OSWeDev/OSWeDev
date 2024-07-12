@@ -12,6 +12,7 @@
         .widget_options_wrapper
             template(v-if="!selected_widget")
                 .first_select_a_widget {{ label('dashboard_builder_widgets.first_select_a_widget') }}
+                
             template(v-else)
                 template(v-if="!selected_widget_type")
                     i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")

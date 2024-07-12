@@ -1,13 +1,15 @@
 import { Cell, Editor, Graph } from "@maxgraph/core";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import ModuleTableVO from "../../../../../../shared/modules/DAO/vos/ModuleTableVO";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
-import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
+import { field_names } from "../../../../../../shared/tools/ObjectHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 import MaxGraphEdgeMapper from "./MaxGraphEdgeMapper";
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 
 export default class MaxGraphMapper {
 
@@ -20,9 +22,9 @@ export default class MaxGraphMapper {
             return null;
         }
 
-        let res = graph_mapper ? graph_mapper : new MaxGraphMapper();
+        const res = graph_mapper ? graph_mapper : new MaxGraphMapper();
         res.dashboard_id = dashboard_id;
-        let vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', dashboard_id).select_vos<DashboardGraphVORefVO>();
+        const vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, dashboard_id).select_vos<DashboardGraphVORefVO>();
         if (!vos_refs || !vos_refs.length) {
             return res;
         }
@@ -30,9 +32,9 @@ export default class MaxGraphMapper {
         /**
          * On ajoute d'abord les cellules / vo_type
          */
-        let api_type_ids: string[] = [];
-        let tables: Array<ModuleTable<any>> = [];
-        for (let i in vos_refs) {
+        const api_type_ids: string[] = [];
+        const tables: ModuleTableVO[] = [];
+        for (const i in vos_refs) {
             const graphvoref: DashboardGraphVORefVO = vos_refs[i];
 
             const cell = res.merge_cell_from_graphvoref(graphvoref);
@@ -46,7 +48,7 @@ export default class MaxGraphMapper {
          * Si on avait un graph_mapper en param, on doit supprimer les noeuds dedans qui n'existent plus dans les graphvorefs
          */
         if (graph_mapper) {
-            for (let i in graph_mapper.cells) {
+            for (const i in graph_mapper.cells) {
                 const cell: MaxGraphCellMapper = graph_mapper.cells[i];
 
                 if (api_type_ids.indexOf(cell.api_type_id) == -1) {
@@ -61,11 +63,11 @@ export default class MaxGraphMapper {
         /**
          * Puis les relations N/N activées automatiquement par ces types
          */
-        let activated_many_to_many = MaxGraphMapper.get_activated_many_to_many(api_type_ids);
-        for (let i in activated_many_to_many) {
-            let api_type_id = activated_many_to_many[i];
+        const activated_many_to_many = MaxGraphMapper.get_activated_many_to_many(api_type_ids);
+        for (const i in activated_many_to_many) {
+            const api_type_id = activated_many_to_many[i];
 
-            let graphvoref = new DashboardGraphVORefVO();
+            const graphvoref = new DashboardGraphVORefVO();
             graphvoref.x = 800;
             graphvoref.y = 80;
             graphvoref.width = MaxGraphMapper.default_width;
@@ -74,10 +76,10 @@ export default class MaxGraphMapper {
             graphvoref.dashboard_id = dashboard_id;
 
             // Si on ajoute un N/N, on désactive par défaut les liaisons (nouvelles donc)
-            let fields = VOsTypesManager.moduleTables_by_voType[api_type_id].get_fields();
+            const fields = ModuleTableController.module_tables_by_vo_type[api_type_id].get_fields();
             graphvoref.values_to_exclude = fields.map((field) => field.field_id);
 
-            let insert_res = await ModuleDAO.getInstance().insertOrUpdateVO(graphvoref);
+            const insert_res = await ModuleDAO.getInstance().insertOrUpdateVO(graphvoref);
             if ((!insert_res) || (!insert_res.id)) {
                 ConsoleHandler.error('Impossible de créer le graphvoref pour le type: ' + api_type_id);
                 throw new Error('Impossible de créer le graphvoref pour le type: ' + api_type_id);
@@ -94,21 +96,21 @@ export default class MaxGraphMapper {
         /**
          * Puis les edges entre ces types
          */
-        for (let i in tables) {
-            const table: ModuleTable<any> = tables[i];
+        for (const i in tables) {
+            const table: ModuleTableVO = tables[i];
 
-            let fields = table.get_fields();
-            for (let j in fields) {
+            const fields = table.get_fields();
+            for (const j in fields) {
                 const field = fields[j];
 
-                if (!field.manyToOne_target_moduletable) {
+                if (!field.foreign_ref_vo_type) {
                     continue;
                 }
 
                 /**
                  * Si les deux types ne sont pas activés, on ne crée pas l'edge
                  */
-                if (!res.cells[table.vo_type] || !res.cells[field.manyToOne_target_moduletable.vo_type]) {
+                if (!res.cells[table.vo_type] || !res.cells[field.foreign_ref_vo_type]) {
                     continue;
                 }
 
@@ -122,11 +124,11 @@ export default class MaxGraphMapper {
                 /**
                  * On s'intéresse pour le moment pas aux self-références
                  */
-                if (table.vo_type == field.manyToOne_target_moduletable.vo_type) {
+                if (table.vo_type == field.foreign_ref_vo_type) {
                     continue;
                 }
 
-                let new_edge: MaxGraphEdgeMapper = res.cells[table.vo_type].add_edge(res.cells[field.manyToOne_target_moduletable.vo_type], field);
+                const new_edge: MaxGraphEdgeMapper = res.cells[table.vo_type].add_edge(res.cells[field.foreign_ref_vo_type], field);
                 res.edges.push(new_edge);
             }
         }
@@ -142,21 +144,21 @@ export default class MaxGraphMapper {
      */
     private static get_activated_many_to_many(api_type_ids: string[]): string[] {
 
-        let res: string[] = [];
-        let nn_tables = VOsTypesManager.get_manyToManyModuleTables();
-        for (let i in nn_tables) {
-            let nn_table = nn_tables[i];
+        const res: string[] = [];
+        const nn_tables = VOsTypesManager.get_manyToManyModuleTables();
+        for (const i in nn_tables) {
+            const nn_table = nn_tables[i];
 
             if (api_type_ids.indexOf(nn_table.vo_type) >= 0) {
                 continue;
             }
 
-            let nnfields = nn_table.get_fields();
+            const nnfields = nn_table.get_fields();
             let has_inactive_relation = false;
-            for (let j in nnfields) {
-                let nnfield = nnfields[j];
+            for (const j in nnfields) {
+                const nnfield = nnfields[j];
 
-                if (api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                if (api_type_ids.indexOf(nnfield.foreign_ref_vo_type) < 0) {
                     has_inactive_relation = true;
                     break;
                 }
@@ -212,9 +214,9 @@ export default class MaxGraphMapper {
          */
         this.add_remove_remap_maxgraph_edges();
 
-        let vertices = this.maxgraph.getChildVertices(this.maxgraph.getDefaultParent());
-        let cells_to_delete = [];
-        for (let i in vertices) {
+        const vertices = this.maxgraph.getChildVertices(this.maxgraph.getDefaultParent());
+        const cells_to_delete = [];
+        for (const i in vertices) {
             const cell: Cell = vertices[i];
 
             if (!this.maxgraph_elt_by_maxgraph_id[cell.id]) {
@@ -318,7 +320,7 @@ export default class MaxGraphMapper {
 
         this.maxgraph.model.beginUpdate();
 
-        for (let i in this.cells) {
+        for (const i in this.cells) {
             const cell: MaxGraphCellMapper = this.cells[i];
 
             const maxgraph_cell: Cell = cell.add_to_maxgraph(this.maxgraph);
@@ -328,7 +330,7 @@ export default class MaxGraphMapper {
             this.maxgraph_elt_by_maxgraph_id[maxgraph_cell.id] = cell;
         }
 
-        for (let i in this.edges) {
+        for (const i in this.edges) {
             const edge: MaxGraphEdgeMapper = this.edges[i];
 
             const maxgraph_edge: Cell = edge.add_to_maxgraph(this.maxgraph);
@@ -347,22 +349,22 @@ export default class MaxGraphMapper {
     }
 
     private async edit_maxgraph_cell_cb() {
-        let selected_cell = this.maxgraph.getSelectionCell();
+        const selected_cell = this.maxgraph.getSelectionCell();
 
         if (!selected_cell) {
             return;
         }
 
-        let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard_id)
-            .filter_by_text_eq('vo_type', this.maxgraph_elt_by_maxgraph_id[selected_cell.id].api_type_id)
+        const db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardGraphVORefVO>().dashboard_id, this.dashboard_id)
+            .filter_by_text_eq(field_names<DashboardGraphVORefVO>().vo_type, this.maxgraph_elt_by_maxgraph_id[selected_cell.id].api_type_id)
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells) || (!db_cells.length)) {
             ConsoleHandler.error('Event.MOVE_END:no db cell');
             return;
         }
-        let db_cell = db_cells[0];
+        const db_cell = db_cells[0];
         db_cell.x = selected_cell.geometry.x;
         db_cell.y = selected_cell.geometry.y;
         db_cell.width = selected_cell.geometry.width;
@@ -375,20 +377,20 @@ export default class MaxGraphMapper {
      */
     private add_nn_hidden_relations() {
 
-        for (let i in this.cells) {
+        for (const i in this.cells) {
             const cell: MaxGraphCellMapper = this.cells[i];
 
             if (!cell.is_hidden_nn) {
                 continue;
             }
 
-            let label: string = cell.label + ' (N/N)';
-            let parent = this.maxgraph.getDefaultParent();
+            const label: string = cell.label + ' (N/N)';
+            const parent = this.maxgraph.getDefaultParent();
 
             let source_api_type_id = null;
             let dest_api_type_id = null;
 
-            for (let j in cell.outgoing_edges) {
+            for (const j in cell.outgoing_edges) {
                 const edge: MaxGraphEdgeMapper = cell.outgoing_edges[j];
 
                 if (!source_api_type_id) {
@@ -413,7 +415,7 @@ export default class MaxGraphMapper {
         if (!cell) {
             cell = new MaxGraphCellMapper();
             cell.api_type_id = graphvoref.vo_type;
-            cell.moduletable = VOsTypesManager.moduleTables_by_voType[cell.api_type_id];
+            cell.moduletable = ModuleTableController.module_tables_by_vo_type[cell.api_type_id];
             this.cells[cell.api_type_id] = cell;
         }
 
@@ -424,8 +426,8 @@ export default class MaxGraphMapper {
     }
 
     private add_remove_maxgraph_cells() {
-        let cells_to_delete: Cell[] = [];
-        for (let i in this.cells) {
+        const cells_to_delete: Cell[] = [];
+        for (const i in this.cells) {
             const cell = this.cells[i];
 
             if ((!cell.maxgraph_cell) && (!cell.is_hidden_nn)) {
@@ -456,7 +458,7 @@ export default class MaxGraphMapper {
         }
 
         this.maxgraph.removeCells(maxgraphcells_to_delete);
-        for (let i in maxgraphcells_to_delete) {
+        for (const i in maxgraphcells_to_delete) {
             const maxgraphcell: Cell = maxgraphcells_to_delete[i];
 
             delete this.maxgraph_elt_by_maxgraph_id[maxgraphcell.id];
@@ -464,8 +466,8 @@ export default class MaxGraphMapper {
     }
 
     private add_remove_remap_maxgraph_edges() {
-        let edges_to_delete: Cell[] = [];
-        for (let i in this.edges) {
+        const edges_to_delete: Cell[] = [];
+        for (const i in this.edges) {
             const edge = this.edges[i];
 
             if ((!edge.maxgraph_cell) && (!edge.is_hidden_nn)) {
@@ -497,11 +499,11 @@ export default class MaxGraphMapper {
 
     private remove_cell(cell_to_remove: MaxGraphCellMapper) {
         delete this.cells[cell_to_remove.api_type_id];
-        for (let i in cell_to_remove.incoming_edges) {
+        for (const i in cell_to_remove.incoming_edges) {
             const edge: MaxGraphEdgeMapper = cell_to_remove.incoming_edges[i];
             this.edges.splice(this.edges.indexOf(edge), 1);
         }
-        for (let i in cell_to_remove.outgoing_edges_array) {
+        for (const i in cell_to_remove.outgoing_edges_array) {
             const edge: MaxGraphEdgeMapper = cell_to_remove.outgoing_edges_array[i];
             this.edges.splice(this.edges.indexOf(edge), 1);
         }

@@ -30,7 +30,7 @@ export default class ImportLogger {
      */
     public async log(historique: DataImportHistoricVO, format: DataImportFormatVO, message: string, log_level: number = DataImportLogVO.LOG_LEVEL_INFO) {
 
-        let log: DataImportLogVO = new DataImportLogVO();
+        const log: DataImportLogVO = new DataImportLogVO();
 
         log.data_import_format_id = historique.data_import_format_id;
         log.data_import_historic_id = historique.id;

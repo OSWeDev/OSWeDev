@@ -31,8 +31,8 @@ export default class DAGController {
         }
         visited.push(target_node);
 
-        for (let i in target_node.outgoing_deps) {
-            let outgoing_dep = target_node.outgoing_deps[i];
+        for (const i in target_node.outgoing_deps) {
+            const outgoing_dep = target_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != target_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
@@ -73,8 +73,8 @@ export default class DAGController {
 
         await callback(source_node);
 
-        for (let i in source_node.outgoing_deps) {
-            let outgoing_dep = source_node.outgoing_deps[i];
+        for (const i in source_node.outgoing_deps) {
+            const outgoing_dep = source_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != source_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
@@ -113,11 +113,11 @@ export default class DAGController {
 
         await callback(source_node);
 
-        for (let i in source_node.incoming_deps) {
-            let deps = source_node.incoming_deps[i];
+        for (const i in source_node.incoming_deps) {
+            const deps = source_node.incoming_deps[i];
 
-            for (let k in deps) {
-                let incoming_dep = deps[k];
+            for (const k in deps) {
+                const incoming_dep = deps[k];
 
                 if ((incoming_dep.incoming_node != source_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                     await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition, visited);
@@ -155,11 +155,11 @@ export default class DAGController {
         }
         visited.push(target_node);
 
-        for (let i in target_node.incoming_deps) {
-            let deps = target_node.incoming_deps[i];
+        for (const i in target_node.incoming_deps) {
+            const deps = target_node.incoming_deps[i];
 
-            for (let k in deps) {
-                let incoming_dep = deps[k];
+            for (const k in deps) {
+                const incoming_dep = deps[k];
 
                 if ((incoming_dep.incoming_node != target_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                     await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition, visited);
@@ -199,8 +199,8 @@ export default class DAGController {
         }
         visited.push(through_node);
 
-        for (let i in through_node.outgoing_deps) {
-            let outgoing_dep = through_node.outgoing_deps[i];
+        for (const i in through_node.outgoing_deps) {
+            const outgoing_dep = through_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
@@ -209,11 +209,11 @@ export default class DAGController {
 
         await callback(through_node);
 
-        for (let i in through_node.incoming_deps) {
-            let deps = through_node.incoming_deps[i];
+        for (const i in through_node.incoming_deps) {
+            const deps = through_node.incoming_deps[i];
 
-            for (let k in deps) {
-                let incoming_dep = deps[k];
+            for (const k in deps) {
+                const incoming_dep = deps[k];
 
                 if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                     await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition, visited);
@@ -251,11 +251,11 @@ export default class DAGController {
         }
         visited.push(through_node);
 
-        for (let i in through_node.incoming_deps) {
-            let deps = through_node.incoming_deps[i];
+        for (const i in through_node.incoming_deps) {
+            const deps = through_node.incoming_deps[i];
 
-            for (let k in deps) {
-                let incoming_dep = deps[k];
+            for (const k in deps) {
+                const incoming_dep = deps[k];
 
                 if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                     await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition, visited);
@@ -265,8 +265,8 @@ export default class DAGController {
 
         await callback(through_node);
 
-        for (let i in through_node.outgoing_deps) {
-            let outgoing_dep = through_node.outgoing_deps[i];
+        for (const i in through_node.outgoing_deps) {
+            const outgoing_dep = through_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);

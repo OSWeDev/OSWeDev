@@ -32,7 +32,7 @@ export default class PercentFilterOptionsComponent extends VueComponentBase {
         }
 
         try {
-            let options = JSON.parse(this.actual_additional_options);
+            const options = JSON.parse(this.actual_additional_options);
 
             // fractional_digits: number = 0,
             // pts: boolean = false,
@@ -51,7 +51,7 @@ export default class PercentFilterOptionsComponent extends VueComponentBase {
     }
 
     private onchange_inputs() {
-        let options = [
+        const options = [
             this.fractional_digits,
             this.pts,
             this.explicit_sign,

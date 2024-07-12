@@ -176,7 +176,7 @@ export default class SupervisionTypeWidgetManager {
             const api_type_context_query = context_query_by_api_type_id[api_type_id];
 
             await promise_pipeline.push(async () => {
-                let items_count: number = await api_type_context_query.select_count();
+                const items_count: number = await api_type_context_query.select_count();
 
                 if (items_count > 0) {
                     available_supervision_api_type_ids.push(api_type_id);

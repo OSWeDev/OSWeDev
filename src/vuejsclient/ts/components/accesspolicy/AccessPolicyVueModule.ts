@@ -11,6 +11,7 @@ import AccessPolicyVueController from './AccessPolicyVueController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class AccessPolicyVueModule extends VueModuleBase {
     public static getInstance(): AccessPolicyVueModule {
@@ -38,7 +39,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'impersonate',
                 'Impersonatecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.register_component(
@@ -46,7 +47,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'sendinitpwd',
                 'Sendinitpwdcomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.register_component(
@@ -54,7 +55,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'sendrecapture',
                 'Sendrecapturecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
     }
 
@@ -72,7 +73,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
      * FIXME : duplicates with /me ...
      */
     public getRoutesMenu(): Array<{ route: RouteConfig, icon: string, text: string }> {
-        let routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
+        const routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
 
         routes.push({
             route: this.getRouteUser(),

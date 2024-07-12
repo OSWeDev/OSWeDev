@@ -1,20 +1,21 @@
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import Module from '../../../shared/modules/Module';
+import ModulesManager from '../../../shared/modules/ModulesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -40,28 +41,28 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.Vocus.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.VocusAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CRUD'
         }, 'vocus.crud.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ID'
         }, 'vocus.id.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Label'
         }, 'vocus.label.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Type'
         }, 'vocus.vo_type.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Limité à 1000 lignes...'
         }, 'vocus.limit1000.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
@@ -73,7 +74,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVocus.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Vocus'
         }));
 
@@ -81,7 +82,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleVocus.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration du Vocus'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -108,19 +109,19 @@ export default class ModuleVocusServer extends ModuleServerBase {
         limit_to_cascading_refs: boolean = false
     ): Promise<VocusInfoVO[]> {
 
-        let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
+        const res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
+        const moduleTable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
         }
 
-        let refFields: Array<ModuleTableField<any>> = [];
+        const refFields: ModuleTableFieldVO[] = [];
 
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let table = VOsTypesManager.moduleTables_by_voType[i];
+        for (const i in ModuleTableController.module_tables_by_vo_type) {
+            const table = ModuleTableController.module_tables_by_vo_type[i];
 
             if (table.vo_type == moduleTable.vo_type) {
                 continue;
@@ -129,7 +130,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
             /**
              * On ignore les modules inactifs
              */
-            if (table.module && !table.module.actif) {
+            if (table.module_name && !ModulesManager.getInstance().getModuleByNameAndRole(table.module_name, Module.SharedModuleRoleName).actif) {
                 continue;
             }
 
@@ -140,15 +141,11 @@ export default class ModuleVocusServer extends ModuleServerBase {
             //     continue;
             // }
 
-            let fields = table.get_fields();
-            for (let j in fields) {
-                let field = fields[j];
+            const fields = table.get_fields();
+            for (const j in fields) {
+                const field = fields[j];
 
-                if (!field.has_relation) {
-                    continue;
-                }
-
-                if ((!field.manyToOne_target_moduletable) || (field.manyToOne_target_moduletable.vo_type != moduleTable.vo_type)) {
+                if ((!field.foreign_ref_vo_type) || (field.foreign_ref_vo_type != moduleTable.vo_type)) {
                     continue;
                 }
 
@@ -160,37 +157,38 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
-        let promises = [];
-        for (let i in refFields) {
-            let refField = refFields[i];
+        const promises = [];
+        for (const i in refFields) {
+            const refField = refFields[i];
 
             promises.push((async () => {
-                let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                const refvos: IDistantVOBase[] = await query(refField.module_table_vo_type)
                     .filter_by_num_x_ranges(refField.field_id, [RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
                     .select_vos<IDistantVOBase>();
 
-                for (let j in refvos) {
-                    let refvo: IDistantVOBase = refvos[j];
+                for (const j in refvos) {
+                    const refvo: IDistantVOBase = refvos[j];
 
                     if (!res_map[refvo._type]) {
                         res_map[refvo._type] = {};
                     }
 
-                    let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
+                    const tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
                     tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
                     tmp.linked_id = refvo.id;
                     tmp.linked_type = refvo._type;
 
-                    let table = refField.module_table;
+                    const table = ModuleTableController.module_tables_by_vo_type[refField.module_table_vo_type];
+                    const table_label_function = ModuleTableController.table_label_function_by_vo_type[refField.module_table_vo_type];
                     if (table && table.default_label_field) {
                         tmp.linked_label = refvo[table.default_label_field.field_id];
-                    } else if (table && table.table_label_function) {
-                        tmp.linked_label = table.table_label_function(refvo);
+                    } else if (table && table_label_function) {
+                        tmp.linked_label = table_label_function(refvo);
                     }
 
                     res_map[refvo._type][refvo.id] = tmp;
 
-                    if (!!limit) {
+                    if (limit) {
                         limit--;
                         if (limit <= 0) {
                             break;
@@ -203,9 +201,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
-        let res: VocusInfoVO[] = [];
-        for (let i in res_map) {
-            for (let j in res_map[i]) {
+        const res: VocusInfoVO[] = [];
+        for (const i in res_map) {
+            for (const j in res_map[i]) {
 
                 res.push(res_map[i][j]);
             }

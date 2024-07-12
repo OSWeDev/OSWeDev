@@ -53,9 +53,9 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             )
         );
 
-        let registered_api_types = SupervisionController.getInstance().registered_controllers;
-        for (let api_type in registered_api_types) {
-            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type];
+        const registered_api_types = SupervisionController.getInstance().registered_controllers;
+        for (const api_type in registered_api_types) {
+            const registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type];
 
             if (!registered_api_type.is_actif()) {
                 continue;
@@ -88,7 +88,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             props: true
         });
 
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             ModuleSupervision.POLICY_BO_ACCESS,
             VueAppController.APP_NAME_ADMIN,
             SupervisionController.ROUTE_NAME_DASHBOARD,

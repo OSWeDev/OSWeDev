@@ -26,13 +26,13 @@ export default class SupervisedCRONController implements ISupervisedItemControll
 
         return [{
             label: '! Forcer l\'exécution des crons maintenant !',
-            url: EnvHandler.BASE_URL + '#/cron'
+            url: EnvHandler.base_url + '#/cron'
         }, {
             label: 'Lancement manuel et individuel',
-            url: EnvHandler.BASE_URL + '#/cron/run'
+            url: EnvHandler.base_url + '#/cron/run'
         }, {
             label: 'Planification des crons',
-            url: EnvHandler.BASE_URL + '#/manage/cronworkplan'
+            url: EnvHandler.base_url + '#/manage/cronworkplan'
         }];
     }
 

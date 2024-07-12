@@ -204,7 +204,7 @@ export default class EvolizDevisVO {
     // Quote template
     public template: { templateid: number, label: string };
     // Document item
-    public items: {
+    public items: Array<{
         // Item id
         itemid: number,
         // Article unique identifier
@@ -229,11 +229,11 @@ export default class EvolizDevisVO {
         vat: number,
         // Document total amounts
         total: {
-            rebate: null,
+            rebate: { amount_vat_exclude: number, percent: number },
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Document total amounts in currency
         currency_total: {
@@ -241,16 +241,16 @@ export default class EvolizDevisVO {
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_price_vat_exclude: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Item classification information
         sale_classification: {
             // Classification id
             id: number,
             // Classification code
-            code: number,
+            code: string,
             // Classification label
             label: string
         }
-    };
+    }>;
 }

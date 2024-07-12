@@ -1,12 +1,13 @@
-import nodemailer from 'nodemailer';
-import { SendMailOptions } from 'nodemailer';
+import nodemailer, { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
@@ -31,72 +32,72 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Initié'
         }, 'mail_event.EVENT_Initie'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyé'
         }, 'mail_event.EVENT_Envoye'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Délivré'
         }, 'mail_event.EVENT_Delivre'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ouvert'
         }, 'mail_event.EVENT_Ouverture'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliqué'
         }, 'mail_event.EVENT_Clic'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur - Soft bounce'
         }, 'mail_event.EVENT_Soft_bounce'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur - Hard bounce'
         }, 'mail_event.EVENT_Hard_bounce'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur - Email invalide'
         }, 'mail_event.EVENT_Email_invalide'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur'
         }, 'mail_event.EVENT_Error'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Différé'
         }, 'mail_event.EVENT_Differe'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Dénoncé comme SPAM'
         }, 'mail_event.EVENT_Plainte'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Désinscrit'
         }, 'mail_event.EVENT_Desinscrit'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Bloqué'
         }, 'mail_event.EVENT_Bloque'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mails envoyés par cet utilisateur'
         }, 'fields.labels.ref.module_mailer_mail.___LABEL____sent_by_id'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mails envoyés à cet utilisateur'
         }, 'fields.labels.ref.module_mailer_mail.___LABEL____sent_to_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Initialisation du mot de passe'
         }, 'MAILCATEGORY.PasswordInitialisation.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération du mot de passe'
         }, 'MAILCATEGORY.PasswordRecovery.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalidation du mot de passe (1/3)'
         }, 'MAILCATEGORY.PasswordInvalidation_RMD1.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalidation du mot de passe (2/3)'
         }, 'MAILCATEGORY.PasswordInvalidation_RMD2.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Invalidation du mot de passe (3/3)'
         }, 'MAILCATEGORY.PasswordInvalidation_INVALIDATE.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Confirmation du Feedback'
         }, 'MAILCATEGORY.FeedbackConfirmationMail.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Rapport quotidien de supervision'
         }, 'MAILCATEGORY.DailyReportCronWorker.___LABEL___'));
     }
@@ -115,7 +116,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
-        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.block_mail_delivery) {
 
             if (this.check_mail_whitelist(mailOptions.to, mailOptions.cc, mailOptions.bcc)) {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + mailOptions.to + ':' + mailOptions.cc + ':' + mailOptions.bcc);
@@ -126,16 +127,26 @@ export default class ModuleMailerServer extends ModuleServerBase {
             }
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
 
-            mailOptions.from = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_FROM);
+            let prefix: string = null;
+            let suffix: string = null;
+            await all_promises([
+                (async () => {
+                    mailOptions.from = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_FROM, ModuleMailer.DEFAULT_FROM, 1000 * 60 * 5); // 5 minutes
+                })(),
+                (async () => {
+                    prefix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX, ModuleMailer.DEFAULT_SUBJECT_PREFIX, 1000 * 60 * 5); // 5 minutes
+                })(),
+                (async () => {
+                    suffix = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleMailer.DEFAULT_SUBJECT_SUFFIX, 1000 * 60 * 5); // 5 minutes
+                })()
+            ]);
 
-            let prefix: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SUBJECT_PREFIX);
-            let suffix: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX);
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                let mailtransport = nodemailer.createTransport(this.get_transporter());
+                const mailtransport = await nodemailer.createTransport(await this.get_transporter());
 
                 ConsoleHandler.log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
@@ -144,7 +155,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
                         ConsoleHandler.error(error);
                         resolve(error);
                     } else {
-                        var log: string = 'Message sent: ' + info.messageId;
+                        const log: string = 'Message sent: ' + info.messageId;
                         ConsoleHandler.log(log);
                         resolve(log);
                     }
@@ -165,8 +176,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
         to: string | Address | Array<string | Address>,
         cc: string | Address | Array<string | Address>,
         bcc: string | Address | Array<string | Address>): boolean {
-        let whitelisted_emails: string[] = ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST ?
-            ConfigurationService.node_configuration.MAIL_DELIVERY_WHITELIST.split(',') : null;
+        const whitelisted_emails: string[] = ConfigurationService.node_configuration.mail_delivery_whitelist ?
+            ConfigurationService.node_configuration.mail_delivery_whitelist.split(',') : null;
 
         if ((!whitelisted_emails) || (!whitelisted_emails.length)) {
             return false;
@@ -191,9 +202,9 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         if (TypesHandler.getInstance().isString(address)) {
             if ((address as string).indexOf(',') >= 0) {
-                let addresses = (address as string).split(',');
-                for (let i in addresses) {
-                    let e = addresses[i];
+                const addresses = (address as string).split(',');
+                for (const i in addresses) {
+                    const e = addresses[i];
 
                     if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
                         return false;
@@ -207,8 +218,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
         }
 
         if (TypesHandler.getInstance().isArray(address)) {
-            for (let i in address as Array<string | Address>) {
-                let e = address[i];
+            for (const i in address as Array<string | Address>) {
+                const e = address[i];
 
                 if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
                     return false;
@@ -218,29 +229,51 @@ export default class ModuleMailerServer extends ModuleServerBase {
             return true;
         }
 
-        let address_ = address as Address;
+        const address_ = address as Address;
         return whitelisted_emails.indexOf(address_.address) >= 0;
     }
 
-    private get_transporter() {
-        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
-        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
+    private async get_transporter() {
+
+        let user: string = null;
+        let pass: string = null;
+        let host: string = null;
+        let port: number = null;
+        let secure: boolean = null;
+        await all_promises([
+            (async () => {
+                user = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_USER, ModuleMailer.DEFAULT_AUTH_USER, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                pass = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_AUTH_PASS, ModuleMailer.DEFAULT_AUTH_PASS, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                host = await ModuleParams.getInstance().getParamValueAsString(ModuleMailer.PARAM_NAME_HOST, ModuleMailer.DEFAULT_HOST, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                port = await ModuleParams.getInstance().getParamValueAsInt(ModuleMailer.PARAM_NAME_PORT, ModuleMailer.DEFAULT_PORT, 1000 * 60 * 5); // 5 minutes
+            })(),
+            (async () => {
+                secure = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleMailer.PARAM_NAME_SECURE, ModuleMailer.DEFAULT_SECURE, 1000 * 60 * 5); // 5 minutes
+            })()
+        ]);
+
         if (user && (user != '') && pass && (pass != '')) {
             return new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
+                host,
+                port,
+                secure,
                 auth: {
-                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
-                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
+                    user,
+                    pass
                 }
             });
         }
 
         return new SMTPTransport({
-            host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-            port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-            secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
+            host,
+            port,
+            secure
         });
     }
 }

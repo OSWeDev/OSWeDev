@@ -101,16 +101,16 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (msg.throw_error) {
             ConsoleHandler.error('handle_taskresult_message:' + msg.throw_error + ':' +
                 msg.callback_id + ':' + msg.message_type + ':' + JSON.stringify(msg.message_content));
-            if (!!ForkedTasksController.registered_task_result_wrappers[msg.callback_id]) {
+            if (ForkedTasksController.registered_task_result_wrappers[msg.callback_id]) {
 
-                let thrower = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].thrower;
+                const thrower = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].thrower;
                 thrower(msg.throw_error);
                 delete ForkedTasksController.registered_task_result_wrappers[msg.callback_id];
             }
             return true;
         }
 
-        let resolver = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].resolver;
+        const resolver = ForkedTasksController.registered_task_result_wrappers[msg.callback_id].resolver;
         delete ForkedTasksController.registered_task_result_wrappers[msg.callback_id];
         resolver(msg.message_content);
         return true;
@@ -162,7 +162,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            let thrower = async (error) => {
+            const thrower = async (error) => {
                 if (msg.callback_id) {
                     await ForkMessageController.send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
                 } else {
@@ -171,7 +171,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 reject();
             };
 
-            let resolver = async (res) => {
+            const resolver = async (res) => {
                 if (msg.callback_id) {
                     await ForkMessageController.send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
                 }
@@ -225,7 +225,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     private async handle_kill_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
 
-        let throttle = msg ? msg.message_content : 10;
+        const throttle = msg ? msg.message_content : 10;
 
         await ModuleForkServer.getInstance().kill_process(throttle);
         return false;

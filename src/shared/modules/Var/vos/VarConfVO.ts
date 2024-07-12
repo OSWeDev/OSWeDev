@@ -189,7 +189,7 @@ export default class VarConfVO implements INamedVO {
      * En cas d'opérateur de type vofieldref, contient la référence du champs ciblé
      */
     public auto_vofieldref_api_type_id: string;
-    public auto_vofieldref_field_id: string;
+    public auto_vofieldref_field_name: string;
     public auto_vofieldref_modifier: number;
 
     /**
@@ -248,23 +248,54 @@ export default class VarConfVO implements INamedVO {
 
     /**
      * Ce paramètre permet d'indiquer qu'on doit mettre en cache uniquement les vars subs client ou server, et pas leurs deps
-     *  (sauf à ce qu'elles soient également subs client ou server)
+     *  (sauf à ce qu'elles soient également subs client ou server). Ne s'applique pas aux pixels qui sont toujours sauvegardés
      * @default true
      */
     public cache_only_exact_sub: boolean;
 
     /**
+     * OPTIMISATION qui permet d'éviter complètement les questions de résolution des imports
+     *  Par défaut on considère qu'on a aucun import sur les variables, et si jamais on doit en avoir on active cette option explicitement
+     *  dans le constructeur de la Var
+     */
+    public optimization__has_no_imports: boolean;
+
+    /**
+     * OPTIMISATION qui indique qu'une var ne peut avoir que des imports indépendants, et donc sur lesquels il est inutile
+     *  de vérifier lors du chargement des imports qu'ils ne s'intersectent pas (par définition ils n'intersectent pas, donc on prend tous les imports)
+     */
+    public optimization__has_only_atomic_imports: boolean;
+
+    /**
      * @param id Pour les tests unitaires en priorité, on a juste à set l'id pour éviter de chercher en bdd
      */
     public constructor(
-        public name: string,
-        public var_data_vo_type: string,
+        public name: string = null,
+        public var_data_vo_type: string = null,
         public segment_types: { [matroid_field_id: string]: number } = null,
         id: number = null) {
 
         if (id) {
             this.id = id;
         }
+
+        this.pixel_never_delete = false;
+        this.pixel_activated = false;
+        this.cache_only_exact_sub = true;
+        this.optimization__has_no_imports = true;
+        this.optimization__has_only_atomic_imports = false;
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public disable_optimization__has_no_imports(): VarConfVO {
+        this.optimization__has_no_imports = false;
+        return this;
+    }
+
+    /* istanbul ignore next : nothing to test */
+    public enable_optimization__has_only_atomic_imports(): VarConfVO {
+        this.optimization__has_only_atomic_imports = true;
+        return this;
     }
 
     /* istanbul ignore next : nothing to test */

@@ -6,6 +6,11 @@ import GeneratorBase from "./GeneratorBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
+    private static instance: ModulesClientInitializationDatasGenerator = null;
+
+    private constructor() {
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModulesClientInitializationDatasGenerator {
         if (!ModulesClientInitializationDatasGenerator.instance) {
@@ -13,11 +18,6 @@ export default class ModulesClientInitializationDatasGenerator {
         }
         return ModulesClientInitializationDatasGenerator.instance;
     }
-    private static instance: ModulesClientInitializationDatasGenerator = null;
-
-    private constructor() {
-    }
-
 
     public async generate() {
 
@@ -25,10 +25,10 @@ export default class ModulesClientInitializationDatasGenerator {
 
             // On veut générer un fichier avec les imports des modules actifs uniquement, et sur ces modules on veut appeler le getInstance()
             //  et on veut aussi initialiser les params
-            let fileContent_admin = this.getFileContent('Admin');
-            let fileContent_client = this.getFileContent('Client');
-            let fileContent_login = this.getFileContent('Login');
-            let fileContent_test = this.getFileContent('Test');
+            const fileContent_admin = this.getFileContent('Admin');
+            const fileContent_client = this.getFileContent('Client');
+            const fileContent_login = this.getFileContent('Login');
+            const fileContent_test = this.getFileContent('Test');
 
             // 'export default ModulesClientInitializationDatas = ' + JSON.stringify(this.GM.get_modules_infos(req.params.env)) + ';';
             try {
@@ -57,6 +57,7 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
         fileContent += "import APIControllerWrapper from 'oswedev/dist/shared/modules/API/APIControllerWrapper';\n";
+        fileContent += "import ModuleTableController from 'oswedev/dist/shared/modules/DAO/ModuleTableController';\n";
 
         if (target != 'Test') {
             fileContent += "import ClientAPIController from 'oswedev/dist/vuejsclient/ts/modules/API/ClientAPIController';\n";
@@ -76,21 +77,24 @@ export default class ModulesClientInitializationDatasGenerator {
         }
 
         // Initialiser directement l'env param
-        fileContent += "    EnvHandler.NODE_VERBOSE = " + ((!!ConfigurationService.node_configuration.NODE_VERBOSE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.IS_DEV = " + ((!!ConfigurationService.node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_VARS = " + ((!!ConfigurationService.node_configuration.DEBUG_VARS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.DEBUG_PROMISE_PIPELINE = " + ((!!ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.COMPRESS = " + ((!!ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.BASE_URL = '" + ConfigurationService.node_configuration.BASE_URL + "';\n";
-        fileContent += "    EnvHandler.CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
-        fileContent += "    EnvHandler.VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
-        fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((!!ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.MAX_POOL = " + ConfigurationService.node_configuration.MAX_POOL + ";\n";
-        fileContent += "    EnvHandler.ZOOM_AUTO = " + ((!!ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.LOGO_PATH = '" + ConfigurationService.node_configuration.LOGO_PATH + "';\n";
+        fileContent += "    EnvHandler.node_verbose = " + ((ConfigurationService.node_configuration.node_verbose) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.is_dev = " + ((ConfigurationService.node_configuration.isdev) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_vars = " + ((ConfigurationService.node_configuration.debug_vars) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_promise_pipeline = " + ((ConfigurationService.node_configuration.debug_promise_pipeline) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.debug_throttle_uid = " + ((ConfigurationService.node_configuration.debug_throttle_uid) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.compress = " + ((ConfigurationService.node_configuration.compress) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.base_url = '" + ConfigurationService.node_configuration.base_url + "';\n";
+        fileContent += "    EnvHandler.code_google_analytics = '" + ConfigurationService.node_configuration.code_google_analytics + "';\n";
+        fileContent += "    EnvHandler.version = '" + GeneratorBase.getInstance().getVersion() + "';\n";
+        fileContent += "    EnvHandler.activate_pwa = " + ((ConfigurationService.node_configuration.activate_pwa) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.max_pool = " + ConfigurationService.node_configuration.max_pool + ";\n";
+        fileContent += "    EnvHandler.zoom_auto = " + ((ConfigurationService.node_configuration.zoom_auto) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.logo_path = '" + ConfigurationService.node_configuration.logo_path + "';\n";
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
+
+        fileContent += "    ModuleTableController.initialize();\n";
 
         if (target != 'Test') {
             fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();\n";
@@ -124,8 +128,8 @@ export default class ModulesClientInitializationDatasGenerator {
                 modules = ModuleServiceBase.getInstance().sharedModules;
                 break;
         }
-        for (let i in modules) {
-            let module: Module = modules[i];
+        for (const i in modules) {
+            const module: Module = modules[i];
 
             if (module.actif || (target == 'Test')) {
                 fileContent += hook(module, target);
@@ -156,12 +160,6 @@ export default class ModulesClientInitializationDatasGenerator {
         let fileContent = "";
 
         fileContent = "    Module" + module.reflexiveClassName + ".getInstance().actif = true;\n";
-
-        for (let i in module.fields) {
-            let field = module.fields[i];
-
-            fileContent += "    Module" + module.reflexiveClassName + ".getInstance().setParamValue(\"" + field.field_id + "\", " + JSON.stringify(field.field_value) + ");\n";
-        }
 
         return fileContent;
     }

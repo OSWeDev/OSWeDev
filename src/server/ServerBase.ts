@@ -7,6 +7,7 @@ import createLocaleMiddleware from 'express-locale';
 import expressSession from 'express-session';
 import sharedsession from 'express-socket.io-session';
 import fs from 'fs';
+import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
 import pg_promise, { IDatabase } from 'pg-promise';
@@ -36,49 +37,42 @@ import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
-import ConfigurationService from './env/ConfigurationService';
-import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import MemoryUsageStat from './MemoryUsageStat';
+import ConfigurationService from './env/ConfigurationService';
+import EnvParam from './env/EnvParam';
 import AccessPolicyServerController from './modules/AccessPolicy/AccessPolicyServerController';
-import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
+import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
-import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
+import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
-import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import { IClient } from 'pg-promise/typescript/pg-subset';
+import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
+import { field_names } from '../shared/tools/ObjectHandler';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
-import { IClient } from 'pg-promise/typescript/pg-subset';
-import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
-import DBDisconnectionManager from '../shared/tools/DBDisconnectionManager';
-import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
-import { DailyRotateFileTransportOptions } from 'winston/lib/winston/transports';
-import UserAPIVO from '../shared/modules/AccessPolicy/vos/UserAPIVO';
-import { field_names } from '../shared/tools/ObjectHandler';
-import IFork from './modules/Fork/interfaces/IFork';
 import ForkMessageController from './modules/Fork/ForkMessageController';
+import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
+import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
-
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ServerBase {
-        return ServerBase.instance;
-    }
 
     protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
 
@@ -122,7 +116,7 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
-        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE_WORKER_STATS;
+        PromisePipeline.DEBUG_PROMISE_PIPELINE_WORKER_STATS = ConfigurationService.node_configuration.debug_promise_pipeline_worker_stats;
         DBDisconnectionManager.instance = new DBDisconnectionServerHandler();
 
         ConsoleHandler.init();
@@ -139,7 +133,14 @@ export default abstract class ServerBase {
         CronServerController.getInstance().register_crons = true;
 
         ModulesManager.isServerSide = true;
-        this.csrfProtection = csrf({ cookie: true });
+        this.csrfProtection = csrf({
+            cookie: true
+        });
+    }
+
+    /* istanbul ignore next: nothing to test here */
+    public static getInstance(): ServerBase {
+        return ServerBase.instance;
     }
 
     // /**
@@ -175,11 +176,11 @@ export default abstract class ServerBase {
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:START');
         }
         await this.createMandatoryFolders();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:END');
         }
 
@@ -187,26 +188,26 @@ export default abstract class ServerBase {
 
         this.envParam = ConfigurationService.node_configuration;
 
-        EnvHandler.BASE_URL = this.envParam.BASE_URL;
-        EnvHandler.NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
-        EnvHandler.IS_DEV = !!this.envParam.ISDEV;
-        EnvHandler.DEBUG_PROMISE_PIPELINE = !!this.envParam.DEBUG_PROMISE_PIPELINE;
-        EnvHandler.MAX_POOL = this.envParam.MAX_POOL;
-        EnvHandler.COMPRESS = !!this.envParam.COMPRESS;
-        EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
-        EnvHandler.VERSION = this.version;
-        EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
-        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
-        EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
-        EnvHandler.LOGO_PATH = this.envParam.LOGO_PATH;
+        EnvHandler.base_url = this.envParam.base_url;
+        EnvHandler.node_verbose = !!this.envParam.node_verbose;
+        EnvHandler.is_dev = !!this.envParam.isdev;
+        EnvHandler.debug_promise_pipeline = !!this.envParam.debug_promise_pipeline;
+        EnvHandler.max_pool = this.envParam.max_pool;
+        EnvHandler.compress = !!this.envParam.compress;
+        EnvHandler.code_google_analytics = this.envParam.code_google_analytics;
+        EnvHandler.version = this.version;
+        EnvHandler.activate_pwa = !!this.envParam.activate_pwa;
+        EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
+        EnvHandler.debug_vars = !!this.envParam.debug_vars;
+        EnvHandler.logo_path = this.envParam.logo_path;
 
-        this.connectionString = this.envParam.CONNECTION_STRING;
+        this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        this.port = process.env.PORT ? process.env.PORT : this.envParam.PORT;
+        this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
-        let pgp: pg_promise.IMain = pg_promise({
+        const pgp: pg_promise.IMain = pg_promise({
             async connect(e: { client: IClient, dc: any, useCount: number }) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
             },
@@ -226,26 +227,27 @@ export default abstract class ServerBase {
         });
         this.db = pgp({
             connectionString: this.connectionString,
-            max: this.envParam.MAX_POOL,
+            max: this.envParam.max_pool,
         });
 
-        this.db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
+        this.db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
-        let GM = this.modulesService;
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        const GM = this.modulesService;
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
-        await GM.register_all_modules(this.db);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        await GM.init_db(this.db);
+        await GM.register_all_modules();
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:START');
         }
         await this.initializeDataImports();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:END');
         }
 
@@ -272,24 +274,24 @@ export default abstract class ServerBase {
         });
 
         // Correction timezone
-        let types = pg.types;
+        const types = pg.types;
         types.setTypeParser(1114, (stringValue) => {
             return stringValue;
         });
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
 
-        let responseTime = require('response-time');
+        const responseTime = require('response-time');
 
         this.app.use(responseTime(async (req, res, time) => {
-            let url = req.originalUrl;
-            let method = req.method;
-            let status = res.statusCode;
+            const url = req.originalUrl;
+            const method = req.method;
+            const status = res.statusCode;
 
-            let log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
+            const log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
 
             // let cleaned_url = req.url.toLowerCase()
             //     .replace(/[:.]/g, '')
@@ -310,7 +312,7 @@ export default abstract class ServerBase {
                  *  - par status
                  *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
                  */
-                let slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
+                const slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
@@ -337,6 +339,8 @@ export default abstract class ServerBase {
         process.on('uncaughtException', async (err) => await this.exitHandler.bind(null, { exit: true, from: 'uncaughtException:' + err }));
 
         this.app.use(cookieParser());
+
+        this.app.use(helmet());
 
         // this.app.use(helmet({
         //     referrerPolicy: ({ policy: 'same-origin' }),
@@ -367,8 +371,8 @@ export default abstract class ServerBase {
         // const csrfMiddleware = new csurf();
         // this.app.use(csrfMiddleware);
 
-        if (this.envParam.COMPRESS) {
-            let shouldCompress = function (req, res) {
+        if (this.envParam.compress) {
+            const shouldCompress = function (req, res) {
                 if (req.headers['x-no-compression']) {
                     // don't compress responses with this request header
                     return false;
@@ -382,7 +386,7 @@ export default abstract class ServerBase {
 
         this.app.use(createLocaleMiddleware({
             priority: ["accept-language", "default"],
-            default: this.envParam.DEFAULT_LOCALE
+            default: this.envParam.default_locale
         }));
 
         // JNE : Ajout du header no cache sur les requetes gérées par express
@@ -399,7 +403,7 @@ export default abstract class ServerBase {
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
          */
         this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
-            var sessionid = req.query.sessionid;
+            const sessionid = req.query.sessionid;
             if (!sessionid) {
                 next();
                 return;
@@ -413,11 +417,11 @@ export default abstract class ServerBase {
             }
 
             if (req.rawHeaders) {
-                for (let i in req.rawHeaders) {
-                    let rawHeader = req.rawHeaders[i];
+                for (const i in req.rawHeaders) {
+                    const rawHeader = req.rawHeaders[i];
                     if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
 
-                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        const groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
                         req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
                     }
                 }
@@ -425,7 +429,7 @@ export default abstract class ServerBase {
 
             if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
 
-                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                const groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
                 req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
             } else {
                 if (!req.headers) {
@@ -440,7 +444,7 @@ export default abstract class ServerBase {
         });
 
         this.session = expressSession({
-            secret: ConfigurationService.node_configuration.EXPRESS_SECRET,
+            secret: ConfigurationService.node_configuration.express_secret,
             name: 'sid',
             proxy: true,
             resave: false,
@@ -461,9 +465,9 @@ export default abstract class ServerBase {
         this.app.use(
             async (req, res, next) => {
 
-                if (!!req.headers.version) {
-                    let client_version = req.headers.version;
-                    let server_version = this.getVersion();
+                if (req.headers.version) {
+                    const client_version = req.headers.version;
+                    const server_version = this.getVersion();
 
                     if (client_version != server_version) {
 
@@ -511,25 +515,25 @@ export default abstract class ServerBase {
                 return next();
             });
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:express:END');
         }
 
         this.hook_configure_express();
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
         }
         await this.hook_pwa_init();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
         }
         this.registerApis(this.app);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:registerApis:END');
         }
 
@@ -549,17 +553,16 @@ export default abstract class ServerBase {
         /**
          * Pour le DEBUG en local
          */
-        if (ConfigurationService.node_configuration.ISDEV) {
+        if (ConfigurationService.node_configuration.isdev) {
             this.app.use('/node_modules/oswedev/src/', express.static('../oswedev/src/'));
         }
-
 
         // Use this instead
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
-            let url = path.normalize(decodeURIComponent(req.path));
-            let normalized = path.resolve('./dist' + url);
+            const url = path.normalize(decodeURIComponent(req.path));
+            const normalized = path.resolve('./dist' + url);
 
             if (!this.ROOT_FOLDER) {
                 this.ROOT_FOLDER = path.resolve('./');
@@ -616,12 +619,13 @@ export default abstract class ServerBase {
         this.app.use(function (req, res, next) {
             // TODO JNE - A DISCUTER
             try {
-                let sid = res.req.cookies['sid'];
+                const sid = res.req.cookies['sid'];
 
-                if (!!sid) {
+                if (sid) {
                     req.session.sid = sid;
                 }
             } catch (error) {
+
             }
             next();
         });
@@ -706,8 +710,8 @@ export default abstract class ServerBase {
                                 async () => {
 
                                     await PushDataServerController.getInstance().unregisterSession(session);
-                                    session.destroy(() => {
-                                        ServerBase.getInstance().redirect_login_or_home(req, res);
+                                    session.destroy(async () => {
+                                        await ServerBase.getInstance().redirect_login_or_home(req, res);
                                     });
                                 });
                             return;
@@ -723,7 +727,7 @@ export default abstract class ServerBase {
 
                     session.last_check_blocked_or_expired = Dates.now();
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                    const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
 
                     if ((!user) || user.blocked || user.invalidated) {
 
@@ -733,8 +737,8 @@ export default abstract class ServerBase {
                             async () => {
 
                                 await PushDataServerController.getInstance().unregisterSession(session);
-                                session.destroy(() => {
-                                    ServerBase.getInstance().redirect_login_or_home(req, res);
+                                session.destroy(async () => {
+                                    await ServerBase.getInstance().redirect_login_or_home(req, res);
                                 });
                             });
 
@@ -751,19 +755,19 @@ export default abstract class ServerBase {
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
-                if (!!EnvHandler.NODE_VERBOSE) {
+                if (EnvHandler.node_verbose) {
                     ConsoleHandler.log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             }
 
             // On log les requêtes pour ensuite pouvoir les utiliser dans le delete session en log
-            let api_req: string[] = [];
-            let uid: number = (session) ? session.uid : null;
-            let sid: string = (session) ? session.sid : null;
-            let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", true);
+            const api_req: string[] = [];
+            const uid: number = (session) ? session.uid : null;
+            const sid: string = (session) ? session.sid : null;
+            const date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", true);
 
             if (req.url == "/api_handler/requests_wrapper") {
-                for (let i in req.body) {
+                for (const i in req.body) {
                     api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.body[i].url);
                 }
             } else {
@@ -778,21 +782,21 @@ export default abstract class ServerBase {
 
             // Génération à la volée des images en fonction du format demandé
             if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
-                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([^/]+)/(.*)');
+                const matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([^/]+)/(.*)');
 
                 if (!matches || !matches.length) {
                     return res.status(404).send('Not matches');
                 }
 
-                let format_name: string = matches[2];
-                let file_path: string = decodeURI(matches[3]);
+                const format_name: string = matches[2];
+                const file_path: string = decodeURI(matches[3]);
 
                 if (fs.existsSync(decodeURI(req.url)) || !format_name || !file_path) {
                     // Le fichier existe, on le renvoie directement
                     return res.sendFile(path.resolve(decodeURI(req.url)));
                 }
 
-                let base_filepath: string = ModuleFile.FILES_ROOT + file_path;
+                const base_filepath: string = ModuleFile.FILES_ROOT + file_path;
 
                 // On vérifie que le fichier de base existe pour appliquer le format dessus
                 if (!fs.existsSync(base_filepath)) {
@@ -800,8 +804,8 @@ export default abstract class ServerBase {
                     return res.status(404).send('Not found : ' + base_filepath);
                 }
 
-                let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
-                    .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true)
+                const format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<ImageFormatVO>().name, format_name, ImageFormatVO.API_TYPE_ID, true)
                     .select_vo<ImageFormatVO>();
 
                 if (!format) {
@@ -809,7 +813,7 @@ export default abstract class ServerBase {
                     return res.status(404).send('Pas de format : ' + format_name);
                 }
 
-                let formatted_image: FormattedImageVO = await ModuleImageFormat.getInstance().get_formatted_image(
+                const formatted_image: FormattedImageVO = await ModuleImageFormat.getInstance().get_formatted_image(
                     base_filepath,
                     format_name,
                     format.width,
@@ -826,12 +830,37 @@ export default abstract class ServerBase {
             next();
         });
 
+
+        /**
+         * On ajoute un comportement pour pouvoir rediriger correctement après un login par exemple
+         * et de manière plus générale on fourni une URL sans fragment à toutes les urls fragmentées
+         * en faisant une redirection temporaire de /f/[...] vers /#/[...]
+         */
+        this.app.use(
+            async (req, res, next) => {
+                if (req.url.indexOf('/f/') >= 0) {
+                    req.session.last_fragmented_url = req.url;
+                    res.redirect(307, req
+                        .url
+                        .replace(/\/f\//, '/#/'));
+
+                    if (!req.session) {
+                        ConsoleHandler.error('ServerBase:redirect_login_or_home:No session');
+                        return;
+                    }
+
+                    return;
+                }
+                next();
+            }
+        );
+
         /**
          * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
          */
         this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name', async (req: Request, res: Response, next: NextFunction) => {
 
-            let folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+            const folders = (req.params.folder1 ? req.params.folder1 + '/' + (
                 req.params.folder2 ? req.params.folder2 + '/' + (
                     req.params.folder3 ? req.params.folder3 + '/' + (
                         req.params.folder4 ? req.params.folder4 + '/' + (
@@ -840,7 +869,7 @@ export default abstract class ServerBase {
                     ) : ''
                 ) : ''
             ) : '');
-            let file_name = req.params.file_name;
+            const file_name = req.params.file_name;
 
             if (file_name.indexOf(';') >= 0) {
                 next();
@@ -857,86 +886,88 @@ export default abstract class ServerBase {
                 return;
             }
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
             let file: FileVO = null;
             let has_access: boolean = false;
 
             await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
-                    file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
+                    file = await query(FileVO.API_TYPE_ID)
+                        .filter_is_true(field_names<FileVO>().is_secured)
+                        .filter_by_text_eq(field_names<FileVO>().path, ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
                     has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.checkAccessSync(file.file_access_policy_name) : false;
                 });
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
             res.sendFile(path.resolve(file.path));
         });
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(this.app);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:END');
         }
 
         // A ce stade on a chargé toutes les trads par défaut possible et immaginables
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:START');
         }
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:END');
         }
 
         // Derniers chargements
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
         await this.modulesService.late_server_modules_configurations(false);
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
-        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
-        let locales_corrected = {};
-        for (let lang in locales) {
+        const locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        const locales_corrected = {};
+        for (const lang in locales) {
             if (lang && lang.indexOf('-') >= 0) {
-                let lang_parts = lang.split('-');
+                const lang_parts = lang.split('-');
                 if (lang_parts.length == 2) {
                     locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
                 }
             }
         }
-        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        const i18nextInit = I18nextInit.getInstance(locales_corrected);
         LocaleManager.getInstance().i18n = i18nextInit.i18next;
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));
-        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 
         this.app.get('/', async (req: Request, res: Response) => {
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
 
             // On va regarder si la personne essaye d'y accéder en direct
             // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
@@ -946,12 +977,12 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            let has_access: boolean = await StackContext.runPromise(
+            const has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
-                ServerBase.getInstance().redirect_login_or_home(req, res);
+                await ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
 
@@ -960,7 +991,7 @@ export default abstract class ServerBase {
 
         this.app.get('/admin', async (req: Request, res) => {
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
 
             // On va regarder si la personne essaye d'y accéder en direct
             // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
@@ -970,13 +1001,13 @@ export default abstract class ServerBase {
                 can_fail = false;
             }
 
-            let has_access: boolean = await StackContext.runPromise(
+            const has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
+                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./dist/public/admin.html'));
@@ -985,9 +1016,9 @@ export default abstract class ServerBase {
         // Accès aux logs iisnode
         this.app.get('/iisnode/:file_name', async (req: Request, res) => {
 
-            let file_name = req.params.file_name;
+            const file_name = req.params.file_name;
 
-            let session: IServerUserSession = req.session as IServerUserSession;
+            const session: IServerUserSession = req.session as IServerUserSession;
             let has_access: boolean = false;
 
             if (file_name) {
@@ -1000,7 +1031,7 @@ export default abstract class ServerBase {
 
             if (!has_access) {
 
-                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
+                await ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./iisnode/' + file_name));
@@ -1022,10 +1053,10 @@ export default abstract class ServerBase {
             }
 
             if (session && session.uid) {
-                let uid: number = session.uid;
+                const uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
+                const user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -1034,8 +1065,8 @@ export default abstract class ServerBase {
                         async () => {
 
                             await PushDataServerController.getInstance().unregisterSession(session);
-                            session.destroy(() => {
-                                ServerBase.getInstance().redirect_login_or_home(req, res);
+                            session.destroy(async () => {
+                                await ServerBase.getInstance().redirect_login_or_home(req, res);
                             });
                         });
                     return;
@@ -1045,7 +1076,7 @@ export default abstract class ServerBase {
                 PushDataServerController.getInstance().registerSession(session);
 
                 // On stocke le log de connexion en base
-                let user_log: UserLogVO = new UserLogVO();
+                const user_log: UserLogVO = new UserLogVO();
                 user_log.user_id = uid;
                 user_log.log_time = Dates.now();
                 user_log.impersonated = false;
@@ -1069,7 +1100,7 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            let err = await StackContext.runPromise(
+            const err = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
@@ -1077,7 +1108,7 @@ export default abstract class ServerBase {
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
 
-            let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+            const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
             res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
 
@@ -1096,7 +1127,7 @@ export default abstract class ServerBase {
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            let user: UserVO = await StackContext.runPromise(
+            const user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getSelfUser());
 
@@ -1106,7 +1137,7 @@ export default abstract class ServerBase {
                     data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     // data_base_api_url: "",
-                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
+                    data_default_locale: ServerBase.getInstance().envParam.default_locale
                 }
             ));
         });
@@ -1114,18 +1145,18 @@ export default abstract class ServerBase {
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
             const session = req.session;
 
-            let user: UserVO = await StackContext.runPromise(
+            const user: UserVO = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getSelfUser());
 
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
+                    data_code_pays: ServerBase.getInstance().envParam.code_pays,
                     data_node_env: process.env.NODE_ENV,
                     data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
-                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
+                    data_default_locale: ServerBase.getInstance().envParam.default_locale,
                 }
             ));
         });
@@ -1139,7 +1170,7 @@ export default abstract class ServerBase {
 
         // // JNE : Savoir si on est en DEV depuis la Vue.js client
         // this.app.get('/api/isdev', (req, res) => {
-        //     res.json(ServerBase.getInstance().envParam.ISDEV);
+        //     res.json(ServerBase.getInstance().envParam.isdev);
         // });
         // // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
@@ -1241,7 +1272,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        if (!!ConfigurationService.node_configuration.ACTIVATE_LONG_JOHN) {
+        if (ConfigurationService.node_configuration.activate_long_john) {
             require('longjohn');
         }
 
@@ -1253,11 +1284,11 @@ export default abstract class ServerBase {
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
 
-        let on_connection = async () => {
+        const on_connection = async () => {
             ConsoleHandler.log('connection to db successful');
 
-            let server = require('http').Server(ServerBase.getInstance().app);
-            let io = require('socket.io')(server);
+            const server = require('http').Server(ServerBase.getInstance().app);
+            const io = require('socket.io')(server);
             ServerBase.getInstance().io = io;
             io.use(sharedsession(ServerBase.getInstance().session));
 
@@ -1267,7 +1298,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:join-room: ' + room);
                 }
             });
@@ -1278,7 +1309,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:leave-room: ' + room);
                 }
             });
@@ -1290,7 +1321,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:create-room: ' + room);
                 }
 
@@ -1302,7 +1333,7 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                if (ConfigurationService.node_configuration.DEBUG_IO_ROOMS) {
+                if (ConfigurationService.node_configuration.debug_io_rooms) {
                     ConsoleHandler.log('SOCKET IO:delete-room: ' + room);
                 }
 
@@ -1319,7 +1350,7 @@ export default abstract class ServerBase {
             // define interactions with client
 
             io.on('connection', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
                 if (!session) {
                     ConsoleHandler.error('Impossible de charger la session dans SocketIO');
@@ -1330,7 +1361,7 @@ export default abstract class ServerBase {
             }.bind(ServerBase.getInstance()));
 
             io.on('disconnect', function (socket: socketIO.Socket) {
-                let session: IServerUserSession = socket.handshake['session'];
+                const session: IServerUserSession = socket.handshake['session'];
 
                 PushDataServerController.getInstance().unregisterSocket(session, socket);
             });
@@ -1341,24 +1372,24 @@ export default abstract class ServerBase {
 
             // ServerBase.getInstance().testNotifs();
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
             }
             await ServerBase.getInstance().hook_on_ready();
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:fork_threads:START');
             }
             await ForkServerController.fork_threads();
-            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.debug_start_server) {
                 ConsoleHandler.log('ServerExpressController:fork_threads:END');
             }
             BGThreadServerController.SERVER_READY = true;
 
-            if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
+            if (ConfigurationService.node_configuration.auto_end_maintenance_on_start) {
                 await ModuleMaintenance.getInstance().end_planned_maintenance();
             }
 
@@ -1387,7 +1418,7 @@ export default abstract class ServerBase {
 
     /* istanbul ignore next: nothing to test here */
     protected async hook_pwa_init() {
-        let version = this.getVersion();
+        const version = this.getVersion();
 
         // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
         //     res.header('Service-Worker-Allowed', '/public/');
@@ -1418,14 +1449,6 @@ export default abstract class ServerBase {
     }
 
     /* istanbul ignore next: nothing to test here */
-    protected abstract initializeDataImports();
-    /* istanbul ignore next: nothing to test here */
-    protected abstract hook_configure_express();
-    /* istanbul ignore next: nothing to test here */
-
-    protected abstract getVersion();
-
-    /* istanbul ignore next: nothing to test here */
     protected registerApis(app) {
     }
 
@@ -1441,13 +1464,22 @@ export default abstract class ServerBase {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
     }
 
-    protected redirect_login_or_home(req: Request, res: Response, url: string = null) {
-        if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
-            let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    protected async redirect_login_or_home(req: Request, res: Response, url: string = null) {
+        if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+            const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
             return;
         }
-        res.redirect(url ? url : '/login');
+
+        if (req.session && req.session.last_fragmented_url) {
+            req.session.last_fragmented_url = null;
+            res.redirect(307, req
+                .url
+                .replace(/\/f\//, '/#/'));
+            return;
+        }
+
+        res.redirect(url ? url : '/');
         return;
     }
 
@@ -1470,4 +1502,12 @@ export default abstract class ServerBase {
             process.exit();
         }
     }
+
+    /* istanbul ignore next: nothing to test here */
+    protected abstract initializeDataImports();
+    /* istanbul ignore next: nothing to test here */
+    protected abstract hook_configure_express();
+    /* istanbul ignore next: nothing to test here */
+
+    protected abstract getVersion();
 }

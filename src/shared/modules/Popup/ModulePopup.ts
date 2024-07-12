@@ -1,11 +1,12 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import PopupVO from './vos/PopupVO';
 
 export default class ModulePopup extends Module {
@@ -32,28 +33,25 @@ export default class ModulePopup extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializePopupVO();
     }
 
     private initializePopupVO() {
-        let only_roles = new ModuleTableField('only_roles', ModuleTableField.FIELD_TYPE_refrange_array, 'Seulement les rôles sélectionnés (laisser vide pour tout le monde)');
+        const only_roles = ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().only_roles, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Seulement les rôles sélectionnés (laisser vide pour tout le monde)');
 
-        let fields = [
-            new ModuleTableField('activated_ts_range', ModuleTableField.FIELD_TYPE_tsrange, "Période d'affichage").set_segmentation_type(TimeSegment.TYPE_DAY),
-            new ModuleTableField('title', ModuleTableField.FIELD_TYPE_html, 'Titre', true),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_html, 'Message', true),
-            new ModuleTableField('btn_txt', ModuleTableField.FIELD_TYPE_string, 'Texte du bouton', false, true, 'Fermer'),
-            new ModuleTableField('cookie_name', ModuleTableField.FIELD_TYPE_string, "Cookie pour bloquer l'affichage", true).unique(false),
+        const fields = [
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().activated_ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, "Période d'affichage").set_segmentation_type(TimeSegment.TYPE_DAY),
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().title, ModuleTableFieldVO.FIELD_TYPE_html, 'Titre', true),
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().message, ModuleTableFieldVO.FIELD_TYPE_html, 'Message', true),
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().btn_txt, ModuleTableFieldVO.FIELD_TYPE_string, 'Texte du bouton', false, true, 'Fermer'),
+            ModuleTableFieldController.create_new(PopupVO.API_TYPE_ID, field_names<PopupVO>().cookie_name, ModuleTableFieldVO.FIELD_TYPE_string, "Cookie pour bloquer l'affichage", true).unique(),
             only_roles,
         ];
 
-        let table = new ModuleTable(this, PopupVO.API_TYPE_ID, () => new PopupVO(), fields, null, 'Popups');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, PopupVO, null, 'Popups');
 
-        only_roles.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        only_roles.set_many_to_one_target_moduletable_name(RoleVO.API_TYPE_ID);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

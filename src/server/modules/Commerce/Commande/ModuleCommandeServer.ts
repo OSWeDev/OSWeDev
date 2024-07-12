@@ -11,6 +11,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
@@ -43,21 +44,21 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async getCommandesUser(num: number): Promise<CommandeVO[]> {
-        return await query(CommandeVO.API_TYPE_ID).filter_by_num_eq('user_id', num, ClientVO.API_TYPE_ID).select_vos<CommandeVO>();
+        return await query(CommandeVO.API_TYPE_ID).filter_by_num_eq(field_names<ClientVO>().user_id, num, ClientVO.API_TYPE_ID).select_vos<CommandeVO>();
     }
 
     public async getLignesCommandeByCommandeId(num: number): Promise<LigneCommandeVO[]> {
-        return await query(LigneCommandeVO.API_TYPE_ID).filter_by_num_eq('commande_id', num).select_vos<LigneCommandeVO>();
+        return await query(LigneCommandeVO.API_TYPE_ID).filter_by_num_eq(field_names<LigneCommandeVO>().commande_id, num).select_vos<LigneCommandeVO>();
     }
 
     public async creationPanier(): Promise<CommandeVO> {
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
-        let panier: CommandeVO = new CommandeVO();
+        const client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
+        const panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
         panier.date = Dates.now();
         panier.statut = CommandeVO.STATUT_PANIER;
 
-        let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
         panier.id = result.id;
 
         return panier;
@@ -69,7 +70,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     ): Promise<CommandeVO> {
 
         if (produitsParam) {
-            for (let i in produitsParam) {
+            for (const i in produitsParam) {
                 await this.ajouterLigneCommande(commande, produitsParam[i]);
             }
         }
@@ -89,15 +90,15 @@ export default class ModuleCommandeServer extends ModuleServerBase {
             return null;
         }
 
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
-        let ligne: LigneCommandeVO = new LigneCommandeVO();
+        const client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getLoggedUserId());
+        const ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;
         ligne.prix_unitaire = await ModuleProduitServer.getInstance().getPrixProduit(produitParam.produit, produitParam.produit_custom, produitParam.ligneParam);
         ligne.produit_id = produitParam.produit.id;
         ligne.quantite = 1;
 
-        let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
+        const result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
         produitParam.ligneParam.ligne_commande_id = result.id;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(produitParam.ligneParam);

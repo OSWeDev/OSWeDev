@@ -1,6 +1,7 @@
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 
 export default class ContextFieldPathServerController {
@@ -60,9 +61,9 @@ export default class ContextFieldPathServerController {
         /**
          * Forme opti du from_types et active_api_type_ids
          */
-        let from_types_by_name: { [api_type_id: string]: boolean } = {};
+        const from_types_by_name: { [api_type_id: string]: boolean } = {};
         from_types.forEach((type) => from_types_by_name[type] = true);
-        let active_api_type_ids_by_name: { [api_type_id: string]: boolean } = {};
+        const active_api_type_ids_by_name: { [api_type_id: string]: boolean } = {};
         active_api_type_ids.forEach((type) => active_api_type_ids_by_name[type] = true);
 
         /**
@@ -75,7 +76,7 @@ export default class ContextFieldPathServerController {
         /**
          * Marqueur des types rencontrés
          */
-        let deployed_deps_from: { [api_type_id: string]: boolean } = {};
+        const deployed_deps_from: { [api_type_id: string]: boolean } = {};
 
         /**
          * Les chemins à étudier à ce tour, et le stockage des chemins à traiter au tour suivant
@@ -98,10 +99,10 @@ export default class ContextFieldPathServerController {
             /**
              * Le premier tour on demande de générer des chemins sans en fournir un, mais avec un moduletable de départ identifié
              */
-            let this_path_next_turn_paths: FieldPathWrapper[][] = [];
+            const this_path_next_turn_paths: FieldPathWrapper[][] = [];
 
             if ((!actual_paths) || (!actual_paths.length)) {
-                let valid_path: FieldPathWrapper[] = ContextFieldPathServerController.get_paths_from_moduletable(
+                const valid_path: FieldPathWrapper[] = ContextFieldPathServerController.get_paths_from_moduletable(
                     discarded_field_paths,
                     use_technical_field_versioning,
                     [],
@@ -126,10 +127,10 @@ export default class ContextFieldPathServerController {
             /**
              * Sur un tour classique, on demande pour chaque chemin à identifier les ramifications possibles pour le prochain tour
              */
-            for (let i in actual_paths) {
-                let actual_path = actual_paths[i];
+            for (const i in actual_paths) {
+                const actual_path = actual_paths[i];
 
-                let valid_path: FieldPathWrapper[] = ContextFieldPathServerController.get_paths_from_moduletable(
+                const valid_path: FieldPathWrapper[] = ContextFieldPathServerController.get_paths_from_moduletable(
                     discarded_field_paths,
                     use_technical_field_versioning,
                     actual_path,
@@ -163,15 +164,15 @@ export default class ContextFieldPathServerController {
      */
     private static reverse_path(actual_path: FieldPathWrapper[]): FieldPathWrapper[] {
 
-        let res: FieldPathWrapper[] = [];
+        const res: FieldPathWrapper[] = [];
 
         if ((!actual_path) || (!actual_path.length)) {
             return res;
         }
 
         for (let i = (actual_path.length - 1); i >= 0; i--) {
-            let actual_path_i = actual_path[i];
-            let res_i = new FieldPathWrapper(actual_path_i.field, !actual_path_i.is_manytoone);
+            const actual_path_i = actual_path[i];
+            const res_i = new FieldPathWrapper(actual_path_i.field, !actual_path_i.is_manytoone);
             res.push(res_i);
         }
 
@@ -196,23 +197,23 @@ export default class ContextFieldPathServerController {
         active_api_type_ids_by_name: { [api_type_id: string]: boolean },
         deployed_deps_from: { [api_type_id: string]: boolean }): FieldPathWrapper[] {
 
-        let moduletable: ModuleTable<any> = null;
+        let moduletable: ModuleTableVO = null;
 
         /**
          * Si on démarre on part du type cible
          * Sinon on part du dernier type du chemin
          */
         if ((!actual_path) || (!actual_path.length)) {
-            moduletable = VOsTypesManager.moduleTables_by_voType[to_type];
+            moduletable = ModuleTableController.module_tables_by_vo_type[to_type];
         } else {
             /**
              * Si on a pris un manytoone => on est parti de field.moduletable vers field.target_moduletable qui est donc le dernier api_type_id du path
              * sinon, on est en onetomany et donc c'est l'inverse, la dernière étape est le field.moduletable
              */
-            let last_field_path = actual_path[actual_path.length - 1];
+            const last_field_path = actual_path[actual_path.length - 1];
             moduletable = last_field_path.is_manytoone ?
-                last_field_path.field.manyToOne_target_moduletable :
-                last_field_path.field.module_table;
+                ModuleTableController.module_tables_by_vo_type[last_field_path.field.foreign_ref_vo_type] :
+                ModuleTableController.module_tables_by_vo_type[last_field_path.field.module_table_vo_type];
         }
 
         /**
@@ -232,14 +233,14 @@ export default class ContextFieldPathServerController {
          */
         let manytoone_fields = VOsTypesManager.getManyToOneFields(moduletable.vo_type, Object.keys(deployed_deps_from));
         manytoone_fields = manytoone_fields.filter((field) =>
-            (!(discarded_field_paths && discarded_field_paths[field.module_table.vo_type] && discarded_field_paths[field.module_table.vo_type][field.field_id])) &&
-            active_api_type_ids_by_name[field.manyToOne_target_moduletable.vo_type] &&
-            (field.manyToOne_target_moduletable.vo_type != field.module_table.vo_type));
+            (!(discarded_field_paths && discarded_field_paths[field.module_table_vo_type] && discarded_field_paths[field.module_table_vo_type][field.field_id])) &&
+            active_api_type_ids_by_name[field.foreign_ref_vo_type] &&
+            (field.foreign_ref_vo_type != field.module_table_vo_type));
 
         /**
          * si on trouve un des point de départ (une des cibles) dans les targets des fields, on a terminé on a un chemin valide on le renvoie
          */
-        let manytoone_fields_to_sources: Array<ModuleTableField<any>> = manytoone_fields.filter((field) => from_types_by_name[field.manyToOne_target_moduletable.vo_type]);
+        let manytoone_fields_to_sources: ModuleTableFieldVO[] = manytoone_fields.filter((field) => from_types_by_name[field.foreign_ref_vo_type]);
         manytoone_fields_to_sources = manytoone_fields_to_sources.filter((field) => !ContextFieldPathServerController.filter_technical_field(use_technical_field_versioning, field));
 
         /**
@@ -271,10 +272,10 @@ export default class ContextFieldPathServerController {
         /**
          * Sinon, (on a déjà filtré les chemins potentiellement déjà connus) pour chaque nouveau field, on crée un nouveau chemin.
          */
-        for (let i in manytoone_fields) {
-            let manytoone_field = manytoone_fields[i];
+        for (const i in manytoone_fields) {
+            const manytoone_field = manytoone_fields[i];
 
-            let newpath = Array.from(actual_path);
+            const newpath = Array.from(actual_path);
             newpath.push(new FieldPathWrapper(manytoone_field, true));
             this_path_next_turn_paths.push(newpath);
         }
@@ -282,10 +283,10 @@ export default class ContextFieldPathServerController {
         /**
          * On passe aux onetomany. idem on charge toutes les refs et on filtres les types déjà connus (exclus) et les types actifs (inclus)
          */
-        let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(moduletable.vo_type);
+        let onetomany_fields: ModuleTableFieldVO[] = VOsTypesManager.get_type_references(moduletable.vo_type);
         onetomany_fields = onetomany_fields.filter((ref) =>
-            (!(discarded_field_paths && discarded_field_paths[ref.module_table.vo_type] && discarded_field_paths[ref.module_table.vo_type][ref.field_id])) &&
-            active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
+            (!(discarded_field_paths && discarded_field_paths[ref.module_table_vo_type] && discarded_field_paths[ref.module_table_vo_type][ref.field_id])) &&
+            active_api_type_ids_by_name[ref.module_table_vo_type] && !deployed_deps_from[ref.module_table_vo_type]);
         onetomany_fields = onetomany_fields.filter((field) => !ContextFieldPathServerController.filter_technical_field(use_technical_field_versioning, field));
 
         // onetomany_fields.sort((a, b) => {
@@ -309,7 +310,7 @@ export default class ContextFieldPathServerController {
         /**
          * si on trouve un des point de départ (une des cibles) dans les tables des fields, on a terminé on a un chemin valide on le renvoie
          */
-        let onetomany_fields_to_sources: Array<ModuleTableField<any>> = onetomany_fields.filter((field) => from_types_by_name[field.module_table.vo_type]);
+        const onetomany_fields_to_sources: ModuleTableFieldVO[] = onetomany_fields.filter((field) => from_types_by_name[field.module_table_vo_type]);
         if (onetomany_fields_to_sources && onetomany_fields_to_sources.length) {
             actual_path.push(new FieldPathWrapper(onetomany_fields_to_sources[0], false));
             return actual_path;
@@ -325,39 +326,40 @@ export default class ContextFieldPathServerController {
          *      sinon
          *          on crée un nouveau chemin avec ce field ajouté
          */
-        for (let i in onetomany_fields) {
-            let onetomany_field = onetomany_fields[i];
+        for (const i in onetomany_fields) {
+            const onetomany_field = onetomany_fields[i];
+            let table = ModuleTableController.module_tables_by_vo_type[onetomany_field.module_table_vo_type];
 
-            if (VOsTypesManager.isManyToManyModuleTable(onetomany_field.module_table)) {
-                let second_field = VOsTypesManager.getManyToManyOtherField(onetomany_field.module_table, onetomany_field);
+            if (VOsTypesManager.isManyToManyModuleTable(table)) {
+                const second_field = VOsTypesManager.getManyToManyOtherField(table, onetomany_field);
 
-                if (discarded_field_paths && discarded_field_paths[second_field.module_table.vo_type] && discarded_field_paths[second_field.module_table.vo_type][second_field.field_id]) {
+                if (discarded_field_paths && discarded_field_paths[second_field.module_table_vo_type] && discarded_field_paths[second_field.module_table_vo_type][second_field.field_id]) {
                     continue;
                 }
 
-                if (from_types_by_name[second_field.manyToOne_target_moduletable.vo_type]) {
+                if (from_types_by_name[second_field.foreign_ref_vo_type]) {
                     actual_path.push(new FieldPathWrapper(onetomany_field, false));
                     actual_path.push(new FieldPathWrapper(second_field, true));
                     return actual_path;
                 }
 
-                if (!active_api_type_ids_by_name[second_field.manyToOne_target_moduletable.vo_type]) {
+                if (!active_api_type_ids_by_name[second_field.foreign_ref_vo_type]) {
                     continue;
                 }
 
-                if (deployed_deps_from[second_field.manyToOne_target_moduletable.vo_type]) {
+                if (deployed_deps_from[second_field.foreign_ref_vo_type]) {
                     continue;
                 }
 
-                let newpath = Array.from(actual_path);
+                const newpath = Array.from(actual_path);
                 newpath.push(new FieldPathWrapper(onetomany_field, false));
                 newpath.push(new FieldPathWrapper(second_field, true));
                 this_path_next_turn_paths.push(newpath);
 
                 // On marque la relation N/N comme déployée aussi du coup
-                deployed_deps_from[onetomany_field.module_table.vo_type] = true;
+                deployed_deps_from[onetomany_field.module_table_vo_type] = true;
             } else {
-                let newpath = Array.from(actual_path);
+                const newpath = Array.from(actual_path);
                 newpath.push(new FieldPathWrapper(onetomany_field, false));
                 this_path_next_turn_paths.push(newpath);
             }
@@ -375,7 +377,7 @@ export default class ContextFieldPathServerController {
     //  * @param field
     //  * @returns le poids du champs
     //  */
-    // private static get_field_weight(field: ModuleTableField<any>): number {
+    // private static get_field_weight(field: ModuleTableFieldVO): number {
     //     if (!field) {
     //         return 1000;
     //     }
@@ -407,15 +409,17 @@ export default class ContextFieldPathServerController {
      * @param field
      * @returns true si c'est un field technique (versioning, ...) et si la query filtre ce type de champs
      */
-    private static filter_technical_field(use_technical_field_versioning: boolean, field: ModuleTableField<any>): boolean {
+    private static filter_technical_field(use_technical_field_versioning: boolean, field: ModuleTableFieldVO): boolean {
         if (use_technical_field_versioning) {
             return false;
         }
 
+        let table = ModuleTableController.module_tables_by_vo_type[field.module_table_vo_type];
+
         /**
          * Le versioning : poids 100
          */
-        if (field.module_table.is_versioned) {
+        if (table.is_versioned) {
 
             switch (field.field_id) {
                 case 'parent_id':

@@ -10,5 +10,6 @@
         "moduleResolution": "node",
         "esModuleInterop": true,
         "experimentalDecorators": true,
+        "skipLibCheck": true
     }
 }

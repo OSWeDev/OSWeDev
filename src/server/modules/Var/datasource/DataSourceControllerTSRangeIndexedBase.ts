@@ -31,9 +31,9 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         }
 
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
-        let time_load_node_data_in = Dates.now_ms();
+        const time_load_node_data_in = Dates.now_ms();
 
-        let data_index: TSRange[] = this.get_data_index(node.var_data) as TSRange[];
+        const data_index: TSRange[] = this.get_data_index(node.var_data) as TSRange[];
 
         if ((!data_index) || (!data_index.length)) {
             node.datasources[this.name] = null;
@@ -47,20 +47,20 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
 
         await RangeHandler.foreach_ranges(data_index, async (date: number) => {
 
-            let ms_i = date;
+            const ms_i = date;
             if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][ms_i] === 'undefined') {
 
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
-                let time_in = Dates.now_ms();
+                const time_in = Dates.now_ms();
 
-                let data = await this.get_data(node.var_data);
+                const data = await this.get_data(node.var_data);
 
-                let time_out = Dates.now_ms();
+                const time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
                 StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
-                for (let j in data) {
-                    let e = data[j];
+                for (const j in data) {
+                    const e = data[j];
 
                     /**
                      * On ne change pas les datas qu'on avait déjà
@@ -76,7 +76,7 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
             }
         });
 
-        let time_load_node_data_out = Dates.now_ms();
+        const time_load_node_data_out = Dates.now_ms();
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
         StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }

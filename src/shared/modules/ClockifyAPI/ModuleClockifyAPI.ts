@@ -1,14 +1,16 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
 import { ClockifyTimeEntryParamStatic } from './params/ClockifyTimeEntryParam';
 import TimeParamClockifyTimeEntry from './params/TimeParamClockifyTimeEntry';
 import ClockifyClientVO from './vos/ClockifyClientVO';
@@ -35,13 +37,6 @@ export default class ModuleClockifyAPI extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleClockifyAPI.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleClockifyAPI.MODULE_NAME + '.FO_ACCESS';
 
-    public static getInstance(): ModuleClockifyAPI {
-        if (!ModuleClockifyAPI.instance) {
-            ModuleClockifyAPI.instance = new ModuleClockifyAPI();
-        }
-        return ModuleClockifyAPI.instance;
-    }
-
     private static instance: ModuleClockifyAPI = null;
 
     public get_all_clockify_users: () => Promise<ClockifyUserVO[]> = APIControllerWrapper.sah(ModuleClockifyAPI.APINAME_get_all_clockify_users);
@@ -53,6 +48,13 @@ export default class ModuleClockifyAPI extends Module {
     private constructor() {
 
         super("clockifyapi", ModuleClockifyAPI.MODULE_NAME);
+    }
+
+    public static getInstance(): ModuleClockifyAPI {
+        if (!ModuleClockifyAPI.instance) {
+            ModuleClockifyAPI.instance = new ModuleClockifyAPI();
+        }
+        return ModuleClockifyAPI.instance;
     }
 
     public registerApis() {
@@ -89,9 +91,6 @@ export default class ModuleClockifyAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeClockifyUser();
         this.initializeClockifyClient();
         this.initializeClockifyProjet();
@@ -101,87 +100,80 @@ export default class ModuleClockifyAPI extends Module {
 
     private initializeClockifyClient() {
 
-        let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', false),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
-            new ModuleTableField('note', ModuleTableField.FIELD_TYPE_string, 'Note', false),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
+            ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().clockify_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Clockify', true),
+            ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().email, ModuleTableFieldVO.FIELD_TYPE_string, 'Email', false),
+            ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true),
+            ModuleTableFieldController.create_new(ClockifyClientVO.API_TYPE_ID, field_names<ClockifyClientVO>().note, ModuleTableFieldVO.FIELD_TYPE_string, 'Note', false),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyClientVO.API_TYPE_ID, () => new ClockifyClientVO(), datatable_fields, null, "Client Clockify");
-
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyClientVO, null, "Client Clockify");
     }
 
     private initializeClockifyUser() {
 
-        let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true),
-            new ModuleTableField('status', ModuleTableField.FIELD_TYPE_string, 'Statut', false),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
+            ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().clockify_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Clockify', true),
+            ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().email, ModuleTableFieldVO.FIELD_TYPE_string, 'Email', true),
+            ModuleTableFieldController.create_new(ClockifyUserVO.API_TYPE_ID, field_names<ClockifyUserVO>().status, ModuleTableFieldVO.FIELD_TYPE_string, 'Statut', false),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyUserVO.API_TYPE_ID, () => new ClockifyUserVO(), datatable_fields, null, "Utilisateur Clockify");
-
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyUserVO, null, "Utilisateur Clockify");
     }
 
     private initializeClockifyProjet() {
-        let client_id = new ModuleTableField('client_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Client Clockify');
+        const client_id = ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().client_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ID Client Clockify');
 
-        let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true),
-            new ModuleTableField('note', ModuleTableField.FIELD_TYPE_string, 'Note', false),
-            new ModuleTableField('is_public', ModuleTableField.FIELD_TYPE_boolean, 'Publique ?', true),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
+            ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().clockify_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Clockify', true),
+            ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé ?', true),
+            ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().note, ModuleTableFieldVO.FIELD_TYPE_string, 'Note', false),
+            ModuleTableFieldController.create_new(ClockifyProjetVO.API_TYPE_ID, field_names<ClockifyProjetVO>().is_public, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Publique ?', true),
             client_id
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyProjetVO.API_TYPE_ID, () => new ClockifyProjetVO(), datatable_fields, null, "Projet Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyProjetVO, null, "Projet Clockify");
 
-        client_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyClientVO.API_TYPE_ID]);
+        client_id.set_many_to_one_target_moduletable_name(ClockifyClientVO.API_TYPE_ID);
     }
 
     private initializeClockifyTache() {
-        let projet_id = new ModuleTableField('projet_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
+        const projet_id = ModuleTableFieldController.create_new(ClockifyTacheVO.API_TYPE_ID, field_names<ClockifyTacheVO>().projet_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
 
-        let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('status', ModuleTableField.FIELD_TYPE_string, 'Statut', false),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(ClockifyTacheVO.API_TYPE_ID, field_names<ClockifyTacheVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true),
+            ModuleTableFieldController.create_new(ClockifyTacheVO.API_TYPE_ID, field_names<ClockifyTacheVO>().clockify_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Clockify', true),
+            ModuleTableFieldController.create_new(ClockifyTacheVO.API_TYPE_ID, field_names<ClockifyTacheVO>().status, ModuleTableFieldVO.FIELD_TYPE_string, 'Statut', false),
             projet_id
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyTacheVO.API_TYPE_ID, () => new ClockifyTacheVO(), datatable_fields, null, "Tâche Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyTacheVO, null, "Tâche Clockify");
 
-        projet_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyProjetVO.API_TYPE_ID]);
+        projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
     }
 
     private initializeClockifyTimeEntry() {
-        let projet_id = new ModuleTableField('projet_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
-        let tache_id = new ModuleTableField('tache_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID Tache Clockify');
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'ID User Clockify');
+        const projet_id = ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().projet_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ID Projet Clockify');
+        const tache_id = ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().tache_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ID Tache Clockify');
+        const user_id = ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'ID User Clockify');
 
-        let datatable_fields = [
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('clockify_id', ModuleTableField.FIELD_TYPE_string, 'ID Clockify', true),
-            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Heure de début', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Heure de fin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false),
+            ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().clockify_id, ModuleTableFieldVO.FIELD_TYPE_string, 'ID Clockify', true),
+            ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().start_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Heure de début', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            ModuleTableFieldController.create_new(ClockifyTimeEntryVO.API_TYPE_ID, field_names<ClockifyTimeEntryVO>().end_time, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Heure de fin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
             projet_id,
             tache_id,
             user_id
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, ClockifyTimeEntryVO.API_TYPE_ID, () => new ClockifyTimeEntryVO(), datatable_fields, null, "Entrée de temps Clockify");
-        this.datatables.push(datatable);
+        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, ClockifyTimeEntryVO, null, "Entrée de temps Clockify");
 
-        projet_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyProjetVO.API_TYPE_ID]);
-        tache_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyTacheVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClockifyUserVO.API_TYPE_ID]);
+        projet_id.set_many_to_one_target_moduletable_name(ClockifyProjetVO.API_TYPE_ID);
+        tache_id.set_many_to_one_target_moduletable_name(ClockifyTacheVO.API_TYPE_ID);
+        user_id.set_many_to_one_target_moduletable_name(ClockifyUserVO.API_TYPE_ID);
     }
 }

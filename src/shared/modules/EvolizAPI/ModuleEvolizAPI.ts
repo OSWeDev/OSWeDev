@@ -258,8 +258,6 @@ export default class ModuleEvolizAPI extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
 }

@@ -1,4 +1,4 @@
-let template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
+const template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
     ' <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">' +
     ' ' +
     ' <head>' +
@@ -186,7 +186,7 @@ let template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitiona
     '                            <table class="container" border="0" cellpadding="0" cellspacing="0">' +
     '                                <tr>' +
     '                                    <td class="cta-block__button" width="230" align="center" style="width: 200px;padding-bottom: 30px">' +
-    '                                        <a href="%%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%" style="border: 3px solid #eeeeee; color: #969696; text-decoration: none; padding: 15px 45px; text-transform: uppercase; display: block; text-align: center; font-size: 16px;">' +
+    '                                        <a href="%%ENV%%base_url%%%%ENV%%url_recovery_challenge%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%" style="border: 3px solid #eeeeee; color: #969696; text-decoration: none; padding: 15px 45px; text-transform: uppercase; display: block; text-align: center; font-size: 16px;">' +
     '                                           %%TRAD%%mails.pwd.recovery.submit%%' +
     '                                        </a>' +
     '                                    </td>' +

@@ -74,7 +74,7 @@ Namespace.prototype.get = function get(key) {
 
 Namespace.prototype.createContext = function createContext() {
     // Prototype inherit existing context if created a new child context within existing context.
-    let context = Object.create(this.active ? this.active : Object.prototype);
+    const context = Object.create(this.active ? this.active : Object.prototype);
     context._ns_name = this.name;
     context.id = currentUid;
 
@@ -89,7 +89,7 @@ Namespace.prototype.createContext = function createContext() {
 };
 
 Namespace.prototype.run = function run(fn) {
-    let context = this.createContext();
+    const context = this.createContext();
     this.enter(context);
 
     try {
@@ -162,10 +162,10 @@ Namespace.prototype.runAndReturn = function runAndReturn(fn) {
 // };
 
 Namespace.prototype.runPromise = async function runPromise(fn) {
-    let context = this.createContext();
+    const context = this.createContext();
     this.enter(context);
 
-    let res = await fn(context);
+    const res = await fn(context);
 
     this.exit(context);
 
@@ -206,7 +206,7 @@ Namespace.prototype.bind = function bindFactory(fn, context) {
         }
     }
 
-    let self = this;
+    const self = this;
     return function clsBind() {
         self.enter(context);
         try {
@@ -262,7 +262,7 @@ Namespace.prototype.exit = function exit(context) {
     // return;
 
     // Fast search in the stack using lastIndexOf
-    let index = this._set.lastIndexOf(context);
+    const index = this._set.lastIndexOf(context);
 
     if (index < 0) {
         if (DEBUG_CLS_HOOKED) {
@@ -277,8 +277,8 @@ Namespace.prototype.exit = function exit(context) {
 Namespace.prototype.bindEmitter = function bindEmitter(emitter) {
     assert.ok(emitter.on && emitter.addListener && emitter.emit, 'can only bind real EEs');
 
-    let namespace = this;
-    let thisSymbol = 'context@' + this.name;
+    const namespace = this;
+    const thisSymbol = 'context@' + this.name;
 
     // Capture the context active at the time the emitter is bound.
     function attach(listener) {
@@ -302,9 +302,9 @@ Namespace.prototype.bindEmitter = function bindEmitter(emitter) {
         }
 
         let wrapped = unwrapped;
-        let unwrappedContexts = unwrapped[CONTEXTS_SYMBOL];
+        const unwrappedContexts = unwrapped[CONTEXTS_SYMBOL];
         Object.keys(unwrappedContexts).forEach(function (name) {
-            let thunk = unwrappedContexts[name];
+            const thunk = unwrappedContexts[name];
             wrapped = thunk.namespace.bind(wrapped, thunk.context);
         });
         return wrapped;
@@ -333,7 +333,7 @@ function createNamespace(name) {
     if (DEBUG_CLS_HOOKED) {
         debug2(`NS-CREATING NAMESPACE (${name})`);
     }
-    let namespace = new Namespace(name);
+    const namespace = new Namespace(name);
     namespace.id = currentUid;
 
     const hook = async_hooks.createHook({
@@ -487,7 +487,7 @@ function createNamespace(name) {
 }
 
 function destroyNamespace(name) {
-    let namespace = getNamespace(name);
+    const namespace = getNamespace(name);
 
     assert.ok(namespace, 'can\'t delete nonexistent namespace! "' + name + '"');
     assert.ok(namespace.id, 'don\'t assign to process.namespaces directly! ' + util.inspect(namespace));

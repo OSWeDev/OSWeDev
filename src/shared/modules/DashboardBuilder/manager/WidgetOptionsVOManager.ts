@@ -137,12 +137,12 @@ export default class WidgetOptionsVOManager {
             await self.initialize();
         }
 
-        if (!!options_constructor) {
+        if (options_constructor) {
             self.widgets_options_constructor[widget_type.name] = options_constructor;
             self.widgets_options_constructor_by_widget_id[widget_type.id] = options_constructor;
         }
 
-        if (!!get_selected_fields) {
+        if (get_selected_fields) {
             self.widgets_get_selected_fields[widget_type.name] = get_selected_fields;
         }
 
@@ -150,7 +150,7 @@ export default class WidgetOptionsVOManager {
             return;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(widget_type);
+        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(widget_type);
 
         if ((!insertOrDeleteQueryResult) || !insertOrDeleteQueryResult.id) {
             ConsoleHandler.error("Impossible de créer le widget");

@@ -7,7 +7,7 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -46,7 +46,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAjaxCache.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Cache de requêtes'
         }));
 
@@ -54,21 +54,21 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
         fo_access.translatable_name = ModuleAjaxCache.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Configuration sur le front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     public async requests_wrapper(requests: LightWeightSendableRequestVO[], response: Response, req: Request): Promise<RequestsWrapperResult> {
 
-        let res: RequestsWrapperResult = new RequestsWrapperResult();
+        const res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
+        const limit = ConfigurationService.node_configuration.max_pool / 2;
+        const promise_pipeline = new PromisePipeline(limit, 'ModuleAjaxCacheServer.requests_wrapper');
 
-        for (let i in requests) {
-            let wrapped_request: LightWeightSendableRequestVO = requests[i];
+        for (const i in requests) {
+            const wrapped_request: LightWeightSendableRequestVO = requests[i];
 
             if (!wrapped_request) {
                 continue;
@@ -78,9 +78,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
-                for (let j in APIControllerWrapper.registered_apis) {
+                for (const j in APIControllerWrapper.registered_apis) {
                     // Find the registered API
-                    let registered_api = APIControllerWrapper.registered_apis[j];
+                    const registered_api = APIControllerWrapper.registered_apis[j];
                     if (APIControllerWrapper.requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;
@@ -93,9 +93,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     return null;
                 }
 
-                if (!!apiDefinition.access_policy_name) {
+                if (apiDefinition.access_policy_name) {
                     if (!AccessPolicyServerController.checkAccessSync(apiDefinition.access_policy_name)) {
-                        let session: IServerUserSession = (req as any).session;
+                        const session: IServerUserSession = (req as any).session;
                         ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         res.requests_results[wrapped_request.index] = null;
                         return null;
@@ -126,12 +126,12 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         }
                 }
 
-                let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
+                const params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
                 try {
-                    let api_res = await apiDefinition.SERVER_HANDLER(...params);
+                    const api_res = await apiDefinition.SERVER_HANDLER(...params);
                     res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
                 } catch (error) {
-                    let session: IServerUserSession = (req as any).session;
+                    const session: IServerUserSession = (req as any).session;
                     ConsoleHandler.error('Erreur API:requests_wrapper:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":error:" + error + ':');
                     res.requests_results[wrapped_request.index] = null;
                 }

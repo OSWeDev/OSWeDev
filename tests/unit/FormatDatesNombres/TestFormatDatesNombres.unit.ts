@@ -89,7 +89,7 @@ test('ModuleFormatDatesNombres:test : formatDate_FullyearMonth', () => {
 
 test('ModuleFormatDatesNombres:test : formatDate_YearMonth', () => {
     expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth(null)).toStrictEqual(null);
-    let dateTest = moment('1995-12-17');
+    const dateTest = moment('1995-12-17');
     expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth(dateTest)).toStrictEqual("12/95");
     expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth("12/01/1995")).toStrictEqual("12/95");
     expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth("12-01-1995")).toStrictEqual("12/95");
@@ -98,7 +98,7 @@ test('ModuleFormatDatesNombres:test : formatDate_YearMonth', () => {
 
 test('ModuleFormatDatesNombres:test: formatDate_FullyearMonthDay', () => {
     expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(null)).toStrictEqual(null);
-    let dateTest = moment('1995-12-17');
+    const dateTest = moment('1995-12-17');
     expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(dateTest)).toStrictEqual("17/12/1995");
     expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay("12/01/1995")).toStrictEqual("01/12/1995");
     expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay("12-01-1995")).toStrictEqual("01/12/1995");
@@ -109,7 +109,7 @@ test('ModuleFormatDatesNombres:test: formatDate_FullyearMonthDay', () => {
 
 test('ModuleFormatDatesNombres:test: getMomentFromFormatted_FullyearMonthDay', () => {
     expect(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(null)).toStrictEqual(null);
-    var momentTest = moment("1995-12-31").utc(true);
+    const momentTest = moment("1995-12-31").utc(true);
     expect(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay("31/12/1995").format('YYYY-MM-DD')).toStrictEqual(momentTest.format('YYYY-MM-DD'));
 
 

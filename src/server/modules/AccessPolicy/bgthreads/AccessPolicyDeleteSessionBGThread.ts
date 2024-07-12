@@ -18,14 +18,6 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
     public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!AccessPolicyDeleteSessionBGThread.instance) {
-            AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
-        }
-        return AccessPolicyDeleteSessionBGThread.instance;
-    }
-
     private static instance: AccessPolicyDeleteSessionBGThread = null;
 
     public session_last_send_date: { [sid: string]: number } = {};
@@ -51,9 +43,17 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
         return "AccessPolicyDeleteSessionBGThread";
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!AccessPolicyDeleteSessionBGThread.instance) {
+            AccessPolicyDeleteSessionBGThread.instance = new AccessPolicyDeleteSessionBGThread();
+        }
+        return AccessPolicyDeleteSessionBGThread.instance;
+    }
+
     public async work(): Promise<number> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
 
         try {
 
@@ -64,18 +64,18 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            let session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
+            const session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
             this.session_to_delete_by_sids = {};
 
-            let api_reqs: string[] = cloneDeep(this.api_reqs);
+            const api_reqs: string[] = cloneDeep(this.api_reqs);
             this.api_reqs = [];
 
-            let to_invalidate: IServerUserSession[] = [];
+            const to_invalidate: IServerUserSession[] = [];
 
-            for (let sid in session_to_delete_by_sids_cp) {
-                let session_to_delete = session_to_delete_by_sids_cp[sid];
+            for (const sid in session_to_delete_by_sids_cp) {
+                const session_to_delete = session_to_delete_by_sids_cp[sid];
 
-                if (!!session_to_delete.id) {
+                if (session_to_delete.id) {
                     continue;
                 }
 
@@ -103,10 +103,10 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
             // Si on a quelque chose et qu'on est pas en DEV, on met un message sur Teams et on invalide la session
             if (to_invalidate.length > 0) {
                 // On ne met pas de message sur Teams si on est en DEV
-                if (!ConfigurationService.node_configuration.ISDEV) {
+                if (!ConfigurationService.node_configuration.isdev) {
 
                     await TeamsAPIServerController.send_teams_info(
-                        'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.APP_TITLE + " - " + ConfigurationService.node_configuration.BASE_URL,
+                        'Suppression de sessions suite invalidation - ' + ConfigurationService.node_configuration.app_title + " - " + ConfigurationService.node_configuration.base_url,
                         'SID : <ul><li>' + to_invalidate.map((m) => m.id).join('</li><li>') + '</li></ul>' +
                         'Requêtes : <ul><li>' + api_reqs.join('</li><li>') + '</li></ul>'
                     );
@@ -149,7 +149,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     private stats_out(activity: string, time_in: number) {
 
-        let time_out = Dates.now_ms();
+        const time_out = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT');
         StatsController.register_stat_DUREE('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }

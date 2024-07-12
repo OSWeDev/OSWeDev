@@ -34,7 +34,7 @@ export default class DocumentAdminVueModule extends VueModuleBase {
 
         if (this.policies_loaded[ModuleDocument.POLICY_BO_ACCESS]) {
 
-            let menuBranch: MenuElementVO =
+            const menuBranch: MenuElementVO =
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(
                         ModuleDocument.POLICY_BO_ACCESS,

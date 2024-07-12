@@ -1,0 +1,51 @@
+.var_charts_options_component
+    .options_separator_lvl2 {{ label('var_charts_options_component.separator.var_options') }}
+    template(v-if='options_props.length >0')
+        .input_label {{ label('var_charts_options_component.use_palette') }}
+            toggle-button(
+                @change="switch_use_palette" 
+                :value="use_palette" 
+                :sync="true"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            )
+        template(v-if='use_palette')
+            multiselect(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_selected_color_palette"
+                :options="color_palettes_labels"
+                :allow-empty="false",
+
+                :searchable="true"
+                :internal-search="true"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="color_palette_selector"               
+            )
+    .var_charts_options_selector 
+        .add_var_chart_options_button_wrapper
+            button.btn-success.btn-lg.btn-block.add_var_chart_options_button(
+                @click="add_var_chart_options"
+            ) {{ label('var_charts_options_component.add_var_chart_options_button') }}
+        template
+            .input_wrapper(v-for="(var_chart_options, index) in options_props")
+                Varchartoptionsitemcomponent(
+                    @on_change="handle_var_chart_options_change(index, $event)"
+                    :get_var_name_code_text="get_var_name_code_text"
+                    :page_widget_id="page_widget_id"
+                    :options="var_chart_options"
+                    :use_palette="use_palette"
+                    :fields_that_could_get_scales_filter="fields_that_could_get_scales_filter"
+                )
+                button.btn-danger.btn-lg.btn-block.remove_var_chart_options_button(
+                    @click="remove_var_chart_options(index)"
+                ) {{ label('var_charts_options_component.remove_var_chart_options_button') }}
+

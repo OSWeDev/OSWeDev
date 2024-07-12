@@ -8,7 +8,7 @@ export default class APINotifTypeResultVO implements IDistantVOBase {
         api_call_id: number,
         res: any): APINotifTypeResultVO {
 
-        let resu: APINotifTypeResultVO = new APINotifTypeResultVO();
+        const resu: APINotifTypeResultVO = new APINotifTypeResultVO();
 
         resu.api_call_id = api_call_id;
         resu.res = res;

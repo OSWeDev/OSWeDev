@@ -14,13 +14,6 @@ import VarDayLastSuiviCompetencesNiveauMaturiteGroupeController from "./VarDayLa
 export default class VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController extends VarServerControllerBase<SuiviCompetencesGroupeUserTsRangesDataRangesVO> {
     public static DEP_DayLastSuiviCompetencesNiveauMaturiteGroupe: string = 'VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.DEP_DayLastSuiviCompetencesNiveauMaturiteGroupe' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    public static getInstance(): VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController {
-        if (!VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance) {
-            VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance = new VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController();
-        }
-        return VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance;
-    }
-
     protected static instance: VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController = null;
 
     protected constructor() {
@@ -37,8 +30,13 @@ export default class VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeControlle
                 [VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.DEP_DayLastSuiviCompetencesNiveauMaturiteGroupe]: { 'fr-fr': 'DayLastSuiviCompetencesNiveauMaturiteGroupe' },
             }
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    public static getInstance(): VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController {
+        if (!VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance) {
+            VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance = new VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController();
+        }
+        return VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.instance;
     }
 
     public async get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): Promise<SuiviCompetencesGroupeUserTsRangesDataRangesVO[]> {

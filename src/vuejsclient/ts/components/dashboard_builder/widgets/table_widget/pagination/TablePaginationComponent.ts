@@ -65,7 +65,7 @@ export default class TablePaginationComponent extends VueComponentBase {
     private selected_limit: number = null;
 
     get pagination_offset_end_page() {
-        let res = this.pagination_offset + this.pagination_pagesize;
+        const res = this.pagination_offset + this.pagination_pagesize;
 
         if (res >= this.pagination_count) {
             return this.pagination_count;
@@ -219,12 +219,12 @@ export default class TablePaginationComponent extends VueComponentBase {
 
     @Watch("limit_selectable", { immediate: true })
     private onchange_limit_selectable() {
-        let all_limit_selectable: number[] = [];
+        const all_limit_selectable: number[] = [];
         let selected_limit: number = null;
 
         if (this.limit_selectable && this.limit_selectable.length > 0) {
-            for (let i in this.limit_selectable) {
-                let val: number = parseInt(this.limit_selectable[i]);
+            for (const i in this.limit_selectable) {
+                const val: number = parseInt(this.limit_selectable[i]);
 
                 if (val && !isNaN(val) && (val > 0) && !all_limit_selectable.includes(val)) {
                     all_limit_selectable.push(val);

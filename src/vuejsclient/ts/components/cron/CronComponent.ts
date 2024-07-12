@@ -26,7 +26,7 @@ export default class CronComponent extends VueComponentBase {
 
         this.snotify.info(this.label('CronComponent.info.executeWorkersManually.started'));
 
-        let self = this;
+        const self = this;
         setTimeout(() => {
             self.is_running = false;
         }, 1000);
@@ -50,7 +50,7 @@ export default class CronComponent extends VueComponentBase {
 
         this.snotify.info(this.label('CronComponent.info.executeWorkerManually.started'));
 
-        let self = this;
+        const self = this;
         setTimeout(() => {
             self.is_running = false;
         }, 1000);

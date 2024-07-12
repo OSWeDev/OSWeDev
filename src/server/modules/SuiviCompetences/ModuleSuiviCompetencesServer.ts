@@ -19,8 +19,7 @@ import SuiviCompetencesItemVO from '../../../shared/modules/SuiviCompetences/vos
 import SuiviCompetencesRapportVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
 import SuiviCompetencesSousGroupeVO from '../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesSousGroupeVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -46,6 +45,13 @@ import VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController from './
 
 export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
+    private static instance: ModuleSuiviCompetencesServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleSuiviCompetences.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleSuiviCompetencesServer.instance) {
@@ -54,18 +60,11 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         return ModuleSuiviCompetencesServer.instance;
     }
 
-    private static instance: ModuleSuiviCompetencesServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleSuiviCompetences.getInstance().name);
-    }
-
     // istanbul ignore next: cannot test registerAccessPolicies
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSuiviCompetences.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'SuiviCompetences'
         }));
 
@@ -73,7 +72,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleSuiviCompetences.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration SuiviCompetences'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -86,7 +85,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         POLICY_FO_ACCESS.group_id = group.id;
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleSuiviCompetences.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès front - SuiviCompetences'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
@@ -191,42 +190,42 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             return;
         }
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Points clés'
-        }, 'suivi_competences_widget_component.points_cles.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.points_cles.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Objectif de la prochaine visite'
-        }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Commentaire 1'
-        }, 'suivi_competences_widget_component.commentaire_1.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.commentaire_1.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Commentaire 2'
-        }, 'suivi_competences_widget_component.commentaire_2.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.commentaire_2.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Prochain suivi'
-        }, 'suivi_competences_widget_component.prochain_suivi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.prochain_suivi.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'KPI'
-        }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Maturité'
-        }, 'suivi_competences_widget_component.indicateur.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.indicateur.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Détails'
-        }, 'suivi_competences_widget_component.indicateur_detail.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.indicateur_detail.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Commentaire"
-        }, 'suivi_competences_widget_component.commentaires.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.commentaires.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Plan d'action"
-        }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Cible"
-        }, 'suivi_competences_widget_component.cible.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'suivi_competences_widget_component.cible.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Délais"
-        }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }
@@ -255,7 +254,7 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             }
         }
 
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        let limit = ConfigurationService.node_configuration.max_pool / 2;
         let promise_pipeline = new PromisePipeline(limit);
 
         await promise_pipeline.push(async () => {
@@ -421,40 +420,40 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
     }
 
     private registerTranslations() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Suivi des compétences'
         }, 'dashboards.widgets.icons_tooltips.SuiviCompetences.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Afficher le détail'
         }, 'show_details.no.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Afficher le détail'
         }, 'show_details.yes.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Fond du bloc'
         }, 'niveau_maturite_style.background.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Couleur du texte'
         }, 'niveau_maturite_style.color.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Max'
         }, 'niveau_maturite_style.max.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Min'
         }, 'niveau_maturite_style.min.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Limiter les rôles'
         }, 'suivi_competences_widget_component.filtered_roles.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Limiter les grilles'
         }, 'suivi_competences_widget_component.filtered_grilles.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Composant téléchargement rapport PDF'
         }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_competences_download_rapport.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Télécharger'
         }, 'suivi_competences_download_rapport.download.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'Composant téléchargement rapport PDF'
         }, 'fields.labels.ref.module_suivi_competences_suivi_comp_rapport.__component__suivi_comp_rapport___suivi_competences_download_rapport.___LABEL___'));
     }

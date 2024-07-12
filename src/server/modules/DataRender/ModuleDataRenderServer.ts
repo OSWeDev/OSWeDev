@@ -11,14 +11,15 @@ import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRende
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -39,47 +40,47 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
         }, 'timesegment.day.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
         }, 'timesegment.month.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année glissante'
         }, 'timesegment.rolling_year_month_start.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Semaine'
         }, 'timesegment.week.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
         }, 'timesegment.year.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Heure'
         }, 'timesegment.hour.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Trimestre'
         }, 'timesegment.quarter.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Minute'
         }, 'timesegment.minute.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Seconde'
         }, 'timesegment.second.type_name'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Jour'
         }, 'HourSegment.day.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mois'
         }, 'HourSegment.month.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année glissante'
         }, 'HourSegment.rolling_year_month_start.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Semaine'
         }, 'HourSegment.week.type_name'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Année'
         }, 'HourSegment.year.type_name'));
     }
@@ -97,14 +98,14 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        let dataRenderer: DataRendererVO = await this.getDataRenderer(text);
+        const dataRenderer: DataRendererVO = await this.getDataRenderer(text);
         if (!dataRenderer) {
             return null;
         }
 
-        let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
+        const rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
-        let latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
+        const latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 
         if ((!latest_data) || (!rendererModule.data_timesegment_type)) {
             return null;
@@ -118,7 +119,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {
-        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq('renderer_name', text).select_vo<DataRendererVO>();
+        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq(field_names<DataRendererVO>().renderer_name, text).select_vo<DataRendererVO>();
     }
 
     /**
@@ -127,25 +128,25 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
      * @param rendered_data_time_segment_type
      */
     public async getDataSegment<T extends IDistantVOBase>(
-        datatable: ModuleTable<T>,
+        datatable: ModuleTableVO,
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
 
-        let timeSegments: TimeSegment[] = TimeSegmentHandler.getAllDataTimeSegments(
+        const timeSegments: TimeSegment[] = TimeSegmentHandler.getAllDataTimeSegments(
             TimeSegmentHandler.getStartTimeSegment(timeSegment),
             TimeSegmentHandler.getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
         return await query(datatable.vo_type)
-            .filter_by_num_has('data_dateindex', timeSegments.map((ts: TimeSegment) => ts.index))
+            .filter_by_num_has(field_names<IRenderedData & IDistantVOBase>().data_dateindex, timeSegments.map((ts: TimeSegment) => ts.index))
             .select_vos<T>();
     }
 
-    public async clearDataSegments(moduletable: ModuleTable<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegments(moduletable: ModuleTableVO, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
-        for (let i in timeSegments) {
-            let timeSegment: TimeSegment = timeSegments[i];
+        for (const i in timeSegments) {
+            const timeSegment: TimeSegment = timeSegments[i];
 
             if (!timeSegments_in) {
                 timeSegments_in = "" + timeSegment.index;
@@ -157,7 +158,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
-    public async clearDataSegment(moduletable: ModuleTable<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegment(moduletable: ModuleTableVO, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
         await ModuleDAOServer.getInstance().query('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
     }
 

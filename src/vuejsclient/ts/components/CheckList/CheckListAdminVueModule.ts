@@ -28,7 +28,7 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     this.checklist_shared_module.POLICY_BO_ACCESS,
@@ -97,7 +97,7 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.post_initialization_hook) {
+        if (this.post_initialization_hook) {
             await this.post_initialization_hook();
         }
     }

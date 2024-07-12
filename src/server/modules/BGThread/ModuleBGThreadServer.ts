@@ -7,7 +7,7 @@ import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -41,16 +41,10 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public static DEFAULT_MAX_timeout: number = 30000;
     public static DEFAULT_MIN_timeout: number = 300;
 
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleBGThreadServer.instance) {
-            ModuleBGThreadServer.instance = new ModuleBGThreadServer();
-        }
-        return ModuleBGThreadServer.instance;
-    }
-
     private static instance: ModuleBGThreadServer = null;
+
+    private static TASK_NAME_write_heap_snapshot_on_all_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_all_thread';
+    private static TASK_NAME_write_heap_snapshot_on_this_thread: string = 'ModuleBGThreadServer.write_heap_snapshot_on_this_thread';
 
     public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
@@ -61,6 +55,14 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         super(ModuleBGThread.getInstance().name);
     }
 
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleBGThreadServer.instance) {
+            ModuleBGThreadServer.instance = new ModuleBGThreadServer();
+        }
+        return ModuleBGThreadServer.instance;
+    }
+
     /**
      * On définit les droits d'accès du module
      */
@@ -68,7 +70,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleBGThread.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'BGThreads'
         }));
 
@@ -76,7 +78,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleBGThread.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des BGThreads'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -84,6 +86,27 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+    }
+
+    public async configure() {
+        ForkedTasksController.register_task(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread, this.write_heap_snapshot_on_this_thread.bind(this));
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_all_thread] =
+            ModuleBGThreadServer.getInstance().write_heap_snapshot_on_all_threads;
+    }
+
+    public async write_heap_snapshot_on_all_threads() {
+        await ForkedTasksController.broadexec_with_valid_promise_for_await(ModuleBGThreadServer.TASK_NAME_write_heap_snapshot_on_this_thread);
+    }
+
+    public async write_heap_snapshot_on_this_thread() {
+
+        if (global.gc) {
+            global.gc();
+        } else {
+            ConsoleHandler.warn('Garbage collection unavailable.  Pass --expose-gc '
+                + 'when launching node to enable forced garbage collection.');
+        }
+        require('v8').writeHeapSnapshot();
     }
 
     /**
@@ -100,12 +123,12 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         BGThreadServerController.registered_BGThreads[bgthread.name] = bgthread;
 
-        let bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
-        let force_run_asap_throttled = (): Promise<boolean> => {
+        const bgthread_force_run_asap_throttled_task_name = 'BGThreadServerController.force_run_asap_throttled.' + bgthread.name;
+        const force_run_asap_throttled = (): Promise<boolean> => {
 
             return new Promise(async (resolve, reject) => {
 
-                let thrower = (error) => {
+                const thrower = (error) => {
                     ConsoleHandler.error('failed force_run_asap_throttled on bgthread : ' + bgthread.name + ' : ' + error);
                     resolve(true);
                 };
@@ -206,7 +229,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
                     (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
 
-                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
+                    const new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name, false, 120000);
 
                     if (new_param != this.block_param_by_name[bgthread.name]) {
                         ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
@@ -220,7 +243,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }
 
-            if (!!this.block_param_by_name[bgthread.name]) {
+            if (this.block_param_by_name[bgthread.name]) {
                 continue;
             }
 

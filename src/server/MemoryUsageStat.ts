@@ -3,7 +3,7 @@ import StatsController from "../shared/modules/Stats/StatsController";
 export default class MemoryUsageStat {
     public static async updateMemoryUsageStat() {
 
-        let memory_usage_stat = process.memoryUsage();
+        const memory_usage_stat = process.memoryUsage();
 
         StatsController.register_stat_QUANTITE('MemoryUsageStat', 'external', '-', memory_usage_stat.external);
         StatsController.register_stat_QUANTITE('MemoryUsageStat', 'heapTotal', '-', memory_usage_stat.heapTotal);

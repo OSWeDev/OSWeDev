@@ -1,24 +1,25 @@
-import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
-import DashboardVO from "../vos/DashboardVO";
-import DataFilterOption from "../../DataRender/vos/DataFilterOption";
-import ModuleTable from "../../ModuleTable";
-import VOsTypesManager from "../../VO/manager/VOsTypesManager";
-import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
-import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
-import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
-import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
-import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
-import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
-import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
-import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFiltersVOManager from "./FieldFiltersVOManager";
-import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
-import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
-import ModuleDAO from "../../DAO/ModuleDAO";
-import FieldFiltersVO from "../vos/FieldFiltersVO";
-import UserVO from "../../AccessPolicy/vos/UserVO";
 import { cloneDeep } from "lodash";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
+import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
+import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
+import UserVO from "../../AccessPolicy/vos/UserVO";
+import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import ContextQueryVO, { query } from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleDAO from "../../DAO/ModuleDAO";
+import ModuleTableController from "../../DAO/ModuleTableController";
+import ModuleTableVO from "../../DAO/vos/ModuleTableVO";
+import DataFilterOption from "../../DataRender/vos/DataFilterOption";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import DashboardVO from "../vos/DashboardVO";
+import FieldFiltersVO from "../vos/FieldFiltersVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
+import FieldFiltersVOManager from "./FieldFiltersVOManager";
+import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 
 /**
  * FieldValueFilterEnumWidgetManager
@@ -111,10 +112,10 @@ export default class FieldValueFilterEnumWidgetManager {
 
         widget_options = cloneDeep(widget_options);
 
-        let added_data_filter: { [numeric_value: number]: boolean } = {};
+        const added_data_filter: { [numeric_value: number]: boolean } = {};
         let enum_data_filters: DataFilterOption[] = [];
 
-        let actual_query: string = null;
+        const actual_query: string = null;
 
         // TODO: May be had class-validator to check if widget_options is a FieldValueFilterWidgetOptionsVO
         // https://github.com/typestack/class-validator
@@ -139,7 +140,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             await promise_pipeline.push(async () => {
 
-                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     {
@@ -224,7 +225,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
             // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
             // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
+            const base_table: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[api_type_context_query.base_api_type_id];
 
             if (
                 base_table &&
@@ -232,17 +233,17 @@ export default class FieldValueFilterEnumWidgetManager {
             ) {
                 if (
                     !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                    !base_table.table_segmented_field.foreign_ref_vo_type ||
+                    !active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type] ||
+                    !Object.keys(active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]).length
                 ) {
                     return;
                 }
 
                 let has_filter: boolean = false;
 
-                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                for (const field_id in active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type]) {
+                    if (active_field_filters[base_table.table_segmented_field.foreign_ref_vo_type][field_id]) {
                         has_filter = true;
                         break;
                     }
@@ -253,7 +254,7 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
 
                 // Même si on a un filtre on veut vérifier que c'est pertinent et suffisant :
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
+                const count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, context_query, false);
 
                 if (count_segmentations > ModuleContextFilter.MAX_SEGMENTATION_OPTIONS) {
                     ConsoleHandler.warn('On a trop d\'options (' + count_segmentations + '/' + ModuleContextFilter.MAX_SEGMENTATION_OPTIONS + ') pour la table segmentée ' + api_type_id + ', on ne cherche pas le options pour le moment.');
@@ -291,7 +292,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
         promise_pipeline.push(async () => {
 
-            let data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            const data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 context_query,
                 actual_query
             );
@@ -389,7 +390,7 @@ export default class FieldValueFilterEnumWidgetManager {
             await promise_pipeline.push(async () => {
 
                 // Check access on each api_type_id
-                const has_access = FieldValueFilterEnumWidgetManager.check_api_type_id_access(
+                const has_access = await FieldValueFilterEnumWidgetManager.check_api_type_id_access(
                     api_type_id,
                     ModuleDAO.DAO_ACCESS_TYPE_READ,
                     {
@@ -498,6 +499,8 @@ export default class FieldValueFilterEnumWidgetManager {
 
             await promise_pipeline.push(async () => {
                 const count: number = await context_query.select_count();
+
+                console.log(await context_query.get_select_query_str());
 
                 if (count >= 0) {
                     count_by_enum_data_filter[filter_opt.numeric_value] = count;

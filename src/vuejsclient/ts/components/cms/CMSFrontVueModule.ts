@@ -53,35 +53,35 @@ export default class CMSFrontVueModule extends VueModuleBase {
         CMSComponentManager.getInstance().registerCMSTemplateComponent(ImgHtmlComponentVO.API_TYPE_ID, ImgHtmlComponentTemplate as any);
         CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlImgComponentVO.API_TYPE_ID, HtmlImgComponentTemplate as any);
 
-        let pages_by_ids: { [id: number]: PageVO } = VOsTypesManager.vosArray_to_vosByIds(await query(PageVO.API_TYPE_ID).select_vos<PageVO>());
-        let pages_aliases: PageAliasVO[] = await query(PageAliasVO.API_TYPE_ID).select_vos<PageAliasVO>();
+        const pages_by_ids: { [id: number]: PageVO } = VOsTypesManager.vosArray_to_vosByIds(await query(PageVO.API_TYPE_ID).select_vos<PageVO>());
+        const pages_aliases: PageAliasVO[] = await query(PageAliasVO.API_TYPE_ID).select_vos<PageAliasVO>();
 
-        let cms_routes_by_aliases: { [route: string]: PageVO } = {};
+        const cms_routes_by_aliases: { [route: string]: PageVO } = {};
 
-        for (let i in pages_by_ids) {
-            let page: PageVO = pages_by_ids[i];
+        for (const i in pages_by_ids) {
+            const page: PageVO = pages_by_ids[i];
 
-            let cleaned_route: string = ModuleCMS.getInstance().clean_route(page.main_route);
+            const cleaned_route: string = ModuleCMS.getInstance().clean_route(page.main_route);
 
             if (!cms_routes_by_aliases[cleaned_route]) {
                 cms_routes_by_aliases[cleaned_route] = page;
             }
         }
 
-        for (let i in pages_aliases) {
-            let page_aliase: PageAliasVO = pages_aliases[i];
+        for (const i in pages_aliases) {
+            const page_aliase: PageAliasVO = pages_aliases[i];
 
-            let cleaned_route: string = ModuleCMS.getInstance().clean_route(page_aliase.alias_route);
+            const cleaned_route: string = ModuleCMS.getInstance().clean_route(page_aliase.alias_route);
 
             if ((!cms_routes_by_aliases[cleaned_route]) || (cms_routes_by_aliases[cleaned_route].id != page_aliase.page_id)) {
                 cms_routes_by_aliases[cleaned_route] = pages_by_ids[page_aliase.page_id];
             }
         }
 
-        for (let cms_route in cms_routes_by_aliases) {
-            let page: PageVO = cms_routes_by_aliases[cms_route];
+        for (const cms_route in cms_routes_by_aliases) {
+            const page: PageVO = cms_routes_by_aliases[cms_route];
 
-            let cleaned_route: string = ModuleCMS.getInstance().clean_route(page.main_route);
+            const cleaned_route: string = ModuleCMS.getInstance().clean_route(page.main_route);
 
             if (cms_route == cleaned_route) {
                 this.routes.push({

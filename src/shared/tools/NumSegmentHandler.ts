@@ -98,7 +98,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let res: NumSegment[] = [];
+        const res: NumSegment[] = [];
 
         let min = start;
         let max = end;
@@ -113,7 +113,7 @@ export default class NumSegmentHandler {
         }
 
         for (let i = min; ((!exclude_end) && (i <= max)) || ((!!exclude_end) && (i < max)); i += step) {
-            let numSegment: NumSegment = new NumSegment();
+            const numSegment: NumSegment = new NumSegment();
             numSegment.index = i;
             numSegment.type = num_segment_type;
             res.push(numSegment);
@@ -154,9 +154,9 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let res: NumSegment[] = [];
+        const res: NumSegment[] = [];
 
-        for (let i in NumSegments) {
+        for (const i in NumSegments) {
             res.push(NumSegmentHandler.getPreviousNumSegment(NumSegments[i], type, offset));
         }
         return res;
@@ -174,7 +174,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let res: NumSegment = new NumSegment();
+        const res: NumSegment = new NumSegment();
         res.type = numSegment.type;
         type = ((type == null) || (typeof type === "undefined")) ? numSegment.type : type;
 
@@ -188,9 +188,9 @@ export default class NumSegmentHandler {
     }
 
     public static getCorrespondingNumSegments(nums: number[], type: number, offset: number = 0): NumSegment[] {
-        let res: NumSegment[] = [];
+        const res: NumSegment[] = [];
 
-        for (let i in nums) {
+        for (const i in nums) {
             res.push(NumSegmentHandler.getCorrespondingNumSegment(nums[i], type, offset));
         }
         return res;
@@ -214,9 +214,9 @@ export default class NumSegmentHandler {
     }
 
     public static get_nums(segments: NumSegment[]): number[] {
-        let res: number[] = [];
+        const res: number[] = [];
 
-        for (let i in segments) {
+        for (const i in segments) {
             res.push(segments[i].index);
         }
 
@@ -236,7 +236,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let min = RangeHandler.getSegmentedMin(num_range, segment_type);
+        const min = RangeHandler.getSegmentedMin(num_range, segment_type);
         return NumSegmentHandler.getCorrespondingNumSegment(min, segment_type);
     }
 
@@ -245,15 +245,15 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let max = RangeHandler.getSegmentedMax(num_range, segment_type);
+        const max = RangeHandler.getSegmentedMax(num_range, segment_type);
         return NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
     }
 
     private static get_num_ranges_(segments: NumSegment[]): NumRange[] {
-        let res: NumRange[] = [];
+        const res: NumRange[] = [];
 
-        for (let i in segments) {
-            let range: NumRange = NumRange.createNew(
+        for (const i in segments) {
+            const range: NumRange = NumRange.createNew(
                 NumSegmentHandler.getStartNumSegment(segments[i]),
                 NumSegmentHandler.getEndNumSegment(segments[i]),
                 true,

@@ -1,12 +1,12 @@
 import { Component, Prop } from 'vue-property-decorator';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import HourRange from '../../../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../../VueComponentBase';
 import './VarDescParamFieldsComponent.scss';
 
@@ -18,11 +18,11 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     @Prop()
     private var_param: VarDataBaseVO;
 
-    private async copy_card_field_code(field: ModuleTableField<any>) {
+    private async copy_card_field_code(field: ModuleTableFieldVO) {
         await navigator.clipboard.writeText(this.get_card_field_code(field));
     }
 
-    private get_card_field_code(field: ModuleTableField<any>) {
+    private get_card_field_code(field: ModuleTableFieldVO) {
         return '{' + VarsController.get_card_field_code(field.field_id) + '}';
     }
 
@@ -42,13 +42,13 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return VOsTypesManager.moduleTables_by_voType[this.var_param._type].name;
+        return ModuleTableController.module_tables_by_vo_type[this.var_param._type].name;
     }
 
     /**
      * All fields names except the ts_range field
      */
-    get var_data_other_fields(): Array<ModuleTableField<any>> {
+    get var_data_other_fields(): ModuleTableFieldVO[] {
         if (!this.var_param) {
             return null;
         }

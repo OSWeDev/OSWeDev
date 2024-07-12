@@ -1,5 +1,5 @@
 import ObjectHandler from "../../../tools/ObjectHandler";
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import TableColumnDescVO from "./TableColumnDescVO";
@@ -16,15 +16,15 @@ export default class TableWidgetOptionsVO extends AbstractVO {
     public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+        const res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
-        let options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
+        const options: TableWidgetOptionsVO = (page_widget && page_widget.json_options) ? ObjectHandler.try_get_json(page_widget.json_options) : null;
         if (!options) {
             return res;
         }
 
-        for (let i in options.columns) {
-            let column = options.columns[i];
+        for (const i in options.columns) {
+            const column = options.columns[i];
 
             if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
                 for (const key in column.children) {
@@ -101,19 +101,19 @@ export default class TableWidgetOptionsVO extends AbstractVO {
             return null;
         }
 
-        return TableWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return TableWidgetOptionsVO.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): { [current_code_text: string]: string } {
-        let res: { [exportable_code_text: string]: string } = {};
+        const res: { [exportable_code_text: string]: string } = {};
 
-        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        const placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
         if (placeholder_name_code_text) {
 
             res[placeholder_name_code_text] =
                 TableWidgetOptionsVO.TITLE_CODE_PREFIX +
                 '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
-                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+                DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         }
 
         return res;

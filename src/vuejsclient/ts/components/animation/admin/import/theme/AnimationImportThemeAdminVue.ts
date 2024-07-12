@@ -117,9 +117,9 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
     private set_themes_for_export(): AnimationImportThemeVO[] {
         this.themes_for_export = [];
 
-        for (let theme of this.themes) {
-            let data: AnimationImportThemeVO = new AnimationImportThemeVO();
-            for (let property of this.column_titles) {
+        for (const theme of this.themes) {
+            const data: AnimationImportThemeVO = new AnimationImportThemeVO();
+            for (const property of this.column_titles) {
                 data[property] = this.exportData(theme[property]);
             }
             this.themes_for_export.push(data);

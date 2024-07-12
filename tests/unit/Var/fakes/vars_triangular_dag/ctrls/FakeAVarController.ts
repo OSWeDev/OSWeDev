@@ -14,13 +14,6 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
     public static DEP_B: string = 'B' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_C: string = 'C' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeAVarController {
-        if (!FakeAVarController.instance) {
-            FakeAVarController.instance = new FakeAVarController();
-        }
-        return FakeAVarController.instance;
-    }
 
     protected static instance: FakeAVarController = null;
 
@@ -31,8 +24,14 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
             }, 1),
             {}, {}, {}, {}
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeAVarController {
+        if (!FakeAVarController.instance) {
+            FakeAVarController.instance = new FakeAVarController();
+        }
+        return FakeAVarController.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
@@ -56,10 +55,10 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
 
         switch (dep_id) {
             case FakeAVarController.DEP_C:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name);
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name);
 
             case FakeAVarController.DEP_B:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeDataVO[];
         }
 
         return null;
@@ -67,8 +66,8 @@ export default class FakeAVarController extends VarServerControllerBase<FakeData
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_B = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeAVarController.DEP_B, 0);
-        let DEP_C = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeAVarController.DEP_C, 0);
+        const DEP_B = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeAVarController.DEP_B, 0);
+        const DEP_C = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeAVarController.DEP_C, 0);
 
         return DEP_B + DEP_C;
     }

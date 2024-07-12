@@ -3,6 +3,8 @@ import ConsoleHandler from '../../../tools/ConsoleHandler';
 import LocaleManager from '../../../tools/LocaleManager';
 import { all_promises } from '../../../tools/PromiseTools';
 import RangeHandler from '../../../tools/RangeHandler';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
@@ -16,13 +18,12 @@ import TSRange from '../../DataRender/vos/TSRange';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import VarConfVO from '../../Var/vos/VarConfVO';
 import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
-import { query } from '../vos/ContextQueryVO';
 import ContextQueryFieldVO from '../vos/ContextQueryFieldVO';
-import VarConfVO from '../../Var/vos/VarConfVO';
+import { query } from '../vos/ContextQueryVO';
+import { field_names } from '../../../tools/ObjectHandler';
 
 /**
  * ContextFilterVOHandler
@@ -58,14 +59,15 @@ export default class ContextFilterVOHandler {
         "label.day.samedi"
     ];
 
+
     /**
      * Objectif retrouver les filtres simples (pas de or / xor ou subquery par exemple) d'un vo_type spécifique
      */
     public static get_simple_filters_by_vo_type(filters: ContextFilterVO[], vo_type: string): ContextFilterVO[] {
 
-        let res: ContextFilterVO[] = [];
-        for (let i in filters) {
-            let filter = filters[i];
+        const res: ContextFilterVO[] = [];
+        for (const i in filters) {
+            const filter = filters[i];
 
             if (filter.vo_type != vo_type) {
                 continue;
@@ -88,18 +90,20 @@ export default class ContextFilterVOHandler {
         return res;
     }
 
+
+
     /**
      * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
      *  un filtre sur un champ de segmentation
      *  on checke qu'on a qu'un seul résultat (sinon on est sur un filtre complexe)
      */
-    public static get_simple_filter_by_vo_type_and_field_id(filters: ContextFilterVO[], vo_type: string, field_id: string): ContextFilterVO {
+    public static get_simple_filter_by_vo_type_and_field_name(filters: ContextFilterVO[], vo_type: string, field_name: string): ContextFilterVO {
 
         let res = null;
-        for (let i in filters) {
-            let filter = filters[i];
+        for (const i in filters) {
+            const filter = filters[i];
 
-            if (filter.field_id != field_id) {
+            if (filter.field_name != field_name) {
                 continue;
             }
 
@@ -137,14 +141,14 @@ export default class ContextFilterVOHandler {
     public static context_filter_to_readable_ihm(context_filter: ContextFilterVO) {
         switch (context_filter?.filter_type) {
             case ContextFilterVO.TYPE_FILTER_AND:
-                let unique_set = new Set<string>();
+                const unique_set = new Set<string>();
                 let res: string = '';
 
                 // case when AND
                 const left_hook = context_filter.left_hook;
                 const rigth_hook = context_filter.right_hook;
 
-                let ihm_left_hook = ContextFilterVOHandler.context_filter_to_readable_ihm(left_hook);
+                const ihm_left_hook = ContextFilterVOHandler.context_filter_to_readable_ihm(left_hook);
                 let ihm_right_hook = ContextFilterVOHandler.context_filter_to_readable_ihm(rigth_hook);
 
                 // Add dynamic regex checker
@@ -311,36 +315,36 @@ export default class ContextFilterVOHandler {
                     break;
 
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
-                    let module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
-                        simpleField.moduleTableField.field_id;
+                    const simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
+                    const module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        simpleField.moduleTableField.module_table_vo_type + '___' + simpleField.moduleTableField.field_name :
+                        simpleField.moduleTableField.field_name;
 
                     // On doit gérer le cas des champs aggrégés en divisant la valeur et en refaisant l'aggrégation par la suite
                     // FIXME : Est-ce qu'on ne devrait pas gérer ce cas aussi pour les COMPUTED_FIELD_TYPE, COMPONENT_FIELD_TYPE, FILE_FIELD_TYPE, MANY_TO_ONE_FIELD_TYPE, ... ?
                     if (context_query_field && (context_query_field.aggregator != VarConfVO.NO_AGGREGATOR) && (context_query_field.aggregator != VarConfVO.IS_NULLABLE_AGGREGATOR)) {
 
-                        let raw_value = raw_data[module_table_field_id + '__raw'];
+                        const raw_value = raw_data[module_table_field_name + '__raw'];
                         if (raw_value && Array.isArray(raw_value)) {
 
-                            let res_data = [];
-                            let saved_raw_data_field = raw_value;
-                            // let saved_data_field = raw_data[module_table_field_id];
-                            for (let i in raw_value) {
-                                let value = raw_value[i];
-                                raw_data[module_table_field_id + '__raw'] = value;
-                                raw_data[module_table_field_id] = value;
-                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data));
+                            const res_data = [];
+                            const saved_raw_data_field = raw_value;
+                            // let saved_data_field = raw_data[module_table_field_name];
+                            for (const i in raw_value) {
+                                const value = raw_value[i];
+                                raw_data[module_table_field_name + '__raw'] = value;
+                                raw_data[module_table_field_name] = value;
+                                res_data.push(ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data));
                             }
 
-                            raw_data[module_table_field_id + '__raw'] = saved_raw_data_field;
+                            raw_data[module_table_field_name + '__raw'] = saved_raw_data_field;
                             resData[field.datatable_field_uid] = res_data;
 
                             break;
                         }
                     }
 
-                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_id, raw_data);
+                    resData[field.datatable_field_uid] = ContextFilterVOHandler.get_simple_field_value(simpleField, module_table_field_name, raw_data);
                     break;
 
                 case DatatableField.COMPUTED_FIELD_TYPE:
@@ -356,25 +360,25 @@ export default class ContextFilterVOHandler {
                     break;
 
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                    let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
+                    const manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
 
-                    let src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_id :
-                        manyToOneField.srcField.field_id;
+                    const src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        manyToOneField.srcField.module_table_vo_type + '___' + manyToOneField.srcField.field_name :
+                        manyToOneField.srcField.field_name;
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                    if (!!raw_data[src_module_table_field_id]) {
-                        let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
-                            .filter_by_id(raw_data[src_module_table_field_id])
+                    if (raw_data[src_module_table_field_name]) {
+                        const ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
+                            .filter_by_id(raw_data[src_module_table_field_name])
                             .select_vo();
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
+                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_name];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
                     break;
 
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                    let oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
+                    const oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
 
                     resData[field.datatable_field_uid] = [];
 
@@ -387,18 +391,18 @@ export default class ContextFilterVOHandler {
                     //     }
                     // }
 
-                    if (!!raw_data[field.datatable_field_uid]) {
+                    if (raw_data[field.datatable_field_uid]) {
                         let vo_ids: any[] = raw_data[field.datatable_field_uid];
 
                         if (!isArray(vo_ids)) {
                             vo_ids = [vo_ids];
                         }
 
-                        let promises = [];
+                        const promises = [];
 
-                        for (let i in vo_ids) {
+                        for (const i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
                                     .filter_by_id(vo_ids[i])
                                     .select_vo();
 
@@ -414,7 +418,7 @@ export default class ContextFilterVOHandler {
                     break;
 
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                    let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
+                    const manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
                     resData[field.datatable_field_uid] = [];
 
@@ -427,18 +431,18 @@ export default class ContextFilterVOHandler {
                     //     }
                     // }
 
-                    if (!!raw_data[field.datatable_field_uid]) {
+                    if (raw_data[field.datatable_field_uid]) {
                         let vo_ids: any[] = raw_data[field.datatable_field_uid];
 
                         if (!isArray(vo_ids)) {
                             vo_ids = [vo_ids];
                         }
 
-                        let promises = [];
+                        const promises = [];
 
-                        for (let i in vo_ids) {
+                        for (const i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                const ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
                                     .filter_by_id(vo_ids[i])
                                     .select_vo();
 
@@ -455,16 +459,16 @@ export default class ContextFilterVOHandler {
                     break;
 
                 case DatatableField.REF_RANGES_FIELD_TYPE:
-                    let refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
+                    const refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
 
                     resData[field.datatable_field_uid] = [];
 
-                    let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
-                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id + '__raw' : // We are waiting for the actual converted NumRange[] value
-                        refField.srcField.field_id;
+                    const refField_src_module_table_field_name = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        refField.srcField.module_table_vo_type + '___' + refField.srcField.field_name + '__raw' : // We are waiting for the actual converted NumRange[] value
+                        refField.srcField.field_name;
 
-                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
-                        let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
+                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_name], async (id: number) => {
+                        const ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
                             .filter_by_id(id)
                             .select_vo();
 
@@ -487,15 +491,14 @@ export default class ContextFilterVOHandler {
     }
 
     public static get_active_field_filters(filters: ContextFilterVO[]): FieldFiltersVO {
-        let res: FieldFiltersVO = {};
-
-        for (let i in filters) {
-            let filter = filters[i];
+        const res: FieldFiltersVO = {};
+        for (const i in filters) {
+            const filter = filters[i];
 
             if (!res[filter.vo_type]) {
                 res[filter.vo_type] = {};
             }
-            res[filter.vo_type][filter.field_id] = filter;
+            res[filter.vo_type][filter.field_name] = filter;
         }
 
         return res;
@@ -558,7 +561,7 @@ export default class ContextFilterVOHandler {
         /**
          * On tente la suppression à gauche. si on récupère un null, on doit renvoyer le hook_right en guise de nouveau root à ce niveau
          */
-        let left_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.left_hook, context_filter_to_delete);
+        const left_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.left_hook, context_filter_to_delete);
         if (!left_hook_replacement) {
             return context_filter_tree_root.right_hook;
         }
@@ -567,7 +570,7 @@ export default class ContextFilterVOHandler {
             return context_filter_tree_root;
         }
 
-        let right_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.right_hook, context_filter_to_delete);
+        const right_hook_replacement = ContextFilterVOHandler.remove_context_filter_from_tree(context_filter_tree_root.right_hook, context_filter_to_delete);
         if ((!right_hook_replacement) && (context_filter_tree_root.right_hook)) {
             return context_filter_tree_root.left_hook;
         }
@@ -582,13 +585,11 @@ export default class ContextFilterVOHandler {
      * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
      */
     public static get_empty_res_context_hook_query(api_type_id: string) {
-        // on veut rien renvoyer, donc on fait une query qui retourne rien
-        let filter_none: ContextFilterVO = new ContextFilterVO();
-        filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-        filter_none.field_id = 'id';
-        filter_none.vo_type = api_type_id;
-
-        return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_server();
+        return query(api_type_id)
+            .filter_is_null(field_names<IDistantVOBase>().id)
+            .field(field_names<IDistantVOBase>().id)
+            .set_query_distinct()
+            .exec_as_server();
     }
 
     public static add_context_filters_exclude_values(
@@ -601,16 +602,16 @@ export default class ContextFilterVOHandler {
             return query_filters;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        const moduletable = ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id];
+        const field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         let exclude_values_context_filter: ContextFilterVO = null;
 
         // On parcourt toutes les valeurs à exclure pour créer le ContextFilter
-        for (let j in exclude_values) {
-            let active_option = exclude_values[j];
+        for (const j in exclude_values) {
+            const active_option = exclude_values[j];
 
-            let new_exclude_values = ContextFilterVOHandler.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
+            const new_exclude_values = ContextFilterVOHandler.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
 
             if (!new_exclude_values) {
                 continue;
@@ -626,14 +627,14 @@ export default class ContextFilterVOHandler {
         // Changer le filter_type pour dire ne pas prendre en compte
         exclude_values_context_filter.filter_type = ContextFilterVOHandler.get_ContextFilterVO_None(field, vo_field_ref);
 
-        let new_query_filters: ContextFilterVO[] = [];
+        const new_query_filters: ContextFilterVO[] = [];
         let is_add: boolean = false;
 
         // On le rajoute à la query
         if (query_filters) {
 
-            for (let i in query_filters) {
-                if ((query_filters[i].field_id == vo_field_ref.field_id) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
+            for (const i in query_filters) {
+                if ((query_filters[i].field_name == vo_field_ref.field_id) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
                     if (concat_exclude_values) {
                         is_add = true;
                         new_query_filters.push(ContextFilterVO.and([query_filters[i], exclude_values_context_filter]));
@@ -652,40 +653,40 @@ export default class ContextFilterVOHandler {
         return new_query_filters;
     }
 
-    public static get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
+    public static get_ContextFilterVO_None(field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): number {
         let field_type = null;
 
         if ((!field) && (vo_field_ref.field_id == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
+            field_type = ModuleTableFieldVO.FIELD_TYPE_int;
         } else {
             field_type = field.field_type;
         }
 
         switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_geopoint:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
                 return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_color:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
                 return ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
 
-            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
                 return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_html_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_html_array:
                 throw new Error('Not Implemented');
 
 
@@ -698,7 +699,7 @@ export default class ContextFilterVOHandler {
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
      * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
-    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+    public static get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableFieldVO, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         return ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 
@@ -738,7 +739,7 @@ export default class ContextFilterVOHandler {
          *      - exactement 1 filtre de type année ou année glissante
          *      - pas de OU
          */
-        let has_only_TYPE_DATE_INTERSECTS: boolean = ContextFilterVOHandler.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
+        const has_only_TYPE_DATE_INTERSECTS: boolean = ContextFilterVOHandler.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
 
         if (has_only_TYPE_DATE_INTERSECTS) {
             return ContextFilterVOHandler.get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
@@ -859,7 +860,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         if (!minute_filter) {
             RangeHandler.foreach_ranges_sync(ordered_hour_ts_ranges, (minute_ts: number) => {
@@ -898,7 +899,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         if (!second_filter) {
             RangeHandler.foreach_ranges_sync(ordered_minute_ts_ranges, (second_ts: number) => {
@@ -937,7 +938,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         if (!hour_filter) {
             RangeHandler.foreach_ranges_sync(ordered_day_ts_ranges, (hour_ts: number) => {
@@ -976,7 +977,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         if (!dom_filter) {
             RangeHandler.foreach_ranges_sync(ordered_month_ts_ranges, (day_ts: number) => {
@@ -1014,7 +1015,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
 
@@ -1035,7 +1036,7 @@ export default class ContextFilterVOHandler {
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         if (!month_filter) {
             RangeHandler.foreach_ranges_sync(ordered_year_ts_ranges, (month_ts: number) => {
@@ -1104,7 +1105,7 @@ export default class ContextFilterVOHandler {
         let second_filter: ContextFilterVO = null;
 
         let current_filter: ContextFilterVO = context_filter_root;
-        let next_filters: ContextFilterVO[] = [];
+        const next_filters: ContextFilterVO[] = [];
         while (current_filter) {
 
             switch (current_filter.filter_type) {
@@ -1290,15 +1291,15 @@ export default class ContextFilterVOHandler {
         }
     }
 
-    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_id: string, raw_data: IDistantVOBase) {
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
-            let raw_value = raw_data[module_table_field_id + '__raw'];
+    private static get_simple_field_value(simpleField: SimpleDatatableFieldVO<any, any>, module_table_field_name: string, raw_data: IDistantVOBase) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
+            const raw_value = raw_data[module_table_field_name + '__raw'];
             return RangeHandler.humanizeRanges(raw_value);
         }
 
-        let value = simpleField.dataToReadIHM(raw_data[module_table_field_id], raw_data);
+        let value = simpleField.dataToReadIHM(raw_data[module_table_field_name], raw_data);
         // Limite à 300 cars si c'est du html et strip html
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html) {
 
             if (value) {
                 try {
@@ -1322,9 +1323,9 @@ export default class ContextFilterVOHandler {
             }
         }
 
-        if (simpleField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+        if (simpleField.field_type == ModuleTableFieldVO.FIELD_TYPE_html_array) {
 
-            for (let vi in value) {
+            for (const vi in value) {
                 let v = value[vi];
 
                 try {

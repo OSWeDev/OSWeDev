@@ -73,7 +73,7 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
     }
 
     private async confirm_archive(rdv: IPlanRDV) {
-        let self = this;
+        const self = this;
         if ((!rdv) || (!this.can_archive_rdv)) {
             return;
         }
@@ -145,7 +145,7 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -158,12 +158,12 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
 
-        let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
+        const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
         if (!manager) {
             return null;
         }

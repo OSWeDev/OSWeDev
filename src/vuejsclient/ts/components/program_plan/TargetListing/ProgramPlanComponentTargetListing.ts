@@ -65,11 +65,11 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
     }
 
     get filtered_ordered_targets(): IPlanTarget[] {
-        let res: IPlanTarget[] = [];
-        let tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
-        let limit: number = 100;
+        const res: IPlanTarget[] = [];
+        const tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
+        const limit: number = 100;
 
-        for (let i in this.getTargetsByIds) {
+        for (const i in this.getTargetsByIds) {
             if (tester.test(this.getTargetsByIds[i].name)) {
                 res.push(this.getTargetsByIds[i]);
             }
@@ -158,12 +158,12 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
     }
 
     get filtered_ordered_tasks_or_tasks_types(): Array<IPlanTask | IPlanTaskType> {
-        let res: Array<IPlanTask | IPlanTaskType> = [];
-        let tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
+        const res: Array<IPlanTask | IPlanTaskType> = [];
+        const tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
 
-        let ordered_task_types: IPlanTaskType[] = WeightHandler.getInstance().getSortedListFromWeightedVosByIds(this.get_task_types_by_ids);
-        for (let i in ordered_task_types) {
-            let ordered_task_type = ordered_task_types[i];
+        const ordered_task_types: IPlanTaskType[] = WeightHandler.getInstance().getSortedListFromWeightedVosByIds(this.get_task_types_by_ids);
+        for (const i in ordered_task_types) {
+            const ordered_task_type = ordered_task_types[i];
 
             if (ordered_task_type.order_tasks_on_same_target) {
                 if (tester.test(ordered_task_type.name)) {
@@ -173,9 +173,9 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
                 continue;
             }
 
-            let task_type_tasks: IPlanTask[] = [];
-            for (let j in this.get_tasks_by_ids) {
-                let task_ = this.get_tasks_by_ids[j];
+            const task_type_tasks: IPlanTask[] = [];
+            for (const j in this.get_tasks_by_ids) {
+                const task_ = this.get_tasks_by_ids[j];
 
                 if (task_.task_type_id == ordered_task_type.id) {
 
@@ -186,7 +186,7 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
             }
             WeightHandler.getInstance().sortByWeight(task_type_tasks);
 
-            for (let j in task_type_tasks) {
+            for (const j in task_type_tasks) {
                 res.push(task_type_tasks[j]);
             }
         }

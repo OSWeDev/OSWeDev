@@ -17,6 +17,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleParamsServer from '../Params/ModuleParamsServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
@@ -43,16 +44,16 @@ export default class ModuleVersionedServer extends ModuleServerBase {
     // istanbul ignore next: cannot test configure
     public async configure() {
 
-        for (let i in VersionedVOController.getInstance().registeredModuleTables) {
-            let registeredModuleTable = VersionedVOController.getInstance().registeredModuleTables[i];
+        for (const i in VersionedVOController.getInstance().registeredModuleTables) {
+            const registeredModuleTable = VersionedVOController.getInstance().registeredModuleTables[i];
 
-            let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+            const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
             preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreCreate);
 
-            let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+            const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
             preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreUpdate);
 
-            let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+            const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
             preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreDelete);
         }
     }
@@ -61,7 +62,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         let robot_user_id: number = await ModuleParamsServer.getInstance().getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
 
         if (!robot_user_id) {
-            let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
+            const robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().name, 'robot').exec_as_server().select_vo<UserVO>();
             robot_user_id = robot_user ? robot_user.id : null;
 
             if (robot_user_id) {
@@ -77,12 +78,12 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
-        vo.version_num = (!!vo.version_num) ? vo.version_num : 1;
+        vo.version_num = (vo.version_num) ? vo.version_num : 1;
         vo.parent_id = null;
         vo.trashed = false;
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
-        let ts = Dates.now();
+        const ts = Dates.now();
         let uid: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!uid) {
             uid = await this.get_robot_user_id();
@@ -109,7 +110,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
-        let cloned: IVersionedVO = Object.create(vo_update_handler.pre_update_vo);
+        const cloned: IVersionedVO = Object.create(vo_update_handler.pre_update_vo);
 
         if (!cloned) {
             return false;
@@ -121,9 +122,9 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
 
-        let uid: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const uid: number = ModuleAccessPolicyServer.getLoggedUserId();
 
-        if (!!uid) {
+        if (uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
 
@@ -144,14 +145,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
-        let pre_cloned_vo: IVersionedVO = cloneDeep(vo);
-        let post_cloned_vo: IVersionedVO = cloneDeep(vo);
+        const pre_cloned_vo: IVersionedVO = cloneDeep(vo);
+        const post_cloned_vo: IVersionedVO = cloneDeep(vo);
 
         // On crée une nouvelle version pour garder trace de la date + utilisateur qui a fait la suppression
         post_cloned_vo.trashed = true;
         await this.handleTriggerVOPreUpdate(new DAOUpdateVOHolder<IVersionedVO>(pre_cloned_vo, post_cloned_vo));
 
-        let cloned_deleted_vo: IVersionedVO = cloneDeep(post_cloned_vo);
+        const cloned_deleted_vo: IVersionedVO = cloneDeep(post_cloned_vo);
         cloned_deleted_vo._type = VersionedVOController.getInstance().getTrashedVoType(cloned_deleted_vo._type);
         cloned_deleted_vo.id = null;
 
@@ -161,13 +162,13 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             return false;
         }
 
-        let versions_query = query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
-        let versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
+        const versions_query = query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq(field_names<IVersionedVO>().parent_id, vo.id).exec_as_server();
+        const versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
-        for (let i in versions) {
-            let version = versions[i];
+        for (const i in versions) {
+            const version = versions[i];
 
-            let cloned_version = Object.assign({}, version);
+            const cloned_version = Object.assign({}, version);
 
             cloned_version._type = VersionedVOController.getInstance().getTrashedVersionedVoType(vo._type);
             cloned_version.id = null;
@@ -183,25 +184,25 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
     private async restoreTrashedVo(vo: IVersionedVO): Promise<boolean> {
 
-        let cloned = Object.assign({}, vo);
+        const cloned = Object.assign({}, vo);
 
         cloned._type = VersionedVOController.getInstance().recoverOriginalVoTypeFromTrashed(vo._type);
         cloned.id = null;
 
-        let insertionRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
+        const insertionRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
             ConsoleHandler.error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = insertionRes.id;
 
-        let versions_query = query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
-        let versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
+        const versions_query = query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq(field_names<IVersionedVO>().parent_id, vo.id).exec_as_server();
+        const versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
-        for (let i in versions) {
-            let version = versions[i];
+        for (const i in versions) {
+            const version = versions[i];
 
-            let cloned_version = Object.assign({}, version);
+            const cloned_version = Object.assign({}, version);
 
             cloned_version._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
             cloned_version.id = null;

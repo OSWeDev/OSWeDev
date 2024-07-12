@@ -105,7 +105,7 @@ export default class VarsManagerComponent extends VueComponentBase {
         if (!this.can_undo) {
             return;
         }
-        let i = this.get_desc_selected_var_param_historic_i - 1;
+        const i = this.get_desc_selected_var_param_historic_i - 1;
         this.set_desc_selected_var_param_historic_i(this.get_desc_selected_var_param_historic_i - 2);
         this.setDescSelectedVarParam(this.get_desc_selected_var_param_historic[i]);
     }

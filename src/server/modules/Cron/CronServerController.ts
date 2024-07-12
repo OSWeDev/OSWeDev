@@ -58,7 +58,7 @@ export default class CronServerController {
      *      sinon on envoie le message au process principal
      */
     public async executeWorker(worker_uid: string) {
-        if (!!ForkedProcessWrapperBase.getInstance()) {
+        if (ForkedProcessWrapperBase.getInstance()) {
 
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
@@ -71,7 +71,7 @@ export default class CronServerController {
                 (!ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid])) {
                 return false;
             }
-            let forked = ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
+            const forked = ForkServerController.fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
             await ForkMessageController.send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
@@ -108,8 +108,8 @@ export default class CronServerController {
                 });
             }
 
-            for (let i in plannedWorkers) {
-                let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
+            for (const i in plannedWorkers) {
+                const plannedWorker: CronWorkerPlanification = plannedWorkers[i];
 
                 if (!CronServerController.getInstance().valid_crons_names[plannedWorker.worker_uid]) {
                     continue;

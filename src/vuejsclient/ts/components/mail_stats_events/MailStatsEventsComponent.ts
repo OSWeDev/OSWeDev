@@ -48,7 +48,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
     private async sendinblue_refresh_mail_events() {
         this.is_loading = true;
-        for (let i in this.mails) {
+        for (const i in this.mails) {
             await ModuleSendInBlue.getInstance().sendinblue_refresh_mail_events(this.mails[i].id);
         }
         this.is_loading = false;
@@ -72,7 +72,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
         if (changed_category || this.force_reload) {
 
-            let filtres = [filter(MailVO.API_TYPE_ID, field_names<MailVO>().category_id).by_num_eq(this.category.id)];
+            const filtres = [filter(MailVO.API_TYPE_ID, field_names<MailVO>().category_id).by_num_eq(this.category.id)];
             if (this.email_to) {
                 filtres.push(filter(MailVO.API_TYPE_ID, field_names<MailVO>().email).by_text_eq(this.email_to));
             }
@@ -90,10 +90,10 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     }
 
     private async update_datas_mail_events() {
-        let promises = [];
+        const promises = [];
 
-        for (let i in this.mails) {
-            let mail = this.mails[i];
+        for (const i in this.mails) {
+            const mail = this.mails[i];
 
             promises.push((async () => {
 
@@ -112,11 +112,11 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     get nb_mails_recus(): number {
         let res = 0;
 
-        for (let i in this.events_by_mail) {
-            let events = this.events_by_mail[i];
+        for (const i in this.events_by_mail) {
+            const events = this.events_by_mail[i];
 
-            for (let e in events) {
-                let event = events[e];
+            for (const e in events) {
+                const event = events[e];
 
                 if (event.event == MailEventVO.EVENT_Delivre) {
                     res++;
@@ -131,11 +131,11 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     get nb_mails_ouverts(): number {
         let res = 0;
 
-        for (let i in this.events_by_mail) {
-            let events = this.events_by_mail[i];
+        for (const i in this.events_by_mail) {
+            const events = this.events_by_mail[i];
 
-            for (let e in events) {
-                let event = events[e];
+            for (const e in events) {
+                const event = events[e];
 
                 if (event.event == MailEventVO.EVENT_Ouverture) {
                     res++;
@@ -150,11 +150,11 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     get nb_mails_clique(): number {
         let res = 0;
 
-        for (let i in this.events_by_mail) {
-            let events = this.events_by_mail[i];
+        for (const i in this.events_by_mail) {
+            const events = this.events_by_mail[i];
 
-            for (let e in events) {
-                let event = events[e];
+            for (const e in events) {
+                const event = events[e];
 
                 if (event.event == MailEventVO.EVENT_Clic) {
                     res++;
@@ -169,11 +169,11 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     get last_event(): MailEventVO {
         let last_event = null;
 
-        for (let i in this.events_by_mail) {
-            let events = this.events_by_mail[i];
+        for (const i in this.events_by_mail) {
+            const events = this.events_by_mail[i];
 
-            for (let e in events) {
-                let event = events[e];
+            for (const e in events) {
+                const event = events[e];
 
                 if ((!last_event) || (last_event.event_date < event.event_date)) {
                     last_event = event;

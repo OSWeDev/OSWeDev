@@ -317,8 +317,8 @@ test('Durations: format', () => {
 });
 
 test('Durations: diff', () => {
-    let a1 = edgeDate;
-    let a = moment.unix(edgeDate).utc().add(-1, 'day').unix();
+    const a1 = edgeDate;
+    const a = moment.unix(edgeDate).utc().add(-1, 'day').unix();
 
     expect(Durations.diff(a1, a, HourSegment.TYPE_HOUR, false)).toStrictEqual(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'hour', false));
     expect(Durations.diff(a1, a, HourSegment.TYPE_MINUTE, false)).toStrictEqual(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'minute', false));

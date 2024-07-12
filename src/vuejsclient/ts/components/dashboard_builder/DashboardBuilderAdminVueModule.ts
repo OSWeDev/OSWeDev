@@ -44,7 +44,7 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleDashboardBuilder.POLICY_BO_ACCESS,
@@ -58,7 +58,7 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
 
         let main_route_name: string = 'DashboardBuilder';
 
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             ModuleDashboardBuilder.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

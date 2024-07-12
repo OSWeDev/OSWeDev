@@ -1,6 +1,10 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import IRange from '../../../../../../../shared/modules/DataRender/interfaces/IRange';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import MainAggregateOperatorsHandlers from '../../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
@@ -9,20 +13,16 @@ import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
+import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
-import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./VarDescExplainComponent.pug'),
@@ -80,9 +80,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return this.vars_deps;
         }
 
-        let res: { [dep_name: string]: string } = {};
+        const res: { [dep_name: string]: string } = {};
         let i = 0;
-        for (let dep_name in this.vars_deps) {
+        for (const dep_name in this.vars_deps) {
             res[dep_name] = this.vars_deps[dep_name];
             i++;
             if (i >= 10) {
@@ -113,18 +113,18 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     private async var_datas_updater() {
 
-        let old_value_type = this.var_data ? this.var_data.value_type : null;
-        let old_value = this.var_data ? this.var_data.value : null;
+        const old_value_type = this.var_data ? this.var_data.value_type : null;
+        const old_value = this.var_data ? this.var_data.value : null;
         this.var_data = this.var_param ? VarsClientController.cached_var_datas[this.var_param.index] : null;
 
-        let var_datas: VarDataValueResVO[] = [];
-        for (let i in this.deps_params) {
-            let dep_param = this.deps_params[i];
+        const var_datas: VarDataValueResVO[] = [];
+        for (const i in this.deps_params) {
+            const dep_param = this.deps_params[i];
             var_datas.push(VarsClientController.cached_var_datas[dep_param.index]);
         }
         this.var_datas_deps = var_datas;
 
-        let promises = [];
+        const promises = [];
 
         // Si on a une nouvelle data on recharge les DS
         if (this.var_data && (!this.var_data.is_computing) && (old_value != null) && (old_value != this.var_data.value)) {
@@ -150,12 +150,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     get params_from_var_dep_id(): { [var_dep_id: string]: VarDataBaseVO[] } {
-        let res: { [var_dep_id: string]: VarDataBaseVO[] } = {};
+        const res: { [var_dep_id: string]: VarDataBaseVO[] } = {};
 
-        for (let var_dep_id in this.vars_deps) {
+        for (const var_dep_id in this.vars_deps) {
             res[var_dep_id] = [];
 
-            for (let param_dep_id in this.deps_params) {
+            for (const param_dep_id in this.deps_params) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
@@ -193,7 +193,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
         this.deps_loading = true;
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
         promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
@@ -224,8 +224,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.var_datas_deps) {
-            let dep_data = this.var_datas_deps[i];
+        for (const i in this.var_datas_deps) {
+            const dep_data = this.var_datas_deps[i];
 
             if ((!dep_data) || (typeof dep_data.value === 'undefined')) {
                 return false;
@@ -260,12 +260,12 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return null;
         }
 
-        let res = {
+        const res = {
             self: this.var_data.value
         };
-        let matroid_bases = MatroidController.getMatroidBases(this.var_param);
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
+        const matroid_bases = MatroidController.getMatroidBases(this.var_param);
+        for (const i in matroid_bases) {
+            const matroid_base = matroid_bases[i];
 
             if (!this.var_param[matroid_base.field_id]) {
                 continue;
@@ -273,10 +273,10 @@ export default class VarDescExplainComponent extends VueComponentBase {
             res[VarsController.get_card_field_code(matroid_base.field_id)] =
                 RangeHandler.getCardinalFromArray(this.var_param[matroid_base.field_id] as IRange[]);
         }
-        for (let var_dep_id in this.vars_deps) {
+        for (const var_dep_id in this.vars_deps) {
 
-            let values: number[] = [];
-            for (let param_dep_id in this.deps_params) {
+            const values: number[] = [];
+            for (const param_dep_id in this.deps_params) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
@@ -456,24 +456,24 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         prompt += 'Le calcul est paramétré par les éléments/champs de segmentation suivants : \n';
 
-        let var_data_fields = MatroidController.getMatroidFields(this.var_param._type);
-        for (let i in var_data_fields) {
-            let field = var_data_fields[i];
+        const var_data_fields = MatroidController.getMatroidFields(this.var_param._type);
+        for (const i in var_data_fields) {
+            const field = var_data_fields[i];
 
-            prompt += " - Le champs '" + this.label('fields.labels.ref.' + VOsTypesManager.moduleTables_by_voType[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
-                ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
-            let ranges = this.var_param[field.field_id] as IRange[];
-            for (let j in ranges) {
-                let range = ranges[j];
-                let segmented_min = RangeHandler.getSegmentedMin(range);
-                let segmented_max = RangeHandler.getSegmentedMax(range);
+            prompt += " - Le champs '" + this.label('fields.labels.ref.' + ModuleTableController.module_tables_by_vo_type[this.var_param._type].name + '.' + field.field_id) + "' qui filtre sur un ou plusieurs intervales de " +
+                ((field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ? 'dates' : 'données') + " : [\n";
+            const ranges = this.var_param[field.field_id] as IRange[];
+            for (const j in ranges) {
+                const range = ranges[j];
+                const segmented_min = RangeHandler.getSegmentedMin(range);
+                const segmented_max = RangeHandler.getSegmentedMax(range);
 
                 switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                         prompt += "[" + Dates.format_segment(segmented_min, range.segment_type) + ", " + Dates.format_segment(segmented_max, range.segment_type) + "] - segmenté par " +
                             TimeSegment.TYPE_NAMES[range.segment_type] + " -,\n";
                         break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
 
                         let segmented_min_str = null;
                         let segmented_max_str = null;
@@ -516,8 +516,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 // }
             }
 
-            for (let i in this.deps_params) {
-                let dep_param = this.deps_params[i];
+            for (const i in this.deps_params) {
+                const dep_param = this.deps_params[i];
 
                 // TODO
             }

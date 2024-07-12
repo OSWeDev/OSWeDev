@@ -8,7 +8,7 @@ export default class GetVarParamFromContextFiltersParam {
         public get_active_field_filters: FieldFiltersVO,
         public custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         public active_api_type_ids: string[],
-        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        public discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         public accept_max_ranges: boolean = false,
         public resolve: (var_param: any) => void,
         /**

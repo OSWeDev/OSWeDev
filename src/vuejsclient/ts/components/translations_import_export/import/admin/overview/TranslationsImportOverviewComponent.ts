@@ -44,14 +44,14 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
     private async set_exportable_data() {
         this.exportable_data = [];
 
-        let langs_by_ids: { [id: number]: LangVO } = VOsTypesManager.vosArray_to_vosByIds(await query(LangVO.API_TYPE_ID).select_vos<LangVO>());
-        let translatables_by_ids: { [id: number]: TranslatableTextVO } = VOsTypesManager.vosArray_to_vosByIds(await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>());
-        let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
+        const langs_by_ids: { [id: number]: LangVO } = VOsTypesManager.vosArray_to_vosByIds(await query(LangVO.API_TYPE_ID).select_vos<LangVO>());
+        const translatables_by_ids: { [id: number]: TranslatableTextVO } = VOsTypesManager.vosArray_to_vosByIds(await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>());
+        const translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
-        for (let i in translations) {
-            let translation: TranslationVO = translations[i];
+        for (const i in translations) {
+            const translation: TranslationVO = translations[i];
 
-            let data = new ImportTranslation();
+            const data = new ImportTranslation();
             data.code_lang = langs_by_ids[translation.lang_id].code_lang;
             data.code_text = translatables_by_ids[translation.text_id].code_text;
             data.translated = translation.translated;

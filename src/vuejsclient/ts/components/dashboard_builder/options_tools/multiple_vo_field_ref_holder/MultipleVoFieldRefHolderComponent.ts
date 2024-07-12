@@ -1,18 +1,18 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import ModuleTableFieldVO from '../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VOsTypesHandler from '../../../../../../shared/modules/VO/handler/VOsTypesHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../vo_field_widget_ref/VoFieldWidgetRefComponent';
 import './MultipleVoFieldRefHolderComponent.scss';
+import ModuleTableController from '../../../../../../shared/modules/DAO/ModuleTableController';
 
 @Component({
     template: require('./MultipleVoFieldRefHolderComponent.pug'),
     components: {
-        Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent
-    }
+        Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent,
+    },
 })
 export default class MultipleVoFieldRefHolderComponent extends VueComponentBase {
 
@@ -36,8 +36,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return false;
         }
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
 
         if ((!api_type_id) || (!field_id)) {
             return false;
@@ -63,8 +63,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return;
         }
 
-        let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = event.dataTransfer.getData("field_id");
+        const api_type_id: string = event.dataTransfer.getData("api_type_id");
+        const field_id: string = event.dataTransfer.getData("field_id");
 
         this.$emit('add_field_ref', api_type_id, field_id);
     }
@@ -75,8 +75,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return false;
         }
 
-        let vo_field_ref_field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
-        let new_field = VOsTypesManager.moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
+        const vo_field_ref_field = ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        const new_field = ModuleTableController.module_tables_by_vo_type[api_type_id].get_field_by_id(field_id);
 
         if (this.is_type_boolean(vo_field_ref_field)) {
             return this.is_type_boolean(new_field);
@@ -101,23 +101,23 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
         return false;
     }
 
-    private is_type_boolean(field: ModuleTableField<any>): boolean {
+    private is_type_boolean(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_boolean(field);
     }
 
-    private is_type_enum(field: ModuleTableField<any>): boolean {
+    private is_type_enum(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_enum(field);
     }
 
-    private is_type_date(field: ModuleTableField<any>): boolean {
+    private is_type_date(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_date(field);
     }
 
-    private is_type_string(field: ModuleTableField<any>): boolean {
+    private is_type_string(field: ModuleTableFieldVO): boolean {
         return VOsTypesHandler.is_type_string(field);
     }
 
-    private is_type_number(field: ModuleTableField<any>, field_id: string): boolean {
+    private is_type_number(field: ModuleTableFieldVO, field_id: string): boolean {
         if (!field) {
 
             /**

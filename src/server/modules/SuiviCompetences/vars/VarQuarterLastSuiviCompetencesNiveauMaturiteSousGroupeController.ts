@@ -14,13 +14,6 @@ import VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController from "./VarD
 export default class VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController extends VarServerControllerBase<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO> {
     public static DEP_DayLastSuiviCompetencesNiveauMaturiteSousGroupe: string = 'VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.DEP_DayLastSuiviCompetencesNiveauMaturiteSousGroupe' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    public static getInstance(): VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController {
-        if (!VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance) {
-            VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance = new VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController();
-        }
-        return VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance;
-    }
-
     protected static instance: VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController = null;
 
     protected constructor() {
@@ -37,8 +30,13 @@ export default class VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeContr
                 [VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.DEP_DayLastSuiviCompetencesNiveauMaturiteSousGroupe]: { 'fr-fr': 'DayLastSuiviCompetencesNiveauMaturiteSousGroupe' },
             }
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    public static getInstance(): VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController {
+        if (!VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance) {
+            VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance = new VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController();
+        }
+        return VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.instance;
     }
 
     public async get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): Promise<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO[]> {

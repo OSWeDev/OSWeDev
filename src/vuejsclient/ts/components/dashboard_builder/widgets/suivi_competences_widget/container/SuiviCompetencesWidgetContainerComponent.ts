@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -23,7 +24,6 @@ import SuiviCompetencesGroupeVO from '../../../../../../../shared/modules/SuiviC
 import SuiviCompetencesItemRapportVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO';
 import SuiviCompetencesItemVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO';
 import SuiviCompetencesRapportVO from '../../../../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../../../../../../shared/tools/ObjectHandler';
@@ -384,27 +384,27 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
     }
 
     get plan_action_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().plan_action).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
     }
 
     get etat_des_lieux_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
     }
 
     get delais_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().delais).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().delais).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
     }
 
     get cible_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().cible).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesItemRapportVO>().cible).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesItemRapportVO.API_TYPE_ID]);
     }
 
     get points_cles_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]);
     }
 
     get objectif_prochaine_visite_editable_field() {
-        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]);
     }
 
     get nb_visible_fields(): number {
@@ -453,10 +453,10 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         let res: Array<SimpleDatatableFieldVO<any, any>> = [];
 
         if (this.grille?.show_points_cles) {
-            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().points_cles).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]));
         }
         if (this.grille?.show_objectif_prochaine_visite) {
-            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]));
         }
 
         return res;
@@ -466,13 +466,13 @@ export default class SuiviCompetencesWidgetContainerComponent extends VueCompone
         let res: Array<SimpleDatatableFieldVO<any, any>> = [];
 
         if (this.grille?.show_commentaire_1) {
-            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_1).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_1).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]));
         }
         if (this.grille?.show_commentaire_2) {
-            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_2).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().commentaire_2).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]));
         }
         if (this.grille?.show_prochain_suivi) {
-            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().prochain_suivi).setModuleTable(VOsTypesManager.moduleTables_by_voType[SuiviCompetencesRapportVO.API_TYPE_ID]));
+            res.push(SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().prochain_suivi).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]));
         }
 
         return res;

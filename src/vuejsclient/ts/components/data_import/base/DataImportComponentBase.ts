@@ -62,8 +62,8 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         this.startLoading();
         this.nbLoadingSteps = 2;
 
-        let promises: Array<Promise<any>> = [];
-        let self = this;
+        const promises: Array<Promise<any>> = [];
+        const self = this;
 
         promises.push((async () => {
             self.storeDatas({
@@ -110,7 +110,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         historic: DataImportHistoricVO,
         files_ids: number[],
         promises: Array<Promise<any>>): void {
-        let self = this;
+        const self = this;
 
         // On va chercher le fichier aussi du coup
         if ((!historic.file_id) || (self.getStoredDatas[FileVO.API_TYPE_ID] && self.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id]) ||

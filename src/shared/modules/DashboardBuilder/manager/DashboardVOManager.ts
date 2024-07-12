@@ -8,6 +8,7 @@ import SharedFiltersVOManager from "./SharedFiltersVOManager";
 import RangeHandler from "../../../tools/RangeHandler";
 import FieldFiltersVO from "../vos/FieldFiltersVO";
 import FieldFiltersVOHandler from "../handlers/FieldFiltersVOHandler";
+import { field_names } from "../../../tools/ObjectHandler";
 
 /**
  * DashboardVOManager
@@ -143,8 +144,8 @@ export default class DashboardVOManager {
             [dashboard_id],
             {
                 sorts: [
-                    // new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true),
-                    new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)
+                    // new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, true),
+                    new SortByVO(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().id, true)
                 ]
             },
             options

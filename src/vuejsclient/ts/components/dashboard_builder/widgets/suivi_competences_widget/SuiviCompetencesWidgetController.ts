@@ -28,7 +28,7 @@ export default class SuiviCompetencesWidgetController {
                     clearInterval(timeOut);
 
                     let html_content: string = $('.suivi_competences_widget_component_container')[0].outerHTML;
-                    let limit = EnvHandler.MAX_POOL / 2; // front
+                    let limit = EnvHandler.max_pool / 2; // front
                     let promise_pipeline = new PromisePipeline(limit);
 
                     let rapport: SuiviCompetencesRapportVO = null;
@@ -65,7 +65,7 @@ export default class SuiviCompetencesWidgetController {
                     let logo_html: string =
                         '<div class="logo">' +
                         (grille?.logo?.length ? '<img class="logo_grille" src="' + (VueAppController.getInstance().base_url + grille.logo) + '">' : '') +
-                        ('<img class="logo_app" src="' + (VueAppController.getInstance().base_url + EnvHandler.LOGO_PATH) + '">') +
+                        ('<img class="logo_app" src="' + (VueAppController.getInstance().base_url + EnvHandler.logo_path) + '">') +
                         '</div>';
                     html_content = "<style>" + export_style.css + "</style>" + "<div class='suivi_competences_rapport_pdf'>" + logo_html + html_content + "</div>";
 

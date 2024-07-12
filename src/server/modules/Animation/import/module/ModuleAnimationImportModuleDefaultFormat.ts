@@ -23,7 +23,7 @@ export default class ModuleAnimationImportModuleDefaultFormats {
 
     public async AnimationImportModuleDefaultFormatLabels() {
 
-        let default_import_format_name: string = 'AnimationImportModuleDefaultFormatLabels';
+        const default_import_format_name: string = 'AnimationImportModuleDefaultFormatLabels';
         let import_base_data_import_file: DataImportFormatVO = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (import_base_data_import_file) {
@@ -51,8 +51,8 @@ export default class ModuleAnimationImportModuleDefaultFormats {
         }
 
         // Puis chaque champs d'import
-        let i = 0;
-        let import_base_data_import_columns: DataImportColumnVO[] = [];
+        const i = 0;
+        const import_base_data_import_columns: DataImportColumnVO[] = [];
 
         import_base_data_import_columns.push(DataImportColumnVO.createNew('name', import_base_data_import_file.id).setMandatory());
         import_base_data_import_columns.push(DataImportColumnVO.createNew('description', import_base_data_import_file.id));

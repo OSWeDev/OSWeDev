@@ -110,7 +110,7 @@ test('MatroidController: test cut_matroids', () => {
     FakeEmpDayDataHandler.initializeFakeEmpDayDataVO();
 
 
-    let a = MatroidController.cut_matroids(FakeEmpDayDataHandler.real_1_cutter(), [FakeEmpDayDataHandler.real_2_to_cut()]);
+    const a = MatroidController.cut_matroids(FakeEmpDayDataHandler.real_1_cutter(), [FakeEmpDayDataHandler.real_2_to_cut()]);
     a.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.log(f['index'])));
     expect(a).toStrictEqual([new MatroidCutResult(
         [FakeEmpDayDataHandler.real_1_cutter_()],
@@ -118,9 +118,9 @@ test('MatroidController: test cut_matroids', () => {
 
     FakeDataHandler.initializeFakeDataVO();
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
     let remaning_calcs: Array<MatroidCutResult<FakeDataVO>> = MatroidController.cut_matroids(
         var_data_C,
         [var_data_F]);
@@ -352,13 +352,13 @@ test('MatroidController: test getMatroidBases', () => {
 test('MatroidController: test getMatroidFields', () => {
     FakeDataHandler.initializeFakeDataVO();
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-    let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-    let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
-    let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
+    const var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
+    const var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+    const selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
     var_data_F.var_id = 2;
-    let remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
+    const remaning_calcs: FakeDataVO[] = MatroidController.matroids_cut_matroids_get_remainings(
         [var_data_C, var_data_B],
         [var_data_F]);
 

@@ -26,10 +26,10 @@ export default class VarWidgetManager {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
 
-        for (let var_param_field_name in var_custom_filters) {
-            let custom_filter_name = var_custom_filters[var_param_field_name];
+        for (const var_param_field_name in var_custom_filters) {
+            const custom_filter_name = var_custom_filters[var_param_field_name];
 
             if (!custom_filter_name) {
                 continue;
@@ -40,7 +40,7 @@ export default class VarWidgetManager {
                 field_filters,
             );
 
-            let custom_filter = !is_field_filter_empty ? field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+            const custom_filter = !is_field_filter_empty ? field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
 
             if (!custom_filter) {
                 continue;
@@ -77,7 +77,7 @@ export default class VarWidgetManager {
             const var_widget_options = new VarWidgetOptionsVO().from(var_page_widget.widget_options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.page_widget_id);
 
-            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+            const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
                 var_widget_options.var_id,
                 var_widget_options.filter_custom_field_filters,
                 var_widget_options.filter_type,

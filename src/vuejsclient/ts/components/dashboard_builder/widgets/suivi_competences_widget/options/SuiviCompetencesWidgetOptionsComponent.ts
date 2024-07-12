@@ -63,6 +63,25 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
+
+    get widget_options(): SuiviCompetencesWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SuiviCompetencesWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
+                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -71,7 +90,7 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
         this.niveau_maturite_styles = NiveauMaturiteStyle.get_value(this.widget_options.niveau_maturite_styles);
 
-        let limit = EnvHandler.MAX_POOL / 2;
+        let limit = EnvHandler.max_pool / 2;
         let promise_pipeline: PromisePipeline = new PromisePipeline(limit);
 
         await promise_pipeline.push(async () => {
@@ -184,24 +203,6 @@ export default class SuiviCompetencesWidgetOptionsComponent extends VueComponent
 
     private filtered_grilles_label(grille: SuiviCompetencesGrilleVO): string {
         return grille.name;
-    }
-
-    get widget_options(): SuiviCompetencesWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SuiviCompetencesWidgetOptionsVO = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
-                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
 }

@@ -24,6 +24,7 @@ import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
 import AccessPolicyVueController from './AccessPolicyVueController';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -59,7 +60,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'impersonate',
                 'Impersonatecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.register_component(
@@ -67,7 +68,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'sendinitpwd',
                 'Sendinitpwdcomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.register_component(
@@ -75,7 +76,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'sendrecapture',
                 'Sendrecapturecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
     }
 
@@ -244,7 +245,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     }
 
     protected async getUserCRUD(): Promise<CRUD<UserVO>> {
-        let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
+        const crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("name"));
         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("firstname"));
@@ -281,7 +282,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
-            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID], [
+            ModuleTableController.module_tables_by_vo_type[LangVO.API_TYPE_ID], [
             SimpleDatatableFieldVO.createNew("code_lang")
         ]));
 
@@ -298,8 +299,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("creation_date"));
         }
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
 
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);

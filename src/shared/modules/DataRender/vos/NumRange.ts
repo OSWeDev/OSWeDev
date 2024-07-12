@@ -41,12 +41,12 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let res: NumRange = new NumRange();
+        const res: NumRange = new NumRange();
 
         res.segment_type = segment_type;
 
         let end_range = NumRange.getSegmentedMax(min, min_inclusiv, max, max_inclusiv, segment_type);
-        let start_range = NumRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
+        const start_range = NumRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
 
         if ((start_range == null) || (end_range == null)) {
             return null;
@@ -56,7 +56,7 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let tmp_end = NumSegmentHandler.incNum(end_range, segment_type, 1);
+        const tmp_end = NumSegmentHandler.incNum(end_range, segment_type, 1);
 
         end_range = tmp_end;
 
@@ -82,13 +82,13 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let range_min_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(min, segment_type);
+        const range_min_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(min, segment_type);
 
         if (!min_inclusiv) {
             NumSegmentHandler.incNumSegment(range_min_ts);
         }
 
-        let range_max_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
+        const range_max_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
 
         if (range_min_ts.index > range_max_ts.index) {
             return null;
@@ -114,13 +114,13 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let range_max_segment: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
+        const range_max_segment: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
 
         if ((!max_inclusiv) && NumSegmentHandler.isEltInSegment(max, range_max_segment)) {
             NumSegmentHandler.decNumSegment(range_max_segment);
         }
 
-        let range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_segment);
+        const range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_segment);
 
         if (range_max_end < min) {
             return null;
@@ -134,7 +134,7 @@ export default class NumRange implements IRange {
     }
 
     public static cloneFrom(from: NumRange): NumRange {
-        let res: NumRange = new NumRange();
+        const res: NumRange = new NumRange();
 
         res.max = from.max;
         res.max_inclusiv = from.max_inclusiv;

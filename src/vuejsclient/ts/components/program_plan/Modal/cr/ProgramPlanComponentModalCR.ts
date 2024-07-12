@@ -22,7 +22,7 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
-let debounce = require('lodash/debounce');
+const debounce = require('lodash/debounce');
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
@@ -126,8 +126,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.getCrsByIds) {
-            let cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
+        for (const i in this.getCrsByIds) {
+            const cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
 
             if (cr.rdv_id == this.selected_rdv.id) {
                 return cr;
@@ -145,7 +145,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -158,12 +158,12 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
 
-        let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
+        const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
         if (!manager) {
             return null;
         }
@@ -201,8 +201,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                     // Test si user est facilitator
                     if ((!!this.user_s_facilitators) && (this.user_s_facilitators.length > 0)) {
-                        for (let i in this.user_s_facilitators) {
-                            let facilitator = this.user_s_facilitators[i];
+                        for (const i in this.user_s_facilitators) {
+                            const facilitator = this.user_s_facilitators[i];
 
                             if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == facilitator.manager_id) {
                                 return true;
@@ -213,8 +213,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                     // Test si user est manager
                     if ((!!this.user_s_managers) && (this.user_s_managers.length > 0)) {
-                        for (let i in this.user_s_managers) {
-                            let manager = this.user_s_managers[i];
+                        for (const i in this.user_s_managers) {
+                            const manager = this.user_s_managers[i];
 
                             if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == manager.id) {
                                 return true;
@@ -252,9 +252,9 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return null;
         }
 
-        let res: IPlanFacilitator[] = [];
-        for (let i in this.getFacilitatorsByIds) {
-            let facilitator = this.getFacilitatorsByIds[i];
+        const res: IPlanFacilitator[] = [];
+        for (const i in this.getFacilitatorsByIds) {
+            const facilitator = this.getFacilitatorsByIds[i];
 
             if (facilitator.user_id == this.user.id) {
                 res.push(facilitator);
@@ -273,9 +273,9 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return null;
         }
 
-        let res: IPlanManager[] = [];
-        for (let i in this.getManagersByIds) {
-            let manager = this.getManagersByIds[i];
+        const res: IPlanManager[] = [];
+        for (const i in this.getManagersByIds) {
+            const manager = this.getManagersByIds[i];
 
             if (manager.user_id == this.user.id) {
                 res.push(manager);
@@ -302,7 +302,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         if (!this.program_plan_controller.show_confirmation_create_cr) {
             await this.create_cr_action(cr);
@@ -338,7 +338,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         this.$snotify.async(this.label('programplan.create_cr.start'), () => new Promise(async (resolve, reject) => {
             try {
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                     throw new Error('Erreur serveur');
                 }
@@ -347,7 +347,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 this.setCrById(cr);
                 // TODO passer par une synchro via les notifs de dao ...
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+                const rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                 this.updateRdv(rdv);
             } catch (error) {
                 ConsoleHandler.error(error);
@@ -381,7 +381,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         if (autosave) {
             await this.debounced_update_cr_action(cr, autosave);
@@ -421,7 +421,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     private async update_cr_action(cr: IPlanRDVCR, autosave: boolean) {
         this.$snotify.async(this.label('programplan.update_cr.start'), () => new Promise(async (resolve, reject) => {
             try {
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != cr.id)) {
                     throw new Error('Erreur serveur');
                 }
@@ -429,7 +429,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                 // TODO passer par une synchro via les notifs de dao ...
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+                const rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                 this.updateRdv(rdv);
 
                 if (!autosave) {
@@ -479,7 +479,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
             return;
         }
 
-        let self = this;
+        const self = this;
 
         self.snotify.confirm(self.label('programplan.delete_cr.confirmation.body'), self.label('programplan.delete_cr.confirmation.title'), {
             timeout: 10000,
@@ -498,7 +498,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                                 try {
 
-                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
+                                    const insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
                                     if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != cr.id)) {
                                         throw new Error('Erreur serveur');
                                     }
@@ -506,7 +506,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+                                    const rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);

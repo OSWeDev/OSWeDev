@@ -40,15 +40,15 @@ test('DAG: test var process', async () => {
      * bottom->up to node B => [E, F, B]
      */
 
-    let dag: VarDAG = await FakeTriangularValidDataHandler.get_fake_triangular_dag();
+    const dag: VarDAG = await FakeTriangularValidDataHandler.get_fake_triangular_dag();
     CurrentVarDAGHolder.current_vardag = dag;
-    let node_a = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_A_index()];
-    let node_b = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_B_index()];
-    let node_c = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_C_index()];
-    let node_e = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_E_index()];
-    let node_f = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_F_index()];
-    let node_g = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_G_index()];
-    let node_h = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_H_index()];
+    const node_a = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_A_index()];
+    const node_b = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_B_index()];
+    const node_c = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_C_index()];
+    const node_e = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_E_index()];
+    const node_f = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_F_index()];
+    const node_g = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_G_index()];
+    const node_h = dag.nodes[FakeTriangularValidDataHandler.get_expected_var_data_H_index()];
 
     expect(node_a.tags).toStrictEqual({
         [VarDAGNode.TAG_0_CREATED]: true
@@ -85,7 +85,7 @@ test('DAG: test var process', async () => {
     });
 
     // Si on tente un autre process que le notify_start sur l'arbre, il ne devrait rien se passer pour le moment puisque les noeuds sont pas dans l'état nécessaire)
-    let promise_pipeline = new PromisePipeline(10, 'test');
+    const promise_pipeline = new PromisePipeline(10, 'test');
     let valid_nodes = VarsProcessCompute.getInstance()['get_valid_nodes']();
     let did_something = await VarsProcessCompute.getInstance()['handle_individual_worker'](promise_pipeline, valid_nodes);
     valid_nodes = VarsProcessDagCleaner.getInstance()['get_valid_nodes']();

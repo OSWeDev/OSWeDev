@@ -67,13 +67,13 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        let res: HourSegment[] = [];
+        const res: HourSegment[] = [];
 
-        let time: number = HourSegmentHandler.getStartHour(start, time_segment_type);
+        const time: number = HourSegmentHandler.getStartHour(start, time_segment_type);
 
-        let stop_at: number = HourSegmentHandler.getStartHour(end, time_segment_type);
+        const stop_at: number = HourSegmentHandler.getStartHour(end, time_segment_type);
 
-        let segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(time, time_segment_type);
+        const segment: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(time, time_segment_type);
         let timesecs: number = segment.index;
 
         while (((!exclude_end) && (timesecs <= stop_at)) || (exclude_end && (timesecs < stop_at))) {
@@ -115,7 +115,7 @@ export default class HourSegmentHandler {
                 break;
         }
 
-        let res: HourSegment = HourSegment.createNew(sec, type);
+        const res: HourSegment = HourSegment.createNew(sec, type);
 
         return res;
     }
@@ -131,15 +131,15 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        let res: HourSegment[] = [];
-        let parentHourSegment: HourSegment = HourSegmentHandler.getParentHourSegment(hourSegment);
+        const res: HourSegment[] = [];
+        const parentHourSegment: HourSegment = HourSegmentHandler.getParentHourSegment(hourSegment);
 
         if (!parentHourSegment) {
             return null;
         }
 
-        let start_period = HourSegmentHandler.getStartHourSegment(parentHourSegment);
-        let end_period = HourSegmentHandler.getEndHourSegment(hourSegment);
+        const start_period = HourSegmentHandler.getStartHourSegment(parentHourSegment);
+        const end_period = HourSegmentHandler.getEndHourSegment(hourSegment);
 
         return HourSegmentHandler.getAllSegments(start_period, end_period, hourSegment.type, true);
     }
@@ -190,7 +190,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        let start: number = HourSegmentHandler.getStartHourSegment(hourSegment);
+        const start: number = HourSegmentHandler.getStartHourSegment(hourSegment);
         return Durations.add(start, 1, hourSegment.type);
     }
 
@@ -206,7 +206,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        let end: number = HourSegmentHandler.getEndHourSegment(hourSegment);
+        const end: number = HourSegmentHandler.getEndHourSegment(hourSegment);
         return Durations.add(end, -1, type_inclusion);
     }
 
@@ -216,9 +216,9 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        let res: HourSegment[] = [];
+        const res: HourSegment[] = [];
 
-        for (let i in hourSegments) {
+        for (const i in hourSegments) {
             res.push(HourSegmentHandler.getPreviousHourSegment(hourSegments[i], type, offset));
         }
         return res;
@@ -277,9 +277,9 @@ export default class HourSegmentHandler {
     }
 
     public static getCorrespondingHourSegments(dates: number[], type: number, offset: number = 0): HourSegment[] {
-        let res: HourSegment[] = [];
+        const res: HourSegment[] = [];
 
-        for (let i in dates) {
+        for (const i in dates) {
             res.push(HourSegmentHandler.getCorrespondingHourSegment(dates[i], type, offset));
         }
         return res;
@@ -294,7 +294,7 @@ export default class HourSegmentHandler {
             type = HourSegment.TYPE_SECOND;
         }
 
-        let res: HourSegment = HourSegment.createNew(HourSegmentHandler.getStartHour(time, type), type);
+        const res: HourSegment = HourSegment.createNew(HourSegmentHandler.getStartHour(time, type), type);
 
         if (offset) {
             HourSegmentHandler.incHourSegment(res, res.type, offset);
@@ -308,7 +308,7 @@ export default class HourSegmentHandler {
             return false;
         }
 
-        let end: number = HourSegmentHandler.getEndHourSegment(hour_segment);
+        const end: number = HourSegmentHandler.getEndHourSegment(hour_segment);
 
         return (date >= hour_segment.index) && (date < end);
     }
@@ -328,7 +328,7 @@ export default class HourSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: number = HourSegmentHandler.getStartHour(ts1.index, type);
+        const start: number = HourSegmentHandler.getStartHour(ts1.index, type);
         let end: number = start;
         end = Durations.add(end, 1, type);
 
@@ -376,7 +376,7 @@ export default class HourSegmentHandler {
             segment_type = HourSegment.TYPE_MINUTE;
         }
 
-        let min = RangeHandler.getSegmentedMin(ts_range, segment_type);
+        const min = RangeHandler.getSegmentedMin(ts_range, segment_type);
         return HourSegmentHandler.getCorrespondingHourSegment(min, segment_type);
     }
 
@@ -389,7 +389,7 @@ export default class HourSegmentHandler {
             segment_type = HourSegment.TYPE_MINUTE;
         }
 
-        let max = RangeHandler.getSegmentedMax(ts_range, segment_type);
+        const max = RangeHandler.getSegmentedMax(ts_range, segment_type);
         return HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
     }
 
@@ -406,10 +406,10 @@ export default class HourSegmentHandler {
     }
 
     private static get_hour_ranges_(segments: HourSegment[]): HourRange[] {
-        let res: HourRange[] = [];
+        const res: HourRange[] = [];
 
-        for (let i in segments) {
-            let range: HourRange = HourRange.createNew(
+        for (const i in segments) {
+            const range: HourRange = HourRange.createNew(
                 HourSegmentHandler.getStartHourSegment(segments[i]),
                 HourSegmentHandler.getEndHourSegment(segments[i]),
                 true,

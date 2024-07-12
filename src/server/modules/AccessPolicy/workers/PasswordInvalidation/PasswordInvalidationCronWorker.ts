@@ -51,14 +51,14 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
     // istanbul ignore next: nothing to test : work
     public async work() {
         // On check les dates d'invalidation et de reminder
-        let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
-        let translatable_mail_invalidation_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_INVALIDATION);
-        let translatable_mail_reminder1_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER1);
-        let translatable_mail_reminder2_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER2);
+        const users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
+        const translatable_mail_invalidation_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_INVALIDATION);
+        const translatable_mail_reminder1_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER1);
+        const translatable_mail_reminder2_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER2);
 
-        let users_to_remind_1: UserVO[] = [];
-        let users_to_remind_2: UserVO[] = [];
-        let users_to_invalidate: UserVO[] = [];
+        const users_to_remind_1: UserVO[] = [];
+        const users_to_remind_2: UserVO[] = [];
+        const users_to_invalidate: UserVO[] = [];
 
         PasswordInvalidationController.getInstance().get_users_to_remind_and_invalidate(
             users,
@@ -69,17 +69,17 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             users_to_remind_2,
             users_to_invalidate);
 
-        for (let i in users_to_remind_1) {
-            let user = users_to_remind_1[i];
+        for (const i in users_to_remind_1) {
+            const user = users_to_remind_1[i];
 
             user.reminded_pwd_1 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
-            let REMIND1_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+            const REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
+            const REMIND1_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
-            if (!!REMIND1_SEND_IN_BLUE_TEMPLATE_ID) {
+            if (REMIND1_SEND_IN_BLUE_TEMPLATE_ID) {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -95,7 +95,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             } else {
 
                 if (translatable_mail_reminder1_subject) {
-                    let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder1_subject.id);
+                    const translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder1_subject.id);
 
                     if (translated_mail_subject) {
 
@@ -111,18 +111,18 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             }
         }
 
-        for (let i in users_to_remind_2) {
-            let user = users_to_remind_2[i];
+        for (const i in users_to_remind_2) {
+            const user = users_to_remind_2[i];
 
             user.reminded_pwd_1 = true;
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
-            let REMIND2_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+            const REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
+            const REMIND2_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
-            if (!!REMIND2_SEND_IN_BLUE_TEMPLATE_ID) {
+            if (REMIND2_SEND_IN_BLUE_TEMPLATE_ID) {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -138,7 +138,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             } else {
 
                 if (translatable_mail_reminder2_subject) {
-                    let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder2_subject.id);
+                    const translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder2_subject.id);
 
                     if (translated_mail_subject) {
 
@@ -154,8 +154,8 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             }
         }
 
-        for (let i in users_to_invalidate) {
-            let user = users_to_invalidate[i];
+        for (const i in users_to_invalidate) {
+            const user = users_to_invalidate[i];
 
             user.invalidated = true;
             user.password = '';
@@ -163,11 +163,11 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
-            let INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID: number = INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+            const INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
+            const INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID: number = INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
-            if (!!INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID) {
+            if (INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID) {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -183,7 +183,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             } else {
 
                 if (translatable_mail_invalidation_subject) {
-                    let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_invalidation_subject.id);
+                    const translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_invalidation_subject.id);
 
                     if (translated_mail_subject) {
 

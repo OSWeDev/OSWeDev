@@ -1,7 +1,7 @@
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
@@ -29,9 +29,9 @@ export default class DefaultTranslationsServerManager {
             return;
         }
 
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         let promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
-        let registered_default_translations = this.clean_registered_default_translations();
+        const registered_default_translations = this.clean_registered_default_translations();
 
         let langs: LangVO[] = null;
         await promise_pipeline.push(async () => {
@@ -39,22 +39,22 @@ export default class DefaultTranslationsServerManager {
         });
 
         let translatables: TranslatableTextVO[] = null;
-        let translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
+        const translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
         await promise_pipeline.push(async () => {
             translatables = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
-            for (let i in translatables) {
-                let translatable = translatables[i];
+            for (const i in translatables) {
+                const translatable = translatables[i];
                 translatable_by_code_text[translatable.code_text] = translatable;
             }
         });
 
         let translations: TranslationVO[] = null;
-        let translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
+        const translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
         await promise_pipeline.push(async () => {
             translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
-            for (let i in translations) {
-                let translation = translations[i];
+            for (const i in translations) {
+                const translation = translations[i];
 
                 if (!translation_by_lang_id_and_text_id[translation.lang_id]) {
                     translation_by_lang_id_and_text_id[translation.lang_id] = {};
@@ -66,7 +66,7 @@ export default class DefaultTranslationsServerManager {
         await promise_pipeline.end();
         promise_pipeline = new PromisePipeline(max, 'DefaultTranslationsServerManager.saveDefaultTranslations');
 
-        for (let i in registered_default_translations) {
+        for (const i in registered_default_translations) {
 
             await promise_pipeline.push(async () => {
                 await this.saveDefaultTranslation(registered_default_translations[i], langs, translatable_by_code_text, translation_by_lang_id_and_text_id);
@@ -84,18 +84,18 @@ export default class DefaultTranslationsServerManager {
      * Makes sure to remove any invalid translation_code from the database
      */
     private async cleanTranslationCodes(codes: TranslatableTextVO[]) {
-        let codes_to_deletes: TranslatableTextVO[] = [];
+        const codes_to_deletes: TranslatableTextVO[] = [];
         ConsoleHandler.log('cleanTranslationCodes:IN:');
 
-        for (let i in codes) {
-            let code_a: TranslatableTextVO = codes[i];
+        for (const i in codes) {
+            const code_a: TranslatableTextVO = codes[i];
 
-            for (let j in codes) {
+            for (const j in codes) {
                 if (parseInt(j.toString()) <= parseInt(i.toString())) {
                     continue;
                 }
 
-                let code_b: TranslatableTextVO = codes[j];
+                const code_b: TranslatableTextVO = codes[j];
 
                 if (code_b.code_text.startsWith(code_a.code_text) && (code_b.code_text.lastIndexOf('.') != code_a.code_text.lastIndexOf('.'))) {
 
@@ -113,7 +113,7 @@ export default class DefaultTranslationsServerManager {
     }
 
     private async saveDefaultTranslation(
-        default_translation: DefaultTranslation,
+        default_translation: DefaultTranslationVO,
         langs: LangVO[],
         translatable_by_code_text: { [code_text: string]: TranslatableTextVO },
         translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } }) {
@@ -140,20 +140,20 @@ export default class DefaultTranslationsServerManager {
         translatable_by_code_text[default_translation.code_text] = translatable;
 
         // On cherche les translated : si il en manque par rapport aux langs dispos sur le DefaultTranslations, on crée les manquantes
-        for (let i in langs) {
-            let lang: LangVO = langs[i];
+        for (const i in langs) {
+            const lang: LangVO = langs[i];
 
-            let translation_str: string = default_translation.default_translations[lang.code_lang];
+            const translation_str: string = default_translation.default_translations[lang.code_lang];
 
             if (translation_str == null) {
                 // Si pas de trad, on passe au suivant pour ne pas créer de trad par defaut sur les autres langues
 
-                // if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
+                // if ((default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
                 //     ConsoleHandler.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
                 //     continue;
                 // }
 
-                // translation_str = default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                // translation_str = default_translation.default_translations[DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION];
                 continue;
             }
 
@@ -180,11 +180,11 @@ export default class DefaultTranslationsServerManager {
         }
     }
 
-    private clean_registered_default_translations(): { [code_text: string]: DefaultTranslation } {
-        let res: { [code_text: string]: DefaultTranslation } = {};
+    private clean_registered_default_translations(): { [code_text: string]: DefaultTranslationVO } {
+        const res: { [code_text: string]: DefaultTranslationVO } = {};
 
-        for (let i in DefaultTranslationManager.registered_default_translations) {
-            let registered_default_translation = DefaultTranslationManager.registered_default_translations[i];
+        for (const i in DefaultTranslationManager.registered_default_translations) {
+            const registered_default_translation = DefaultTranslationManager.registered_default_translations[i];
 
             res[registered_default_translation.code_text] = registered_default_translation;
         }

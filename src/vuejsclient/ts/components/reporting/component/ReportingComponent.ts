@@ -62,7 +62,7 @@ export default class ReportingComponent extends ReportingComponentBase {
 
     private empty_filters(): void {
         if (this.$children.length > 0) {
-            for (let i in this.$children) {
+            for (const i in this.$children) {
                 if (this.$children[i]['deselect_all']) {
                     this.$children[i]['deselect_all']();
                 }
@@ -75,10 +75,10 @@ export default class ReportingComponent extends ReportingComponentBase {
             return null;
         }
 
-        let columnIdentifierName: string = this.selected_card_columns[0];
+        const columnIdentifierName: string = this.selected_card_columns[0];
 
-        let row: GroupColumnDataVO = this.selected_card_rowsColumnsDatas.find((el) => {
-            let columnIdentifier: ColumnDataVO = el.columns.find((c) => c.column.name == columnIdentifierName);
+        const row: GroupColumnDataVO = this.selected_card_rowsColumnsDatas.find((el) => {
+            const columnIdentifier: ColumnDataVO = el.columns.find((c) => c.column.name == columnIdentifierName);
 
             if (columnIdentifier && columnIdentifier.value == props.row[columnIdentifierName]) {
                 return true;
@@ -107,11 +107,11 @@ export default class ReportingComponent extends ReportingComponentBase {
     }
 
     get selected_card_columns(): string[] {
-        let columns: string[] = [];
+        const columns: string[] = [];
 
         if (this.selected_card && this.selected_card.columnsHeader) {
-            for (let i in this.selected_card.columnsHeader) {
-                let column: ColumnVO = this.selected_card.columnsHeader[i];
+            for (const i in this.selected_card.columnsHeader) {
+                const column: ColumnVO = this.selected_card.columnsHeader[i];
 
                 columns.push(column.name);
             }
@@ -137,17 +137,17 @@ export default class ReportingComponent extends ReportingComponentBase {
     }
 
     get data_selected_card(): any[] {
-        let datas: any[] = [];
+        const datas: any[] = [];
 
         if (!this.selected_card_rowsColumnsDatas) {
             return datas;
         }
 
-        for (let i in this.selected_card_rowsColumnsDatas) {
-            let datas_to_push: any = {};
+        for (const i in this.selected_card_rowsColumnsDatas) {
+            const datas_to_push: any = {};
 
-            for (let j in this.selected_card_rowsColumnsDatas[i].columns) {
-                let column: ColumnDataVO = this.selected_card_rowsColumnsDatas[i].columns[j];
+            for (const j in this.selected_card_rowsColumnsDatas[i].columns) {
+                const column: ColumnDataVO = this.selected_card_rowsColumnsDatas[i].columns[j];
 
                 datas_to_push[column.column.name] = column.value;
             }

@@ -37,7 +37,7 @@ export default class UserRecapture {
 
     public async beginrecapture(email: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -52,7 +52,7 @@ export default class UserRecapture {
 
     public async beginrecapture_uid(uid: number): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -69,11 +69,11 @@ export default class UserRecapture {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
-        let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+        if (SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
             await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -96,7 +96,7 @@ export default class UserRecapture {
             return;
         }
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -114,9 +114,9 @@ export default class UserRecapture {
 
         phone = phone.replace(' ', '');
 
-        let lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-        let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(UserRecapture.CODE_TEXT_SMS_recapture);
-        let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
+        const lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        const translatable_text = await ModuleTranslation.getInstance().getTranslatableText(UserRecapture.CODE_TEXT_SMS_recapture);
+        const translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

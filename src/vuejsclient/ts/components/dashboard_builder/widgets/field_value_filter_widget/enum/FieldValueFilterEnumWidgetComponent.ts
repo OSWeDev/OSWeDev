@@ -2,19 +2,19 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
-import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import ModuleTableController from '../../../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import FieldFiltersVOManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
+import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
+import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FieldValueFilterWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -109,12 +109,162 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         { leading: false, trailing: true }
     );
 
-    private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_reseter(
-            this.dashboard_page,
-            this.page_widget,
-            this.reset_visible_options.bind(this),
-        );
+
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    get field(): ModuleTableFieldVO {
+        if (!this.vo_field_ref) {
+            return null;
+        }
+
+        return ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+    }
+
+    get placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
+    }
+
+    get can_select_multiple(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_multiple;
+    }
+
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
+    }
+
+    get force_filter_by_all_api_type_ids(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.force_filter_by_all_api_type_ids;
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return new VOFieldRefVO().from(options.vo_field_ref);
+    }
+
+    get no_inter_filter(): boolean {
+        return this.widget_options.no_inter_filter;
+    }
+
+    get has_other_ref_api_type_id(): boolean {
+        return this.widget_options.has_other_ref_api_type_id;
+    }
+
+    get other_ref_api_type_id(): string {
+        return this.widget_options.other_ref_api_type_id;
+    }
+
+    get is_button(): boolean {
+        return this.widget_options.is_button;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
+
+        if (!can_select_all) {
+            return can_select_all;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < query_limit;
+    }
+
+    /**
+     * Can Select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_none;
+    }
+
+    get show_count_value(): boolean {
+        return this.widget_options.show_count_value;
+    }
+
+    /**
+     * Get Vo Field Ref Multiple
+     * @returns {VOFieldRefVO[]}
+     */
+    get vo_field_ref_multiple(): VOFieldRefVO[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
+            return null;
+        }
+
+        const res: VOFieldRefVO[] = [];
+
+        for (const i in options.vo_field_ref_multiple) {
+            res.push(new VOFieldRefVO().from(options.vo_field_ref_multiple[i]));
+        }
+
+        return res;
+    }
+
+    get default_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        // May be an array if multi select or a single value if not
+        if ((!(options?.default_filter_opt_values)) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        return options.get_default_filter_options();
+    }
+
+    get exclude_values(): DataFilterOption[] {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
+            return null;
+        }
+
+        return options.get_exclude_values();
     }
 
     /**
@@ -136,7 +286,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      */
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options(): Promise<void> {
-        if (!!this.old_widget_options) {
+        if (this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
@@ -202,15 +352,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let has_null_value: boolean = false;
 
         // Translate active options to context filter
-        for (let i in active_filter_options) {
-            let active_option: DataFilterOption = active_filter_options[i];
+        for (const i in active_filter_options) {
+            const active_option: DataFilterOption = active_filter_options[i];
 
             if (active_option.id == RangeHandler.MIN_INT) {
                 has_null_value = true;
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
+            const new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(
                 active_option,
                 null,
                 this.field,
@@ -232,8 +382,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         if (has_null_value) {
-            let cf_null_value: ContextFilterVO = new ContextFilterVO();
-            cf_null_value.field_id = this.vo_field_ref.field_id;
+            const cf_null_value: ContextFilterVO = new ContextFilterVO();
+            cf_null_value.field_name = this.vo_field_ref.field_id;
             cf_null_value.vo_type = this.vo_field_ref.api_type_id;
             cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
 
@@ -251,6 +401,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         });
 
         this.set_all_count_by_filter_visible_loading(true);
+    }
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_reseter(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     private async query_update_visible_options(queryStr: string) {
@@ -275,7 +433,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      */
     private async update_visible_options(): Promise<void> {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -286,7 +444,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Init context filter of the current filter
         // Get context filter from store
-        let root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_from_field_filters(
+        const root_context_filter: ContextFilterVO = FieldFiltersVOManager.get_context_filter_from_field_filters(
             this.vo_field_ref,
             this.get_active_field_filters
         );
@@ -520,7 +678,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         available_api_type_ids: string[],
         switch_current_field: boolean,
     ): { [api_type_id: string]: FieldFiltersVO } {
-        let field_filters_by_api_type_id: { [api_type_id: string]: FieldFiltersVO } = {};
+        const field_filters_by_api_type_id: { [api_type_id: string]: FieldFiltersVO } = {};
 
         let active_field_filters: FieldFiltersVO = null;
 
@@ -532,10 +690,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters
         );
 
-        for (let api_type_id in field_filters_for_request) {
+        for (const api_type_id in field_filters_for_request) {
 
-            for (let i in available_api_type_ids) {
-                let api_type_id_sup: string = available_api_type_ids[i];
+            for (const i in available_api_type_ids) {
+                const api_type_id_sup: string = available_api_type_ids[i];
 
                 if (!field_filters_by_api_type_id[api_type_id_sup]) {
                     field_filters_by_api_type_id[api_type_id_sup] = {};
@@ -554,7 +712,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
                 field_filters_by_api_type_id[api_type_id_sup][new_api_type_id] = cloneDeep(field_filters_for_request[api_type_id]);
 
-                for (let field_id in field_filters_by_api_type_id[api_type_id_sup][new_api_type_id]) {
+                for (const field_id in field_filters_by_api_type_id[api_type_id_sup][new_api_type_id]) {
                     // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
                     if (switch_current_field && (field_id == this.vo_field_ref.field_id)) {
                         field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id] = null;
@@ -603,7 +761,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return true;
         }
 
-        let active_filter_options: DataFilterOption[] = [];
+        const active_filter_options: DataFilterOption[] = [];
 
         // context_filter must have one of the given param to continue
         if (!(context_filter.param_numranges?.length > 0)
@@ -678,7 +836,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return null;
         }
 
-        let dfo_id: number = dfo.numeric_value;
+        const dfo_id: number = dfo.numeric_value;
 
         let bg_color: string = this.widget_options.enum_bg_colors && this.widget_options.enum_bg_colors[dfo_id];
         let fg_color: string = this.widget_options.enum_fg_colors && this.widget_options.enum_fg_colors[dfo_id];
@@ -719,161 +877,5 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return options;
-    }
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    get field(): ModuleTableField<any> {
-        if (!this.vo_field_ref) {
-            return null;
-        }
-
-        return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
-    }
-
-    get placeholder(): string {
-        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
-    }
-
-    get can_select_multiple(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_multiple;
-    }
-
-    get add_is_null_selectable(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.add_is_null_selectable;
-    }
-
-    get force_filter_by_all_api_type_ids(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.force_filter_by_all_api_type_ids;
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return new VOFieldRefVO().from(options.vo_field_ref);
-    }
-
-    get no_inter_filter(): boolean {
-        return this.widget_options.no_inter_filter;
-    }
-
-    get has_other_ref_api_type_id(): boolean {
-        return this.widget_options.has_other_ref_api_type_id;
-    }
-
-    get other_ref_api_type_id(): string {
-        return this.widget_options.other_ref_api_type_id;
-    }
-
-    get is_button(): boolean {
-        return this.widget_options.is_button;
-    }
-
-    /**
-     * Can Select All
-     *  - Can select all clickable text
-     */
-    get can_select_all(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        const can_select_all = !!this.widget_options.can_select_all;
-        const query_limit = this.widget_options.max_visible_options;
-
-        if (!can_select_all) {
-            return can_select_all;
-        }
-
-        // May be shown only if active filter options
-        // length smaller than actual query limit
-        return this.filter_visible_options?.length < query_limit;
-    }
-
-    /**
-     * Can Select None
-     *  - Can select none clickable text
-     */
-    get can_select_none(): boolean {
-
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return !!this.widget_options.can_select_none;
-    }
-
-    get show_count_value(): boolean {
-        return this.widget_options.show_count_value;
-    }
-
-    /**
-     * Get Vo Field Ref Multiple
-     * @returns {VOFieldRefVO[]}
-     */
-    get vo_field_ref_multiple(): VOFieldRefVO[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
-            return null;
-        }
-
-        let res: VOFieldRefVO[] = [];
-
-        for (let i in options.vo_field_ref_multiple) {
-            res.push(new VOFieldRefVO().from(options.vo_field_ref_multiple[i]));
-        }
-
-        return res;
-    }
-
-    get default_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        // May be an array if multi select or a single value if not
-        if (!(options?.default_filter_opt_values?.length)) {
-            return null;
-        }
-
-        return options.get_default_filter_options();
-    }
-
-    get exclude_values(): DataFilterOption[] {
-        let options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
-            return null;
-        }
-
-        return options.get_exclude_values();
     }
 }

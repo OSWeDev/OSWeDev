@@ -29,6 +29,8 @@ import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirec
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
 import VueAnimationQrComponent from "../qr/qr";
+import { field_names } from "../../../../../../shared/tools/ObjectHandler";
+import ModuleTableController from "../../../../../../shared/modules/DAO/ModuleTableController";
 
 @Component({
     template: require("./module.pug"),
@@ -85,14 +87,14 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await query(AnimationModuleVO.API_TYPE_ID).filter_by_id(this.module_id).select_vo<AnimationModuleVO>())());
-        promises.push((async () => this.qrs = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_eq('module_id', this.module_id).select_vos<AnimationQRVO>())());
+        promises.push((async () => this.qrs = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_eq(field_names<AnimationQRVO>().module_id, this.module_id).select_vos<AnimationQRVO>())());
         promises.push((async () => this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
         await all_promises(promises);
 
-        for (let i in this.themes) {
+        for (const i in this.themes) {
             this.theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
         }
 
@@ -145,9 +147,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     private async reloadAsyncDatasContinue() {
-        let file_ids: number[] = [];
+        const file_ids: number[] = [];
 
-        for (let i in this.qrs) {
+        for (const i in this.qrs) {
             if (this.qrs[i].question_file_id) {
                 file_ids.push(this.qrs[i].question_file_id);
             }
@@ -156,7 +158,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             }
         }
 
-        let promises = [];
+        const promises = [];
 
         promises.push((async () => this.file_by_ids = VOsTypesManager.vosArray_to_vosByIds(
             await query(FileVO.API_TYPE_ID).filter_by_ids(file_ids).select_vos<FileVO>()
@@ -174,19 +176,19 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     private async reloadUqrs() {
-        let user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
-            .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
-            .filter_by_num_eq('user_id', this.logged_user_id)
+        const user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, this.qrs.map((m) => m.id))
+            .filter_by_num_eq(field_names<AnimationUserQRVO>().user_id, this.logged_user_id)
             .select_vos<AnimationUserQRVO>();
 
-        for (let i in user_qrs) {
+        for (const i in user_qrs) {
             this.uqr_by_qr_ids[user_qrs[i].qr_id] = user_qrs[i];
         }
 
         this.recap_is_actif = user_qrs.length == this.qrs.length;
 
-        for (let i in this.qrs) {
-            let qr: AnimationQRVO = this.qrs[i];
+        for (const i in this.qrs) {
+            const qr: AnimationQRVO = this.qrs[i];
 
             this.is_reponse_valid[qr.id] = AnimationController.getInstance().isUserQROk(qr, this.uqr_by_qr_ids[qr.id]);
         }
@@ -199,9 +201,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private async closeModal(restart: boolean) {
         if (restart) {
             if (this.um) {
-                let user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
-                    .filter_by_num_has('qr_id', this.qrs.map((m) => m.id))
-                    .filter_by_num_eq('user_id', this.logged_user_id)
+                const user_qrs: AnimationUserQRVO[] = await query(AnimationUserQRVO.API_TYPE_ID)
+                    .filter_by_num_has(field_names<AnimationUserQRVO>().qr_id, this.qrs.map((m) => m.id))
+                    .filter_by_num_eq(field_names<AnimationUserQRVO>().user_id, this.logged_user_id)
                     .select_vos<AnimationUserQRVO>();
 
                 let toDelete: IDistantVOBase[] = [this.um];
@@ -242,7 +244,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     private async nextQr() {
-        let qr: AnimationQRVO = this.qrs.find((q) => q.weight == (this.current_qr.weight + 1));
+        const qr: AnimationQRVO = this.qrs.find((q) => q.weight == (this.current_qr.weight + 1));
 
         if (qr) {
             this.switchQR(qr);
@@ -272,11 +274,11 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     get name_theme_editable_field() {
-        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationThemeVO.API_TYPE_ID]);
     }
 
     get name_module_editable_field() {
-        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(ModuleTableController.module_tables_by_vo_type[AnimationModuleVO.API_TYPE_ID]);
     }
 
     get ordered_qrs(): AnimationQRVO[] {
@@ -292,7 +294,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             return null;
         }
 
-        let classes: string[] = ['p' + Math.round(this.prct_reussite_value * 100).toString()];
+        const classes: string[] = ['p' + Math.round(this.prct_reussite_value * 100).toString()];
 
         if (this.prct_reussite_value >= 0.8) {
             classes.push('success');
@@ -307,14 +309,14 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         return {
             var_param: this.prct_reussite_module_param,
             on_every_update: (varData: VarDataBaseVO, el, binding, vnode) => {
-                this.prct_reussite_value = (!!varData) ? varData.value : 0;
+                this.prct_reussite_value = (varData) ? varData.value : 0;
             },
             already_register: true,
         };
     }
 
     get prct_reussite_message(): string {
-        let mm: AnimationMessageModuleVO = AnimationController.getInstance().getMessageModuleForPrct(this.anim_module, this.prct_reussite_value);
+        const mm: AnimationMessageModuleVO = AnimationController.getInstance().getMessageModuleForPrct(this.anim_module, this.prct_reussite_value);
 
         return mm ? mm.message : null;
     }

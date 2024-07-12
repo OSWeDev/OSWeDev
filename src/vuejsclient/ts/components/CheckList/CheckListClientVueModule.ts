@@ -36,7 +36,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     this.checklist_shared_module.POLICY_FO_ACCESS,
@@ -64,7 +64,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
                 checklist_controller: CheckListControllerBase.controller_by_name[this.checklist_shared_module.name]
             })
         });
-        let menuelt = MenuElementVO.create_new(
+        const menuelt = MenuElementVO.create_new(
             this.checklist_shared_module.POLICY_FO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

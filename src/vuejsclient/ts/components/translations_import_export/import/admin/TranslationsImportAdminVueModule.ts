@@ -37,7 +37,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
         }
 
         let url: string = TranslationsImportAdminVueModule.ROUTE_PATH;
-        let main_route_name: string = 'TranslationsImport';
+        const main_route_name: string = 'TranslationsImport';
 
         this.routes.push({
             path: url,
@@ -60,7 +60,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
             })
         });
 
-        let menuPointer = MenuElementVO.create_new(
+        const menuPointer = MenuElementVO.create_new(
             ModuleTranslationsImport.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,

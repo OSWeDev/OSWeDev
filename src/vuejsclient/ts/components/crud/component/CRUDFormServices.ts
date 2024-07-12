@@ -16,7 +16,7 @@ import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
@@ -47,7 +47,7 @@ export default class CRUDFormServices {
     } = {};
 
     public has_auto_updates_waiting() {
-        for (let i in this.auto_updates_waiting) {
+        for (const i in this.auto_updates_waiting) {
             if (this.auto_updates_waiting[i]) {
                 return true;
             }
@@ -59,7 +59,7 @@ export default class CRUDFormServices {
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
-        only_fields: boolean = false
+        only_fields: boolean = false,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
 
@@ -70,17 +70,17 @@ export default class CRUDFormServices {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
+                        const vos: IDistantVOBase[] = await query(datatable.API_TYPE_ID).select_vos();
                         storeDatas({
                             API_TYPE_ID: datatable.API_TYPE_ID,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
 
-            for (let i in datatable.fields) {
-                let field = datatable.fields[i];
+            for (const i in datatable.fields) {
+                const field = datatable.fields[i];
 
                 res = res.concat(this.loadDatasFromDatatableField(field, api_types_involved, storeDatas));
             }
@@ -92,10 +92,10 @@ export default class CRUDFormServices {
     public loadDatasFromDatatableField(
         load_from_datatable_field: DatatableField<any, any>,
         api_types_involved: string[],
-        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
-        let self = this;
+        const self = this;
 
         if (load_from_datatable_field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             return res;
@@ -105,40 +105,40 @@ export default class CRUDFormServices {
             (load_from_datatable_field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (load_from_datatable_field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
-            let reference: ReferenceDatatableField<any> = load_from_datatable_field as ReferenceDatatableField<any>;
+            const reference: ReferenceDatatableField<any> = load_from_datatable_field as ReferenceDatatableField<any>;
             if (api_types_involved.indexOf(reference.targetModuleTable.vo_type) < 0) {
                 api_types_involved.push(reference.targetModuleTable.vo_type);
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
+                        const vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
-            for (let i in reference.sortedTargetFields) {
+            for (const i in reference.sorted_target_fields) {
                 res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i], api_types_involved, storeDatas)
+                    this.loadDatasFromDatatableField(reference.sorted_target_fields[i], api_types_involved, storeDatas),
                 );
             }
         }
 
         if (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
-            let reference: ManyToManyReferenceDatatableFieldVO<any, any> = load_from_datatable_field as ManyToManyReferenceDatatableFieldVO<any, any>;
+            const reference: ManyToManyReferenceDatatableFieldVO<any, any> = load_from_datatable_field as ManyToManyReferenceDatatableFieldVO<any, any>;
 
             if (api_types_involved.indexOf(reference.interModuleTable.vo_type) < 0) {
                 api_types_involved.push(reference.interModuleTable.vo_type);
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
+                        const vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
-                            vos: vos
+                            vos: vos,
                         });
-                    })()
+                    })(),
                 );
             }
         }
@@ -153,12 +153,12 @@ export default class CRUDFormServices {
 
         let obj = {
             _type: crud.readDatatable.API_TYPE_ID,
-            id: null
+            id: null,
         };
 
         // On peut init soit en passant par le CRUDComponentManager soit via une prop
         // Si on a le choix, on priorise la prop
-        if (!!vo_init) {
+        if (vo_init) {
             obj = vo_init;
         }
 
@@ -167,8 +167,8 @@ export default class CRUDFormServices {
             obj = CRUDComponentManager.getInstance().getIDistantVOInit();
         }
 
-        for (let i in crud.createDatatable.fields) {
-            let field: DatatableField<any, any> = crud.createDatatable.fields[i];
+        for (const i in crud.createDatatable.fields) {
+            const field: DatatableField<any, any> = crud.createDatatable.fields[i];
 
             if (field.datatable_field_uid != field.module_table_field_id) {
                 continue;
@@ -191,9 +191,9 @@ export default class CRUDFormServices {
         }
 
         // On passe la traduction en IHM sur les champs
-        let newVO = this.dataToIHM(obj, crud.createDatatable, false);
+        const newVO = this.dataToIHM(obj, crud.createDatatable, false);
 
-        if (!!crud.hook_prepare_new_vo_for_creation) {
+        if (crud.hook_prepare_new_vo_for_creation) {
             await crud.hook_prepare_new_vo_for_creation(newVO);
         }
 
@@ -204,10 +204,10 @@ export default class CRUDFormServices {
 
     public dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
 
-        let res = Object.assign({}, vo);
+        const res = Object.assign({}, vo);
 
-        for (let i in datatable.fields) {
-            let field = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field = datatable.fields[i];
 
             if (field.datatable_field_uid != field.module_table_field_id) {
                 continue;
@@ -223,14 +223,14 @@ export default class CRUDFormServices {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
+                const simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
 
                     if (res[field.datatable_field_uid]) {
 
-                        let value = res[field.datatable_field_uid];
-                        let parts: string[] = value.split('-');
+                        const value = res[field.datatable_field_uid];
+                        const parts: string[] = value.split('-');
 
                         if ((!parts) || (parts.length <= 0)) {
                             continue;
@@ -245,35 +245,35 @@ export default class CRUDFormServices {
                     }
                 }
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                     // TODO FIXME ASAP VARS
                 }
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
-
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
                 //     // TODO FIXME ASAP VARS
                 // }
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((simpleFieldType == ModuleTableField.FIELD_TYPE_tstz_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_float_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) ||
-                    (simpleFieldType == ModuleTableField.FIELD_TYPE_html_array)) {
-                    res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
+                if ((simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstz_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_float_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_int_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_string_array) ||
+                    (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_html_array)) {
+                    res[field.datatable_field_uid] = res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
 
-                for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+                for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                     if (simpleFieldType == tableFieldTypeController.name) {
                         tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableFieldVO<any, any>), res, datatable, isUpdate);
@@ -287,10 +287,10 @@ export default class CRUDFormServices {
 
     public IHMToData(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
 
-        let res = Object.assign({}, vo);
+        const res = Object.assign({}, vo);
 
-        for (let i in datatable.fields) {
-            let field = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field = datatable.fields[i];
 
             if (field.datatable_field_uid != field.module_table_field_id) {
                 continue;
@@ -309,34 +309,34 @@ export default class CRUDFormServices {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
+                const simpleFieldType = (field as SimpleDatatableFieldVO<any, any>).field_type;
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange) {
                         res[field.datatable_field_uid + "_start"] = undefined;
                         res[field.datatable_field_uid + "_end"] = undefined;
                     }
 
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                         // TODO FIXME ASAP VARS
                     }
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_numrange_array) {
                         // TODO FIXME ASAP VARS
                     }
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_isoweekdays) {
                         // TODO FIXME ASAP VARS
                     }
 
-                    // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
+                    // if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_daterange_array) {
                     //     // TODO FIXME ASAP VARS
                     // }
 
-                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                    if (simpleFieldType == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) {
                         // TODO FIXME ASAP VARS
                     }
 
-                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
-                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+                    for (const j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        const tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (simpleFieldType == tableFieldTypeController.name) {
                             tableFieldTypeController.IHMToData(vo, field as SimpleDatatableFieldVO<any, any>, res, datatable, isUpdate);
@@ -356,29 +356,29 @@ export default class CRUDFormServices {
     public async updateOneToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
-        updateData: (vo: IDistantVOBase) => void
+        updateData: (vo: IDistantVOBase) => void,
     ) {
         try {
 
-            for (let i in datatable.fields) {
+            for (const i in datatable.fields) {
 
                 if (datatable.fields[i].type != ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE) {
                     continue;
                 }
 
-                let field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
+                const field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
 
-                let q = query(field.targetModuleTable.vo_type);
+                const q = query(field.targetModuleTable.vo_type);
 
                 switch (field.destField.field_type) {
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+                    case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+                    case ModuleTableFieldVO.FIELD_TYPE_image_ref:
                         q.filter_by_num_eq(
                             field.destField.field_id,
                             db_vo.id);
                         break;
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         q.filter_by_num_x_ranges(
                             field.destField.field_id,
                             [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
@@ -386,14 +386,14 @@ export default class CRUDFormServices {
                     default:
                         throw new Error('Type de champ non géré');
                 }
-                let actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
-                let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
+                const actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
+                const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
-                let need_update_links: IDistantVOBase[] = [];
+                const need_update_links: IDistantVOBase[] = [];
 
                 if (new_links_target_ids) {
-                    for (let j in actual_links) {
-                        let actual_link = actual_links[j];
+                    for (const j in actual_links) {
+                        const actual_link = actual_links[j];
 
                         if (new_links_target_ids.indexOf(actual_link.id) < 0) {
 
@@ -405,14 +405,14 @@ export default class CRUDFormServices {
                         new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
                     }
 
-                    for (let j in new_links_target_ids) {
-                        let new_link_target_id = new_links_target_ids[j];
+                    for (const j in new_links_target_ids) {
+                        const new_link_target_id = new_links_target_ids[j];
 
                         if ((!getStoredDatas[field.targetModuleTable.vo_type]) || (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
                             continue;
                         }
 
-                        if (field.destField.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                        if (field.destField.field_type == ModuleTableFieldVO.FIELD_TYPE_refrange_array) {
                             if (!getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id]) {
                                 getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = [];
                             }
@@ -430,7 +430,7 @@ export default class CRUDFormServices {
                 if (need_update_links.length > 0) {
 
                     await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
-                    for (let linki in need_update_links) {
+                    for (const linki in need_update_links) {
 
                         updateData(need_update_links[linki]);
                     }
@@ -449,34 +449,34 @@ export default class CRUDFormServices {
     public async updateManyToMany(
         datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase,
         removeData: (infos: { API_TYPE_ID: string, id: number }) => void,
-        storeData: (vo: IDistantVOBase) => void, component: VueComponentBase
+        storeData: (vo: IDistantVOBase) => void, component: VueComponentBase,
     ) {
         try {
 
-            for (let i in datatable.fields) {
+            for (const i in datatable.fields) {
 
                 if (datatable.fields[i].type != ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) {
                     continue;
                 }
 
-                let field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
-                let interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
-                let actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
-                let interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
-                let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
+                const field: ManyToManyReferenceDatatableFieldVO<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableFieldVO<any, any>;
+                const interSrcRefField = field.inter_src_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_src_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                const actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
+                const interDestRefField = field.inter_target_ref_field_id ? field.interModuleTable.getFieldFromId(field.inter_target_ref_field_id) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                const new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
-                let need_add_links: IDistantVOBase[] = [];
-                let need_delete_links: IDistantVOBase[] = [];
+                const need_add_links: IDistantVOBase[] = [];
+                const need_delete_links: IDistantVOBase[] = [];
 
-                let sample_vo: IDistantVOBase = {
+                const sample_vo: IDistantVOBase = {
                     id: undefined,
                     _type: field.interModuleTable.vo_type,
-                    [interSrcRefField.field_id]: db_vo.id
+                    [interSrcRefField.field_id]: db_vo.id,
                 };
 
                 if (new_links_target_ids) {
-                    for (let j in actual_links) {
-                        let actual_link = actual_links[j];
+                    for (const j in actual_links) {
+                        const actual_link = actual_links[j];
 
                         if (new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]) < 0) {
 
@@ -487,10 +487,10 @@ export default class CRUDFormServices {
                         new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]), 1);
                     }
 
-                    for (let j in new_links_target_ids) {
-                        let new_link_target_id = new_links_target_ids[j];
+                    for (const j in new_links_target_ids) {
+                        const new_link_target_id = new_links_target_ids[j];
 
-                        let link_vo: IDistantVOBase = Object.assign({}, sample_vo);
+                        const link_vo: IDistantVOBase = Object.assign({}, sample_vo);
 
                         link_vo[interDestRefField.field_id] = new_link_target_id;
 
@@ -499,9 +499,9 @@ export default class CRUDFormServices {
                 }
 
                 if (need_add_links.length > 0) {
-                    for (let linki in need_add_links) {
+                    for (const linki in need_add_links) {
 
-                        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
+                        const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
                         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                             component.snotify.error(component.label('crud.create.errors.many_to_many_failure'));
                             continue;
@@ -512,10 +512,10 @@ export default class CRUDFormServices {
                 }
                 if (need_delete_links.length > 0) {
                     await ModuleDAO.getInstance().deleteVOs(need_delete_links);
-                    for (let linki in need_delete_links) {
+                    for (const linki in need_delete_links) {
                         removeData({
                             API_TYPE_ID: field.interModuleTable.vo_type,
-                            id: need_delete_links[linki].id
+                            id: need_delete_links[linki].id,
                         });
                     }
                 }
@@ -531,12 +531,12 @@ export default class CRUDFormServices {
 
         clear_alerts();
 
-        let alerts: Alert[] = [];
+        const alerts: Alert[] = [];
 
 
         // On check que tous les champs obligatoire soient bien remplis
-        for (let i in datatable.fields) {
-            let field: DatatableField<any, any> = datatable.fields[i];
+        for (const i in datatable.fields) {
+            const field: DatatableField<any, any> = datatable.fields[i];
 
             if (field.is_readonly) {
                 continue;
@@ -582,7 +582,7 @@ export default class CRUDFormServices {
             case FileVO.API_TYPE_ID:
             case ImageVO.API_TYPE_ID:
                 if (vo && vo.id) {
-                    let tmp = editableVO[field.datatable_field_uid];
+                    const tmp = editableVO[field.datatable_field_uid];
                     editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
                     fileVo[field.datatable_field_uid] = tmp;
 

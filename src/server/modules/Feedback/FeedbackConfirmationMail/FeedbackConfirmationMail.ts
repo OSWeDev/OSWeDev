@@ -39,8 +39,8 @@ export default class FeedbackConfirmationMail {
     public async sendConfirmationEmail(feedback: FeedbackVO): Promise<MailVO> {
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
-        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
-        let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
+        const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
         let user: UserVO = null;
         if (user_id == target_user_id) {
             user = await ModuleAccessPolicyServer.getSelfUser();
@@ -48,11 +48,11 @@ export default class FeedbackConfirmationMail {
             user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_server().select_vo<UserVO>();
         }
 
-        let FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
-        let FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID: number = FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);
+        const FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID: number = FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail
-        if (!!FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID) {
+        if (FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
             return await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -67,8 +67,8 @@ export default class FeedbackConfirmationMail {
                 });
         } else {
 
-            let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(FeedbackConfirmationMail.CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail);
-            let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+            const translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(FeedbackConfirmationMail.CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail);
+            const translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,

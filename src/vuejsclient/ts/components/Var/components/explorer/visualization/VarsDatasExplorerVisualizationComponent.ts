@@ -43,7 +43,7 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
             return;
         }
 
-        let var_param = VarDataBaseVO.from_index(this.param_index);
+        const var_param = VarDataBaseVO.from_index(this.param_index);
 
         if (!var_param) {
             ConsoleHandler.error('param_from_index:failed param reconstruction:' + this.param_index + ':');
@@ -63,16 +63,16 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
             return;
         }
 
-        let each_line_of_textarea: string[] = this.multi_param_index.split('\n');
-        let var_param_by_index: { [index: string]: VarDataBaseVO } = {};
-        let errors: string[] = [];
+        const each_line_of_textarea: string[] = this.multi_param_index.split('\n');
+        const var_param_by_index: { [index: string]: VarDataBaseVO } = {};
+        const errors: string[] = [];
 
         each_line_of_textarea.forEach((index: string) => {
             if (!index || !index.length) {
                 return;
             }
 
-            let var_param = VarDataBaseVO.from_index(index);
+            const var_param = VarDataBaseVO.from_index(index);
 
             if (var_param) {
                 var_param_by_index[index] = var_param;
@@ -93,7 +93,7 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
 
         try {
 
-            let res = await ModuleVar.getInstance().get_var_data(this.get_var_data_param_index);
+            const res = await ModuleVar.getInstance().get_var_data(this.get_var_data_param_index);
             this.snotify.info('get_var_data:' + this.param_from_index + ':' + res.value);
             ConsoleHandler.log('get_var_data:' + this.param_from_index + ':' + res.value);
         } catch (error) {
@@ -107,21 +107,21 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
             return;
         }
 
-        let each_line_of_textarea: string[] = this.multi_get_var_data_param_index.split('\n');
-        let promises = [];
+        const each_line_of_textarea: string[] = this.multi_get_var_data_param_index.split('\n');
+        const promises = [];
 
-        for (let i in each_line_of_textarea) {
+        for (const i in each_line_of_textarea) {
 
             if (!each_line_of_textarea[i] || !each_line_of_textarea[i].length) {
                 continue;
             }
 
-            let index = each_line_of_textarea[i];
+            const index = each_line_of_textarea[i];
 
             promises.push((async () => {
                 try {
 
-                    let res = await ModuleVar.getInstance().get_var_data(index);
+                    const res = await ModuleVar.getInstance().get_var_data(index);
                     this.snotify.info('get_var_data:' + index + ':' + res.value);
                     ConsoleHandler.log('get_var_data:' + index + ':' + res.value);
                 } catch (error) {

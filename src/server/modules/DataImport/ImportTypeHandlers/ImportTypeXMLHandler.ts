@@ -3,6 +3,9 @@
 import { readFileSync } from 'fs';
 import moment from 'moment';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../shared/modules/DAO/vos/ModuleTableVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -12,9 +15,6 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import XmlNode from '../../../../shared/modules/DataImport/vos/XmlNode';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import FileHandler from '../../../../shared/tools/FileHandler';
@@ -45,7 +45,7 @@ export default class ImportTypeXMLHandler {
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
 
         return new Promise(async (resolve, reject) => {
-            let xml_string: string = await ImportTypeXMLHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+            const xml_string: string = await ImportTypeXMLHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
                 if ((!muted) && !historic.use_fast_track) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
@@ -61,7 +61,7 @@ export default class ImportTypeXMLHandler {
                 return;
             }
 
-            let res: XmlNode = XmlReader.parseSync(xml_string);
+            const res: XmlNode = XmlReader.parseSync(xml_string);
 
             resolve(ImportTypeXMLHandler.getInstance().importRawsData(dataImportFormat, dataImportColumns, historic, res));
         });
@@ -76,7 +76,7 @@ export default class ImportTypeXMLHandler {
     public async importFileBatchMode(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
-            let xml_string: string = await ImportTypeXMLHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+            const xml_string: string = await ImportTypeXMLHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
                 if (!muted) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
@@ -92,9 +92,9 @@ export default class ImportTypeXMLHandler {
                 return;
             }
 
-            let res: XmlNode = XmlReader.parseSync(xml_string);
+            const res: XmlNode = XmlReader.parseSync(xml_string);
 
-            let datas: IImportedData[] = ImportTypeXMLHandler.getInstance().importRawsData(dataImportFormat, dataImportColumns, historic, res);
+            const datas: IImportedData[] = ImportTypeXMLHandler.getInstance().importRawsData(dataImportFormat, dataImportColumns, historic, res);
 
             if (dataImportFormat.use_multiple_connections) {
                 await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
@@ -112,7 +112,7 @@ export default class ImportTypeXMLHandler {
 
         return new Promise(async (resolve, reject) => {
 
-            let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
+            const fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
             if ((!fileVO) || (!fileVO.path)) {
                 if (!muted) {
@@ -125,7 +125,7 @@ export default class ImportTypeXMLHandler {
             /**
              * On test le cas fichier vide :
              */
-            let file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+            const file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
             if (!file_size) {
                 if ((!!importHistoric) && (!!importHistoric.id)) {
                     resolve(null);
@@ -172,7 +172,7 @@ export default class ImportTypeXMLHandler {
     }
 
     public parseExcelDate(dateValue: string): number {
-        let res: number = null;
+        const res: number = null;
         if (dateValue) {
             // it is a string, but it really represents a number and not a date
             if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
@@ -180,7 +180,7 @@ export default class ImportTypeXMLHandler {
             }
             // else assume a string representing a date
             // we use few allowed formats, but explicitly parse not strictly
-            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
+            const formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
             return moment(dateValue, formats, false).utc(true).unix();
         }
         return res;
@@ -192,23 +192,23 @@ export default class ImportTypeXMLHandler {
         historic: DataImportHistoricVO,
         xml_datas: XmlNode
     ): IImportedData[] {
-        let datas: IImportedData[] = [];
+        const datas: IImportedData[] = [];
         let row_index: number = 1;
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
+        const moduletable: ModuleTableVO = ModuleTableController.module_tables_by_vo_type[dataImportFormat.api_type_id];
 
         if (!xml_datas || !xml_datas.children || !xml_datas.children.length) {
             return null;
         }
 
-        for (let i in xml_datas.children) {
-            let child: XmlNode = xml_datas.children[i];
+        for (const i in xml_datas.children) {
+            const child: XmlNode = xml_datas.children[i];
 
             if (child.name == "rs:data") {
-                for (let j in child.children) {
-                    let data: XmlNode = child.children[j];
+                for (const j in child.children) {
+                    const data: XmlNode = child.children[j];
 
-                    let rowData: IImportedData = {
+                    const rowData: IImportedData = {
                         _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
                         importation_state: ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                         not_validated_msg: null,
@@ -219,7 +219,7 @@ export default class ImportTypeXMLHandler {
                         imported_line_number: row_index
                     } as any;
 
-                    let has_data: boolean = ImportTypeXMLHandler.getInstance().populate_row_data(data.attributes, rowData, dataImportColumns, moduletable);
+                    const has_data: boolean = ImportTypeXMLHandler.getInstance().populate_row_data(data.attributes, rowData, dataImportColumns, moduletable);
 
                     if (has_data) {
                         datas.push(rowData);
@@ -233,26 +233,26 @@ export default class ImportTypeXMLHandler {
         return datas;
     }
 
-    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTable<any>): boolean {
+    private populate_row_data(raw_row_data: { [name: string]: string }, rowData: IImportedData, dataImportColumns: DataImportColumnVO[], moduletable: ModuleTableVO): boolean {
 
         let last_row_has_data = false;
 
-        let raw_data: { [name: string]: string } = {};
+        const raw_data: { [name: string]: string } = {};
 
-        for (let row_name in raw_row_data) {
+        for (const row_name in raw_row_data) {
             raw_data[row_name.toLowerCase()] = raw_row_data[row_name];
         }
 
-        for (let i in dataImportColumns) {
-            let dataImportColumn: DataImportColumnVO = dataImportColumns[i];
+        for (const i in dataImportColumns) {
+            const dataImportColumn: DataImportColumnVO = dataImportColumns[i];
 
-            let moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
+            const moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
 
             if (!moduletable_field) {
                 continue;
             }
 
-            let column_data_string: string = raw_data ? raw_data[dataImportColumn.vo_field_name.toLowerCase()] : null;
+            const column_data_string: string = raw_data ? raw_data[dataImportColumn.vo_field_name.toLowerCase()] : null;
 
             try {
 
@@ -263,7 +263,7 @@ export default class ImportTypeXMLHandler {
                         case DataImportColumnVO.TYPE_DATE:
 
                             switch (moduletable_field.field_type) {
-                                case ModuleTableField.FIELD_TYPE_tstz:
+                                case ModuleTableFieldVO.FIELD_TYPE_tstz:
                                     rowData[dataImportColumn.vo_field_name] = ImportTypeXMLHandler.getInstance().parseExcelDate(column_data_string);
                                     break;
                                 default:

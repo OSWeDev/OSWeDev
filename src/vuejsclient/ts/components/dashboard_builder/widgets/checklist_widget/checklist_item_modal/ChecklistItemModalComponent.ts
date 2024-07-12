@@ -72,8 +72,8 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
             return null;
         }
 
-        for (let name in CheckListControllerBase.controller_by_name) {
-            let controller = CheckListControllerBase.controller_by_name[name];
+        for (const name in CheckListControllerBase.controller_by_name) {
+            const controller = CheckListControllerBase.controller_by_name[name];
 
             if (controller.checklist_shared_module.checklist_name == this.checklist.name) {
                 return controller;

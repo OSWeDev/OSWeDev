@@ -38,16 +38,16 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
 
-        for (let var_param_field_name in var_custom_filters) {
-            let custom_filter_name = var_custom_filters[var_param_field_name];
+        for (const var_param_field_name in var_custom_filters) {
+            const custom_filter_name = var_custom_filters[var_param_field_name];
 
             if (!custom_filter_name) {
                 continue;
             }
 
-            let custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+            const custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
 
             if (!custom_filter) {
                 continue;
@@ -145,8 +145,8 @@ export default class VarWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.all_page_widget) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+        for (const i in this.all_page_widget) {
+            const widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;
@@ -171,7 +171,7 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     private async do_update_visible_options() {
 
-        let launch_cpt: number = (this.last_calculation_cpt + 1);
+        const launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
 
@@ -192,7 +192,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        const custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         /**
          * Pour les dates il faut réfléchir....
@@ -260,7 +260,7 @@ export default class VarWidgetComponent extends VueComponentBase {
 
         let options: VarWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
                 options = options ? new VarWidgetOptions(
                     options.var_id,

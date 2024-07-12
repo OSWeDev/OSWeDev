@@ -6,6 +6,7 @@ import ModuleDAO from "../../DAO/ModuleDAO";
 import RangeHandler from "../../../tools/RangeHandler";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
 import DashboardPageFieldFiltersVOManager from "./DashboardPageFieldFiltersVOManager";
+import { field_names } from "../../../tools/ObjectHandler";
 
 /**
  * SharedFiltersVOManager
@@ -97,7 +98,7 @@ export default class SharedFiltersVOManager {
         // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const shared_filters = await context_query
-            .filter_by_num_x_ranges('shared_from_dashboard_ids', dashboard_ids_numranges)
+            .filter_by_num_x_ranges(field_names<SharedFiltersVO>().shared_from_dashboard_ids, dashboard_ids_numranges)
             .select_vos<SharedFiltersVO>();
 
         // We need to filter shared_filters that share by each dashboard_id
@@ -180,7 +181,7 @@ export default class SharedFiltersVOManager {
         // Initialize shared_filters (all_shared_filter in dashboard) of SharedFiltersVOManager instance
         // its should be initialized each time the dashboard page is loaded
         const shared_filters = await context_query
-            .filter_by_num_x_ranges('shared_with_dashboard_ids', dashboard_ids_numranges)
+            .filter_by_num_x_ranges(field_names<SharedFiltersVO>().shared_with_dashboard_ids, dashboard_ids_numranges)
             .select_vos<SharedFiltersVO>();
 
         // We need to filter shared_filters that share with each dashboard_id
@@ -269,13 +270,13 @@ export default class SharedFiltersVOManager {
         );
 
 
-        let field_filters_to_share = {};
+        const field_filters_to_share = {};
 
-        for (let i in shared_filters.field_filters_to_share) {
-            let field_filter = shared_filters.field_filters_to_share[i];
+        for (const i in shared_filters.field_filters_to_share) {
+            const field_filter = shared_filters.field_filters_to_share[i];
 
-            let field_filter_to_share = {};
-            for (let j in field_filter) {
+            const field_filter_to_share = {};
+            for (const j in field_filter) {
                 if (field_filter[j]) {
                     field_filter_to_share[j] = true;
                 }
@@ -286,12 +287,12 @@ export default class SharedFiltersVOManager {
             }
         }
 
-        let selected_field_filters_to_share = {};
-        for (let i in selectionnable_field_filters.field_filters) {
-            let field_filter = selectionnable_field_filters.field_filters[i];
+        const selected_field_filters_to_share = {};
+        for (const i in selectionnable_field_filters.field_filters) {
+            const field_filter = selectionnable_field_filters.field_filters[i];
 
-            let field_filter_to_share = {};
-            for (let j in field_filter) {
+            const field_filter_to_share = {};
+            for (const j in field_filter) {
                 if ((typeof field_filter[j] !== 'undefined') && field_filters_to_share[i] && field_filters_to_share[i][j]) {
                     field_filter_to_share[j] = true;
                 }

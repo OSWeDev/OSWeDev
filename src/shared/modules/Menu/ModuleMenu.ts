@@ -1,14 +1,16 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import MenuElementVO from './vos/MenuElementVO';
 
@@ -59,40 +61,37 @@ export default class ModuleMenu extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
 
         this.initializeMenuElementVO();
     }
 
     private initializeMenuElementVO() {
 
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
-        let menu_parent_id = new ModuleTableField('menu_parent_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Lien parent', false);
+        const name = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre', true);
+        const menu_parent_id = ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().menu_parent_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Lien parent', false);
 
-        let fields = [
+        const fields = [
             name,
             menu_parent_id,
 
-            new ModuleTableField('app_name', ModuleTableField.FIELD_TYPE_string, 'Application', true),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().app_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Application', true),
 
-            new ModuleTableField('target', ModuleTableField.FIELD_TYPE_string, 'Cible', false),
-            new ModuleTableField('target_route_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres de la route', false),
-            new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', false, true, true),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().target, ModuleTableFieldVO.FIELD_TYPE_string, 'Cible', false),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().target_route_params, ModuleTableFieldVO.FIELD_TYPE_string, 'Paramètres de la route', false),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().target_is_routename, ModuleTableFieldVO.FIELD_TYPE_boolean, 'La cible est une route ?', false, true, true),
 
-            new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', false, true, false),
-            new ModuleTableField('target_blank', ModuleTableField.FIELD_TYPE_boolean, 'Target _blank', false, true, false),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().hidden, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Caché', false, true, false),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().target_blank, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Target _blank', false, true, false),
 
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', false, true, 0),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', false, true, 0),
 
-            new ModuleTableField('fa_class', ModuleTableField.FIELD_TYPE_string, 'Classe font-awesome', false),
-            new ModuleTableField('access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Clé du droit d\'accès', false, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().fa_class, ModuleTableFieldVO.FIELD_TYPE_string, 'Classe font-awesome', false),
+            ModuleTableFieldController.create_new(MenuElementVO.API_TYPE_ID, field_names<MenuElementVO>().access_policy_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé du droit d\'accès', false, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
         ];
 
-        let table = new ModuleTable(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
-        this.datatables.push(table);
+        const table = ModuleTableController.create_new(this.name, MenuElementVO, name, 'Menus');
 
-        menu_parent_id.addManyToOneRelation(table);
+        menu_parent_id.set_many_to_one_target_moduletable_name(table.vo_type);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

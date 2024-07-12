@@ -400,11 +400,11 @@ test('TimeSegmentHandler: test segmentsAreEquivalent', () => {
 });
 
 test('TimeSegmentHandler: test get_date_indexes', () => {
-    let timeSegmentTests = [TimeSegmentHandler.getCorrespondingTimeSegment(moment('2019-05-01').utc(true).unix(), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+    const timeSegmentTests = [TimeSegmentHandler.getCorrespondingTimeSegment(moment('2019-05-01').utc(true).unix(), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
     TimeSegmentHandler.getCorrespondingTimeSegment(moment('2019-11-17').utc(true).unix(), TimeSegment.TYPE_YEAR),
     TimeSegmentHandler.getCorrespondingTimeSegment(moment('2020-03-29').utc(true).unix(), TimeSegment.TYPE_MONTH)
     ];
-    let res = ['2019-05-01', '2019-01-01', '2020-03-01'];
+    const res = ['2019-05-01', '2019-01-01', '2020-03-01'];
 
     expect(TimeSegmentHandler.get_date_indexes(null)).toStrictEqual([]);
     //expect(TimeSegmentHandler.get_date_indexes([null])).toStrictEqual([]);

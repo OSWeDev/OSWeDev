@@ -1,6 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import DefaultTranslationVO from "../../Translation/vos/DefaultTranslationVO";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class DashboardVO implements IDistantVOBase, IWeightedItem {
@@ -18,6 +18,6 @@ export default class DashboardVO implements IDistantVOBase, IWeightedItem {
             return null;
         }
 
-        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
     }
 }

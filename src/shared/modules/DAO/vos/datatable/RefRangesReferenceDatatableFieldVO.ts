@@ -1,10 +1,11 @@
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import ModuleTableController from '../../ModuleTableFieldController';
 
 export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -12,18 +13,18 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<any>,
-        sortedTargetFields: Array<DatatableField<any, any>>
+        targetModuleTable: ModuleTableVO,
+        sorted_target_fields: Array<DatatableField<any, any>>
     ): RefRangesReferenceDatatableFieldVO<any> {
 
-        let res = new RefRangesReferenceDatatableFieldVO();
+        const res = new RefRangesReferenceDatatableFieldVO();
 
         res.init_ref_dtf(
             RefRangesReferenceDatatableFieldVO.API_TYPE_ID,
             DatatableField.REF_RANGES_FIELD_TYPE,
             datatable_field_uid,
             targetModuleTable,
-            sortedTargetFields
+            sorted_target_fields
         );
 
         res.src_field_id = datatable_field_uid;
@@ -32,6 +33,8 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
     }
 
     public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
+    public _type: string = RefRangesReferenceDatatableFieldVO.API_TYPE_ID;
 
     public _src_field_id: string;
 
@@ -45,7 +48,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdateSrcField();
     }
 
-    get srcField(): ModuleTableField<any> {
+    get srcField(): ModuleTableFieldVO {
         if (!this.moduleTable) {
             return null;
         }
@@ -53,7 +56,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
         return this.moduleTable.getFieldFromId(this.src_field_id);
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
 
@@ -76,38 +79,38 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        let e = this.srcField.field_label.code_text;
+        const e = this.srcField.field_label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }
     }
 
     public dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): U {
-        return e as any as U;
+        return e as unknown as U;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        let destvos = vos[this.targetModuleTable.vo_type];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return res;
         }
         RangeHandler.foreach_ranges_sync(e[this.datatable_field_uid], (id: number) => {
-            let thisvalue: string = this.dataToHumanReadable(destvos[id]);
+            const thisvalue: string = this.dataToHumanReadable(destvos[id]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         });
         return res;
     }
 
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
-        let dest_ids: number[] = [];
+        const dest_ids: number[] = [];
 
-        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
-        let destvos = vos[this.targetModuleTable.vo_type];
+        const vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        const destvos = vos[this.targetModuleTable.vo_type];
 
         if (!destvos) {
             return dest_ids;
@@ -125,6 +128,8 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             return;
         }
         this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
+        this.validate = this.validate ? this.validate : (data: any) => {
+            return ModuleTableController.validate_field_value(this.srcField, data);
+        };
     }
 }

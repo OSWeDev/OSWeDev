@@ -10,7 +10,7 @@ export default class ClockifyProjetVO {
         note: string,
         is_public: boolean
     ): ClockifyProjetVO {
-        let projet: ClockifyProjetVO = new ClockifyProjetVO();
+        const projet: ClockifyProjetVO = new ClockifyProjetVO();
 
         projet.clockify_id = clockify_id;
         projet.client_id = client_id;

@@ -62,9 +62,9 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     };
 
     private var_datas_updater() {
-        let var_datas: VarDataValueResVO[] = [];
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        const var_datas: VarDataValueResVO[] = [];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
             var_datas.push(VarsClientController.cached_var_datas[var_param.index]);
         }
         this.var_datas = var_datas;
@@ -77,8 +77,8 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return true;
         }
 
-        for (let i in this.var_datas) {
-            let var_data = this.var_datas[i];
+        for (const i in this.var_datas) {
+            const var_data = this.var_datas[i];
 
             if ((!var_data) || (typeof var_data.value === 'undefined') || var_data.is_computing) {
                 return true;
@@ -101,7 +101,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
         let params = [this.var_data_value];
 
-        if (!!this.filter_additional_params) {
+        if (this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
@@ -210,8 +210,8 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.var_datas) {
-            let var_data = this.var_datas[i];
+        for (const i in this.var_datas) {
+            const var_data = this.var_datas[i];
 
             if (var_data && var_data.is_computing) {
                 return true;

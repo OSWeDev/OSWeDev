@@ -17,12 +17,12 @@ export default class CommandeClientController {
     private static instance: CommandeClientController = null;
 
     public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
-        let panier: CommandeVO = await this.getPanierEnCours();
+        const panier: CommandeVO = await this.getPanierEnCours();
         return await APIControllerWrapper.sah(ModuleCommande.APINAME_ajouterAuPanier)(produitsParam, panier) as CommandeVO;
     }
 
     public async getPanierEnCours(): Promise<CommandeVO> {
-        let result: { panier_id: number } = await AjaxCacheClientController.getInstance().get('/getIdPanierEnCours', null) as { panier_id: number };
+        const result: { panier_id: number } = await AjaxCacheClientController.getInstance().get('/getIdPanierEnCours', null) as { panier_id: number };
         let panier: CommandeVO = null;
 
         if (!result || !result.panier_id) {

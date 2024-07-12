@@ -58,11 +58,11 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         set_all_anim_theme_by_ids: (state: IAnimationReportingVueXState, all_anim_theme_by_ids: { [id: number]: AnimationThemeVO }) => state.all_anim_theme_by_ids = all_anim_theme_by_ids,
         set_filter_anim_theme_active_options: (state: IAnimationReportingVueXState, filter_anim_theme_active_options: DataFilterOption[]) => state.filter_anim_theme_active_options = filter_anim_theme_active_options,
         set_anim_theme_id_ranges: (state: IAnimationReportingVueXState) => {
-            let res: NumRange[] = [];
+            const res: NumRange[] = [];
 
-            let theme_ids: number[] = state.filter_anim_theme_active_options ? state.filter_anim_theme_active_options.map((s) => s.id) : [];
+            const theme_ids: number[] = state.filter_anim_theme_active_options ? state.filter_anim_theme_active_options.map((s) => s.id) : [];
 
-            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
+            for (const anim_theme_id in state.all_aum_by_theme_module_user) {
                 if (theme_ids.length > 0) {
                     if (theme_ids.indexOf(parseInt(anim_theme_id)) == -1) {
                         continue;
@@ -78,13 +78,13 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         set_all_anim_module_by_ids: (state: IAnimationReportingVueXState, all_anim_module_by_ids: { [id: number]: AnimationModuleVO }) => state.all_anim_module_by_ids = all_anim_module_by_ids,
         set_filter_anim_module_active_options: (state: IAnimationReportingVueXState, filter_anim_module_active_options: DataFilterOption[]) => state.filter_anim_module_active_options = filter_anim_module_active_options,
         set_anim_module_id_ranges: (state: IAnimationReportingVueXState) => {
-            let res: NumRange[] = [];
+            const res: NumRange[] = [];
 
-            let module_ids: number[] = state.filter_anim_module_active_options ? state.filter_anim_module_active_options.map((s) => s.id) : [];
+            const module_ids: number[] = state.filter_anim_module_active_options ? state.filter_anim_module_active_options.map((s) => s.id) : [];
 
-            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                    let module_id: number = parseInt(anim_module_id);
+            for (const anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (const anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    const module_id: number = parseInt(anim_module_id);
 
                     if (module_ids.length > 0) {
                         if (module_ids.indexOf(module_id) == -1) {
@@ -93,13 +93,13 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                     }
 
                     if (state.anim_theme_id_ranges && state.anim_theme_id_ranges.length > 0) {
-                        let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[module_id];
+                        const anim_module: AnimationModuleVO = state.all_anim_module_by_ids[module_id];
 
                         if (!anim_module) {
                             continue;
                         }
 
-                        let anim_theme: AnimationThemeVO = state.all_anim_theme_by_ids[anim_module.theme_id];
+                        const anim_theme: AnimationThemeVO = state.all_anim_theme_by_ids[anim_module.theme_id];
 
                         if (!anim_theme) {
                             continue;
@@ -120,14 +120,14 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         set_all_role_by_ids: (state: IAnimationReportingVueXState, all_role_by_ids: { [id: number]: RoleVO }) => state.all_role_by_ids = all_role_by_ids,
         set_filter_role_active_options: (state: IAnimationReportingVueXState, filter_role_active_options: DataFilterOption[]) => state.filter_role_active_options = filter_role_active_options,
         set_role_id_ranges: (state: IAnimationReportingVueXState) => {
-            let res: NumRange[] = [];
+            const res: NumRange[] = [];
 
-            let role_ids: number[] = state.filter_role_active_options ? state.filter_role_active_options.map((s) => s.id) : [];
-            let role_id_add: { [role_id: number]: boolean } = {};
+            const role_ids: number[] = state.filter_role_active_options ? state.filter_role_active_options.map((s) => s.id) : [];
+            const role_id_add: { [role_id: number]: boolean } = {};
 
-            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                    let anim_module: AnimationModuleVO = state.all_anim_module_by_ids[anim_module_id];
+            for (const anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (const anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    const anim_module: AnimationModuleVO = state.all_anim_module_by_ids[anim_module_id];
 
                     if (!anim_module) {
                         continue;
@@ -157,14 +157,14 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
         set_all_user_by_ids: (state: IAnimationReportingVueXState, all_user_by_ids: { [id: number]: UserVO }) => state.all_user_by_ids = all_user_by_ids,
         set_filter_user_active_options: (state: IAnimationReportingVueXState, filter_user_active_options: DataFilterOption[]) => state.filter_user_active_options = filter_user_active_options,
         set_user_id_ranges: (state: IAnimationReportingVueXState) => {
-            let res: NumRange[] = [];
+            const res: NumRange[] = [];
 
-            let user_id_add: { [id: number]: boolean } = {};
-            let user_ids: number[] = state.filter_user_active_options ? state.filter_user_active_options.map((s) => s.id) : [];
+            const user_id_add: { [id: number]: boolean } = {};
+            const user_ids: number[] = state.filter_user_active_options ? state.filter_user_active_options.map((s) => s.id) : [];
 
-            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                    for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
+            for (const anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (const anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    for (const user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
                         if (user_id_add[user_id]) {
                             continue;
                         }
@@ -193,10 +193,10 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
             let total_aum: number = 0;
             let total_finished_aum: number = 0;
 
-            for (let anim_theme_id in state.all_aum_by_theme_module_user) {
-                for (let anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
-                    for (let user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
-                        let aum: AnimationUserModuleVO = state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
+            for (const anim_theme_id in state.all_aum_by_theme_module_user) {
+                for (const anim_module_id in state.all_aum_by_theme_module_user[anim_theme_id]) {
+                    for (const user_id in state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id]) {
+                        const aum: AnimationUserModuleVO = state.all_aum_by_theme_module_user[anim_theme_id][anim_module_id][user_id];
 
                         total_aum++;
 

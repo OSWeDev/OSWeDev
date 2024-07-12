@@ -45,7 +45,7 @@ export default class DroppableVoFieldsStore implements IStoreModule<IDroppableVo
     public namespaced: boolean = true;
 
     protected constructor() {
-        let self = this;
+        const self = this;
         this.module_name = "DroppableVoFieldsStore";
 
 

@@ -18,14 +18,6 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
     public static DEP_CyclB: string = 'CyclB' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeVarControllerCyclA {
-        if (!FakeVarControllerCyclA.instance) {
-            FakeVarControllerCyclA.instance = new FakeVarControllerCyclA();
-        }
-        return FakeVarControllerCyclA.instance;
-    }
-
     protected static instance: FakeVarControllerCyclA = null;
 
     protected constructor() {
@@ -33,8 +25,14 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
             new VarConfVO('FakeVarControllerCyclA', FakeEmpDayDataVO.API_TYPE_ID, null, 10),
             {}, {}, {}, {}
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeVarControllerCyclA {
+        if (!FakeVarControllerCyclA.instance) {
+            FakeVarControllerCyclA.instance = new FakeVarControllerCyclA();
+        }
+        return FakeVarControllerCyclA.instance;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
@@ -74,7 +72,7 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
         switch (dep_id) {
             case FakeVarControllerCyclA.DEP_CyclB:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
         }
 
         return null;
@@ -82,7 +80,7 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_CyclB = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclA.DEP_CyclB, 0);
+        const DEP_CyclB = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerCyclA.DEP_CyclB, 0);
 
         return DEP_CyclB;
     }

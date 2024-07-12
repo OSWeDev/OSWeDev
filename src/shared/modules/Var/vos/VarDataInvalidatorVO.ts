@@ -21,7 +21,7 @@ export default class VarDataInvalidatorVO implements IDistantVOBase {
         invalidate_denied: boolean = false,
         invalidate_imports: boolean = false): VarDataInvalidatorVO {
 
-        let res: VarDataInvalidatorVO = new VarDataInvalidatorVO();
+        const res: VarDataInvalidatorVO = new VarDataInvalidatorVO();
 
         res.var_data = var_data;
         res.invalidator_type = invalidator_type;
@@ -56,7 +56,7 @@ export default class VarDataInvalidatorVO implements IDistantVOBase {
         ConsoleHandler.log(' * invalidate_denied: ' + this.invalidate_denied);
         ConsoleHandler.log(' * invalidate_imports: ' + this.invalidate_imports);
         ConsoleHandler.log(' */');
-        let invalidator_name = 'invalidator_' + VarsController.get_validator_config_id(this);
+        const invalidator_name = 'invalidator_' + VarsController.get_validator_config_id(this);
         ConsoleHandler.log('const ' + invalidator_name + ': VarDataInvalidatorVO = new VarDataInvalidatorVO();');
         ConsoleHandler.log(invalidator_name + '.var_data = VarDataBaseVO.from_index(' + this.var_data.index + ');');
         ConsoleHandler.log(invalidator_name + '.invalidator_type = ' + this.invalidator_type + ';');

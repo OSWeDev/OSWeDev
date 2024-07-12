@@ -1,9 +1,9 @@
 import { cloneDeep } from "lodash";
 import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import StatsController from "../../../shared/modules/Stats/StatsController";
-import VOsTypesManager from "../../../shared/modules/VOsTypesManager";
 import VarsController from "../../../shared/modules/Var/VarsController";
 import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../shared/modules/Var/vos/VarDataBaseVO";
@@ -18,6 +18,8 @@ import VarsImportsHandler from "./VarsImportsHandler";
 import VarsServerController from "./VarsServerController";
 import DataSourceControllerBase from "./datasource/DataSourceControllerBase";
 import DataSourcesController from "./datasource/DataSourcesController";
+import { field_names } from "../../../shared/tools/ObjectHandler";
+import ThreadHandler from "../../../shared/tools/ThreadHandler";
 
 export default class VarsDeployDepsHandler {
 
@@ -56,21 +58,20 @@ export default class VarsDeployDepsHandler {
         limit_to_aggregated_datas: boolean = false
     ) {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'IN');
 
         // ?? pourquoi on change ça ici => en fait c'est l'équivalent du tag je pense donc surement à supp
         // node.already_tried_loading_data_and_deploy = true;
 
-        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
+        const DEBUG_VARS = ConfigurationService.node_configuration.debug_vars;
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
-        let varconf = VarsController.var_conf_by_id[node.var_data.var_id];
+        const varconf = VarsController.var_conf_by_id[node.var_data.var_id];
 
         /**
          * Imports
          */
-        if ((!VarsServerController.has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
+        if ((!VarsServerController.has_valid_value(node.var_data)) && (!varconf || !varconf.optimization__has_no_imports)) {
 
             /**
              * On doit essayer de récupérer des données parcellaires
@@ -86,7 +87,7 @@ export default class VarsDeployDepsHandler {
                 node.add_tag(VarDAGNode.TAG_4_COMPUTED);
 
                 // Si on a un id, ça vient directement de la base donc on a pas à le réinsérer non plus
-                if (!!node.var_data.id) {
+                if (node.var_data.id) {
                     node.add_tag(VarDAGNode.TAG_6_UPDATED_IN_DB);
                 }
                 StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'load_caches_and_imports_on_var_to_deploy', 'OUT_has_valid_value');
@@ -113,7 +114,7 @@ export default class VarsDeployDepsHandler {
             return;
         }
 
-        let deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node);
+        const deps: { [index: string]: VarDataBaseVO } = await VarsDeployDepsHandler.get_node_deps(node);
 
         if (DEBUG_VARS) {
             ConsoleHandler.log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:IN:');
@@ -136,7 +137,7 @@ export default class VarsDeployDepsHandler {
      */
     private static async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean): Promise<boolean> {
 
-        let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
+        const prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
         if (prod_cardinaux == 1) {
             // c'est un pixel, on ignore
@@ -149,33 +150,34 @@ export default class VarsDeployDepsHandler {
         // On ne doit surtout pas DATA_LOAD un param de type pixel qui n'en n'est pas un (puisque le card > 1)
         node.add_tag(VarDAGNode.TAG_3_DATA_LOADED);
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_pixellisation', 'IN');
 
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
+        const pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO } = {};
+        for (const i in varconf.pixel_fields) {
+            const pixel_field = varconf.pixel_fields[i];
 
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+            pixellised_fields_by_id[pixel_field.pixel_param_field_name] = pixel_field;
         }
 
-        let pixel_query = query(varconf.var_data_vo_type)
-            // .filter_by_num_eq('var_id', varconf.id)
-            //     .filter_is_true('_bdd_only_is_pixel')
-            .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
-            .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
+        const pixel_query = query(varconf.var_data_vo_type)
+            // .filter_by_num_eq(field_names<VarDataBaseVO>().var_id, varconf.id)
+            //     .filter_is_true(field_names<VarDataBaseVO>()._bdd_only_is_pixel)
+            .field(field_names<VarConfVO>().id, 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
+            .field(field_names<VarDataBaseVO>().value, 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        let pixel_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+        const pixel_query_indexes = [];
+        MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data, pixel_query_indexes);
 
-        if (!pixel_query_indexes) {
+        if ((!pixel_query_indexes) || (!pixel_query_indexes.length)) {
             ConsoleHandler.error('No pixel_query_indexes for node:' + node.var_data.index);
             throw new Error('No pixel_query_indexes for node:' + node.var_data.index);
         }
 
-        pixel_query.filter_by_text_has('_bdd_only_index', pixel_query_indexes);
+        pixel_query.filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, pixel_query_indexes);
 
         // /**
         //  * On ajoute les filtrages :
@@ -186,26 +188,26 @@ export default class VarsDeployDepsHandler {
         // for (let i in matroid_fields) {
         //     let matroid_field = matroid_fields[i];
 
-        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
-        //         case ModuleTableField.FIELD_TYPE_numrange_array:
-        //         case ModuleTableField.FIELD_TYPE_refrange_array:
-        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //         case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
-        //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
-        //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 pixel_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
         //         default:
         //             throw new Error('Not implemented');
         //     }
@@ -254,7 +256,7 @@ export default class VarsDeployDepsHandler {
          *  - soit on peut utiliser les pixels connus, soit non, et dans ce cas on redemande tous les pixels et on fait l'aggrégat gloabl ensuite
          *  - soit on doit identifier les pixels qui sont déjà connus pour pas les refaire et en déduire ceux qui manquent
          */
-        let can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
+        const can_not_use_known_pixels = (varconf.aggregator == VarConfVO.AVG_AGGREGATOR);
 
         if (can_not_use_known_pixels) {
             await this.do_not_use_known_pixels(node, varconf, pixellised_fields_by_id, pixel_cache, prod_cardinaux, DEBUG_VARS);
@@ -269,13 +271,13 @@ export default class VarsDeployDepsHandler {
     private static async do_not_use_known_pixels(
         node: VarDAGNode,
         varconf: VarConfVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean
     ) {
 
-        let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+        const aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
         VarsDeployDepsHandler.populate_missing_pixels(
             aggregated_datas,
@@ -288,8 +290,8 @@ export default class VarsDeployDepsHandler {
         /**
          * On n'a pas tenté de charger les pixels
          */
-        for (let depi in aggregated_datas) {
-            let aggregated_data = aggregated_datas[depi];
+        for (const depi in aggregated_datas) {
+            const aggregated_data = aggregated_datas[depi];
             await VarDAGNode.getInstance(node.var_dag, aggregated_data, false);
         }
 
@@ -304,63 +306,64 @@ export default class VarsDeployDepsHandler {
     private static async use_known_pixels(
         node: VarDAGNode,
         varconf: VarConfVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         pixel_cache: { counter: number, aggregated_value: number },
         prod_cardinaux: number,
         DEBUG_VARS: boolean
     ) {
 
-        let known_pixels_query = query(varconf.var_data_vo_type);
+        const known_pixels_query = query(varconf.var_data_vo_type);
 
         /**
          * Optimisation : on ne teste que les indexs directement, c'est beaucoup plus performant. à voir si c'est tenable avec beauocup d'indexs ...
          */
-        let known_pixels_query_indexes = MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data);
+        const known_pixels_query_indexes = [];
+        MatroidIndexHandler.get_normalized_vardata_pixels(node.var_data, known_pixels_query_indexes);
 
-        if (!known_pixels_query_indexes) {
+        if ((!known_pixels_query_indexes) || (!known_pixels_query_indexes.length)) {
             ConsoleHandler.error('No iknown_pixels_query_indexes for node:' + node.var_data.index);
             throw new Error('No known_pixels_query_indexes for node:' + node.var_data.index);
         }
-        known_pixels_query.filter_by_text_has('_bdd_only_index', known_pixels_query_indexes);
+        known_pixels_query.filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, known_pixels_query_indexes);
 
-        // known_pixels_query.filter_by_num_eq('var_id', varconf.id);
-        // known_pixels_query.filter_is_true('_bdd_only_is_pixel');
+        // known_pixels_query.filter_by_num_eq(field_names<VarDataBaseVO>().var_id, varconf.id);
+        // known_pixels_query.filter_is_true(field_names<VarDataBaseVO>()._bdd_only_is_pixel);
 
         // // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
         // //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
         // for (let i in matroid_fields) {
         //     let matroid_field = matroid_fields[i];
 
-        //     let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+        //     let pixellised = pixellised_fields_by_id[matroid_field.field_name];
 
         //     switch (matroid_field.field_type) {
-        //         case ModuleTableField.FIELD_TYPE_numrange_array:
-        //         case ModuleTableField.FIELD_TYPE_refrange_array:
-        //         case ModuleTableField.FIELD_TYPE_isoweekdays:
+        //         case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
         //             if (pixellised) {
-        //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_num_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_tstzrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
         //             if (pixellised) {
-        //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             } else {
-        //                 known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+        //                 known_pixels_query.filter_by_date_eq(matroid_field.field_name, node.var_data[matroid_field.field_name]);
         //             }
         //             break;
-        //         case ModuleTableField.FIELD_TYPE_hourrange_array:
+        //         case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
         //         default:
         //             throw new Error('Not implemented');
         //     }
         // }
 
-        let known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
-        let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+        const known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
+        const aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
-        for (let i in known_pixels) {
-            let known_pixel = known_pixels[i];
+        for (const i in known_pixels) {
+            const known_pixel = known_pixels[i];
 
             aggregated_datas[known_pixel.index] = known_pixel;
         }
@@ -376,15 +379,15 @@ export default class VarsDeployDepsHandler {
         /**
          * On indique qu'on a déjà fait un chargement du cache complet pour les pixels
          */
-        for (let depi in aggregated_datas) {
-            let aggregated_data = aggregated_datas[depi];
-            let agg_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, true);
+        for (const depi in aggregated_datas) {
+            const aggregated_data = aggregated_datas[depi];
+            const agg_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, true);
             // agg_node.is_client_sub_dep = node.is_client_sub || node.is_client_sub_dep;
             // agg_node.is_server_sub_dep = node.is_server_sub || node.is_server_sub_dep;
         }
 
-        let nb_known_pixels = known_pixels ? known_pixels.length : 0;
-        let nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
+        const nb_known_pixels = known_pixels ? known_pixels.length : 0;
+        const nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
 
         node.is_aggregator = true;
         node.aggregated_datas = aggregated_datas;
@@ -397,7 +400,7 @@ export default class VarsDeployDepsHandler {
     /**
      * On génère tous les pixels nécessaires, et à chaque fois, si on le trouve dans la liste des pixels connus, on ne crée pas le noeuds
      *  puisque le résultat est déjà connu/inclut dans le aggregated_value
-     * On part en récursif, et à chaque fois on cherche un champs à pixellisé.
+     * On part en récursif, et à chaque fois on cherche un champs à pixelliser.
      *      Si on en trouve plus (après le dernier champ pixellisé), on ajoute le pixel dans le aggregated_datas
      *      Si on en trouve => on déploie cette dimension, et pour chaque valeur, si on la trouve dans le aggregated, on ignore,
      *          sinon on recurse en clonant le var_data et en settant le field déployé
@@ -406,29 +409,29 @@ export default class VarsDeployDepsHandler {
         aggregated_datas: { [index: string]: VarDataBaseVO },
         var_conf: VarConfVO,
         var_data: VarDataBaseVO,
-        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        pixellised_fields_by_id: { [param_field_name: string]: VarPixelFieldConfVO },
         cloned_var_data: VarDataBaseVO,
-        current_pixellised_field_id: string = null) {
+        current_pixellised_field_name: string = null) {
 
-        let can_check_field = !current_pixellised_field_id;
-        for (let i in pixellised_fields_by_id) {
-            let pixellised_field = pixellised_fields_by_id[i];
+        let can_check_field = !current_pixellised_field_name;
+        for (const i in pixellised_fields_by_id) {
+            const pixellised_field = pixellised_fields_by_id[i];
 
             if (!can_check_field) {
-                if (i == current_pixellised_field_id) {
+                if (i == current_pixellised_field_name) {
                     can_check_field = true;
-                    continue;
                 }
+                continue;
             }
 
-            let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
-            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+            const field = ModuleTableController.module_tables_by_vo_type[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_name);
+            const segment_type = (var_conf.segment_types && (var_conf.segment_types[field.field_name] != null)) ? var_conf.segment_types[field.field_name] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
 
-            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
+            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_name], (pixel_value: number) => {
 
                 // Pas sur d'avoir besoin de cloner les fields, on tente sans, par ce que niveau perf ça devrait être mieux
-                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, false);
-                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
+                const new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, false);
+                new_var_data[pixellised_field.pixel_param_field_name] = [RangeHandler.createNew(
                     RangeHandler.getRangeType(field),
                     pixel_value,
                     pixel_value,
@@ -436,7 +439,7 @@ export default class VarsDeployDepsHandler {
                     true,
                     segment_type
                 )];
-                new_var_data
+
                 if (!aggregated_datas[new_var_data.index]) {
                     VarsDeployDepsHandler.populate_missing_pixels(
                         aggregated_datas,
@@ -464,16 +467,16 @@ export default class VarsDeployDepsHandler {
      */
     private static async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'IN');
 
         if (node.is_aggregator) {
-            let aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+            const aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
             let index = 0;
 
-            let promises = [];
-            for (let i in node.aggregated_datas) {
-                let data = node.aggregated_datas[i];
+            const promises = [];
+            for (const i in node.aggregated_datas) {
+                const data = node.aggregated_datas[i];
                 aggregated_deps['AGG_' + (index++)] = data;
 
                 promises.push(VarDAGNode.getInstance(node.var_dag, data, true));
@@ -486,12 +489,12 @@ export default class VarsDeployDepsHandler {
             return aggregated_deps;
         }
 
-        let controller = VarsServerController.getVarControllerById(node.var_data.var_id);
+        const controller = VarsServerController.getVarControllerById(node.var_data.var_id);
 
         /**
          * On charge toutes les datas predeps
          */
-        let predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+        const predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
         if (predeps_dss && predeps_dss.length) {
 
             // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
@@ -504,7 +507,7 @@ export default class VarsDeployDepsHandler {
         /**
          * On demande les deps
          */
-        let res = controller.getParamDependencies(node);
+        const res = controller.getParamDependencies(node);
 
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'get_node_deps', 'OUT');
         StatsController.register_stat_DUREE('VarsDeployDepsHandler', 'get_node_deps', 'OUT', Dates.now_ms() - time_in);
@@ -516,45 +519,49 @@ export default class VarsDeployDepsHandler {
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO }) {
 
-        let time_in = Dates.now_ms();
+        const time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('VarsDeployDepsHandler', 'handle_deploy_deps', 'IN');
-        let deps_as_array = Object.values(deps);
+        const deps_as_array = Object.values(deps);
         StatsController.register_stat_QUANTITE('VarsDeployDepsHandler', 'handle_deploy_deps', 'deps', deps_as_array ? deps_as_array.length : 0);
-        let deps_ids_as_array = Object.keys(deps);
+        const deps_ids_as_array = Object.keys(deps);
 
         let start_time = Dates.now();
-        let real_start_time = start_time;
+        const real_start_time = start_time;
 
-        let promises = [];
-        for (let deps_i in deps_as_array) {
+        const promises = [];
+        for (const deps_i in deps_as_array) {
 
             if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
                 return;
             }
 
-            let actual_time = Dates.now();
+            const actual_time = Dates.now();
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
                 ConsoleHandler.warn('handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
-            let dep = deps_as_array[deps_i];
-            let dep_id = deps_ids_as_array[deps_i];
+            const dep = deps_as_array[deps_i];
+            const dep_id = deps_ids_as_array[deps_i];
 
             if (node.var_dag.nodes[dep.index]) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':already in tree, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index])) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep already in tree:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep already in tree:add dep failed, waiting');
+                }
                 continue;
             }
 
             promises.push((async () => {
 
-                let dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false);
+                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false);
                 if (!dep_node) {
                     return;
                 }
@@ -562,11 +569,15 @@ export default class VarsDeployDepsHandler {
                 // dep_node.is_client_sub_dep = dep_node.is_client_sub_dep || node.is_client_sub || node.is_client_sub_dep;
                 // dep_node.is_server_sub_dep = dep_node.is_server_sub_dep || node.is_server_sub || node.is_server_sub_dep;
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.log('handle_deploy_deps:dep:' + dep.index + ':new node, adding link from:' + node.var_data.index + ':to:' + dep.index + ':');
                 }
 
-                node.addOutgoingDep(dep_id, dep_node);
+                // Si on ne peut pas ajouter le lien, on doit attendre
+                while (!node.addOutgoingDep(dep_id, dep_node)) {
+                    ConsoleHandler.throttle_log('handle_deploy_deps:dep new node:add dep failed, waiting:dep:' + dep.index + ':node:' + node.var_data.index);
+                    await ThreadHandler.sleep(1, 'handle_deploy_deps:dep new node:add dep failed, waiting');
+                }
             })());
         }
 

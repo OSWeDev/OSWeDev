@@ -1,0 +1,88 @@
+.var_chart_scales_options_item_component 
+    .var_chart_scales_options_item_component_wrapper
+
+        .options_separator_lvl2 {{ label('var_chart_scales_options_item_component.separator.var_options') }}
+    
+        .chart_id
+            .input_label {{ label('var_chart_scales_options_item_component.chart_id') }}
+            .input_wrapper 
+                input(
+                    v-model="chart_id"
+                    :disabled="true"
+                    type="text"
+                )
+        .scale_title 
+            .input_label {{ label('var_chart_scales_options_item_component.scale_title') }}
+            .input_wrapper
+                Inlinetranslatabletext(
+                    :code_text="title_code_text" 
+                    :is_editable="true"
+                )
+        .scales_options 
+            .show_scale_title
+                .input_label {{ label('var_chart_scales_options_item.show_scale_title') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_show_scale_title"
+                        :value="show_scale_title" 
+                        :sync="true"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+            .stacked
+                .input_label {{ label('var_chart_scales_options_item.stacked') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_stacked"
+                        :value="stacked" 
+                        :sync="true"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+            .fill
+                .input_label {{ label('var_chart_scales_options_item.fill') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_fill"
+                        :value="fill" 
+                        :sync="true"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+            .scale_options 
+                .input_wrapper
+                    Chartjsscaleoptionscomponent(
+                        @on_change="handle_scale_options_change"
+                        :options="scale_options"
+                    )
+            .scale_position {{label("var_chart_scales_options_item_component.separator.scale_position")}}
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="selected_position"
+                        :options="scale_position"
+                        :allow-empty="false",
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        select-label=''
+                        select-group-label=''
+                        selected-label=''
+                        deselect-label=''
+                        deselect-group-label=''
+
+                        placeholder=''
+
+                        name="scale_position_select"
+                    )
+
+            .options_separator_lvl2 {{ label('var_chart_scales_options_component.separator.datas_filter_options') }}
+            .scale_filter_options
+                .scale_filter_options_wrapper
+                    Widgetfilteroptionscomponent(
+                        :actual_additional_options="filter_additional_params"
+                        :actual_filter_type="filter_type"
+                        @update_additional_options="update_additional_options"
+                        @update_filter_type="update_filter_type"
+                    )

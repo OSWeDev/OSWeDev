@@ -1,4 +1,4 @@
-// import VarDAGNode from '../../../../../../../server/modules/Var/vos/VarDAGNode';
+// import VarDAGNode from '../../../../../../..//modules/Var/vos/VarDAGNode';
 // import VarsController from "../../../../../../../shared/modules/Var/VarsController";
 // import LocaleManager from "../../../../../../../shared/tools/LocaleManager";
 

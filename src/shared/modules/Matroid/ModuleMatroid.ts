@@ -22,8 +22,6 @@ export default class ModuleMatroid extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {

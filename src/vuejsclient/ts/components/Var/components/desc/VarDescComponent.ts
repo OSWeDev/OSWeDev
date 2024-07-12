@@ -62,7 +62,7 @@ export default class VarDescComponent extends VueComponentBase {
             return false;
         }
 
-        let var_data = this.var_data;
+        const var_data = this.var_data;
 
         if ((!var_data) || (typeof var_data.value === 'undefined')) {
             return false;
@@ -75,7 +75,7 @@ export default class VarDescComponent extends VueComponentBase {
         if (!this.var_data_has_valid_value) {
             return false;
         }
-        let var_data = this.var_data;
+        const var_data = this.var_data;
 
         return var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
     }
@@ -138,16 +138,16 @@ export default class VarDescComponent extends VueComponentBase {
 
         VarsDatasExplorerFiltersComponent.instance.fitered_vars_confs = [VarsController.var_conf_by_id[this.var_param.var_id]];
 
-        let matroid_fields = MatroidController.getMatroidFields(this.var_param._type);
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        const matroid_fields = MatroidController.getMatroidFields(this.var_param._type);
+        for (const i in matroid_fields) {
+            const matroid_field = matroid_fields[i];
 
-            let field_value = this.var_param[matroid_field.field_id];
+            const field_value = this.var_param[matroid_field.field_id];
             if (VarsDatasExplorerFiltersComponent.instance.fields_filters_is_enum[matroid_field.field_id]) {
 
-                let field_options = [];
-                for (let j in VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id]) {
-                    let initial_option = VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id][j];
+                const field_options = [];
+                for (const j in VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id]) {
+                    const initial_option = VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id][j];
 
                     if (RangeHandler.elt_intersects_any_range(initial_option.id, field_value)) {
                         field_options.push(initial_option);
@@ -166,7 +166,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        let var_data = this.var_data;
+        const var_data = this.var_data;
 
         return Dates.format(var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
     }

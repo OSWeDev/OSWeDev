@@ -71,7 +71,7 @@ export default class PageSwitchWidgetComponent extends VueComponentBase {
 
         let options: PageSwitchWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
                 options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
             }

@@ -41,12 +41,12 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private is_ok_loging: boolean = false;
 
     private async mounted() {
-        let promises = [];
+        const promises = [];
         this.is_ok_loging = false;
 
         promises.push(this.load_logo_url());
 
-        for (let j in this.$route.query) {
+        for (const j in this.$route.query) {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
@@ -72,7 +72,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
         await all_promises(promises);
 
-        if (!!logged_id) {
+        if (logged_id) {
             window.location = this.redirect_to as any;
         }
     }
@@ -94,11 +94,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         this.is_ok_loging = true;
         this.has_error_form = false;
 
-        let self = this;
+        const self = this;
         self.snotify.async(self.label('login.start'), () =>
             new Promise(async (resolve, reject) => {
 
-                let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to);
+                const logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to);
 
                 if (!logged_id) {
                     self.password = "";

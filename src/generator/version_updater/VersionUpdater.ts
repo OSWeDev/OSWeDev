@@ -18,20 +18,20 @@ export default class VersionUpdater {
     /* istanbul ignore next: really difficult test depending on files */
     public async update_version() {
 
-        // if (!ConfigurationService.node_configuration.ACTIVATE_PWA) {
+        // if (!ConfigurationService.node_configuration.activate_pwa) {
         //     return;
         // }
 
-        let package_json_file = './package.json';
+        const package_json_file = './package.json';
         let package_json_content = await ModuleFileServer.getInstance().readFile(package_json_file);
 
         if (!package_json_content) {
             return null;
         }
 
-        let lines = package_json_content.split('\n');
-        for (let i in lines) {
-            let line = lines[i];
+        const lines = package_json_content.split('\n');
+        for (const i in lines) {
+            const line = lines[i];
 
             if (line.indexOf('"version": "') < 0) {
                 continue;

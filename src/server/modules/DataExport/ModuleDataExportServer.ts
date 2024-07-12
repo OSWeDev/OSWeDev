@@ -8,7 +8,11 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldController from '../../../shared/modules/DAO/ModuleTableFieldController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
 import FieldFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
@@ -26,16 +30,13 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -52,6 +53,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleTableFieldServerController from '../DAO/ModuleTableFieldServerController';
+import ModuleTableServerController from '../DAO/ModuleTableServerController';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -92,54 +95,54 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(ExportContextQueryToXLSXBGThread.getInstance());
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this, this.handleTriggerExportHistoricVOCreate);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exports'
         }, 'fields.labels.ref.module_data_export_export_log.___LABEL____user_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Echec de l\'export du fichier : %%VAR%%EXPORT_TYPE_ID%%"
         }, 'export.default_mail_error.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour télécharger le fichier exporté.'
         }, 'export.default_mail.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Veuillez refaire votre demande d'export et nous excuser pour la gène occasionnée. Si le probleme persiste n'hésitez pas à nous en alerter"
         }, 'export.default_mail_error.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Télécharger'
         }, 'export.default_mail.download'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de l\'exportation des données : si l\'erreur persiste merci de nous contacter.'
         }, 'exportation_failed.error_vars_loading.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export de données en cours...'
         }, 'DataExportBGThread.handleHistoric.start'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export de données terminé, vous devriez le recevoir par mail'
         }, 'DataExportBGThread.handleHistoric.success'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de l\'export de données'
         }, 'DataExportBGThread.handleHistoric.failed'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export en cours... vous recevrez un lien dans les notifications et par mail pour télécharger le fichier une fois l\'export terminé.'
         }, 'exportContextQueryToXLSX.starting.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Export terminé'
         }, 'exportContextQueryToXLSX.file_ready.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cette fonctionnalité est actuellement en maintenance. Elle sera de retour prochainement.'
         }, 'exportContextQueryToXLSX.maintenance.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Téléchargement de votre tableau'
         }, 'mails.export.dashboard.subject'));
     }
@@ -165,7 +168,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null): Promise<string> {
 
-        let filepath: string = await this.exportDataToXLSX_base(
+        const filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
             ordered_column_list,
@@ -194,7 +197,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<FileVO> {
 
-        let filepath: string = await this.exportDataToXLSX_base(
+        const filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
             ordered_column_list,
@@ -219,7 +222,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = is_secured;
-            let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -269,7 +272,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
         }
 
-        let export_query = ExportContextQueryToXLSXQueryVO.create_new(
+        const export_query = ExportContextQueryToXLSXQueryVO.create_new(
             filename,
             context_query,
             ordered_column_list,
@@ -415,28 +418,28 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         vars_indicator?: ExportVarIndicatorVO,
     ): Promise<void> {
 
-        let api_type_id = context_query.base_api_type_id;
-        let columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+        const api_type_id = context_query.base_api_type_id;
+        const columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO } = {};
 
-        for (let i in columns) {
-            let column = columns[i];
+        for (const i in columns) {
+            const column = columns[i];
             columns_by_field_id[column.datatable_field_uid] = column;
         }
 
-        let ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
-        let xlsx_datas = [];
-        let has_query_limit = !!context_query.query_limit;
-        let limit = has_query_limit ? context_query.query_limit : 25;
+        const ordered_promise_pipeline = new OrderedPromisePipeline(100, "do_exportContextQueryToXLSX_contextuid");
+        const xlsx_datas = [];
+        const has_query_limit = !!context_query.query_limit;
+        const limit = has_query_limit ? context_query.query_limit : 25;
         let offset = has_query_limit ? context_query.query_offset : 0;
 
-        let context_query_with_vars = context_query.clone();
+        const context_query_with_vars = context_query.clone();
         await ModuleVar.getInstance().add_vars_params_columns_for_ref_ids(context_query_with_vars, columns);
 
         /**
          * On commence par compter le nombre de datas à exporter, pour faire plus propre sur l'exportation
          */
         let nb_elts_to_export = limit;
-        let context_query_count = context_query_with_vars.clone();
+        const context_query_count = context_query_with_vars.clone();
 
         if (!has_query_limit) {
             nb_elts_to_export = await context_query_count.select_count();
@@ -446,15 +449,15 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         while (nb_elts_to_export > 0) {
 
-            let this_context_query = context_query_with_vars.clone();
-            let this_offset = offset;
-            let this_step_i = step_i;
+            const this_context_query = context_query_with_vars.clone();
+            const this_offset = offset;
+            const this_step_i = step_i;
 
             this_context_query.set_limit(limit, this_offset);
 
             // On doit aussi ajuster les sub_queries en jointure dans ce cas
-            for (let i in this_context_query.joined_context_queries) {
-                let joined_context_query = this_context_query.joined_context_queries[i];
+            for (const i in this_context_query.joined_context_queries) {
+                const joined_context_query = this_context_query.joined_context_queries[i];
 
                 if (!joined_context_query) {
                     continue;
@@ -473,12 +476,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             await ordered_promise_pipeline.push(async () => {
 
-                let datas = (this_context_query.fields?.length > 0) ?
+                const datas = (this_context_query.fields?.length > 0) ?
                     await ModuleContextFilter.getInstance().select_datatable_rows(this_context_query, columns_by_field_id, fields) :
                     await ModuleContextFilter.getInstance().select_vos(this_context_query);
 
-                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS) {
-                    for (let i in datas) {
+                if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_datas) {
+                    for (const i in datas) {
                         ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS:step_i:' + this_step_i + ':data_i:' + i + ':' + JSON.stringify(datas[i]));
                     }
                 }
@@ -487,14 +490,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     return null;
                 }
 
-                let datas_with_vars = await this.convert_varparamfields_to_vardatas(
+                const datas_with_vars = await this.convert_varparamfields_to_vardatas(
                     this_context_query,
                     datas,
                     columns,
                     custom_filters);
 
-                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS) {
-                    for (let i in datas_with_vars) {
+                if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_datas_with_vars) {
+                    for (const i in datas_with_vars) {
                         ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_DATAS_WITH_VARS:step_i:' + this_step_i + ':data_with_var_i:' + i + ':' + JSON.stringify(datas_with_vars[i]));
                     }
                 }
@@ -511,10 +514,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     return;
                 }
 
-                let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, this_context_query.fields?.length > 0);
+                const translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, this_context_query.fields?.length > 0);
 
-                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS) {
-                    for (let i in translated_datas) {
+                if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_translated_datas) {
+                    for (const i in translated_datas) {
                         ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_TRANSLATED_DATAS:step_i:' + this_step_i + ':translated_data_i:' + i + ':' + JSON.stringify(translated_datas[i]));
                     }
                 }
@@ -524,8 +527,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 // - Update to columns format (percent, toFixed etc...)
                 const this_xlsx_datas = await this.update_data_rows_to_xlsx_columns_format(translated_datas, columns);
 
-                if (ConfigurationService.node_configuration.DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS) {
-                    for (let i in this_xlsx_datas) {
+                if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_xlsx_datas) {
+                    for (const i in this_xlsx_datas) {
                         ConsoleHandler.log('DEBUG_EXPORT_CONTEXT_QUERY_TO_XLSX_XLSX_DATAS:step_i:' + this_step_i + ':xlsx_data_i:' + i + ':' + JSON.stringify(this_xlsx_datas[i]));
                     }
                 }
@@ -576,7 +579,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         // Final Excel file
-        let filepath: string = await this.export_data_to_multi_sheets_xlsx(
+        const filepath: string = await this.export_data_to_multi_sheets_xlsx(
             filename,
             sheets,
             api_type_id,
@@ -592,7 +595,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
 
         if (target_user_id) {
-            const fullpath = ConfigurationService.node_configuration.BASE_URL + filepath;
+            const fullpath = ConfigurationService.node_configuration.base_url + filepath;
 
             let SEND_IN_BLUE_TEMPLATE_ID: number = null;
 
@@ -618,7 +621,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await PushDataServerController.getInstance().notifyDownloadFile(
                 target_user_id,
                 null,
-                ConfigurationService.node_configuration.BASE_URL + filepath
+                ConfigurationService.node_configuration.base_url + filepath
             );
 
             const user: UserVO = await query(UserVO.API_TYPE_ID)
@@ -626,7 +629,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 .select_vo<UserVO>();
 
             // Send mail
-            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+            if (SEND_IN_BLUE_TEMPLATE_ID) {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -642,13 +645,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             } else {
 
                 // Using APP
-                let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ModuleDataExport.CODE_TEXT_MAIL_SUBJECT_export_dashboard);
-                let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+                const translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ModuleDataExport.CODE_TEXT_MAIL_SUBJECT_export_dashboard);
+                const translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
                 await ModuleMailerServer.getInstance().sendMail({
                     to: user.email,
                     subject: translated_mail_subject.translated,
                     html: await ModuleMailerServer.getInstance().prepareHTML(default_export_mail_html_template, user.lang_id, {
-                        FILE_URL: ConfigurationService.node_configuration.BASE_URL + filepath.substring(2, filepath.length)
+                        FILE_URL: ConfigurationService.node_configuration.base_url + filepath.substring(2, filepath.length)
                     })
                 });
             }
@@ -671,14 +674,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let res = cloneDeep(datas);
 
         if (!(context_query?.fields?.length > 0)) {
-            const table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            const table = ModuleTableController.module_tables_by_vo_type[context_query.base_api_type_id];
 
             for (const j in res) {
                 const data = res[j];
                 data._type = context_query.base_api_type_id;
             }
 
-            res = table.forceNumerics(res);
+            res = ModuleTableServerController.translate_vos_from_db(res);
 
             for (const i in res) {
                 const e = res[i];
@@ -688,16 +691,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return res;
         }
 
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max, 'ModuleDataExportServer.translate_context_query_fields_from_bdd');
-        for (let i in datas) {
-            let data = datas[i];
+        const max = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
+        const promise_pipeline = new PromisePipeline(max, 'ModuleDataExportServer.translate_context_query_fields_from_bdd');
+        for (const i in datas) {
+            const data = datas[i];
 
-            for (let j in context_query.fields) {
+            for (const j in context_query.fields) {
                 const field = context_query.fields[j];
 
                 await promise_pipeline.push(async () => {
-                    let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
+                    const table = ModuleTableController.module_tables_by_vo_type[field.api_type_id];
 
                     if (!table) {
                         // Probablement un field pour des chargement de var ?
@@ -705,19 +708,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     // cas spécifique de l'id
-                    if (field.field_id == 'id') {
+                    if (field.field_name == 'id') {
                         res[i][field.alias] = parseInt(data[field.alias]);
                         return;
                     }
 
-                    let table_field = table.get_field_by_id(field.field_id);
+                    const table_field = table.get_field_by_id(field.field_name);
 
                     if (!table_field) {
-                        ConsoleHandler.error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
+                        ConsoleHandler.error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_name + ':type:' + field.api_type_id + ':');
                         throw new Error('Unknown field');
                     }
 
-                    table.force_numeric_field(table_field, data, res[i], field.alias);
+                    ModuleTableFieldServerController.translate_field_from_db(table_field, data, res[i], field.alias);
 
                     res[i] = await this.field_to_xlsx(
                         table_field,
@@ -745,14 +748,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<FileVO> {
 
-        let datas: any[] = [];
-        let ordered_column_list: string[] = [];
-        let column_labels: { [field_name: string]: string } = {};
-        let modultable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+        const datas: any[] = [];
+        const ordered_column_list: string[] = [];
+        const column_labels: { [field_name: string]: string } = {};
+        const modultable = ModuleTableController.module_tables_by_vo_type[api_type_id];
         filename = filename ? filename : api_type_id + '.xlsx';
 
         if (!lang_id) {
-            let user = await ModuleAccessPolicyServer.getSelfUser();
+            const user = await ModuleAccessPolicyServer.getSelfUser();
             if (!user) {
                 ConsoleHandler.error('Une langue doit être définie pour l\'export XLSX');
                 return null;
@@ -760,26 +763,29 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             lang_id = user.lang_id;
         }
 
-        let vos = await query(api_type_id).select_vos();
-        for (let i in vos) {
-            let vo = this.get_xlsx_version(modultable, vos[i]);
+        const vos = await query(api_type_id).select_vos();
+        for (const i in vos) {
+            const vo = this.get_xlsx_version(modultable, vos[i]);
             if (vo) {
                 datas.push(vo);
             }
         }
-        let fields = modultable.get_fields();
-        for (let i in fields) {
-            let field = fields[i];
+        const fields = modultable.get_fields();
+        for (const i in fields) {
+            const field = fields[i];
             ordered_column_list.push(field.field_id);
 
-            let text = await ModuleTranslation.getInstance().getTranslatableText(field.field_label.code_text);
+            let label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[api_type_id] ?
+                ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[api_type_id][field.field_id] :
+                null;
+            const text = await ModuleTranslation.getInstance().getTranslatableText(label.code_text);
             if (!text) {
-                ConsoleHandler.error('Code texte de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Code texte de colonne introuvable:' + label.code_text);
                 continue;
             }
-            let translation = await ModuleTranslation.getInstance().getTranslation(lang_id, text.id);
+            const translation = await ModuleTranslation.getInstance().getTranslation(lang_id, text.id);
             if (!translation) {
-                ConsoleHandler.error('Traduction de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Traduction de colonne introuvable:' + label.code_text);
                 continue;
             }
             column_labels[field.field_id] = translation.translated;
@@ -790,7 +796,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         file_access_policy_name = file_access_policy_name ? file_access_policy_name : ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
 
-        let filepath: string = await this.exportDataToXLSX_base(
+        const filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
             ordered_column_list,
@@ -815,7 +821,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file.path = filepath;
             file.file_access_policy_name = file_access_policy_name;
             file.is_secured = true;
-            let res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
+            const res: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
             if ((!res) || (!res.id)) {
                 ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
                 return null;
@@ -845,46 +851,46 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // we need to make sure the name is suitable
         filename = filename.replace(/[^-._a-z0-9]/gi, '_');
 
-        let worksheet_columns = [];
-        for (let i in ordered_column_list) {
+        const worksheet_columns = [];
+        for (const i in ordered_column_list) {
             worksheet_columns.push({ wch: 25 });
         }
 
-        let workbook: WorkBook = XLSX.utils.book_new();
+        const workbook: WorkBook = XLSX.utils.book_new();
 
-        let ws_data = [];
+        const ws_data = [];
         let ws_row = [];
-        for (let i in ordered_column_list) {
-            let data_field_name: string = ordered_column_list[i];
-            let title: string = column_labels[data_field_name];
+        for (const i in ordered_column_list) {
+            const data_field_name: string = ordered_column_list[i];
+            const title: string = column_labels[data_field_name];
 
             ws_row.push(title);
         }
         ws_data.push(ws_row);
 
-        for (let r in datas) {
-            let row_data = datas[r];
+        for (const r in datas) {
+            const row_data = datas[r];
             ws_row = [];
 
-            for (let i in ordered_column_list) {
-                let data_field_name: string = ordered_column_list[i];
-                let data = row_data[data_field_name];
+            for (const i in ordered_column_list) {
+                const data_field_name: string = ordered_column_list[i];
+                const data = row_data[data_field_name];
 
                 ws_row.push(data);
             }
             ws_data.push(ws_row);
         }
 
-        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
         XLSX.utils.book_append_sheet(workbook, ws, "Datas");
 
-        let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
+        const filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
 
         // On log l'export
-        if (!!user_log_id) {
+        if (user_log_id) {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id ? api_type_id : 'N/A',
@@ -929,7 +935,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
-                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id },
+                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_name },
                     // TODO: get page id from to get the right translation
                 );
 
@@ -974,16 +980,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         };
 
         const current_active_field_filters: FieldFiltersVO = cloneDeep(active_field_filters);
-        const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         const promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.create_vars_indicator_xlsx_sheet');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
 
-        for (let var_name in vars_indicator.varcolumn_conf) {
+        for (const var_name in vars_indicator.varcolumn_conf) {
 
             const varcolumn_conf = vars_indicator.varcolumn_conf[var_name];
 
-            let this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+            const this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
             let filter_additional_params = null;
 
             if (has_errors) {
@@ -1023,7 +1029,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 /**
                  * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
                  */
-                let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                const var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.var_conf_by_id[varcolumn_conf.var_id].name,
                     current_active_field_filters,
                     this_custom_filters,
@@ -1043,7 +1049,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 try {
 
-                    let var_data = await VarsServerCallBackSubsController.get_var_data(
+                    const var_data = await VarsServerCallBackSubsController.get_var_data(
                         var_param.index);
                     let value = var_data ? var_data.value : null;
                     let format: XlsxCellFormatByFilterType = null;
@@ -1096,7 +1102,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<string> {
 
-        let filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
+        const filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
             filename,
             sheets,
             api_type_id,
@@ -1122,7 +1128,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<FileVO> {
 
-        let filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
+        const filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
             filename,
             sheets,
             api_type_id,
@@ -1177,19 +1183,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         ConsoleHandler.log('EXPORT : ' + filename);
-        let workbook: WorkBook = XLSX.utils.book_new();
+        const workbook: WorkBook = XLSX.utils.book_new();
 
         // For each sheet that we want to export
-        for (let sheeti in sheets) {
-            let sheet = sheets[sheeti];
+        for (const sheeti in sheets) {
+            const sheet = sheets[sheeti];
 
-            let ws_formats: { [cell: string]: string } = {};
-            let ws_data = [];
+            const ws_formats: { [cell: string]: string } = {};
+            const ws_data = [];
             let ws_row = [];
 
             // We create the sheet
             const worksheet_columns = [];
-            for (let i in sheet.ordered_column_list) {
+            for (const i in sheet.ordered_column_list) {
 
                 // Add worksheet columns list width
                 worksheet_columns.push({ wch: 25 });
@@ -1258,13 +1264,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             );
         }
 
-        let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
+        const filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_log_id: number = ModuleAccessPolicyServer.getLoggedUserId();
 
         // On log l'export
-        if (!!user_log_id) {
+        if (user_log_id) {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id,
@@ -1289,13 +1295,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTable<any>, e: T): Promise<any> {
+    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO, e: T): Promise<any> {
         if (!e) {
             return null;
         }
 
-        let res = {};
-        let fields = module_table.get_fields();
+        const res = {};
+        const fields = module_table.get_fields();
 
         if (!fields) {
             return cloneDeep(e);
@@ -1303,9 +1309,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         res['_type'] = e._type;
         res['id'] = e.id;
-        let promises = [];
-        for (let i in fields) {
-            let field = fields[i];
+        const promises = [];
+        for (const i in fields) {
+            const field = fields[i];
 
             promises.push(this.field_to_xlsx(field, e, res));
         }
@@ -1323,34 +1329,26 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
     private async field_to_xlsx(
-        field: ModuleTableField<any>,
+        field: ModuleTableFieldVO,
         src_vo: any,
         dest_vo: any,
         field_alias: string = null,
         use_raw_field: boolean = false
     ): Promise<any> {
 
-        let src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
-        let dest_field_id = (field_alias ? field_alias : field.field_id);
-
-        /**
-         * Si le champ possible un custom_to_api
-         */
-        if (!!field.custom_translate_to_xlsx) {
-            dest_vo[dest_field_id] = field.custom_translate_to_xlsx(src_vo[src_field_id]);
-            return;
-        }
+        const src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
+        const dest_field_id = (field_alias ? field_alias : field.field_id);
 
         switch (field.field_type) {
 
             // TODO FIXME  export des ranges dans xlsx à réfléchir...
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                let tab_tstzrange_array = src_vo[src_field_id];
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+                const tab_tstzrange_array = src_vo[src_field_id];
                 dest_vo[dest_field_id] = '';
 
-                for (let i in tab_tstzrange_array) {
-                    let range = tab_tstzrange_array[i];
+                for (const i in tab_tstzrange_array) {
+                    const range = tab_tstzrange_array[i];
                     if (range) {
 
                         if (dest_vo[dest_field_id] != '') {
@@ -1361,7 +1359,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
                 }
                 break;
-            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 const _src_field_id = (field_alias ? field_alias : field.field_id);
 
                 // Many to Many relation: we need to get the related vo
@@ -1369,8 +1367,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 const vo_field = src_vo[_src_field_id];
                 dest_vo[dest_field_id] = '';
 
-                for (let i in vo_field) {
-                    let related_vo = vo_field[i];
+                for (const i in vo_field) {
+                    const related_vo = vo_field[i];
                     if (!related_vo) {
                         continue;
                     }
@@ -1384,14 +1382,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-                let tab = src_vo[src_field_id];
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_isoweekdays:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                const tab = src_vo[src_field_id];
                 dest_vo[dest_field_id] = '';
 
-                for (let i in tab) {
-                    let range = tab[i];
+                for (const i in tab) {
+                    const range = tab[i];
                     if (range) {
 
                         if (dest_vo[dest_field_id] != '') {
@@ -1410,18 +1408,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 dest_vo[dest_field_id] = Dates.format_segment(
                     RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
                     Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset), src_vo[src_field_id].segment_type);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
                 dest_vo[dest_field_id] = RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type, field.max_range_offset);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
 
                 if (field instanceof DatatableField) {
                     dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
@@ -1435,7 +1433,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 break;
 
-            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
                 if (field instanceof DatatableField) {
                     dest_vo[dest_field_id] = field.dataToReadIHM(src_vo[src_field_id], src_vo);
                 } else if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
@@ -1450,31 +1448,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
                 delete dest_vo[dest_field_id];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_enum:
-                let user = await ModuleAccessPolicy.getInstance().getSelfUser();
-                let trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq('code_text', field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_num_in('lang_id', query(UserVO.API_TYPE_ID).field('lang_id').filter_by_id(user.id))
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
+                const user = await ModuleAccessPolicy.getInstance().getSelfUser();
+                const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(user.id))
                     .select_vos();
-                let trad = trads ? trads[0] : null;
+                const trad = trads ? trads[0] : null;
                 dest_vo[dest_field_id] = trad ? trad.translated : null;
                 break;
 
 
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_color:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_image_field:
+            case ModuleTableFieldVO.FIELD_TYPE_html:
+            case ModuleTableFieldVO.FIELD_TYPE_textarea:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
+            case ModuleTableFieldVO.FIELD_TYPE_translatable_text:
+            case ModuleTableFieldVO.FIELD_TYPE_password:
+            case ModuleTableFieldVO.FIELD_TYPE_file_field:
+            case ModuleTableFieldVO.FIELD_TYPE_image_field:
                 /**
                  * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
                  */
@@ -1485,17 +1482,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
                 break;
 
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_file_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_image_ref:
+            case ModuleTableFieldVO.FIELD_TYPE_foreign_key:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableFieldVO.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_hour:
             default:
                 dest_vo[dest_field_id] = src_vo[src_field_id];
         }
@@ -1518,12 +1515,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
     ) {
 
-        const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
         const promise_pipeline = new PromisePipeline(max_connections_to_use, 'ModuleDataExportServer.update_custom_fields');
-        let cpt_custom_field_translatable_name: { [custom_field_translatable_name: string]: number } = {};
+        const cpt_custom_field_translatable_name: { [custom_field_translatable_name: string]: number } = {};
 
-        for (let field_id in exportable_datatable_custom_field_columns) {
-            let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
+        for (const field_id in exportable_datatable_custom_field_columns) {
+            const custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
 
             let cb = TableWidgetManager.custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
 
@@ -1534,12 +1531,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             cpt_custom_field_translatable_name[custom_field_translatable_name] = 1;
 
             for (const key_i in datas) {
-                let data = datas[key_i];
+                const data = datas[key_i];
 
                 await promise_pipeline.push(async () => {
                     data[field_id] = await cb(data, active_field_filters, active_api_type_ids, columns_by_field_id[field_id]);
 
-                    if (ConfigurationService.node_configuration.DEBUG_EXPORTS) {
+                    if (ConfigurationService.node_configuration.debug_exports) {
                         ConsoleHandler.log('update_custom_fields :: ' + custom_field_translatable_name + ' :: ' + cpt_custom_field_translatable_name[custom_field_translatable_name] + '/' + datas.length);
                     }
 
@@ -1580,7 +1577,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             }
 
             for (const row_key in xlsx_datas) {
-                let row = xlsx_datas[row_key];
+                const row = xlsx_datas[row_key];
 
                 if (row[column.datatable_field_uid] == null) {
                     continue;
@@ -1646,12 +1643,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     //     // May be better to not alter the original data rows
     //     let rows: IDistantVOBase[] = cloneDeep(datatable_rows);
 
-    //     let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+    //     let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
     //     let promise_pipeline = new PromisePipeline(limit);
     //     let debug_uid: number = 0;
     //     let has_errors: boolean = false;
 
-    //     if (ConfigurationService.node_configuration.DEBUG_add_var_columns_values_for_xlsx_datas) {
+    //     if (ConfigurationService.node_configuration.debug_add_var_columns_values_for_xlsx_datas) {
     //         ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
     //     }
     //     for (let j in rows) {
@@ -1662,7 +1659,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     //             break;
     //         }
 
-    //         if (ConfigurationService.node_configuration.DEBUG_add_var_columns_values_for_xlsx_datas) {
+    //         if (ConfigurationService.node_configuration.debug_add_var_columns_values_for_xlsx_datas) {
     //             ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:row:' + data_n + '/' + rows.length);
     //         }
 
@@ -1800,34 +1797,34 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ): Promise<IDistantVOBase[]> {
 
         // May be better to not alter the original data rows
-        let rows: IDistantVOBase[] = cloneDeep(datatable_rows);
+        const rows: IDistantVOBase[] = cloneDeep(datatable_rows);
 
-        let limit = 20000; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.convert_varparamfields_to_vardatas');
+        const limit = 20000; //Math.max(1, Math.floor(ConfigurationService.node_configuration.max_pool / 2));
+        const promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.convert_varparamfields_to_vardatas');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
-        let module_var = ModuleVar.getInstance();
+        const module_var = ModuleVar.getInstance();
 
-        let limit_nb_ts_ranges_on_param_by_context_filter: number = await ModuleVarServer.getInstance().get_limit_nb_ts_ranges_on_param_by_context_filter();
+        const limit_nb_ts_ranges_on_param_by_context_filter: number = await ModuleVarServer.getInstance().get_limit_nb_ts_ranges_on_param_by_context_filter();
 
-        if (ConfigurationService.node_configuration.DEBUG_convert_varparamfields_to_vardatas) {
+        if (ConfigurationService.node_configuration.debug_convert_varparamfields_to_vardatas) {
             ConsoleHandler.log('convert_varparamfields_to_vardatas:nb rows:' + rows.length);
         }
 
-        for (let j in rows) {
-            let row = rows[j];
-            let data_n: number = parseInt(j) + 1;
+        for (const j in rows) {
+            const row = rows[j];
+            const data_n: number = parseInt(j) + 1;
 
             if (has_errors) {
                 break;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_convert_varparamfields_to_vardatas) {
+            if (ConfigurationService.node_configuration.debug_convert_varparamfields_to_vardatas) {
                 ConsoleHandler.log('convert_varparamfields_to_vardatas:row:' + data_n + '/' + rows.length);
             }
 
-            for (let i in columns) {
-                let column = columns[i];
+            for (const i in columns) {
+                const column = columns[i];
 
                 if (has_errors) {
                     break;
@@ -1864,7 +1861,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     /**
                      * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
                      */
-                    let var_param: VarDataBaseVO = module_var.getVarParamFromDataRow(
+                    const var_param: VarDataBaseVO = module_var.getVarParamFromDataRow(
                         row,
                         column,
                         this_custom_filters,
@@ -1877,7 +1874,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                     try {
 
-                        let var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
+                        const var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
                         row[column.datatable_field_uid] = var_data?.value ?? null;
                     } catch (error) {
                         ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
@@ -1887,7 +1884,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                          */
                         try {
 
-                            let var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
+                            const var_data = await VarsServerCallBackSubsController.get_var_data(var_param.index);
                             row[column.datatable_field_uid] = var_data?.value ?? null;
                         } catch (error) {
                             ConsoleHandler.error('convert_varparamfields_to_vardatas:FAILED 2 get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);

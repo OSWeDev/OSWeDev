@@ -1,7 +1,6 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import ModuleTableController from '../../ModuleTableController';
 
 export default class Datatable<T extends IDistantVOBase> {
 
@@ -25,13 +24,15 @@ export default class Datatable<T extends IDistantVOBase> {
 
     public getFieldByDatatableFieldUID(datatable_field_uid: string): DatatableField<any, any> {
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (const i in this.fields) {
+            const field = this.fields[i];
 
             if (field.datatable_field_uid == datatable_field_uid) {
                 return field;
             }
         }
+
+        return null;
     }
 
     public set_conditional_show(conditional_show: (dataVO: IDistantVOBase) => boolean): Datatable<T> {
@@ -49,7 +50,7 @@ export default class Datatable<T extends IDistantVOBase> {
     public unshiftField(field: DatatableField<any, any>) {
         // Si la table est pas encore liée à ce stade on prend la table liée au datatable
         if (!field.vo_type_full_name) {
-            field.setModuleTable(VOsTypesManager.moduleTables_by_voType[this.API_TYPE_ID]);
+            field.setModuleTable(ModuleTableController.module_tables_by_vo_type[this.API_TYPE_ID]);
         }
         this.sortedFields.unshift(field);
     }
@@ -57,17 +58,17 @@ export default class Datatable<T extends IDistantVOBase> {
     public pushField(field: DatatableField<any, any>) {
         // Si la table est pas encore liée à ce stade on prend la table liée au datatable
         if (!field.vo_type_full_name) {
-            field.setModuleTable(VOsTypesManager.moduleTables_by_voType[this.API_TYPE_ID]);
+            field.setModuleTable(ModuleTableController.module_tables_by_vo_type[this.API_TYPE_ID]);
         }
         this.sortedFields.push(field);
     }
 
     public removeFields(module_table_field_ids: string[]) {
 
-        let fields: Array<DatatableField<any, any>> = [];
+        const fields: Array<DatatableField<any, any>> = [];
 
-        for (let i in this.fields) {
-            let field: DatatableField<any, any> = this.sortedFields[i];
+        for (const i in this.fields) {
+            const field: DatatableField<any, any> = this.sortedFields[i];
 
             if (module_table_field_ids.indexOf(field.module_table_field_id) < 0) {
                 fields.push(field);

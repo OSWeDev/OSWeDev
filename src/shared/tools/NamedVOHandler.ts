@@ -45,9 +45,9 @@ export default class NamedVOHandler {
     }
 
     public getNamesList(vos: INamedVO[]): string[] {
-        let res: string[] = [];
+        const res: string[] = [];
 
-        for (let i in vos) {
+        for (const i in vos) {
             if ((!vos[i]) || (!vos[i].name)) {
                 continue;
             }
@@ -62,7 +62,7 @@ export default class NamedVOHandler {
             return null;
         }
 
-        for (let i in vos) {
+        for (const i in vos) {
             if (!vos[i]) {
                 continue;
             }

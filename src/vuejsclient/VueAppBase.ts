@@ -27,13 +27,13 @@ import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 import Module from '../shared/modules/Module';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from "../shared/modules/Stats/StatsController";
-import VOsTypesManager from "../shared/modules/VO/manager/VOsTypesManager";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -85,7 +85,7 @@ export default abstract class VueAppBase {
 
     protected constructor(
         public appController: VueAppController,
-        private initializeModulesDatas: () => {}
+        private initializeModulesDatas: () => Promise<unknown>,
     ) {
         VueAppBase.instance_ = this;
     }
@@ -99,11 +99,11 @@ export default abstract class VueAppBase {
 
         DatatableField.VueAppBase = this;
 
-        let self = this;
+        const self = this;
         let promises = [];
 
         Vue.config.devtools = false;
-        if (EnvHandler.IS_DEV) {
+        if (EnvHandler.is_dev) {
             Vue.config.devtools = true;
         }
 
@@ -121,20 +121,20 @@ export default abstract class VueAppBase {
         /**
          * On ajoute tous les types aux DBB
          */
-        let types = Object.keys(VOsTypesManager.moduleTables_by_voType);
+        const types = Object.keys(ModuleTableController.module_tables_by_vo_type);
         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
         types.forEach((type) =>
-            DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
+            DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null,
         );
 
         const modules_by_name = ModulesManager.getInstance().modules_by_name;
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];
-        for (let module_name in modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+        for (const module_name in modules_by_name) {
+            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
-                VueModuleBase.IVueModuleRoleName
+                VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
 
             /**
@@ -143,7 +143,7 @@ export default abstract class VueAppBase {
             if (module_?.policies_needed?.length > 0) {
                 promises.push((async () => {
 
-                    let local_promises = [];
+                    const local_promises = [];
 
                     for (const j in module_.policies_needed) {
                         const policy_name = module_.policies_needed[j];
@@ -160,10 +160,10 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         // On lance les initializeAsync des modules Vue
-        for (let module_name in modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+        for (const module_name in modules_by_name) {
+            const module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
                 module_name,
-                VueModuleBase.IVueModuleRoleName
+                VueModuleBase.IVueModuleRoleName,
             ) as VueModuleBase;
 
             if (module_) {
@@ -177,13 +177,14 @@ export default abstract class VueAppBase {
 
         ConsoleLogLogger.getInstance().prepare_console_logger();
 
-        let default_locale = LocaleManager.getInstance().getDefaultLocale();
+        const default_locale = LocaleManager.getInstance().getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
 
         // Vue.config.errorHandler = function (err, vm, info) {
         //     if (err.message.includes("Failed to fetch dynamically imported module")) {
-        //         window.location.reload(true); // force reload to bypass cache
+        //         ConsoleHandler.error(err + " - " + info + " - Reloading page");
+        //         window.location.reload();
         //     }
         // };
 
@@ -200,10 +201,10 @@ export default abstract class VueAppBase {
             missing: (locale, key, vm) => {
                 VueAppController.getInstance().throttled_register_translation({
                     translation_code: key,
-                    missing: true
+                    missing: true,
                 });
             },
-            silentTranslationWarn: true
+            silentTranslationWarn: true,
         });
         // TODO : il faudrait probablement forcer ce param côté client non ? LocaleManager.getInstance().i18n.nsSeparator = '¤';
         Vue.config['lang'] = default_locale;
@@ -213,17 +214,17 @@ export default abstract class VueAppBase {
         Vue['http'].interceptors.push(
             function (request, next) {
                 request.xhr = {
-                    withCredentials: true
+                    withCredentials: true,
                 };
                 next();
-            }
+            },
         );
 
         // Vu avec MDE -> on laisse le script en load public pour le moment sinon il faut faire la modification dans tous les projets
         const fontawesome = document.createElement("script");
         fontawesome.setAttribute(
             "src",
-            "//kit.fontawesome.com/26085407f2.js"
+            "//kit.fontawesome.com/26085407f2.js",
         );
         document.head.appendChild(fontawesome);
 
@@ -240,7 +241,7 @@ export default abstract class VueAppBase {
             },
             write: (value) => {
                 return value.toString().replace("h", ".");
-            }
+            },
         } as any);
 
         Vue.filter('hourCalcul', {
@@ -249,7 +250,7 @@ export default abstract class VueAppBase {
                     return value;
                 }
 
-                var hourSplit = value.toString().split(".");
+                const hourSplit = value.toString().split(".");
 
                 if (hourSplit[1] != null) {
                     hourSplit[1] = Math.round((value - parseInt(hourSplit[0])) * 60);
@@ -261,11 +262,11 @@ export default abstract class VueAppBase {
             },
             write: (value) => {
                 return value.toString().replace("h", ".");
-            }
+            },
         } as any);
 
-        var routerOptions: RouterOptions = {
-            linkActiveClass: "active"
+        const routerOptions: RouterOptions = {
+            linkActiveClass: "active",
         };
 
         /* Test suppression baseApiUrl var normalMode = baseApiUrl == '';
@@ -275,12 +276,12 @@ export default abstract class VueAppBase {
         //}
 
         let routerRoutes: RouteConfig[] = [];
-        let moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
+        const moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();
 
-        for (let i in moduleWrappersByName) {
-            let moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
-            let module: Module = moduleWrapper.getModuleComponentByRole(Module.SharedModuleRoleName) as Module;
-            let vueModule: IVueModule = moduleWrapper.getModuleComponentByRole(VueModuleBase.IVueModuleRoleName) as IVueModule;
+        for (const i in moduleWrappersByName) {
+            const moduleWrapper: ModuleWrapper = moduleWrappersByName[i];
+            const module: Module = moduleWrapper.getModuleComponentByRole(Module.SharedModuleRoleName) as Module;
+            const vueModule: IVueModule = moduleWrapper.getModuleComponentByRole(VueModuleBase.IVueModuleRoleName) as IVueModule;
 
             if (module && module.actif && vueModule && vueModule.routes && (vueModule.routes.length > 0)) {
                 routerRoutes = routerRoutes.concat(vueModule.routes);
@@ -290,8 +291,8 @@ export default abstract class VueAppBase {
         routerOptions.routes = routerRoutes;
 
         let hasHome: boolean = false;
-        for (let i in routerOptions.routes) {
-            let route = routerOptions.routes[i];
+        for (const i in routerOptions.routes) {
+            const route = routerOptions.routes[i];
             if (route.path == "/") {
                 hasHome = true;
             }
@@ -300,14 +301,14 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent')
+                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent'),
             });
         }
 
         routerOptions.routes.push({
             path: '/me',
             name: 'MyAccount',
-            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent'),
         });
 
         routerOptions.routes.push({
@@ -316,13 +317,13 @@ export default abstract class VueAppBase {
             component: () => import('./ts/components/action_url_cr/ActionURLCRComponent'),
             props: (route) => ({
                 action_url_id: route.params.action_url_id,
-            })
+            }),
         });
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: () => import('./ts/components/Error404/component/Error404Component')
+            component: () => import('./ts/components/Error404/component/Error404Component'),
         });
 
         this.vueRouter = new VueRouter(routerOptions);
@@ -331,10 +332,10 @@ export default abstract class VueAppBase {
         let time_in_router: number = 0;
 
         function afterEachTransitionHandler(transition) {
-            let app: Vue = self.vueRouter.app;
+            const app: Vue = self.vueRouter.app;
 
-            if (!!time_in_router) {
-                let time = Dates.now_ms() - time_in_router;
+            if (time_in_router) {
+                const time = Dates.now_ms() - time_in_router;
                 time_in_router = 0;
                 StatsController.register_stat_DUREE('Vue_router', 'afterEachTransitionHandler', transition.name, time);
             }
@@ -348,7 +349,7 @@ export default abstract class VueAppBase {
                 return;
             }
 
-            var params = transition ? (transition.params || {}) : {};
+            const params = transition ? (transition.params || {}) : {};
 
             if (app['setPerimeter']) {
                 app['setPerimeter'](params.store_id, params.goal_id);
@@ -358,7 +359,7 @@ export default abstract class VueAppBase {
             }
         }
 
-        let code_google_analytics: string = EnvHandler.CODE_GOOGLE_ANALYTICS;
+        const code_google_analytics: string = EnvHandler.code_google_analytics;
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
@@ -373,7 +374,7 @@ export default abstract class VueAppBase {
                 route.name,
                 route.fullPath,
                 route.fullPath,
-                code_google_analytics
+                code_google_analytics,
             );
 
             if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
@@ -381,7 +382,7 @@ export default abstract class VueAppBase {
             }
             VueAppController.getInstance().routes_log.push(route);
 
-            let app: VueComponentBase = self.vueRouter.app as VueComponentBase;
+            const app: VueComponentBase = self.vueRouter.app as VueComponentBase;
 
             // Desactivation du bouton print
             AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_DISABLE');
@@ -405,7 +406,7 @@ export default abstract class VueAppBase {
                     document.body.className = document.body.className.replace(/ sidebar-collaps[^ ]+/ig, '');
                 }
                 document.body.className += " sidebar-collapse";
-            } else { }
+            }
 
             if (route.name && (route.name != 'home')) {
                 document.body.className += " page-" + route.name;
@@ -418,6 +419,20 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
+        // Nouvelle tentative d'intercepter les erreurs de navigation et de reload la page dans ce cas
+        const wrapped_vue_router_push = this.vueRouter.push.bind(this.vueRouter);
+        this.vueRouter.push = (location, onComplete?, onAbort?) => {
+            try {
+                wrapped_vue_router_push(location, onComplete, onAbort);
+            } catch (error) {
+
+                if (error.message.includes("Failed to fetch dynamically imported module")) {
+                    ConsoleHandler.error(error + " - Reloading page");
+                    window.location.reload();
+                }
+            }
+        };
+
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
         Vue.use(VueRouter);
@@ -428,7 +443,7 @@ export default abstract class VueAppBase {
         // Use v-calendar, v-date-picker & v-popover components
         Vue.use(VCalendar, {
             firstDayOfWeek: 2,
-            locale: default_locale
+            locale: default_locale,
         });
 
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
@@ -448,6 +463,9 @@ export default abstract class VueAppBase {
         // Vue.component('var-bar-chart', () => import('./ts/components/Var/components/databarchart/VarDataBarChartComponent'));
         Vue.component('vars-bar-chart', () => import('./ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
         Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
+        Vue.component('var-choropleth-chart', () => import('./ts/components/Var/components/choropleth-chart/VarChoroplethChartComponent'));
+        Vue.component('var-mixed-charts', () => import('./ts/components/Var/components/mixed-chart/VarMixedChartComponent'));
+        Vue.component('var-radar-chart', () => import('./ts/components/Var/components/radar-chart/VarRadarChartComponent'));
         Vue.component('Resizableimg', () => import('./ts/components/resizable_img/ResizableImageComponent'));
         Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
@@ -468,7 +486,7 @@ export default abstract class VueAppBase {
         AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
 
         // On applique un zoom auto si param à TRUE
-        // if (EnvHandler.ZOOM_AUTO) {
+        // if (EnvHandler.zoom_auto) {
         //     let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
 
         //     if (zoom <= 1) {
@@ -481,13 +499,13 @@ export default abstract class VueAppBase {
 
         await this.postMountHook();
 
-        let app_name: "client" | "admin" | "login" = this.appController.app_name;
+        const app_name: "client" | "admin" | "login" = this.appController.app_name;
 
-        if (EnvHandler.ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
+        if (EnvHandler.activate_pwa && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
                 $,
                 app_name,
-                '/public/client-sw.' + EnvHandler.VERSION + '.js'
+                '/public/client-sw.' + EnvHandler.version + '.js',
             );
         }
         // this.registerPushWorker();
@@ -497,15 +515,15 @@ export default abstract class VueAppBase {
         }
 
         window.onbeforeunload = (e) => {
-            var e = e || window.event;
+            e = e || window.event;
 
             // ConsoleHandler.log('onbeforeunload');
 
-            var needsSaving = false;
+            let needsSaving = false;
 
             if (self.vueRouter && self.vueRouter.app && self.vueRouter.app.$children) {
-                for (var i in self.vueRouter.app.$children) {
-                    var component = self.vueRouter.app.$children[i];
+                for (const i in self.vueRouter.app.$children) {
+                    const component = self.vueRouter.app.$children[i];
                     if (component && component['needSaving']) {
                         needsSaving = true;
                     }
@@ -513,7 +531,7 @@ export default abstract class VueAppBase {
             }
 
             if (needsSaving) {
-                var message = "Editing is not saved";
+                const message = "Editing is not saved";
                 // For IE and Firefox
                 if (e) {
                     e.returnValue = message;
@@ -535,9 +553,9 @@ export default abstract class VueAppBase {
 
     protected async unregisterVarsBeforeUnload() {
         if (VarsClientController.registered_var_params) {
-            let params: VarDataBaseVO[] = [];
-            for (let i in VarsClientController.registered_var_params) {
-                let wrapper = VarsClientController.registered_var_params[i];
+            const params: VarDataBaseVO[] = [];
+            for (const i in VarsClientController.registered_var_params) {
+                const wrapper = VarsClientController.registered_var_params[i];
                 params.push(wrapper.var_param);
             }
             if (params.length) {

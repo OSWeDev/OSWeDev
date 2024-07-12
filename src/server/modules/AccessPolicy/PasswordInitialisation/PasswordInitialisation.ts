@@ -42,7 +42,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd(email: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -57,7 +57,7 @@ export default class PasswordInitialisation {
 
     public async begininitpwd_uid(uid: number): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
             return false;
@@ -74,11 +74,11 @@ export default class PasswordInitialisation {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
-        let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+        const SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
         // Send mail
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+        if (SEND_IN_BLUE_TEMPLATE_ID) {
 
             // Using SendInBlue
             await SendInBlueMailServerController.getInstance().sendWithTemplate(
@@ -94,7 +94,7 @@ export default class PasswordInitialisation {
         } else {
 
             // Using APP
-            let translated_mail_subject: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+            const translated_mail_subject: TranslationVO = await query(TranslationVO.API_TYPE_ID)
                 .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordInitialisation.CODE_TEXT_MAIL_SUBJECT_initpwd, TranslatableTextVO.API_TYPE_ID)
                 .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
             await ModuleMailerServer.getInstance().sendMail({
@@ -116,7 +116,7 @@ export default class PasswordInitialisation {
             return;
         }
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+        const user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -134,8 +134,8 @@ export default class PasswordInitialisation {
 
         phone = phone.replace(' ', '');
 
-        let lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-        let translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+        const lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
+        const translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordInitialisation.CODE_TEXT_SMS_initpwd, TranslatableTextVO.API_TYPE_ID)
             .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
 

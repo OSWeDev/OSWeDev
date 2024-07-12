@@ -1,18 +1,19 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
+import ParamVO from './vos/ParamVO';
 import GetParamParamAsBooleanVO, { GetParamParamAsBooleanVOStatic } from './vos/apis/GetParamParamAsBooleanVO';
 import GetParamParamAsNumberVO, { GetParamParamAsNumberVOStatic } from './vos/apis/GetParamParamAsNumberVO';
 import GetParamParamAsStringVO, { GetParamParamAsStringVOStatic } from './vos/apis/GetParamParamAsStringVO';
 import SetParamParamVO, { SetParamParamVOStatic } from './vos/apis/SetParamParamVO';
-import ParamVO from './vos/ParamVO';
 
 export default class ModuleParams extends Module {
 
@@ -125,17 +126,14 @@ export default class ModuleParams extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
-        let datatable_fields = [
+        const label_field = ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        const datatable_fields = [
             label_field,
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_string, 'Valeur', false),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
+            ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', false),
+            ModuleTableFieldController.create_new(ParamVO.API_TYPE_ID, field_names<ParamVO>().last_up_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière mise à jour', false)
         ];
 
-        this.datatables.push(new ModuleTable(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
+        ModuleTableController.create_new(this.name, ParamVO, label_field, "Params");
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {

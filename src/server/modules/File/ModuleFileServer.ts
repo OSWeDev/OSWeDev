@@ -6,7 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -21,18 +21,19 @@ import ModuleFileServerBase from './ModuleFileServerBase';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
+
+    private static instance: ModuleFileServer = null;
+
+    protected constructor() {
+        super('/ModuleFileServer/upload', ModuleFile.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFileServer {
         if (!ModuleFileServer.instance) {
             ModuleFileServer.instance = new ModuleFileServer();
         }
         return ModuleFileServer.instance;
-    }
-
-    private static instance: ModuleFileServer = null;
-
-    protected constructor() {
-        super('/ModuleFileServer/upload', ModuleFile.getInstance().name);
     }
 
     /**
@@ -42,7 +43,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleFile.POLICY_GROUP;
-        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Fichiers'
         }));
 
@@ -50,7 +51,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleFile.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration des fichiers'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -64,55 +65,55 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     public async configure() {
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Fichier introuvable : {file_id}' },
             'file_datatable_field.introuvable.___LABEL___'
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Télécharger' },
             'file_datatable_field.download.___LABEL___'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Fichiers' },
             'menu.menuelements.admin.file.___LABEL___'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Chemin' },
             'fields.labels.ref.module_file_file.path.file___path.___LABEL___'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
             'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Année' },
             'archive_files_conf.FILTER_TYPE.YEAR'
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Mois' },
             'archive_files_conf.FILTER_TYPE.MONTH'
         ));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Jour' },
             'archive_files_conf.FILTER_TYPE.DAY'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Supprimer' },
             'file.trash.___LABEL___'
         ));
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf);
         preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf_update);
     }
@@ -135,12 +136,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     }
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
-        let uid = ModuleAccessPolicyServer.getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid = ModuleAccessPolicyServer.getLoggedUserId();
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {
 
-            if (!!uid) {
+            if (uid) {
                 await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
             }
             return false;
@@ -152,14 +153,14 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
              */
 
             if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
-                if (!!uid) {
+                if (uid) {
                     await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
 
-            let new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
-            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
+            const new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
+            const new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
             await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
             await ModuleFileServer.getInstance().moveFile(f.path, new_folder);
@@ -173,14 +174,14 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
              */
 
             if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
-                if (!!uid) {
+                if (uid) {
                     await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
 
-            let new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
-            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
+            const new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
+            const new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
             await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
             await ModuleFileServer.getInstance().moveFile(f.path, new_folder);

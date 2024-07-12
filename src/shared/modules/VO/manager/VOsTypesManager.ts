@@ -1,9 +1,10 @@
-import ObjectHandler from '../../../tools/ObjectHandler';
-import Dates from '../../FormatDatesNombres/Dates/Dates';
-import ModuleTableField from '../../ModuleTableField';
 import INamedVO from '../../../interfaces/INamedVO';
+import ObjectHandler from '../../../tools/ObjectHandler';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../DAO/vos/ModuleTableVO';
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
-import ModuleTable from '../../ModuleTable';
 
 /**
  * VOsTypesManager
@@ -12,39 +13,30 @@ import ModuleTable from '../../ModuleTable';
 export default class VOsTypesManager {
 
     /**
-     * Local thread cache -----
-     */
-    public static moduleTables_by_voType: { [voType: string]: ModuleTable<any> } = {};
-    /**
-     * ----- Local thread cache
-     */
-
-    /**
      * Renvoie tous les champs qui font référence à ce type
      * @param to_api_type_id
      */
-    public static get_type_references(to_api_type_id: string): Array<ModuleTableField<any>> {
-
+    public static get_type_references(to_api_type_id: string): ModuleTableFieldVO[] {
         if (!VOsTypesManager.types_references[to_api_type_id]) {
 
             VOsTypesManager.types_references[to_api_type_id] = [];
 
-            for (let api_type_id_i in VOsTypesManager.moduleTables_by_voType) {
-                let table = VOsTypesManager.moduleTables_by_voType[api_type_id_i];
+            for (const api_type_id_i in ModuleTableController.module_tables_by_vo_type) {
+                const table = ModuleTableController.module_tables_by_vo_type[api_type_id_i];
 
                 if (api_type_id_i == to_api_type_id) {
                     continue;
                 }
 
-                let fields = table.get_fields();
-                for (let j in fields) {
-                    let field = fields[j];
+                const fields = table.get_fields();
+                for (const j in fields) {
+                    const field = fields[j];
 
-                    if (!field.has_relation) {
+                    if (!field.foreign_ref_vo_type) {
                         continue;
                     }
 
-                    if (field.manyToOne_target_moduletable.vo_type == to_api_type_id) {
+                    if (field.foreign_ref_vo_type == to_api_type_id) {
                         VOsTypesManager.types_references[to_api_type_id].push(field);
                     }
                 }
@@ -54,22 +46,18 @@ export default class VOsTypesManager {
         return VOsTypesManager.types_references[to_api_type_id];
     }
 
-    public static addAlias(api_type_id_alias: string, vo_type: string) {
-        VOsTypesManager.moduleTables_by_voType[api_type_id_alias] = VOsTypesManager.moduleTables_by_voType[vo_type];
-    }
-
-    public static registerModuleTable(module_table: ModuleTable<any>) {
+    public static registerModuleTable(module_table: ModuleTableVO) {
         if (module_table && module_table.vo_type) {
 
-            VOsTypesManager.moduleTables_by_voType[module_table.vo_type] = module_table;
+            ModuleTableController.module_tables_by_vo_type[module_table.vo_type] = module_table;
         }
     }
 
     public static namedvosArray_to_vosByNames<T extends INamedVO>(vos: T[]): { [name: string]: T } {
-        let res: { [name: string]: T } = {};
+        const res: { [name: string]: T } = {};
 
-        for (let i in vos) {
-            let vo = vos[i];
+        for (const i in vos) {
+            const vo = vos[i];
 
             res[vo.name] = vo;
         }
@@ -78,10 +66,10 @@ export default class VOsTypesManager {
     }
 
     public static vosArray_to_vosByIds<T extends IDistantVOBase>(vos: T[]): { [id: number]: T } {
-        let res: { [id: number]: T } = {};
+        const res: { [id: number]: T } = {};
 
-        for (let i in vos) {
-            let vo = vos[i];
+        for (const i in vos) {
+            const vo = vos[i];
 
             res[vo.id] = vo;
         }
@@ -89,19 +77,19 @@ export default class VOsTypesManager {
         return res;
     }
 
-    public static isManyToManyModuleTable(moduleTable: ModuleTable<any>): boolean {
+    public static isManyToManyModuleTable(moduleTable: ModuleTableVO): boolean {
 
-        let manyToOne1: ModuleTable<any> = null;
+        let manyToOne1: string = null;
         let field_num: number = 0;
         let isManyToMany: boolean = false;
-        for (let j in moduleTable.get_fields()) {
-            let field: ModuleTableField<any> = moduleTable.get_fields()[j];
+        for (const j in moduleTable.get_fields()) {
+            const field: ModuleTableFieldVO = moduleTable.get_fields()[j];
 
             // On ignore les 2 fields de service
-            if (field.field_id == "id") {
+            if (field.field_name == "id") {
                 continue;
             }
-            if (field.field_id == "_type") {
+            if (field.field_name == "_type") {
                 continue;
             }
 
@@ -109,7 +97,7 @@ export default class VOsTypesManager {
              * Gestion des tables versionnées N/N
              */
             if (moduleTable.is_versioned) {
-                switch (field.field_id) {
+                switch (field.field_name) {
                     case 'parent_id':
                     case 'trashed':
                     case 'version_num':
@@ -122,7 +110,7 @@ export default class VOsTypesManager {
             }
 
             // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
-            if (!field.manyToOne_target_moduletable) {
+            if (!field.foreign_ref_vo_type) {
                 isManyToMany = false;
                 break;
             }
@@ -134,11 +122,11 @@ export default class VOsTypesManager {
             }
 
             if (!manyToOne1) {
-                manyToOne1 = field.manyToOne_target_moduletable;
+                manyToOne1 = field.foreign_ref_vo_type;
                 continue;
             }
 
-            if (manyToOne1.full_name == field.manyToOne_target_moduletable.full_name) {
+            if (manyToOne1 == field.foreign_ref_vo_type) {
                 isManyToMany = false;
                 break;
             }
@@ -152,13 +140,13 @@ export default class VOsTypesManager {
     /**
      * ça ne devrait pas changer, du moins pour le moment, après un boot du serveur
      */
-    public static get_manyToManyModuleTables(): Array<ModuleTable<any>> {
+    public static get_manyToManyModuleTables(): ModuleTableVO[] {
 
         if ((!VOsTypesManager.manyToManyModuleTables) || (VOsTypesManager.init_date >= Dates.now() - 60)) {
-            let res: Array<ModuleTable<any>> = [];
+            const res: ModuleTableVO[] = [];
 
-            for (let i in VOsTypesManager.moduleTables_by_voType) {
-                let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
+            for (const i in ModuleTableController.module_tables_by_vo_type) {
+                const moduleTable = ModuleTableController.module_tables_by_vo_type[i];
 
                 if (VOsTypesManager.isManyToManyModuleTable(moduleTable)) {
                     res.push(moduleTable);
@@ -170,28 +158,29 @@ export default class VOsTypesManager {
         return VOsTypesManager.manyToManyModuleTables;
     }
 
-    public static getManyToOneFields(api_type_id: string, ignore_target_types: string[]): Array<ModuleTableField<any>> {
+    public static getManyToOneFields(api_type_id: string, ignore_target_types: string[]): ModuleTableFieldVO[] {
 
-        let res: Array<ModuleTableField<any>> = [];
-        let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
-        let fields = table.get_fields();
+        const res: ModuleTableFieldVO[] = [];
+        const table = ModuleTableController.module_tables_by_vo_type[api_type_id];
+        const fields = table.get_fields();
 
-        for (let j in fields) {
-            let field: ModuleTableField<any> = fields[j];
+        for (const j in fields) {
+            const field: ModuleTableFieldVO = fields[j];
 
             // On ignore les 2 fields de service
-            if (field.field_id == "id") {
+            if (field.field_name == "id") {
                 continue;
             }
-            if (field.field_id == "_type") {
-                continue;
-            }
-
-            if (!field.manyToOne_target_moduletable) {
+            if (field.field_name == "_type") {
                 continue;
             }
 
-            if (ignore_target_types && (ignore_target_types.indexOf(field.manyToOne_target_moduletable.vo_type) >= 0)) {
+            if (!field.foreign_ref_vo_type) {
+                continue;
+            }
+
+            const target_table = ModuleTableController.module_tables_by_vo_type[field.foreign_ref_vo_type];
+            if (ignore_target_types && (ignore_target_types.indexOf(target_table.vo_type) >= 0)) {
                 continue;
             }
 
@@ -200,24 +189,24 @@ export default class VOsTypesManager {
         return res;
     }
 
-    public static getManyToManyOtherField(manyToManyModuleTable: ModuleTable<any>, firstField: ModuleTableField<any>): ModuleTableField<any> {
+    public static getManyToManyOtherField(manyToManyModuleTable: ModuleTableVO, firstField: ModuleTableFieldVO): ModuleTableFieldVO {
 
-        for (let j in manyToManyModuleTable.get_fields()) {
-            let field: ModuleTableField<any> = manyToManyModuleTable.get_fields()[j];
+        for (const j in manyToManyModuleTable.get_fields()) {
+            const field: ModuleTableFieldVO = manyToManyModuleTable.get_fields()[j];
 
             // On ignore les 2 fields de service
-            if (field.field_id == "id") {
+            if (field.field_name == "id") {
                 continue;
             }
-            if (field.field_id == "_type") {
+            if (field.field_name == "_type") {
                 continue;
             }
 
-            if (!field.manyToOne_target_moduletable) {
+            if (!field.foreign_ref_vo_type) {
                 break;
             }
 
-            if (firstField.manyToOne_target_moduletable.full_name == field.manyToOne_target_moduletable.full_name) {
+            if (firstField.foreign_ref_vo_type == field.foreign_ref_vo_type) {
                 continue;
             }
 
@@ -235,28 +224,28 @@ export default class VOsTypesManager {
      * @param deleted_fields Un tableau passé en param et que l'on rempli dans la fonction pour indiquer les champs qui disparaissent dans la cible
      */
     public static getChangingFieldsFromDifferentApiTypes(
-        type_src: ModuleTable<any>,
-        type_dest: ModuleTable<any>,
-        common_fields: Array<ModuleTableField<any>>,
-        new_fields: Array<ModuleTableField<any>>,
-        deleted_fields: Array<ModuleTableField<any>>) {
+        type_src: ModuleTableVO,
+        type_dest: ModuleTableVO,
+        common_fields: ModuleTableFieldVO[],
+        new_fields: ModuleTableFieldVO[],
+        deleted_fields: ModuleTableFieldVO[]) {
 
-        let src_fields = ObjectHandler.mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
-        let dest_fields = ObjectHandler.mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
-        for (let i in src_fields) {
-            let src_field = src_fields[i];
+        const src_fields = ObjectHandler.mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
+        const dest_fields = ObjectHandler.mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
+        for (const i in src_fields) {
+            const src_field = src_fields[i];
 
-            if (!dest_fields[src_field.field_id]) {
+            if (!dest_fields[src_field.field_name]) {
                 deleted_fields.push(src_field);
             } else {
                 common_fields.push(src_field);
             }
         }
 
-        for (let i in dest_fields) {
-            let dest_field = dest_fields[i];
+        for (const i in dest_fields) {
+            const dest_field = dest_fields[i];
 
-            if (!src_fields[dest_field.field_id]) {
+            if (!src_fields[dest_field.field_name]) {
                 new_fields.push(dest_field);
             }
         }
@@ -266,21 +255,21 @@ export default class VOsTypesManager {
      * Get the field from a vo_field_ref
      *
      * @param {{ api_type_id: string, field_id: string }} vo_field_ref
-     * @returns {ModuleTableField<any>}
+     * @returns {ModuleTableFieldVO}
      */
-    public static get_field_from_vo_field_ref(vo_field_ref: { api_type_id: string, field_id: string }): ModuleTableField<any> {
+    public static get_field_from_vo_field_ref(vo_field_ref: { api_type_id: string, field_id: string }): ModuleTableFieldVO {
         if (!vo_field_ref || !vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
             return null;
         }
 
-        return VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id].get_field_by_id(vo_field_ref.field_id);
+        return ModuleTableController.module_tables_by_vo_type[vo_field_ref.api_type_id].get_field_by_id(vo_field_ref.field_id);
     }
 
     /**
      * Local thread cache -----
      */
-    private static types_references: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
-    private static manyToManyModuleTables: Array<ModuleTable<any>> = null;
+    private static types_references: { [api_type_id: string]: ModuleTableFieldVO[] } = {};
+    private static manyToManyModuleTables: ModuleTableVO[] = null;
 
     /**
      * on voudrait utiliser BGThreadServerController.server_ready mais on peut pas import ça bloc

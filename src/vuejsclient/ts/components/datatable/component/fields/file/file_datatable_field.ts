@@ -59,7 +59,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
         }
 
         if (this.file_id) {
-            let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
+            const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
 
             if (file) {
                 this.path = file.path;

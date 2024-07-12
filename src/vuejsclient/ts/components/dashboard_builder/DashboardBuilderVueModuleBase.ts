@@ -1,43 +1,35 @@
 import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import FavoritesFiltersVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import FavoritesFiltersWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersWidgetOptionsVO';
 import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 import TableWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/TableWidgetOptionsVO';
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
+import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
+import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
-import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
+import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/OseliaThreadWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
+import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import WidgetOptionsVOManager from '../../../../shared/modules/DashboardBuilder/manager/WidgetOptionsVOManager';
-import CurrentUserFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/CurrentUserFilterWidgetOptionsVO';
-import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import CeliaThreadWidgetOptions from './widgets/celia_thread_widget/options/CeliaThreadWidgetOptions';
-import SuiviCompetencesWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/SuiviCompetencesWidgetOptionsVO';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardBuilderVueModuleBase {
-        if (!DashboardBuilderVueModuleBase.instance) {
-            DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();
-        }
-
-        return DashboardBuilderVueModuleBase.instance;
-    }
 
     protected static instance: DashboardBuilderVueModuleBase = null;
 
@@ -52,6 +44,15 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
             this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
         }
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DashboardBuilderVueModuleBase {
+        if (!DashboardBuilderVueModuleBase.instance) {
+            DashboardBuilderVueModuleBase.instance = new DashboardBuilderVueModuleBase();
+        }
+
+        return DashboardBuilderVueModuleBase.instance;
     }
 
     public async initializeAsync() {
@@ -106,6 +107,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CurrentUserFilter();
 
         await this.initializeWidget_VarPieChart();
+        await this.initializeWidget_VarRadarChart();
+        await this.initializeWidget_VarMixedChart();
+        await this.initializeWidget_VarChoroplethChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -130,11 +134,11 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_ShowFavoritesFilters();
 
-        await this.initializeWidget_CeliaThread();
+        await this.initializeWidget_OseliaThread();
     }
 
     private async initializeWidget_BulkOps() {
-        let BulkOps = new DashboardWidgetVO();
+        const BulkOps = new DashboardWidgetVO();
 
         BulkOps.default_height = 35;
         BulkOps.default_width = 12;
@@ -153,7 +157,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Checklist() {
-        let Checklist = new DashboardWidgetVO();
+        const Checklist = new DashboardWidgetVO();
 
         Checklist.default_height = 35;
         Checklist.default_width = 12;
@@ -172,7 +176,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Supervision() {
-        let supervision = new DashboardWidgetVO();
+        const supervision = new DashboardWidgetVO();
 
         supervision.default_height = 35;
         supervision.default_width = 12;
@@ -191,7 +195,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_SupervisionType() {
-        let supervision_type = new DashboardWidgetVO();
+        const supervision_type = new DashboardWidgetVO();
 
         supervision_type.default_height = 5;
         supervision_type.default_width = 3;
@@ -210,7 +214,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_DataTable() {
-        let Table = new DashboardWidgetVO();
+        const Table = new DashboardWidgetVO();
 
         Table.default_height = 35;
         Table.default_width = 12;
@@ -231,28 +235,28 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
-    private async initializeWidget_CeliaThread() {
-        let widget = new DashboardWidgetVO();
+    private async initializeWidget_OseliaThread() {
+        const widget = new DashboardWidgetVO();
 
         widget.default_height = 35;
         widget.default_width = 6;
-        widget.name = DashboardWidgetVO.WIDGET_NAME_celiathread;
-        widget.widget_component = 'Celiathreadwidgetcomponent';
-        widget.options_component = 'Celiathreadwidgetoptionscomponent';
+        widget.name = DashboardWidgetVO.WIDGET_NAME_oseliathread;
+        widget.widget_component = 'Oseliathreadwidgetcomponent';
+        widget.options_component = 'Oseliathreadwidgetoptionscomponent';
         widget.weight = 99;
         widget.default_background = '#f5f5f5';
-        widget.icon_component = 'Celiathreadwidgeticoncomponent';
+        widget.icon_component = 'Oseliathreadwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new CeliaThreadWidgetOptions(), CeliaThreadWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new OseliaThreadWidgetOptions(), OseliaThreadWidgetOptions.get_selected_fields);
 
-        Vue.component('Celiathreadwidgetcomponent', () => import('./widgets/celia_thread_widget/CeliaThreadWidgetComponent'));
-        Vue.component('Celiathreadwidgetoptionscomponent', () => import('./widgets/celia_thread_widget/options/CeliaThreadWidgetOptionsComponent'));
-        Vue.component('Celiathreadwidgeticoncomponent', () => import('./widgets/celia_thread_widget/icon/CeliaThreadWidgetIconComponent'));
+        Vue.component('Oseliathreadwidgetcomponent', () => import('./widgets/oselia_thread_widget/OseliaThreadWidgetComponent'));
+        Vue.component('Oseliathreadwidgetoptionscomponent', () => import('./widgets/oselia_thread_widget/options/OseliaThreadWidgetOptionsComponent'));
+        Vue.component('Oseliathreadwidgeticoncomponent', () => import('./widgets/oselia_thread_widget/icon/OseliaThreadWidgetIconComponent'));
     }
 
 
     private async initializeWidget_ValueTable() {
-        let Table = new DashboardWidgetVO();
+        const Table = new DashboardWidgetVO();
 
         Table.default_height = 35;
         Table.default_width = 12;
@@ -274,7 +278,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_FieldValueFilter() {
-        let fieldValueFilter = new DashboardWidgetVO();
+        const fieldValueFilter = new DashboardWidgetVO();
 
         fieldValueFilter.default_height = 5;
         fieldValueFilter.default_width = 3;
@@ -296,7 +300,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_DOWFilter() {
-        let DOWFilter = new DashboardWidgetVO();
+        const DOWFilter = new DashboardWidgetVO();
 
         DOWFilter.default_height = 5;
         DOWFilter.default_width = 3;
@@ -315,7 +319,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_MonthFilter() {
-        let MonthFilter = new DashboardWidgetVO();
+        const MonthFilter = new DashboardWidgetVO();
 
         MonthFilter.default_height = 5;
         MonthFilter.default_width = 4;
@@ -334,7 +338,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_AdvancedDateFilter() {
-        let AdvancedDateFilter = new DashboardWidgetVO();
+        const AdvancedDateFilter = new DashboardWidgetVO();
 
         AdvancedDateFilter.default_height = 5;
         AdvancedDateFilter.default_width = 3;
@@ -357,7 +361,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_CurrentUserFilter() {
-        let CurrentUserFilter = new DashboardWidgetVO();
+        const CurrentUserFilter = new DashboardWidgetVO();
 
         CurrentUserFilter.default_height = 5;
         CurrentUserFilter.default_width = 2;
@@ -381,7 +385,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarPieChart() {
-        let VarPieChart = new DashboardWidgetVO();
+        const VarPieChart = new DashboardWidgetVO();
 
         VarPieChart.default_height = 10;
         VarPieChart.default_width = 2;
@@ -392,85 +396,72 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         VarPieChart.default_background = '#f5f5f5';
         VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => new VarPieChartWidgetOptions(
-
-            /**
-             * Paramètres du widget
-             */
-            null,
-
-            /**
-             * Paramètres du graph
-             */
-            true,
-            'top',
-            '#666',
-            12,
-            40,
-            10,
-            false,
-
-            false,
-            '#666',
-            16,
-            10,
-
-            50, // 0-100 - exemples : donut 50, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-
-            false,
-            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
-            null,
-            true,
-
-            /**
-             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
-             */
-            true,
-            null,
-            null,
-            TimeSegment.TYPE_YEAR,
-
-            /**
-             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
-             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
-             */
-            null,
-            null,
-
-            /**
-             * Var 1
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            /**
-             * Var 2 si pas de dimension
-             */
-            null,
-
-            {},
-
-            null,
-            null,
-            null,
-
-            false,
-        ), VarPieChartWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => VarPieChartWidgetOptions.createDefault(), VarPieChartWidgetOptions.get_selected_fields);
 
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
         Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
     }
 
+    private async initializeWidget_VarChoroplethChart() {
+        const VarChoroplethChart = new DashboardWidgetVO();
+
+        VarChoroplethChart.default_height = 10;
+        VarChoroplethChart.default_width = 2;
+        VarChoroplethChart.name = DashboardWidgetVO.WIDGET_NAME_varchoroplethchart;
+        VarChoroplethChart.widget_component = 'Varchoroplethchartwidgetcomponent';
+        VarChoroplethChart.options_component = 'Varchoroplethchartwidgetoptionscomponent';
+        VarChoroplethChart.weight = 15;
+        VarChoroplethChart.default_background = '#f5f5f5';
+        VarChoroplethChart.icon_component = 'Varchoroplethchartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarChoroplethChart, () => VarChoroplethChartWidgetOptions.createDefault(), VarChoroplethChartWidgetOptions.get_selected_fields);
+
+        Vue.component('Varchoroplethchartwidgetcomponent', () => import('./widgets/var_choropleth_chart_widget/VarChoroplethChartWidgetComponent'));
+        Vue.component('Varchoroplethchartwidgetoptionscomponent', () => import('./widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptionsComponent'));
+        Vue.component('Varchoroplethchartwidgeticoncomponent', () => import('./widgets/var_choropleth_chart_widget/icon/VarChoroplethChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarRadarChart() {
+        let VarRadarChart = new DashboardWidgetVO();
+
+        VarRadarChart.default_height = 10;
+        VarRadarChart.default_width = 2;
+        VarRadarChart.name = DashboardWidgetVO.WIDGET_NAME_varradarchart;
+        VarRadarChart.widget_component = 'Varradarchartwidgetcomponent';
+        VarRadarChart.options_component = 'Varradarchartwidgetoptionscomponent';
+        VarRadarChart.weight = 15;
+        VarRadarChart.default_background = '#f5f5f5';
+        VarRadarChart.icon_component = 'Varradarchartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarRadarChart, () => VarRadarChartWidgetOptionsVO.createDefault(), VarRadarChartWidgetOptionsVO.get_selected_fields);
+
+        Vue.component('Varradarchartwidgetcomponent', () => import('./widgets/var_radar_chart_widget/VarRadarChartWidgetComponent'));
+        Vue.component('Varradarchartwidgetoptionscomponent', () => import('./widgets/var_radar_chart_widget/options/VarRadarChartWidgetOptionsComponent'));
+        Vue.component('Varradarchartwidgeticoncomponent', () => import('./widgets/var_radar_chart_widget/icon/VarRadarChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarMixedChart() {
+        let VarMixedChart = new DashboardWidgetVO();
+
+        VarMixedChart.default_height = 10;
+        VarMixedChart.default_width = 2;
+        VarMixedChart.name = DashboardWidgetVO.WIDGET_NAME_varmixedcharts;
+        VarMixedChart.widget_component = 'Varmixedchartswidgetcomponent';
+        VarMixedChart.options_component = 'Varmixedchartswidgetoptionscomponent';
+        VarMixedChart.weight = 15;
+        VarMixedChart.default_background = '#f5f5f5';
+        VarMixedChart.icon_component = 'Varmixedchartswidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarMixedChart, () => VarMixedChartWidgetOptionsVO.createDefault(), VarMixedChartWidgetOptionsVO.get_selected_fields);
+
+        Vue.component('Varmixedchartswidgetcomponent', () => import('./widgets/var_mixed_charts_widget/VarMixedChartsWidgetComponent'));
+        Vue.component('Varmixedchartswidgetoptionscomponent', () => import('./widgets/var_mixed_charts_widget/options/VarMixedChartsWidgetOptionsComponent'));
+        Vue.component('Varmixedchartswidgeticoncomponent', () => import('./widgets/var_mixed_charts_widget/icon/VarMixedChartsWidgetIconComponent'));
+    }
+
     private async initializeWidget_YearFilter() {
-        let YearFilter = new DashboardWidgetVO();
+        const YearFilter = new DashboardWidgetVO();
 
         YearFilter.default_height = 5;
         YearFilter.default_width = 2;
@@ -489,7 +480,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ValidationFilters() {
-        let ValidationFilters = new DashboardWidgetVO();
+        const ValidationFilters = new DashboardWidgetVO();
 
         ValidationFilters.default_height = 5;
         ValidationFilters.default_width = 2;
@@ -510,7 +501,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_SaveFavoritesFilters() {
-        let SaveFavoritesFilters = new DashboardWidgetVO();
+        const SaveFavoritesFilters = new DashboardWidgetVO();
 
         SaveFavoritesFilters.default_height = 5;
         SaveFavoritesFilters.default_width = 2;
@@ -538,7 +529,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
-        let ShowFavoritesFilters = new DashboardWidgetVO();
+        const ShowFavoritesFilters = new DashboardWidgetVO();
 
         ShowFavoritesFilters.default_height = 5;
         ShowFavoritesFilters.default_width = 2;
@@ -566,7 +557,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_ResetFilters() {
-        let ResetFilters = new DashboardWidgetVO();
+        const ResetFilters = new DashboardWidgetVO();
 
         ResetFilters.default_height = 5;
         ResetFilters.default_width = 2;
@@ -586,7 +577,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_BlocText() {
-        let BlocText = new DashboardWidgetVO();
+        const BlocText = new DashboardWidgetVO();
 
         BlocText.default_height = 5;
         BlocText.default_width = 2;
@@ -629,7 +620,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_Var() {
-        let var_widget = new DashboardWidgetVO();
+        const var_widget = new DashboardWidgetVO();
 
         var_widget.default_height = 10;
         var_widget.default_width = 1;
@@ -648,7 +639,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_PageSwitch() {
-        let pageswitch_widget = new DashboardWidgetVO();
+        const pageswitch_widget = new DashboardWidgetVO();
 
         pageswitch_widget.default_height = 5;
         pageswitch_widget.default_width = 2;

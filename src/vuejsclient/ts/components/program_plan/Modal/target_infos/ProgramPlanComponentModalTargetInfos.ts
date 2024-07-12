@@ -21,6 +21,7 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import "./ProgramPlanComponentModalTargetInfos.scss";
+import { field_names } from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./ProgramPlanComponentModalTargetInfos.pug'),
@@ -82,27 +83,27 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
         let target_contact_links: IPlanTargetContact[] = [];
-        if (!!this.program_plan_shared_module.target_contact_type_id) {
-            target_contact_links = await query(this.program_plan_shared_module.target_contact_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanTargetContact>();
+        if (this.program_plan_shared_module.target_contact_type_id) {
+            target_contact_links = await query(this.program_plan_shared_module.target_contact_type_id).filter_by_num_eq(field_names<IPlanTargetContact>().target_id, this.selected_rdv.target_id).select_vos<IPlanTargetContact>();
         }
 
         let target_group_contact_links: IPlanTargetGroupContact[] = [];
-        if (!!this.program_plan_shared_module.target_group_contact_type_id) {
-            target_group_contact_links = await query(this.program_plan_shared_module.target_group_contact_type_id).filter_by_num_eq('target_group_id', this.target.group_id).select_vos<IPlanTargetGroupContact>();
+        if (this.program_plan_shared_module.target_group_contact_type_id) {
+            target_group_contact_links = await query(this.program_plan_shared_module.target_group_contact_type_id).filter_by_num_eq(field_names<IPlanTargetGroupContact>().target_group_id, this.target.group_id).select_vos<IPlanTargetGroupContact>();
         }
 
-        let contacts_ids: number[] = [];
+        const contacts_ids: number[] = [];
 
-        for (let i in target_contact_links) {
-            let target_contact_link = target_contact_links[i];
+        for (const i in target_contact_links) {
+            const target_contact_link = target_contact_links[i];
 
             if (contacts_ids.indexOf(target_contact_link.contact_id) < 0) {
                 contacts_ids.push(target_contact_link.contact_id);
             }
         }
 
-        for (let i in target_group_contact_links) {
-            let target_group_contact_link = target_group_contact_links[i];
+        for (const i in target_group_contact_links) {
+            const target_group_contact_link = target_group_contact_links[i];
 
             if (contacts_ids.indexOf(target_group_contact_link.contact_id) < 0) {
                 contacts_ids.push(target_group_contact_link.contact_id);
@@ -134,7 +135,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -147,12 +148,12 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        const facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
 
-        let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
+        const manager: IPlanManager = this.getManagersByIds[facilitator.manager_id] as IPlanManager;
         if (!manager) {
             return null;
         }
@@ -161,13 +162,13 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
     }
 
     get GmapQ() {
-        let address: string = this.targetAddressHTML;
+        const address: string = this.targetAddressHTML;
         if (!address) {
             return null;
         }
 
         // Trick : on doit strip le HTML puis réencoder l'adresse en HTML (mais sans balides <p> ou <b> ... )
-        return $('<div/>').text($('<div/>').html(address.replace(/<br>/ig, ' ').replace(/\n/ig, ' ').replace(/\r/ig, '').replace(/  /ig, ' ')).text()).html();
+        return $('<div/>').text($('<div/>').html(address.replace(/<br>/ig, ' ').replace(/\n/ig, ' ').replace(/\r/ig, '').replace(/ {2}/ig, ' ')).text()).html();
     }
 
     get targetAddressHTML(): string {
@@ -175,8 +176,8 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        let target: IPlanTarget = this.getTargetsByIds[this.selected_rdv.target_id] as IPlanTarget;
-        let address: string = ProgramPlanTools.getAddressHTMLFromTarget(target);
+        const target: IPlanTarget = this.getTargetsByIds[this.selected_rdv.target_id] as IPlanTarget;
+        const address: string = ProgramPlanTools.getAddressHTMLFromTarget(target);
         return address;
     }
 
@@ -185,7 +186,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        let contactInfos: string = ProgramPlanTools.getContactInfosHTMLFromTarget(this.target_contacts);
+        const contactInfos: string = ProgramPlanTools.getContactInfosHTMLFromTarget(this.target_contacts);
         return contactInfos;
     }
 }

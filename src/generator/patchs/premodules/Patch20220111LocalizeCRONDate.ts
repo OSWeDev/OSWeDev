@@ -35,9 +35,9 @@ export default class Patch20220111LocalizeCRONDate implements IGeneratorWorker {
     }
 
     private async localize_tstz(db: IDatabase<any>, table_full_name: string, column_name: string) {
-        var offset = new Date().getTimezoneOffset();
+        const offset = new Date().getTimezoneOffset();
         // if offset equals -60 then the time zone offset is UTC+01 && 1h en timestamp = 60*60
-        let nb_to_add = (offset * 60);
+        const nb_to_add = (offset * 60);
         console.log(nb_to_add + " = (" + offset + " * 60) add to " + column_name + " (not null) FROM " + table_full_name);
 
         await db.none("update " + table_full_name

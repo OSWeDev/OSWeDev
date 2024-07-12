@@ -30,9 +30,9 @@ export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWor
             return;
         }
 
-        let dws: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID).select_vos<DashboardWidgetVO>();
+        const dws: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID).select_vos<DashboardWidgetVO>();
 
-        let dw_names_filter: string[] = [
+        const dw_names_filter: string[] = [
             'fieldvaluefilter',
             'dowfilter',
             'monthfilter',
@@ -40,8 +40,8 @@ export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWor
             'advanceddatefilter',
         ];
 
-        for (let i in dws) {
-            let dw = dws[i];
+        for (const i in dws) {
+            const dw = dws[i];
 
             if (dw_names_filter.indexOf(dw.name) === -1) {
                 continue;

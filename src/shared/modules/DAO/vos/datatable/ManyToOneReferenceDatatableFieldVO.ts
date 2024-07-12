@@ -1,9 +1,10 @@
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import { default as ModuleTableController, default as ModuleTableFieldController } from '../../ModuleTableFieldController';
 
 export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -11,17 +12,17 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
     public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<any>,
-        sortedTargetFields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
+        targetModuleTable: ModuleTableVO,
+        sorted_target_fields: Array<DatatableField<any, any>>): ManyToOneReferenceDatatableFieldVO<any> {
 
-        let res = new ManyToOneReferenceDatatableFieldVO();
+        const res = new ManyToOneReferenceDatatableFieldVO();
 
         res.init_ref_dtf(
             ManyToOneReferenceDatatableFieldVO.API_TYPE_ID,
             DatatableField.MANY_TO_ONE_FIELD_TYPE,
             datatable_field_uid,
             targetModuleTable,
-            sortedTargetFields
+            sorted_target_fields
         );
 
         res.src_field_id = datatable_field_uid;
@@ -30,6 +31,8 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
     }
 
     public filterOptionsForUpdateOrCreateOnManyToOne: (vo: Target, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
+    public _type: string = ManyToOneReferenceDatatableFieldVO.API_TYPE_ID;
 
     public _src_field_id: string;
 
@@ -48,7 +51,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         this.onupdateSrcField();
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>): this {
+    public setModuleTable(moduleTable: ModuleTableVO): this {
         this.vo_type_full_name = moduleTable.full_name;
         this.vo_type_id = moduleTable.vo_type;
 
@@ -57,7 +60,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
         return this;
     }
 
-    get srcField(): ModuleTableField<any> {
+    get srcField(): ModuleTableFieldVO {
         if (!this.moduleTable) {
             return null;
         }
@@ -74,9 +77,15 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        let e = this.srcField.field_label.code_text;
+        const defaulttrad = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type] ? ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.moduleTable.vo_type][this.src_field_id] : null;
+        const e = defaulttrad ? defaulttrad.code_text : null;
+
+        if (!e) {
+            return null;
+        }
+
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }
@@ -95,7 +104,9 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
             return;
         }
         this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
+        this.validate = this.validate ? this.validate : (data: any) => {
+            return ModuleTableController.validate_field_value(this.srcField, data);
+        };
     }
 
 }

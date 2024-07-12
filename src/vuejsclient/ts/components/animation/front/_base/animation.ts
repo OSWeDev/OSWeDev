@@ -38,9 +38,9 @@ export default class VueAnimationComponent extends VueComponentBase {
         promises.push((async () => this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => {
-            let animation_modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+            const animation_modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
-            for (let i in animation_modules) {
+            for (const i in animation_modules) {
                 if (!this.modules_by_themes[animation_modules[i].theme_id]) {
                     this.modules_by_themes[animation_modules[i].theme_id] = [];
                 }
@@ -55,7 +55,7 @@ export default class VueAnimationComponent extends VueComponentBase {
 
         if (this.animation_params && this.animation_params.image_home_id) {
             promises.push((async () => {
-                let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.animation_params.image_home_id).select_vo<FileVO>();
+                const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.animation_params.image_home_id).select_vo<FileVO>();
 
                 this.image_home = file ? file.path : null;
             })());

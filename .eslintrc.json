@@ -1,0 +1,64 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:vue/vue3-essential"
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "parser": "@typescript-eslint/parser",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "@stylistic",
+        "vue"
+    ],
+    "rules": {
+        "no-fallthrough": [
+            "error",
+            {
+                "allowEmptyCase": true
+            }
+        ],
+        "no-case-declarations": "warn",
+        "no-unused-vars": "off",
+        "@stylistic/comma-dangle": [
+            "warn",
+            "only-multiline"
+        ],
+        "@stylistic/no-trailing-spaces": "error",
+        "@stylistic/indent": [
+            "warn",
+            4
+        ],
+        "@stylistic/semi": [
+            "error",
+            "always"
+        ],
+        "@stylistic/no-extra-semi": [
+            "error"
+        ],
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "args": "none"
+            }
+        ],
+        "vue/multi-word-component-names": "off",
+        "@typescript-eslint/no-this-alias": "warn",
+        "@typescript-eslint/no-var-requires": "warn",
+        "vue/no-deprecated-vue-config-keycodes": "warn",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/member-ordering": "error",
+        "no-async-promise-executor": "off",
+        "no-useless-escape": "warn",
+        "prefer-const": "warn",
+        "no-extra-boolean-cast": "off"
+    }
+}

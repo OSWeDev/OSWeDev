@@ -40,18 +40,18 @@ export default class Patch20230424MakeSureSCSSUrlsParamsAreOK implements IGenera
          */
 
 
-        let main_background_url = await this.get_param_value("sass_skin_generator.main_background_url", db);
-        let box_title_bg_url = await this.get_param_value("sass_skin_generator.box_title_bg_url", db);
-        let picto_store_url = await this.get_param_value("sass_skin_generator.picto_store_url", db);
-        let picto_store_info_url = await this.get_param_value("sass_skin_generator.picto_store_info_url", db);
-        let picto_orga_url = await this.get_param_value("sass_skin_generator.picto_orga_url", db);
-        let picto_tool_small_url = await this.get_param_value("sass_skin_generator.picto_tool_small_url", db);
-        let picto_fleche_verte_url = await this.get_param_value("sass_skin_generator.picto_fleche_verte_url", db);
-        let picto_clock_small_url = await this.get_param_value("sass_skin_generator.picto_clock_small_url", db);
-        let picto_objectivos_url = await this.get_param_value("sass_skin_generator.picto_objectivos_url", db);
-        let picto_atteindre_url = await this.get_param_value("sass_skin_generator.picto_atteindre_url", db);
-        let picto_equipe_url = await this.get_param_value("sass_skin_generator.picto_equipe_url", db);
-        let main_background_header_url = await this.get_param_value("sass_skin_generator.main_background_header_url", db);
+        const main_background_url = await this.get_param_value("sass_skin_generator.main_background_url", db);
+        const box_title_bg_url = await this.get_param_value("sass_skin_generator.box_title_bg_url", db);
+        const picto_store_url = await this.get_param_value("sass_skin_generator.picto_store_url", db);
+        const picto_store_info_url = await this.get_param_value("sass_skin_generator.picto_store_info_url", db);
+        const picto_orga_url = await this.get_param_value("sass_skin_generator.picto_orga_url", db);
+        const picto_tool_small_url = await this.get_param_value("sass_skin_generator.picto_tool_small_url", db);
+        const picto_fleche_verte_url = await this.get_param_value("sass_skin_generator.picto_fleche_verte_url", db);
+        const picto_clock_small_url = await this.get_param_value("sass_skin_generator.picto_clock_small_url", db);
+        const picto_objectivos_url = await this.get_param_value("sass_skin_generator.picto_objectivos_url", db);
+        const picto_atteindre_url = await this.get_param_value("sass_skin_generator.picto_atteindre_url", db);
+        const picto_equipe_url = await this.get_param_value("sass_skin_generator.picto_equipe_url", db);
+        const main_background_header_url = await this.get_param_value("sass_skin_generator.main_background_header_url", db);
 
         await this.checkOrUpdate(main_background_url, "sass_skin_generator.main_background_url", db);
         await this.checkOrUpdate(box_title_bg_url, "sass_skin_generator.box_title_bg_url", db);
@@ -75,7 +75,7 @@ export default class Patch20230424MakeSureSCSSUrlsParamsAreOK implements IGenera
     }
 
     private async get_param_value(param_name: string, db: IDatabase<any>) {
-        let param = await db.query("SELECT * from ref.module_params_param where name = '" + param_name + "';");
+        const param = await db.query("SELECT * from ref.module_params_param where name = '" + param_name + "';");
         if (!param || !param[0]) {
             return null;
         }

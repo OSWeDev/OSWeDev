@@ -7,7 +7,7 @@ export default class URLHandler {
     }
 
     public static isValidRoute(str: string): boolean {
-        let pattern = new RegExp(
+        const pattern = new RegExp(
             '^(\/[-a-z\d%_.~+]*)+' + // path
             '([?][;&a-z\d%_.~+=-]*)?' + // query string
             '(\#[-a-z\d_]*)?$', 'i'); // fragment locater

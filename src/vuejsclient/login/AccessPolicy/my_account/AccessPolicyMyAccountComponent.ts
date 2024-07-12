@@ -9,6 +9,7 @@ import SessionShareComponent from "../../../ts/components/session_share/SessionS
 import AccessPolicyMyAccountComponentController from "./AccessPolicyMyAccountComponentController";
 import VOsTypesManager from "../../../../shared/modules/VO/manager/VOsTypesManager";
 import SimpleDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
+import ModuleTableController from "../../../../shared/modules/DAO/ModuleTableController";
 
 @Component({
     template: require('./AccessPolicyMyAccountComponent.pug'),
@@ -75,7 +76,7 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
     }
 
     get user_moduletable() {
-        return VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
+        return ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID];
     }
 
     get show_firstname_field() {

@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import VueComponentBase from '../../VueComponentBase';
 import '../RangesComponent.scss';
 
@@ -15,7 +15,7 @@ export default class NumRangesComponent extends VueComponentBase {
     private ranges: NumRange[];
 
     @Prop({ default: null })
-    private vo_field: ModuleTableField<any>;
+    private vo_field: ModuleTableFieldVO;
 
     @Prop({ default: 10 })
     private limit: number;

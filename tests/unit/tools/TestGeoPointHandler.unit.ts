@@ -8,7 +8,7 @@ import GeoPointVO from '../../../src/shared/modules/GeoPoint/vos/GeoPointVO';
 
 test('GeoPointHandler: test: format', () => {
     expect(GeoPointHandler.getInstance().format(null)).toStrictEqual(null);
-    var geoPointVOTest = GeoPointVO.createNew(1, 1);
+    let geoPointVOTest = GeoPointVO.createNew(1, 1);
     expect(GeoPointHandler.getInstance().format(geoPointVOTest)).toStrictEqual('(1,1)');
     geoPointVOTest = GeoPointVO.createNew(1, null);
     expect(GeoPointHandler.getInstance().format(geoPointVOTest)).toStrictEqual(null);
@@ -33,7 +33,7 @@ test('GeoPointHandler: test: geopoint', () => {
     expect(GeoPointHandler.getInstance().geopoint(null)).toStrictEqual(null);
     expect(GeoPointHandler.getInstance().split("(null, 1)")).toStrictEqual(null);
     expect(GeoPointHandler.getInstance().split("(1, null)")).toStrictEqual(null);
-    var geoPointVOTest = GeoPointVO.createNew(1, 1);
+    const geoPointVOTest = GeoPointVO.createNew(1, 1);
     expect(GeoPointHandler.getInstance().geopoint("(1, 1)")).toStrictEqual(geoPointVOTest);
     expect(GeoPointHandler.getInstance().split("notAPosition")).toStrictEqual(null);
 });

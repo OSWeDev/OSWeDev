@@ -1,5 +1,5 @@
 import { Cell, Graph } from "@maxgraph/core";
-import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
+import ModuleTableFieldVO from "../../../../../../shared/modules/DAO/vos/ModuleTableFieldVO";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";
 
 export default class MaxGraphEdgeMapper {
@@ -9,7 +9,7 @@ export default class MaxGraphEdgeMapper {
     public maxgraph_cell: Cell = null;
 
     public api_type_id: string = null;
-    public field: ModuleTableField<any> = null;
+    public field: ModuleTableFieldVO = null;
     public label: string = null;
 
     public source_cell: MaxGraphCellMapper = null;
@@ -36,8 +36,8 @@ export default class MaxGraphEdgeMapper {
             return null;
         }
 
-        let parent = maxgraph.getDefaultParent();
-        let label = this.label;
+        const parent = maxgraph.getDefaultParent();
+        const label = this.label;
         const new_edge = maxgraph.insertEdge(parent, null, label, this.source_cell.maxgraph_cell, this.target_cell.maxgraph_cell, this.is_accepted ? {
             strokeColor: 'green',
         } : {

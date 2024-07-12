@@ -13,7 +13,7 @@ test('TestSemaphoreHandler: test semaphore async return_if_unavailable true', as
     let nb = 0;
     let count = 100;
 
-    let increment = async () => {
+    const increment = async () => {
         await ThreadHandler.sleep(100, 'TestSemaphoreHandler');
         nb++;
     };
@@ -29,7 +29,7 @@ test('TestSemaphoreHandler: test semaphore async return_if_unavailable true', as
     // On fait en // donc le semaphore est pas libéré avant les 100 ms d'attente, donc on incrémente qu'il fois
     nb = 0;
     count = 100;
-    let promises = [];
+    const promises = [];
     while (count--) {
         promises.push(SemaphoreHandler.semaphore_async('TestSemaphoreHandler', increment, true));
     }
@@ -42,7 +42,7 @@ test('TestSemaphoreHandler: test semaphore async return_if_unavailable false', a
     let nb = 0;
     let count = 100;
 
-    let increment = async () => {
+    const increment = async () => {
         await ThreadHandler.sleep(100, 'TestSemaphoreHandler');
         nb++;
     };
@@ -58,7 +58,7 @@ test('TestSemaphoreHandler: test semaphore async return_if_unavailable false', a
     // On fait en // donc le semaphore est pas libéré avant les 100 ms d'attente, mais on await la libération du sémaphore pour chaque appel
     nb = 0;
     count = 100;
-    let promises = [];
+    const promises = [];
     while (count--) {
         promises.push(SemaphoreHandler.semaphore_async('TestSemaphoreHandler', increment, false));
     }
@@ -72,7 +72,7 @@ test('TestSemaphoreHandler: test semaphore sync', async () => {
     let nb = 0;
     let count = 100;
 
-    let increment = () => {
+    const increment = () => {
         nb++;
     };
 
@@ -85,7 +85,7 @@ test('TestSemaphoreHandler: test semaphore sync', async () => {
 
     nb = 0;
     count = 100;
-    let promises = [];
+    const promises = [];
     while (count--) {
         promises.push(async () => { SemaphoreHandler.semaphore_sync('TestSemaphoreHandler', increment); });
     }

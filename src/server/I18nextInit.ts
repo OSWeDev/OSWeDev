@@ -30,8 +30,8 @@ export default class I18nextInit {
         // JNE MODIF FLK : traductions
         // Uniquement pour l'index ..... il faut le passer en module du client
         // Nécessite un namespace apparemment
-        for (let i in ALL_LOCALES) {
-            let locale = ALL_LOCALES[i];
+        for (const i in ALL_LOCALES) {
+            const locale = ALL_LOCALES[i];
 
             ALL_LOCALES[i] = {
                 translation: locale
@@ -40,7 +40,7 @@ export default class I18nextInit {
         i18next
             .use(LanguageDetector)
             .init({
-                fallbackLng: envParam.DEFAULT_LOCALE,
+                fallbackLng: envParam.default_locale,
                 preload: 'all',
                 resources: ALL_LOCALES,
                 nsSeparator: '¤'

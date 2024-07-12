@@ -1,5 +1,6 @@
 piechart(
-    v-if="current_chart_data && current_chart_options"
+    ref="piechart"
+    v-if="current_chart_data && current_chart_options && current_chart_plugins"
     :data="current_chart_data"
     :options="current_chart_options"
 )

@@ -33,7 +33,7 @@ export default class ToFixedFilterOptionsComponent extends VueComponentBase {
         }
 
         try {
-            let options = JSON.parse(this.actual_additional_options);
+            const options = JSON.parse(this.actual_additional_options);
 
             // fractional_digits: number = 0,
             // rounded: boolean | number = false,
@@ -52,7 +52,7 @@ export default class ToFixedFilterOptionsComponent extends VueComponentBase {
     }
 
     private onchange_inputs() {
-        let options = [
+        const options = [
             this.fractional_digits,
             this.rounded,
             this.rounded_type,

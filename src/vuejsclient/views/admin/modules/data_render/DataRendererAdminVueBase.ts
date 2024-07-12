@@ -33,7 +33,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
-        let segment_correspondant: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
+        const segment_correspondant: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
         // ????
         // this.segment_start_date =
         //     new Date(TimeSegmentHandler.getPreviousTimeSegment(segment_correspondant).index * 1000);
@@ -46,10 +46,10 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
     public async send(): Promise<boolean> {
         try {
 
-            var formData = new FormData();
+            const formData = new FormData();
             formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getAllDataTimeSegments(this.segment_start_date.getTime() / 1000, this.segment_end_date.getTime() / 1000, this.time_segment_type)));
 
-            let $ = await import('jquery');
+            const $ = await import('jquery');
             await $.ajax({
                 url: '/modules/ModuleDataRender/renderData/' + this.renderer_name,
                 method: "POST",

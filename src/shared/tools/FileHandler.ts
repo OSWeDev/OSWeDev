@@ -38,7 +38,7 @@ export default class FileHandler {
             await ThreadHandler.sleep(timeout_ms, 'FileHandler.wait_for_file_end_creation');
             has_changes = false;
 
-            let stats: Stats = statSync(filename);
+            const stats: Stats = statSync(filename);
 
             ConsoleHandler.log(JSON.stringify(stats));
 
@@ -60,7 +60,7 @@ export default class FileHandler {
 
     public get_file_size(filePath: string): number {
 
-        let stats = statSync(filePath);
+        const stats = statSync(filePath);
         return stats ? stats.size : null;
     }
 
@@ -86,7 +86,7 @@ export default class FileHandler {
             return null;
         }
 
-        let path_parts = vo.path.split('/');
+        const path_parts = vo.path.split('/');
         return path_parts[path_parts.length - 1];
     }
 
@@ -96,7 +96,7 @@ export default class FileHandler {
             return null;
         }
 
-        let path_parts = vo.path.split('/');
+        const path_parts = vo.path.split('/');
         path_parts.pop();
         return path_parts.join('/');
     }

@@ -12,7 +12,7 @@ export default class UserVO implements IArchivedVOBase, IVersionedVO {
         password: string,
         lang_id: number
     ): UserVO {
-        let user: UserVO = new UserVO();
+        const user: UserVO = new UserVO();
 
         user.name = name;
         user.email = email;

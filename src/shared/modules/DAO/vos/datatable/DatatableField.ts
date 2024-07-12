@@ -1,10 +1,10 @@
+import ModuleTableVO from '../../../../../shared/modules/DAO/vos/ModuleTableVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import WeightHandler from '../../../../tools/WeightHandler';
-import Alert from '../../../Alert/vos/Alert';
-import ModuleTableField from '../../../ModuleTableField';
-import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
+import ModuleTableController from '../../ModuleTableController';
+import ModuleTableFieldController from '../../ModuleTableFieldController';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
+import ModuleTableFieldVO from '../ModuleTableFieldVO';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -28,7 +28,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
 
-    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
+    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
 
     /**
      * Field uniquement côté client..... a voir si on a pas plus propre comme système
@@ -36,7 +36,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public vue_component: ICRUDComponentField = null;
 
     public id: number;
-    public _type: string;
 
     public _vo_type_id: string;
 
@@ -44,7 +43,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
 
     /**
-     * Surcharges du ModuleTableField
+     * Surcharges du ModuleTableFieldVO
      */
     public field_type: string;
     public enum_values: { [value: number]: string };
@@ -96,14 +95,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     public select_options_enabled: number[] = null;
 
-    /**
-     * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
-     * On create or update tables, let it same as datatable_field_uid
-     */
-    public _module_table_field_id: string;
-
-    abstract get translatable_title(): string;
-
     public validate: (data: any) => string;
     /**
      * @returns true si seul le field du champ est modifié, false si d'autres champs sont modifiés => forcera un reload global du vo
@@ -115,7 +106,8 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public onEndOfChange: (vo: IDistantVOBase) => boolean | Promise<boolean>;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
-    public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
+    // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+    // public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
 
     //definit comment trier le field si besoin
     public sort: (vos: IDistantVOBase[]) => void;
@@ -137,25 +129,46 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public type: string;
     public datatable_field_uid: string;
 
-    get module_table_field_id(): string {
-        return this._module_table_field_id;
-    }
+    /**
+     * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
+     * On create or update tables, let it same as datatable_field_uid
+     */
+    public _module_table_field_id: string;
 
-    set module_table_field_id(module_table_field_id: string) {
-        this._module_table_field_id = module_table_field_id;
+    public abstract _type: string;
 
-        this.update_moduleTableField();
-    }
-
-    public setModuleTable(moduleTable: ModuleTable<any>): this {
-        this.vo_type_full_name = moduleTable.full_name;
-        this.vo_type_id = moduleTable.vo_type;
-        return this;
+    get alert_path(): string {
+        if (!this.vo_type_full_name) {
+            return this.datatable_field_uid;
+        }
+        return this.vo_type_full_name + '.' + this.datatable_field_uid;
     }
 
     get vo_type_id(): string {
         return this._vo_type_id;
     }
+
+    get moduleTable(): ModuleTableVO {
+        if (!this.vo_type_id) {
+            return null;
+        }
+
+        return ModuleTableController.module_tables_by_vo_type[this.vo_type_id];
+    }
+
+    get moduleTableField(): ModuleTableFieldVO {
+        if (!this.moduleTable) {
+            return null;
+        }
+
+        return this.moduleTable.getFieldFromId(this.module_table_field_id);
+    }
+
+    get module_table_field_id(): string {
+        return this._module_table_field_id;
+    }
+
+    abstract get translatable_title(): string;
 
     set vo_type_id(vo_type_id: string) {
         if (!vo_type_id) {
@@ -167,21 +180,18 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    get moduleTable(): ModuleTable<any> {
-        if (!this.vo_type_id) {
-            return null;
-        }
+    set module_table_field_id(module_table_field_id: string) {
+        this._module_table_field_id = module_table_field_id;
 
-        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
+        this.update_moduleTableField();
     }
 
-    get moduleTableField(): ModuleTableField<T> {
-        if (!this.moduleTable) {
-            return null;
-        }
-
-        return this.moduleTable.getFieldFromId(this.module_table_field_id);
+    public setModuleTable(moduleTable: ModuleTableVO): this {
+        this.vo_type_full_name = moduleTable.full_name;
+        this.vo_type_id = moduleTable.vo_type;
+        return this;
     }
+
 
     public auto_update_datatable_field_uid_with_vo_type() {
         if (!this.semaphore_auto_update_datatable_field_uid_with_vo_type) {
@@ -321,7 +331,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
             } else if (this.moduleTable.sort_by_field) {
                 // je trie sur le champ si je l'ai défini sur le moduletable
                 optionsArray.sort((a, b) => {
-                    let field_id: string = this.moduleTable.sort_by_field.field_id;
+                    let field_id: string = this.moduleTable.sort_by_field.field_name;
                     let sort_asc: boolean = this.moduleTable.sort_by_field.sort_asc;
 
                     if (a[field_id] < b[field_id]) {
@@ -360,11 +370,12 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): this {
-        this.validate_input = validate_input;
+    // FIXME : TODO : TODELETE probablement, je vois pas qui utilise ça
+    //    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): this {
+    //     this.validate_input = validate_input;
 
-        return this;
-    }
+    //     return this;
+    // }
 
     /**
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
@@ -405,13 +416,6 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     public setTranslatableTitle(code_text: string): this {
         this.translatable_title_custom = code_text;
         return this;
-    }
-
-    get alert_path(): string {
-        if (!this.vo_type_full_name) {
-            return this.datatable_field_uid;
-        }
-        return this.vo_type_full_name + '.' + this.datatable_field_uid;
     }
 
     /**
@@ -483,7 +487,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
         this.select_options_enabled = !options ? [] : Array.from(options);
 
-        if (!!this.vue_component) {
+        if (this.vue_component) {
             // on informe
             this.vue_component.$data.select_options_enabled = Array.from(options);
             await this.vue_component.on_reload_field_value();
@@ -507,7 +511,7 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         return this;
     }
 
-    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
+    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;
@@ -527,7 +531,9 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
     private update_moduleTableField() {
         if (this.moduleTableField) {
             this.is_required = this.moduleTableField.field_required;
-            this.validate = (this.validate != null) ? this.validate : this.moduleTableField.validate;
+            this.validate = (this.validate != null) ? this.validate : (data: any) => {
+                return ModuleTableFieldController.validate_field_value(this.moduleTableField, data);
+            };
             this.field_type = (this.field_type != null) ? this.field_type : this.moduleTableField.field_type;
             this.enum_values = (this.enum_values != null) ? this.enum_values : this.moduleTableField.enum_values;
             this.segmentation_type = (this.segmentation_type != null) ? this.segmentation_type : this.moduleTableField.segmentation_type;

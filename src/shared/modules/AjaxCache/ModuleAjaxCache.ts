@@ -39,9 +39,4 @@ export default class ModuleAjaxCache extends Module {
             []
         ));
     }
-
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
-    }
 }

@@ -3,13 +3,13 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
-import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableFieldVO from '../../../shared/modules/DAO/vos/ModuleTableFieldVO';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
 
@@ -109,28 +109,28 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             return null;
         }
 
-        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
+        const field = ModuleTableController.module_tables_by_vo_type[api_type_id].getFieldFromId(unique_field_id);
         let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_color:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
                 filter_ = filter(api_type_id, field.field_id).by_text_has(unique_field_value);
                 break;
             default:
                 throw new Error('Not Implemented');
         }
 
-        let context_query: ContextQueryVO = query(api_type_id).add_filters([filter_]).set_limit(1);
+        const context_query: ContextQueryVO = query(api_type_id).add_filters([filter_]).set_limit(1);
 
-        let res = await this.select_vos<T>(context_query);
+        const res = await this.select_vos<T>(context_query);
         return (res && res.length) ? res[0] : null;
     }
 
     public async build_select_query_str(
         context_query: ContextQueryVO
     ): Promise<string> {
-        let q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
+        const q: ParameterizedQueryWrapper = await this.build_select_query(context_query);
         return q ? q.query : null;
     }
 

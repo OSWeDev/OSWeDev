@@ -56,7 +56,7 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
     private default_is_editing: boolean;
 
     private async mounted() {
-        if (!!this.default_is_editing) {
+        if (this.default_is_editing) {
             this.set_is_editing_page(true);
         } else {
             this.set_is_editing_page(false);
@@ -70,8 +70,8 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
         }
 
         this.set_is_saving(true);
-        for (let i in this.saving_handlers) {
-            let saving_handler = this.saving_handlers[i];
+        for (const i in this.saving_handlers) {
+            const saving_handler = this.saving_handlers[i];
 
             if (!await saving_handler()) {
                 ConsoleHandler.error('Echec de sauvegarde de la page');
@@ -100,7 +100,7 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
     }
 
     private async try_leave(): Promise<boolean> {
-        let self = this;
+        const self = this;
 
         return new Promise<boolean>((accept, reject) => {
 

@@ -26,6 +26,6 @@ export default class AnonymizationFieldConfVO implements IDistantVOBase {
     public _type: string = AnonymizationFieldConfVO.API_TYPE_ID;
 
     public vo_type: string;
-    public field_id: string;
+    public field_name: string;
     public anonymizer_type: number;
 }

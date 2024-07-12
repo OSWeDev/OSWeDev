@@ -15,8 +15,8 @@ export interface IDAOState {
     typeWatchers: { [API_TYPE_ID: string]: DaoStoreTypeWatcherDefinition[] };
 }
 
-let callWatchers = async (watchers: DaoStoreTypeWatcherDefinition[]) => {
-    for (let i in watchers) {
+const callWatchers = async (watchers: DaoStoreTypeWatcherDefinition[]) => {
+    for (const i in watchers) {
         await watchers[i].handler();
     }
 };
@@ -49,7 +49,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 return;
             }
 
-            for (let i in state.typeWatchers[watcher.API_TYPE_ID]) {
+            for (const i in state.typeWatchers[watcher.API_TYPE_ID]) {
                 if (state.typeWatchers[watcher.API_TYPE_ID][i].UID == watcher.UID) {
                     // On le supprime
                     state.typeWatchers[watcher.API_TYPE_ID].splice(parseInt(i), 1);
@@ -68,7 +68,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 Vue.set(state.typeWatchers, watcher.API_TYPE_ID, []);
             }
 
-            for (let i in state.typeWatchers[watcher.API_TYPE_ID]) {
+            for (const i in state.typeWatchers[watcher.API_TYPE_ID]) {
                 if (state.typeWatchers[watcher.API_TYPE_ID][i].UID == watcher.UID) {
                     // On remplace le précédent
                     state.typeWatchers[watcher.API_TYPE_ID][i] = watcher;
@@ -134,8 +134,8 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
         async storeMultipleDatasByIds(state: IDAOState, infos: Array<{ API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }>) {
 
-            for (let i in infos) {
-                let info = infos[i];
+            for (const i in infos) {
+                const info = infos[i];
 
                 Vue.set(state.storedDatasArray, info.API_TYPE_ID, info.vos_by_ids);
 
@@ -175,7 +175,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
     public namespaced: boolean = true;
 
     protected constructor() {
-        let self = this;
+        const self = this;
         this.module_name = "DAOStore";
 
 

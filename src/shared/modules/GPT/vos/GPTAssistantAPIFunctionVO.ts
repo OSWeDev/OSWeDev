@@ -3,8 +3,9 @@ import { FunctionDefinition, FunctionParameters } from 'openai/resources';
 import IDistantVOBase from '../../IDistantVOBase';
 import GPTAssistantAPIFunctionParamVO from './GPTAssistantAPIFunctionParamVO';
 import GPTAssistantAPIThreadVO from './GPTAssistantAPIThreadVO';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
-export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
+export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersionedVO {
 
     public static API_TYPE_ID: string = "gpt_assistant_function";
 
@@ -19,17 +20,26 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
 
     public prepend_thread_vo: boolean;
 
+    // IVersionedVO
+    public parent_id: number;
+    public trashed: boolean;
+    public version_num: number;
+    public version_author_id: number;
+    public version_timestamp: number;
+    public version_edit_author_id: number;
+    public version_edit_timestamp: number;
+
     public to_GPT_FunctionDefinition(params: GPTAssistantAPIFunctionParamVO[]): FunctionDefinition {
 
-        let gpt_params: { [param_name: string]: FunctionParameters } = {};
+        const gpt_params: { [param_name: string]: FunctionParameters } = {};
 
-        for (let i in params) {
-            let param: GPTAssistantAPIFunctionParamVO = params[i];
+        for (const i in params) {
+            const param: GPTAssistantAPIFunctionParamVO = params[i];
 
             gpt_params[param.gpt_funcparam_name] = param.to_GPT_FunctionParameters();
         }
 
-        let ret: FunctionDefinition = {
+        const ret: FunctionDefinition = {
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
@@ -41,10 +51,10 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase {
 
     public ordered_function_params_from_GPT_arguments(function_vo: GPTAssistantAPIFunctionVO, thread_vo: GPTAssistantAPIThreadVO, args: { [param_name: string]: any }, params: GPTAssistantAPIFunctionParamVO[]): any[] {
 
-        let ret: any[] = [];
+        const ret: any[] = [];
 
-        for (let i in params) {
-            let param: GPTAssistantAPIFunctionParamVO = params[i];
+        for (const i in params) {
+            const param: GPTAssistantAPIFunctionParamVO = params[i];
             ret.push(args[param.gpt_funcparam_name]);
         }
 

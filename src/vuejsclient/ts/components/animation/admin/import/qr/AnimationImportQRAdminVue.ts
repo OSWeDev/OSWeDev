@@ -101,7 +101,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
     private async setExport() {
         this.startLoading();
 
-        let promises = [];
+        const promises = [];
         promises.push((async () => {
             this.qrs = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
         })());
@@ -132,14 +132,14 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
     private set_qrs_for_export(): AnimationImportQRVO[] {
         this.qrs_for_export = [];
 
-        for (let qr of this.qrs) {
-            let data: AnimationImportQRVO = new AnimationImportQRVO();
+        for (const qr of this.qrs) {
+            const data: AnimationImportQRVO = new AnimationImportQRVO();
 
-            for (let property of this.column_titles) {
+            for (const property of this.column_titles) {
                 data[property] = this.exportData(qr[property]);
             }
 
-            let associated_module = this.modules.find((module) => module.id == qr.module_id);
+            const associated_module = this.modules.find((module) => module.id == qr.module_id);
             data["module_id_import"] = this.exportData(associated_module.id_import);
 
             this.qrs_for_export.push(data);

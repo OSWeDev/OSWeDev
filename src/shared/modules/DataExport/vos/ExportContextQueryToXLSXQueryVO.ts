@@ -49,7 +49,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
 
         vars_indicator?: ExportVarIndicatorVO,
     ) {
-        let res: ExportContextQueryToXLSXQueryVO = new ExportContextQueryToXLSXQueryVO();
+        const res: ExportContextQueryToXLSXQueryVO = new ExportContextQueryToXLSXQueryVO();
 
         res.filename = filename;
         res.context_query = context_query;

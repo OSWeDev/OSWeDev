@@ -143,7 +143,7 @@ export default class DashboardPageFieldFiltersVOManager {
         let readable_field_filters: { [label: string]: IReadableFieldFilters } = Object.assign({}, dashboard_pages_field_filters_map[0].readable_field_filters);
         let field_filters: FieldFiltersVO = Object.assign({}, dashboard_pages_field_filters_map[0].field_filters);
 
-        for (let i in dashboard_pages_field_filters_map) {
+        for (const i in dashboard_pages_field_filters_map) {
             if (i == '0') {
                 continue;
             }

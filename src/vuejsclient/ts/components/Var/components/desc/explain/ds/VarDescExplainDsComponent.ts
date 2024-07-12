@@ -46,7 +46,7 @@ export default class VarDescExplainDsComponent extends VueComponentBase {
         }
 
         if (TypesHandler.getInstance().isObject(e)) {
-            for (let field_id in e) {
+            for (const field_id in e) {
                 e[field_id] = this.translate_moments_to_date(e[field_id]);
             }
         }

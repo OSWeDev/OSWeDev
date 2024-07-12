@@ -1,16 +1,16 @@
 import ObjectHandler from '../../tools/ObjectHandler';
-import DefaultTranslation from './vos/DefaultTranslation';
+import DefaultTranslationVO from './vos/DefaultTranslationVO';
 
 export default class DefaultTranslationManager {
     /**
      * Local thread cache -----
      */
-    public static registered_default_translations: { [code_text: string]: DefaultTranslation } = {};
+    public static registered_default_translations: { [code_text: string]: DefaultTranslationVO } = {};
     /**
      * ----- Local thread cache
      */
 
-    public static registerDefaultTranslation(defaultTranslation: DefaultTranslation) {
+    public static registerDefaultTranslation(defaultTranslation: DefaultTranslationVO) {
         if ((!defaultTranslation) || (!defaultTranslation.code_text) ||
             (!ObjectHandler.hasAtLeastOneAttribute(defaultTranslation.default_translations))) {
             return;

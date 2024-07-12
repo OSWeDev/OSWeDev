@@ -56,8 +56,8 @@ export default class IsoWeekDaysInputComponent extends VueComponentBase {
     private emitInput(): void {
 
         let new_value = [];
-        for (let i in this.checkedDays) {
-            let selectedDate = this.checkedDays[i];
+        for (const i in this.checkedDays) {
+            const selectedDate = this.checkedDays[i];
 
             new_value.push(RangeHandler.create_single_elt_NumRange(parseInt(selectedDate.toString()), NumSegment.TYPE_INT));
         }
@@ -66,7 +66,7 @@ export default class IsoWeekDaysInputComponent extends VueComponentBase {
         /**
          * On check que c'est bien une nouvelle value
          */
-        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        const old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
             (RangeHandler.are_same(old_value, new_value))) {
             return;

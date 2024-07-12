@@ -48,10 +48,10 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     }
 
     get programs_categories_ordered_by_weight(): IPlanProgramCategory[] {
-        let res: IPlanProgramCategory[] = [];
+        const res: IPlanProgramCategory[] = [];
 
-        for (let i in this.getStoredDatas[this.program_plan_shared_module.program_category_type_id]) {
-            let program_category: IPlanProgramCategory = this.getStoredDatas[this.program_plan_shared_module.program_category_type_id][i] as IPlanProgramCategory;
+        for (const i in this.getStoredDatas[this.program_plan_shared_module.program_category_type_id]) {
+            const program_category: IPlanProgramCategory = this.getStoredDatas[this.program_plan_shared_module.program_category_type_id][i] as IPlanProgramCategory;
 
             res.push(program_category);
         }
@@ -63,10 +63,10 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     }
 
     get programs_by_category(): { [category_id: number]: IPlanProgram[] } {
-        let res: { [category_id: number]: IPlanProgram[] } = {};
+        const res: { [category_id: number]: IPlanProgram[] } = {};
 
-        for (let i in this.getStoredDatas[this.program_plan_shared_module.program_type_id]) {
-            let program: IPlanProgram = this.getStoredDatas[this.program_plan_shared_module.program_type_id][i] as IPlanProgram;
+        for (const i in this.getStoredDatas[this.program_plan_shared_module.program_type_id]) {
+            const program: IPlanProgram = this.getStoredDatas[this.program_plan_shared_module.program_type_id][i] as IPlanProgram;
 
             if ((!program.days_by_target) || (!program.nb_targets)) {
                 continue;

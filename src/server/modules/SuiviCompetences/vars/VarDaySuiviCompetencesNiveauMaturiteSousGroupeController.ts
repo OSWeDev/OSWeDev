@@ -25,12 +25,6 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
 
     public static DEP_DaySuiviCompetencesNiveauMaturiteSousGroupe: string = 'VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.DaySuiviCompetencesNiveauMaturiteSousGroupe' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    public static getInstance(): VarDaySuiviCompetencesNiveauMaturiteSousGroupeController {
-        if (!VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance) {
-            VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance = new VarDaySuiviCompetencesNiveauMaturiteSousGroupeController();
-        }
-        return VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance;
-    }
 
     protected static instance: VarDaySuiviCompetencesNiveauMaturiteSousGroupeController = null;
 
@@ -39,7 +33,7 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
             new VarConfVO(
                 SuiviCompetencesVarsNamesHolder.VarDaySuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME,
                 SuiviCompetencesRapportSousGroupeDataRangesVO.API_TYPE_ID
-            ),
+            ).disable_optimization__has_no_imports(),
             { 'fr-fr': 'DaySuiviCompetencesNiveauMaturiteSousGroupe' },
             { 'fr-fr': 'Niveau de maturité TSP Sous Groupe' },
             { 'fr-fr': '% du niveau de maturité TSP sur les groupes et sous groupes TSP' },
@@ -47,8 +41,13 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
                 [VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.DEP_DaySuiviCompetencesNiveauMaturiteSousGroupe]: { 'fr-fr': 'Niveau maturité TSP Sous Groupe' },
             }
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    public static getInstance(): VarDaySuiviCompetencesNiveauMaturiteSousGroupeController {
+        if (!VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance) {
+            VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance = new VarDaySuiviCompetencesNiveauMaturiteSousGroupeController();
+        }
+        return VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.instance;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

@@ -20,13 +20,6 @@ import VarDaySuiviCompetencesNiveauMaturiteGroupeController from "./VarDaySuiviC
 export default class VarDayLastSuiviCompetencesNiveauMaturiteGroupeController extends VarServerControllerBase<SuiviCompetencesGroupeUserTsRangesDataRangesVO> {
     public static DEP_DaySuiviCompetencesNiveauMaturiteGroupe: string = 'VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.DEP_DaySuiviCompetencesNiveauMaturiteGroupe' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    public static getInstance(): VarDayLastSuiviCompetencesNiveauMaturiteGroupeController {
-        if (!VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance) {
-            VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance = new VarDayLastSuiviCompetencesNiveauMaturiteGroupeController();
-        }
-        return VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance;
-    }
-
     protected static instance: VarDayLastSuiviCompetencesNiveauMaturiteGroupeController = null;
 
     protected constructor() {
@@ -43,8 +36,13 @@ export default class VarDayLastSuiviCompetencesNiveauMaturiteGroupeController ex
                 [VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.DEP_DaySuiviCompetencesNiveauMaturiteGroupe]: { 'fr-fr': 'DaySuiviCompetencesNiveauMaturiteGroupe' },
             }
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    public static getInstance(): VarDayLastSuiviCompetencesNiveauMaturiteGroupeController {
+        if (!VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance) {
+            VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance = new VarDayLastSuiviCompetencesNiveauMaturiteGroupeController();
+        }
+        return VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.instance;
     }
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {

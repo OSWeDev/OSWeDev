@@ -63,8 +63,8 @@ export default class ForkMessageController {
             return true;
         } else {
 
-            for (let i in ForkServerController.forks) {
-                let forked = ForkServerController.forks[i];
+            for (const i in ForkServerController.forks) {
+                const forked = ForkServerController.forks[i];
 
                 if ((ignore_uid != null) && (ignore_uid == forked.uid)) {
                     continue;
@@ -90,8 +90,8 @@ export default class ForkMessageController {
 
             msg = APIControllerWrapper.try_translate_vo_to_api(msg);
             let res: boolean = false;
-            let sendHandle = (!child_process) ? process : child_process;
-            let self = ForkMessageController;
+            const sendHandle = (!child_process) ? process : child_process;
+            const self = ForkMessageController;
 
             if ((!sendHandle) || (!sendHandle.send)) {
                 resolve(false);
@@ -99,7 +99,7 @@ export default class ForkMessageController {
             }
 
             res = sendHandle.send(msg, (error: Error) => {
-                if (!!error) {
+                if (error) {
                     self.handle_send_error({
                         message: msg,
                         sendHandle: sendHandle,
@@ -123,9 +123,9 @@ export default class ForkMessageController {
 
         ConsoleHandler.warn("Retry messages... :" + ForkMessageController.stacked_msg_waiting.length + ':');
 
-        let stacked_msg_waiting = ForkMessageController.stacked_msg_waiting;
+        const stacked_msg_waiting = ForkMessageController.stacked_msg_waiting;
         ForkMessageController.stacked_msg_waiting = [];
-        let self = ForkMessageController;
+        const self = ForkMessageController;
 
         stacked_msg_waiting.forEach((msg_wrapper: IForkMessageWrapper) => {
 
@@ -154,7 +154,7 @@ export default class ForkMessageController {
             /**
              * On log max 1 fois par minute
              */
-            let log_msg_error = performance.now();
+            const log_msg_error = performance.now();
             if (ForkMessageController.last_log_msg_error < (log_msg_error - 60)) {
                 ForkMessageController.last_log_msg_error = log_msg_error;
                 ConsoleHandler.error(error);

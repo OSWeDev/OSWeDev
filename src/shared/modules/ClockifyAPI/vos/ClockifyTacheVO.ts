@@ -7,7 +7,7 @@ export default class ClockifyTacheVO {
         name: string,
         status: string
     ): ClockifyTacheVO {
-        let tache: ClockifyTacheVO = new ClockifyTacheVO();
+        const tache: ClockifyTacheVO = new ClockifyTacheVO();
 
         tache.clockify_id = clockify_id;
         tache.projet_id = projet_id;

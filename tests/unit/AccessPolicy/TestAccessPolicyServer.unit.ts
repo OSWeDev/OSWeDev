@@ -33,7 +33,7 @@ test('AccessPolicyServer: test check access - denied by default to all but admin
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -66,11 +66,11 @@ test('AccessPolicyServer: test check access - denied by default to all but admin
         {}
     )).toStrictEqual(false);
 
-    let policy: AccessPolicyVO = new AccessPolicyVO();
+    const policy: AccessPolicyVO = new AccessPolicyVO();
     policy.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy.translatable_name = 'test';
     policy.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policy
     };
     expect(AccessPolicyServerController.checkAccessTo(
@@ -137,7 +137,7 @@ test('AccessPolicyServer: test check access - role inherit : denied by default t
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -145,15 +145,15 @@ test('AccessPolicyServer: test check access - role inherit : denied by default t
 
 
 
-    let policy: AccessPolicyVO = new AccessPolicyVO();
+    const policy: AccessPolicyVO = new AccessPolicyVO();
     policy.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy.translatable_name = 'test';
     policy.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policy
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
@@ -250,7 +250,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -258,15 +258,15 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'test';
     policyA.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
@@ -334,7 +334,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -342,28 +342,28 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'test';
     policyA.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
 
     all_roles[new_role.id] = new_role;
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_anonymous.id;
     role_policyA.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_anonymous.id]: {
             [policyA.id]: role_policyA
         }
@@ -472,7 +472,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -480,28 +480,28 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'test';
     policyA.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
 
     all_roles[new_role.id] = new_role;
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_logged.id;
     role_policyA.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policyA.id]: role_policyA
         }
@@ -568,7 +568,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -576,28 +576,28 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'test';
     policyA.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
 
     all_roles[new_role.id] = new_role;
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = new_role.id;
     role_policyA.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [new_role.id]: {
             [policyA.id]: role_policyA
         }
@@ -664,7 +664,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -672,33 +672,33 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA,
         2: policyB
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
 
     all_roles[new_role.id] = new_role;
 
-    let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependency: PolicyDependencyVO = new PolicyDependencyVO();
     dependency.id = 1;
     dependency.src_pol_id = policyA.id;
     dependency.depends_on_pol_id = policyB.id;
     dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyA.id]: [dependency]
     };
 
@@ -763,7 +763,7 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -771,33 +771,33 @@ test('AccessPolicyServer: test check access - inheritance test (ignore explicit 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA,
         2: policyB
     };
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
 
     all_roles[new_role.id] = new_role;
 
-    let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependency: PolicyDependencyVO = new PolicyDependencyVO();
     dependency.id = 1;
     dependency.src_pol_id = policyA.id;
     dependency.depends_on_pol_id = policyB.id;
     dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyA.id]: [dependency]
     };
 
@@ -862,7 +862,7 @@ test('AccessPolicyServer: test check access - policy explicit configuration', ()
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -871,21 +871,21 @@ test('AccessPolicyServer: test check access - policy explicit configuration', ()
 
 
 
-    let policy: AccessPolicyVO = new AccessPolicyVO();
+    const policy: AccessPolicyVO = new AccessPolicyVO();
     policy.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy.translatable_name = 'test';
     policy.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policy
     };
 
-    let role_policy: RolePolicyVO = new RolePolicyVO();
+    const role_policy: RolePolicyVO = new RolePolicyVO();
     role_policy.id = 1;
     role_policy.accpol_id = 1;
     role_policy.role_id = AccessPolicyServerController.role_logged.id;
     role_policy.granted = false;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policy.id]: role_policy
         }
@@ -975,7 +975,7 @@ test('AccessPolicyServer: test check access - policy explicit inheritance', () =
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -983,21 +983,21 @@ test('AccessPolicyServer: test check access - policy explicit inheritance', () =
 
 
 
-    let policy: AccessPolicyVO = new AccessPolicyVO();
+    const policy: AccessPolicyVO = new AccessPolicyVO();
     policy.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
     policy.translatable_name = 'test';
     policy.id = 1;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policy
     };
 
-    let role_policy: RolePolicyVO = new RolePolicyVO();
+    const role_policy: RolePolicyVO = new RolePolicyVO();
     role_policy.id = 1;
     role_policy.accpol_id = 1;
     role_policy.role_id = AccessPolicyServerController.role_logged.id;
     role_policy.granted = false;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policy.id]: role_policy
         }
@@ -1050,7 +1050,7 @@ test('AccessPolicyServer: test check access - policy explicit dependency', () =>
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1058,28 +1058,28 @@ test('AccessPolicyServer: test check access - policy explicit dependency', () =>
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         [policyA.id]: policyA,
         [policyB.id]: policyB
     };
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = 1;
     role_policyA.role_id = AccessPolicyServerController.role_anonymous.id;
     role_policyA.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policyA.id]: role_policyA
         }
@@ -1113,12 +1113,12 @@ test('AccessPolicyServer: test check access - policy explicit dependency', () =>
     )).toStrictEqual(true);
 
 
-    let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependency: PolicyDependencyVO = new PolicyDependencyVO();
     dependency.id = 1;
     dependency.src_pol_id = policyA.id;
     dependency.depends_on_pol_id = policyB.id;
     dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyA.id]: [dependency]
     };
 
@@ -1169,7 +1169,7 @@ test('AccessPolicyServer: test check access - policy explicit dependency', () =>
         policies_dependencies
     )).toStrictEqual(false);
 
-    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    const role_policyB: RolePolicyVO = new RolePolicyVO();
     role_policyB.id = 2;
     role_policyB.accpol_id = policyB.id;
     role_policyB.role_id = AccessPolicyServerController.role_anonymous.id;
@@ -1286,7 +1286,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1294,57 +1294,57 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
 
-    let policyC: AccessPolicyVO = new AccessPolicyVO();
+    const policyC: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testC';
     policyB.id = 3;
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         [policyA.id]: policyA,
         [policyB.id]: policyB,
         [policyC.id]: policyC
     };
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_logged.id;
     role_policyA.granted = true;
 
-    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    const role_policyB: RolePolicyVO = new RolePolicyVO();
     role_policyB.id = 2;
     role_policyB.accpol_id = policyB.id;
     role_policyB.role_id = AccessPolicyServerController.role_logged.id;
     role_policyB.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policyA.id]: role_policyA,
             [policyB.id]: role_policyB
         }
     };
 
-    let dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCA.id = 1;
     dependencyCA.src_pol_id = policyC.id;
     dependencyCA.depends_on_pol_id = policyA.id;
     dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-    let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCB.id = 2;
     dependencyCB.src_pol_id = policyC.id;
     dependencyCB.depends_on_pol_id = policyB.id;
     dependencyCB.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyC.id]: [dependencyCA, dependencyCB],
     };
 
@@ -1438,7 +1438,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1446,57 +1446,57 @@ test('AccessPolicyServer: test check access - policy multiple dependencies defau
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
 
-    let policyC: AccessPolicyVO = new AccessPolicyVO();
+    const policyC: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testC';
     policyB.id = 3;
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         [policyA.id]: policyA,
         [policyB.id]: policyB,
         [policyC.id]: policyC
     };
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_logged.id;
     role_policyA.granted = true;
 
-    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    const role_policyB: RolePolicyVO = new RolePolicyVO();
     role_policyB.id = 2;
     role_policyB.accpol_id = policyB.id;
     role_policyB.role_id = AccessPolicyServerController.role_logged.id;
     role_policyB.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policyA.id]: role_policyA,
             [policyB.id]: role_policyB
         }
     };
 
-    let dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCA.id = 1;
     dependencyCA.src_pol_id = policyC.id;
     dependencyCA.depends_on_pol_id = policyA.id;
     dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-    let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCB.id = 2;
     dependencyCB.src_pol_id = policyC.id;
     dependencyCB.depends_on_pol_id = policyB.id;
     dependencyCB.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyC.id]: [dependencyCA, dependencyCB],
     };
 
@@ -1590,7 +1590,7 @@ test('AccessPolicyServer: test check access - policy multiple dependencies diffe
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1598,57 +1598,57 @@ test('AccessPolicyServer: test check access - policy multiple dependencies diffe
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
 
-    let policyC: AccessPolicyVO = new AccessPolicyVO();
+    const policyC: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testC';
     policyB.id = 3;
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         [policyA.id]: policyA,
         [policyB.id]: policyB,
         [policyC.id]: policyC
     };
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_logged.id;
     role_policyA.granted = true;
 
-    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    const role_policyB: RolePolicyVO = new RolePolicyVO();
     role_policyB.id = 2;
     role_policyB.accpol_id = policyB.id;
     role_policyB.role_id = AccessPolicyServerController.role_logged.id;
     role_policyB.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_logged.id]: {
             [policyA.id]: role_policyA,
             [policyB.id]: role_policyB
         }
     };
 
-    let dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCA.id = 1;
     dependencyCA.src_pol_id = policyC.id;
     dependencyCA.depends_on_pol_id = policyA.id;
     dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-    let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
     dependencyCB.id = 2;
     dependencyCB.src_pol_id = policyC.id;
     dependencyCB.depends_on_pol_id = policyB.id;
     dependencyCB.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyC.id]: [dependencyCA, dependencyCB],
     };
 
@@ -1742,7 +1742,7 @@ test('AccessPolicyServer: test getUsersRoles', () => {
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1750,7 +1750,7 @@ test('AccessPolicyServer: test getUsersRoles', () => {
 
 
 
-    let new_role: RoleVO = new RoleVO();
+    const new_role: RoleVO = new RoleVO();
     new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
     new_role.translatable_name = 'new_role';
     new_role.id = 1001;
@@ -1826,7 +1826,7 @@ test('AccessPolicyServer: test check access - inheritance test - complex - dont 
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
@@ -1834,42 +1834,42 @@ test('AccessPolicyServer: test check access - inheritance test - complex - dont 
 
 
 
-    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    const policyA: AccessPolicyVO = new AccessPolicyVO();
     policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyA.translatable_name = 'testA';
     policyA.id = 1;
 
-    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    const policyB: AccessPolicyVO = new AccessPolicyVO();
     policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policyB.translatable_name = 'testB';
     policyB.id = 2;
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyA,
         2: policyB
     };
 
-    let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+    const dependency: PolicyDependencyVO = new PolicyDependencyVO();
     dependency.id = 1;
     dependency.src_pol_id = policyB.id;
     dependency.depends_on_pol_id = policyA.id;
     dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
         [policyB.id]: [dependency]
     };
 
-    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    const role_policyA: RolePolicyVO = new RolePolicyVO();
     role_policyA.id = 1;
     role_policyA.accpol_id = policyA.id;
     role_policyA.role_id = AccessPolicyServerController.role_logged.id;
     role_policyA.granted = true;
 
-    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    const role_policyB: RolePolicyVO = new RolePolicyVO();
     role_policyB.id = 2;
     role_policyB.accpol_id = policyB.id;
     role_policyB.role_id = AccessPolicyServerController.role_anonymous.id;
     role_policyB.granted = true;
 
-    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+    const role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
         [AccessPolicyServerController.role_anonymous.id]: {
             [policyB.id]: role_policyB
         },
@@ -1978,44 +1978,44 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
     };
 
-    let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+    const policy_global_access: AccessPolicyVO = new AccessPolicyVO();
     policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy_global_access.translatable_name = 'policy_global_access';
     policy_global_access.id = 100;
 
 
-    let pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg_inherited.translatable_name = 'pg_inherited';
     pg_inherited.id = 2;
 
-    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited.LIST_LABELS',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_LIST_LABELS.id = 11;
 
-    let policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_READ',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_READ.id = 12;
 
-    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
         pg_inherited,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policy_inherited_INSERT_OR_UPDATE.id = 13;
 
-    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_DELETE',
         pg_inherited,
         true,
@@ -2024,32 +2024,32 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
 
 
 
-    let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         true,
@@ -2057,7 +2057,7 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     policyDELETE.id = 4;
 
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyLIST_LABELS,
         2: policyREAD,
         3: policyINSERT_OR_UPDATE,
@@ -2070,37 +2070,37 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType && inherited', ()
     };
 
 
-    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    const dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    const dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    const dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_inherited_LIST_LABELS);
-    let inherited_READ = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_inherited_READ);
-    let inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_inherited_INSERT_OR_UPDATE);
-    let inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_inherited_DELETE);
 
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
 
         [policyLIST_LABELS.id]: [global_access_LIST_LABELS, inherited_LIST_LABELS],
         [policyREAD.id]: [dependencyREAD, global_access_READ, inherited_READ],
@@ -2169,44 +2169,44 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
     };
 
-    let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+    const policy_global_access: AccessPolicyVO = new AccessPolicyVO();
     policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy_global_access.translatable_name = 'policy_global_access';
     policy_global_access.id = 100;
 
 
-    let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         true,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         true,
@@ -2214,7 +2214,7 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
     policyDELETE.id = 4;
 
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyLIST_LABELS,
         2: policyREAD,
         3: policyINSERT_OR_UPDATE,
@@ -2222,24 +2222,24 @@ test('AccessPolicyServer: test dao access - isAccessConfVoType', () => {
     };
 
 
-    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    const dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    const dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    const dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
 
         [policyLIST_LABELS.id]: [global_access_LIST_LABELS],
         [policyREAD.id]: [dependencyREAD, global_access_READ],
@@ -2307,44 +2307,44 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
     };
 
-    let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+    const policy_global_access: AccessPolicyVO = new AccessPolicyVO();
     policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy_global_access.translatable_name = 'policy_global_access';
     policy_global_access.id = 100;
 
 
-    let pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg_inherited.translatable_name = 'pg_inherited';
     pg_inherited.id = 2;
 
-    let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited.LIST_LABELS',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_LIST_LABELS.id = 11;
 
-    let policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_READ: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_READ',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policy_inherited_READ.id = 12;
 
-    let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
         pg_inherited,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policy_inherited_INSERT_OR_UPDATE.id = 13;
 
-    let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policy_inherited_DELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_inherited_DELETE',
         pg_inherited,
         false,
@@ -2353,32 +2353,32 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
 
 
 
-    let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         false,
@@ -2386,7 +2386,7 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     policyDELETE.id = 4;
 
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyLIST_LABELS,
         2: policyREAD,
         3: policyINSERT_OR_UPDATE,
@@ -2399,37 +2399,37 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType && inherited', (
     };
 
 
-    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    const dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    const dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    const dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_inherited_LIST_LABELS);
-    let inherited_READ = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_inherited_READ);
-    let inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_inherited_INSERT_OR_UPDATE);
-    let inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const inherited_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_inherited_DELETE);
 
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
 
         [policyLIST_LABELS.id]: [global_access_LIST_LABELS, inherited_LIST_LABELS],
         [policyREAD.id]: [dependencyREAD, global_access_READ, inherited_READ],
@@ -2498,44 +2498,44 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
     AccessPolicyServerController.role_admin.id = 3;
     AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
-    let all_roles: { [role_id: number]: RoleVO } = {
+    const all_roles: { [role_id: number]: RoleVO } = {
         1: AccessPolicyServerController.role_anonymous,
         2: AccessPolicyServerController.role_logged,
         3: AccessPolicyServerController.role_admin
     };
 
-    let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+    const policy_global_access: AccessPolicyVO = new AccessPolicyVO();
     policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     policy_global_access.translatable_name = 'policy_global_access';
     policy_global_access.id = 100;
 
 
-    let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+    const pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
     pg.translatable_name = 'pg';
     pg.id = 1;
 
-    let policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyLIST_LABELS: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_LIST_LABELS',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyLIST_LABELS.id = 1;
 
-    let policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyREAD: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_READ',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
     policyREAD.id = 2;
 
-    let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_INSERT_OR_UPDATE',
         pg,
         false,
         AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
     policyINSERT_OR_UPDATE.id = 3;
 
-    let policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
+    const policyDELETE: AccessPolicyVO = DAOServerController.get_dao_policy(
         'isAccessConfVoType_DELETE',
         pg,
         false,
@@ -2543,7 +2543,7 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
     policyDELETE.id = 4;
 
 
-    let policies: { [policy_id: number]: AccessPolicyVO } = {
+    const policies: { [policy_id: number]: AccessPolicyVO } = {
         1: policyLIST_LABELS,
         2: policyREAD,
         3: policyINSERT_OR_UPDATE,
@@ -2551,24 +2551,24 @@ test('AccessPolicyServer: test dao access - !isAccessConfVoType', () => {
     };
 
 
-    let dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
-    let dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
-    let dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
+    const dependencyREAD = DAOServerController.get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+    const dependencyINSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+    const dependencyDELETE = DAOServerController.get_dao_dependency_default_denied(policyDELETE, policyREAD);
 
-    let global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_LIST_LABELS = DAOServerController.get_dao_dependency_default_granted(
         policyLIST_LABELS,
         policy_global_access);
-    let global_access_READ = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_READ = DAOServerController.get_dao_dependency_default_granted(
         policyREAD,
         policy_global_access);
-    let global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_INSERT_OR_UPDATE = DAOServerController.get_dao_dependency_default_granted(
         policyINSERT_OR_UPDATE,
         policy_global_access);
-    let global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
+    const global_access_DELETE = DAOServerController.get_dao_dependency_default_granted(
         policyDELETE,
         policy_global_access);
 
-    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+    const policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
 
         [policyLIST_LABELS.id]: [global_access_LIST_LABELS],
         [policyREAD.id]: [dependencyREAD, global_access_READ],

@@ -4,10 +4,10 @@ import ICheckListItem from '../../../../../shared/modules/CheckList/interfaces/I
 import ICheckPoint from '../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPointVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../../../shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../../shared/modules/DAO/vos/ModuleTableFieldVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
@@ -15,8 +15,7 @@ import './CheckListItemComponent.scss';
 
 @Component({
     template: require('./CheckListItemComponent.pug'),
-    components: {
-    }
+    components: {},
 })
 export default class CheckListItemComponent extends VueComponentBase {
 
@@ -48,8 +47,8 @@ export default class CheckListItemComponent extends VueComponentBase {
             return;
         }
 
-        let name: string = checkpoint.name;
-        let step_id: number = checkpoint.id;
+        const name: string = checkpoint.name;
+        const step_id: number = checkpoint.id;
 
         if (!this.checklist_item) {
             return;
@@ -69,7 +68,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id);
     }
 
-    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableField<any>) {
+    private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableFieldVO) {
 
         let res = field.dataToHumanReadableField(this.checklist_item);
 
@@ -77,7 +76,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        if ((field.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+        if ((field.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableFieldVO.FIELD_TYPE_boolean)) {
             if (res == null) {
                 res = '';
             } else if (res && res == "true") {
@@ -86,13 +85,13 @@ export default class CheckListItemComponent extends VueComponentBase {
                 res = this.label("crud.field.boolean.false");
             }
         }
-        return '<li>' + this.t(table_field.field_label.code_text) + ' : <strong>' +
+        return '<li>' + (table_field.field_label ? this.t(table_field.field_label.code_text) : table_field.field_name) + ' : <strong>' +
             res + '</strong></li>';
     }
 
     private async archive_item() {
         this.checklist_item.archived = true;
-        let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_item);
+        const res = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_item);
 
         if ((!res) || (!res.id)) {
             this.snotify.error(this.label('CheckListItemComponent.archive_item.failed'));
@@ -106,16 +105,16 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        if (!!this.hide_item_description) {
+        if (this.hide_item_description) {
             return null;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.checklist_item._type];
 
         let checkpoint_description: string = '<ul>';
-        for (let j in this.all_editable_fields) {
-            let field: DatatableField<any, any> = this.all_editable_fields[j];
-            let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+        for (const j in this.all_editable_fields) {
+            const field: DatatableField<any, any> = this.all_editable_fields[j];
+            const table_field: ModuleTableFieldVO = moduletable.get_field_by_id(field.module_table_field_id);
 
             checkpoint_description += this.get_field_text(field, table_field);
         }
@@ -130,19 +129,19 @@ export default class CheckListItemComponent extends VueComponentBase {
             return {};
         }
 
-        let res: { [step_id: number]: Array<DatatableField<any, any>> } = {};
+        const res: { [step_id: number]: Array<DatatableField<any, any>> } = {};
 
-        for (let i in this.ordered_checkpoints) {
-            let checkpoint = this.ordered_checkpoints[i];
+        for (const i in this.ordered_checkpoints) {
+            const checkpoint = this.ordered_checkpoints[i];
 
-            let checkpoint_editable_fields: Array<DatatableField<any, any>> = [];
+            const checkpoint_editable_fields: Array<DatatableField<any, any>> = [];
 
             if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
 
-                for (let j in checkpoint.item_field_ids) {
-                    let item_field_id = checkpoint.item_field_ids[j];
+                for (const j in checkpoint.item_field_ids) {
+                    const item_field_id = checkpoint.item_field_ids[j];
 
-                    let field: DatatableField<any, any> = this.all_editable_fields.find((e) => e.module_table_field_id == item_field_id);
+                    const field: DatatableField<any, any> = this.all_editable_fields.find((e) => e.module_table_field_id == item_field_id);
                     checkpoint_editable_fields.push(field);
                 }
             }
@@ -186,15 +185,15 @@ export default class CheckListItemComponent extends VueComponentBase {
     }
 
     private async update_state_step() {
-        let res: { [step_name: string]: number } = {};
+        const res: { [step_name: string]: number } = {};
 
-        let promises = [];
-        let self = this;
+        const promises = [];
+        const self = this;
 
         this.all_editable_fields = await this.checklist_controller.get_ordered_editable_fields();
 
-        for (let i in this.ordered_checkpoints) {
-            let checkpoint = this.ordered_checkpoints[i];
+        for (const i in this.ordered_checkpoints) {
+            const checkpoint = this.ordered_checkpoints[i];
 
             promises.push((async () => {
                 res[checkpoint.name] = await self.checklist_controller.get_state_step(checkpoint.name, self.checklist_item);
@@ -217,15 +216,15 @@ export default class CheckListItemComponent extends VueComponentBase {
             return {};
         }
 
-        let res: { [step_id: number]: string } = {};
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
+        const res: { [step_id: number]: string } = {};
+        const moduletable = ModuleTableController.module_tables_by_vo_type[this.checklist_item._type];
 
-        for (let i in this.ordered_checkpoints) {
-            let checkpoint = this.ordered_checkpoints[i];
+        for (const i in this.ordered_checkpoints) {
+            const checkpoint = this.ordered_checkpoints[i];
 
             let checkpoint_description = '<p><strong>' + this.label(checkpoint.name) + '</strong></p>';
 
-            let step_description = await this.checklist_controller.get_step_description(checkpoint, this.checklist_item);
+            const step_description = await this.checklist_controller.get_step_description(checkpoint, this.checklist_item);
             if (step_description) {
                 checkpoint_description += step_description;
             }
@@ -233,11 +232,11 @@ export default class CheckListItemComponent extends VueComponentBase {
             if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
 
                 checkpoint_description += '<ul>';
-                for (let j in this.checkpoints_editable_fields[checkpoint.id]) {
-                    let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
+                for (const j in this.checkpoints_editable_fields[checkpoint.id]) {
+                    const field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
 
                     if (field) {
-                        let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+                        const table_field: ModuleTableFieldVO = moduletable.get_field_by_id(field.module_table_field_id);
 
                         checkpoint_description += this.get_field_text(field, table_field);
                     }

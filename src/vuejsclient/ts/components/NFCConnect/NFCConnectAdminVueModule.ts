@@ -34,7 +34,7 @@ export default class NFCConnectAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
+        const menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleNFCConnect.POLICY_BO_ACCESS,

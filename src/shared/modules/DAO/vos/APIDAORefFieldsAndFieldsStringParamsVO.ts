@@ -27,29 +27,29 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
             return null;
         }
 
-        let field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
+        const field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
         let ids1 = null;
         if (field_name1) {
             ids1 = req.params.ids1.split('_');
-            for (let i in ids1) {
+            for (const i in ids1) {
                 ids1[i] = parseInt(ids1[i]);
             }
         }
 
-        let field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '') && (req.params.field_name2 != '_')) ? req.params.field_name2 : null;
+        const field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '') && (req.params.field_name2 != '_')) ? req.params.field_name2 : null;
         let values2 = null;
         if (field_name2) {
             values2 = req.params.values2.split('_');
-            for (let i in values2) {
+            for (const i in values2) {
                 values2[i] = values2[i];
             }
         }
 
-        let field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '') && (req.params.field_name3 != '_')) ? req.params.field_name3 : null;
+        const field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '') && (req.params.field_name3 != '_')) ? req.params.field_name3 : null;
         let values3 = null;
         if (field_name3) {
             values3 = req.params.values3.split('_');
-            for (let i in values3) {
+            for (const i in values3) {
                 values3[i] = values3[i];
             }
         }

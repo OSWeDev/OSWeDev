@@ -28,7 +28,7 @@ export default class MonthFilterWidgetManager {
     public static create_context_filter_from_widget_options(
         widget_options: MonthFilterWidgetOptionsVO
     ): ContextFilterVO {
-        let context_filter: ContextFilterVO = new ContextFilterVO();
+        const context_filter: ContextFilterVO = new ContextFilterVO();
 
         const vo_field_ref = widget_options.vo_field_ref ?? null;
 
@@ -58,10 +58,10 @@ export default class MonthFilterWidgetManager {
 
         if (widget_options.is_vo_field_ref) {
             context_filter.vo_type = vo_field_ref.api_type_id;
-            context_filter.field_id = vo_field_ref.field_id;
+            context_filter.field_name = vo_field_ref.field_id;
         } else {
             context_filter.vo_type = ContextFilterVO.CUSTOM_FILTERS_TYPE;
-            context_filter.field_id = widget_options.custom_filter_name;
+            context_filter.field_name = widget_options.custom_filter_name;
         }
 
         return context_filter;
@@ -226,8 +226,8 @@ export default class MonthFilterWidgetManager {
     ): { [month: number]: boolean } {
         const selected_months: { [month: number]: boolean } = {};
 
-        for (let month in other_selected_months) {
-            let month_int = parseInt(month);
+        for (const month in other_selected_months) {
+            const month_int = parseInt(month);
 
             if (!other_selected_months[month]) {
                 continue;
@@ -261,7 +261,7 @@ export default class MonthFilterWidgetManager {
 
         const selected_months: { [month: number]: boolean } = {};
 
-        for (let i in available_months) {
+        for (const i in available_months) {
             const month = available_months[i];
 
             selected_months[month] = false;

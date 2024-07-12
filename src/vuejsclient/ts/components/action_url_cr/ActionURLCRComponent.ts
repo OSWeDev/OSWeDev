@@ -37,7 +37,7 @@ export default class ActionURLCRComponent extends VueComponentBase {
             return;
         }
 
-        let action_url = await query(ActionURLVO.API_TYPE_ID)
+        const action_url = await query(ActionURLVO.API_TYPE_ID)
             .filter_by_id(this.action_url_id)
             .select_vo<ActionURLVO>();
         if (!action_url) {

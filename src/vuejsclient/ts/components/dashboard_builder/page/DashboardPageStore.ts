@@ -198,8 +198,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return;
             }
 
-            for (let i in state.page_widgets) {
-                let pw = state.page_widgets[i];
+            for (const i in state.page_widgets) {
+                const pw = state.page_widgets[i];
 
                 if (pw.id == page_widget.id) {
                     store_i = i;
@@ -223,8 +223,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         delete_page_widget(state: IDashboardPageState, page_widget: DashboardPageWidgetVO) {
             let store_i = null;
 
-            for (let i in state.page_widgets) {
-                let pw = state.page_widgets[i];
+            for (const i in state.page_widgets) {
+                const pw = state.page_widgets[i];
 
                 if (pw.id == page_widget.id) {
                     store_i = i;

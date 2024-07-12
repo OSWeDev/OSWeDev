@@ -15,8 +15,11 @@ import ContextQueryJoinOnFieldVO from '../ContextFilter/vos/ContextQueryJoinOnFi
 import ContextQueryJoinVO from '../ContextFilter/vos/ContextQueryJoinVO';
 import ContextQueryVO, { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
+import ModuleTableController from '../DAO/ModuleTableController';
+import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
+import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import DashboardPageWidgetVO from '../DashboardBuilder/vos/DashboardPageWidgetVO';
 import FieldFiltersVO from '../DashboardBuilder/vos/FieldFiltersVO';
 import FieldValueFilterWidgetOptionsVO from '../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
@@ -29,12 +32,11 @@ import Dates from '../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
-import ModuleTable from '../ModuleTable';
-import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import VarsController from './VarsController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import VarConfAutoDepVO from './vos/VarConfAutoDepVO';
+import VarConfAutoParamFieldVO from './vos/VarConfAutoParamFieldVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -89,14 +91,6 @@ export default class ModuleVar extends Module {
 
     public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleVar {
-        if (!ModuleVar.instance) {
-            ModuleVar.instance = new ModuleVar();
-        }
-        return ModuleVar.instance;
-    }
-
     private static instance: ModuleVar = null;
 
     public invalidate_cache_exact: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact);
@@ -122,14 +116,14 @@ export default class ModuleVar extends Module {
         get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
         var_name: string,
         get_active_field_filters: FieldFiltersVO,
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        discarded_field_paths: { [vo_type: string]: { [field_name: string]: boolean } },
         accept_max_ranges?: boolean,
     ): boolean => {
 
@@ -142,23 +136,23 @@ export default class ModuleVar extends Module {
          */
 
         // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
-        let fields = MatroidController.getMatroidFields(VarsController.var_conf_by_name[var_name].var_data_vo_type);
+        const fields = MatroidController.getMatroidFields(VarsController.var_conf_by_name[var_name].var_data_vo_type);
         if (!fields) {
             // très improbable...
             return true;
         }
 
-        let ts_ranges_fields = fields.filter((field) =>
-            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+        const ts_ranges_fields = fields.filter((field) =>
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) ||
+            (field.field_type == ModuleTableFieldVO.FIELD_TYPE_hourrange_array)
         );
 
         if (!ts_ranges_fields || !ts_ranges_fields.length) {
             return true;
         }
 
-        for (let i in ts_ranges_fields) {
-            if (!custom_filters[ts_ranges_fields[i].field_id]) {
+        for (const i in ts_ranges_fields) {
+            if (!custom_filters[ts_ranges_fields[i].field_name]) {
                 return false;
             }
         }
@@ -174,14 +168,20 @@ export default class ModuleVar extends Module {
         this.forceActivationOnInstallation();
     }
 
-    public initialize() {
-        this.fields = [];
-        this.datatables = [];
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleVar {
+        if (!ModuleVar.instance) {
+            ModuleVar.instance = new ModuleVar();
+        }
+        return ModuleVar.instance;
+    }
 
+    public initialize() {
         this.initializeVarPixelFieldConfVO();
         this.initializeVarConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarDataInvalidatorVO();
+        this.initializeVarConfAutoParamFieldVO();
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }
@@ -274,10 +274,10 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_delete_cache_and_imports_intersection,
             (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+                const res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     if (res.indexOf(param._type) < 0) {
                         res.push(param._type);
@@ -292,10 +292,10 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_delete_cache_intersection,
             (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+                const res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     if (res.indexOf(param._type) < 0) {
                         res.push(param._type);
@@ -310,10 +310,10 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_exact_and_parents,
             (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+                const res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     if (res.indexOf(param._type) < 0) {
                         res.push(param._type);
@@ -328,10 +328,10 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_exact,
             (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+                const res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     if (res.indexOf(param._type) < 0) {
                         res.push(param._type);
@@ -346,10 +346,10 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_intersection_and_parents,
             (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+                const res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+                for (const i in params) {
+                    const param = params[i];
 
                     if (res.indexOf(param._type) < 0) {
                         res.push(param._type);
@@ -386,7 +386,7 @@ export default class ModuleVar extends Module {
 
 
     public get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range: number = 100): TSRange[] {
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
 
         /**
          * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
@@ -406,7 +406,7 @@ export default class ModuleVar extends Module {
         /**
          * Si on a pas de filtre année, on peut de toutes façons rien faire
          */
-        let year = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        const year = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
             return [RangeHandler.getMaxTSRange()];
         }
@@ -416,25 +416,25 @@ export default class ModuleVar extends Module {
             return null;
         }
 
-        let month = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        if (!!month) {
+        const month = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        if (month) {
             tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
         }
 
-        let week = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
-        if (!!week) {
+        const week = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        if (week) {
             throw new Error('Not implemented');
             // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
         }
 
-        let dow = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
-        if (!!dow) {
+        const dow = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        if (dow) {
             tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
         }
 
 
-        let dom = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
-        if (!!dom) {
+        const dom = ContextFilterVOHandler.find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        if (dom) {
             tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
         }
 
@@ -550,7 +550,7 @@ export default class ModuleVar extends Module {
             return null;
         }
 
-        let res: TSRange[] = [];
+        const res: TSRange[] = [];
         RangeHandler.foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
             res.push(RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
         });
@@ -568,7 +568,7 @@ export default class ModuleVar extends Module {
     ) {
 
         // On garde l'état initial de la query pour avoir les fields sans les vars qu'on ajoute pour les ignores de filtres potentiels
-        let context_query_initiale = context_query_actuelle.clone();
+        const context_query_initiale = context_query_actuelle.clone();
 
         // d'un côté on gère les colonnes qui ont pas d'exclusion de filtre, et de l'autre celles qui en ont
         // Dans le cas des exclusions de filtre, on doit faire une sous requete, avec un left join, donc c'est plus compliqué on doit gérer ça à part
@@ -588,23 +588,23 @@ export default class ModuleVar extends Module {
         return '_pw2ex_' + do_not_user_filter_active_ids.join('_') + '_';
     }
 
-    public get_var_param_field_name(api_type_id: string, field_id: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
-        return ModuleVar.VARPARAMFIELD_PREFIX + (page_widgets_ids_to_exclude_as_alias_prefix ? page_widgets_ids_to_exclude_as_alias_prefix : '') + api_type_id + '_' + field_id;
+    public get_var_param_field_name(api_type_id: string, field_name: string, page_widgets_ids_to_exclude_as_alias_prefix: string = null): string {
+        return ModuleVar.VARPARAMFIELD_PREFIX + (page_widgets_ids_to_exclude_as_alias_prefix ? page_widgets_ids_to_exclude_as_alias_prefix : '') + api_type_id + '_' + field_name;
     }
 
     public clean_rows_of_varparamfields(rows: IDistantVOBase[], context_query: ContextQueryVO) {
-        for (let i in rows) {
-            let row = rows[i];
+        for (const i in rows) {
+            const row = rows[i];
 
-            for (let field_name in row) {
+            for (const field_name in row) {
                 if (field_name.indexOf(ModuleVar.VARPARAMFIELD_PREFIX) == 0) {
                     delete row[field_name];
                 }
             }
         }
 
-        for (let i in context_query.fields) {
-            let field = context_query.fields[i];
+        for (const i in context_query.fields) {
+            const field = context_query.fields[i];
 
             if (field.alias.indexOf(ModuleVar.VARPARAMFIELD_PREFIX) == 0) {
                 context_query.remove_field(parseInt(i));
@@ -624,30 +624,30 @@ export default class ModuleVar extends Module {
         log_refuse_param: boolean = true,
     ) {
 
-        let var_conf = VarsController.var_conf_by_id[column.var_id];
-        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_conf.name);
-        let matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
+        const var_conf = VarsController.var_conf_by_id[column.var_id];
+        const var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_conf.name);
+        const matroid_fields = MatroidController.getMatroidFields(var_conf.var_data_vo_type);
         let refuse_param: boolean = false;
 
         // Si on a refusé des page_widgets, on doit utiliser les colonnes dédiées sur la row
-        let page_widgets_ids_to_exclude_as_alias_prefix: string = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
+        const page_widgets_ids_to_exclude_as_alias_prefix: string = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        for (const i in matroid_fields) {
+            const matroid_field = matroid_fields[i];
 
             switch (matroid_field.field_type) {
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                    if (matroid_field.has_relation) {
+                case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                    if (matroid_field.foreign_ref_vo_type) {
 
-                        let alias = this.get_var_param_field_name(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, page_widgets_ids_to_exclude_as_alias_prefix);
+                        const alias = this.get_var_param_field_name(matroid_field.foreign_ref_vo_type, 'id', page_widgets_ids_to_exclude_as_alias_prefix);
                         if ((!row[alias]) || !row[alias].length) {
                             refuse_param = true;
                             break;
                         }
 
-                        let ids: number[] = row[alias].map((id) => parseInt(id));
-                        var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
+                        const ids: number[] = row[alias].map((id) => parseInt(id));
+                        var_param[matroid_field.field_name] = RangeHandler.get_ids_ranges_from_list(ids);
                     } else {
                         if (!accept_max_ranges) {
                             // Max range étant interdit sur les registers de var, on force un retour null
@@ -660,11 +660,11 @@ export default class ModuleVar extends Module {
                                 refuse_param = true;
                             }
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                            var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                         }
                     }
                     break;
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                     if (!accept_max_ranges) {
 
                         if (!refuse_param) {
@@ -675,25 +675,25 @@ export default class ModuleVar extends Module {
                             refuse_param = true;
                         }
                     } else {
-                        var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
+                        var_param[matroid_field.field_name] = [RangeHandler.getMaxHourRange()];
                     }
                     break;
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     if (
                         column?.custom_values?.length
                     ) {
-                        var_param[matroid_field.field_id] = column.custom_values;
+                        var_param[matroid_field.field_name] = column.custom_values;
                         break;
                     }
 
                     // TODO MDE
-                    if (!!custom_filters[matroid_field.field_id]) {
+                    if (!!custom_filters[matroid_field.field_name]) {
                         // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                         // on compte en nombre de range et non en cardinal
                         // et on limite à la limite configurée dans l'application
-                        var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_ts_ranges_on_param_by_context_filter);
+                        var_param[matroid_field.field_name] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_name], limit_nb_ts_ranges_on_param_by_context_filter);
 
-                        if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length) || RangeHandler.is_max_range(var_param[matroid_field.field_id][0])) {
+                        if ((!var_param[matroid_field.field_name]) || (!var_param[matroid_field.field_name].length) || RangeHandler.is_max_range(var_param[matroid_field.field_name][0])) {
                             if (!accept_max_ranges) {
 
                                 if (!refuse_param) {
@@ -705,7 +705,7 @@ export default class ModuleVar extends Module {
                                 }
 
                             } else {
-                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                var_param[matroid_field.field_name] = [RangeHandler.getMaxNumRange()];
                             }
                         }
                         break;
@@ -723,7 +723,7 @@ export default class ModuleVar extends Module {
                         }
 
                     } else {
-                        var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
+                        var_param[matroid_field.field_name] = [RangeHandler.getMaxTSRange()];
                     }
                     break;
             }
@@ -734,107 +734,105 @@ export default class ModuleVar extends Module {
 
     private initializeVarPixelFieldConfVO() {
 
-        let datatable_fields = [
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_vo_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_id', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_param_field_id, ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_id', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableField.FIELD_TYPE_int, 'pixel_range_type', false),
-            new ModuleTableField(field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableField.FIELD_TYPE_int, 'pixel_segmentation_type', false)
-        ];
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_api_type_id', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_vo_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_vo_field_name', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_param_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'pixel_param_field_name', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_range_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_range_type', false);
+        ModuleTableFieldController.create_new(VarPixelFieldConfVO.API_TYPE_ID, field_names<VarPixelFieldConfVO>().pixel_segmentation_type, ModuleTableFieldVO.FIELD_TYPE_int, 'pixel_segmentation_type', false);
 
-        let datatable = new ModuleTable(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
-        datatable.define_default_label_function((vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_id, null);
-        this.datatables.push(datatable);
+        ModuleTableController.create_new(this.name, VarPixelFieldConfVO, null, VarPixelFieldConfVO.API_TYPE_ID);
+        ModuleTableController.set_label_function(VarPixelFieldConfVO.API_TYPE_ID, (vo: VarPixelFieldConfVO) => (vo.pixel_vo_api_type_id && vo.pixel_vo_field_name) ? vo.pixel_vo_api_type_id + '.' + vo.pixel_vo_field_name : vo.pixel_param_field_name, null);
     }
 
-    private initializeVarConfAutoDepVO(): ModuleTableField<any> {
+    private initializeVarConfAutoDepVO(): ModuleTableFieldVO {
 
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
-        let datatable_fields = [
-            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
+        const var_id = ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
             var_id,
-            new ModuleTableField('static_value', ModuleTableField.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
-            new ModuleTableField('params_transform_strategies', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
+            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().static_value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
+            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().params_transform_strategies, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
         ];
 
-        let datatable = new ModuleTable(this, VarConfAutoDepVO.API_TYPE_ID, () => new VarConfAutoDepVO(), datatable_fields, null, 'Configuration de dependance pour var automatique');
-        this.datatables.push(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarConfAutoDepVO, null, 'Configuration de dependance pour var automatique');
 
         return var_id;
     }
 
     private initializeVarConfVO() {
 
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
-        let datatable_fields = [
+        const labelField = ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du compteur').unique();
+        const datatable_fields = [
             labelField,
 
-            new ModuleTableField(field_names<VarConfVO>().is_auto, ModuleTableField.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
-            new ModuleTableField(field_names<VarConfVO>().auto_operator, ModuleTableField.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().is_auto, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_operator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
 
-            new ModuleTableField(field_names<VarConfVO>().auto_deps, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_vofieldref_field_id, ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_deps, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
 
-            new ModuleTableField(field_names<VarConfVO>().auto_param_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableField.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_param_context_discarded_field_paths, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
-            new ModuleTableField(field_names<VarConfVO>().auto_param_context_use_technical_field_versioning, ModuleTableField.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_discarded_field_paths, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_use_technical_field_versioning, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
 
 
-            new ModuleTableField(field_names<VarConfVO>().var_data_vo_type, ModuleTableField.FIELD_TYPE_string, 'VoType des données'),
-            new ModuleTableField(field_names<VarConfVO>().segment_types, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
-            new ModuleTableField(field_names<VarConfVO>().show_help_tooltip, ModuleTableField.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
-            new ModuleTableField(field_names<VarConfVO>().disable_var, ModuleTableField.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().var_data_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VoType des données'),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().segment_types, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().show_help_tooltip, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().disable_var, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
 
-            new ModuleTableField(field_names<VarConfVO>().aggregator, ModuleTableField.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
 
-            new ModuleTableField(field_names<VarConfVO>().pixel_activated, ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
-            new ModuleTableField(field_names<VarConfVO>().pixel_fields, ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
-            new ModuleTableField(field_names<VarConfVO>().pixel_never_delete, ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_never_delete, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, false),
 
-            new ModuleTableField(field_names<VarConfVO>().cache_only_exact_sub, ModuleTableField.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().cache_only_exact_sub, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true),
+
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_no_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a pas d\'imports', true, true, true),
+            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_only_atomic_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a que des imports indépendants', true, true, false),
         ];
 
-        let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
-        this.datatables.push(datatable);
-        let var_id = this.initializeVarConfAutoDepVO();
-        var_id.addManyToOneRelation(datatable);
+        const datatable = ModuleTableController.create_new(this.name, VarConfVO, labelField, VarConfVO.API_TYPE_ID);
+        const var_id = this.initializeVarConfAutoDepVO();
+        var_id.set_many_to_one_target_moduletable_name(datatable.vo_type);
     }
 
     private initializeVarDataValueResVO() {
 
-        let datatable_fields = [
-            new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'Index', true),
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', false),
-            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_int, 'Type', true),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date', false),
-            new ModuleTableField('is_computing', ModuleTableField.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
-        ];
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index', true);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur', false);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type', true);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', false);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().is_computing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false);
 
-        let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
-        this.datatables.push(datatable);
+        ModuleTableController.create_new(this.name, VarDataValueResVO, null, VarDataValueResVO.API_TYPE_ID);
     }
 
     private initializeVarDataInvalidatorVO() {
 
-        let datatable_fields = [
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().var_data, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidator_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().propagate_to_parents, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_denied, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false);
+        ModuleTableFieldController.create_new(VarDataInvalidatorVO.API_TYPE_ID, field_names<VarDataInvalidatorVO>().invalidate_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false);
 
-            new ModuleTableField('var_data', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Invalidateur', true),
+        ModuleTableController.create_new(this.name, VarDataInvalidatorVO, null, VarDataInvalidatorVO.API_TYPE_ID);
+    }
 
-            new ModuleTableField('invalidator_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'invalidateur', true, true, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT).setEnumValues(VarDataInvalidatorVO.INVALIDATOR_TYPE_LABELS),
-            new ModuleTableField('propagate_to_parents', ModuleTableField.FIELD_TYPE_boolean, 'Propager aux parents', true, true, true),
-            new ModuleTableField('invalidate_denied', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les denied', true, true, false),
-            new ModuleTableField('invalidate_imports', ModuleTableField.FIELD_TYPE_boolean, 'Invalider les imports', true, true, false),
-        ];
-        let datatable = new ModuleTable(this, VarDataInvalidatorVO.API_TYPE_ID, () => new VarDataInvalidatorVO(), datatable_fields, null);
-        this.datatables.push(datatable);
+    private initializeVarConfAutoParamFieldVO() {
+        ModuleTableController.create_new(this.name, VarConfAutoParamFieldVO, null, VarConfAutoParamFieldVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(VarConfAutoParamFieldVO.API_TYPE_ID, field_names<VarConfAutoParamFieldVO>().api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API TYPE ID', true);
+        ModuleTableFieldController.create_new(VarConfAutoParamFieldVO.API_TYPE_ID, field_names<VarConfAutoParamFieldVO>().field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du champs', true);
     }
 
     /**
      * Important de ne pas juste faire une sous requete par colonne de var qui aurait des filtres, mais bien essayer de limiter les sous-requetes
      * par ce que le moteur pgsql ne voit pas même si les requetes sont identiques qu'il peut les factoriser... (tester avec explain les futurs versions, mais en 13 c'est KO)
-     * Donc on regroupe par la liste des page_widget_ids qu'on refuse puis par api_type_id, puis par field_id
+     * Donc on regroupe par la liste des page_widget_ids qu'on refuse puis par api_type_id, puis par field_name
      * FIXME : TODO : tenter de généraliser avec le cas où on refuse 0 ids. Mais dans ce cas pas de sous requetes, donc c'est peut-etre du temps perdu
      * @param context_query_initiale le contexte initial, hors vars
      * @param context_query_actuelle le contexte actuel, avec les vars en cours d'ajout
@@ -847,18 +845,18 @@ export default class ModuleVar extends Module {
     ) {
 
         // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
-        let needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
-        let matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } } = {};
-        let pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] } = {};
+        const needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_name: string]: boolean } } } = {};
+        const matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } } = {};
+        const pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] } = {};
 
         this.init_maps_for_add_vars_params_columns_for_ref_ids_with_excluded_filters(columns, needed_dimensions_by_page_widgets_ids_to_exclude, matroids_done_by_page_widget_ids_to_exclude, pages_widgets_ids_to_exclude_by_alias_prefix);
 
-        let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = await this.preload_all_page_widget_by_id(columns);
+        const all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = await this.preload_all_page_widget_by_id(columns);
 
         // On ajoute ces dimensions dans le contextquery
-        let all_page_widget_options_cache_by_id: { [id: number]: any } = {};
-        for (let page_widgets_ids_to_exclude_as_alias_prefix in needed_dimensions_by_page_widgets_ids_to_exclude) {
-            let needed_dimensions = needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix];
+        const all_page_widget_options_cache_by_id: { [id: number]: any } = {};
+        for (const page_widgets_ids_to_exclude_as_alias_prefix in needed_dimensions_by_page_widgets_ids_to_exclude) {
+            const needed_dimensions = needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix];
 
             /**
              * On doit dupliquer la query initiale hors vars
@@ -868,29 +866,29 @@ export default class ModuleVar extends Module {
              *  et on ajoute une colonne à la requete actuelle pour récupérer les ids des colonnes de vars de cette sous-requete
              */
 
-            let sub_query = context_query_initiale.clone();
-            let sub_query_table_alias = 'sq_' + page_widgets_ids_to_exclude_as_alias_prefix;
+            const sub_query = context_query_initiale.clone();
+            const sub_query_table_alias = 'sq_' + page_widgets_ids_to_exclude_as_alias_prefix;
             this.delete_context_filters_for_page_widgets_ids_to_exclude(sub_query, pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix], all_page_widget_by_id, all_page_widget_options_cache_by_id);
-            let sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
+            const sub_query_join_on_fields: ContextQueryJoinOnFieldVO[] = [];
 
 
-            for (let api_type_id in needed_dimensions) {
-                let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
+            for (const api_type_id in needed_dimensions) {
+                const needed_dimensions_api_type_id = needed_dimensions[api_type_id];
 
-                for (let field_id in needed_dimensions_api_type_id) {
+                for (const field_name in needed_dimensions_api_type_id) {
 
-                    let field_alias = this.get_var_param_field_name(api_type_id, field_id, page_widgets_ids_to_exclude_as_alias_prefix);
+                    const field_alias = this.get_var_param_field_name(api_type_id, field_name, page_widgets_ids_to_exclude_as_alias_prefix);
 
                     // On ajoute la colonne à la sub query - ARRAY_AGG(DISTINCT sub_query_table_alias.field_alias) as field_alias
-                    sub_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                    sub_query.add_field(field_name, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
 
                     // On ajoute la colonne à la requete actuelle - sans aggreg puisque c'est déjà fait en subquery
                     context_query_actuelle.field(null, field_alias, sub_query_table_alias);
                 }
             }
 
-            for (let i in context_query_initiale.fields) {
-                let field = context_query_initiale.fields[i];
+            for (const i in context_query_initiale.fields) {
+                const field = context_query_initiale.fields[i];
 
                 if (!field) {
                     continue;
@@ -901,8 +899,8 @@ export default class ModuleVar extends Module {
                 }
 
                 // On doit renommer les fields de la sub pour les rendre uniques (je sais pas pourquoi mais sinon le moteur psql m'indique qu'il faut group by sur le t0.id par exemple - et j'ai l'impression que c'est du à une ambiguïté sur l'alias)
-                let sub_query_field_alias = sub_query_table_alias + '_' + field.alias;
-                let sub_query_field = sub_query.fields.find((f) => f.alias == field.alias);
+                const sub_query_field_alias = sub_query_table_alias + '_' + field.alias;
+                const sub_query_field = sub_query.fields.find((f) => f.alias == field.alias);
                 if (!sub_query_field) {
                     throw new Error('add_vars_params_columns_for_ref_ids_with_excluded_filters: sub_query_field should be defined:' + JSON.stringify(field));
                 }
@@ -913,7 +911,7 @@ export default class ModuleVar extends Module {
                     sub_query_table_alias,
                     sub_query_field.alias,
                     field.api_type_id,
-                    field.field_id
+                    field.field_name
                 ));
             }
 
@@ -928,10 +926,10 @@ export default class ModuleVar extends Module {
         all_page_widget_options_cache_by_id: { [id: number]: any }
     ) {
 
-        for (let i in page_widgets_ids_to_exclude) {
-            let page_filter_id = page_widgets_ids_to_exclude[i];
+        for (const i in page_widgets_ids_to_exclude) {
+            const page_filter_id = page_widgets_ids_to_exclude[i];
 
-            let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+            const page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
             if (!page_widget) {
                 continue;
             }
@@ -939,19 +937,19 @@ export default class ModuleVar extends Module {
             if (!all_page_widget_options_cache_by_id[page_widget.id]) {
                 all_page_widget_options_cache_by_id[page_widget.id] = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptionsVO;
             }
-            let page_widget_options = all_page_widget_options_cache_by_id[page_widget.id];
+            const page_widget_options = all_page_widget_options_cache_by_id[page_widget.id];
 
             if (page_widget_options?.vo_field_ref) {
 
-                let new_filters = [];
-                for (let j in context_query.filters) {
-                    let filter = context_query.filters[j];
+                const new_filters = [];
+                for (const j in context_query.filters) {
+                    const filter = context_query.filters[j];
 
                     if (!filter) {
                         continue;
                     }
 
-                    if ((filter.field_id == page_widget_options.vo_field_ref.field_id) &&
+                    if ((filter.field_name == page_widget_options.vo_field_ref.field_id) &&
                         (filter.vo_type == page_widget_options.vo_field_ref.api_type_id)) {
                         continue;
                     }
@@ -965,13 +963,13 @@ export default class ModuleVar extends Module {
 
     private init_maps_for_add_vars_params_columns_for_ref_ids_with_excluded_filters(
         columns: TableColumnDescVO[],
-        needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_id: string]: boolean } } },
+        needed_dimensions_by_page_widgets_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: { [field_name: string]: boolean } } },
         matroids_done_by_page_widget_ids_to_exclude: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: { [api_type_id: string]: boolean } },
         pages_widgets_ids_to_exclude_by_alias_prefix: { [page_widgets_ids_to_exclude_as_alias_prefix: string]: number[] }
     ) {
 
-        for (let j in columns) {
-            let column: TableColumnDescVO = columns[j];
+        for (const j in columns) {
+            const column: TableColumnDescVO = columns[j];
 
             if (!column) {
                 continue;
@@ -985,20 +983,20 @@ export default class ModuleVar extends Module {
                 continue;
             }
 
-            let page_widgets_ids_to_exclude_as_alias_prefix = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
+            const page_widgets_ids_to_exclude_as_alias_prefix = this.page_widgets_ids_to_exclude_as_alias_prefix(column.do_not_user_filter_active_ids);
 
             if (!pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix]) {
                 pages_widgets_ids_to_exclude_by_alias_prefix[page_widgets_ids_to_exclude_as_alias_prefix] = column.do_not_user_filter_active_ids;
             }
 
-            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+            const varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
 
             if (!varconf) {
                 ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
                 continue;
             }
 
-            let matroid_api_type_id = varconf.var_data_vo_type;
+            const matroid_api_type_id = varconf.var_data_vo_type;
             if (!matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix]) {
                 matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix] = {};
             }
@@ -1008,21 +1006,21 @@ export default class ModuleVar extends Module {
             }
             matroids_done_by_page_widget_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix][matroid_api_type_id] = true;
 
-            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+            const matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
 
             if (!matroid_fields) {
                 continue;
             }
 
-            for (let i in matroid_fields) {
-                let matroid_field: ModuleTableField<any> = matroid_fields[i];
+            for (const i in matroid_fields) {
+                const matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
-                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
+                if ((!matroid_field) || (!matroid_field.foreign_ref_vo_type)) {
                     continue;
                 }
 
-                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
-                let matroid_field_name: string = matroid_field.target_field;
+                const matroid_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
+                const matroid_field_name: string = 'id';
 
                 if (!needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix]) {
                     needed_dimensions_by_page_widgets_ids_to_exclude[page_widgets_ids_to_exclude_as_alias_prefix] = {};
@@ -1039,11 +1037,11 @@ export default class ModuleVar extends Module {
     private add_vars_params_columns_for_ref_ids_without_excluded_filters(context_query: ContextQueryVO, columns: TableColumnDescVO[]) {
 
         // On défini le besoin, en identifiant les dimensions qu'on doit charger, c'est à dire les colonnes ID des VOs qui sont utilisées pour les vars de l'export
-        let needed_dimensions: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
-        let matroids_done: { [api_type_id: string]: boolean } = {};
+        const needed_dimensions: { [api_type_id: string]: { [field_name: string]: boolean } } = {};
+        const matroids_done: { [api_type_id: string]: boolean } = {};
 
-        for (let j in columns) {
-            let column: TableColumnDescVO = columns[j];
+        for (const j in columns) {
+            const column: TableColumnDescVO = columns[j];
 
             if (!column) {
                 continue;
@@ -1057,34 +1055,34 @@ export default class ModuleVar extends Module {
                 continue;
             }
 
-            let varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
+            const varconf: VarConfVO = VarsController.var_conf_by_id[column.var_id];
 
             if (!varconf) {
                 ConsoleHandler.error('add_vars_params_columns_for_ref_ids:varconf not found:' + column.var_id);
                 continue;
             }
 
-            let matroid_api_type_id = varconf.var_data_vo_type;
+            const matroid_api_type_id = varconf.var_data_vo_type;
             if (matroids_done[matroid_api_type_id]) {
                 continue;
             }
             matroids_done[matroid_api_type_id] = true;
 
-            let matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
+            const matroid_fields = MatroidController.getMatroidFields(matroid_api_type_id);
 
             if (!matroid_fields) {
                 continue;
             }
 
-            for (let i in matroid_fields) {
-                let matroid_field: ModuleTableField<any> = matroid_fields[i];
+            for (const i in matroid_fields) {
+                const matroid_field: ModuleTableFieldVO = matroid_fields[i];
 
-                if ((!matroid_field) || (!matroid_field.manyToOne_target_moduletable)) {
+                if ((!matroid_field) || (!matroid_field.foreign_ref_vo_type)) {
                     continue;
                 }
 
-                let matroid_field_api_type_id: string = matroid_field.manyToOne_target_moduletable.vo_type;
-                let matroid_field_name: string = matroid_field.target_field;
+                const matroid_field_api_type_id: string = matroid_field.foreign_ref_vo_type;
+                const matroid_field_name: string = 'id';
 
                 if (!needed_dimensions[matroid_field_api_type_id]) {
                     needed_dimensions[matroid_field_api_type_id] = {};
@@ -1095,24 +1093,24 @@ export default class ModuleVar extends Module {
         }
 
         // On ajoute ces dimensions dans le contextquery
-        for (let api_type_id in needed_dimensions) {
-            let needed_dimensions_api_type_id = needed_dimensions[api_type_id];
+        for (const api_type_id in needed_dimensions) {
+            const needed_dimensions_api_type_id = needed_dimensions[api_type_id];
 
-            for (let field_id in needed_dimensions_api_type_id) {
+            for (const field_name in needed_dimensions_api_type_id) {
 
-                let field_alias = this.get_var_param_field_name(api_type_id, field_id);
+                const field_alias = this.get_var_param_field_name(api_type_id, field_name);
 
-                context_query.add_field(field_id, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
+                context_query.add_field(field_name, field_alias, api_type_id, VarConfVO.ARRAY_AGG_AGGREGATOR_DISTINCT);
             }
         }
     }
 
     private async preload_all_page_widget_by_id(columns: TableColumnDescVO[]): Promise<{ [id: number]: DashboardPageWidgetVO }> {
-        let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = {};
-        let promises = [];
+        const all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = {};
+        const promises = [];
 
-        for (let j in columns) {
-            let column: TableColumnDescVO = columns[j];
+        for (const j in columns) {
+            const column: TableColumnDescVO = columns[j];
 
             if (!column) {
                 continue;
@@ -1126,10 +1124,10 @@ export default class ModuleVar extends Module {
                 continue;
             }
 
-            for (let i in column.do_not_user_filter_active_ids) {
-                let page_filter_id = column.do_not_user_filter_active_ids[i];
+            for (const i in column.do_not_user_filter_active_ids) {
+                const page_filter_id = column.do_not_user_filter_active_ids[i];
 
-                if (!!all_page_widget_by_id[page_filter_id]) {
+                if (all_page_widget_by_id[page_filter_id]) {
                     continue;
                 }
 

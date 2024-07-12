@@ -5,13 +5,14 @@ import ConsoleHandler from "../../../src/shared/tools/ConsoleHandler";
 import ContextQueryVO, { query } from '../../../src/shared/modules/ContextFilter/vos/ContextQueryVO';
 import UserVO from '../../../src/shared/modules/AccessPolicy/vos/UserVO';
 import SortByVO from '../../../src/shared/modules/ContextFilter/vos/SortByVO';
+import { field_names } from "../../../src/shared/tools/ObjectHandler";
 
 let instance: ContextQueryServerController;
 ConsoleHandler.init();
 
 test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILTER_AND', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_DATE_DOW;
@@ -24,14 +25,14 @@ test('check_filters_arbo_ET: should do nothing when filter type is not TYPE_FILT
 test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
     instance = ContextQueryServerController;
 
-    let filters = [
-        filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('a').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('b'))
-            .or(filter(UserVO.API_TYPE_ID, 'firstname').by_text_eq('b').and(filter(UserVO.API_TYPE_ID, 'lastname').by_text_eq('a')))
+    const filters = [
+        filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('a').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('b'))
+            .or(filter(UserVO.API_TYPE_ID, field_names<UserVO>().firstname).by_text_eq('b').and(filter(UserVO.API_TYPE_ID, field_names<UserVO>().lastname).by_text_eq('a')))
     ];
 
-    let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
-        .field('firstname').field('lastname')
-        .add_filters(filters).set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
+    const context_query: ContextQueryVO = query(UserVO.API_TYPE_ID)
+        .field(field_names<UserVO>().firstname).field(field_names<UserVO>().lastname)
+        .add_filters(filters).set_sort(new SortByVO(UserVO.API_TYPE_ID, field_names<UserVO>().name, true));
 
     instance['check_filters_arbo_ET'](context_query);
     expect(context_query.filters).toStrictEqual(filters);
@@ -40,7 +41,7 @@ test('check_filters_arbo_ET: should do nothing if the base is an OR', () => {
 
 test('check_filters_arbo_ET: should change the filters to an array when simple AND', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_FILTER_AND;
@@ -58,7 +59,7 @@ test('check_filters_arbo_ET: should change the filters to an array when simple A
 
 test('check_filters_arbo_ET: should do nnothing when an error is detected', () => {
     instance = ContextQueryServerController;
-    let q_ = query(UserVO.API_TYPE_ID);
+    const q_ = query(UserVO.API_TYPE_ID);
 
     const f_ = new ContextFilterVO();
     f_.filter_type = ContextFilterVO.TYPE_FILTER_AND;

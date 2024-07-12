@@ -1,8 +1,8 @@
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import ModuleTableFieldVO from '../../../DAO/vos/ModuleTableFieldVO';
 import Datatable from '../../../DAO/vos/datatable/Datatable';
 import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
-import ModuleTableField from '../../../ModuleTableField';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
 import AnimationMessageModuleVO from './vos/AnimationMessageModuleVO';
 
@@ -43,10 +43,10 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
 
     public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
-        let messages: AnimationMessageModuleVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
+        const messages: AnimationMessageModuleVO[] = ObjectHandler.try_get_json(vo[field.datatable_field_uid]);
 
-        for (let i in messages) {
-            let message: AnimationMessageModuleVO = messages[0];
+        for (const i in messages) {
+            const message: AnimationMessageModuleVO = messages[0];
 
             if (!message) {
                 continue;
@@ -64,14 +64,14 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
         return res;
     }
 
-    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return field_value;
     }
-    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public defaultReadIHMToData(value: any, moduleTableField: ModuleTableFieldVO, vo: IDistantVOBase): any {
         return value;
     }
 
-    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableField<any>) {
+    public defaultforceNumeric<T extends IDistantVOBase>(e: T, field: ModuleTableFieldVO) {
 
         if ((!e) || (!field) || (!e[field.field_id])) {
             return;

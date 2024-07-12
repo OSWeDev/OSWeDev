@@ -908,7 +908,7 @@ export default class FavoritesFiltersModalComponent extends VueComponentBase {
 
         let options: FavoritesFiltersWidgetOptionsVO = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FavoritesFiltersWidgetOptionsVO;
                 options = options ? new FavoritesFiltersWidgetOptionsVO().from(options) : null;
             }

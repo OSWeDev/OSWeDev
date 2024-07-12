@@ -16,12 +16,12 @@ test('TextHandler: sanityze', () => {
 
 test('TextHandler: sanityze_object', () => {
     expect(TextHandler.getInstance().sanityze_object(null)).toStrictEqual(null);
-    let dict = ["éhio", "ty uà", "ùéèç"];
-    let dictExpected = ["ehio", "ty ua", "ueec"];
+    const dict = ["éhio", "ty uà", "ùéèç"];
+    const dictExpected = ["ehio", "ty ua", "ueec"];
     expect(TextHandler.getInstance().sanityze_object(dict)).toStrictEqual(dictExpected);
 
-    let dict1 = { 1: "éhio", 2: "ty uà", 3: "ùéèç" };
-    let dictExpected1 = { 1: "ehio", 2: "ty ua", 3: "ueec" };
+    const dict1 = { 1: "éhio", 2: "ty uà", 3: "ùéèç" };
+    const dictExpected1 = { 1: "ehio", 2: "ty ua", 3: "ueec" };
     expect(TextHandler.getInstance().sanityze_object(dict1)).toStrictEqual(dictExpected1);
 });
 
@@ -48,15 +48,15 @@ test('TextHandler: formatTextToID', () => {
 
 test('TextHandler: generateChallenge', () => {
 
-    let charL = TextHandler.Challenge_Cars;
+    const charL = TextHandler.Challenge_Cars;
 
     // special characters of regex that needs to be escaped
-    let speChars = '^*$\\.-+|()[]{},?/';
+    const speChars = '^*$\\.-+|()[]{},?/';
 
     //  the final regex that will be built
     let chars = '';
 
-    for (let char of charL) {
+    for (const char of charL) {
 
         // if a special character is found, add a backslash to escape it in the regex
         if (speChars.includes(char)) {
@@ -66,7 +66,7 @@ test('TextHandler: generateChallenge', () => {
         }
     }
 
-    let regexp = new RegExp("^[" + chars + "]{8}$");
+    const regexp = new RegExp("^[" + chars + "]{8}$");
 
     expect(regexp.test(TextHandler.getInstance().generateChallenge())).toStrictEqual(true);
     expect(regexp.test(TextHandler.getInstance().generateChallenge())).toStrictEqual(true);
@@ -78,11 +78,11 @@ test('TextHandler: generateChallenge', () => {
 });
 
 test('TextHandler: generatePassword', () => {
-    let charL = TextHandler.Password_Cars;
-    let speChars = '^*$\\.-+|()[]{},?/';
+    const charL = TextHandler.Password_Cars;
+    const speChars = '^*$\\.-+|()[]{},?/';
     let chars = '';
 
-    for (let char of charL) {
+    for (const char of charL) {
         if (speChars.includes(char)) {
             chars = chars + "\\" + char;
         } else {
@@ -90,7 +90,7 @@ test('TextHandler: generatePassword', () => {
         }
     }
 
-    let regexp = new RegExp("^[" + chars + "]{12}$");
+    const regexp = new RegExp("^[" + chars + "]{12}$");
 
     expect(regexp.test(TextHandler.getInstance().generatePassword())).toStrictEqual(true);
     expect(regexp.test(TextHandler.getInstance().generatePassword())).toStrictEqual(true);

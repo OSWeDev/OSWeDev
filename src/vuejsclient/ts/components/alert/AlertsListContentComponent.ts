@@ -45,12 +45,12 @@ export default class AlertsListContentComponent extends VueComponentBase {
             return [];
         }
 
-        let res: Alert[] = [];
+        const res: Alert[] = [];
         if (!this.get_alerts[this.alerts_path] || !this.get_alerts[this.alerts_path].length) {
             return [];
         }
 
-        for (let j in this.get_alerts[this.alerts_path]) {
+        for (const j in this.get_alerts[this.alerts_path]) {
             if (this.get_alerts[this.alerts_path][j].not_in_list) {
                 continue;
             }

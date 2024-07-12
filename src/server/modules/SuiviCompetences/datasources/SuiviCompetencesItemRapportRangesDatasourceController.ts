@@ -16,6 +16,8 @@ import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSou
 
 export default class SuiviCompetencesItemRapportRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
+    protected static instance: SuiviCompetencesItemRapportRangesDatasourceController = null;
+
     public static getInstance(): SuiviCompetencesItemRapportRangesDatasourceController {
         if (!SuiviCompetencesItemRapportRangesDatasourceController.instance) {
             SuiviCompetencesItemRapportRangesDatasourceController.instance = new SuiviCompetencesItemRapportRangesDatasourceController(
@@ -27,10 +29,9 @@ export default class SuiviCompetencesItemRapportRangesDatasourceController exten
         return SuiviCompetencesItemRapportRangesDatasourceController.instance;
     }
 
-    protected static instance: SuiviCompetencesItemRapportRangesDatasourceController = null;
 
     public async get_data(param: (SuiviCompetencesRapportGroupeDataRangesVO | SuiviCompetencesRapportSousGroupeDataRangesVO)): Promise<number> {
-        let limit: number = ConfigurationService.node_configuration.MAX_POOL / 2;
+        let limit: number = ConfigurationService.node_configuration.max_pool / 2;
         let promise_pipeline: PromisePipeline = new PromisePipeline(limit);
 
         let groupe_by_ids: { [groupe_id: number]: SuiviCompetencesGroupeVO } = {};

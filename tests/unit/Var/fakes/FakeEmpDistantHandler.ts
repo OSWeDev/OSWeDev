@@ -1,26 +1,27 @@
 
 import moment from 'moment';
 import DAOUpdateVOHolder from '../../../../src/server/modules/DAO/vos/DAOUpdateVOHolder';
-import ModuleTable from '../../../../src/shared/modules/ModuleTable';
-import ModuleTableField from '../../../../src/shared/modules/ModuleTableField';
+import ModuleTableController from '../../../../src/shared/modules/DAO/ModuleTableController';
+import ModuleTableFieldVO from '../../../../src/shared/modules/DAO/vos/ModuleTableFieldVO';
 import VOsTypesManager from '../../../../src/shared/modules/VO/manager/VOsTypesManager';
 import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
+import ModuleTableFieldController from '../../../../src/shared/modules/DAO/ModuleTableFieldController';
 
 export default class FakeEmpDistantHandler {
 
     public static initializeFakeEmpDistantVO() {
 
-        let datatable_fields = [
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date'),
-            new ModuleTableField('employee_id', ModuleTableField.FIELD_TYPE_int, 'Employee'),
-            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'date', ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date'),
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'employee_id', ModuleTableFieldVO.FIELD_TYPE_int, 'Employee'),
+            ModuleTableFieldController.create_new(FakeEmpDistantVO.API_TYPE_ID, 'value', ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur'),
         ];
 
-        VOsTypesManager.registerModuleTable(new ModuleTable(null, FakeEmpDistantVO.API_TYPE_ID, () => new FakeEmpDistantVO(), datatable_fields, null));
+        VOsTypesManager.registerModuleTable(ModuleTableController.create_new(FakeEmpDistantVO.API_TYPE_ID, FakeEmpDistantVO, null));
     }
 
     public static get_distant_A(): FakeEmpDistantVO {
-        let var_data: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data.id = 2;
         var_data.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data.value = 1;
@@ -29,13 +30,13 @@ export default class FakeEmpDistantHandler {
     }
 
     public static get_distant_A_Update(): DAOUpdateVOHolder<FakeEmpDistantVO> {
-        let var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_pre.id = 1;
         var_data_pre.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_pre.employee_id = 1;
         var_data_pre.value = 1;
 
-        let var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_post.id = 1;
         var_data_post.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_post.employee_id = 2;
@@ -45,13 +46,13 @@ export default class FakeEmpDistantHandler {
     }
 
     public static get_distant_A_empty_update(): DAOUpdateVOHolder<FakeEmpDistantVO> {
-        let var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_pre: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_pre.id = 1;
         var_data_pre.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_pre.value = 1;
         var_data_pre.employee_id = 1;
 
-        let var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
+        const var_data_post: FakeEmpDistantVO = new FakeEmpDistantVO();
         var_data_post.id = 1;
         var_data_post.date = moment('2020-01-01').utc(true).startOf('day').unix();
         var_data_post.value = 1;

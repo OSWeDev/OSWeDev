@@ -15,14 +15,6 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
     public static DEP_DsDistant: string = 'DsDistant' + VarsController.MANDATORY_DEP_ID_SUFFIX;
     public static DEP_DsEmpDistant: string = 'DsEmpDistant' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): FakeVarControllerDeps {
-        if (!FakeVarControllerDeps.instance) {
-            FakeVarControllerDeps.instance = new FakeVarControllerDeps();
-        }
-        return FakeVarControllerDeps.instance;
-    }
-
     protected static instance: FakeVarControllerDeps = null;
 
     protected constructor() {
@@ -32,8 +24,14 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
             }, 3),
             {}, {}, {}, {}
         );
+    }
 
-        this.optimization__has_no_imports = true;
+    // istanbul ignore next: nothing to test
+    public static getInstance(): FakeVarControllerDeps {
+        if (!FakeVarControllerDeps.instance) {
+            FakeVarControllerDeps.instance = new FakeVarControllerDeps();
+        }
+        return FakeVarControllerDeps.instance;
     }
 
     public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
@@ -59,10 +57,10 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
         switch (dep_id) {
             case FakeVarControllerDeps.DEP_DsEmpDistant:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeEmpDayDataVO[], this.varConf.name);
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeEmpDayDataVO[], this.varConf.name);
 
             case FakeVarControllerDeps.DEP_DsDistant:
-                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as unknown as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
         }
 
         return null;
@@ -70,8 +68,8 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let DEP_DsDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsDistant, 0);
-        let DEP_DsEmpDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsEmpDistant, 0);
+        const DEP_DsDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsDistant, 0);
+        const DEP_DsEmpDistant = VarsServerController.get_outgoing_deps_sum(varDAGNode, FakeVarControllerDeps.DEP_DsEmpDistant, 0);
 
         return DEP_DsDistant * DEP_DsEmpDistant;
     }

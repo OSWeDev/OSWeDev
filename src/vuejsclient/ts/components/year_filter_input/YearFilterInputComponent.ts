@@ -74,7 +74,7 @@ export default class YearFilterInputComponent extends VueComponentBase {
      *  - Called when we click on toggle select all
      */
     private toggle_select_all() {
-        let is_all_years_selected = !this.is_all_years_selected;
+        const is_all_years_selected = !this.is_all_years_selected;
 
         if (is_all_years_selected) {
             // If is all years selected reset selected_years

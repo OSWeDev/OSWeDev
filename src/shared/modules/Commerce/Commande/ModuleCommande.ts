@@ -1,21 +1,21 @@
+import { field_names } from '../../../tools/ObjectHandler';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
-import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/vos/apis/NumberAndStringParamVO';
-import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/vos/apis/NumberAndStringParamVO';
+import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import { query } from '../../ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../DAO/ModuleDAO';
+import ModuleTableController from '../../DAO/ModuleTableController';
+import ModuleTableFieldController from '../../DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '../../DAO/vos/ModuleTableFieldVO';
 import Module from '../../Module';
-import ModuleTable from '../../ModuleTable';
-import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
 import InformationsVO from '../Client/vos/InformationsVO';
 import ModuleProduit from '../Produit/ModuleProduit';
-import ProduitsParamLignesParamVO, { ProduitsParamLignesParamVOStatic } from '../Produit/vos/apis/ProduitsParamLignesParamVO';
 import ProduitVO from '../Produit/vos/ProduitVO';
 import TypeProduitVO from '../Produit/vos/TypeProduitVO';
+import ProduitsParamLignesParamVO, { ProduitsParamLignesParamVOStatic } from '../Produit/vos/apis/ProduitsParamLignesParamVO';
 import CommandeVO from './vos/CommandeVO';
 import LigneCommandeDetailsVO from './vos/LigneCommandeDetailsVO';
 import LigneCommandeVO from './vos/LigneCommandeVO';
@@ -85,20 +85,17 @@ export default class ModuleCommande extends Module {
     }
 
     public initialize() {
-        this.fields = [];
-        this.datatables = [];
-
         this.initializeCommande();
         this.initializeLigneCommande();
     }
 
     public initializeCommande(): void {
         // Table Commande
-        let field_client_id: ModuleTableField<number> = new ModuleTableField('client_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Client', true);
-        let datatable_fields = [
-            new ModuleTableField('identifiant', ModuleTableField.FIELD_TYPE_string, 'Identifiant', true),
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
-            new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
+        const field_client_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().client_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Client', true);
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().identifiant, ModuleTableFieldVO.FIELD_TYPE_string, 'Identifiant', true),
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true),
+            ModuleTableFieldController.create_new(CommandeVO.API_TYPE_ID, field_names<CommandeVO>().statut, ModuleTableFieldVO.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
                 [CommandeVO.STATUT_PANIER]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_PANIER],
                 [CommandeVO.STATUT_ANNULE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_ANNULE],
                 [CommandeVO.STATUT_EN_ATTENTE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_EN_ATTENTE],
@@ -110,29 +107,27 @@ export default class ModuleCommande extends Module {
             }),
             field_client_id
         ];
-        let dt = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
-        field_client_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID]);
-        this.datatables.push(dt);
+        const dt = ModuleTableController.create_new(this.name, CommandeVO, field_client_id, 'Commande');
+        field_client_id.set_many_to_one_target_moduletable_name(ClientVO.API_TYPE_ID);
     }
 
     public initializeLigneCommande(): void {
         // Table Ligne De Commande
-        let field_commande_id: ModuleTableField<number> = new ModuleTableField('commande_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Commande', true);
-        let field_produit_id: ModuleTableField<number> = new ModuleTableField('produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Produit', true);
-        let field_informations_id: ModuleTableField<number> = new ModuleTableField('informations_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
+        const field_commande_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().commande_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Commande', true);
+        const field_produit_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().produit_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Produit', true);
+        const field_informations_id: ModuleTableFieldVO = ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().informations_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Informations', true);
 
-        let datatable_fields = [
-            new ModuleTableField('prix_unitaire', ModuleTableField.FIELD_TYPE_amount, 'Prix unitaire', true),
-            new ModuleTableField('quantite', ModuleTableField.FIELD_TYPE_float, 'Quantite', true),
+        const datatable_fields = [
+            ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().prix_unitaire, ModuleTableFieldVO.FIELD_TYPE_amount, 'Prix unitaire', true),
+            ModuleTableFieldController.create_new(LigneCommandeVO.API_TYPE_ID, field_names<LigneCommandeVO>().quantite, ModuleTableFieldVO.FIELD_TYPE_float, 'Quantite', true),
             field_commande_id,
             field_produit_id,
             field_informations_id
         ];
-        let dt = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
-        field_commande_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
-        field_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
-        field_informations_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
-        this.datatables.push(dt);
+        const dt = ModuleTableController.create_new(this.name, LigneCommandeVO, field_commande_id, 'Ligne commande');
+        field_commande_id.set_many_to_one_target_moduletable_name(CommandeVO.API_TYPE_ID);
+        field_produit_id.set_many_to_one_target_moduletable_name(ProduitVO.API_TYPE_ID);
+        field_informations_id.set_many_to_one_target_moduletable_name(InformationsVO.API_TYPE_ID);
     }
 
     public async getCommandeById(commandeId: number): Promise<CommandeVO> {
@@ -140,17 +135,17 @@ export default class ModuleCommande extends Module {
     }
 
     public async getDetailsLignesCommandeByCommandeId(commandeId: number): Promise<LigneCommandeDetailsVO[]> {
-        let detailLigneCommande: LigneCommandeDetailsVO[] = [];
+        const detailLigneCommande: LigneCommandeDetailsVO[] = [];
 
-        let lignes: LigneCommandeVO[] = await this.getLignesCommandeByCommandeId(commandeId);
+        const lignes: LigneCommandeVO[] = await this.getLignesCommandeByCommandeId(commandeId);
 
         if (lignes) {
-            for (let i in lignes) {
-                let ligne: LigneCommandeVO = lignes[i];
-                let produit: ProduitVO = await ModuleProduit.getInstance().getProduitById(ligne.produit_id);
-                let informations: InformationsVO = await ModuleClient.getInstance().getInformationsById(ligne.informations_id);
-                let typeProduit: TypeProduitVO = (produit) ? await query(TypeProduitVO.API_TYPE_ID).filter_by_id(produit.type_produit_id).select_vo<TypeProduitVO>() : null;
-                let ligneParam: ParamLigneCommandeVO = (typeProduit) ? await this.getParamLigneCommandeById(ligne.id, typeProduit.vo_type_param) : null;
+            for (const i in lignes) {
+                const ligne: LigneCommandeVO = lignes[i];
+                const produit: ProduitVO = await ModuleProduit.getInstance().getProduitById(ligne.produit_id);
+                const informations: InformationsVO = await ModuleClient.getInstance().getInformationsById(ligne.informations_id);
+                const typeProduit: TypeProduitVO = (produit) ? await query(TypeProduitVO.API_TYPE_ID).filter_by_id(produit.type_produit_id).select_vo<TypeProduitVO>() : null;
+                const ligneParam: ParamLigneCommandeVO = (typeProduit) ? await this.getParamLigneCommandeById(ligne.id, typeProduit.vo_type_param) : null;
 
                 detailLigneCommande.push(
                     new LigneCommandeDetailsVO(

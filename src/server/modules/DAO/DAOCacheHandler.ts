@@ -17,7 +17,7 @@ export default class DAOCacheHandler {
             return false;
         }
 
-        let param: DAOCacheParamVO = DAOCacheHandler.dao_cache_params[parameterized_full_query];
+        const param: DAOCacheParamVO = DAOCacheHandler.dao_cache_params[parameterized_full_query];
 
         if ((param.last_update_ms + max_age_ms) < Dates.now_ms()) {
             return false;
@@ -42,7 +42,7 @@ export default class DAOCacheHandler {
     public static set_cache(parameterized_full_query: string, data: any, max_age_ms: number) {
 
         DAOCacheHandler.dao_cache[parameterized_full_query] = data;
-        let max_age = Math.max(
+        const max_age = Math.max(
             DAOCacheHandler.dao_cache_params[parameterized_full_query] ? DAOCacheHandler.dao_cache_params[parameterized_full_query].max_age_ms : 0,
             max_age_ms);
         DAOCacheHandler.dao_cache_params[parameterized_full_query] = new DAOCacheParamVO(Dates.now_ms(), max_age);
@@ -83,8 +83,8 @@ export default class DAOCacheHandler {
     private clean_cache() {
 
         this.cleaning_semaphore = true;
-        for (let i in DAOCacheHandler.dao_cache_params) {
-            let param: DAOCacheParamVO = DAOCacheHandler.dao_cache_params[i];
+        for (const i in DAOCacheHandler.dao_cache_params) {
+            const param: DAOCacheParamVO = DAOCacheHandler.dao_cache_params[i];
 
             if ((param.last_update_ms + param.max_age_ms) < Dates.now_ms()) {
                 delete DAOCacheHandler.dao_cache_params[i];

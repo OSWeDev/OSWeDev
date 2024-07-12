@@ -1,0 +1,404 @@
+= MIGRATION  0.31.x => 0.32.x
+
+L'ordre est important
+
+
+Package.json => 
+
+REMPLACER les scripts lint et lint-global par 
+        "lint": "eslint . --ext .ts,.tsx,.vue",
+        "lint-fix": "eslint . --ext .ts,.tsx,.vue --fix",
+
+REMPLACER / AJOUTER
+    "dependencies": {
+        "@types/estree": "^1.0.5",
+        "oswedev": "0.32.0-pre.0",
+        "vue-tables-2": "2.3.5",
+        "lodash": "4.17.21",
+    "devDependencies": {
+        "@stylistic/eslint-plugin": "^1.6.3",
+        "@types/lodash": "4.14.202",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^7.1.0",
+        "eslint": "^8.57.0",
+        "eslint-config-standard-with-typescript": "^43.0.1",
+        "eslint-plugin-import": "^2.29.1",
+        "eslint-plugin-n": "^16.6.2",
+        "eslint-plugin-promise": "^6.1.1",
+        "eslint-plugin-vue": "^9.22.0",
+        "tsc-watch": "6.0.4",
+        "typescript": "5.3.3",
+
+Copier le .eslintrc.json à la racine d'un projet de même type
+
+npm i
+npm run lint-fix
+
+Remplacer dans tous les new ModuleTableField( le nom du champ entre '' ou "" par une def via field_names<YYYVO>().XXX
+Pour les trouver facilement, en recherche globale REGEXP : "new ModuleTableField\(('|")"
+pour copier coller facilement :
+field_names<>().
+
+
+== REPLACE ALL
+
+=== Mot Entier + Respecter la casse
+FROM :
+'new DefaultTranslation('
+TO :
+'DefaultTranslationVO.create_new('
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'DefaultTranslation'
+TO :
+'DefaultTranslationVO'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'ModuleTableField'
+TO :
+'ModuleTableFieldVO'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'ModuleTable'
+TO :
+'ModuleTableVO'
+
+=== REGEXP
+FROM : 
+'new ModuleTableFieldVO\(([^)]+)\)'
+TO:
+'ModuleTableFieldController.create_new($1)'
+
+=== Sans paramètres
+FROM : 
+'import ModuleTableFieldVO from '
+TO :
+'import ModuleTableFieldController from 'oswedev/dist/shared/modules/DAO/ModuleTableFieldController';
+import ModuleTableFieldVO from '
+
+=== REGEXP
+FROM : 
+'ModuleTableFieldController.create_new\(field_names<([^>]+)>\('
+TO:
+'ModuleTableFieldController.create_new($1.API_TYPE_ID, field_names<$1>('
+
+=== REGEXP
+FROM : 
+'.addManyToOneRelation(<[^>]+>)?\(VOsTypesManager.moduleTables_by_voType\[([^\]]+)\]\)'
+TO:
+'.set_many_to_one_target_moduletable_name($2)'
+
+=== REGEXP
+FROM : 
+'.addManyToOneRelation\(([^)]+)\);'
+TO:
+'.set_many_to_one_target_moduletable_name($1.vo_type);'
+
+=== REGEXP
+FROM :
+'ModuleTableFieldVO<[a-zA-Z0-9_]+>'
+TO :
+'ModuleTableFieldVO'
+
+=== REGEXP
+FROM :
+'ModuleTableVO<[a-zA-Z0-9_]+>'
+TO :
+'ModuleTableVO'
+
+=== Mot Entier
+FROM :
+'Array<ModuleTableFieldVO>'
+TO :
+'ModuleTableFieldVO[]'
+
+!!!! à refaire tant qu'il reste des résultats à la recherche
+
+=== Mot Entier
+FROM :
+'Array<ModuleTableVO>'
+TO :
+'ModuleTableVO[]'
+
+!!!! à refaire tant qu'il reste des résultats à la recherche
+
+=== Mot Entier
+FROM :
+'VOsTypesManager.moduleTables_by_voType'
+TO :
+'ModuleTableController.module_tables_by_vo_type'
+
+=== Mot Entier
+
+FROM :
+'VOsTypesManager.moduleTablesFields_by_vo_id_and_field_id'
+TO :
+'ModuleTableController.module_tables_by_vo_id'
+
+=== Mot Entier
+FROM :
+'VOsTypesManager.moduleTablesFields_by_voType_and_field_name'
+TO :
+'ModuleTableFieldController.module_table_fields_by_vo_type_and_field_name'
+
+=== Mot Entier
+
+FROM :
+'VOsTypesManager.moduleTablesFields_by_vo_id_and_field_id'
+TO :
+'ModuleTableFieldController.module_table_fields_by_vo_id_and_field_id'
+
+=== REGEXP
+
+FROM :
+'/shared/modules/ModuleTableVO('|");'
+TO :
+'/shared/modules/DAO/vos/ModuleTableVO$1;'
+
+=== REGEXP
+
+FROM :
+'/shared/modules/ModuleTableFieldVO('|");'
+TO :
+'/shared/modules/DAO/vos/ModuleTableFieldVO$1;'
+
+=== REGEXP
+
+FROM :
+'\n\s+this\.datatables\.push\([^\)]+\);'
+TO:
+''
+
+=== REGEXP
+
+FROM :
+'new ModuleTableVO\(([^,]+), ([^,.]+)\.API_TYPE_ID, ([^,]+), ([^,]+), ([^,]+), ([^,]+)\);'
+TO:
+'ModuleTableController.create_new($1.name, $2, $5, $6);'
+
+=== REGEXP
+
+FROM :
+'new ModuleTableVO\(([^,]+), ([^,.]+)\.API_TYPE_ID, ([^,]+), ([^,]+), ([^,]+)\);'
+TO:
+'ModuleTableController.create_new($1.name, $2, $5, $1.name);'
+
+=== Mot Entier + Respecter la casse
+
+FROM :
+'.unique(true)'
+TO:
+'.unique()'
+
+
+=== REGEXP
+
+FROM :
+'VarsInitController\.getInstance\(\)\.register_var_data\(([^,]+), \(\) => new ([^,.]+)\(\), ([^,]+), ([^,]+)\);'
+TO :
+'VarsInitController.getInstance().register_var_data($1, $2, $3, $4);'
+
+=== Mot Entier + Respecter la casse
+FROM : 
+'.manyToOne_target_moduletable.vo_type'
+TO :
+'.foreign_ref_vo_type'
+
+
+=== REGEXP
+
+FROM :
+"new SortByVO\(([^., ]+).API_TYPE_ID, '([^', ]+)'"
+TO :
+"new SortByVO($1.API_TYPE_ID, field_names<$1>().$2"
+
+=== REGEXP
+
+FROM :
+"filter\(([^., ]+).API_TYPE_ID, '([^', ]+)'\)"
+TO :
+"filter($1.API_TYPE_ID, field_names<$1>().$2)"
+
+=== REGEXP
+
+FROM :
+'%%ENV%%([^%]+)%%'
+TO :
+'%%ENV%%\L$1%%'
+
+=== REGEXP
+
+FROM :
+'ConfigurationService\.node_configuration\.([a-zA-Z0-9_-]+)'
+TO :
+'ConfigurationService.node_configuration.\L$1'
+
+=== REGEXP
+
+FROM :
+'EnvHandler\.([A-Z_]+)'
+TO :
+'EnvHandler.\L$1'
+
+=== REGEXP
+FROM :
+'query\(([A-Za-z0-9_]+)\.API_TYPE_ID\)\.field\(('|")([A-Za-z0-9_]+)('|")\)'
+TO :
+'query($1.API_TYPE_ID).field(field_names<$1>().$3)'
+
+=== REGEXP
+FROM :
+'ModuleTableController\.module_tables_by_vo_type\[([A-Za-z0-9_]+)\.API_TYPE_ID\]\.define_default_label_function\('
+TO :
+'ModuleTableController.set_label_function($1.API_TYPE_ID, '
+
+=== REGEXP
+FROM :
+' as any as '
+TO :
+' as unknown as '
+
+=== Mot Entier
+FROM :
+'Promise<any>'
+TO :
+'Promise<unknown>'
+
+=== REGEXP
+FROM :
+'\.cloneArrayFrom\(intersectors as unknown as [^,]+, this\.varConf\.name\);'
+TO :
+'.get_cloned_invalidators_from_dep_controller(intersectors, this.self_instance);'
+
+=== REGEXP !!!! A VERIFIER
+FROM :
+'VarDataBaseVO\.cloneFromVarName\(
+?[ ]*varDAGNode.var_data( as [^, ]+),
+?[ ]*([^.]+\.getInstance\(\))\.varConf\.name(, true)?\)( as [a-zA-Z0-9_]+)'
+TO :
+'VarDataBaseVO.get_cloned_param_for_dep_controller(varDAGNode.var_data$1, $2)'
+
+
+
+
+
+== Modifications restantes (principales)
+
+== Le module de chacklist n'a plus besoin des champs additionnels en param pour l'init :
+Pour les appels à :
+initializeCheckList
+initializeCheckListItem
+initializeCheckListItemCheckPoints
+initializeCheckPoint
+Supprimer le premier paramètre. Les champs sont déclarés directement lors de l'instanciation donc inutile de les transmettre ensuite aux fonctions qui n'agissent pas sur ces champs, mais en ajoute et déclare la table
+
+=== Identifier les fichiers nécessitant un import de ModuleTableController / ModuleTableFieldController / field_names
+Faire une recherche exacte sur "ModuleTableController" et pour chaque fichier s'assurer dans les résultats que la première ligne de résultat pour le fichier est "import ModuleTableController ..."
+Sinon il manque un import dans ce fichier.
+
+=== Continuer de modifier les query
+Vérifier aussi les querys / requêtes en dur pour éliminer les noms de champs en format texte et tout passer en field_names<YYYVO>().XXX :
+ - Rechercher en "Mot Entier + Respecter la casse + REGEXP" : 
+    - "\.filter_((by_[^\( ]*_?(eq|in|has|has_none|has_alias|..cluding|exists|before|after|sup|inf|ranges|starting_with))|(is_(true|false)))\(('|")"
+    - "\.field\(('|")"
+    
+    
+=== esbuild.mjs à la racine
+en REGEXP, rechercher : "\.[A-Z_]+[^A-Za-z0-9_-]"
+Passer en minuscule tout ce qui concerne des STATIC_ENV_PARAMS, mais pas les variables d'environnement (exemple NODE_ENV)
+
+=== XXXfieldXXX.field_id
+a été renommé en field_name pour éviter les confusions avec XXXfieldXXX.id sur plein de vos (principalement sur les vos de contextquerys et moduletables)
+Pour identifier les occurrences facilement : '.field_id' en recherche [Mot entier] + [Respecter la casse]
+On ne peut pas faire un REPLACE ALL avec '.field_name' le nom field_id est utilisé dans d'autres objets...
+
+=== new ModuleTableVO(
+Finir de remplacer les new ModuleTableVO( restants dans le code
+
+=== Passer en minuscule le STATIC_ENV_PARAMS (les attributs, pas les noms des Envs, et pas le STATIC_ENV_PARAMS en lui-même) (on passe en minuscule pour permettre la création d'une table associée)
+Sélectionner tous les noms des attributs, Utiliser CTRL+SHIFT+P, tapper 'minuscule' et sélectionner l'action "transformer en minuscules"
+Vérifier aussi avec une recherche sur ".BASE_URL" et " = ConfigurationService.node_configuration;" en [Mot entier] + [Respecter la casse] pour s'assurer de corriger toutes les utilisations
+Idem sur "EnvHandler."
+
+
+= Migrer de TSLint à ESLint
+
+CF discussion avec ChatGPT pour OSWEDEV :
+
+Pour passer de TSLint à ESLint dans votre projet, vous devez suivre plusieurs étapes, car TSLint a été déprécié au profit d'ESLint, qui est désormais l'outil recommandé pour l'analyse statique du code TypeScript. Voici un guide étape par étape pour effectuer la transition :
+
+1. Supprimer TSLint et ses configurations
+Tout d'abord, vous devez supprimer TSLint et toutes les configurations liées à TSLint de votre projet. Cela peut être fait en exécutant les commandes suivantes :
+
+bash
+Copy code
+npm uninstall tslint
+npm uninstall @types/tslint
+2. Installer ESLint et les plugins nécessaires
+Ensuite, installez ESLint ainsi que les plugins et configurations nécessaires pour le support de TypeScript et les règles que vous souhaitez appliquer. Utilisez les commandes suivantes pour installer ESLint et les dépendances couramment utilisées :
+
+bash
+Copy code
+npm install eslint --save-dev
+npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin --save-dev
+Si votre projet utilise Vue.js, vous pouvez également vouloir installer le plugin ESLint pour Vue :
+
+bash
+Copy code
+npm install eslint-plugin-vue --save-dev
+3. Configurer ESLint
+Après l'installation, vous devez créer un fichier de configuration ESLint. Vous pouvez générer un fichier de configuration de base en exécutant :
+
+bash
+Copy code
+npx eslint --init
+Suivez les instructions pour configurer ESLint selon vos besoins (par exemple, analyser du code TypeScript, utiliser des normes de codage populaires, etc.).
+
+========================!
+EXEMPLE de conf : CF CONF DE OSWEDEV
+========================!
+
+Si vous avez besoin d'une configuration plus spécifique, créez ou modifiez manuellement le fichier .eslintrc.js (ou le format de fichier de configuration que vous avez choisi). Par exemple, pour un projet TypeScript avec Vue.js, votre configuration pourrait ressembler à ceci :
+
+javascript
+Copy code
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:vue/vue3-recommended'
+  ],
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module'
+  },
+  rules: {
+    // Personnalisez vos règles ici
+  }
+};
+4. Mettre à jour les scripts NPM
+Mettez à jour votre package.json pour utiliser ESLint à la place de TSLint. Par exemple, remplacez les scripts existants liés à TSLint par des scripts utilisant ESLint :
+
+json
+Copy code
+"scripts": {
+  "lint": "eslint . --ext .ts,.tsx,.vue",
+  "lint-fix": "eslint . --ext .ts,.tsx,.vue --fix"
+}
+5. Exécuter ESLint
+Enfin, exécutez ESLint pour vérifier votre projet et corriger les erreurs de lint :
+
+bash
+Copy code
+npm run lint
+Pour corriger automatiquement les problèmes lorsque cela est possible, utilisez :
+
+bash
+Copy code
+npm run lint-fix
+Conclusion
+En suivant ces étapes, vous aurez migré avec succès de TSLint à ESLint dans votre projet. Vous pouvez personnaliser davantage la configuration ESLint en fonction des besoins spécifiques de votre projet et des préférences de style de codage.

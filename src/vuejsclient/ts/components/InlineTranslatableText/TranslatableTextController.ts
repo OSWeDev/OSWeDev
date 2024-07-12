@@ -22,7 +22,7 @@ export default class TranslatableTextController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
 
-        let lang = await ModuleTranslation.getInstance().getLang(code_lang);
+        const lang = await ModuleTranslation.getInstance().getLang(code_lang);
         if (!lang) {
             return false;
         }

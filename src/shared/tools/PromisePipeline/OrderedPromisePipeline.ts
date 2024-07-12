@@ -65,7 +65,7 @@ export default class OrderedPromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb1}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -75,7 +75,7 @@ export default class OrderedPromisePipeline {
 
         if (this.has_free_slot()) {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -89,7 +89,7 @@ export default class OrderedPromisePipeline {
             this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid] = this.do_cb1(cb1, cb1_uid);
         } else {
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():!has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -97,9 +97,9 @@ export default class OrderedPromisePipeline {
                 StatsController.register_stat_COMPTEUR('OrderedPromisePipeline', this.stat_name, 'WAIT');
             }
 
-            let time_in = Dates.now_ms();
+            const time_in = Dates.now_ms();
 
-            let waiting_for_race_promise = new Promise((resolve, reject) => {
+            const waiting_for_race_promise = new Promise((resolve, reject) => {
                 this.waiting_for_race_resolver = resolve;
             });
             await waiting_for_race_promise;
@@ -112,7 +112,7 @@ export default class OrderedPromisePipeline {
                 StatsController.register_stat_DUREE('OrderedPromisePipeline', this.stat_name, 'WAIT_FOR_PUSH', Dates.now_ms() - time_in);
             }
 
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.check_wrapped_cb1s():RACE END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -125,7 +125,7 @@ export default class OrderedPromisePipeline {
             this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid] = this.do_cb1(cb1, cb1_uid);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -136,32 +136,32 @@ export default class OrderedPromisePipeline {
      */
     public async end(): Promise<void> {
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():START:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (this.nb_running_promises === 0) {
-            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.debug_promise_pipeline) {
                 ConsoleHandler.log('OrderedPromisePipeline.end():END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             return;
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        let self = this;
+        const self = this;
 
         // Promise resolever declaration that
         // will be called when all promises are finished
-        let wait_for_end = new Promise<string>((resolve, reject) => {
+        const wait_for_end = new Promise<string>((resolve, reject) => {
             self.end_promise_resolve = resolve;
         });
 
         await wait_for_end;
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -173,7 +173,7 @@ export default class OrderedPromisePipeline {
             throw new Error(`Unexpected type of callback given : ${typeof cb1}`);
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.do_cb1():BEFORECB1:' + this.uid + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -183,7 +183,7 @@ export default class OrderedPromisePipeline {
             ConsoleHandler.error('OrderedPromisePipeline.do_cb1():ERROR:' + error + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
-        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('OrderedPromisePipeline.do_cb1():AFTERCB1:' + this.uid + ':cb1_name:' + cb1.name + ':' + cb1_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
@@ -216,17 +216,17 @@ export default class OrderedPromisePipeline {
             this.unstack_cb2s_needs_to_retry = false;
 
             // normalement on iter dans l'ordre des cb1_uid
-            let cb1_uids = Object.keys(this.cbs2_by_cb1_uid);
+            const cb1_uids = Object.keys(this.cbs2_by_cb1_uid);
             let freed_a_slot = false;
-            for (let i in cb1_uids) {
-                let cb1_uid = cb1_uids[i];
+            for (const i in cb1_uids) {
+                const cb1_uid = cb1_uids[i];
 
-                if (!!this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid]) {
+                if (this.all_waiting_and_running_promises_by_cb1_uid[cb1_uid]) {
                     // Dès qu'on a un cb2 dont l'uid est encore en attente, on ignore les suivants
                     break;
                 }
 
-                let cb2 = this.cbs2_by_cb1_uid[cb1_uid];
+                const cb2 = this.cbs2_by_cb1_uid[cb1_uid];
                 delete this.cbs2_by_cb1_uid[cb1_uid];
                 await cb2(this.cbs1_results_by_cb1_uid[cb1_uid]);
                 this.nb_running_promises--;
@@ -236,13 +236,13 @@ export default class OrderedPromisePipeline {
             if (freed_a_slot) {
                 // Since we freed on or more slots, we can check if we can run another promise
                 if (this.waiting_for_race_resolver) {
-                    let resolver = this.waiting_for_race_resolver;
+                    const resolver = this.waiting_for_race_resolver;
                     delete this.waiting_for_race_resolver;
                     await resolver("OrderedPromisePipeline.do_cb1");
                 }
                 if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
 
-                    let end_promise = this.end_promise_resolve;
+                    const end_promise = this.end_promise_resolve;
                     this.end_promise_resolve = null;
                     await end_promise("OrderedPromisePipeline.do_cb2");
                 }

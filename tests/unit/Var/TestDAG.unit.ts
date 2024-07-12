@@ -23,9 +23,9 @@ test('DAG: test semaphore getInstance()', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+    const dag: VarDAG = new VarDAG();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
     let dagnodeA: VarDAGNode = null;
     let dagnodeB: VarDAGNode = null;
@@ -35,7 +35,7 @@ test('DAG: test semaphore getInstance()', async () => {
     let dagnodeF: VarDAGNode = null;
     let dagnodeG: VarDAGNode = null;
 
-    let promises = [
+    const promises = [
         (async () => {
             dagnodeA = await VarDAGNode.getInstance(dag, var_data_A, true);
         })(),
@@ -200,28 +200,28 @@ test('DAG: test remove nodes', async () => {
 
     await FakeTriangularVarsInit.initAll();
 
-    let dag: VarDAG = await FakeTriangularValidDataHandler.get_fake_triangular_dag();
+    const dag: VarDAG = await FakeTriangularValidDataHandler.get_fake_triangular_dag();
 
-    let var_data_A: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_A();
-    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const var_data_A: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_A();
+    const dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
-    let var_data_B: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_B();
-    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
+    const var_data_B: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_B();
+    const dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
-    let var_data_C: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_C();
-    let dagnodeC: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_C, true);
+    const var_data_C: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_C();
+    const dagnodeC: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_C, true);
 
-    let var_data_E: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_E();
-    let dagnodeE: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_E, true);
+    const var_data_E: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_E();
+    const dagnodeE: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_E, true);
 
-    let var_data_F: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_F();
-    let dagnodeF: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_F, true);
+    const var_data_F: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_F();
+    const dagnodeF: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_F, true);
 
-    let var_data_G: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_G();
-    let dagnodeG: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_G, true);
+    const var_data_G: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_G();
+    const dagnodeG: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_G, true);
 
-    let var_data_H: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_H();
-    let dagnodeH: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_H, true);
+    const var_data_H: FakeDataVO = FakeTriangularValidDataHandler.get_var_data_H();
+    const dagnodeH: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_H, true);
 
     expect(dag.nb_nodes).toStrictEqual(7);
     expect(dag.nodes).toStrictEqual({
@@ -649,10 +649,10 @@ test('DAG: test add nodes', async () => {
 
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+    const dag: VarDAG = new VarDAG();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     expect(dagnodeA.var_data.index).toStrictEqual("1|LmreE");
     expect(dagnodeA.aggregated_datas).toStrictEqual({});
@@ -669,8 +669,8 @@ test('DAG: test add nodes', async () => {
     expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA });
     expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA });
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
     expect(dagnodeB.var_data.index).toStrictEqual("2|Lsy_M&LycR4");
     expect(dagnodeB.aggregated_datas).toStrictEqual({});
@@ -687,7 +687,7 @@ test('DAG: test add nodes', async () => {
     expect(dag.leafs).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
     expect(dag.roots).toStrictEqual({ "1|LmreE": dagnodeA, "2|Lsy_M&LycR4": dagnodeB });
 
-    let dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
     expect(dagnodeA_bis).toStrictEqual(dagnodeA);
 
@@ -700,15 +700,15 @@ test('DAG: test add nodes', async () => {
 test('DAG: test add deps', async () => {
     await FakeVarsInit.initAll();
 
-    let dag: VarDAG = new VarDAG();
+    const dag: VarDAG = new VarDAG();
 
-    let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
+    const var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
-    let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
+    const dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, true);
 
-    let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+    const var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
 
-    let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
+    const dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, true);
 
     expect(dag.nb_nodes).toStrictEqual(2);
     expect(dag.nodes).toStrictEqual({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
@@ -733,7 +733,7 @@ test('DAG: test add deps', async () => {
 
     dagnodeA.addOutgoingDep("AB", dagnodeB);
 
-    let dep_ab = {
+    const dep_ab = {
         incoming_node: dagnodeA,
         outgoing_node: dagnodeB,
         dep_name: "AB"
@@ -777,8 +777,8 @@ test('DAG: test visit bottom->up to node', async () => {
      * bottom->up to node B => [E, F, B]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -808,8 +808,8 @@ test('DAG: test visit top->bottom from node', async () => {
      * top->bottom from node B => [B, E, F]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -839,8 +839,8 @@ test('DAG: test visit bottom->up from node', async () => {
      * bottom->up from node B => [B, A]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -869,8 +869,8 @@ test('DAG: test visit top->bottom to node', async () => {
      * top->bottom to node B => [A, B]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -899,8 +899,8 @@ test('DAG: test visit bottom->up through node', async () => {
      * bottom->up through node B => [E, F, B, A]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -931,8 +931,8 @@ test('DAG: test visit top->bottom through node', async () => {
      * top->bottom through node B => [A, B, E, F]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -967,8 +967,8 @@ test('DAG: test visit bottom->up to node with condition', async () => {
      * bottom->up to node B => [F, B]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -1001,8 +1001,8 @@ test('DAG: test visit top->bottom from node with condition', async () => {
      * top->bottom from node B => [B, F]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -1037,8 +1037,8 @@ test('DAG: test visit bottom->up from node with condition', async () => {
      * bottom->up from node B => [B]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -1070,8 +1070,8 @@ test('DAG: test visit top->bottom to node with condition', async () => {
      * top->bottom to node B => [A, B]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -1103,8 +1103,8 @@ test('DAG: test visit bottom->up through node with condition', async () => {
      * bottom->up through node B => [F, B, A]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 
@@ -1138,8 +1138,8 @@ test('DAG: test visit top->bottom through node with condition', async () => {
      * top->bottom through node B => [A, B, F]
      */
 
-    let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
-    let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+    const dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
+    const node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
     let visit_res: string = null;
 

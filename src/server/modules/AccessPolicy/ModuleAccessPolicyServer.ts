@@ -16,12 +16,13 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTableVO from '../../../shared/modules/DAO/vos/ModuleTableVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
-import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
@@ -30,9 +31,8 @@ import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueM
 import SendInBlueSmsFormatVO from '../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -68,6 +68,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
     public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
+    private static instance: ModuleAccessPolicyServer = null;
+
+    private debug_check_access: boolean = false;
+    private rights_have_been_preloaded: boolean = false;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleAccessPolicy.getInstance().name);
+
+        // istanbul ignore next: nothing to test : register_task
+        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
+        AccessPolicyServerController.init_tasks();
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -81,7 +94,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -94,7 +107,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static async getLoggedUserName(): Promise<string> {
 
-        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        const user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
         return user ? user.name : null;
     }
 
@@ -110,7 +123,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         /**
          * on doit pouvoir charger son propre user
          */
-        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return null;
         }
@@ -120,26 +133,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static async getMyLang(): Promise<LangVO> {
 
-        let user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
+        const user: UserVO = await ModuleAccessPolicyServer.getSelfUser();
         if (!user) {
             return null;
         }
         return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
-    }
-
-
-    private static instance: ModuleAccessPolicyServer = null;
-
-    private debug_check_access: boolean = false;
-    private rights_have_been_preloaded: boolean = false;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleAccessPolicy.getInstance().name);
-
-        // istanbul ignore next: nothing to test : register_task
-        ForkedTasksController.register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
-        AccessPolicyServerController.init_tasks();
     }
 
     /**
@@ -173,7 +171,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAccessPolicy.POLICY_GROUP;
-        group = await this.registerPolicyGroup(group, new DefaultTranslation({
+        group = await this.registerPolicyGroup(group, DefaultTranslationVO.create_new({
             'fr-fr': 'Droits d\'administration principaux'
         }));
 
@@ -184,7 +182,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fo_access.group_id = group.id;
             fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
             fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
-            fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
+            fo_access = await this.registerPolicy(fo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès au front'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -195,7 +193,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             signin_access.group_id = group.id;
             signin_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             signin_access.translatable_name = ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS;
-            signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
+            signin_access = await this.registerPolicy(signin_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Droit à l\'inscription'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -205,7 +203,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             sessionshare_access.group_id = group.id;
             sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
-            sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
+            sessionshare_access = await this.registerPolicy(sessionshare_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès au SessionShare'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -215,7 +213,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             POLICY_IMPERSONATE.group_id = group.id;
             POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
-            POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
+            POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, DefaultTranslationVO.create_new({
                 'fr-fr': 'Impersonate'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -225,7 +223,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             POLICY_SENDINITPWD.group_id = group.id;
             POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
-            POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
+            POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, DefaultTranslationVO.create_new({
                 'fr-fr': 'Envoi Mail init PWD'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -235,7 +233,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             POLICY_SENDRECAPTURE.group_id = group.id;
             POLICY_SENDRECAPTURE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             POLICY_SENDRECAPTURE.translatable_name = ModuleAccessPolicy.POLICY_SENDRECAPTURE;
-            POLICY_SENDRECAPTURE = await this.registerPolicy(POLICY_SENDRECAPTURE, new DefaultTranslation({
+            POLICY_SENDRECAPTURE = await this.registerPolicy(POLICY_SENDRECAPTURE, DefaultTranslationVO.create_new({
                 'fr-fr': 'Envoi Mail relance'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -245,7 +243,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             bo_access.group_id = group.id;
             bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
-            bo_access = await this.registerPolicy(bo_access, new DefaultTranslation({
+            bo_access = await this.registerPolicy(bo_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Accès à l\'administration'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
@@ -258,7 +256,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             modules_managment_access.group_id = group.id;
             modules_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
-            modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
+            modules_managment_access = await this.registerPolicy(modules_managment_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Gestion des modules'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let dependency: PolicyDependencyVO = new PolicyDependencyVO();
@@ -273,7 +271,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             rights_managment_access.group_id = group.id;
             rights_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
-            rights_managment_access = await this.registerPolicy(rights_managment_access, new DefaultTranslation({
+            rights_managment_access = await this.registerPolicy(rights_managment_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Gestion des droits'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let dependency = new PolicyDependencyVO();
@@ -288,7 +286,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             users_list_access.group_id = group.id;
             users_list_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
-            users_list_access = await this.registerPolicy(users_list_access, new DefaultTranslation({
+            users_list_access = await this.registerPolicy(users_list_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Liste des utilisateurs'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             let dependency = new PolicyDependencyVO();
@@ -301,7 +299,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             users_managment_access.group_id = group.id;
             users_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
-            users_managment_access = await this.registerPolicy(users_managment_access, new DefaultTranslation({
+            users_managment_access = await this.registerPolicy(users_managment_access, DefaultTranslationVO.create_new({
                 'fr-fr': 'Gestion des utilisateurs'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
             dependency = new PolicyDependencyVO();
@@ -325,33 +323,33 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async registerAccessRoles(): Promise<void> {
         AccessPolicyServerController.role_anonymous = new RoleVO();
         AccessPolicyServerController.role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
-        AccessPolicyServerController.role_anonymous = await this.registerRole(AccessPolicyServerController.role_anonymous, new DefaultTranslation({
+        AccessPolicyServerController.role_anonymous = await this.registerRole(AccessPolicyServerController.role_anonymous, DefaultTranslationVO.create_new({
             'fr-fr': 'Utilisateur anonyme'
         }));
 
         AccessPolicyServerController.role_logged = new RoleVO();
         AccessPolicyServerController.role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
-        AccessPolicyServerController.role_logged = await this.registerRole(AccessPolicyServerController.role_logged, new DefaultTranslation({
+        AccessPolicyServerController.role_logged = await this.registerRole(AccessPolicyServerController.role_logged, DefaultTranslationVO.create_new({
             'fr-fr': 'Utilisateur connecté'
         }));
 
         AccessPolicyServerController.role_admin = new RoleVO();
         AccessPolicyServerController.role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
-        AccessPolicyServerController.role_admin = await this.registerRole(AccessPolicyServerController.role_admin, new DefaultTranslation({
+        AccessPolicyServerController.role_admin = await this.registerRole(AccessPolicyServerController.role_admin, DefaultTranslationVO.create_new({
             'fr-fr': 'Administrateur'
         }));
     }
 
     public async registerSimplePolicy(group_id: number, default_behaviour: number, translatable_name: string, default_translations: { [code_lang: string]: string }, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        let access: AccessPolicyVO = new AccessPolicyVO();
+        const access: AccessPolicyVO = new AccessPolicyVO();
         access.group_id = group_id;
         access.default_behaviour = default_behaviour;
         access.translatable_name = translatable_name;
-        return await this.registerPolicy(access, new DefaultTranslation(default_translations), moduleVO);
+        return await this.registerPolicy(access, DefaultTranslationVO.create_new(default_translations), moduleVO);
     }
 
     public async addDependency(src_pol: AccessPolicyVO, default_behaviour: number, depends_on_pol_id: AccessPolicyVO): Promise<PolicyDependencyVO> {
-        let dep: PolicyDependencyVO = new PolicyDependencyVO();
+        const dep: PolicyDependencyVO = new PolicyDependencyVO();
         dep.default_behaviour = default_behaviour;
         dep.src_pol_id = src_pol.id;
         dep.depends_on_pol_id = depends_on_pol_id.id;
@@ -377,22 +375,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onCreateAccessPolicyVO);
         postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onCreatePolicyDependencyVO);
@@ -412,531 +410,531 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onDeleteRoleVO);
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onDeleteUserRoleVO);
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Partager votre connexion à l\'outil Wedev'
         }, 'session_share.navigator_share_content.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copier l\'url de partage'
         }, 'session_share.copy_url.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion partagée !'
         }, 'session_share.navigator_share_success.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec du partage.'
         }, 'session_share.navigator_share_error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec',
             'en-us': 'Failed'
         }, 'error.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Gestion des droits'
         }, 'access_policy.admin.filters.filters-title.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Caché'
         }, 'access_policy.admin.filters.hidden.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Visible'
         }, 'access_policy.admin.filters.visible.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mise à jour des droits : OK'
         }, 'access_policy.admin.set_policy.ok.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mise à jour des droits : En cours...'
         }, 'access_policy.admin.set_policy.start.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Refusé'
         }, 'access_policy.admin.table.denied.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accordé'
         }, 'access_policy.admin.table.granted.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Afficher tout le groupe : {policy_group_name}'
         }, 'access_policy.select_full_group.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Masquer tout le groupe : {policy_group_name}'
         }, 'access_policy.unselect_full_group.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier le rôle {role_id} : {role_name}'
         }, 'AccessPolicyCompareAndPatchComponent.unselect_role.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Générer le code du patch pour harmoniser les droits de A vers B (on modifie les droits de B uniquement)'
         }, 'AccessPolicyCompareAndPatchComponent.generate_patch.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ATTENTION : Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'ATTENTION : Cette page sert à comparer les droits de 2 rôles et à les harmoniser. Les seuls droits modifiés seront ceux du rôle B. Les droits du rôle A ne seront pas modifiés. Mais rien ne garantie que le patch aura l\'effet désiré puisque l\'on ne regarde pas les droits hérités. Donc si on tente de désactiver un droit hérité, celà n\'aura aucun effet !'
         }, 'AccessPolicyCompareAndPatchComponent.disclaimer.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modifier les droits de B pour être égaux aux droits de A (on modifie les droits de B uniquement)'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Confirmer ?'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.confirmation.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mise à jour des droits du rôle B : En cours...'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mise à jour des droits du rôle B terminée'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de la mise à jour des droits du rôle B'
         }, 'AccessPolicyCompareAndPatchComponent.do_update.failed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Code du Patch'
         }, 'AccessPolicyCompareAndPatchComponent.comparison_patch_code.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Droits dans A, absents de B'
         }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_a_not_in_b.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Droits dans B, absents de A'
         }, 'AccessPolicyCompareAndPatchComponent.comparison_summary_rights_in_b_not_in_a.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Sélectionner le rôle "{role_name}"'
         }, 'AccessPolicyCompareAndPatchComponent.select_role.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Comparer des rôles'
         }, 'menu.menuelements.admin.AccessPolicyCompareAndPatchComponent.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accès admin uniquement'
         }, 'accpol.default_behaviour.access_denied_to_all_but_admin'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accès utilisateur connecté'
         }, 'accpol.default_behaviour.access_denied_to_anonymous'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accès pour tous'
         }, 'accpol.default_behaviour.access_granted_to_anyone'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Utilisateurs'
         }, 'menu.menuelements.admin.AccessPolicyAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Gestion des droits'
         }, 'menu.menuelements.admin.AccessPolicyComponent.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Groupe d\'accès'
         }, 'menu.menuelements.admin.AccessPolicyGroupVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accès'
         }, 'menu.menuelements.admin.AccessPolicyVO.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Droit'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Admin'
         }, 'access.roles.names.admin.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Non connecté'
         }, 'access.roles.names.anonymous.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connecté'
         }, 'access.roles.names.logged.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mon compte'
         }, 'client.my_account.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion'
         }, 'login.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'login.sub_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Saisissez vos identifiants'
         }, 'login.msg.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Login'
         }, 'login.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion'
         }, 'login.signIn.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mot de passe oublié'
         }, 'login.recoverlink.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion...'
         }, 'login.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de la connexion'
         }, 'login.failed.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion validée'
         }, 'login.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération du mot de passe'
         }, 'login.recover.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'login.recover.sub_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Merci de renseigner votre adresse email.'
         }, 'login.recover.desc.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Login/email/n° de téléphone'
         }, 'login.email_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer le mail'
         }, 'login.recover.submit.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer le SMS'
         }, 'login.recover.sms.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
         }, 'login.recover.answersms.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Inscription'
         }, 'signin.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ' '
         }, 'signin.sub_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Saisissez les informations demandées'
         }, 'signin.msg.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Identifiant'
         }, 'signin.nom_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Email'
         }, 'signin.email_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mot de passe'
         }, 'signin.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Confirmer le mot de passe'
         }, 'signin.confirm_password_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'S\'inscrire'
         }, 'signin.signin.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Les informations que vous avez saisi ne sont pas correctes'
         }, 'signin.failed.message.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Le service est en cours de maintenance. Merci de votre patience.'
         }, 'error.global_update_blocker.activated.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération...'
         }, 'recover.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération échouée'
         }, 'recover.failed.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Consultez vos mails'
         }, 'recover.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answercansms.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
         }, 'login.recover.answer.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Réinitialisation de votre mot de passe'
         }, 'login.reset.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'login.reset.sub_title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Merci de renseigner votre adresse email, le code reçu par mail sur cette même adresse, ainsi que votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc_simplified.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Code de sécurité'
         }, 'login.code_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Nouveau mot de passe'
         }, 'login.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Valider'
         }, 'login.reset.submit.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Me connecter'
         }, 'login.reset.reco.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modification...'
         }, 'reset.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modification échouée'
         }, 'reset.failed.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Le mot de passe a été réinitialisé. Vous pouvez vous connecter avec votre nouveau mot de passe.'
         }, 'login.reset.answer_ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Modification réussie'
         }, 'reset.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'La saisie est invalide. Vérifiez le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko_simplified.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Se connecter'
         }, 'login.reset.lien_connect.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mon profil'
         }, 'my_account_page.my_account_content_header.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accéder au site'
         }, 'mails.pwd.initpwd.submit'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Initialisation du mot de passe'
         }, 'mails.pwd.initpwd.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
         }, 'mails.pwd.initpwd.html'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Accéder au site'
         }, 'mails.pwd.recovery.submit'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '%%ENV%%app_title%%: Pour réinitialiser votre compte: %%ENV%%base_url%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '%%ENV%%app_title%%: Pour initialiser votre compte: %%ENV%%base_url%%%%ENV%%url_recovery_challenge%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.initpwd'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': '%%ENV%%app_title%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%base_url%%%%ENV%%url_recovery_challenge%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.recapture'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe a été invalidé. Vous pouvez utiliser la page de récupération du mot de passe accessible en cliquant sur le lien ci-dessous.'
         }, 'mails.pwd.invalidation.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe expire dans 20 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder1.html'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
         }, 'login.failed.message.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mise à jour de la langue et rechargement...'
         }, 'lang_selector.encours.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'lang_selector.lang_prefix.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': ''
         }, 'lang_selector.lang_suffix.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Consultez vos SMS'
         }, 'recover.oksms.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Droits'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SMS d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.oksms.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail de relance'
         }, 'fields.labels.ref.user.__component__sendrecapture.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Relance compte inactif'
         }, 'MAILCATEGORY.UserRecapture.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail de relance envoyé'
         }, 'sendrecapture.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SMS de relance envoyé'
         }, 'sendrecapture.oksms.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail init mdp'
         }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Renvoyer le mail'
         }, 'login.reset.send_init_pwd.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Renvoyer le SMS'
         }, 'login.reset.send_init_pwd_sms.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
         }, 'login.reset.code_invalid.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
         }, 'reset.code_invalid.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail renvoyé, merci de consulter votre messagerie'
         }, 'reset.sent_init_pwd.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur lors de l\'envoi du mail'
         }, 'session_share.mail_not_sent.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Mail envoyé'
         }, 'session_share.mail_sent.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Erreur lors de l\'envoi du SMS'
         }, 'session_share.sms_not_sent.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Lien de session partagée : '
         }, 'session_share.sms_preurl.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'SMS envoyé'
         }, 'session_share.sms_sent.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer à cet email'
         }, 'session_share.email.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer par SMS à ce numéro'
         }, 'session_share.phone.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Partager la session'
         }, 'session_share.open_show.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer la session'
         }, 'session_share.delete_session.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Session supprimée'
         }, 'session_share.delete_session.success.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Informations"
         }, 'signin.informations.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Conditions d'utilisation"
         }, 'signin.cgu.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Connexion"
         }, 'userlog.log_type.login'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Déconnexion"
         }, 'userlog.log_type.logout'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Ouverture outil"
         }, 'userlog.log_type.csrf_request'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Le login, le mail et le téléphone doivent être uniques - il existe un compte avec le même login, mail ou téléphone."
         }, 'AccessPolicyVueController.precreate_uservo_unicity.error.___LABEL___'));
 
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà'
-        }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        }, 'accesspolicy.user-create.mail.exists' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Sessions des utilisateurs"
         }, 'menu.menuelements.admin.UserSessionVO.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Nouvelle version disponible, votre page se recharge automatiquement"
         }, 'app_version_changed.___LABEL___'));
 
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Archivage en cours"
         }, 'DatatableComponent.confirm_archive.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Erreur archivage"
         }, 'DatatableComponent.confirm_archive.ko.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Element archivé"
         }, 'DatatableComponent.confirm_archive.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Confirmation archivage"
         }, 'DatatableComponent.confirm_archive.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Confirmation archivage"
         }, 'DatatableComponent.confirm_archive.title.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Archivage en cours"
         }, 'TableWidgetComponent.confirm_archive.start.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Erreur archivage"
         }, 'TableWidgetComponent.confirm_archive.ko.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Element archivé"
         }, 'TableWidgetComponent.confirm_archive.ok.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Confirmation archivage"
         }, 'TableWidgetComponent.confirm_archive.body.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': "Confirmation archivage"
         }, 'TableWidgetComponent.confirm_archive.title.___LABEL___'));
     }
@@ -986,7 +984,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
         if (!user) {
             return null;
@@ -1019,7 +1017,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
-                let uid: number = session.uid;
+                const uid: number = session.uid;
 
                 // On stocke le log de connexion en base
                 user_log = new UserLogVO();
@@ -1152,7 +1150,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).exec_as_server(exec_as_server).select_vo<UserRoleVO>();
+        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<UserRoleVO>().user_id, user_id)
+            .filter_by_num_eq(field_names<UserRoleVO>().role_id, role_id)
+            .exec_as_server(exec_as_server).select_vo<UserRoleVO>();
 
         if (!userRole) {
             userRole = new UserRoleVO();
@@ -1166,14 +1167,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
-        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+        const roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        const policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
-        for (let i in policy_names) {
-            let policy_name = policy_names[i];
+        for (const i in policy_names) {
+            const policy_name = policy_names[i];
 
-            for (let j in role_names) {
-                let role_name = role_names[j];
+            for (const j in role_names) {
+                const role_name = role_names[j];
 
                 await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.access_matrix);
             }
@@ -1196,7 +1197,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let challenge: string = TextHandler.getInstance().generateChallenge();
+        const challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
         console.debug("challenge:" + user.email + ':' + challenge + ':');
@@ -1212,12 +1213,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
+        const user_id: number = ModuleAccessPolicyServer.getLoggedUserId();
         if (!user_id) {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.getInstance().query('update ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1226,7 +1227,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param role Le rôle à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
+    public async registerRole(role: RoleVO, default_translation: DefaultTranslationVO): Promise<RoleVO> {
         return await AccessPolicyServerController.registerRole(role, default_translation);
     }
 
@@ -1234,7 +1235,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param group Le group à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
+    public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslationVO): Promise<AccessPolicyGroupVO> {
         return await AccessPolicyServerController.registerPolicyGroup(group, default_translation);
     }
 
@@ -1242,7 +1243,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param policy La policy à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
+    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslationVO, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
         return await AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
     }
 
@@ -1266,8 +1267,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
-            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
+            const res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            const invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
             ConsoleHandler.error(error);
@@ -1290,9 +1291,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
-            for (let i in sessions) {
-                let session: IServerUserSession = sessions[i];
+            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
+            for (const i in sessions) {
+                const session: IServerUserSession = sessions[i];
 
                 if (!session) {
                     continue;
@@ -1322,7 +1323,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login(uid: number): Promise<boolean> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1337,7 +1338,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return false;
             }
 
-            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
+            const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
             if (!user) {
                 return false;
@@ -1361,7 +1362,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -1370,7 +1371,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
 
             return true;
         } catch (error) {
@@ -1384,7 +1385,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
@@ -1404,7 +1405,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -1466,14 +1467,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.role_anonymous.id) >= 0;
         }
 
-        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
+        const user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
 
-        for (let i in user_roles) {
+        for (const i in user_roles) {
             if (role_ids.indexOf(user_roles[i].id) >= 0) {
                 return true;
             }
@@ -1486,7 +1487,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        for (let sid in session_to_delete_by_sids) {
+        for (const sid in session_to_delete_by_sids) {
             await StackContext.runPromise(
                 { SESSION: session_to_delete_by_sids[sid] },
                 async () => {
@@ -1505,8 +1506,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
-        let role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
+        const target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
+        const role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
         /**
          * Le but est d'avoir false, donc on esquive le log et la déco avec le dernier param
          */
@@ -1523,7 +1524,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (role_policy) {
 
             // Si oui on la supprime
-            let insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
+            const insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAOServer.getInstance().deleteVOs_as_server([role_policy]);
             if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }
@@ -1563,7 +1564,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return null;
@@ -1591,13 +1592,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
         }
 
-        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1611,13 +1612,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = StackContext.get('UID');
+        const uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
         }
 
-        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
+        const userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq(field_names<UserRoleVO>().user_id, uid).filter_by_text_eq(field_names<RoleVO>().translatable_name, ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1719,9 +1720,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
-        if (!!user) {
-            await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+        const user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq(field_names<UserVO>().email, vo.email).exec_as_server().select_vo<UserVO>();
+        if (user) {
+            await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION);
             return false;
         }
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
@@ -1858,7 +1859,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1870,7 +1871,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -1883,7 +1884,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
-            if (!!user) {
+            if (user) {
 
                 if (user.invalidated) {
 
@@ -1911,7 +1912,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
 
             // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-            let lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
+            const lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, field_names<LangVO>().id, true)).set_limit(1).select_vo<LangVO>();
             user.lang_id = lang.id;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
@@ -1924,7 +1925,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -1932,7 +1933,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -1945,7 +1946,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.get('SESSION');
+            const session = StackContext.get('SESSION');
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1957,7 +1958,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -2004,7 +2005,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
+            const user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
@@ -2013,7 +2014,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -2043,8 +2044,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @returns l'id de l'utilisateur qui a été impersoné
      */
     private async do_impersonate(context_query: ContextQueryVO): Promise<number> {
-        let session = StackContext.get('SESSION');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const session = StackContext.get('SESSION');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -2064,7 +2065,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await context_query.select_vo<UserVO>();
+        const user: UserVO = await context_query.select_vo<UserVO>();
 
         if (!user) {
             return null;
@@ -2084,7 +2085,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         PushDataServerController.getInstance().registerSession(session);
 
         // On stocke le log de connexion en base
-        let user_log = new UserLogVO();
+        const user_log = new UserLogVO();
         user_log.user_id = user.id;
         user_log.log_time = Dates.now();
         user_log.referer = StackContext.get('REFERER');
@@ -2093,7 +2094,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-        await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+        await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
 
         return user.id;
     }
@@ -2127,34 +2128,34 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param user_roles Les rôles de l'utilisateur qui fait la requête
      * @returns la query qui permet de filtrer les access valides
      */
-    private async filterPolicyByActivModulesContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+    private async filterPolicyByActivModulesContextAccessHook(moduletable: ModuleTableVO, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        let filter_module_actif: ContextFilterVO = new ContextFilterVO();
-        filter_module_actif.field_id = 'actif';
+        const filter_module_actif: ContextFilterVO = new ContextFilterVO();
+        filter_module_actif.field_name = 'actif';
         filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
         filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
 
-        let res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
+        const res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
 
-        let query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
+        const query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field(field_names<ModuleVO>().id, 'filter_module_actif_id');
 
-        let filter_module_in: ContextFilterVO = new ContextFilterVO();
-        filter_module_in.field_id = 'module_id';
+        const filter_module_in: ContextFilterVO = new ContextFilterVO();
+        filter_module_in.field_name = 'module_id';
         filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_module_in.filter_type = ContextFilterVO.TYPE_IN;
         filter_module_in.set_sub_query(query_module_actif, res);
 
-        let filter_no_module: ContextFilterVO = new ContextFilterVO();
-        filter_no_module.field_id = 'module_id';
+        const filter_no_module: ContextFilterVO = new ContextFilterVO();
+        filter_no_module.field_name = 'module_id';
         filter_no_module.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_no_module.filter_type = ContextFilterVO.TYPE_NULL_ALL;
 
-        let filter_or: ContextFilterVO = new ContextFilterVO();
+        const filter_or: ContextFilterVO = new ContextFilterVO();
         filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
 
-        res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
+        res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, field_names<AccessPolicyVO>().id, 'filter_access_policy_id')]);
         res.add_filters([filter_or]);
         res.exec_as_server();
 
@@ -2164,13 +2165,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
-    private async filterPolicyByActivModules(datatable: ModuleTable<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
-        let res: AccessPolicyVO[] = [];
+    private async filterPolicyByActivModules(datatable: ModuleTableVO, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
+        const res: AccessPolicyVO[] = [];
 
         await ModulesManagerServer.getInstance().preload_modules();
-        for (let i in vos) {
-            let vo: AccessPolicyVO = vos[i];
-            let moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;
+        for (const i in vos) {
+            const vo: AccessPolicyVO = vos[i];
+            const moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;
 
             if ((!vo.module_id) || (moduleVO && moduleVO.actif)) {
                 res.push(vo);
@@ -2180,18 +2181,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let uid: number = StackContext.get('UID');
-        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
+        const uid: number = StackContext.get('UID');
+        const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
-        let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
+        const roles_ids_by_name: { [role_name: string]: number } = {};
+        const roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
-        for (let i in roles) {
-            let role = roles[i];
+        for (const i in roles) {
+            const role = roles[i];
 
             roles_ids_by_name[role.translatable_name] = role.id;
         }
@@ -2200,11 +2201,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
-        let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
+        const policies_ids_by_name: { [role_name: string]: number } = {};
+        const policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
-        for (let i in policies) {
-            let policy = policies[i];
+        for (const i in policies) {
+            const policy = policies[i];
 
             policies_ids_by_name[policy.translatable_name] = policy.id;
         }
@@ -2251,7 +2252,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
-        if (!!user.id) {
+        if (user.id) {
             old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().select_vo<UserVO>();
         }
 
@@ -2278,7 +2279,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async send_session_share_email(mail_category: string, url: string, email: string): Promise<MailVO> {
-        let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
+        const SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
         return await SendInBlueMailServerController.getInstance().sendWithTemplate(
             mail_category,
             SendInBlueMailVO.createNew(email, email),
@@ -2315,7 +2316,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let session = StackContext.get('SESSION');
 
         if (session && session.uid) {
-            let uid: number = session.uid;
+            const uid: number = session.uid;
 
             // On stocke le log de connexion en base
             user_log = new UserLogVO();
@@ -2339,7 +2340,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session = Object.assign(session, session.impersonated_from);
             // delete session.impersonated_from;
 
-            let uid: number = session.uid;
+            const uid: number = session.uid;
 
             // On stocke le log de connexion en base
             user_log = new UserLogVO();

@@ -1,17 +1,17 @@
 import cloneDeep from 'lodash/cloneDeep';
+import ModuleTableFieldVO from '../modules/DAO/vos/ModuleTableFieldVO';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import ISegment from '../modules/DataRender/interfaces/ISegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import NumSegment from '../modules/DataRender/vos/NumSegment';
-import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import Durations from '../modules/FormatDatesNombres/Dates/Durations';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
-import ModuleTableField from '../modules/ModuleTableField';
 import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
 import MatroidIndexHandler from './MatroidIndexHandler';
@@ -40,6 +40,9 @@ export default class RangeHandler {
      */
     public static MIN_HOUR: number = -9151488000;
     public static MAX_HOUR: number = 8993721599;
+
+    protected static RANGE_MATCHER_API = /([0-9]+)(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
+    protected static RANGE_MATCHER_BDD = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     /**
      * TODO FIXME TU
@@ -77,10 +80,10 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: number[] = [];
+        const res: number[] = [];
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (!range) {
                 continue;
@@ -107,17 +110,17 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: NumRange[] = [];
+        const res: NumRange[] = [];
 
-        let copy: number[] = Array.from(ids);
+        const copy: number[] = Array.from(ids);
         copy.sort((a, b) => {
             return a - b;
         });
 
         let current_range_min: number = null;
         let current_range_max: number = null;
-        for (let i in copy) {
-            let e = copy[i];
+        for (const i in copy) {
+            const e = copy[i];
 
             if (current_range_max == null) {
                 current_range_min = e;
@@ -189,7 +192,7 @@ export default class RangeHandler {
         }
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
-                let segmented_min: number = RangeHandler.getSegmentedMin(range);
+                const segmented_min: number = RangeHandler.getSegmentedMin(range);
                 // min_inclusive or not
                 return segmented_min === RangeHandler.MIN_TS
                     || segmented_min === Dates.add(RangeHandler.MIN_TS, 1, range.segment_type);
@@ -207,7 +210,7 @@ export default class RangeHandler {
         }
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
-                let segmented_max: number = RangeHandler.getSegmentedMax(range);
+                const segmented_max: number = RangeHandler.getSegmentedMax(range);
                 // max_inclusive or not
                 return segmented_max === Dates.startOf(RangeHandler.MAX_TS, range.segment_type)
                     || segmented_max === Dates.startOf(Dates.add(RangeHandler.MAX_TS, -1, range.segment_type), range.segment_type);
@@ -230,10 +233,10 @@ export default class RangeHandler {
     public static get_ranges_according_to_segment_type(ranges: IRange[], target_segment_type: number, strict: boolean = false): IRange[] {
 
         let has_changed: boolean = false;
-        let res: IRange[] = [];
+        const res: IRange[] = [];
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (!range) {
                 continue;
@@ -297,7 +300,7 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: number[] = [];
+        const res: number[] = [];
 
         RangeHandler.foreach_sync(range, (e: number) => {
             res.push(e);
@@ -312,10 +315,10 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: number[] = [];
+        const res: number[] = [];
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             RangeHandler.foreach_sync(range, (e: number) => {
                 res.push(e);
@@ -346,7 +349,7 @@ export default class RangeHandler {
             return true;
         }
 
-        for (let i in ranges_b) {
+        for (const i in ranges_b) {
             if (!RangeHandler.range_includes_range(range_a, ranges_b[i], segment_type)) {
                 return false;
             }
@@ -363,10 +366,10 @@ export default class RangeHandler {
             return true;
         }
 
-        let segmented_min_a: number = RangeHandler.getSegmentedMin(range_a, segment_type);
-        let segmented_min_b: number = RangeHandler.getSegmentedMin(range_b, segment_type);
-        let segmented_max_a: number = RangeHandler.getSegmentedMax(range_a, segment_type);
-        let segmented_max_b: number = RangeHandler.getSegmentedMax(range_b, segment_type);
+        const segmented_min_a: number = RangeHandler.getSegmentedMin(range_a, segment_type);
+        const segmented_min_b: number = RangeHandler.getSegmentedMin(range_b, segment_type);
+        const segmented_max_a: number = RangeHandler.getSegmentedMax(range_a, segment_type);
+        const segmented_max_b: number = RangeHandler.getSegmentedMax(range_b, segment_type);
 
         if (RangeHandler.is_elt_sup_elt(range_a.range_type, segmented_min_a, segmented_min_b)) {
             return false;
@@ -412,7 +415,7 @@ export default class RangeHandler {
             return (rangea.min) - (rangeb.min);
         });
 
-        let res: IRange[] = [];
+        const res: IRange[] = [];
         let i = 0;
         let B: IRange = null;
         let A: IRange = null;
@@ -439,13 +442,13 @@ export default class RangeHandler {
             return null;
         }
 
-        let min_a: number = RangeHandler.getSegmentedMin(range_a);
-        let max_a: number = RangeHandler.getSegmentedMax(range_a);
-        let min_b: number = RangeHandler.getSegmentedMin(range_b);
-        let max_b: number = RangeHandler.getSegmentedMax(range_b);
+        const min_a: number = RangeHandler.getSegmentedMin(range_a);
+        const max_a: number = RangeHandler.getSegmentedMax(range_a);
+        const min_b: number = RangeHandler.getSegmentedMin(range_b);
+        const max_b: number = RangeHandler.getSegmentedMax(range_b);
 
-        let min: number = (min_a > min_b) ? min_a : min_b;
-        let max: number = (max_a < max_b) ? max_a : max_b;
+        const min: number = (min_a > min_b) ? min_a : min_b;
+        const max: number = (max_a < max_b) ? max_a : max_b;
 
         if (min > max) {
             return null;
@@ -454,7 +457,7 @@ export default class RangeHandler {
         let min_from_type: number = null;
         let max_from_type: number = null;
 
-        let segment_type: number = (range_a.segment_type == range_b.segment_type)
+        const segment_type: number = (range_a.segment_type == range_b.segment_type)
             ? range_a.segment_type
             : RangeHandler.get_smallest_segment_type_from_ranges([range_a, range_b]);
 
@@ -732,10 +735,10 @@ export default class RangeHandler {
         }
 
         for (let i: number = 0; i < (ranges_a.length - 1); i++) {
-            let range_a = ranges_a[i];
+            const range_a = ranges_a[i];
 
             for (let j: number = i + 1; j < ranges_a.length; j++) {
-                let range_b = ranges_a[j];
+                const range_b = ranges_a[j];
 
                 if (RangeHandler.range_intersects_range(range_a, range_b)) {
                     return true;
@@ -775,8 +778,8 @@ export default class RangeHandler {
             return false;
         }
 
-        for (let i in ranges_a) {
-            let range_a = ranges_a[i];
+        for (const i in ranges_a) {
+            const range_a = ranges_a[i];
 
             if (RangeHandler.range_intersects_any_range(range_a, ranges_b)) {
                 return true;
@@ -787,19 +790,19 @@ export default class RangeHandler {
     }
 
     public static get_ranges_any_range_intersects_any_range(ranges_a: IRange[], ranges_b: IRange[]): IRange[] {
-        let ranges: IRange[] = [];
+        const ranges: IRange[] = [];
 
         if ((!ranges_b) || (!ranges_a) || (!ranges_b.length) || (!ranges_a.length)) {
             return null;
         }
 
-        for (let i in ranges_a) {
-            let range_a = ranges_a[i];
+        for (const i in ranges_a) {
+            const range_a = ranges_a[i];
 
             if (RangeHandler.range_intersects_any_range(range_a, ranges_b)) {
                 let to_push: boolean = true;
 
-                for (let j in ranges) {
+                for (const j in ranges) {
                     if (RangeHandler.is_same(range_a, ranges[j])) {
                         to_push = false;
                     }
@@ -824,8 +827,8 @@ export default class RangeHandler {
             return false;
         }
 
-        for (let i in ranges) {
-            let range_b = ranges[i];
+        for (const i in ranges) {
+            const range_b = ranges[i];
 
             if (RangeHandler.elt_intersects_range(a, range_b)) {
                 return true;
@@ -908,8 +911,8 @@ export default class RangeHandler {
 
         let res: IRange = null;
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (!range) {
                 continue;
@@ -938,9 +941,9 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: U[] = [];
+        const res: U[] = [];
 
-        for (let i in from) {
+        for (const i in from) {
             res.push(RangeHandler.cloneFrom(from[i]) as U);
         }
 
@@ -958,9 +961,9 @@ export default class RangeHandler {
             return null;
         }
 
-        let prefer_inclusive_max: boolean = (range.range_type != HourRange.RANGE_TYPE);
-        let min = this.getSegmentedMin(range);
-        let max = prefer_inclusive_max ? this.getSegmentedMax(range) : range.max;
+        const prefer_inclusive_max: boolean = (range.range_type != HourRange.RANGE_TYPE);
+        const min = this.getSegmentedMin(range);
+        const max = prefer_inclusive_max ? this.getSegmentedMax(range) : range.max;
 
         let min_str: string = null;
         switch (range.range_type) {
@@ -1022,8 +1025,8 @@ export default class RangeHandler {
         }
         ranges.sort((a: IRange, b: IRange) => {
 
-            let min_a = RangeHandler.getSegmentedMin(a);
-            let min_b = RangeHandler.getSegmentedMin(b);
+            const min_a = RangeHandler.getSegmentedMin(a);
+            const min_b = RangeHandler.getSegmentedMin(b);
 
             if (RangeHandler.is_elt_equals_elt(a.range_type, min_a, min_b)) {
                 return 0;
@@ -1046,10 +1049,10 @@ export default class RangeHandler {
         // let res: string = "[";
         let res: string = "";
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
-            let range_index = RangeHandler.humanize(range);
+            const range_index = RangeHandler.humanize(range);
 
             if (!range_index) {
                 return null;
@@ -1071,7 +1074,7 @@ export default class RangeHandler {
 
         let res: number = 0;
 
-        for (let i in ranges) {
+        for (const i in ranges) {
             res += RangeHandler.getCardinal(ranges[i], segment_type);
         }
         return res;
@@ -1089,7 +1092,7 @@ export default class RangeHandler {
             ranges = ranges.slice().reverse();
         }
 
-        for (let i in ranges) {
+        for (const i in ranges) {
             await RangeHandler.foreach(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
         }
     }
@@ -1116,8 +1119,8 @@ export default class RangeHandler {
             ranges = ranges.slice().reverse();
         }
 
-        let promises_pipeline = new PromisePipeline(batch_size, 'RangeHandler.foreach_ranges_batch_await');
-        for (let i in ranges) {
+        const promises_pipeline = new PromisePipeline(batch_size, 'RangeHandler.foreach_ranges_batch_await');
+        for (const i in ranges) {
 
             await promises_pipeline.push(async () => {
                 await RangeHandler.foreach_batch_await(
@@ -1146,7 +1149,7 @@ export default class RangeHandler {
             ranges = ranges.slice().reverse();
         }
 
-        for (let i in ranges) {
+        for (const i in ranges) {
             const callback_sync_res: void | boolean = RangeHandler.foreach_sync(
                 ranges[i],
                 callback_sync,
@@ -1179,13 +1182,13 @@ export default class RangeHandler {
         }
 
         let avant: U = RangeHandler.cloneFrom(range_to_cut);
-        let coupe: U = RangeHandler.cloneFrom(range_to_cut);
+        const coupe: U = RangeHandler.cloneFrom(range_to_cut);
         let apres: U = RangeHandler.cloneFrom(range_to_cut);
 
         /**
          * ATTENTION il faut aussi prendre la segmentation la plus petite des 2 entre cutter et to_cut
          */
-        let min_segment_type = RangeHandler.get_smallest_segment_type_from_ranges([range_to_cut, range_cutter]);
+        const min_segment_type = RangeHandler.get_smallest_segment_type_from_ranges([range_to_cut, range_cutter]);
         avant.segment_type = min_segment_type;
         coupe.segment_type = min_segment_type;
         apres.segment_type = min_segment_type;
@@ -1215,7 +1218,7 @@ export default class RangeHandler {
             coupe.max = cloneDeep(range_cutter.min);
             coupe.max_inclusiv = range_cutter.min_inclusiv;
 
-            if (!!avant) {
+            if (avant) {
                 avant.min = cloneDeep(range_to_cut.min);
                 avant.min_inclusiv = range_to_cut.min_inclusiv;
 
@@ -1236,7 +1239,7 @@ export default class RangeHandler {
 
             avant = null;
 
-            if (!!apres) {
+            if (apres) {
                 apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
@@ -1250,7 +1253,7 @@ export default class RangeHandler {
             coupe.max = cloneDeep(range_cutter.max);
             coupe.max_inclusiv = range_cutter.max_inclusiv;
 
-            if (!!apres) {
+            if (apres) {
                 apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
@@ -1272,11 +1275,11 @@ export default class RangeHandler {
             return new RangesCutResult([coupe], null);
         }
 
-        let remaining_items = [];
-        if (!!avant) {
+        const remaining_items = [];
+        if (avant) {
             remaining_items.push(avant);
         }
-        if (!!apres) {
+        if (apres) {
             remaining_items.push(apres);
         }
 
@@ -1291,11 +1294,11 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as unknown as IRange;
             case HourRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as unknown as IRange;
             case TSRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as unknown as IRange;
         }
 
         return null;
@@ -1330,11 +1333,11 @@ export default class RangeHandler {
         });
 
         // on les parcourt pour créer des ranges, si (B != A + 1) on créer un nv range
-        let res: NumRange[] = [];
+        const res: NumRange[] = [];
         let min: number = null;
         let max: number = null;
 
-        for (let id of ids) {
+        for (const id of ids) {
             if (!min) {
                 min = id;
             }
@@ -1361,8 +1364,8 @@ export default class RangeHandler {
 
         let res: RangesCutResult<U> = null;
 
-        for (let i in ranges_to_cut) {
-            let range_to_cut = ranges_to_cut[i];
+        for (const i in ranges_to_cut) {
+            const range_to_cut = ranges_to_cut[i];
 
             res = RangeHandler.addCutResults(res, RangeHandler.cut_range(range_cutter, range_to_cut));
         }
@@ -1376,12 +1379,12 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: RangesCutResult<U> = new RangesCutResult(null, cloneDeep(ranges_to_cut));
+        const res: RangesCutResult<U> = new RangesCutResult(null, cloneDeep(ranges_to_cut));
 
-        for (let i in ranges_cutter) {
-            let range_cutter = ranges_cutter[i];
+        for (const i in ranges_cutter) {
+            const range_cutter = ranges_cutter[i];
 
-            let temp_res = RangeHandler.cut_ranges(range_cutter, res.remaining_items);
+            const temp_res = RangeHandler.cut_ranges(range_cutter, res.remaining_items);
             res.remaining_items = temp_res ? temp_res.remaining_items : null;
             res.chopped_items = temp_res ? (res.chopped_items ? (temp_res.chopped_items ? res.chopped_items.concat(temp_res.chopped_items) : null) : temp_res.chopped_items) : res.chopped_items;
         }
@@ -1402,8 +1405,8 @@ export default class RangeHandler {
             return a;
         }
 
-        let chopped = a.chopped_items ? a.chopped_items.concat(b.chopped_items) : b.chopped_items;
-        let remaining = a.remaining_items ? a.remaining_items.concat(b.remaining_items) : b.remaining_items;
+        const chopped = a.chopped_items ? a.chopped_items.concat(b.chopped_items) : b.chopped_items;
+        const remaining = a.remaining_items ? a.remaining_items.concat(b.remaining_items) : b.remaining_items;
 
         return new RangesCutResult(chopped, remaining);
     }
@@ -1417,10 +1420,10 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: IRange[] = [];
+        const res: IRange[] = [];
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             res.push(RangeHandler.get_range_shifted_by_x_segments(range, shift_value, shift_segment_type));
         }
@@ -1428,10 +1431,10 @@ export default class RangeHandler {
     }
 
     public static get_ids_ranges_from_vos(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): NumRange[] {
-        let ids = [];
+        const ids = [];
 
-        for (let i in vos) {
-            let vo = vos[i];
+        for (const i in vos) {
+            const vo = vos[i];
 
             ids.push(vo.id);
         }
@@ -1460,15 +1463,15 @@ export default class RangeHandler {
             return false;
         }
 
-        let remaining_bs = Array.from(bs);
-        for (let i in as) {
+        const remaining_bs = Array.from(bs);
+        for (const i in as) {
 
-            let a = as[i];
+            const a = as[i];
 
             let found: number = null;
-            for (let j in remaining_bs) {
+            for (const j in remaining_bs) {
 
-                let b = remaining_bs[j];
+                const b = remaining_bs[j];
 
                 if (RangeHandler.is_same(a, b)) {
                     found = parseInt(j.toString());
@@ -1487,20 +1490,20 @@ export default class RangeHandler {
     }
 
 
-    public static getRangeType(table_field: ModuleTableField<any>): number {
+    public static getRangeType(table_field: ModuleTableFieldVO): number {
         switch (table_field.field_type) {
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                 return NumRange.RANGE_TYPE;
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
                 return TSRange.RANGE_TYPE;
 
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
                 return HourRange.RANGE_TYPE;
 
             default:
@@ -1508,21 +1511,21 @@ export default class RangeHandler {
         }
     }
 
-    public static getMaxRange(table_field: ModuleTableField<any>): IRange {
+    public static getMaxRange(table_field: ModuleTableFieldVO): IRange {
         switch (table_field.field_type) {
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-                return RangeHandler.getMaxNumRange() as any as IRange;
+            case ModuleTableFieldVO.FIELD_TYPE_numrange:
+            case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+                return RangeHandler.getMaxNumRange() as unknown as IRange;
 
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-                return RangeHandler.getMaxTSRange() as any as IRange;
+            case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
+            case ModuleTableFieldVO.FIELD_TYPE_daterange:
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                return RangeHandler.getMaxTSRange() as unknown as IRange;
 
-            case ModuleTableField.FIELD_TYPE_hourrange:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return RangeHandler.getMaxHourRange() as any as IRange;
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange:
+            case ModuleTableFieldVO.FIELD_TYPE_hourrange_array:
+                return RangeHandler.getMaxHourRange() as unknown as IRange;
 
             default:
                 return null;
@@ -1556,14 +1559,14 @@ export default class RangeHandler {
                 switch (shift_segment_type) {
                     case NumSegment.TYPE_INT:
                     default:
-                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
                 }
 
             case HourRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
 
             case TSRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
         }
     }
 
@@ -1575,13 +1578,13 @@ export default class RangeHandler {
         switch (from.range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumRange.cloneFrom(from as any as NumRange) as any as U;
+                return NumRange.cloneFrom(from as unknown as NumRange) as unknown as U;
 
             case HourRange.RANGE_TYPE:
-                return HourRange.cloneFrom(from as any as HourRange) as any as U;
+                return HourRange.cloneFrom(from as unknown as HourRange) as unknown as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.cloneFrom(from as any as TSRange) as any as U;
+                return TSRange.cloneFrom(from as unknown as TSRange) as unknown as U;
         }
     }
 
@@ -1606,14 +1609,14 @@ export default class RangeHandler {
         }
 
         res = '{';
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (res != '{') {
                 res += ',';
             }
 
-            let res_range: string = RangeHandler.translate_range_to_bdd(range);
+            const res_range: string = RangeHandler.translate_range_to_bdd(range);
 
             if (res_range) {
                 res += '"';
@@ -1652,8 +1655,8 @@ export default class RangeHandler {
 
         segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
-        let min: number = RangeHandler.getSegmentedMin(range, segment_type);
-        let max: number = RangeHandler.getSegmentedMax(range, segment_type);
+        const min: number = RangeHandler.getSegmentedMin(range, segment_type);
+        const max: number = RangeHandler.getSegmentedMax(range, segment_type);
 
         if ((min == null) || (max == null)) {
             return null;
@@ -1691,7 +1694,7 @@ export default class RangeHandler {
         segment_type = (segment_type == null) ? range.segment_type : segment_type;
         switch (range.range_type) {
             case NumRange.RANGE_TYPE:
-                let range_min_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.min, segment_type);
+                const range_min_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.min, segment_type);
                 // Return null if the min value is greater than the max value
                 if (RangeHandler.is_elt_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
@@ -1701,7 +1704,7 @@ export default class RangeHandler {
                     return null;
                 }
                 // Apply the offset if it's provided
-                if (!!offset) {
+                if (offset) {
                     NumSegmentHandler.incNumSegment(range_min_num, segment_type, offset);
                 }
                 // Return null if the range is left open and return_min_value is false
@@ -1710,8 +1713,8 @@ export default class RangeHandler {
                 }
                 return range_min_num.index;
             case HourRange.RANGE_TYPE:
-                let range_min_h: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
-                let range_max_h: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
+                const range_min_h: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
+                const range_max_h: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
                 // Return null if range is invalid
                 if (Durations.as(range_min_h.index, HourSegment.TYPE_SECOND) > Durations.as(range_max_h.index, HourSegment.TYPE_SECOND)) {
                     return null;
@@ -1721,7 +1724,7 @@ export default class RangeHandler {
                     return null;
                 }
                 // Apply the offset if it's provided
-                if (!!offset) {
+                if (offset) {
                     range_min_h.index = Dates.add(range_min_h.index, offset, segment_type);
                 }
                 // Return null if the range is left open and return_min_value is false
@@ -1730,8 +1733,8 @@ export default class RangeHandler {
                 }
                 return range_min_h.index;
             case TSRange.RANGE_TYPE:
-                let range_min_ts: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
-                let range_max_ts: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
+                const range_min_ts: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
+                const range_max_ts: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
                 // Return null if range is invalid
                 if (range_min_ts.index > range_max_ts.index) {
                     return null;
@@ -1741,7 +1744,7 @@ export default class RangeHandler {
                     return null;
                 }
                 // Apply the offset if it's provided
-                if (!!offset) {
+                if (offset) {
                     (range_min_ts.index) = Dates.add(range_min_ts.index, offset, segment_type);
                 }
                 // Return null if the range is left open and return_min_value is false
@@ -1774,7 +1777,7 @@ export default class RangeHandler {
                     range_max_num = NumSegmentHandler.getPreviousNumSegment(range_max_num, segment_type);
                 }
 
-                let range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_num);
+                const range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_num);
 
                 if (RangeHandler.is_elt_inf_elt(range.range_type, range_max_end, range.min)) {
                     return null;
@@ -1784,7 +1787,7 @@ export default class RangeHandler {
                     return null;
                 }
 
-                if (!!offset) {
+                if (offset) {
                     NumSegmentHandler.incNumSegment(range_max_num, segment_type, offset);
                 }
 
@@ -1802,7 +1805,7 @@ export default class RangeHandler {
                     range_max_seg = HourSegmentHandler.getPreviousHourSegment(range_max_seg, segment_type);
                 }
 
-                let range_max_d: number = HourSegmentHandler.getEndHourSegment(range_max_seg);
+                const range_max_d: number = HourSegmentHandler.getEndHourSegment(range_max_seg);
 
                 if (RangeHandler.is_elt_inf_elt(range.range_type, range_max_d, range.min)) {
                     return null;
@@ -1812,7 +1815,7 @@ export default class RangeHandler {
                     return null;
                 }
 
-                if (!!offset) {
+                if (offset) {
                     HourSegmentHandler.incHourSegment(range_max_seg, segment_type, offset);
                 }
 
@@ -1825,13 +1828,13 @@ export default class RangeHandler {
 
 
             case TSRange.RANGE_TYPE:
-                let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(range.max, segment_type);
+                const range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(range.max, segment_type);
 
                 if ((!range.max_inclusiv) && (range_max_ts.index == range.max)) {
                     TimeSegmentHandler.decTimeSegment(range_max_ts);
                 }
 
-                let range_max_end_moment: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
+                const range_max_end_moment: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
 
                 if (range_max_end_moment < range.min) {
                     return null;
@@ -1841,7 +1844,7 @@ export default class RangeHandler {
                     return null;
                 }
 
-                if (!!offset) {
+                if (offset) {
                     TimeSegmentHandler.incTimeSegment(range_max_ts, segment_type, offset);
                 }
 
@@ -1865,7 +1868,7 @@ export default class RangeHandler {
             return null;
         }
 
-        let first_range = ranges.find((range: IRange) => !!range);
+        const first_range = ranges.find((range: IRange) => !!range);
 
         if (!first_range) {
             return null;
@@ -1875,9 +1878,9 @@ export default class RangeHandler {
 
         let res: number = null;
 
-        for (let i in ranges) {
-            let range = ranges[i];
-            let range_min = RangeHandler.getSegmentedMin(range, segment_type);
+        for (const i in ranges) {
+            const range = ranges[i];
+            const range_min = RangeHandler.getSegmentedMin(range, segment_type);
 
             if ((range_min == null) || (typeof range_min == 'undefined')) {
                 continue;
@@ -1890,7 +1893,7 @@ export default class RangeHandler {
             }
         }
 
-        if (!!offset) {
+        if (offset) {
             res = RangeHandler.inc_elt(first_range.range_type, res, segment_type, offset);
         }
 
@@ -1909,7 +1912,7 @@ export default class RangeHandler {
             return null;
         }
 
-        let first_range = ranges.find((range: IRange) => !!range);
+        const first_range = ranges.find((range: IRange) => !!range);
 
         if (!first_range) {
             return null;
@@ -1919,14 +1922,14 @@ export default class RangeHandler {
 
         let res: number = null;
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (!range) {
                 continue;
             }
 
-            let range_max = RangeHandler.getSegmentedMax(range, segment_type);
+            const range_max = RangeHandler.getSegmentedMax(range, segment_type);
 
             if ((range_max == null) || (typeof range_max == 'undefined')) {
                 continue;
@@ -1939,7 +1942,7 @@ export default class RangeHandler {
             }
         }
 
-        if (!!offset) {
+        if (offset) {
             res = RangeHandler.inc_elt(first_range.range_type, res, segment_type, offset);
         }
 
@@ -1963,7 +1966,7 @@ export default class RangeHandler {
 
         for (let i = index; i < (elts.length - cardinal); i++) {
 
-            let deploy_combinaison: IRange[] = (combinaison_actuelle && combinaison_actuelle.length) ? RangeHandler.cloneArrayFrom(combinaison_actuelle) : [];
+            const deploy_combinaison: IRange[] = (combinaison_actuelle && combinaison_actuelle.length) ? RangeHandler.cloneArrayFrom(combinaison_actuelle) : [];
 
             deploy_combinaison.push(RangeHandler.create_single_elt_range(range_type, elts[i], NumSegment.TYPE_INT));
 
@@ -2209,7 +2212,7 @@ export default class RangeHandler {
             return;
         }
 
-        let promises = [];
+        const promises = [];
         switch (range.range_type) {
 
             case NumRange.RANGE_TYPE:
@@ -2253,11 +2256,11 @@ export default class RangeHandler {
             return false;
         }
 
-        let start_a = range_a.min;
-        let start_b = range_b.min;
+        const start_a = range_a.min;
+        const start_b = range_b.min;
 
-        let end_a: any = range_a.max;
-        let end_b: any = range_b.max;
+        const end_a: any = range_a.max;
+        const end_b: any = range_b.max;
 
         if ((start_a <= start_b) && (start_b < end_a)) {
             return true;
@@ -2283,8 +2286,8 @@ export default class RangeHandler {
             return false;
         }
 
-        for (let i in ranges) {
-            let range_b = ranges[i];
+        for (const i in ranges) {
+            const range_b = ranges[i];
 
             if (RangeHandler.range_intersects_range(range_a, range_b)) {
                 return true;
@@ -2302,13 +2305,13 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
 
             case HourRange.RANGE_TYPE:
-                return HourRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return HourRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return TSRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as unknown as U;
         }
     }
 
@@ -2323,8 +2326,8 @@ export default class RangeHandler {
         }
 
         let min: number = null;
-        for (let i in ranges) {
-            let range = ranges[i];
+        for (const i in ranges) {
+            const range = ranges[i];
 
             if (min == null) {
                 min = range.segment_type;
@@ -2373,7 +2376,7 @@ export default class RangeHandler {
      */
     public static translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[], segmentation_type: number): U[] {
 
-        let res: U[] = [];
+        const res: U[] = [];
         try {
 
             // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis
@@ -2383,7 +2386,7 @@ export default class RangeHandler {
             }
 
             if (!Array.isArray(ranges)) {
-                let tmp_ranges = ((ranges as string).replace(/[{}"]/, '')).split(',');
+                const tmp_ranges = ((ranges as string).replace(/[{}"]/, '')).split(',');
                 ranges = [];
                 for (let i = 0; i < (tmp_ranges.length / 2); i++) {
 
@@ -2391,8 +2394,8 @@ export default class RangeHandler {
                 }
             }
 
-            for (let i in ranges) {
-                let range = ranges[i];
+            for (const i in ranges) {
+                const range = ranges[i];
 
                 // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
                 //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
@@ -2433,10 +2436,10 @@ export default class RangeHandler {
             /**
              * On a peut-être déjà un range traduit on le renvoie simplement
              */
-            return rangeLiteral as any as U;
+            return rangeLiteral as unknown as U;
         }
 
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+        let matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {
             return null;
@@ -2448,8 +2451,8 @@ export default class RangeHandler {
 
                 case HourRange.RANGE_TYPE:
 
-                    let lowerHourRange = RangeHandler.parseRangeSegment(matches[2], matches[3]);
-                    let upperHourRange = RangeHandler.parseRangeSegment(matches[4], matches[5]);
+                    const lowerHourRange = RangeHandler.parseRangeSegment(matches[2], matches[3]);
+                    const upperHourRange = RangeHandler.parseRangeSegment(matches[4], matches[5]);
 
                     return RangeHandler.createNew(
                         range_type,
@@ -2457,12 +2460,12 @@ export default class RangeHandler {
                         parseFloat(upperHourRange),
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
 
                 case NumRange.RANGE_TYPE:
 
-                    let lowerNumRange = RangeHandler.parseRangeSegment(matches[2], matches[3]);
-                    let upperNumRange = RangeHandler.parseRangeSegment(matches[4], matches[5]);
+                    const lowerNumRange = RangeHandler.parseRangeSegment(matches[2], matches[3]);
+                    const upperNumRange = RangeHandler.parseRangeSegment(matches[4], matches[5]);
 
                     return RangeHandler.createNew(
                         range_type,
@@ -2470,33 +2473,30 @@ export default class RangeHandler {
                         parseFloat(upperNumRange),
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
 
                 case TSRange.RANGE_TYPE:
-                    var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+                    matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
                     if (!matches) {
                         return null;
                     }
 
-                    let lowerTSRange = parseInt(matches[2]);
-                    let upperTSRange = parseInt(matches[4]);
+                    const lowerTSRange = parseInt(matches[2]);
+                    const upperTSRange = parseInt(matches[4]);
                     return RangeHandler.createNew(
                         range_type,
                         lowerTSRange,
                         upperTSRange,
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
+                        segment_type) as unknown as U;
             }
         } catch (error) {
             ConsoleHandler.error(error);
         }
         return null;
     }
-
-    protected static RANGE_MATCHER_API = /([0-9]+)(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
-    protected static RANGE_MATCHER_BDD = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     private static is_elt_equals_elt(range_type: number, a: number, b: number): boolean {
 
@@ -2554,13 +2554,13 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumSegmentHandler.getCorrespondingNumSegment(elt, segment_type) as any as ISegment;
+                return NumSegmentHandler.getCorrespondingNumSegment(elt, segment_type) as unknown as ISegment;
 
             case HourRange.RANGE_TYPE:
-                return HourSegmentHandler.getCorrespondingHourSegment(elt, segment_type) as any as ISegment;
+                return HourSegmentHandler.getCorrespondingHourSegment(elt, segment_type) as unknown as ISegment;
 
             case TSRange.RANGE_TYPE:
-                return TimeSegmentHandler.getCorrespondingTimeSegment(elt, segment_type) as any as ISegment;
+                return TimeSegmentHandler.getCorrespondingTimeSegment(elt, segment_type) as unknown as ISegment;
         }
     }
 
@@ -2568,15 +2568,15 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                NumSegmentHandler.incNumSegment(segment as any as NumSegment, segment_type, offset);
+                NumSegmentHandler.incNumSegment(segment as unknown as NumSegment, segment_type, offset);
                 break;
 
             case HourRange.RANGE_TYPE:
-                HourSegmentHandler.incHourSegment(segment as any as HourSegment, segment_type, offset);
+                HourSegmentHandler.incHourSegment(segment as unknown as HourSegment, segment_type, offset);
                 break;
 
             case TSRange.RANGE_TYPE:
-                TimeSegmentHandler.incTimeSegment(segment as any as TimeSegment, segment_type, offset);
+                TimeSegmentHandler.incTimeSegment(segment as unknown as TimeSegment, segment_type, offset);
                 break;
         }
     }

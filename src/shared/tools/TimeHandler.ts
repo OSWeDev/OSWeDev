@@ -39,17 +39,17 @@ export default class TimeHandler {
                 return time;
             }
 
-            let segments: string[] = time.split(':');
+            const segments: string[] = time.split(':');
             if ((!segments) || (segments.length < 1)) {
                 return null;
             }
 
-            let hours: number = parseInt(segments[0]);
+            const hours: number = parseInt(segments[0]);
             if ((hours == null) || (!TypesHandler.getInstance().isNumber(hours)) || (isNaN(hours)) || (hours < 0) || (hours > 24)) {
                 return null;
             }
 
-            let minutes: number = ((segments.length > 1) && (segments[1] != '')) ? parseInt(segments[1]) : 0;
+            const minutes: number = ((segments.length > 1) && (segments[1] != '')) ? parseInt(segments[1]) : 0;
             if ((minutes == null) || (!TypesHandler.getInstance().isNumber(minutes)) || (isNaN(minutes)) || (minutes < 0) || (minutes > 59) || ((hours == 24) && (minutes > 0))) {
                 return null;
             }

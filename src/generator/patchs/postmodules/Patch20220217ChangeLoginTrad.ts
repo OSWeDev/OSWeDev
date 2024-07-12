@@ -26,14 +26,14 @@ export default class Patch20220217ChangeLoginTrad implements IGeneratorWorker {
 
     public async work(db: IDatabase<any>) {
 
-        let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
-        let text = await ModuleTranslation.getInstance().getTranslatableText("fields.labels.ref.user.name.___LABEL___");
+        const lang = await ModuleTranslation.getInstance().getLang('fr-fr');
+        const text = await ModuleTranslation.getInstance().getTranslatableText("fields.labels.ref.user.name.___LABEL___");
 
         if ((!lang) || (!text)) {
             return;
         }
 
-        let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
+        const translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
 
         if (!translation) {
             return;
