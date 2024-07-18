@@ -1,0 +1,25 @@
+.var_widget_component {
+
+    .var_data {
+        text-align: center;
+        font-size: 3em;
+        overflow: hidden;
+    }
+
+    .var_label {
+        text-align: center;
+        color: #888;
+        font-size: smaller;
+    }
+
+    .var_widget_weather_header {
+        background: #E2D5C5;
+        text-align: center;
+        padding:2%;
+        font-size: 20px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
