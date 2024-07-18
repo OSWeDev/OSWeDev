@@ -1,6 +1,10 @@
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../../../env/ConfigurationService';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
+import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
+import VarDAG from '../../vos/VarDAG';
 
 export default class VarsComputationHole {
 
@@ -52,10 +56,12 @@ export default class VarsComputationHole {
     private static current_cbs_stack: Array<() => {}> = [];
     private static currently_waiting_for_hole_semaphore: boolean = false;
     private static currently_in_a_hole_semaphore: boolean = false;
+    private static redo_in_a_hole_semaphore: boolean = false;
 
     private static async wait_for_hole() {
 
         if (VarsComputationHole.currently_in_a_hole_semaphore || VarsComputationHole.currently_waiting_for_hole_semaphore || !VarsComputationHole.current_cbs_stack.length) {
+            VarsComputationHole.redo_in_a_hole_semaphore = true;
             return;
         }
 
@@ -63,13 +69,41 @@ export default class VarsComputationHole {
 
         VarsComputationHole.waiting_for_computation_hole = true;
 
-        await VarsComputationHole.wait_for_everyone_to_be_ready();
-
-        await VarsComputationHole.handle_hole();
-
-        await VarsComputationHole.free_everyone();
+        do {
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:IN');
+            }
+            VarsComputationHole.redo_in_a_hole_semaphore = false;
+            await VarsComputationHole.wrap_handle_hole();
+            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:OUT:' + VarsComputationHole.redo_in_a_hole_semaphore + ':' + VarsComputationHole.current_cbs_stack.length);
+            }
+        } while (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length);
+        VarsComputationHole.redo_in_a_hole_semaphore = false;
 
         VarsComputationHole.waiting_for_computation_hole = false;
+    }
+
+    private static async wrap_handle_hole() {
+        try {
+
+            try {
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                    ConsoleHandler.log('VarsComputationHole:wrap_handle_hole:wait_for_everyone_to_be_ready:IN');
+                }
+                await VarsComputationHole.wait_for_everyone_to_be_ready();
+                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                    ConsoleHandler.log('VarsComputationHole:wrap_handle_hole:wait_for_everyone_to_be_ready:OUT');
+                }
+            } catch (error) {
+                ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:wait_for_everyone_to_be_ready:' + error);
+            }
+            await VarsComputationHole.handle_hole();
+
+            await VarsComputationHole.free_everyone();
+        } catch (error) {
+            ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:' + error);
+        }
     }
 
     private static async handle_hole() {
@@ -88,6 +122,7 @@ export default class VarsComputationHole {
 
     private static async wait_for_everyone_to_be_ready(): Promise<void> {
 
+        let start_date = Dates.now();
         while (true) {
 
             let all_ready = true;
@@ -103,6 +138,16 @@ export default class VarsComputationHole {
             }
 
             await ThreadHandler.sleep(2, 'VarsComputationHole:wait_for_everyone_to_be_ready');
+
+            if (Dates.now() - start_date > 60) {
+                ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT');
+                start_date = Dates.now();
+                for (const i in CurrentVarDAGHolder.current_vardag.nodes) {
+                    const node = CurrentVarDAGHolder.current_vardag.nodes[i];
+
+                    ConsoleHandler.error('VarsComputationHole:wait_for_everyone_to_be_ready:TIMEOUT:node:' + node.var_data.index + ':' + Object.keys(node.tags).join(','));
+                }
+            }
         }
     }
 

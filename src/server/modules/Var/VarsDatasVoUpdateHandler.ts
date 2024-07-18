@@ -203,6 +203,7 @@ export default class VarsDatasVoUpdateHandler {
             // Si le flag est actif, on invalide tout
             const current_tag_value = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME);
             if (current_tag_value) {
+                ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_buffer:VarsDatasVoUpdateHandler_has_ordered_vos_cud:FORCE_EMPTY_VARS_DATAS_VO_UPDATE_CACHE');
                 await ModuleVarServer.getInstance().force_delete_all_cache_except_imported_data_local_thread_already_in_computation_hole();
             }
             await ModuleParams.getInstance().setParamValueAsBoolean(VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_has_ordered_vos_cud_PARAM_NAME, false);
@@ -884,7 +885,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.debug_vars) {
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
@@ -892,16 +893,46 @@ export default class VarsDatasVoUpdateHandler {
 
                     await promise_pipeline.push(async () => {
 
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            for (const i in vos_create_or_delete_buffer[vo_type]) {
+                                const vo = vos_create_or_delete_buffer[vo_type][i];
+                                ConsoleHandler.log(
+                                    'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                                    var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vo.id + ':' + vo._type + ':IN');
+
+                            }
+                        }
+
                         const tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(vos_create_or_delete_buffer[vo_type]);
+
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            for (const i in vos_create_or_delete_buffer[vo_type]) {
+                                const vo = vos_create_or_delete_buffer[vo_type][i];
+                                ConsoleHandler.log(
+                                    'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                                    var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vo.id + ':' + vo._type + ':OUT');
+
+                            }
+                        }
+
                         if (tmp && !!tmp.length) {
                             tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+
+                            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                                for (const i in tmp) {
+                                    const invalidator = tmp[i];
+                                    ConsoleHandler.log(
+                                        'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                                        var_controller.varConf.id + ':' + var_controller.varConf.name + ':=> INVALIDATOR =>:' + invalidator.index);
+                                }
+                            }
                         }
                     });
                 }
 
                 if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.debug_vars) {
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
@@ -909,9 +940,39 @@ export default class VarsDatasVoUpdateHandler {
 
                     await promise_pipeline.push(async () => {
 
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            for (const i in vos_create_or_delete_buffer[vo_type]) {
+                                const vo = vos_create_or_delete_buffer[vo_type][i];
+                                ConsoleHandler.log(
+                                    'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                                    var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vo.id + ':' + vo._type + ':IN');
+
+                            }
+                        }
+
                         const tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group_stats_wrapper(vos_update_buffer[vo_type]);
+
+                        if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                            for (const i in vos_create_or_delete_buffer[vo_type]) {
+                                const vo = vos_create_or_delete_buffer[vo_type][i];
+                                ConsoleHandler.log(
+                                    'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                                    var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vo.id + ':' + vo._type + ':OUT');
+
+                            }
+                        }
+
                         if (tmp && !!tmp.length) {
                             tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+
+                            if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                                for (const i in tmp) {
+                                    const invalidator = tmp[i];
+                                    ConsoleHandler.log(
+                                        'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                                        var_controller.varConf.id + ':' + var_controller.varConf.name + ':=> INVALIDATOR =>:' + invalidator.index);
+                                }
+                            }
                         }
                     });
                 }
