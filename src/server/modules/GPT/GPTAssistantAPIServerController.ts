@@ -1092,6 +1092,16 @@ export default class GPTAssistantAPIServerController {
                                         throw new Error('function_vo not found: ' + tool_call.function.name);
                                     }
 
+                                    /**
+                                     * On commence par checker la cohérence des arguments passés à la fonction
+                                     */
+                                    for (let gpt_arg_name in function_args) {
+                                        if (!availableFunctionsParametersByParamName[function_vo.id][gpt_arg_name]) {
+                                            function_response = "UNKNOWN_PARAMETER : Check the arguments and retry. " + gpt_arg_name + " not found.";
+                                            throw new Error('function_arg not found: ' + gpt_arg_name);
+                                        }
+                                    }
+
                                     // if (!function_vo) {
 
                                     // si on a un referrer et des externals apis, on peut tenter de trouver dans ses fonctions
