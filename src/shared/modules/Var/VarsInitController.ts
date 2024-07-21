@@ -92,7 +92,7 @@ export default class VarsInitController {
         ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_index, ModuleTableFieldVO.FIELD_TYPE_string, 'Index pour recherche exacte', true, true).index().unique().readonly();
         ModuleTableFieldController.create_new(api_type_id, field_names<VarDataBaseVO>()._bdd_only_is_pixel, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Pixel ? (Card == 1)', true, true, true).index().readonly();
 
-        const datatable = ModuleTableController.create_new(module.name, vo_constructor, null, module.name).defineAsMatroid();
+        const datatable = ModuleTableController.create_new(module.name, vo_constructor, null, api_type_id).defineAsMatroid();
         if (!is_test) {
             var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         }

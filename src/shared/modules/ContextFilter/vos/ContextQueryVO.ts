@@ -1242,6 +1242,13 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
 
         log_func('ContextQueryVO - base_api_type_id:' + this.base_api_type_id);
         log_func('               - active_api_type_ids: ' + this.active_api_type_ids);
+        log_func('               - query_limit: ' + this.query_limit);
+        log_func('               - query_offset: ' + this.query_offset);
+        log_func('               - throttle_query_select: ' + this.throttle_query_select);
+        log_func('               - sort_by: ' + JSON.stringify(this.sort_by));
+        log_func('               - is_server: ' + this.is_server);
+        log_func('               - max_age_ms: ' + this.max_age_ms);
+        log_func('               - do_count_results: ' + this.do_count_results);
 
         const fields_num = (this.fields ? this.fields.length : 0);
         if (fields_num) {
