@@ -1249,6 +1249,9 @@ export default class ContextQueryServerController {
             // Si on ignore_access_hook, on ignore les droits aussi
             if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_api_type_ids_fields(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_check_access_failed');
+
+                ConsoleHandler.warn('WARNING: build_select_query_not_count without access and not as server:' +
+                    context_query.base_api_type_id + '-' + access_type + '-' + context_query.is_server + '-' + StackContext.get('IS_CLIENT') + '-' + StackContext.get('UID'));
                 return null;
             }
 
@@ -1855,6 +1858,11 @@ export default class ContextQueryServerController {
                         (!all_required_field_names.find((required_field) => required_field === context_field.field_name))
                     )
                 ) {
+                    ConsoleHandler.warn('build_select_query_not_count_segment:Return null for field_name:' + context_field.field_name + ' in vo_type:' + context_field.api_type_id + ' but not sure why...' +
+                        ' - all_required_field_names:' + (all_required_field_names ? all_required_field_names.join(',') : 'N/A') +
+                        ' - context_field:' + context_field.field_name +
+                        ' - moduletable.get_field_by_id(context_field.field_name):' + (moduletable.get_field_by_id(context_field.field_name) ? 'OK' : 'KO') +
+                        ' - all_required_fields:' + (all_required_fields ? all_required_fields.map((f) => f.field_name).join(',') : 'N/A'));
                     return null;
                 }
             }
@@ -2047,6 +2055,7 @@ export default class ContextQueryServerController {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[active_api_type_id];
             if (!moduletable) {
+                ConsoleHandler.error('build_select_query_not_count_segment:No moduletable for vo_type:' + active_api_type_id);
                 return null;
             }
 
