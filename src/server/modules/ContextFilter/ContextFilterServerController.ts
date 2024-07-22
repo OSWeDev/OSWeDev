@@ -3019,8 +3019,29 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                     default:
+                        where_conditions.push(field_name + ' IN (' + qr_TYPE_IN.query + ')');
                         break;
 
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+
+                        // twist pour forcer un format numeric sur le field id sélectionné par la sous requete...
+                        const inputString = qr_TYPE_IN.query;
+                        const outputString = inputString.replace(
+                            /^SELECT (\w+\.\w+)  FROM (.+?) WHERE /,
+                            'SELECT $1::numeric  FROM $2 WHERE '
+                        );
+
+                        const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                        where_conditions.push(
+                            ' EXISTS ( ' +
+                            '   select 1 ' +
+                            '   from ( ' +
+                            '       select unnest(tempo2.' + field.field_name + ') a' +
+                            '       from ' + table.full_name + ' tempo2' +
+                            '   ) as subquery ' +
+                            '   where a @> (' + outputString + '))');
+                        break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
@@ -3028,14 +3049,9 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
                     case ModuleTableFieldVO.FIELD_TYPE_float_array:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
                 }
-
-                where_conditions.push(field_name + ' IN (' + qr_TYPE_IN.query + ')');
-
                 break;
 
             case ContextFilterVO.TYPE_NOT_IN:
