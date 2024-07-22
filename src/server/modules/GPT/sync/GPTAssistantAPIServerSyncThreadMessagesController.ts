@@ -153,7 +153,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         content: message_contents_create,
                         role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
                         attachments: attachments,
-                        metadata: cloneDeep(vo.metadata),
+                        metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
                     });
 
                 if (!gpt_obj) {
@@ -180,7 +180,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         gpt_obj.thread_id,
                         gpt_obj.id,
                         {
-                            metadata: cloneDeep(vo.metadata),
+                            metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
                         });
 
                     if (!gpt_obj) {
