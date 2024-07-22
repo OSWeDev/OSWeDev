@@ -62,6 +62,7 @@ import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import UserAPIVO from '../../../shared/modules/AccessPolicy/vos/UserAPIVO';
+import ConfigurationService from '../../env/ConfigurationService';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
