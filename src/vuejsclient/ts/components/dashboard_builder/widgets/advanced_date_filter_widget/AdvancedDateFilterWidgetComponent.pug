@@ -44,12 +44,10 @@
                                 v-model="tmp_ts_ranges"
                                 :field="field_date"
                                 :segmentation_type="tmp_filter_active_opt.segmentation_type"
-                                @input="change_value_tsranges"
                             )
                         template(v-else)
                             Tsrangeinputcomponent(
                                 v-model="tmp_ts_range"
                                 :field="field_date"
                                 :segmentation_type="tmp_filter_active_opt.segmentation_type"
-                                @input="change_value_tsrange"
                             )
