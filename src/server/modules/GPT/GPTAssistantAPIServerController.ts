@@ -1136,7 +1136,9 @@ export default class GPTAssistantAPIServerController {
                                                 (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
                                                 external_api_url,
                                                 function_args,
-                                                referrer_external_api.external_api_authentication_id
+                                                referrer_external_api.external_api_authentication_id,
+                                                referrer_external_api.accept,
+                                                referrer_external_api.content_type,
                                             );
 
                                             if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
