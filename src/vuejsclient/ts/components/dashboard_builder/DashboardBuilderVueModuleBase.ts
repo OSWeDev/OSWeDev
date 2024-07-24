@@ -28,7 +28,6 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import VarWidgetOptionsNew from './widgets/var_widget_new/options/VarWidgetOptionsNew';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -118,7 +117,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
-        await this.initializeWidget_VarNew();
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
@@ -636,25 +634,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Varwidgetcomponent', () => import('./widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import('./widgets/var_widget/options/VarWidgetOptionsComponent'));
         Vue.component('Varwidgeticoncomponent', () => import('./widgets/var_widget/icon/VarWidgetIconComponent'));
-    }
-
-    private async initializeWidget_VarNew() {
-        const var_widget = new DashboardWidgetVO();
-
-        var_widget.default_height = 10;
-        var_widget.default_width = 1;
-        var_widget.name = DashboardWidgetVO.WIDGET_NAME_varnew;
-        var_widget.widget_component = 'Varwidgetcomponentnew';
-        var_widget.options_component = 'Varwidgetoptionscomponentnew';
-        var_widget.weight = 10;
-        var_widget.default_background = '#f5f5f5';
-        var_widget.icon_component = 'Varwidgeticoncomponentnew';
-
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptionsNew(null, null, null, null, null, null, null), VarWidgetOptionsNew.get_selected_fields);
-
-        Vue.component('Varwidgetcomponentnew', () => import('./widgets/var_widget_new/VarWidgetComponentNew'));
-        Vue.component('Varwidgetoptionscomponentnew', () => import('./widgets/var_widget_new/options/VarWidgetOptionsComponentNew'));
-        Vue.component('Varwidgeticoncomponentnew', () => import('./widgets/var_widget_new/icon/VarWidgetIconComponentNew'));
     }
 
     private async initializeWidget_PageSwitch() {

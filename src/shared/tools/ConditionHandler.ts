@@ -42,12 +42,12 @@ export default class ConditionHandler {
      *
      * TODO: to be continued there are more conditions to handle
      *
-     * @param {unknown} a // value to compare from
+     * @param {any} a // value to compare from
      * @param {ConditionStatement} condition
-     * @param {unknown} b // value to compare to
+     * @param {any} b // value to compare to
      * @returns {boolean}
      */
-    public static dynamic_statement(a: unknown, condition: ConditionStatement, b?: unknown): boolean {
+    public static dynamic_statement(a: any, condition: ConditionStatement, b?: any): boolean {
         let result: boolean = null;
         let type: string = null;
 
@@ -71,26 +71,52 @@ export default class ConditionHandler {
             return true;
         }
 
-        if (
-            typeof a === 'number' &&
-            (
+        let b_object: any = null;
+        try {
+            b_object = JSON.parse(b);
+        } catch (e) { }
+
+        if (typeof a === 'number') {
+            // Si mon type b est un number ou tableau de number
+            if (
                 (typeof b === 'number') ||
                 (
                     Array.isArray(b) &&
                     b.every((x) => typeof x == 'number')
+                ) ||
+                (
+                    b_object &&
+                    Array.isArray(b_object) &&
+                    b_object.every((x) => typeof x == 'number')
                 )
-            )
-        ) {
-            // may also be an array of numbers
-            type = 'number';
-        } else if (typeof a === 'string' && typeof b === 'string' || (Array.isArray(b) && b.every((x) => typeof x == 'string'))) {
-            // may also be an array of strings
-            type = 'string';
+            ) {
+                // may also be an array of numbers
+                type = 'number';
+            }
+        } else if (typeof a === 'string') {
+            // Si mon type b est un number ou tableau de number
+            if (
+                (typeof b === 'string') ||
+                (
+                    Array.isArray(b) &&
+                    b.every((x) => typeof x == 'string')
+                ) ||
+                (
+                    b_object &&
+                    Array.isArray(b_object) &&
+                    b_object.every((x) => typeof x == 'string')
+                )
+            ) {
+                // may also be an array of strings
+                type = 'string';
+            }
         } else if (typeof a === 'boolean' && typeof b === 'boolean') {
             type = 'boolean';
         } else if (typeof a === 'object' && typeof b === 'object') {
             type = 'object';
-        } else {
+        }
+
+        if (!type) {
             return false;
         }
 
@@ -99,7 +125,7 @@ export default class ConditionHandler {
                 result = ConditionHandler.dynamic_statement_string(
                     a as string,
                     condition,
-                    b as string
+                    b_object
                 );
                 break;
 
@@ -107,7 +133,7 @@ export default class ConditionHandler {
                 result = ConditionHandler.dynamic_statement_number(
                     a as number,
                     condition,
-                    b as number
+                    b_object
                 );
                 break;
 

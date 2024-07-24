@@ -263,7 +263,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ): Promise<string> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -330,7 +330,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ): Promise<void> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -415,7 +415,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ): Promise<void> {
 
         const api_type_id = context_query.base_api_type_id;
@@ -962,7 +962,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @returns {IExportableSheet}
      */
     private async create_vars_indicator_xlsx_sheet(
-        vars_indicator: ExportVarIndicatorVO,
+        vars_indicator: ExportVarIndicatorVO[],
         active_field_filters: FieldFiltersVO = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
@@ -984,104 +984,105 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         const promise_pipeline = new PromisePipeline(limit, 'ModuleDataExportServer.create_vars_indicator_xlsx_sheet');
         let debug_uid: number = 0;
         let has_errors: boolean = false;
+        for (const var_indicator in vars_indicator) {
+            for (const var_name in vars_indicator[var_indicator].varcolumn_conf) {
 
-        for (const var_name in vars_indicator.varcolumn_conf) {
+                const varcolumn_conf = vars_indicator[var_indicator].varcolumn_conf[var_name];
 
-            const varcolumn_conf = vars_indicator.varcolumn_conf[var_name];
+                const this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+                let filter_additional_params = null;
 
-            const this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-            let filter_additional_params = null;
-
-            if (has_errors) {
-                break;
-            }
-
-            try {
-                // JSON parse may throw exeception (case when empty or Non-JSON)
-                filter_additional_params = JSON.parse(varcolumn_conf.filter_additional_params);
-            } catch (e) {
-
-            }
-
-            for (const var_param_field_name in varcolumn_conf.custom_field_filters) {
-                // varcolumn_conf filter name
-                const varcolumn_conf_custom_field_filters_key = varcolumn_conf.custom_field_filters[var_param_field_name];
-
-                // find the actual field filters key from active_field_filters
-                const varcolumn_conf_api_type_id: string = Object.keys(current_active_field_filters)
-                    .find((api_type_id) => Object.keys(current_active_field_filters[api_type_id])
-                        .find((field_filter_key) => field_filter_key === varcolumn_conf_custom_field_filters_key)
-                    );
-
-                if (!varcolumn_conf_api_type_id) {
-                    continue;
+                if (has_errors) {
+                    break;
                 }
-
-                this_custom_filters[var_param_field_name] = current_active_field_filters[varcolumn_conf_api_type_id][varcolumn_conf_custom_field_filters_key];
-            }
-
-            debug_uid++;
-            ConsoleHandler.log('create_vars_indicator_xlsx_sheet:PRE PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
-            await promise_pipeline.push(async () => {
-
-                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1:nb :' + var_name + ':' + debug_uid);
-
-                /**
-                 * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
-                 */
-                const var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
-                    VarsController.var_conf_by_id[varcolumn_conf.var_id].name,
-                    current_active_field_filters,
-                    this_custom_filters,
-                    active_api_type_ids,
-                    discarded_field_paths
-                );
-                if (!var_param) {
-                    ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
-                    sheet.datas.push({
-                        name: { value: LocaleManager.getInstance().t(var_name) },
-                        value: null
-                    });
-                    return;
-                }
-
-                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
 
                 try {
+                    // JSON parse may throw exeception (case when empty or Non-JSON)
+                    filter_additional_params = JSON.parse(varcolumn_conf.filter_additional_params);
+                } catch (e) {
 
-                    const var_data = await VarsServerCallBackSubsController.get_var_data(
-                        var_param.index);
-                    let value = var_data ? var_data.value : null;
-                    let format: XlsxCellFormatByFilterType = null;
-
-                    if (value != null) {
-                        const params = [value].concat(filter_additional_params);
-
-                        // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
-                        if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
-                            value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
-                            format = varcolumn_conf.filter_type as XlsxCellFormatByFilterType;
-
-                            value = this.update_value_to_xlsx_column_format(varcolumn_conf, value);
-                        }
-                    }
-
-                    const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
-                        name: { value: LocaleManager.getInstance().t(var_name) },
-                        value: { value, format }
-                    };
-
-                    sheet.datas.push(data);
-                } catch (error) {
-
-                    ConsoleHandler.error('create_vars_indicator_xlsx_sheet:FAILED get_var_data:nb :' + var_name + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
-                    has_errors = true;
                 }
 
-                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 3:nb :' + var_name + ':' + debug_uid);
-            });
+                for (const var_param_field_name in varcolumn_conf.custom_field_filters) {
+                    // varcolumn_conf filter name
+                    const varcolumn_conf_custom_field_filters_key = varcolumn_conf.custom_field_filters[var_param_field_name];
 
-            ConsoleHandler.log('create_vars_indicator_xlsx_sheet:POST PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
+                    // find the actual field filters key from active_field_filters
+                    const varcolumn_conf_api_type_id: string = Object.keys(current_active_field_filters)
+                        .find((api_type_id) => Object.keys(current_active_field_filters[api_type_id])
+                            .find((field_filter_key) => field_filter_key === varcolumn_conf_custom_field_filters_key)
+                        );
+
+                    if (!varcolumn_conf_api_type_id) {
+                        continue;
+                    }
+
+                    this_custom_filters[var_param_field_name] = current_active_field_filters[varcolumn_conf_api_type_id][varcolumn_conf_custom_field_filters_key];
+                }
+
+                debug_uid++;
+                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:PRE PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
+                await promise_pipeline.push(async () => {
+
+                    ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1:nb :' + var_name + ':' + debug_uid);
+
+                    /**
+                     * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
+                     */
+                    const var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                        VarsController.var_conf_by_id[varcolumn_conf.var_id].name,
+                        current_active_field_filters,
+                        this_custom_filters,
+                        active_api_type_ids,
+                        discarded_field_paths
+                    );
+                    if (!var_param) {
+                        ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
+                        sheet.datas.push({
+                            name: { value: LocaleManager.getInstance().t(var_name) },
+                            value: null
+                        });
+                        return;
+                    }
+
+                    ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
+
+                    try {
+
+                        const var_data = await VarsServerCallBackSubsController.get_var_data(
+                            var_param.index);
+                        let value = var_data ? var_data.value : null;
+                        let format: XlsxCellFormatByFilterType = null;
+
+                        if (value != null) {
+                            const params = [value].concat(filter_additional_params);
+
+                            // We update the value to the column format (FilterObj => percent, decimal, toFixed etc...)
+                            if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
+                                value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
+                                format = varcolumn_conf.filter_type as XlsxCellFormatByFilterType;
+
+                                value = this.update_value_to_xlsx_column_format(varcolumn_conf, value);
+                            }
+                        }
+
+                        const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
+                            name: { value: LocaleManager.getInstance().t(var_name) },
+                            value: { value, format }
+                        };
+
+                        sheet.datas.push(data);
+                    } catch (error) {
+
+                        ConsoleHandler.error('create_vars_indicator_xlsx_sheet:FAILED get_var_data:nb :' + var_name + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                        has_errors = true;
+                    }
+
+                    ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 3:nb :' + var_name + ':' + debug_uid);
+                });
+
+                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:POST PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
+            }
         }
 
         await promise_pipeline.end();

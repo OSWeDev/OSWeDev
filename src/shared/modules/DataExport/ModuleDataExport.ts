@@ -71,7 +71,7 @@ export default class ModuleDataExport extends Module {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (

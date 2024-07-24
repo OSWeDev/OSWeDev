@@ -1,72 +1,459 @@
 .var_widget_options_component
-    .var_name 
-        .input_label {{ label('var_widget_options_component.var_name') }}
-        .input_wrapper
-            multiselect.var_name_selector(
-                :preselect-first="false"
-                :multiple="false"
-                v-model="tmp_selected_var_name"
-                :options="var_names"
-                :allow-empty="false",
-
-                :searchable="true"
-                :internal-search="true"
-                
-                select-label=''
-                select-group-label=''
-                selected-label=''
-                deselect-label=''
-                deselect-group-label=''
-
-                placeholder=''
-                
-                name="var_name_selector"
-            )
-                .lang_selector_option(slot="noOptions") -
-
-    .widget_title(v-if='title_name_code_text')
-        .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
-        .widget_title_wrapper
-            Inlinetranslatabletext(
-                :code_text="title_name_code_text" 
-                :is_editable="true"
-                :default_translation="default_title_translation")
-
-    .widget_filter_options(v-if='title_name_code_text && widget_options')
-        .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
-        .widget_filter_options_wrapper
-            Widgetfilteroptionscomponent(
-                :actual_additional_options="widget_options.filter_additional_params"
-                :actual_filter_type="widget_options.filter_type"
-                @update_additional_options="update_additional_options"
-                @update_filter_type="update_filter_type"
-            )
-
-    template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
-        .fields_that_could_get_custom_filter
-            template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
-                .field_that_could_get_custom_filter
-                    .field_id {{ field_that_could_get_custom_filter }}
-                    .custom_filter 
-                        input(
-                            type="text"
-                            v-model="custom_filter_names[field_that_could_get_custom_filter]"
-                            :disabled="true"
+    .widget_options
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.widget_options') }}
+                template(v-if="hide_widget_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_widget_options()")
+                template(v-if="!hide_widget_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_widget_options()")
+            .dropdown_content(v-if="!hide_widget_options")
+                .widget_title(v-if='title_name_code_text')
+                    .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
+                    .widget_title_wrapper
+                        Inlinetranslatabletext(
+                            :code_text="title_name_code_text" 
+                            :is_editable="true"
                         )
-                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                        template(v-for='custom_filter in get_custom_filters')
-                            .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                .widget_subtitle
+                    .widget_subtitle_label {{ label('var_widget_options_component.widget_subtitle') }}
+                    .input_wrapper 
+                        input(v-model="tmp_subtitle", type="text" v-tooltip='label("var_widget_options_component.widget_subtitle.tooltip")')
+                .widget_style
+                    .widget_style_label {{ label('var_widget_options_component.widget_style') }}
+                    .input_wrapper 
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="style"
+                            :options="style_options"
+                            :allow-empty="false",
 
-    .color_options 
-        .color_option
-            .bg_color
-                .explication {{ label("var_widget_options_component.bg_color") }}
-                color-picker(v-model="bg_color" @change='throttled_update_colors')
-            .fg_color_value
-                .explication {{ label("var_widget_options_component.fg_color_value") }}
-                color-picker(v-model="fg_color_value" @change='throttled_update_colors')
-            .fg_color_text
-                .explication {{ label("var_widget_options_component.fg_color_text") }}
-                color-picker(v-model="fg_color_text" @change='throttled_update_colors')
+                            :searchable="true"
+                            :internal-search="true"
+                            
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+
+                            placeholder=''
+                            
+                            name="widget_style"
+                        )
+                .widget_icon
+                    .widget_icon_label {{ label('var_widget_options_component.widget_icon') }}
+                    .input_wrapper 
+                        input(v-model="icon_text", type="text")
+                        .icon_size
+                            .explication {{ label("var_widget_options_component.icon.size") }}
+                            input(
+                                type="number"
+                                v-model="icon_size"
+                                :min="1"
+                                :max="5"
+                                :allow-empty="false"
+                            )
+                .color_options 
+                    .color_option
+                        .bg_color
+                            .explication {{ label("var_widget_options_component.bg_color") }}
+                            color-picker(v-model="bg_color" @change='throttled_update_colors')
+                        .fg_color_text
+                            .explication {{ label("var_widget_options_component.fg_color_text") }}
+                            color-picker(v-model="fg_color_text" @change='throttled_update_colors')
+    
+    .var_principale
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.first_var_options') }}
+                template(v-if="hide_first_var_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_first_var_options()")
+                template(v-if="!hide_first_var_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_first_var_options()")
+            .dropdown_content(v-if="!hide_first_var_options")
+                .var_name_principale 
+                    .input_label {{ label('var_widget_options_component.var_name_principale') }}
+                    .input_wrapper
+                        multiselect.var_name_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="tmp_selected_var_name_principale"
+                            :options="var_names"
+                            :allow-empty="false",
+
+                            :searchable="true"
+                            :internal-search="true"
+                            
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+
+                            placeholder=''
+                            
+                            name="var_name_selector"
+                        )
+                        .lang_selector_option(slot="noOptions")
+                    .input_label {{ label('var_widget_options_component.display_label') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_var_name_principal_display_label" 
+                            :value="tmp_switch_var_name_principale_display_label" 
+                            :sync="true"
+                        )
+
+                    template(v-if=("widget_options && widget_options.vars"))
+                        .input_label {{ label('var_widget_options_component.is_condition_target') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_condition_target(0)" 
+                                :value="widget_options.vars[0].is_condition_target" 
+                                :sync="true"
+                            )
+
+                    template(v-if="tmp_switch_var_name_principale_display_label")
+                        .var_input_label {{ label('var_widget_options_component.var_input_label') }}
+                        .var_input_label_wrapper
+                            Inlinetranslatabletext(
+                                :code_text="get_var_name_code_text(tmp_selected_var_name_principale)" 
+                                :is_editable="true"
+                                :default_translation="get_default_title_translation(tmp_selected_var_name_principale)") 
+
+                .widget_filter_options(v-if='get_var_name_code_text(tmp_selected_var_name_principale) && widget_options.vars && widget_options.vars.length >0')
+                    .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="widget_options.vars[0].filter_additional_params"
+                            :actual_filter_type="widget_options.vars[0].filter_type"
+                            :actual_var_index="widget_options.vars[0].id"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )
+
+                template(v-if='get_fields_that_could_get_custom_filter(tmp_selected_var_name_principale, 0) && get_fields_that_could_get_custom_filter(tmp_selected_var_name_principale, 0).length')
+                    .fields_that_could_get_custom_filter
+                    template(v-for='field_that_could_get_custom_filter in get_fields_that_could_get_custom_filter(tmp_selected_var_name_principale, 0)')
+                        .field_that_could_get_custom_filter
+                            .field_id {{ field_that_could_get_custom_filter }}
+                            .custom_filter 
+                                input(
+                                    type="text"
+                                    v-model="custom_filter_names[0][field_that_could_get_custom_filter]"
+                                    :disabled="true"
+                                )
+                            .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                template(v-for='custom_filter in get_custom_filters')
+                                    .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter, 0)') {{ custom_filter }}
+    .var_a_date
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.second_var_options') }}
+                template(v-if="hide_second_var_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_second_var_options()")
+                template(v-if="!hide_second_var_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_second_var_options()")
+            .dropdown_content(v-if="!hide_second_var_options")
+                .var_name_a_date
+                    .input_label {{ label('var_widget_options_component.var_name_a_date') }}
+                    .input_wrapper
+                        multiselect.var_name_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="tmp_selected_var_name_a_date"
+                            :options="var_names"
+                            :allow-empty="false",
+
+                            :searchable="true"
+                            :internal-search="true"
+                            
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+
+                            placeholder=''
+                            
+                            name="var_name_selector"
+                        )
+                        .lang_selector_option(slot="noOptions")
+                    .input_label {{ label('var_widget_options_component.display_label') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_var_name_a_date_display_label" 
+                            :value="tmp_switch_var_name_a_date_display_label" 
+                            :sync="true"
+                        )
+                    template(v-if=("widget_options && widget_options.vars"))
+                        .input_label {{ label('var_widget_options_component.is_condition_target') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_condition_target(1)" 
+                                :value="widget_options.vars[1].is_condition_target" 
+                                :sync="true"
+                            )
+
+                    template(v-if="tmp_switch_var_name_a_date_display_label")
+                        .var_input_label {{ label('var_widget_options_component.var_input_label') }}
+                        .var_input_label_wrapper
+                            Inlinetranslatabletext(
+                                :code_text="get_var_name_code_text(tmp_selected_var_name_a_date)" 
+                                :is_editable="true"
+                                :default_translation="get_default_title_translation(tmp_selected_var_name_a_date)") 
+
+                .widget_filter_options(v-if='get_var_name_code_text(tmp_selected_var_name_a_date) && widget_options.vars && widget_options.vars.length >0')
+                    .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="widget_options.vars[1].filter_additional_params"
+                            :actual_filter_type="widget_options.vars[1].filter_type"
+                            :actual_var_index="widget_options.vars[1].id"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )
+
+                template(v-if='get_fields_that_could_get_custom_filter(tmp_selected_var_name_a_date, 1) && get_fields_that_could_get_custom_filter(tmp_selected_var_name_a_date, 1).length')
+                    .fields_that_could_get_custom_filter
+                        template(v-for='field_that_could_get_custom_filter in get_fields_that_could_get_custom_filter(tmp_selected_var_name_a_date, 1)')
+                            .field_that_could_get_custom_filter
+                                .field_id {{ field_that_could_get_custom_filter }}
+                                .custom_filter 
+                                    input(
+                                        type="text"
+                                        v-model="custom_filter_names[1][field_that_could_get_custom_filter]"
+                                        :disabled="true"
+                                    )
+                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                    template(v-for='custom_filter in get_custom_filters')
+                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter, 1)') {{ custom_filter }}
+    .var_complementaire
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.third_var_options') }}
+                template(v-if="hide_third_var_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_third_var_options()")
+                template(v-if="!hide_third_var_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_third_var_options()")
+            .dropdown_content(v-if="!hide_third_var_options")
+                .var_name_complementaire
+                    .input_label {{ label('var_widget_options_component.var_name_complementaire') }}
+                    .input_wrapper
+                        multiselect.var_name_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="tmp_selected_var_name_complementaire"
+                            :options="var_names"
+                            :allow-empty="false",
+
+                            :searchable="true"
+                            :internal-search="true"
+                            
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+
+                            placeholder=''
+                            
+                            name="var_name_selector"
+                        )
+                        .lang_selector_option(slot="noOptions")
+                    .input_label {{ label('var_widget_options_component.display_label') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_var_name_complementaire_display_label" 
+                            :value="tmp_switch_var_name_complementaire_display_label" 
+                            :sync="true"
+                        )
+                    template(v-if=("widget_options && widget_options.vars"))
+                        .input_label {{ label('var_widget_options_component.is_condition_target') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_condition_target(2)" 
+                                :value="widget_options.vars[2].is_condition_target" 
+                                :sync="true"
+                            )
+
+                    template(v-if="tmp_switch_var_name_complementaire_display_label")
+                        .var_input_label {{ label('var_widget_options_component.var_input_label') }}
+                        .var_input_label_wrapper
+                            Inlinetranslatabletext(
+                                :code_text="get_var_name_code_text(tmp_selected_var_name_complementaire)" 
+                                :is_editable="true"
+                                :default_translation="get_default_title_translation(tmp_selected_var_name_complementaire)") 
+
+                .widget_filter_options(v-if='get_var_name_code_text(tmp_selected_var_name_complementaire) && widget_options.vars && widget_options.vars.length >0')
+                    .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="widget_options.vars[2].filter_additional_params"
+                            :actual_filter_type="widget_options.vars[2].filter_type"
+                            :actual_var_index="widget_options.vars[2].id"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )
+
+                template(v-if='get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire, 2) && get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire, 2).length')
+                    .fields_that_could_get_custom_filter
+                        template(v-for='field_that_could_get_custom_filter in get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire, 2)')
+                            .field_that_could_get_custom_filter
+                                .field_id {{ field_that_could_get_custom_filter }}
+                                .custom_filter 
+                                    input(
+                                        type="text"
+                                        v-model="custom_filter_names[2][field_that_could_get_custom_filter]"
+                                        :disabled="true"
+                                    )
+                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                    template(v-for='custom_filter in get_custom_filters')
+                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter, 2)') {{ custom_filter }}
+    .var_complementaire_supp
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.fourth_var_options') }}
+                template(v-if="hide_fourth_var_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_fourth_var_options()")
+                template(v-if="!hide_fourth_var_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_fourth_var_options()")
+            .dropdown_content(v-if="!hide_fourth_var_options")
+                .var_name_complementaire_supp
+                    .input_label {{ label('var_widget_options_component.var_name_complementaire_supp') }}
+                    .input_wrapper
+                        multiselect.var_name_selector(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="tmp_selected_var_name_complementaire_supp"
+                            :options="var_names"
+                            :allow-empty="false",
+
+                            :searchable="true"
+                            :internal-search="true"
+                            
+                            select-label=''
+                            select-group-label=''
+                            selected-label=''
+                            deselect-label=''
+                            deselect-group-label=''
+
+                            placeholder=''
+                            
+                            name="var_name_selector"
+                        )
+                        .lang_selector_option(slot="noOptions")
+                    .input_label {{ label('var_widget_options_component.display_label') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_var_name_complementaire_supp_display_label" 
+                            :value="tmp_switch_var_name_complementaire_supp_display_label" 
+                            :sync="true"
+                        )
+                    template(v-if=("widget_options && widget_options.vars"))
+                        .input_label {{ label('var_widget_options_component.is_condition_target') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_condition_target(3)" 
+                                :value="widget_options.vars[3].is_condition_target" 
+                                :sync="true"
+                            )
+
+                    template(v-if="tmp_switch_var_name_complementaire_supp_display_label")
+                        .var_input_label {{ label('var_widget_options_component.var_input_label') }}
+                        .var_input_label_wrapper
+                            Inlinetranslatabletext(
+                                :code_text="get_var_name_code_text(tmp_selected_var_name_complementaire_supp)" 
+                                :is_editable="true"
+                                :default_translation="get_default_title_translation(tmp_selected_var_name_complementaire_supp)") 
+
+                .widget_filter_options(v-if='get_var_name_code_text(tmp_selected_var_name_complementaire_supp) && widget_options.vars && widget_options.vars.length >0')
+                    .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="widget_options.vars[3].filter_additional_params"
+                            :actual_filter_type="widget_options.vars[3].filter_type"
+                            :actual_var_index="widget_options.vars[3].id"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )
+
+                template(v-if='get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire_supp, 3) && get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire_supp, 3).length')
+                    .fields_that_could_get_custom_filter
+                        template(v-for='field_that_could_get_custom_filter in get_fields_that_could_get_custom_filter(tmp_selected_var_name_complementaire_supp, 3)')
+                            .field_that_could_get_custom_filter
+                                .field_id {{ field_that_could_get_custom_filter }}
+                                .custom_filter 
+                                    input(
+                                        type="text"
+                                        v-model="custom_filter_names[3][field_that_could_get_custom_filter]"
+                                        :disabled="true"
+                                    )
+                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                    template(v-for='custom_filter in get_custom_filters')
+                                        .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter, 3)') {{ custom_filter }}
+    .indicator_condition
+        .dropdown_menu
+            .dropdown_header
+                .options_separator_lvl2 {{ label('var_widget_options_component.separator.condition_options') }}
+                template(v-if="hide_condition_options")
+                    i.fa-solid.fa-square-chevron-up.fa-2x(@click="switch_hide_condition_options()")
+                template(v-if="!hide_condition_options")
+                    i.fa-solid.fa-square-chevron-down.fa-2x(@click="switch_hide_condition_options()")
+            .dropdown_content(v-if="!hide_condition_options")
+                .var_condition 
+                    .input_label {{ label('var_widget_options_component.var_condition') }}
+                        .input_wrapper
+                            multiselect.var_name_selector(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="tmp_selected_var_condition"
+                                :options="var_names"
+                                :allow-empty="false",
+
+                                :searchable="true"
+                                :internal-search="true"
+                                
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
+
+                                placeholder=''
+                                
+                                name="var_name_selector"
+                            )
+                            .lang_selector_option(slot="noOptions")
+                    template(v-if='get_fields_that_could_get_custom_filter(tmp_selected_var_condition, 4) && get_fields_that_could_get_custom_filter(tmp_selected_var_condition, 4).length')
+                        .fields_that_could_get_custom_filter
+                            template(v-for='field_that_could_get_custom_filter in get_fields_that_could_get_custom_filter(tmp_selected_var_condition, 4)')
+                                .field_that_could_get_custom_filter
+                                    .field_id {{ field_that_could_get_custom_filter }}
+                                    .custom_filter 
+                                        input(
+                                            type="text"
+                                            v-model="custom_filter_names[4][field_that_could_get_custom_filter]"
+                                            :disabled="true"
+                                        )
+                                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                        template(v-for='custom_filter in get_custom_filters')
+                                            .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter, 4)') {{ custom_filter }}
                 
-            .preview(:style='{background: bg_color, color: fg_color_value}') {{ t(title_name_code_text) }}
+                    .conditional_icon_wrapper.mt-3
+                        .label.mb-0
+                            label {{ label('var_widget_options_component.conditional_icon') }}
+                        .conditional_icon_list
+                            .conditional_icon_item(v-for='(conditional_icon, index) in icons_by_value_and_conditions')
+                                .row.conditional_icon_form
+                                    .col-md.icon
+                                        span(:style="'font-size: 30px;'") 
+                                            i.fa-duotone(:class='conditional_icon.icon')
+                                    .col-md.condition_select
+                                        label.col-sm {{ label('var_widget_options_component.conditional_icon.condition') }}
+                                        select.col-sm(v-model='conditional_icon.condition')
+                                                    option(v-for='condition in selectionnable_conditions' :value='condition.value') {{ condition.label }}
+                                    .col-md.value_input
+                                        label.col-sm {{ label('var_widget_options_component.conditional_icon.value') }}
+                                        input.col-sm(type='number' min='0' v-model='conditional_icon.value')

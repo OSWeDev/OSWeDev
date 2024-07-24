@@ -37,7 +37,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         export_active_field_filters?: boolean,
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ): ExportContextQueryToXLSXParamVO {
 
         return new ExportContextQueryToXLSXParamVO(
@@ -95,7 +95,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         public export_vars_indicator?: boolean,
         public send_email_with_export_notification?: boolean,
 
-        public vars_indicator?: ExportVarIndicatorVO,
+        public vars_indicator?: ExportVarIndicatorVO[],
     ) {
         super();
     }

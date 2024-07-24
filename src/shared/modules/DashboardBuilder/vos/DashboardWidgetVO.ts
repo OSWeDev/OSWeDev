@@ -32,7 +32,6 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_savefavoritesfilters: string = 'savefavoritesfilters';
     public static WIDGET_NAME_showfavoritesfilters: string = 'showfavoritesfilters';
     public static WIDGET_NAME_var: string = 'var';
-    public static WIDGET_NAME_varnew: string = 'varnew';
     public static WIDGET_NAME_pageswitch: string = 'pageswitch';
     public static WIDGET_NAME_varpiechart: string = 'varpiechart';
     public static WIDGET_NAME_varchoroplethchart: string = 'varchoroplethchart';

@@ -234,15 +234,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      * Var Indicator
      *  - All vars indicator on the actual page to be exported
      *
-     * @return {ExportVarIndicatorVO}
+     * @return {ExportVarIndicatorVO[]}
      */
-    get vars_indicator(): ExportVarIndicatorVO {
+    get vars_indicator(): ExportVarIndicatorVO[] {
 
         if (!this.widget_options) {
             return;
         }
-
-        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
+        let res: ExportVarIndicatorVO[] = [];
+        let res_columns: ExportVarcolumnConfVO[] = [];
+        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
 
         // Find id of widget that have type "var"
         const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
@@ -259,28 +260,36 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         for (const key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];
-
             const options = JSON.parse(var_page_widget.json_options);
 
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
-
-            const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-                options.var_id,
-                var_widget_options.filter_custom_field_filters,
-                var_widget_options.filter_type,
-                var_widget_options.filter_additional_params,
-            );
-
-            varcolumn_conf[name] = conf;
+            for (let j = 0; j <= var_widget_options.vars.length; j++) {
+                const current_var = var_widget_options.vars[j];
+                const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                    options.var_id,
+                    var_widget_options.filter_custom_field_filters[j],
+                    current_var.filter_type,
+                    current_var.filter_additional_params,
+                );
+                res_columns.push(conf);
+            }
+            for (let conf in res_columns) {
+                let column;
+                column[name] = conf;
+                varcolumn_conf.push(column[name]);
+            }
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
-        return ExportVarIndicatorVO.create_new(
-            ['name', 'value'],
-            { name: 'Nom', value: 'Valeur' },
-            varcolumn_conf
-        );
+        for (const key in varcolumn_conf) {
+            res.push(ExportVarIndicatorVO.create_new(
+                ['name', 'value'],
+                { name: 'Nom', value: 'Valeur' },
+                varcolumn_conf[key]
+            ));
+        }
+        return res;
     }
 
     get show_bulk_select_all(): boolean {
