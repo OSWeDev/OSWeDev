@@ -42,7 +42,7 @@
     
                 .thread_message_input
                     .thread_message_input_textarea
-                        textarea(v-model='new_message_text' rows="4")
+                        textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                     .thread_message_input_send
                         template(v-if='too_many_assistants')
                             .too_many_assistants.bg-warning

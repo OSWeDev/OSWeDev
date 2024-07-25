@@ -10,7 +10,5 @@
             .oselia_edit_feedback_value_negative(@click="set_negative")
                 i.fa-duotone.fa-thumbs-down
         template(v-if="has_modified_feedback")
-            .oselia_edit_feedback_save(@click="save_feedback")
-                {{ label('oselia_thread_feedback.save_feedback') }}
-        .oseliad_delete_feedback(@click="delete_feedback")
-            {{ label('oselia_thread_feedback.delete_feedback') }}
+            .oselia_edit_feedback_save(@click="save_feedback") {{ label('oselia_thread_feedback.save_feedback') }}
+        .oseliad_delete_feedback(@click="delete_feedback") {{ label('oselia_thread_feedback.delete_feedback') }}

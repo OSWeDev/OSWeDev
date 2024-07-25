@@ -70,7 +70,7 @@ import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-require('moment-json-parser').overrideDefault();
+import OseliaServerController from './modules/Oselia/OseliaServerController';
 
 export default abstract class ServerBase {
 
@@ -542,6 +542,31 @@ export default abstract class ServerBase {
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
+        // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
+        this.app.use((req, res, next) => {
+            let origin = req.get('Origin');
+            if ((!origin) || !(origin.length)) {
+                origin = req.get('Referer');
+            }
+
+            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.authorized_oselia_partners.includes(origin))) {
+                res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:ALLOW-FROM");
+                }
+
+            } else {
+                res.setHeader('X-Frame-Options', 'DENY');
+
+                if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                    ConsoleHandler.log("ServerExpressController:origin:" + origin + ":X-Frame-Options:DENY");
+                }
+            }
+
+            next();
+        });
+
         /**
          * @depracated : DELETE When ok
          */
@@ -839,7 +864,8 @@ export default abstract class ServerBase {
         this.app.use(
             async (req, res, next) => {
                 if (req.url.indexOf('/f/') >= 0) {
-                    req.session.last_fragmented_url = req.url;
+                    // req.session.last_fragmented_url = req.url;
+                    // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
                     res.redirect(307, req
                         .url
                         .replace(/\/f\//, '/#/'));

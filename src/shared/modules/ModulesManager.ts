@@ -1,4 +1,3 @@
-import PreloadedModuleServerController from '../../server/modules/PreloadedModuleServerController';
 import { field_names } from '../tools/ObjectHandler';
 import ModuleTableController from './DAO/ModuleTableController';
 import ModuleTableFieldController from './DAO/ModuleTableFieldController';
@@ -15,6 +14,7 @@ export default class ModulesManager {
     public static isServerSide: boolean = false;
 
     public static MODULE_PARAM_TABLE_PREFIX: string = "module_";
+    public static preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
 
     private static instance: ModulesManager = null;
 
@@ -58,8 +58,8 @@ export default class ModulesManager {
 
         // Si on a un actif en base, on le charge, mais uniquement sur le shared
         if ((role == Module.SharedModuleRoleName) &&
-            (typeof PreloadedModuleServerController.preloaded_modules_is_actif[moduleObj.name] != "undefined")) {
-            moduleObj.actif = PreloadedModuleServerController.preloaded_modules_is_actif[moduleObj.name];
+            (typeof ModulesManager.preloaded_modules_is_actif[moduleObj.name] != "undefined")) {
+            moduleObj.actif = ModulesManager.preloaded_modules_is_actif[moduleObj.name];
         }
 
         moduleObj.initialize();

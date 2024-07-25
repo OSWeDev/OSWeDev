@@ -58,7 +58,6 @@ import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
 import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
-require('moment-json-parser').overrideDefault();
 
 // const loadComponent = async (component) => {
 //     try {

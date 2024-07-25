@@ -56,13 +56,6 @@ import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleDataImportServer.instance) {
-            ModuleDataImportServer.instance = new ModuleDataImportServer();
-        }
-        return ModuleDataImportServer.instance;
-    }
 
     private static instance: ModuleDataImportServer = null;
 
@@ -72,6 +65,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleDataImport.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleDataImportServer.instance) {
+            ModuleDataImportServer.instance = new ModuleDataImportServer();
+        }
+        return ModuleDataImportServer.instance;
     }
 
     /**
@@ -892,18 +893,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Le post-traitement a échoué", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
         }
-
-        //  3 - Mettre à jour le status et informer le client
-        // à la fin on indique le bon fonctionnement
-        // Pour l'instant on informe que l'auteur, mais en fait à terme ce qui serait top (mais à réfléchir par ce que très gourmand potentiellement)
-        //  ça serait d'informer tout le monde, directement en post creat et post update, et post delete, de toutes les modifs de DAO...
-        //  comme ça la data se mettrait à jour en temps réel dans l'appli, même si c'est un autre utilisateur qui fait un import
-
-        // Alors c'est tellement gourmand que même pour un user on le fait pour l'instant...
-        // let api_type_ids: string[] = postTraitementModule.get_merged_api_type_ids();
-        // for (let i in api_type_ids) {
-        //     await PushDataServerController.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
-        // }
 
         await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + Dates.format(Dates.now(), "Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }

@@ -211,8 +211,12 @@ export default class ModuleTableFieldController {
                     return e;
                 }
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return [];
                 }
 
                 const res: Array<number | string> = ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : null;
@@ -232,16 +236,28 @@ export default class ModuleTableFieldController {
                     return e;
                 }
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return [];
                 }
 
                 return ((e as string).length > 2) ? (e as string).substring(1, (e as string).length - 1).split(',') : e;
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj: {
 
-                if ((e == null) || (e == '{}')) {
+                if (e == null) {
                     return null;
+                }
+
+                if (e == '{}') {
+                    return {};
+                }
+
+                if (!ObjectHandler.try_is_json(e)) {
+                    return e;
                 }
 
                 let trans_ = ObjectHandler.try_get_json(e);
@@ -254,7 +270,12 @@ export default class ModuleTableFieldController {
                         const new_array = [];
                         for (const i in trans_) {
                             const transi = trans_[i];
-                            new_array.push(ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi)));
+
+                            if (!ObjectHandler.try_is_json(transi)) {
+                                new_array.push(transi);
+                            } else {
+                                new_array.push(ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi)));
+                            }
                         }
                         trans_ = new_array;
                     } else {
@@ -269,7 +290,12 @@ export default class ModuleTableFieldController {
                             const new_obj = new Object();
                             for (const i in trans_) {
                                 const transi = trans_[i];
-                                new_obj[i] = ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi));
+
+                                if (!ObjectHandler.try_is_json(transi)) {
+                                    new_obj[i] = transi;
+                                } else {
+                                    new_obj[i] = ModuleTableController.translate_vos_from_api(ObjectHandler.try_get_json(transi));
+                                }
                             }
                             trans_ = new_obj;
                         } else {
@@ -288,15 +314,15 @@ export default class ModuleTableFieldController {
             }
             case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
 
-                if (!e || (e == '{}')) {
+                if (!e) {
                     return null;
                 }
 
-                if ((e === null) || (typeof e === 'undefined')) {
-                    return e;
-                } else {
-                    return (e as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
+                if (e == '{}') {
+                    return [];
                 }
+
+                return (e as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
 
             default:
                 return e;
@@ -357,7 +383,7 @@ export default class ModuleTableFieldController {
                     return JSON.stringify(trans_array);
 
                 } else if (e) {
-                    return JSON.stringify(e);
+                    return (typeof e == 'object') ? JSON.stringify(e) : e;
                 } else {
                     return null;
                 }

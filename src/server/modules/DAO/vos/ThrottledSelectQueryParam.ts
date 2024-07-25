@@ -32,7 +32,7 @@ export default class ThrottledSelectQueryParam {
         this.time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ThrottledSelectQueryParam', 'init', '-');
 
-        this.define_fields_labels();
+        this.get_fields_labels();
     }
 
     public register_unstack_stats() {
@@ -55,47 +55,14 @@ export default class ThrottledSelectQueryParam {
         StatsController.register_stat_DUREE('ThrottledSelectQueryParam', 'start_to_postcbs', '-', Dates.now_ms() - this.time_in);
     }
 
-    private define_fields_labels() {
+    private get_fields_labels() {
         const fields = this.parameterizedQueryWrapperFields;
         let fields_labels: string = null;
 
         fields_labels = (this.context_query && this.context_query.do_count_results) ? 'number,c' : null;
 
         if (!fields_labels) {
-            fields_labels = fields ? fields.map((field) => {
-
-                // On a besoin du type du champs et de l'alias
-                let table_field_type = 'N/A';
-
-                try {
-
-                    // si on a pas de moduletable, on est sur une sélection issue d'une sous-requete. On va chercher le type dans la sous-requete
-                    const table = ModuleTableController.module_tables_by_vo_type[field.api_type_id];
-                    if (!table) {
-                        const sub_query = this.context_query.joined_context_queries.find((joinedcq) => joinedcq.joined_table_alias == field.api_type_id);
-                        if (!sub_query) {
-                            throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery found');
-                        }
-
-                        // on doit retrouver le champs qui a le même id/alias
-                        const sub_field = sub_query.joined_context_query.fields.find((sq_field) => sq_field.alias == field.row_col_alias);
-                        if (!sub_field) {
-                            throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery field found');
-                        }
-
-                        table_field_type = (sub_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
-                            ModuleTableController.module_tables_by_vo_type[sub_field.api_type_id].getFieldFromId(sub_field.field_name)?.field_type ?? 'N/A';
-                    } else {
-                        table_field_type = (field.field_id == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
-                            ModuleTableController.module_tables_by_vo_type[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
-                    }
-                } catch (error) {
-                    ConsoleHandler.error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
-                }
-
-                return table_field_type + ',' + field.row_col_alias;
-
-            }).join(';') : null;
+            fields_labels = fields ? fields.map(this.get_field_label.bind(this)).join(';') : null;
         }
 
         if (!fields_labels) {
@@ -103,5 +70,48 @@ export default class ThrottledSelectQueryParam {
         }
 
         this.fields_labels = fields_labels;
+    }
+
+    private get_field_label(field: ParameterizedQueryWrapperField): string {
+
+        // On a besoin du type du champs et de l'alias
+        let table_field_type = 'N/A';
+
+        try {
+
+            // Si le champs est un opérateur, et qu'il y a plusieurs champs, on va chercher le nom des champs liés, et on concat le tout
+            if (field.operator && field.operator_fields && field.operator_fields.length) {
+                return field.operator + "##" + field.operator_fields.map((operator_field) => this.get_field_label(operator_field)).join('#') + '##' + field.row_col_alias;
+            }
+
+            if (field.static_value != null) {
+                return 'static,' + field.static_value;
+            }
+
+            // si on a pas de moduletable, on est sur une sélection issue d'une sous-requete. On va chercher le type dans la sous-requete
+            const table = ModuleTableController.module_tables_by_vo_type[field.api_type_id];
+            if (!table) {
+                const sub_query = this.context_query.joined_context_queries.find((joinedcq) => joinedcq.joined_table_alias == field.api_type_id);
+                if (!sub_query) {
+                    throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery found');
+                }
+
+                // on doit retrouver le champs qui a le même id/alias
+                const sub_field = sub_query.joined_context_query.fields.find((sq_field) => sq_field.alias == field.row_col_alias);
+                if (!sub_field) {
+                    throw new Error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id + ' : no subquery field found');
+                }
+
+                table_field_type = (sub_field.field_name == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
+                    ModuleTableController.module_tables_by_vo_type[sub_field.api_type_id].getFieldFromId(sub_field.field_name)?.field_type ?? 'N/A';
+            } else {
+                table_field_type = (field.field_id == 'id') ? ModuleTableFieldVO.FIELD_TYPE_int :
+                    ModuleTableController.module_tables_by_vo_type[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
+            }
+        } catch (error) {
+            ConsoleHandler.error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
+        }
+
+        return table_field_type + ',' + field.row_col_alias;
     }
 }

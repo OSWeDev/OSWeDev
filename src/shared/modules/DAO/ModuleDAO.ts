@@ -407,6 +407,7 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().field_default_value, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Valeur par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().default_translation, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Traduction par défaut', false);
         ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().is_unique, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Unique', true, true, false);
+        ModuleTableFieldController.create_new(ModuleTableFieldVO.API_TYPE_ID, field_names<ModuleTableFieldVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
     }
 
     private init_ModuleTableVO() {
@@ -434,5 +435,6 @@ export default class ModuleDAO extends Module {
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().any_to_many_default_behaviour_show, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher par défaut les relations many to many', true, true, true);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().mapping_by_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Mapping des champs par APIType', false);
         ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().sort_by_field, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Champ de tri', false);
+        ModuleTableFieldController.create_new(ModuleTableVO.API_TYPE_ID, field_names<ModuleTableVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
     }
 }

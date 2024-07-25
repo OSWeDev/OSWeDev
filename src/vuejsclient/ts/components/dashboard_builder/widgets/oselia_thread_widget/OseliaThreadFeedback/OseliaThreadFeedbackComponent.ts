@@ -23,8 +23,6 @@ import './OseliaThreadFeedbackComponent.scss';
 })
 export default class OseliaThreadFeedbackComponent extends VueComponentBase {
 
-    public current_user_feedbacks: OseliaThreadFeedbackVO[] = null;
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -39,6 +37,8 @@ export default class OseliaThreadFeedbackComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread: GPTAssistantAPIThreadVO;
+
+    public current_user_feedbacks: OseliaThreadFeedbackVO[] = null;
 
     private throttle_load_feedback = ThrottleHelper.declare_throttle_without_args(this.load_feedback, 10);
 

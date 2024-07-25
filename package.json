@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.32.0-pre.9.e",
+    "version": "0.32.7.1",
     "description": "",
     "repository": {
         "type": "git",
@@ -89,11 +89,10 @@
         "mathjs": "10.6.4",
         "mkdirp": "^0.5.6",
         "moment": "^2.24.0",
-        "moment-json-parser": "0.9.1",
         "node-powershell": "4.0.0",
         "nodemailer": "6.9.9",
         "one-colorpicker": "1.0.12",
-        "openai": "4.33.0",
+        "openai": "4.47.1",
         "oswedev-autodetect-decoder-stream": "2.0.4",
         "oswedev-connect-pg-simple": "7.0.1",
         "pg": "8.11.0",
@@ -199,6 +198,7 @@
         "fullcalendar-scheduler": "1.9.4",
         "html2canvas": "1.4.1",
         "jqueryui": "1.11.1",
+        "mkdirp": "0.5.1",
         "screenfull": "3.3.2",
         "sortablejs": "1.15.0",
         "vue": "2.7.14",

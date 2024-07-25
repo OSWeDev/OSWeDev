@@ -2,6 +2,7 @@ import axios from 'axios';
 import ExternalAPIAuthentificationVO from '../../../shared/modules/API/vos/ExternalAPIAuthentificationVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 
 export default class ExternalAPIServerController {
 
@@ -10,6 +11,8 @@ export default class ExternalAPIServerController {
         url: string,
         post_data: any,
         external_api_authentication_id: number,
+        accept: string = 'application/json',
+        content_type: string = 'application/json',
     ) {
         const external_api_authentication: ExternalAPIAuthentificationVO = external_api_authentication_id ?
             await query(ExternalAPIAuthentificationVO.API_TYPE_ID)
@@ -22,15 +25,18 @@ export default class ExternalAPIServerController {
             return null;
         }
 
-        const headers = {};
+        const headers = {
+            'Accept': accept,
+            'Content-Type': content_type,
+        };
 
         if (external_api_authentication) {
             switch (external_api_authentication.type) {
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_BASIC:
-                    headers['Authorization'] = 'Basic ' + Buffer.from(external_api_authentication.api_key).toString('base64');
+                    headers['Authorization'] = external_api_authentication.api_key;
                     break;
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_BEARER:
-                    headers['Authorization'] = 'Bearer ' + external_api_authentication.api_key;
+                    headers['Authorization'] = "Bearer " + external_api_authentication.api_key;
                     break;
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_CUSTOM:
                     headers[external_api_authentication.custom_header_name] = external_api_authentication.api_key;
@@ -51,7 +57,8 @@ export default class ExternalAPIServerController {
                 method: method,
                 url: url,
                 headers: headers,
-                data: post_data
+                params: ((method === 'get') && post_data && Object.keys(post_data)) ? post_data : undefined, // Utiliser params pour GET
+                data: ((method !== 'get') && post_data && Object.keys(post_data)) ? post_data : undefined, // Utiliser data pour les autres méthodes
             });
         } catch (error) {
             ConsoleHandler.error('ExternalAPIServerController: error calling external api: ' + url + ' - ' + error);

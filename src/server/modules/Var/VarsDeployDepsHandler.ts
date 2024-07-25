@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";

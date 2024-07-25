@@ -1572,10 +1572,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             try {
                 // JSON parse may throw exeception (case when empty or Non-JSON)
-                filter_additional_params = column.filter_additional_params ? ObjectHandler.try_get_json(column.filter_additional_params) : null;
-            } catch (e) {
-
-            }
+                if (!ObjectHandler.try_is_json(column.filter_additional_params)) {
+                    filter_additional_params = column.filter_additional_params;
+                } else {
+                    filter_additional_params = column.filter_additional_params ? ObjectHandler.try_get_json(column.filter_additional_params) : null;
+                }
+            } catch (e) { /* EMPTY */ }
 
             for (const row_key in xlsx_datas) {
                 const row = xlsx_datas[row_key];

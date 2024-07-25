@@ -47,6 +47,16 @@ export default class ObjectHandler {
         }
     }
 
+    public static try_is_json(e: any): boolean {
+        try {
+            return (e && (typeof e === 'string') && (
+                (e.startsWith('{') && e.endsWith('}')) ||
+                (e.startsWith('[') && e.endsWith(']'))
+            )) ? (JSON.parse(e) ? true : false) : false;
+        } catch (error) { /* empty */ }
+        return false;
+    }
+
     /**
      * Copie d'object VO. Pas opti mais fonctionnel
      */

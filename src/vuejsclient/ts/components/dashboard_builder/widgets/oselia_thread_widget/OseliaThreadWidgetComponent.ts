@@ -272,47 +272,86 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         const self = this;
         this.assistant_is_busy = true;
-        self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
-            new Promise(async (resolve, reject) => {
+        // self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
+        //     new Promise(async (resolve, reject) => {
 
-                try {
-                    const responses = await ModuleGPT.getInstance().ask_assistant(
-                        self.assistant.gpt_assistant_id,
-                        self.thread.gpt_thread_id,
-                        self.new_message_text,
-                        [],
-                        VueAppController.getInstance().data_user.id
-                    );
-                    if (!responses || !responses.length) {
-                        throw new Error('No response');
-                    }
+        try {
+            const responses = await ModuleGPT.getInstance().ask_assistant(
+                self.assistant.gpt_assistant_id,
+                self.thread.gpt_thread_id,
+                self.new_message_text,
+                [],
+                VueAppController.getInstance().data_user.id
+            );
+            // if (!responses || !responses.length) {
+            //     throw new Error('No response');
+            // }
+            /**
+             * Il faut changer de technique pour identifier des erreurs de l'API
+             * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
+             */
 
-                    self.new_message_text = null;
+            self.new_message_text = null;
 
-                    // self.throttle_load_thread();
+            // self.throttle_load_thread();
 
-                    resolve({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                } catch (error) {
-                    ConsoleHandler.error(error);
-                    reject({
-                        body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
-                        config: {
-                            timeout: 10000,
-                            showProgressBar: true,
-                            closeOnClick: false,
-                            pauseOnHover: true,
-                        },
-                    });
-                }
-                self.assistant_is_busy = false;
-            }));
+            // resolve({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.ok'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        } catch (error) {
+            ConsoleHandler.error(error);
+            this.snotify.error(self.label('OseliaThreadWidgetComponent.send_message.failed'));
+            // reject({
+            //     body: self.label('OseliaThreadWidgetComponent.send_message.failed'),
+            //     config: {
+            //         timeout: 10000,
+            //         showProgressBar: true,
+            //         closeOnClick: false,
+            //         pauseOnHover: true,
+            //     },
+            // });
+        }
+        self.assistant_is_busy = false;
+        // }));
+    }
+
+    private handle_new_message_text_keydown(event: KeyboardEvent) {
+        this.$nextTick(() => {
+            setTimeout(this.adjustTextareaHeight.bind(this), 10);
+        });
+
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Ajoute une nouvelle ligne
+                return;
+            } else {
+                // Empêche le comportement par défaut
+                event.preventDefault();
+                // Exécute la fonction send
+                this.send_message();
+            }
+        }
+    }
+
+    private adjustTextareaHeight() {
+        const textarea = this.$refs.new_message_textarea_ref as HTMLTextAreaElement;
+        textarea.style.height = 'auto'; // Reset the height
+        const scrollHeight = textarea.scrollHeight; // Get the scroll height
+
+        const maxRows = 10;
+        const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
+        const maxHeight = lineHeight * maxRows;
+
+        textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+
+        this.$nextTick(() => {
+            setTimeout(this.scroll_to_bottom.bind(this), 10);
+        });
     }
 }

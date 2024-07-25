@@ -1,1 +1,23 @@
-.oselia_thread_feedback {}
+.oselia_thread_feedback {
+    margin-left: 3em;
+    transition: all 0.3s ease-in-out;
+
+    .oselia_thread_feedback__add_feedback_container {
+        display: flex;
+        transition: all 0.3s ease-in-out;
+
+        .oselia_thread_feedback__add_feedback_positive,
+        .oselia_thread_feedback__add_feedback_negative {
+            padding: 0 .3em;
+            margin: 0 .3em;
+            cursor: pointer;
+            opacity: .5;
+            transition: all 0.3s ease-in-out;
+
+            &:hover {
+                opacity: 1;
+                transition: all 0.3s ease-in-out;
+            }
+        }
+    }
+}

@@ -1547,7 +1547,7 @@ export default class RangeHandler {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public static get_range_shifted_by_x_segments(range: IRange, shift_value: number, shift_segment_type: number): IRange {
+    public static get_range_shifted_by_x_segments<T extends IRange>(range: T, shift_value: number, shift_segment_type: number): T {
 
         if (!range) {
             return null;
@@ -1559,14 +1559,14 @@ export default class RangeHandler {
                 switch (shift_segment_type) {
                     case NumSegment.TYPE_INT:
                     default:
-                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
+                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as T;
                 }
 
             case HourRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
+                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as T;
 
             case TSRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as IRange;
+                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as unknown as T;
         }
     }
 

@@ -1,6 +1,4 @@
 
-import VarDAG from '../../../server/modules/Var/vos/VarDAG';
-import VarDAGNode from '../../../server/modules/Var/vos/VarDAGNode';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -45,9 +43,12 @@ import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler'
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import SemaphoreHandler from '../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarDAG from '../../modules/Var/vos/VarDAG';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
@@ -59,6 +60,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkServerController from '../Fork/ForkServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -77,6 +79,7 @@ import VarsDeployDepsHandler from './VarsDeployDepsHandler';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+import AutoVarServerController from './auto/AutoVarServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -219,6 +222,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     // istanbul ignore next: cannot test configure
     public async configure() {
+
+        await this.init_auto_vars_confs();
 
         VarsTabsSubsController.init();
         VarsServerCallBackSubsController.init();
@@ -976,6 +981,11 @@ export default class ModuleVarServer extends ModuleServerBase {
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
         for (const i in vcs) {
             const vc = vcs[i];
+
+            if (vc.is_auto && !VarsServerController.getVarControllerById(vc.id)) {
+                this.init_auto_vars_conf(vc);
+            }
+
             VarsServerController.update_registered_varconf(vc.id, vc);
         }
     }
@@ -1222,137 +1232,154 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
-        if (!var_controller) {
-            return null;
-        }
+            const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
-        const dag: VarDAG = new VarDAG();
-        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+            if (!var_controller) {
+                return null;
+            }
 
-        if (!varDAGNode) {
-            return null;
-        }
+            const dag: VarDAG = new VarDAG();
+            const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
 
-        const predeps = var_controller.getDataSourcesPredepsDependencies();
-        if (predeps && predeps.length) {
-            await DataSourcesController.load_node_datas(predeps, varDAGNode);
-        }
+            if (!varDAGNode) {
+                return null;
+            }
 
-        // TEMP DEBUG JFE :
-        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+            const predeps = var_controller.getDataSourcesPredepsDependencies();
+            if (predeps && predeps.length) {
+                await DataSourcesController.load_node_datas(predeps, varDAGNode);
+            }
 
-        return var_controller.getParamDependencies(varDAGNode);
+            // TEMP DEBUG JFE :
+            // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+
+            return var_controller.getParamDependencies(varDAGNode);
+        }, false);
     }
 
     /**
      * Appelé côté client et sur le main thread pour obtenir des infos sur les imports / données aggrégées de ce paramètre.
      *  On ajoute à un arbre fictif, qui sera donc drop en sortant de la fonction.
+     * On utilise un sémaphore, pour pouvoir clear le cache des datasources
      * @param param
      * @returns
      */
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        const var_dag: VarDAG = new VarDAG();
-        const deployed_vars_datas: { [index: string]: boolean } = {};
-        const vars_datas: { [index: string]: VarDataBaseVO } = {
-            [param.index]: param
-        };
 
-        const node = await VarDAGNode.getInstance(var_dag, param, false);
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
-        if (!node) {
-            return null;
-        }
+            const var_dag: VarDAG = new VarDAG();
+            const node = await VarDAGNode.getInstance(var_dag, param, false);
 
-        await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
-            node,
-            true);
+            if (!node) {
+                return null;
+            }
 
-        return node.aggregated_datas ? node.aggregated_datas : {};
+            await VarsDeployDepsHandler.load_caches_and_imports_on_var_to_deploy(
+                node,
+                true);
+
+            return node.aggregated_datas ? node.aggregated_datas : {};
+        }, false);
     }
 
+    /**
+     * On utilise un sémaphore, pour pouvoir clear le cache des datasources
+     */
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
         if (!param) {
             return null;
         }
 
-        /**
-         * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
-         */
-        // const varconf = VarsController.var_conf_by_id[param.var_id];
-        // if (varconf.pixel_activated) {
-        //     let is_pixel = true;
-        //     for (const i in varconf.pixel_fields) {
-        //         const pixel_field = varconf.pixel_fields[i];
-
-        //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
-        //             is_pixel = false;
-        //             break;
-        //         }
-        //     }
-
-        //     if (!is_pixel) {
-        //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
-        //         return null;
-        //     }
-        // }
-
-        /**
-         * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
-         *  a filtré et garder un json valide
-         */
-        const value_size_limit: number = 10000;
-
-        if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
-            return null;
+        if (!ForkServerController.is_main_process()) {
+            throw new Error('getParamDependencies must be called on main process for var explanation');
         }
 
-        const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
+        return await SemaphoreHandler.semaphore_async('ModuleVarServer.explain_vars_tree_and_ds_semaphore', async () => {
 
-        if (!var_controller) {
-            return null;
-        }
 
-        const datasources_values: { [ds_name: string]: any; } = {};
-        const datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
+            /**
+             * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
+             */
+            // const varconf = VarsController.var_conf_by_id[param.var_id];
+            // if (varconf.pixel_activated) {
+            //     let is_pixel = true;
+            //     for (const i in varconf.pixel_fields) {
+            //         const pixel_field = varconf.pixel_fields[i];
 
-        // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        const dag: VarDAG = new VarDAG();
-        const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+            //         if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_name]) != 1) {
+            //             is_pixel = false;
+            //             break;
+            //         }
+            //     }
 
-        if (!varDAGNode) {
-            return null;
-        }
+            //     if (!is_pixel) {
+            //         ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+            //         return null;
+            //     }
+            // }
 
-        for (const i in datasources_deps) {
-            const datasource_dep = datasources_deps[i];
+            /**
+             * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
+             *  a filtré et garder un json valide
+             */
+            const value_size_limit: number = 10000;
 
-            await datasource_dep.load_node_data(varDAGNode);
-            const data = varDAGNode.datasources[datasource_dep.name];
-
-            let data_jsoned: string = null;
-            try {
-                data_jsoned = JSON.stringify(data);
-            } catch (error) {
-                ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
+            if (!param.check_param_is_valid(param._type)) {
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
+                return null;
             }
 
-            if ((!data_jsoned) || (!data_jsoned.length)) {
-                continue;
-            }
-            if (data_jsoned.length > value_size_limit) {
-                datasources_values[datasource_dep.name] = "[... >10ko ...]";
-            } else {
-                datasources_values[datasource_dep.name] = data_jsoned;
-            }
-        }
+            const var_controller = VarsServerController.registered_vars_controller[VarsController.var_conf_by_id[param.var_id].name];
 
-        // TEMP DEBUG JFE :
-        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+            if (!var_controller) {
+                return null;
+            }
 
-        return datasources_values;
+            const datasources_values: { [ds_name: string]: any; } = {};
+            const datasources_deps: DataSourceControllerBase[] = VarsServerController.get_datasource_deps_and_predeps(var_controller);
+
+            // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
+            const dag: VarDAG = new VarDAG();
+            const varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, false);
+
+            if (!varDAGNode) {
+                return null;
+            }
+
+            // On doit vider le cache des datasources, sinon on recharge pas les datas en vrai
+            CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+
+            for (const i in datasources_deps) {
+                const datasource_dep = datasources_deps[i];
+
+                await datasource_dep.load_node_data(varDAGNode);
+                const data = varDAGNode.datasources[datasource_dep.name];
+
+                let data_jsoned: string = null;
+                try {
+                    data_jsoned = JSON.stringify(data);
+                } catch (error) {
+                    ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
+                }
+
+                if ((!data_jsoned) || (!data_jsoned.length)) {
+                    continue;
+                }
+                if (data_jsoned.length > value_size_limit) {
+                    datasources_values[datasource_dep.name] = "[... >10ko ...]";
+                } else {
+                    datasources_values[datasource_dep.name] = data_jsoned;
+                }
+            }
+
+            // TEMP DEBUG JFE :
+            // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+
+            return datasources_values;
+        }, false);
     }
 
     /**
@@ -1759,4 +1786,24 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     //     return this.filter.apply(null, params);
     // }
+
+    private async init_auto_vars_confs() {
+        const autovarconfs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID)
+            .filter_is_true(field_names<VarConfVO>().is_auto)
+            .filter_is_false(field_names<VarConfVO>().disable_var)
+            .select_vos<VarConfVO>();
+
+        for (const i in autovarconfs) {
+            const autovarconf = autovarconfs[i];
+            this.init_auto_vars_conf(autovarconf);
+        }
+    }
+
+    private init_auto_vars_conf(autovarconf: VarConfVO) {
+        if (!autovarconf) {
+            return;
+        }
+
+        VarsServerController.registerVar(autovarconf, AutoVarServerController.getInstance(autovarconf));
+    }
 }

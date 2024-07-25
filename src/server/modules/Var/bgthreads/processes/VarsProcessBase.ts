@@ -1,6 +1,6 @@
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
