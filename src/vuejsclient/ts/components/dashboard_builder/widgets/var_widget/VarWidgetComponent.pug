@@ -72,7 +72,7 @@
                                     :class='var_param_complementaire_supp_is_condition_target ? "danger-"+danger_level :  ""'
                                     :style='var_param_complementaire_supp_is_condition_target ? {} : (widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {})'
                                 )
-    template(v-elif="widget_options ? (widget_options.style ? (widget_options.style === 'minimalist' ? true : false) : false) : false")
+    template(v-else-if="widget_options ? (widget_options.style ? (widget_options.style === 'minimalist' ? true : false) : false) : false")
         span 
             .row
                 label.mb-0 "not implemented yet"

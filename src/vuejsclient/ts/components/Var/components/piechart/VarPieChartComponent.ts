@@ -344,16 +344,20 @@ export default class VarPieChartComponent extends VueComponentBase {
 
             if (this.hovered) {
                 if (this.hovered_index == j) {
-                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
-                    } else {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF')
+                    if(this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                        if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
+                        } else {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF')
+                        }
                     }
                 } else {
-                    if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
-                    } else {
-                        backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33')
+                        if(this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                        if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
+                        } else {
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33')
+                        }
                     }
                 }
             } else {
