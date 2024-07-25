@@ -81,25 +81,35 @@ export default class VarsProcessInvalidator {
                 }
             }
 
-            const ordered_vos_cud: Array<IDistantVOBase | DAOUpdateVOHolder<IDistantVOBase>> = VarsDatasVoUpdateHandler.ordered_vos_cud;
-            VarsDatasVoUpdateHandler.ordered_vos_cud = [];
+            if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
+                let ordered_vos_cud = [];
 
-            /**
-             * On se base sur les ordered_vos_cud pour définir l'invalidation ciblée du cache des datasources
-             */
-            this.invalidate_datasources_cache(ordered_vos_cud);
+                // On limite à 500VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
+                for (let i = 0; (i < 500) && VarsDatasVoUpdateHandler.ordered_vos_cud.length; i++) {
+                    const vo = VarsDatasVoUpdateHandler.ordered_vos_cud.shift();
 
-            // On récupère les invalidateurs qui sont liées à des demandes de suppressions/modif/créa de VO
-            const leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer(ordered_vos_cud);
-            if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
-                invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
+                    if (vo) {
+                        ordered_vos_cud.push(vo);
+                    }
+                }
 
-                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators post VarsDatasVoUpdateHandler.handle_buffer:' + invalidators.length);
-                    if (invalidators && invalidators.length) {
-                        if (!has_first_invalidator) {
-                            ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
-                            invalidators[0].console_log();
+                /**
+                 * On se base sur les ordered_vos_cud pour définir l'invalidation ciblée du cache des datasources
+                 */
+                this.invalidate_datasources_cache(ordered_vos_cud);
+
+                // On récupère les invalidateurs qui sont liées à des demandes de suppressions/modif/créa de VO
+                const leafs_invalidators_handle_buffer: { [invalidator_id: string]: VarDataInvalidatorVO } = await VarsDatasVoUpdateHandler.handle_buffer(ordered_vos_cud);
+                if (leafs_invalidators_handle_buffer && ObjectHandler.hasAtLeastOneAttribute(leafs_invalidators_handle_buffer)) {
+                    invalidators.push(...Object.values(leafs_invalidators_handle_buffer));
+
+                    if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+                        ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators post VarsDatasVoUpdateHandler.handle_buffer:' + invalidators.length);
+                        if (invalidators && invalidators.length) {
+                            if (!has_first_invalidator) {
+                                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
+                                invalidators[0].console_log();
+                            }
                         }
                     }
                 }

@@ -1,5 +1,21 @@
 .menucomponent {
-    #mainmenu.navbar-nav.navbar-sidenav{
+    #mainmenu.navbar-nav.navbar-sidenav {
         overflow: auto;
+
+        ul li a {
+            display: flex !important;
+            align-items: center;
+        }
+
+        .nav-item i {
+            width: 2em;
+            text-align: left;
+            font-size: large;
+        }
+
+        .nav-link-collapse:after {
+            margin-left: .3em;
+            padding-top: 2px;
+        }
     }
 }

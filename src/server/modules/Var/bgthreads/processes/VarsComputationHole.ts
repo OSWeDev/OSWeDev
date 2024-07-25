@@ -78,6 +78,13 @@ export default class VarsComputationHole {
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:OUT:' + VarsComputationHole.redo_in_a_hole_semaphore + ':' + VarsComputationHole.current_cbs_stack.length);
             }
+
+            if (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length) {
+
+                if (ConfigurationService.node_configuration.debug_vars_invalidation || ConfigurationService.node_configuration.debug_vars_processes) {
+                    await ThreadHandler.sleep(100, 'VarsComputationHole.wait_for_hole.pause_between_holes');
+                }
+            }
         } while (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length);
         VarsComputationHole.redo_in_a_hole_semaphore = false;
 
