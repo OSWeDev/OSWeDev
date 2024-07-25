@@ -6,6 +6,16 @@
         text-align: right;
     }
 
+    .no_messages {
+        display: flex;
+        align-items: center;
+
+        i {
+            width: 5em;
+            text-align: left;
+        }
+    }
+
     .no_access,
     .too_many_assistants {
 
@@ -38,6 +48,7 @@
 
             .thread_message_input_textarea {
                 width: -webkit-fill-available;
+                resize: none;
 
                 textarea {
                     width: -webkit-fill-available;
