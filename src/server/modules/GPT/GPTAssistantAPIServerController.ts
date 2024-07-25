@@ -30,9 +30,6 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-// import OseliaReferrerExternalAPIParamVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIParamVO';
-import { Assistant } from 'openai/resources/beta/assistants';
-import { Message, MessageCreateParams } from 'openai/resources/beta/threads/messages/messages';
 
 export default class GPTAssistantAPIServerController {
 
