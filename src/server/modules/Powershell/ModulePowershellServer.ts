@@ -16,14 +16,6 @@ import PushDataServerController from '../PushData/PushDataServerController';
 
 export default class ModulePowershellServer extends ModuleServerBase {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModulePowershellServer.instance) {
-            ModulePowershellServer.instance = new ModulePowershellServer();
-        }
-        return ModulePowershellServer.instance;
-    }
-
     private static instance: ModulePowershellServer = null;
 
     private ps = null;
@@ -31,6 +23,14 @@ export default class ModulePowershellServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModulePowershell.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModulePowershellServer.instance) {
+            ModulePowershellServer.instance = new ModulePowershellServer();
+        }
+        return ModulePowershellServer.instance;
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
