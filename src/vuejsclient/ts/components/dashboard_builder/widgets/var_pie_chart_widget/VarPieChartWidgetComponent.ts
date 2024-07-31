@@ -130,7 +130,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
         }
 
-        return 'Title'
+        return 'Title';
     }
 
     private get_bool_option(option: string, default_value: boolean): boolean {
@@ -177,12 +177,12 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                             let count = 0;
                             let value = ctx.dataset.data[ctx.dataIndex];
                             for (let data in ctx.dataset.data) {
-                                count += ctx.dataset.data[data]
+                                count += ctx.dataset.data[data];
                             }
                             if (((value / count) * 100) < 3) {
-                                return false
+                                return false;
                             } else {
-                                return true
+                                return true;
                             }
                         } : false,
                     anchor: 'center',
@@ -205,26 +205,26 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
                     onHover: function (evt, item, legend) {
                         if (item.fillStyle.includes('rgba')) {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.replace(/[^,]+(?=\))/, 1) : color.replace(/[^,]+(?=\))/, 0.2);;
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.replace(/[^,]+(?=\))/, 1) : color_value.replace(/[^,]+(?=\))/, 0.2);
                             });
 
                         } else {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.slice(2, color.length) + 'FF' : color.slice(0, color.length - 2) + '33';
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.slice(2, color_value.length) + 'FF' : color_value.slice(0, color_value.length - 2) + '33';
                             });
                         }
                         legend.chart.update();
                     },
                     onLeave: function (evt, item, legend) {
                         if (item.fillStyle.includes('rgba')) {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                let opacity = (1 - (1 / colors.length) * index)
-                                colors[index] = index === item.index ? color.replace(/[^,]+(?=\))/, opacity) : color.replace(/[^,]+(?=\))/, opacity);
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                let opacity = (1 - (1 / colors.length) * index);
+                                colors[index] = index === item.index ? color_value.replace(/[^,]+(?=\))/, opacity) : color_value.replace(/[^,]+(?=\))/, opacity);
                             });
                         } else {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.replace('FF', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16)) : color.replace('33', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16));
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.replace('FF', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16)) : color_value.replace('33', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16));
                             });
                         }
                         legend.chart.update();
@@ -269,14 +269,14 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                             ctx.moveTo(x, y);
                             ctx.lineTo(x - 5, y - 5);
                             ctx.lineTo(x + 5, y + 5);
-                            ctx.fill()
-                            ctx.restore()
+                            ctx.fill();
+                            ctx.restore();
 
 
                             ctx.font = '12px Arial';
                             ctx.fillStyle = 'white';
                             ctx.fillText(text, x - (textWidth / 2), y - 10);
-                            ctx.restore()
+                            ctx.restore();
                         });
                     });
                 }
@@ -326,13 +326,13 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                     for (const i in this.ordered_dimension) {
                         const nb = parseInt(i);
-                        let color = base_color;
+                        let color_value = base_color;
                         if (is_rbga) {
-                            color += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                            color_value += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
                         } else {
-                            color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                            color_value += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
                         }
-                        colors.push(color);
+                        colors.push(color_value);
                     }
 
                     return new VarPieDataSetDescriptor(
@@ -346,7 +346,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 } else {
                     let colors = [];
                     if (!this.widget_options.color_palette) {
-                        return
+                        return;
                     }
                     for (let palette in this.widget_options.color_palette) {
                         if (this.widget_options.color_palette[palette].startsWith('#')) {
@@ -540,7 +540,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             let dimension_value: any = dimension[this.widget_options.dimension_vo_field_ref.field_id];
 
             if (!dimension_value) {
-                dimension_value = '[NULL]'
+                dimension_value = '[NULL]';
             }
 
             if (ordered_dimension.includes(dimension_value)) {

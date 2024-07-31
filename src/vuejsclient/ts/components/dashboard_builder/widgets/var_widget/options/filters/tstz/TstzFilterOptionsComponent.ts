@@ -24,6 +24,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
         this.label('TstzFilterOptionsComponent.segment_types.' + TimeSegment.TYPE_HOUR),
         this.label('TstzFilterOptionsComponent.segment_types.' + TimeSegment.TYPE_MINUTE),
         this.label('TstzFilterOptionsComponent.segment_types.' + TimeSegment.TYPE_SECOND),
+        this.label('TstzFilterOptionsComponent.segment_types.' + TimeSegment.TYPE_QUARTER),
     ];
     private tmp_segment_type: string = null;
 

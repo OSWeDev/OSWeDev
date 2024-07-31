@@ -1590,6 +1590,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Ajouter une colonne dynamique'
+        }, 'table_widget_column.add_dynamic_column.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Ajouter une entête'
         }, 'table_widget_column.new_header_column_select_type_label.___LABEL___'));
 
@@ -3326,6 +3330,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Ne pas mettre à jour la donnée du filtre si pas de date de fin" },
             'advanced_date_filter_widget_component.refuse_right_open.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pré-sélection relative à un autre filtre'
+        }, 'advanced_date_filter_widget_component.is_relative_to_other_filter.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Pré-sélection relative à ce filtre'
+        }, 'advanced_date_filter_widget_component.relative_to_other_filter_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Pré-sélection relative à aujourd'hui"
+        }, 'advanced_date_filter_widget_component.is_relative_to_today.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': "Masquer le filtre"
+        }, 'advanced_date_filter_widget_component.hide_filter.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Heure" },
             'filters.names.__hour__.___LABEL___'
@@ -3359,6 +3375,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'hour_filter_options.rounded.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Composant à utiliser dans la colonne dynamique" },
+            'table_widget_options_component.column_dynamic_component.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Variable à utiliser dans la colonne dynamique" },
+            'table_widget_options_component.column_dynamic_var.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Variable à utiliser dans la colonne dynamique" },
+            'table_widget_column.column_dynamic_var.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Composant à utiliser dans la colonne" },
             'table_widget_options_component.column_dynamic_component.___LABEL___'
         ));
@@ -3381,6 +3409,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Ajouter un nouvel indicateur" },
             'crud.field.custom_field.add_new_indicateur.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Trimestres" },
+            'ts_ranges_input.placeholder.quarters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "T" },
+            'time_segment.quarter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Relative date min" },
+            'advanced_date_filter_widget_component.auto_select_relative_date_min.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Relative date max" },
+            'advanced_date_filter_widget_component.auto_select_relative_date_max.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Superposer" },

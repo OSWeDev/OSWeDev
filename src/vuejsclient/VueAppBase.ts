@@ -25,6 +25,7 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
+import VueQuarterSelect from '@3scarecrow/vue-quarter-select';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTableController from "../shared/modules/DAO/ModuleTableController";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
@@ -469,6 +470,7 @@ export default abstract class VueAppBase {
         Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
+        Vue.component('Vuequarterselect', VueQuarterSelect);
         Vue.component('Alertcomponent', AlertComponent);
         Vue.component('Alertslistcontainercomponent', AlertsListContainerComponent);
         Vue.component('Numrangecomponent', () => import('./ts/components/ranges/numrange/NumRangeComponent'));

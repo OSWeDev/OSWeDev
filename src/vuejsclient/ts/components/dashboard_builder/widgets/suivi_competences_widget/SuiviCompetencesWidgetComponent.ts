@@ -120,6 +120,24 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
         return SimpleDatatableFieldVO.createNew(field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite).setModuleTable(ModuleTableController.module_tables_by_vo_type[SuiviCompetencesRapportVO.API_TYPE_ID]);
     }
 
+    get widget_options(): SuiviCompetencesWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: SuiviCompetencesWidgetOptionsVO = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
+                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
         await this.throttle_update_visible_options();
@@ -283,6 +301,9 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                             this.selected_rapport.user_id,
                             this.selected_rapport.points_cles,
                             this.selected_rapport.objectif_prochaine_visite,
+                            this.selected_rapport.commentaire_1,
+                            this.selected_rapport.commentaire_2,
+                            this.selected_rapport.prochain_suivi,
                         );
 
                         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_rapport);
@@ -401,14 +422,14 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
     private reload_all_rapport_item_by_ids() {
         let res: { [item_id: number]: SuiviCompetencesItemRapportVO } = {};
 
-        for (let i in this.rapport_item_by_ids) {
+        for (const i in this.rapport_item_by_ids) {
             res[this.rapport_item_by_ids[i].suivi_comp_item_id] = this.rapport_item_by_ids[i];
         }
 
-        for (let i in this.all_groupes) {
-            for (let j in this.all_groupes[i].sous_groupe) {
-                for (let k in this.all_groupes[i].sous_groupe[j].items) {
-                    let item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
+        for (const i in this.all_groupes) {
+            for (const j in this.all_groupes[i].sous_groupe) {
+                for (const k in this.all_groupes[i].sous_groupe[j].items) {
+                    const item: SuiviCompetencesItemVO = this.all_groupes[i].sous_groupe[j].items[k];
 
                     if (!res[item.id]) {
                         res[item.id] = SuiviCompetencesItemRapportVO.createNew(
@@ -416,7 +437,9 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
                             null,
                             null,
                             item.id,
-                            this.selected_rapport.id
+                            this.selected_rapport.id,
+                            null,
+                            null
                         );
                     }
                 }
@@ -642,23 +665,5 @@ export default class SuiviCompetencesWidgetComponent extends VueComponentBase {
             [RangeHandler.create_single_elt_NumRange(this.selected_rapport.id, NumSegment.TYPE_INT)],
             [RangeHandler.create_single_elt_NumRange(tsp_groupe.id, NumSegment.TYPE_INT)],
         );
-    }
-
-    get widget_options(): SuiviCompetencesWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: SuiviCompetencesWidgetOptionsVO = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as SuiviCompetencesWidgetOptionsVO;
-                options = options ? new SuiviCompetencesWidgetOptionsVO(null, null, null).from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

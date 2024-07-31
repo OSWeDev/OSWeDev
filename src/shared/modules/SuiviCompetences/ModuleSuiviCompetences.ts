@@ -24,6 +24,7 @@ import SuiviCompetencesIndicateurTableFieldTypeController from './fields/indicat
 import SuiviCompetencesIndicateurVO from './fields/indicateur/vos/SuiviCompetencesIndicateurVO';
 import SuiviCompetencesRapportGroupeDataRangesVO from './vars/vos/SuiviCompetencesRapportGroupeDataRangesVO';
 import SuiviCompetencesRapportSousGroupeDataRangesVO from './vars/vos/SuiviCompetencesRapportSousGroupeDataRangesVO';
+import SuiviCompetencesRapportItemDataRangesVO from './vars/vos/SuiviCompetencesRapportItemDataRangesVO';
 import SuiviCompetencesUserDataRangesVO from './vars/vos/SuiviCompetencesUserDataRangesVO';
 import SuiviCompetencesActiviteVO from './vos/SuiviCompetencesActiviteVO';
 import SuiviCompetencesGrilleVO from './vos/SuiviCompetencesGrilleVO';
@@ -32,6 +33,8 @@ import SuiviCompetencesItemRapportVO from './vos/SuiviCompetencesItemRapportVO';
 import SuiviCompetencesItemVO from './vos/SuiviCompetencesItemVO';
 import SuiviCompetencesRapportVO from './vos/SuiviCompetencesRapportVO';
 import SuiviCompetencesSousGroupeVO from './vos/SuiviCompetencesSousGroupeVO';
+import SuiviCompetencesGroupeUserTsRangesDataRangesVO from './vars/vos/SuiviCompetencesGroupeUserTsRangesDataRangesVO';
+import SuiviCompetencesSousGroupeUserTsRangesDataRangesVO from './vars/vos/SuiviCompetencesSousGroupeUserTsRangesDataRangesVO';
 
 export default class ModuleSuiviCompetences extends Module {
 
@@ -96,6 +99,9 @@ export default class ModuleSuiviCompetences extends Module {
         this.initializeSuiviCompetencesUserDataRangesVO();
         this.initializeSuiviCompetencesRapportGroupeDataRangesVO();
         this.initializeSuiviCompetencesRapportSousGroupeDataRangesVO();
+        this.initializeSuiviCompetencesRapportItemDataRangesVO();
+        this.initializeSuiviCompetencesGroupeUserTsRangesDataRangesVO();
+        this.initializeSuiviCompetencesSousGroupeUserTsRangesDataRangesVO();
 
         this.initializeSuiviCompetencesIndicateurVO();
     }
@@ -177,6 +183,17 @@ export default class ModuleSuiviCompetences extends Module {
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().calcul_niveau_maturite, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utilisation du calcul du niveau de maturité ?', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().logo, ModuleTableFieldVO.FIELD_TYPE_string, 'URL du logo'),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().move_indicateur_to_end, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Déplacer l\'indicateur en fin de tableau ?', true, true, false),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().base_export_file_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Base du nom du fichier exporté (sans espace)'),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_plan_action, ModuleTableFieldVO.FIELD_TYPE_boolean, "Afficher colonne rapport : plan d'action", true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_etat_des_lieux, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : etat des lieux', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_cible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : cible', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_delais, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : delais', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_column_rapport_indicateur, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher colonne rapport : indicateur', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_commentaire_1, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : commentaire 1', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_commentaire_2, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : commentaire 2', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_prochain_suivi, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : prochain suivi', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_points_cles, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : points clés', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_objectif_prochaine_visite, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : objectif prochaine visite', true, true, true),
         ];
 
         ModuleTableController.create_new(this.name, SuiviCompetencesGrilleVO, name, "Suivi Competences Grille");
@@ -199,6 +216,9 @@ export default class ModuleSuiviCompetences extends Module {
             ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, "Date du rapport", true).set_segmentation_type(TimeSegment.TYPE_DAY),
             ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().points_cles, ModuleTableFieldVO.FIELD_TYPE_html, "Points clés").hide_from_datatable(),
             ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().objectif_prochaine_visite, ModuleTableFieldVO.FIELD_TYPE_html, "Objectifs de la prochaine visite").hide_from_datatable(),
+            ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().commentaire_1, ModuleTableFieldVO.FIELD_TYPE_html, "Commentaire 1").hide_from_datatable(),
+            ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().commentaire_2, ModuleTableFieldVO.FIELD_TYPE_html, "Commentaire 2").hide_from_datatable(),
+            ModuleTableFieldController.create_new(SuiviCompetencesRapportVO.API_TYPE_ID, field_names<SuiviCompetencesRapportVO>().prochain_suivi, ModuleTableFieldVO.FIELD_TYPE_html, "Prochain suivi").hide_from_datatable(),
         ];
 
         ModuleTableController.create_new(this.name, SuiviCompetencesRapportVO, name, "Suivi Competences Rapport");
@@ -218,6 +238,8 @@ export default class ModuleSuiviCompetences extends Module {
             rapport_id,
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().plan_action, ModuleTableFieldVO.FIELD_TYPE_html, "Plan d'action"),
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().etat_des_lieux, ModuleTableFieldVO.FIELD_TYPE_html, "Etat des lieux"),
+            ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().cible, ModuleTableFieldVO.FIELD_TYPE_html, "Cible"),
+            ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().delais, ModuleTableFieldVO.FIELD_TYPE_html, "Délais"),
             ModuleTableFieldController.create_new(SuiviCompetencesItemRapportVO.API_TYPE_ID, field_names<SuiviCompetencesItemRapportVO>().indicateur, ModuleTableFieldVO.FIELD_TYPE_int, "Indicateur"),
         ];
 
@@ -284,5 +306,65 @@ export default class ModuleSuiviCompetences extends Module {
         ModuleTableFieldController.create_new(SuiviCompetencesIndicateurVO.API_TYPE_ID, field_names<SuiviCompetencesIndicateurVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Description' }));
 
         ModuleTableController.create_new(this.name, SuiviCompetencesIndicateurVO, null, "Suivi Competences Indicateur");
+    }
+
+    private initializeSuiviCompetencesRapportItemDataRangesVO() {
+
+        let suivi_comp_rapport_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesRapportItemDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesRapportItemDataRangesVO>().suivi_comp_rapport_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Rapports', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_item_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesRapportItemDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesRapportItemDataRangesVO>().suivi_comp_item_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Items', true).set_segmentation_type(NumSegment.TYPE_INT);
+
+        let datatable_fields = [
+            suivi_comp_rapport_id_ranges,
+            suivi_comp_item_id_ranges,
+            ModuleTableFieldController.create_new(SuiviCompetencesRapportItemDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesRapportItemDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
+        ];
+
+        VarsInitController.getInstance().register_var_data(SuiviCompetencesRapportItemDataRangesVO.API_TYPE_ID, SuiviCompetencesRapportItemDataRangesVO, this);
+        suivi_comp_rapport_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesRapportVO.API_TYPE_ID);
+        suivi_comp_item_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesItemVO.API_TYPE_ID);
+    }
+
+    private initializeSuiviCompetencesGroupeUserTsRangesDataRangesVO() {
+
+        let suivi_comp_groupe_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().suivi_comp_groupe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'TSP Groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_grille_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().suivi_comp_grille_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Grilles', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let ts_ranges = ModuleTableFieldController.create_new(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesGroupeUserTsRangesDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates', true).set_segmentation_type(TimeSegment.TYPE_DAY);
+
+        let datatable_fields = [
+            suivi_comp_groupe_id_ranges,
+            suivi_comp_grille_id_ranges,
+            user_id_ranges,
+            ts_ranges,
+        ];
+
+        VarsInitController.getInstance().register_var_data(SuiviCompetencesGroupeUserTsRangesDataRangesVO.API_TYPE_ID, SuiviCompetencesGroupeUserTsRangesDataRangesVO, this);
+
+        suivi_comp_groupe_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesGroupeVO.API_TYPE_ID);
+        suivi_comp_grille_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesGrilleVO.API_TYPE_ID);
+        user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+    }
+
+    private initializeSuiviCompetencesSousGroupeUserTsRangesDataRangesVO() {
+
+        let suivi_comp_groupe_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_groupe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'TSP Groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_sous_groupe_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_sous_groupe_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'TSP Sous groupes', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let suivi_comp_grille_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().suivi_comp_grille_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Grilles', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let user_id_ranges = ModuleTableFieldController.create_new(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().user_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+        let ts_ranges = ModuleTableFieldController.create_new(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, field_names<SuiviCompetencesSousGroupeUserTsRangesDataRangesVO>().ts_ranges, ModuleTableFieldVO.FIELD_TYPE_tstzrange_array, 'Dates', true).set_segmentation_type(TimeSegment.TYPE_DAY);
+
+        let datatable_fields = [
+            suivi_comp_groupe_id_ranges,
+            suivi_comp_sous_groupe_id_ranges,
+            suivi_comp_grille_id_ranges,
+            user_id_ranges,
+            ts_ranges,
+        ];
+
+        VarsInitController.getInstance().register_var_data(SuiviCompetencesSousGroupeUserTsRangesDataRangesVO.API_TYPE_ID, SuiviCompetencesSousGroupeUserTsRangesDataRangesVO, this);
+        suivi_comp_groupe_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesGroupeVO.API_TYPE_ID);
+        suivi_comp_sous_groupe_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesSousGroupeVO.API_TYPE_ID);
+        suivi_comp_grille_id_ranges.set_many_to_one_target_moduletable_name(SuiviCompetencesGrilleVO.API_TYPE_ID);
+        user_id_ranges.set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
     }
 }

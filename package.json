@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.32.0-pre.9.dev-far.2",
+    "version": "0.32.0-pre.12.mde",
     "description": "",
     "repository": {
         "type": "git",
@@ -148,6 +148,7 @@
         "zlib": "1.0.5"
     },
     "devDependencies": {
+        "@3scarecrow/vue-quarter-select": "2.0.0",
         "@playwright/test": "^1.35.1",
         "@stylistic/eslint-plugin": "^1.6.3",
         "@types/adm-zip": "0.5.0",

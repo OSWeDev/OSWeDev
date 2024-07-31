@@ -79,12 +79,6 @@ export default class ModuleRequestServer extends ModuleServerBase {
 
             function callback(res: http.IncomingMessage) {
 
-                if (res.statusCode >= 400) {
-                    reject({ message: 'Request failed with status code ' + res.statusCode, headers: res.headers });
-                    ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(res.headers));
-                    return;
-                }
-
                 let result: Buffer[] = [];
 
                 res.on('data', (chunk: Buffer[]) => {
@@ -102,6 +96,12 @@ export default class ModuleRequestServer extends ModuleServerBase {
                                 ConsoleHandler.error(e + ' : sendRequestFromApp full response buffer : ' + buffer.toString());
                             }
                         }
+                    }
+
+                    if (res.statusCode >= 400) {
+                        reject({ message: 'Request failed with status code ' + res.statusCode + ' :buffer: ' + JSON.stringify(buffer), headers: res.headers });
+                        ConsoleHandler.error('Request failed with status code ' + res.statusCode + ' : ' + path + ' : ' + JSON.stringify(buffer) + ' : ' + JSON.stringify(res.headers));
+                        return;
                     }
 
                     if (result_headers) {

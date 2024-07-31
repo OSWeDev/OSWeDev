@@ -189,8 +189,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
                 const matroid_field = matroid_fields[i];
 
-                if ((matroid_field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array)
-                    && (!this.var_custom_filters[matroid_field.field_id])) {
+                if (
+                    (matroid_field.field_type == ModuleTableFieldVO.FIELD_TYPE_tstzrange_array) &&
+                    (!this.var_custom_filters || !this.var_custom_filters[matroid_field.field_id]) &&
+                    (!this.column.custom_values?.length)
+                ) {
                     can_exit = false;
                     break;
                 }
@@ -273,7 +276,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     }
 
     get var_filter(): string {
-        return this.filter_type ? this.const_filters[this.filter_type].read : undefined;
+        return (this.filter_type && this.const_filters[this.filter_type]) ? this.const_filters[this.filter_type].read : undefined;
     }
 
     get var_filter_additional_params(): string {

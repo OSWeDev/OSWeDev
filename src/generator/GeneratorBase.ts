@@ -54,6 +54,7 @@ import Patch20230519AddRightsFeedbackStateVO from './patchs/postmodules/Patch202
 import Patch20230927AddAliveTimeoutToSomeBGThreads from './patchs/postmodules/Patch20230927AddAliveTimeoutToSomeBGThreads';
 import Patch20230927AddSupervisionToCrons from './patchs/postmodules/Patch20230927AddSupervisionToCrons';
 import Patch20231123AddRightsSharedFilters from './patchs/postmodules/Patch20231123AddRightsSharedFilters';
+import Patch20240612DbbAdvancedDateFilterChangeIsFilter from './patchs/postmodules/Patch20240612DbbAdvancedDateFilterChangeIsFilter';
 import Patch20240305MigrationCodesTradsMinusculesENV from './patchs/postmodules/Patch20240305MigrationCodesTradsMinusculesENV';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
@@ -194,6 +195,7 @@ export default abstract class GeneratorBase {
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
             Patch20231123AddRightsSharedFilters.getInstance(),
+            Patch20240612DbbAdvancedDateFilterChangeIsFilter.getInstance(),
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
             // Patch20240409RetrieveOpenAIRunStats.getInstance(),
