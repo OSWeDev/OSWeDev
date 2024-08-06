@@ -56,6 +56,42 @@ export default class TeamsAPIServerController {
         );
     }
 
+    public static async send_to_teams_webhook_dev(webhook: string, message: TeamsWebhookContentVO) {
+        ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook_dev: ' + message.title);
+        const { host, path } = this.getHostAndPathFromUrl(webhook);
+        // let msg = TextHandler.getInstance().sanityze_object(message);
+        const msg = TextHandler.getInstance().encode_object(message);
+        await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_POST,
+            host,
+            path,
+            msg,
+            null,
+            true,
+            null,
+            true,
+            true
+        );
+    }
+
+    /**
+     * Fonction pour extraire le host d'une URL.
+     * @param urlString - L'URL complète sous forme de chaîne de caractères.
+     * @returns Le host de l'URL.
+     */
+    private static getHostAndPathFromUrl(urlString: string): { host: string, path: string } {
+        try {
+            const url = new URL(urlString);
+            return {
+                host: url.host,
+                path: url.pathname
+            };
+        } catch (error) {
+            console.error('Invalid URL:', error);
+            return { host: '', path: '' };
+        }
+    }
+
     // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_oselia_error(title: string, message: string, thread_id: number, webhook_param_name: string = ModuleOselia.WEBHOOK_TEAMS_PARAM_NAME, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_oselia_level('error', title, message, thread_id, webhook_param_name, webhook_default_value);
@@ -95,6 +131,79 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     public static async send_teams_success(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
         await TeamsAPIServerController.send_teams_level('success', title, message, webhook_param_name, webhook_default_value);
+    }
+
+
+    public static async send_dev_teams_error(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
+        await TeamsAPIServerController.send_teams_dev_level('error', title, message, webhook_param_name, webhook_default_value);
+    }
+
+    private static async send_teams_dev_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
+        try {
+            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) : null;
+            webhook = webhook ? webhook : ConfigurationService.node_configuration['teams_webhook__tech_' + level.toLowerCase()];
+            webhook = "https://prod2-05.francecentral.logic.azure.com:443/workflows/097962a8d0cf41e0ac3ba76200638dbf/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=v_1_G49qNqoGNQS2UMgPXxgQ7ZtKugp5n703qgCWBaY";
+            const content = new TeamsWebhookContentVO().set_title(title).set_summary(message);
+            await this.send_to_teams_webhook_dev(webhook, content);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    private static get_throttle_send_teams_dev_level() {
+        TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_dev_level, 15000);
+        return TeamsAPIServerController.throttle_send_teams;
+    }
+
+    private static async throttled_send_teams_dev_level(params: SendTeamsLevelParam[]) {
+
+        const params_by_key: { [key: string]: SendTeamsLevelParam[] } = {};
+
+        // On n'envoie pas 2 fois le même message
+        const messages: { [message: string]: boolean } = {};
+
+        for (const i in params) {
+            const param = params[i];
+
+            if (messages[param.message]) {
+                continue;
+            }
+            messages[param.message] = true;
+
+            const key = TeamsAPIServerController.get_key(param.title, param.webhook);
+
+            if (!params_by_key[key]) {
+                params_by_key[key] = [];
+            }
+
+            params_by_key[key].push(param);
+        }
+
+        for (const key in params_by_key) {
+            const key_params = params_by_key[key];
+
+            const webhook: string = key_params[0].webhook;
+            const level: string = key_params[0].level;
+            const title: string = key_params[0].title;
+
+            const m: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+            m.title = title;
+
+            let message: string = key_params.map((p) => p.message).join('<br><br>');
+
+            if (message.length > ConfigurationService.node_configuration.teams_webhook__message_max_size) {
+                message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+            }
+
+            m.summary = message;
+            m.sections.push(
+                new TeamsWebhookContentSectionVO().set_text(message)
+                    .set_activityImage(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
+            );
+
+            await TeamsAPIServerController.send_to_teams_webhook_dev(webhook, m);
+        }
     }
 
     // istanbul ignore next: nothing to test : send_teams

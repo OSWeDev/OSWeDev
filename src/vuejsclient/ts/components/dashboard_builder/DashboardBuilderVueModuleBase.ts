@@ -28,6 +28,7 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import TeamsApiWidgetOptions from './widgets/teams_api_widget/options/TeamsApiWidgetOptionsComponent';
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -133,6 +134,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_ShowFavoritesFilters();
 
         await this.initializeWidget_OseliaThread();
+        await this.initializeWidget_TeamsApi();
     }
 
     private async initializeWidget_BulkOps() {
@@ -399,6 +401,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
         Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
         Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
+    }
+
+    private async initializeWidget_TeamsApi() {
+        const widget = new DashboardWidgetVO();
+
+        widget.default_height = 5;
+        widget.default_width = 3;
+        widget.name = 'teamsapiwidget';
+        widget.widget_component = 'Teamsapiwidgetcomponent';
+        widget.options_component = 'Teamsapiwidgetoptionscomponent';
+        widget.weight = 99;
+        widget.default_background = '#f5f5f5';
+        widget.icon_component = 'Teamsapiwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(widget, () => new TeamsApiWidgetOptions(), TeamsApiWidgetOptions.get_selected_fields);
+
+        Vue.component('Teamsapiwidgetcomponent', () => import('./widgets/teams_api_widget/TeamsApiWidgetComponent'));
+        Vue.component('Teamsapiwidgetoptionscomponent', () => import('./widgets/teams_api_widget/options/TeamsApiWidgetOptionsComponent'));
+        Vue.component('Teamsapiwidgeticoncomponent', () => import('./widgets/teams_api_widget/icon/TeamsApiWidgetIconComponent'));
     }
 
     private async initializeWidget_VarChoroplethChart() {
