@@ -1,5 +1,9 @@
 .var_desc {
 
+    padding: 10px;
+    max-width: 32em;
+    word-break: break-all;
+
     i.is_pixel {
         color: #002454;
         font-size: large;
@@ -26,10 +30,6 @@
         margin: 2px;
     }
 
-    padding: 10px;
-    max-width: 32em;
-    word-break: break-all;
-
     .var_controller_ref {
         border-radius: 4px;
         background-color: lightsteelblue;
@@ -51,6 +51,8 @@
         -moz-border-radius: 0px 0px 6px 6px;
         border-radius: 0px 0px 6px 6px;
         margin-bottom: 10px;
+        margin-bottom: .6em;
+        word-break: break-word;
 
         .var_controller_desc {
 
@@ -63,9 +65,6 @@
                 color: black;
                 width: 100%;
             }
-
-            margin-bottom: .6em;
-            word-break: break-word;
         }
     }
 
