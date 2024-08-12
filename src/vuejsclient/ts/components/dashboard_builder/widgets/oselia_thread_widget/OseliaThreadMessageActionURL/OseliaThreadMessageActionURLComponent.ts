@@ -82,7 +82,7 @@ export default class OseliaThreadMessageActionURLComponent extends VueComponentB
             new Promise(async (resolve, reject) => {
 
                 try {
-                    if (await ModuleActionURL.getInstance().action_url(this.action_url.action_code, true)) {
+                    if (await ModuleActionURL.getInstance().action_url(this.action_url.action_code, true, "", "", "")) {
                         resolve({
                             body: this.label('OseliaThreadMessageActionURLComponent.execute_action_url.ok'),
                             config: {

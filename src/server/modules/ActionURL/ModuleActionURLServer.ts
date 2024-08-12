@@ -18,6 +18,8 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import { group } from 'console';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
 
@@ -82,10 +84,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
+    private async action_url(code: string, do_not_redirect: boolean, messageId: string, canalId: string, groupId: string, req: Request, res: Response): Promise<boolean> {
 
         const uid = ModuleAccessPolicyServer.getLoggedUserId();
-
+        TeamsAPIServerController.update_teams_message(messageId, canalId, groupId);
         /**
          * On ne gère pas d'action anonyme pour le moment
          */

@@ -7,6 +7,7 @@ import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import Module from '../Module';
+import UpdateTeamsMessageVO, { UpdateTeamsMessageVOStatic } from './params/UpdateTeamsMessageVO';
 import ActionURLCRVO from './vos/ActionURLCRVO';
 import ActionURLUserVO from './vos/ActionURLUserVO';
 import ActionURLVO from './vos/ActionURLVO';
@@ -27,7 +28,7 @@ export default class ModuleActionURL extends Module {
 
     private static instance: ModuleActionURL = null;
 
-    public action_url: (code: string, do_not_redirect: boolean) => Promise<boolean> = APIControllerWrapper.sah<StringAndBooleanParamVO, boolean>(ModuleActionURL.APINAME_action_url);
+    public action_url: (code: string, do_not_redirect: boolean, message_id: string, channel_id: string, group_id: string) => Promise<boolean> = APIControllerWrapper.sah<UpdateTeamsMessageVO, boolean>(ModuleActionURL.APINAME_action_url);
 
     private constructor() {
 
@@ -37,11 +38,11 @@ export default class ModuleActionURL extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<StringAndBooleanParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<UpdateTeamsMessageVO, boolean>(
             null,
             ModuleActionURL.APINAME_action_url,
             [ActionURLVO.API_TYPE_ID],
-            StringAndBooleanParamVOStatic
+            UpdateTeamsMessageVOStatic
         ));
     }
 

@@ -24,7 +24,14 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
 import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
+import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
+import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
+import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
+import TeamsWebhookContentColumnSetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnSetVO';
+import TeamsWebhookContentColumnVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnVO';
+import TeamsWebhookContentImageVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentImageVO';
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
+import TeamsWebhookContentTextBlockVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -513,67 +520,66 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
             if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
                 const teamsWebhookContent = new TeamsWebhookContentVO();
-                teamsWebhookContent.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url;
-                teamsWebhookContent.summary = gtp_4_brief.content;
+                const body = [];
+                const actions = [];
+                let title_Text = new TeamsWebhookContentTextBlockVO().set_size('Medium').set_weight('Bolder').set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url);
+                body.push(title_Text);
 
                 if (feedback.screen_capture_1_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, teamsWebhookContent);
+                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, body);
                 }
                 if (feedback.screen_capture_2_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, teamsWebhookContent);
+                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, body);
                 }
                 if (feedback.screen_capture_3_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, teamsWebhookContent);
+                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, body);
                 }
 
                 if (feedback.file_attachment_1_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_1_id, 1, teamsWebhookContent);
+                    await this.handle_file_attachement(feedback.file_attachment_1_id, 1, body);
                 }
                 if (feedback.file_attachment_2_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_2_id, 2, teamsWebhookContent);
+                    await this.handle_file_attachement(feedback.file_attachment_2_id, 2, body);
                 }
                 if (feedback.file_attachment_3_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_3_id, 3, teamsWebhookContent);
+                    await this.handle_file_attachement(feedback.file_attachment_3_id, 3, body);
                 }
 
-                teamsWebhookContent.sections.push(
-                    new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
-                        '<p>' + gtp_4_brief.content + '</p>'));
+                const feedback_Title = new TeamsWebhookContentTextBlockVO().set_weight('Bolder').set_text(feedback.title);
+                body.push(feedback_Title)
+                const feedback_Column = new TeamsWebhookContentColumnSetVO().set_columns([new TeamsWebhookContentColumnVO().set_items([new TeamsWebhookContentTextBlockVO().set_text(gtp_4_brief.content).set_size('small')])]).set_style('emphasis');
 
                 // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
                 const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
                 if ((!!feedback.id) && !!dashboard_feedback_id) {
-                    teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
-                        new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                            ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
+                    actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id).set_title('Consulter'));
                 }
+                teamsWebhookContent.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
 
                 await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
             }
         }
     }
 
-    private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+    private async handle_file_attachement(screen_capture_id: number, num: number, body: any[]) {
         const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
         const file_url = ConfigurationService.node_configuration.base_url + file.path;
-
-        message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
+        const message = new TeamsWebhookContentTextBlockVO().set_text('[Pièce jointe ' + num + '](\"' + file_url + '\")')
+        body.push(message);
     }
 
-    private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
+    private async handle_screen_capture(screen_capture_id: number, num: number, body: any[]) {
         const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
         const file_url = ConfigurationService.node_configuration.base_url + file.path;
-
-        message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
-                .set_activityImage(file_url));
+        const message = new TeamsWebhookContentTextBlockVO().set_text('[Capture écran ' + num + '](\"' + file_url + '\")')
+        body.push(new TeamsWebhookContentImageVO().set_url(file_url));
+        body.push(message);
     }
 
     // private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {

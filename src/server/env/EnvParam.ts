@@ -118,21 +118,20 @@ export default class EnvParam implements IEnvParam {
     public teams_webhook_update_message?: string = null;
 
     // Organisations
-    public teams_org_oselia: string = null;
-    public teams_org_tech: string = null;
+    public teams_org__oselia: string = null;
+    public teams_org__tech: string = null;
     public teams_org_dev: string = null;
 
     // Channels
-    public teams_channel_dev: string = null;
-    public teams_channel_oselia_error: string = null;
-    public teams_channel_oselia_warn: string = null;
-    public teams_channel_oselia_info: string = null;
-    public teams_channel_oselia_success: string = null;
+    public teams_channel__oselia_error: string = null;
+    public teams_channel__oselia_warn: string = null;
+    public teams_channel__oselia_info: string = null;
+    public teams_channel__oselia_success: string = null;
 
-    public teams_channel_tech_error: string = null;
-    public teams_channel_tech_warn: string = null;
-    public teams_channel_tech_info: string = null;
-    public teams_channel_tech_success: string = null;
+    public teams_channel__tech_error: string = null;
+    public teams_channel__tech_warn: string = null;
+    public teams_channel__tech_info: string = null;
+    public teams_channel__tech_success: string = null;
 
     public teams_webhook__oselia_error?: string = null;
     public teams_webhook__oselia_warn?: string = null;
