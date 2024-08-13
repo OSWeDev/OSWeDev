@@ -264,11 +264,13 @@ export default class TeamsAPIServerController {
                 message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
                 // }
             }
-
-            let message_Text = new TeamsWebhookContentTextBlockVO().set_text(message);
-            body.push(message_Text);
+            let title_Text = new TeamsWebhookContentTextBlockVO().set_text(title).set_weight("bolder").set_size("large");
+            body.push(title_Text);
             let activity_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
             body.push(activity_Image);
+            let message_Text = new TeamsWebhookContentTextBlockVO().set_text(message);
+            body.push(message_Text);
+
             const attachments = new TeamsWebhookContentAttachmentsVO().set_name("Teams Level Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions));
             m.set_channelId(ConfigurationService.node_configuration['teams_channel__tech_' + level.toLowerCase()])
             m.set_groupId(ConfigurationService.node_configuration['teams_org__tech'])

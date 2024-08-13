@@ -9,11 +9,6 @@ export default class TeamsWebhookContentImageVO {
 
     public constructor() { }
 
-    public set_type(type: string): TeamsWebhookContentImageVO {
-        this.type = type;
-        return this;
-    }
-
     public set_url(url: string): TeamsWebhookContentImageVO {
         this.url = url;
         return this;

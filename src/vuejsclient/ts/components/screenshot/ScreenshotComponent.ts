@@ -9,6 +9,10 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import './ScreenshotComponent.scss';
+import puppeteer from 'puppeteer';
+import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
+import { sleep } from 'openai/core';
+import { take_fullsize_screenshot } from './ScreenshotComponentRun';
 
 @Component({
     template: require('./ScreenshotComponent.pug'),
@@ -20,7 +24,6 @@ export default class ScreenshotComponent extends VueComponentBase {
 
     @Prop({ default: null })
     protected filevo: FileVO;
-
     protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
@@ -37,6 +40,20 @@ export default class ScreenshotComponent extends VueComponentBase {
     public async mounted() {
         this.uid = ScreenshotComponent.__UID++;
     }
+
+    public async do_take_fullsize_screenshot() {
+        this.is_taking = true;
+        try {
+            await take_fullsize_screenshot();
+            await this.$emit("uploaded", this.filevo);
+            this.is_taking = false;
+        } catch (error) {
+            this.is_taking = false;
+            // Gestion des erreurs avec des détails supplémentaires
+            console.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+
 
     public async take_screenshot() {
         const self = this;

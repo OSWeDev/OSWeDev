@@ -1,9 +1,12 @@
+
 .screenshot
     .row
         .col-sm-12        
             template(v-if='(!has_valid_file_linked) && (!is_taking)')
                 .screenshot_placeholder_not_taken(@click='take_screenshot')
                     i.fa-solid.fa-camera.fa-3x(aria-hidden="true")
+                .screenshot_placeholder_not_taken(@click='do_take_fullsize_screenshot')
+                    i.fa-solid.fa-camera.fa-3x(aria-hidden="true" style="--fa-primary-color: #171717; --fa-secondary-color: #ffffff;")
             template(v-if='(!has_valid_file_linked) && (!!is_taking)')
                 .screenshot_placeholder_taking
                     i.fa-solid.fa-camera.fa-3x(aria-hidden="true")

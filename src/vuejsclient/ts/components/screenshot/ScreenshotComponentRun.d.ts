@@ -1,0 +1,1 @@
+export declare async function take_fullsize_screenshot();
