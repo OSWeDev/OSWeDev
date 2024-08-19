@@ -1,1 +1,1 @@
-export declare async function take_fullsize_screenshot();
+export declare async function take_fullsize_screenshot(): Promise<HTMLCanvasElement>;

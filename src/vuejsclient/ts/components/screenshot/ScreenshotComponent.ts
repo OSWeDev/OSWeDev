@@ -41,16 +41,61 @@ export default class ScreenshotComponent extends VueComponentBase {
         this.uid = ScreenshotComponent.__UID++;
     }
 
+    /**
+     * Updates the state of the "is_taking" property.
+     * If "is_taking" is true, it hides elements with the class "hide_from_screenshot".
+     * If "is_taking" is false, it shows elements with the class "hide_from_screenshot".
+     */
+    @Watch('is_taking', { immediate: true })
+    public async updateIsTaking() {
+        if (this.is_taking) {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = 'none';
+            }
+        } else {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = '';
+            }
+        }
+    }
+
     public async do_take_fullsize_screenshot() {
         this.is_taking = true;
         try {
-            await take_fullsize_screenshot();
-            await this.$emit("uploaded", this.filevo);
-            this.is_taking = false;
+            const canvas = await take_fullsize_screenshot();
+            await canvas.toBlob(async (imgData) => {
+                if (!imgData) {
+                    this.is_taking = false;
+                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000);
+
+                const newvo = JSON.parse(res);
+
+                this.$emit('uploaded', newvo);
+                this.is_taking = false;
+            }, 'image/png');
         } catch (error) {
             this.is_taking = false;
             // Gestion des erreurs avec des détails supplémentaires
-            console.error("Erreur lors de la capture de l'écran :", error);
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
         }
     }
 
