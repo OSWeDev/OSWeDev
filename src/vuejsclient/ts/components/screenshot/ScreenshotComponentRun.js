@@ -17,7 +17,6 @@ export async function take_fullsize_screenshot() {
         canvas.height = imageBitmap.height;
         canvas.getContext("2d").drawImage(imageBitmap, 0, 0);
 
-        console.dir(canvas);
 
         // Retourner le canvas
         return canvas;

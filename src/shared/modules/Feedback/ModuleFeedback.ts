@@ -37,18 +37,6 @@ export default class ModuleFeedback extends Module {
 
     public feedback: (feedback: FeedbackVO) => Promise<FeedbackVO> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
 
-    /**
-     * Demander à puppeteer de prendre un screenshot de la page actuelle
-     * @param url id de l'assistant au sens de l'API GPT
-     * @param path null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-     * @returns
-     */
-    public take_fullsize_screenshot: (
-        url: string,
-        path: string
-    ) => Promise<void> = APIControllerWrapper.sah(ModuleFeedback.APINAME_take_fullsize_screenshot);
-
-
     private constructor() {
         super("feedback", ModuleFeedback.MODULE_NAME);
         this.forceActivationOnInstallation();
@@ -60,13 +48,6 @@ export default class ModuleFeedback extends Module {
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],
-            APISimpleVOParamVOStatic
-        ));
-
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, void>(
-            ModuleFeedback.POLICY_FO_ACCESS,
-            ModuleFeedback.APINAME_take_fullsize_screenshot,
-            [FileVO.API_TYPE_ID],
             APISimpleVOParamVOStatic
         ));
     }

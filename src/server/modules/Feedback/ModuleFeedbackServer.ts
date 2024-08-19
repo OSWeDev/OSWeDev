@@ -272,7 +272,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     // istanbul ignore next: cannot test registerServerApiHandlers
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleFeedback.APINAME_take_fullsize_screenshot, this.take_fullsize_screenshot.bind(this));
     }
 
     private async pre_create_feedback_assign_default_state(feedback: FeedbackVO): Promise<boolean> {
@@ -627,24 +626,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     //     res += apis_log_message;
     //     return res;
     // }
-
-    private async take_fullsize_screenshot(url: string, path: string): Promise<void> {
-        const browser = await puppeteer.launch();
-        // Ouvrir une nouvelle page
-        try {
-            const page = await browser.newPage();
-            // Naviguez jusqu'à l'URL spécifiée
-            await page.goto(url);
-            await page.waitForNavigation({ waitUntil: 'networkidle0' });
-            // Capturer une capture d'écran de la page entière
-            await page.screenshot({ path: 'screenshot.png', fullPage: true });
-            // Fermez le navigateur
-            await browser.close();
-        } catch (error) {
-            ConsoleHandler.error(error);
-            await browser.close();
-        }
-    }
 
     private async console_logs_to_string(feedback: FeedbackVO): Promise<string> {
         const FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME);
