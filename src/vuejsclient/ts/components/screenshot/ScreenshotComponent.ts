@@ -9,10 +9,9 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import './ScreenshotComponent.scss';
-import puppeteer from 'puppeteer';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import { sleep } from 'openai/core';
-import { take_fullsize_screenshot } from './ScreenshotComponentRun';
+import { take_fullsize_screenshot, take_video_capture } from './ScreenshotComponentRun';
 
 @Component({
     template: require('./ScreenshotComponent.pug'),
@@ -90,8 +89,9 @@ export default class ScreenshotComponent extends VueComponentBase {
                 const newvo = JSON.parse(res);
 
                 this.$emit('uploaded', newvo);
-                this.is_taking = false;
             }, 'image/png');
+            this.is_taking = false;
+
         } catch (error) {
             this.is_taking = false;
             // Gestion des erreurs avec des détails supplémentaires
@@ -99,6 +99,58 @@ export default class ScreenshotComponent extends VueComponentBase {
         }
     }
 
+    public async do_take_video_capture() {
+        this.is_taking = true;
+        try {
+            const canvasList = await take_video_capture();
+            let voList = [];
+            for (let i = 0; i < canvasList.length; i++) {
+                this.is_taking = true;
+                const canvas = canvasList[i];
+    
+                // Encapsuler canvas.toBlob dans une Promise
+                const imgData = await new Promise<Blob | null>((resolve) => {
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/png');
+                });
+    
+                if (!imgData) {
+                    this.is_taking = false;
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+    
+                console.dir(imgData);
+    
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+    
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000
+                );
+    
+                const newvo = JSON.parse(res);
+                voList.push(newvo);
+                // Emettre l'événement après chaque upload réussi
+                this.is_taking = false;
+            }
+            this.$emit('uploaded', voList);
+
+        } catch (error) {
+            this.is_taking = false;
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+    
+    
 
     public async take_screenshot() {
         const self = this;

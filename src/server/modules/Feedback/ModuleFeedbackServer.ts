@@ -55,7 +55,6 @@ import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
 const { parse } = require('flatted/cjs');
-import puppeteer from 'puppeteer';
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
