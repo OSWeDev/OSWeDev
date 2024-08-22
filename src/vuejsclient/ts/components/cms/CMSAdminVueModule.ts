@@ -11,15 +11,6 @@ import MenuController from '../menu/MenuController';
 
 export default class CMSAdminVueModule extends VueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): CMSAdminVueModule {
-        if (!CMSAdminVueModule.instance) {
-            CMSAdminVueModule.instance = new CMSAdminVueModule();
-        }
-
-        return CMSAdminVueModule.instance;
-    }
-
     private static instance: CMSAdminVueModule = null;
 
     private constructor() {
@@ -28,6 +19,15 @@ export default class CMSAdminVueModule extends VueModuleBase {
         this.policies_needed = [
             ModuleCMS.POLICY_BO_ACCESS
         ];
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): CMSAdminVueModule {
+        if (!CMSAdminVueModule.instance) {
+            CMSAdminVueModule.instance = new CMSAdminVueModule();
+        }
+
+        return CMSAdminVueModule.instance;
     }
 
     public async initializeAsync() {

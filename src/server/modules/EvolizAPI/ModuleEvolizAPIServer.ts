@@ -112,15 +112,16 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_credits, this.list_credits.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_advances, this.list_advances.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_get_document_links, this.get_document_links.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_save_invoice, this.save_invoice.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
         // Si j'ai un token et qu'il est encore ACTIF, je ne fais rien
         if (this.token && this.token.expires_at) {
 
-            let evoliz_time = this.token.expires_at.valueOf() / 1000;
-            let now = Dates.now();
-            let expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
+            const evoliz_time = this.token.expires_at.valueOf() / 1000;
+            const now = Dates.now();
+            const expiration = Dates.isBefore(now, evoliz_time, TimeSegment.TYPE_MINUTE);
             if (expiration) {
 
                 return this.token;
@@ -165,9 +166,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
      */
     public async get_document_links(doc_type: string, doc_id: number): Promise<EvolizDocumentLinksVO> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let document_links: EvolizDocumentLinksVO = await ModuleRequest.getInstance().sendRequestFromApp(
+            const document_links: EvolizDocumentLinksVO = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 ('/api/v1/links/' + doc_type + '/' + doc_id),
@@ -189,11 +190,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Company
     public async list_companies(): Promise<EvolizCompanyVO> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let company_id: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
+            const company_id: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleEvolizAPI.EvolizAPI_CompanyId_API_PARAM_NAME);
 
-            let companies: EvolizCompanyVO = await ModuleRequest.getInstance().sendRequestFromApp(
+            const companies: EvolizCompanyVO = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 ('/api/v1/companies/' + company_id),
@@ -215,7 +216,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Credit
     public async list_credits(): Promise<EvolizCreditVO[]> {
         try {
-            let credits: EvolizCreditVO[] = await this.get_all_pages('/api/v1/credits') as EvolizCreditVO[];
+            const credits: EvolizCreditVO[] = await this.get_all_pages('/api/v1/credits') as EvolizCreditVO[];
 
             return credits;
         } catch (error) {
@@ -226,7 +227,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Advance
     public async list_advances(): Promise<EvolizAdvanceVO[]> {
         try {
-            let advances: EvolizAdvanceVO[] = await this.get_all_pages('/api/v1/advances') as EvolizAdvanceVO[];
+            const advances: EvolizAdvanceVO[] = await this.get_all_pages('/api/v1/advances') as EvolizAdvanceVO[];
 
             return advances;
         } catch (error) {
@@ -237,7 +238,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Pay Types
     public async list_paytypes(): Promise<EvolizPayTypeVO[]> {
         try {
-            let sales_classification: EvolizPayTypeVO[] = await this.get_all_pages('/api/v1/paytypes') as EvolizPayTypeVO[];
+            const sales_classification: EvolizPayTypeVO[] = await this.get_all_pages('/api/v1/paytypes') as EvolizPayTypeVO[];
 
             return sales_classification;
         } catch (error) {
@@ -248,7 +249,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Sales Classification
     public async list_sale_classification(): Promise<EvolizSalesClassificationVO[]> {
         try {
-            let sales_classification: EvolizSalesClassificationVO[] = await this.get_all_pages('/api/v1/sale-classifications') as EvolizSalesClassificationVO[];
+            const sales_classification: EvolizSalesClassificationVO[] = await this.get_all_pages('/api/v1/sale-classifications') as EvolizSalesClassificationVO[];
 
             return sales_classification;
         } catch (error) {
@@ -259,7 +260,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Unit Code
     public async list_unit_code(): Promise<EvolizUnitCodeVO[]> {
         try {
-            let unit_codes: EvolizUnitCodeVO[] = await this.get_all_pages('/api/v1/unit-codes') as EvolizUnitCodeVO[];
+            const unit_codes: EvolizUnitCodeVO[] = await this.get_all_pages('/api/v1/unit-codes') as EvolizUnitCodeVO[];
 
             return unit_codes;
         } catch (error) {
@@ -335,7 +336,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     // Payment terms
     public async list_payment_terms(): Promise<EvolizPaymentTermsVO[]> {
         try {
-            let payterms: EvolizPaymentTermsVO[] = await this.get_all_pages('/api/v1/payterms') as EvolizPaymentTermsVO[];
+            const payterms: EvolizPaymentTermsVO[] = await this.get_all_pages('/api/v1/payterms') as EvolizPaymentTermsVO[];
 
             return payterms;
         } catch (error) {
@@ -413,11 +414,37 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
+    public async save_invoice(invoiceid: number): Promise<boolean> {
+        try {
+            const token: EvolizAPIToken = await this.getToken();
+
+            const save = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/invoices/' + invoiceid + '/create',
+                null,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Content-Type': 'application/json',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Erreur Evoliz: save invoice: " + invoiceid + " - Erreur: " + error);
+            return false;
+        }
+    }
+
     public async send_mail_invoice(invoiceid: number, params: EvolizInvoiceEmailVO): Promise<boolean> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            const token: EvolizAPIToken = await this.getToken();
 
-            let email = await ModuleRequest.getInstance().sendRequestFromApp(
+            const email = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_POST,
                 ModuleEvolizAPI.EvolizAPI_BaseURL,
                 '/api/v1/invoices/' + invoiceid + '/send',
