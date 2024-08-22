@@ -96,7 +96,7 @@ export default class ModuleEvolizAPI extends Module {
     public list_credits: () => Promise<EvolizCreditVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_credits);
     public list_advances: () => Promise<EvolizAdvanceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_advances);
     public get_document_links: (doc_type: string, doc_id: number) => Promise<EvolizDocumentLinksVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_get_document_links);
-    public save_invoice: (invoiceid: number) => Promise<EvolizDocumentLinksVO> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_save_invoice);
+    public save_invoice: (invoiceid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_save_invoice);
 
     private constructor() {
 
