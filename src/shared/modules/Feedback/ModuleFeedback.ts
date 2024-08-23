@@ -24,7 +24,6 @@ export default class ModuleFeedback extends Module {
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.FO_ACCESS';
 
     public static APINAME_feedback: string = "feedback";
-    public static APINAME_take_fullsize_screenshot: string = "take_fullsize_screenshot";
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFeedback {
         if (!ModuleFeedback.instance) {

@@ -829,6 +829,24 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Appel de fonction'
         }, 'oselia_thread_widget_component.thread_message_header_left_username.function.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Joindre le fichier'
+        }, 'oselia_thread_widget_component.dragging_overlay_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Upload l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.upload.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Lien vers l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.link.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'URL de l\'image'
+        }, 'oselia_thread_widget_component.link_image_menu.url_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Insérer une image depuis un URL'
+        }, 'oselia_thread_widget_component.link_image_menu.title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exportable'

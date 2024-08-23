@@ -1,19 +1,32 @@
-.oselia_thread_widget_component
+.oselia_thread_widget_component(@dragover.prevent='handle_drag_over' @drop.prevent='handle_drop' @dragleave.prevent='handle_drag_leave')
     //- template(v-if='too_many_threads')
     //-     .too_many_threads.bg-primary
     //-         i.fa-duotone.fa-filters
     //-         | {{ label('oselia_thread_widget_component.too_many_threads') }}
+    template(v-if='is_dragging')
+        .dragging_overlay
+            .dragging_overlay_text
+                i.fa-duotone.fa-upload
+                | {{ label('oselia_thread_widget_component.dragging_overlay_text') }}
 
+    template(v-if="enable_link_image_menu")
+        .link_image_menu
+            .label_link_menu {{ label('oselia_thread_widget_component.link_image_menu.title') }}
+                input(v-model='link_image_url' :placeholder="label('oselia_thread_widget_component.link_image_menu.url_placeholder')")
+            .buttons
+                button(v-on:click='upload_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
+                button(v-on:click='cancel_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.cancel') }}
     template(v-if='has_access_to_thread')
         template(v-if='is_loading_thread')
             .is_loading_thread
                 i.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
-            .thread_container(ref='thread_container')
+            .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : ''")
                 //- .update_button 
                 //-     button.btn.btn-sm.btn-primary(v-on:click='force_reload')
                 //-         i.fa-duotone.fa-sync
+                
                 template(v-if='(!thread_messages) || (!thread_messages.length)')
                     .no_messages
                         i.fa-duotone.fa-comments
@@ -43,6 +56,19 @@
                 .thread_message_input
                     .thread_message_input_textarea
                         textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
+                    .thread_message_input_buttons
+                        .thread_message_input_file
+                            button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
+                        .thread_message_input_image
+                            button.fa-solid.fa-images(v-on:click='open_image_upload')
+                            template(v-if="enable_image_upload_menu")
+                                .image_upload_menu
+                                    .image_upload_menu_item(v-on:click='upload_image')
+                                        i.fa-duotone.fa-upload
+                                        | {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
+                                    .image_upload_menu_item(v-on:click='open_link_image')
+                                        i.fa-duotone.fa-images
+                                        | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
                     .thread_message_input_send
                         template(v-if='too_many_assistants')
                             .too_many_assistants.bg-warning

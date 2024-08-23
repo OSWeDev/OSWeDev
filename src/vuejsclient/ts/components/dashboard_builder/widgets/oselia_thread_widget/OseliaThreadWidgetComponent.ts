@@ -79,7 +79,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private assistant: GPTAssistantAPIAssistantVO = null;
 
     private new_message_text: string = null;
+    private is_dragging: boolean = false;
 
+    private enable_image_upload_menu: boolean = false;
+    private enable_link_image_menu: boolean = false;
+    private link_image_url: string = null;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -123,6 +127,79 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         this.is_loading_thread = false;
         this.has_access_to_thread = !!this.thread;
+    }
+
+    private async handle_drag_over(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = true;
+        }
+    }
+
+    private async handle_drag_leave(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = false;
+        }
+    }
+
+    private async handle_drop(event: DragEvent) {
+        if (this.has_access_to_thread && !this.is_loading_thread) {
+            this.is_dragging = false;
+        }
+    }
+
+    private async open_image_upload() {
+        this.enable_image_upload_menu = !this.enable_image_upload_menu;
+        this.enable_link_image_menu = false;
+    }
+
+    private async open_file_upload() {
+        this.enable_image_upload_menu = false;
+        this.enable_link_image_menu = false;
+        try {
+            const fileHandle = await (window as any).showOpenFilePicker({
+                multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
+            });
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    private async upload_image() {
+        try {
+            const fileHandle = await (window as any).showOpenFilePicker({
+                types: [
+                    {
+                        description: 'Images',
+                        accept: {
+                            'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg']
+                        }
+                    }
+                ],
+                excludeAcceptAllOption: true, // Exclure l'option "Tous les fichiers"
+                multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
+            });
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    private async open_link_image() {
+        this.enable_link_image_menu = !this.enable_link_image_menu;
+    }
+
+    private async upload_link_image() {
+        if (!this.link_image_url) {
+            return;
+        }
+        // Do something with the image here
+
+        this.link_image_url = null;
+        this.enable_link_image_menu = false;
+    }
+
+    private async cancel_link_image() {
+        this.link_image_url = null;
+        this.enable_link_image_menu = false;
     }
 
     private async register_thread() {
