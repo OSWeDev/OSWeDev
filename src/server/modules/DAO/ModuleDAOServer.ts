@@ -76,6 +76,7 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1589,49 +1590,92 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + error.message);
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des vars impliquées : ' + JSON.stringify(vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
 
-                        const duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
-                        if (duplicates && duplicates.length) {
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
+                        /**
+                         * On fait des packets de 500 vars max pour cette requete
+                         */
+                        try {
 
-                            const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
-                            const filtered_not_imported_vos: VarDataBaseVO[] = [];
-                            for (const i in duplicates) {
-                                const duplicate: VarDataBaseVO = duplicates[i];
-                                duplicates_by_index[duplicate._bdd_only_index] = duplicate;
-                            }
-
+                            const packets: VarDataBaseVO[][] = [];
+                            let packet: VarDataBaseVO[] = [];
                             for (const i in vos) {
                                 const vo: VarDataBaseVO = vos[i] as VarDataBaseVO;
-                                const duplicated = duplicates_by_index[vo._bdd_only_index];
+                                packet.push(vo);
 
-                                if (duplicated) {
-                                    vo.id = duplicated.id;
-
-                                    // Correctif probablement inutile, lié à un bug en amont, à supprimer si inutile après le 2024-02-01
-                                    // // On gère un cas bien spécifique : Si on fait une création d'import pendant un calcul,
-                                    // //  le calcul se termine après l'import et la notif + invalidation associées, et on vient de notifier une
-                                    // //  valeur qui est donc fause à ce stade. On doit refuser l'insertion de cette valeur et on doit invalider.
-                                    if (duplicated.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
-
-                                        //     // On invalide la valeur (en y réflechissant il est probable que l'invalidation passe en fait sans avoir à la refaire ici
-                                        //     //  mais ça coute pas vraiment plus cher, et comme ça on est sûr du résultat)
-                                        //     await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([duplicated]);
-
-                                        continue;
-                                    }
+                                if (packet.length >= 500) {
+                                    packets.push(packet);
+                                    packet = [];
                                 }
-                                filtered_not_imported_vos.push(vo);
                             }
 
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
-                            result = await self.insert_without_triggers_using_COPY(vos, segmented_value, exec_as_server);
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
-                        } else {
-                            const get_select_query_str: string = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
-                            ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str);
+                            const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                            for (const i in packets) {
+                                const packet: VarDataBaseVO[] = packets[i];
+                                const pack_duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, packet.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server().select_vos();
+
+                                for (const j in pack_duplicates) {
+                                    const duplicate: VarDataBaseVO = pack_duplicates[j];
+                                    duplicates_by_index[duplicate._bdd_only_index] = duplicate;
+                                }
+                            }
+
+                            const duplicates: VarDataBaseVO[] = Object.values(duplicates_by_index);
+
+                            if (duplicates && duplicates.length) {
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: Index des doublons trouvés en base : ' + JSON.stringify(duplicates.map((vo: VarDataBaseVO) => vo._bdd_only_index)));
+
+                                const duplicates_by_index: { [index: string]: VarDataBaseVO } = {};
+                                const filtered_not_imported_vos: VarDataBaseVO[] = [];
+                                for (const i in duplicates) {
+                                    const duplicate: VarDataBaseVO = duplicates[i];
+                                    duplicates_by_index[duplicate._bdd_only_index] = duplicate;
+                                }
+
+                                for (const i in vos) {
+                                    const vo: VarDataBaseVO = vos[i] as VarDataBaseVO;
+                                    const duplicated = duplicates_by_index[vo._bdd_only_index];
+
+                                    if (duplicated) {
+                                        vo.id = duplicated.id;
+
+                                        // Correctif probablement inutile, lié à un bug en amont, à supprimer si inutile après le 2024-02-01
+                                        // // On gère un cas bien spécifique : Si on fait une création d'import pendant un calcul,
+                                        // //  le calcul se termine après l'import et la notif + invalidation associées, et on vient de notifier une
+                                        // //  valeur qui est donc fause à ce stade. On doit refuser l'insertion de cette valeur et on doit invalider.
+                                        if (duplicated.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+                                            //     // On invalide la valeur (en y réflechissant il est probable que l'invalidation passe en fait sans avoir à la refaire ici
+                                            //     //  mais ça coute pas vraiment plus cher, et comme ça on est sûr du résultat)
+                                            //     await ModuleVarServer.getInstance().invalidate_cache_intersection_and_parents([duplicated]);
+
+                                            continue;
+                                        }
+                                    }
+                                    filtered_not_imported_vos.push(vo);
+                                }
+
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
+                                result = await self.insert_without_triggers_using_COPY(vos, segmented_value, exec_as_server);
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
+                            } else {
+                                const get_select_query_str: string = await query(moduleTable.vo_type).filter_by_text_has(field_names<VarDataBaseVO>()._bdd_only_index, vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).exec_as_server(exec_as_server).get_select_query_str();
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
+                                ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str);
+                            }
+
+                        } catch (error) {
+
+                            ConsoleHandler.error('ERROR in insert_without_triggers_using_COPY: ' + error);
+                            try {
+
+                                const query_res = await self.insertOrUpdateVOs_without_triggers(vos, null, exec_as_server);
+                                result = (!!query_res) && (query_res.length == vos.length);
+                            } catch (error_) {
+
+                                ConsoleHandler.error('CRITICAL Should not happen, error in insert_without_triggers_using_COPY: ' + error_);
+                                result = false;
+                            }
                         }
                     } else if (error && error.message) {
                         ConsoleHandler.error('insert_without_triggers_using_COPY:Erreur, on tente une insertion classique mais sans triggers');
@@ -2007,18 +2051,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throw new Error('selectUsersForCheckUnicity: name and email must be defined');
             }
 
-            const filters = [
+            let has_sms_activation: boolean = false;
+
+            if (ModuleSendInBlue.getInstance().actif) {
+                has_sms_activation = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION);
+            }
+
+            let filters = [
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(name, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(name, true),
-                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(email, true),
                 filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(email, true),
-                filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true)
             ];
+
+            if (has_sms_activation) {
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(name, true));
+                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(email, true));
+            }
+
             if (!!phone) {
                 filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().name).by_text_eq(phone, true));
                 filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().email).by_text_eq(phone, true));
-                filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true));
+
+                if (has_sms_activation) {
+                    filters.push(filter(UserVO.API_TYPE_ID, field_names<UserVO>().phone).by_text_eq(phone, true));
+                }
             }
             // NEW method with query
             return await query(UserVO.API_TYPE_ID)

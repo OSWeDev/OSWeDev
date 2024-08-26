@@ -47,7 +47,7 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO,
+        vars_indicator?: ExportVarIndicatorVO[],
     ) {
         const res: ExportContextQueryToXLSXQueryVO = new ExportContextQueryToXLSXQueryVO();
 
@@ -111,5 +111,5 @@ export default class ExportContextQueryToXLSXQueryVO implements IDistantVOBase {
     public export_vars_indicator: boolean;
     public send_email_with_export_notification: boolean;
 
-    public vars_indicator: ExportVarIndicatorVO;
+    public vars_indicator: ExportVarIndicatorVO[];
 }

@@ -19,6 +19,7 @@ import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ContextQueryServerController from './ContextQueryServerController';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 
 export default class ContextFilterServerController {
 
@@ -3019,8 +3020,29 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_email:
                     case ModuleTableFieldVO.FIELD_TYPE_password:
                     default:
+                        where_conditions.push(field_name + ' IN (' + qr_TYPE_IN.query + ')');
                         break;
 
+                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
+                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
+
+                        // twist pour forcer un format numeric sur le field id sélectionné par la sous requete...
+                        const inputString = qr_TYPE_IN.query;
+                        const outputString = inputString.replace(
+                            /^SELECT (\w+\.\w+)  FROM (.+?) WHERE /,
+                            'SELECT $1::numeric  FROM $2 WHERE '
+                        );
+
+                        const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+                        where_conditions.push(
+                            ' EXISTS ( ' +
+                            '   select 1 ' +
+                            '   from ( ' +
+                            '       select unnest(tempo2.' + field.field_name + ') a' +
+                            '       from ' + table.full_name + ' tempo2' +
+                            '   ) as subquery ' +
+                            '   where a @> (' + outputString + '))');
+                        break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_string_array:
                     case ModuleTableFieldVO.FIELD_TYPE_html_array:
@@ -3028,14 +3050,9 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_int_array:
                     case ModuleTableFieldVO.FIELD_TYPE_float_array:
                     case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_numrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
                         throw new Error('Not Implemented');
                 }
-
-                where_conditions.push(field_name + ' IN (' + qr_TYPE_IN.query + ')');
-
                 break;
 
             case ContextFilterVO.TYPE_NOT_IN:
@@ -3296,6 +3313,8 @@ export default class ContextFilterServerController {
                     case ModuleTableFieldVO.FIELD_TYPE_tstzrange_array:
                     case ModuleTableFieldVO.FIELD_TYPE_refrange_array:
 
+                        let ranges: IRange[] = [];
+
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
 
                             const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
@@ -3325,32 +3344,31 @@ export default class ContextFilterServerController {
                         }
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
+                            ranges = context_filter.param_tsranges;
+                        }
 
-                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
-                                context_filter.param_tsranges, field, field.field_type
-                            );
-
-                            if (!range_to_db) {
-                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
-                            }
-
-                            const nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_tsranges).length;
-
-                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
-                            const table_name = table.full_name.split('.')[1];
-                            const ranges_query = 'ANY(' + range_to_db + ')';
-
-                            where_conditions.push(
-                                '(' +
-                                '  select count(1)' +
-                                '  from (' +
-                                '   select unnest(tempo2.' + field.field_name + ') a' +
-                                '  from ' + table.full_name + ' tempo2' +
-                                '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
-                                '  where tempo1.a <@ ' + ranges_query +
-                                '  ) >= ' + nb_values + ' ');
+                        if (!ranges?.length) {
                             break;
                         }
+
+                        let ranges_exploded: number[] = RangeHandler.get_all_segmented_elements_from_ranges(ranges);
+
+                        if (!ranges_exploded?.length) {
+                            throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
+                        }
+
+                        let table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
+
+                        where_conditions.push(
+                            '(' +
+                            'select count(tempo1.a) ' +
+                            'from (select unnest(ARRAY[' + ranges_exploded.join(', ') + ']) a) tempo1 ' +
+                            'cross join ' + table.full_name + ' tempo2 ' +
+                            'where tempo1.a::numeric <@ ANY(tempo2.' + field.field_id + ') ' +
+                            'and tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id ' +
+
+                            '  ) = ' + ranges_exploded.length + ' ');
+                        break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_amount:
                     case ModuleTableFieldVO.FIELD_TYPE_enum:

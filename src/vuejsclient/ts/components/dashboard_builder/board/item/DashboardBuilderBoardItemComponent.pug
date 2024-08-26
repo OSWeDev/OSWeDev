@@ -1,4 +1,4 @@
-.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}" v-tooltip='(widget && page_widget && is_edit_mode) ? "Widget ID: " + page_widget.id : null')
+.dashboard_builder_board_item(@mousedown='select_widget' :class="{'selected':is_selected}" v-tooltip='(widget && page_widget && is_edit_mode) ? "Widget ID: " + page_widget.id : null')
     template(v-if='widget && page_widget')
         template(v-if='is_edit_mode && is_selected')
             .delete_button

@@ -257,6 +257,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().disabled_many_to_one_link, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Désactiver les liens ManyToOne');
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().is_nullable, ModuleTableFieldVO.FIELD_TYPE_boolean, "La donnée peut-être null");
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().show_tooltip, ModuleTableFieldVO.FIELD_TYPE_boolean, "Afficher la popup");
+        ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().align_content_right, ModuleTableFieldVO.FIELD_TYPE_boolean, "Aligner le contenu à droite", false, true, false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().sum_numeral_datas, ModuleTableFieldVO.FIELD_TYPE_boolean, "Somme les datas", false, true, false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().explicit_html, ModuleTableFieldVO.FIELD_TYPE_boolean, "HTML avec mise en forme", false, true, false);
         ModuleTableFieldController.create_new(TableColumnDescVO.API_TYPE_ID, field_names<TableColumnDescVO>().is_sticky, ModuleTableFieldVO.FIELD_TYPE_boolean, "Figer", false, true, false);

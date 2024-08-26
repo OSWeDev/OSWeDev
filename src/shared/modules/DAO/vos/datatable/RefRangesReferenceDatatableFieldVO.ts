@@ -79,7 +79,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             return this.translatable_title_custom;
         }
 
-        const e = this.targetModuleTable.label.code_text;
+        const e = this.srcField.field_label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslationVO.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION;
         } else {

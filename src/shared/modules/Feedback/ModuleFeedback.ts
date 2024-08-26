@@ -24,7 +24,6 @@ export default class ModuleFeedback extends Module {
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFeedback.MODULE_NAME + '.FO_ACCESS';
 
     public static APINAME_feedback: string = "feedback";
-
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleFeedback {
         if (!ModuleFeedback.instance) {
@@ -38,7 +37,6 @@ export default class ModuleFeedback extends Module {
     public feedback: (feedback: FeedbackVO) => Promise<FeedbackVO> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
 
     private constructor() {
-
         super("feedback", ModuleFeedback.MODULE_NAME);
         this.forceActivationOnInstallation();
     }

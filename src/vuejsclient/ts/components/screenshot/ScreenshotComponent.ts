@@ -9,6 +9,9 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import './ScreenshotComponent.scss';
+import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
+import { sleep } from 'openai/core';
+import { take_fullsize_screenshot, take_video_capture } from './ScreenshotComponentRun';
 
 @Component({
     template: require('./ScreenshotComponent.pug'),
@@ -20,7 +23,6 @@ export default class ScreenshotComponent extends VueComponentBase {
 
     @Prop({ default: null })
     protected filevo: FileVO;
-
     protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
@@ -37,6 +39,118 @@ export default class ScreenshotComponent extends VueComponentBase {
     public async mounted() {
         this.uid = ScreenshotComponent.__UID++;
     }
+
+    /**
+     * Updates the state of the "is_taking" property.
+     * If "is_taking" is true, it hides elements with the class "hide_from_screenshot".
+     * If "is_taking" is false, it shows elements with the class "hide_from_screenshot".
+     */
+    @Watch('is_taking', { immediate: true })
+    public async updateIsTaking() {
+        if (this.is_taking) {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = 'none';
+            }
+        } else {
+            const toHide = document.getElementsByClassName('hide_from_screenshot');
+            for (let i = 0; i < toHide.length; i++) {
+                const element = toHide[i] as HTMLElement;
+                element.style.display = '';
+            }
+        }
+    }
+
+    public async do_take_fullsize_screenshot() {
+        this.is_taking = true;
+        try {
+            const canvas = await take_fullsize_screenshot();
+            await canvas.toBlob(async (imgData) => {
+                if (!imgData) {
+                    this.is_taking = false;
+                    // JNE : A mon avis ça arrive au chargement de l'appli si on essaie d'aller trop vite. Si c'est bloquant, on peut essayer de relancer auto la capture plus tard.
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000);
+
+                const newvo = JSON.parse(res);
+
+                this.$emit('uploaded', newvo);
+            }, 'image/png');
+            this.is_taking = false;
+
+        } catch (error) {
+            this.is_taking = false;
+            // Gestion des erreurs avec des détails supplémentaires
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+
+    public async do_take_video_capture() {
+        this.is_taking = true;
+        try {
+            const canvasList = await take_video_capture();
+            let voList = [];
+            for (let i = 0; i < canvasList.length; i++) {
+                this.is_taking = true;
+                const canvas = canvasList[i];
+    
+                // Encapsuler canvas.toBlob dans une Promise
+                const imgData = await new Promise<Blob | null>((resolve) => {
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/png');
+                });
+    
+                if (!imgData) {
+                    this.is_taking = false;
+                    ConsoleHandler.error('No imgData');
+                    return;
+                }
+    
+                console.dir(imgData);
+    
+                const formData = new FormData();
+                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
+    
+                const res = await AjaxCacheClientController.getInstance().post(
+                    null,
+                    '/ModuleFileServer/upload',
+                    [FileVO.API_TYPE_ID],
+                    formData,
+                    null,
+                    null,
+                    false,
+                    30000
+                );
+    
+                const newvo = JSON.parse(res);
+                voList.push(newvo);
+                // Emettre l'événement après chaque upload réussi
+                this.is_taking = false;
+            }
+            this.$emit('uploaded', voList);
+
+        } catch (error) {
+            this.is_taking = false;
+            ConsoleHandler.error("Erreur lors de la capture de l'écran :", error);
+        }
+    }
+    
+    
 
     public async take_screenshot() {
         const self = this;

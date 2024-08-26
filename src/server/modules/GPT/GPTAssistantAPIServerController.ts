@@ -845,11 +845,22 @@ export default class GPTAssistantAPIServerController {
                 referrer_external_api_by_name[referrer_external_api.name] = referrer_external_api;
             }
 
+            const availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } } = {};
+            for (const i in availableFunctionsParameters) {
+                const function_id = parseInt(i);
+                availableFunctionsParametersByParamName[function_id] = {};
+                for (const j in availableFunctionsParameters[i]) {
+                    const param = availableFunctionsParameters[i][j];
+                    availableFunctionsParametersByParamName[function_id][param.gpt_funcparam_name] = param;
+                }
+            }
+
             await GPTAssistantAPIServerController.handle_run(
                 run_vo,
                 thread_vo,
                 availableFunctions,
                 availableFunctionsParameters,
+                availableFunctionsParametersByParamName,
                 referrer,
                 referrer_external_api_by_name,
             );
@@ -868,10 +879,6 @@ export default class GPTAssistantAPIServerController {
             //     res.push(await GPTAssistantAPIServerController.check_or_create_message_vo(thread_message, thread_vo));
             // }
 
-            const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
-            await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
-
             await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
 
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
@@ -886,14 +893,6 @@ export default class GPTAssistantAPIServerController {
         } catch (error) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
         } finally {
-
-            try {
-                const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
-                    ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
-                await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
-            } catch (error) {
-                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: ' + error);
-            }
 
             try {
                 await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
@@ -913,7 +912,19 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+    private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
+        try {
+            const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id) : null;
+            await GPTAssistantAPIServerSyncThreadMessagesController.sync_thread_messages(thread_vo, thread_gpt);
+        } catch (error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.resync_thread_messages: ' + error);
+        }
+    }
+
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
+        await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
         thread_vo.oselia_is_running = false;
         thread_vo.current_oselia_assistant_id = null;
         thread_vo.current_oselia_prompt_id = null;
@@ -1026,6 +1037,7 @@ export default class GPTAssistantAPIServerController {
         thread_vo: GPTAssistantAPIThreadVO,
         availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
         availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] },
+        availableFunctionsParametersByParamName: { [function_id: number]: { [param_name: string]: GPTAssistantAPIFunctionParamVO } },
         referrer: OseliaReferrerVO,
         referrer_external_api_by_name: { [api_name: string]: OseliaReferrerExternalAPIVO },
     ) {
@@ -1055,6 +1067,8 @@ export default class GPTAssistantAPIServerController {
                     return null;
                 case "requires_action":
 
+                    await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
+
                     // On doit appeler la fonction suivante pour que l'assistant puisse répondre
                     if (run.required_action && run.required_action.type == 'submit_tool_outputs') {
 
@@ -1077,6 +1091,16 @@ export default class GPTAssistantAPIServerController {
                                         throw new Error('function_vo not found: ' + tool_call.function.name);
                                     }
 
+                                    /**
+                                     * On commence par checker la cohérence des arguments passés à la fonction
+                                     */
+                                    for (let gpt_arg_name in function_args) {
+                                        if (!availableFunctionsParametersByParamName[function_vo.id][gpt_arg_name]) {
+                                            function_response = "UNKNOWN_PARAMETER : Check the arguments and retry. " + gpt_arg_name + " not found.";
+                                            throw new Error('function_arg not found: ' + gpt_arg_name);
+                                        }
+                                    }
+
                                     // if (!function_vo) {
 
                                     // si on a un referrer et des externals apis, on peut tenter de trouver dans ses fonctions
@@ -1084,12 +1108,41 @@ export default class GPTAssistantAPIServerController {
                                         const referrer_external_api = referrer_external_api_by_name[tool_call.function.name];
 
                                         try {
+                                            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                                                ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - params - ' + JSON.stringify(function_args));
+                                            }
+
+                                            // /**
+                                            //  * Dans le cas où l'URL contiendrait des paramètres, on les remplace par les valeurs des arguments correspondants et on pop ces arguments avant d'appeler la fonction externe
+                                            //  *  On identifie les params à la composition de l'URL /<param_name>/
+                                            //  */
+                                            const url_params = referrer_external_api.external_api_url.match(/<([^>]*)>/g);
+                                            let external_api_url = referrer_external_api.external_api_url;
+
+                                            if (url_params && url_params.length) {
+                                                for (const i in url_params) {
+                                                    const url_param = url_params[i].replace(/<([^>]*)>/, '$1');
+                                                    external_api_url = external_api_url.replace('<' + url_param + '>', function_args[url_param]);
+
+                                                    const func_param: GPTAssistantAPIFunctionParamVO = availableFunctionsParametersByParamName[function_vo.id][url_param];
+                                                    if (func_param && func_param.not_in_function_params) {
+                                                        delete function_args[url_param];
+                                                    }
+                                                }
+                                            }
+
                                             function_response = await ExternalAPIServerController.call_external_api(
                                                 (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
-                                                referrer_external_api.external_api_url,
+                                                external_api_url,
                                                 function_args,
-                                                referrer_external_api.external_api_authentication_id
+                                                referrer_external_api.external_api_authentication_id,
+                                                referrer_external_api.accept,
+                                                referrer_external_api.content_type,
                                             );
+
+                                            if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
+                                                ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
+                                            }
 
                                             function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                             return;
@@ -1142,10 +1195,12 @@ export default class GPTAssistantAPIServerController {
                 case "queued":
                 case "in_progress":
                 default:
+                    // await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
                     break;
             }
 
-            await ThreadHandler.sleep(1000, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(300, 'GPTAssistantAPIServerController.ask_assistant');
+
             run = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.retrieve,
                 ModuleGPTServer.openai.beta.threads.runs,

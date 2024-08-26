@@ -88,6 +88,26 @@ export default interface IEnvParam {
 
     open_api_api_key?: string;
 
+    // Webhooks
+    teams_webhook_send_message?: string;
+    teams_webhook_update_message?: string;
+
+    // Organisations
+    teams_org__oselia: string;
+    teams_org__tech: string;
+    teams_org_dev: string;
+
+    // Channels
+    teams_channel__oselia_error: string;
+    teams_channel__oselia_warn: string;
+    teams_channel__oselia_info: string;
+    teams_channel__oselia_success: string;
+
+    teams_channel__tech_error: string;
+    teams_channel__tech_warn: string;
+    teams_channel__tech_info: string;
+    teams_channel__tech_success: string;
+
     teams_webhook__oselia_error?: string;
     teams_webhook__oselia_warn?: string;
     teams_webhook__oselia_info?: string;

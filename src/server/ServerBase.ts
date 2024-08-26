@@ -2,12 +2,12 @@ import child_process from 'child_process';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
-import helmet from 'helmet';
 import express, { NextFunction, Request, Response } from 'express';
 import createLocaleMiddleware from 'express-locale';
 import expressSession from 'express-session';
 import sharedsession from 'express-socket.io-session';
 import fs from 'fs';
+import helmet from 'helmet';
 import path from 'path';
 import pg from 'pg';
 import pg_promise, { IDatabase } from 'pg-promise';
@@ -65,11 +65,11 @@ import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconnectionServerHandler';
+import ForkMessageController from './modules/Fork/ForkMessageController';
+import IFork from './modules/Fork/interfaces/IFork';
+import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import IFork from './modules/Fork/interfaces/IFork';
-import ForkMessageController from './modules/Fork/ForkMessageController';
-import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 
 export default abstract class ServerBase {
@@ -544,9 +544,11 @@ export default abstract class ServerBase {
 
         // Middleware pour définir dynamiquement les en-têtes X-Frame-Options
         this.app.use((req, res, next) => {
-            const origin = req.get('Origin');
-
-            if (OseliaServerController.authorized_oselia_partners.includes(origin)) {
+            let origin = req.get('Origin');
+            if ((!origin) || !(origin.length)) {
+                origin = req.get('Referer');
+            }
+            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.authorized_oselia_partners.includes(origin))) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
                 if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {

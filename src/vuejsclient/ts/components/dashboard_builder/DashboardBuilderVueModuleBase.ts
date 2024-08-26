@@ -28,7 +28,6 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     protected static instance: DashboardBuilderVueModuleBase = null;
@@ -118,7 +117,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
-
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 

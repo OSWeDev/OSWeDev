@@ -18,7 +18,7 @@ import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerS
 
 export default class GPTAssistantAPIServerSyncRunsController {
 
-    private static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
+    public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
     /**
      * GPTAssistantAPIRunVO
@@ -278,6 +278,8 @@ export default class GPTAssistantAPIServerSyncRunsController {
 
                 await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
             }
+
+            GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id] = null;
         })();
 
         return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];

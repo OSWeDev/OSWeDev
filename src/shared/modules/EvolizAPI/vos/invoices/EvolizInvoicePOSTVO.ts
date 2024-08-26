@@ -38,7 +38,7 @@ export default class EvolizInvoicePOSTVO {
     };
     // Comments on the document with html
     public comment: string;
-    // (REQUIRED) Catégorie de la facture
+    // (REQUIRED) Catégorie de la facture (n'existe plus pour flkmedia)
     public analyticid: number;
     // Invoice rebate in amount, must be between 0 and the invoice total amount excluding vat
     public global_rebate: number;

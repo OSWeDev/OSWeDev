@@ -13,7 +13,23 @@ export default class EvolizInvoiceVO {
     // Document’s creator ID
     public userid: number;
     // Linked client informations
-    public client: { clientid: number, code: string, civility: string, name: string };
+    public client: {
+        clientid: number,
+        code: string,
+        name: string,
+        civility: string,
+        contact: {
+            contactid: number,
+            firstname: string,
+            lastname: string,
+            email: string,
+        },
+        delivery_address: {
+            delivery_addressid: number,
+            code: string,
+            name: string,
+        }
+    };
     // Company default currency
     public default_currency: {
         // Iso currency code
@@ -40,7 +56,9 @@ export default class EvolizInvoiceVO {
             // Total purchase price
             purchase_price_vat_exclude: number,
             // Total margin percent
-            percent: number,
+            margin_percent: number,
+            // Total markup percent
+            markup_percent: number,
             // Total margin amount
             amount: number
         },
@@ -56,7 +74,7 @@ export default class EvolizInvoiceVO {
         vat_exclude: number,
         vat: number,
         vat_include: number,
-        margin: { purchase_price_vat_exclude: number, percent: number, amount: number },
+        margin: { purchase_price_vat_exclude: number, margin_percent: number, markup_percent: number, amount: number },
         advance: number,
         paid: number,
         net_to_pay: number
@@ -134,8 +152,10 @@ export default class EvolizInvoiceVO {
         // Retention Date
         date: string
     };
+    // Invoice template
+    public template: { templateid: number, label: string };
     // Document item
-    public items: {
+    public items: Array<{
         // Item id
         itemid: number,
         // Article unique identifier
@@ -160,11 +180,11 @@ export default class EvolizInvoiceVO {
         vat: number,
         // Document total amounts
         total: {
-            rebate: null,
+            rebate: { amount_vat_exclude: number, percent: number },
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, percent: number, amount: number }
+            margin: { purchase_unit_price_vat_exclude: number, coefficient: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Document total amounts in currency
         currency_total: {
@@ -172,16 +192,16 @@ export default class EvolizInvoiceVO {
             vat_exclude: number,
             vat: number,
             vat_include: number,
-            margin: { purchase_price_vat_exclude: number, percent: number, amount: number }
+            margin: { purchase_price_vat_exclude: number, margin_percent: number, markup_percent: number, amount: number }
         },
         // Item classification information
         sale_classification: {
             // Classification id
             id: number,
             // Classification code
-            code: number,
+            code: string,
             // Classification label
             label: string
         }
-    };
+    }>;
 }

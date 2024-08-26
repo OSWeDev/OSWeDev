@@ -829,6 +829,24 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Appel de fonction'
         }, 'oselia_thread_widget_component.thread_message_header_left_username.function.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Joindre le fichier'
+        }, 'oselia_thread_widget_component.dragging_overlay_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Upload l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.upload.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Lien vers l\'image'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.link.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'URL de l\'image'
+        }, 'oselia_thread_widget_component.link_image_menu.url_placeholder.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Annuler'
+        }, 'oselia_thread_widget_component.image_upload_menu_item.cancel.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Insérer une image depuis un URL'
+        }, 'oselia_thread_widget_component.link_image_menu.title.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exportable'
@@ -1605,11 +1623,76 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Couleur du fond'
         }, 'var_widget_options_component.bg_color.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
-            'fr-fr': 'Couleur de la valeur'
-        }, 'var_widget_options_component.fg_color_value.___LABEL___'));
-        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Couleur du texte'
         }, 'var_widget_options_component.fg_color_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Style du widget'
+        }, 'var_widget_options_component.widget_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Icône du titre'
+        }, 'var_widget_options_component.widget_icon.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Taille de l\'icône'
+        }, 'var_widget_options_component.icon.size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable centrale'
+        }, 'var_widget_options_component.var_name_principale.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable centrale basse'
+        }, 'var_widget_options_component.var_name_a_date.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable à droite'
+        }, 'var_widget_options_component.var_name_complementaire.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable à droite basse'
+        }, 'var_widget_options_component.var_name_complementaire_supp.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Afficher la légende de la variable'
+        }, 'var_widget_options_component.display_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Est affecté par les conditions'
+        }, 'var_widget_options_component.is_condition_target.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Variable de condition'
+        }, 'var_widget_options_component.var_condition.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Conditions d\'affichage'
+        }, 'var_widget_options_component.conditional_icon.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Condition'
+        }, 'var_widget_options_component.conditional_icon.condition.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Valeur'
+        }, 'var_widget_options_component.conditional_icon.value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sous-titre'
+        }, 'var_widget_options_component.widget_subtitle.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous pouvez utiliser "#date_max#" pour afficher la date maximale de la période.'
+        }, 'var_widget_options_component.widget_subtitle.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Légende de la variable'
+        }, 'var_widget_options_component.var_input_label.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options du widget'
+        }, 'var_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable centrale'
+        }, 'var_widget_options_component.separator.first_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable centrale basse'
+        }, 'var_widget_options_component.separator.second_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable à droite'
+        }, 'var_widget_options_component.separator.third_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options de la variable à droite basse'
+        }, 'var_widget_options_component.separator.fourth_var_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Options des conditions'
+        }, 'var_widget_options_component.separator.condition_options.___LABEL___'));
+
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Filter'
@@ -3073,6 +3156,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "La colonne est filtrable en cliquant directement sur la donnée" },
             'table_widget_column_conf.can_filter_by_column.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Aligner à droite" },
+            'table_widget_column_conf.align_content_right.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement par défaut" },
+            'table_widget_column_conf.editable_column.align_content_right.default.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Aligner à droite" },
+            'table_widget_column_conf.editable_column.align_content_right.right.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Supervision" },

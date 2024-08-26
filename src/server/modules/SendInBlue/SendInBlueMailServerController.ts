@@ -1,24 +1,22 @@
-import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
-import SendInBlueServerController from './SendInBlueServerController';
-import SendInBlueAttachmentVO from '../../../shared/modules/SendInBlue/vos/SendInBlueAttachmentVO';
-import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
-import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
-import ConfigurationService from '../../env/ConfigurationService';
-import EnvParam from '../../env/EnvParam';
-import ModuleMailerServer from '../Mailer/ModuleMailerServer';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import StackContext from '../../StackContext';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
+import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import SendInBlueAttachmentVO from '../../../shared/modules/SendInBlue/vos/SendInBlueAttachmentVO';
+import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
+import ConfigurationService from '../../env/ConfigurationService';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import SendInBlueServerController from './SendInBlueServerController';
 
 export default class SendInBlueMailServerController {
 
@@ -270,12 +268,25 @@ export default class SendInBlueMailServerController {
             params = {};
         }
 
-        // On ajoute les params d'environnement
-        const envs: EnvParam = ConfigurationService.node_configuration;
-        for (const i in envs) {
-            if (!params[i]) {
-                params[i] = envs[i];
-            }
+        // On ajoute CERTAINS params d'environnement en maj
+        if (!params.APP_TITLE) {
+            params.APP_TITLE = ConfigurationService.node_configuration.app_title;
+        }
+
+        if (!params.PORT) {
+            params.PORT = ConfigurationService.node_configuration.port;
+        }
+
+        if (!params.URL_RECOVERY_CHALLENGE) {
+            params.URL_RECOVERY_CHALLENGE = ConfigurationService.node_configuration.url_recovery_challenge;
+        }
+
+        if (!params.URL_RECOVERY) {
+            params.URL_RECOVERY = ConfigurationService.node_configuration.url_recovery;
+        }
+
+        if (!params.BASE_URL) {
+            params.BASE_URL = ConfigurationService.node_configuration.base_url;
         }
 
         const session = StackContext.get('SESSION');

@@ -63,6 +63,12 @@ export default class GPTAssistantAPIFunctionParamVO implements IDistantVOBase, I
     public array_items_type: number;
 
     /**
+     * Pour les params d'url, on propose de ne pas transmettre ce param comme param de fonction.
+     *  Pas obligatoire puisque des fois l'API peut avoir besoin de ce param pour construire l'URL ET en param de fonction
+     */
+    public not_in_function_params: boolean;
+
+    /**
      * A voir si on peut faire évoluer mais pour le moment à saisir en JSON ("1" si string 1 dans le champs de saisie, ou 1 si number 1, etc...)
      */
     public default_json_value: string;

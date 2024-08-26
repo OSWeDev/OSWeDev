@@ -29,9 +29,9 @@ import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerS
 
 export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
-    private static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
+    public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
-    private static already_syncing_thread_message: { [id: number]: boolean } = {};
+    public static already_syncing_thread_message: { [id: number]: boolean } = {};
 
     /**
      * GPTAssistantAPIThreadMessageContentVO
@@ -153,7 +153,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         content: message_contents_create,
                         role: GPTAssistantAPIThreadMessageVO.TO_OPENAI_ROLE_MAP[vo.role] as "user" | "assistant",
                         attachments: attachments,
-                        metadata: cloneDeep(vo.metadata),
+                        metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
                     });
 
                 if (!gpt_obj) {
@@ -180,7 +180,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         gpt_obj.thread_id,
                         gpt_obj.id,
                         {
-                            metadata: cloneDeep(vo.metadata),
+                            metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
                         });
 
                     if (!gpt_obj) {
@@ -293,6 +293,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             await promise_pipeline.end();
+
+            GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[thread_gpt.id] = null;
         })();
 
         return GPTAssistantAPIServerSyncThreadMessagesController.syncing_semaphores_promises[thread_gpt.id];
@@ -475,6 +477,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }
@@ -538,6 +541,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }
@@ -593,6 +597,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
+            found_vo.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(found_vo);
         }
     }

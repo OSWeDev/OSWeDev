@@ -312,7 +312,7 @@ export default class ModuleGPT extends Module {
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
 
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle', false);
@@ -463,6 +463,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du paramètre', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().required, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Requis', true, true, true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().not_in_function_params, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas passer à la fonction (par exemple paramètre d\'URL uniquement)', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().string_enum, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Options string enum', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionParamVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionParamVO>().number_enum, ModuleTableFieldVO.FIELD_TYPE_float_array, 'Options numebr enum', false);

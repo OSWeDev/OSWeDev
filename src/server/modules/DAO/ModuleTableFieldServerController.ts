@@ -171,11 +171,17 @@ export default class ModuleTableFieldServerController {
 
             case ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj:
 
-                if (!ObjectHandler.try_is_json(field_value)) {
-                    return field_value;
-                }
-
                 let trans_ = ObjectHandler.try_get_json(field_value);
+
+                if (!trans_) {
+
+                    // Si on est déjà sur un objet, normal que le try_get_json ne fonctionne pas, on utilise l'objet directement
+                    if (typeof field_value == 'object') {
+                        trans_ = field_value;
+                    } else {
+                        return field_value;
+                    }
+                }
 
                 if (trans_) {
 
