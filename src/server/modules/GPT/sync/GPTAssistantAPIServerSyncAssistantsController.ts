@@ -23,6 +23,7 @@ import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncFilesController from './GPTAssistantAPIServerSyncFilesController';
 import GPTAssistantAPIServerSyncVectorStoresController from './GPTAssistantAPIServerSyncVectorStoresController';
+import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/threads';
 
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
@@ -195,7 +196,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         description: vo.description,
                         instructions: vo.instructions,
                         metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
-                        response_format: cloneDeep(vo.response_format),
+                        response_format: cloneDeep(vo.response_format) as AssistantResponseFormatOption,
                         temperature: vo.temperature,
                         tool_resources: tool_resources,
                         tools: tools,
@@ -229,7 +230,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                             description: vo.description,
                             instructions: vo.instructions,
                             metadata: vo.metadata ? cloneDeep(vo.metadata) : {},
-                            response_format: cloneDeep(vo.response_format),
+                            response_format: cloneDeep(vo.response_format) as AssistantResponseFormatOption,
                             temperature: vo.temperature,
                             tool_resources: tool_resources,
                             tools: tools,

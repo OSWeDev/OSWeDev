@@ -27,6 +27,10 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
+import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -80,6 +84,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private new_message_text: string = null;
     private is_dragging: boolean = false;
+    private thread_images: FileVO[] = [];
 
     private enable_image_upload_menu: boolean = false;
     private enable_link_image_menu: boolean = false;
@@ -166,7 +171,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async upload_image() {
         try {
-            const fileHandle = await (window as any).showOpenFilePicker({
+            const [fileHandle] = await (window as any).showOpenFilePicker({
                 types: [
                     {
                         description: 'Images',
@@ -178,9 +183,33 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 excludeAcceptAllOption: true, // Exclure l'option "Tous les fichiers"
                 multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
             });
+            const file: File = await fileHandle.getFile();
+            const formData = new FormData();
+            const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png';
+            formData.append('file', file, file_name);
+
+            await AjaxCacheClientController.getInstance().post(
+                null,
+                '/ModuleFileServer/upload',
+                [FileVO.API_TYPE_ID],
+                formData,
+                null,
+                null,
+                false,
+                30000).then(() => {
+                    let new_file = new FileVO();
+                    new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+
+                    this.thread_images.push(new_file);
+                    this.enable_image_upload_menu = false;
+                });
         } catch (error) {
             ConsoleHandler.error(error);
         }
+    }
+
+    private async handle_hover() {
+        alert("hover")
     }
 
     private async open_link_image() {

@@ -54,6 +54,12 @@
 
     
                 .thread_message_input
+                    template(v-if="thread_images.length > 0")
+                        .thread_images
+                            template(v-for="image in thread_images")
+                                template(v-if="image.path")
+                                    button.fa-solid.fa-xmark
+                                    img(:src="'/' + image.path" v-on:hover="handle_hover")
                     .thread_message_input_textarea
                         textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                     .thread_message_input_buttons

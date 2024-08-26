@@ -15,6 +15,7 @@ import GPTAssistantAPIServerSyncAssistantsController from './GPTAssistantAPIServ
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
 import GPTAssistantAPIServerSyncRunStepsController from './GPTAssistantAPIServerSyncRunStepsController';
 import GPTAssistantAPIServerSyncThreadsController from './GPTAssistantAPIServerSyncThreadsController';
+import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/threads';
 
 export default class GPTAssistantAPIServerSyncRunsController {
 
@@ -101,7 +102,7 @@ export default class GPTAssistantAPIServerSyncRunsController {
                         max_prompt_tokens: vo.max_prompt_tokens,
                         metadata: cloneDeep(vo.metadata),
                         temperature: vo.temperature,
-                        response_format: cloneDeep(vo.response_format),
+                        response_format: cloneDeep(vo.response_format) as AssistantResponseFormatOption,
                         tool_choice: cloneDeep(vo.tool_choice),
                         tools: cloneDeep(vo.tools),
                         top_p: vo.top_p,
