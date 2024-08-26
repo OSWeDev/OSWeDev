@@ -382,13 +382,16 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         //     new Promise(async (resolve, reject) => {
 
         try {
+            const message = self.new_message_text;
+            self.new_message_text = null;
             const responses = await ModuleGPT.getInstance().ask_assistant(
                 self.assistant.gpt_assistant_id,
                 self.thread.gpt_thread_id,
-                self.new_message_text,
+                message,
                 [],
                 VueAppController.getInstance().data_user.id
             );
+
             // if (!responses || !responses.length) {
             //     throw new Error('No response');
             // }
@@ -396,8 +399,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
              * Il faut changer de technique pour identifier des erreurs de l'API
              * On devrait pas renvoyer les nouveaux messages maintenant, ça n'a plus de sens, mais bien l'état de le requête - réussie ou échouée
              */
-
-            self.new_message_text = null;
 
             // self.throttle_load_thread();
 

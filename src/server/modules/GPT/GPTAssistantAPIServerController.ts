@@ -1131,8 +1131,25 @@ export default class GPTAssistantAPIServerController {
                                                 }
                                             }
 
+                                            let method: "get" | "post" | "put" | "delete" = 'get';
+                                            switch (referrer_external_api.external_api_method) {
+                                                case OseliaReferrerExternalAPIVO.API_METHOD_POST:
+                                                    method = 'post';
+                                                    break;
+                                                case OseliaReferrerExternalAPIVO.API_METHOD_PUT:
+                                                    method = 'put';
+                                                    break;
+                                                case OseliaReferrerExternalAPIVO.API_METHOD_DELETE:
+                                                    method = 'delete';
+                                                    break;
+                                                case OseliaReferrerExternalAPIVO.API_METHOD_GET:
+                                                default:
+                                                    method = 'get';
+                                                    break;
+                                            }
+
                                             function_response = await ExternalAPIServerController.call_external_api(
-                                                (referrer_external_api.external_api_method == OseliaReferrerExternalAPIVO.API_METHOD_GET) ? 'get' : 'post',
+                                                method,
                                                 external_api_url,
                                                 function_args,
                                                 referrer_external_api.external_api_authentication_id,
