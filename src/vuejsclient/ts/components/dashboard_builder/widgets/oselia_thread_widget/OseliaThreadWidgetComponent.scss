@@ -98,12 +98,37 @@
             margin-top: 2em;
             max-width: 768px;
             margin-left: 3em;
+            .thread_images {
 
+                img:hover{
+                    opacity: 0.5;
+                }
+
+                button {
+                    display:none;
+                }
+
+                button:hover {
+                    display:flex;
+                }
+
+                img {
+                    border: solid 2px #DDD;
+                    width: 30%;
+                    height: 30%;
+                    vertical-align: middle;
+                }
+                height: fit-content;
+                width: fit-content;
+            }
             .thread_message_input_buttons {
+
                 display:flex;
+
                 .thread_message_input_image {
                     margin-left: 7px;
                 }
+
                 button {
                     background-color: #e3e3eb;
                     font-size: 18px;
@@ -112,6 +137,7 @@
                     border: none;
                     padding: 8px;
                 }
+                
                 button:hover {
                     background-color: #d3d3db;
                 }

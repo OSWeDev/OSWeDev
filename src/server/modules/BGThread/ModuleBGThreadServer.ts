@@ -193,6 +193,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
+            // Modif : pour être sûr de pas avoir de boucles infinies, on met l'attente en premier
+            await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
+
             /**
              * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
              */
@@ -200,7 +203,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             // Si déjà lancé, on attend que ça se termine normalement
             if (bgthread.semaphore) {
                 bgthread.last_run_unix = Dates.now_ms();
-                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
                 continue;
             }
 
@@ -215,7 +217,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             }
 
             if (!do_run) {
-                await ThreadHandler.sleep(10, 'ModuleBGThreadServer.execute_bgthread.' + bgthread.name);
                 continue;
             }
 
