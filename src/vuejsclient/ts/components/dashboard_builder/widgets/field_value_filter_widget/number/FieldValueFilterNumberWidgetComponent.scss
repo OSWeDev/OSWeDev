@@ -17,6 +17,7 @@
     .advanced_number_filter_content {
         display: inline-block;
         width: 8em;
+        margin-right: .3em;
 
         input {
             width: -webkit-fill-available;
@@ -24,8 +25,6 @@
             border: none;
             margin-left: 1em;
         }
-
-        margin-right: .3em;
     }
 
     .advanced_number_filter_add_filter {

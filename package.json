@@ -179,6 +179,7 @@
         "@types/lodash": "4.14.202",
         "@types/node": "13.1.1",
         "@types/select2": "4.0.44",
+        "@types/w3c-image-capture": "^1.0.2",
         "babel-core": "6.26.0",
         "babel-loader": "7.1.2",
         "babel-plugin-istanbul": "^6.1.1",
