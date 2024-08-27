@@ -264,18 +264,21 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
-            for (let j = 0; j <= var_widget_options.vars.length; j++) {
-                const current_var = var_widget_options.vars[j];
-                const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-                    options.var_id,
-                    var_widget_options.filter_custom_field_filters[j],
-                    current_var.filter_type,
-                    current_var.filter_additional_params,
-                );
-                res_columns.push(conf);
+
+            if (var_widget_options.vars && var_widget_options.vars.length) {
+                for (let j = 0; j < var_widget_options.vars.length; j++) {
+                    const current_var = var_widget_options.vars[j];
+                    const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                        options.var_id,
+                        var_widget_options.filter_custom_field_filters[j],
+                        current_var.filter_type,
+                        current_var.filter_additional_params,
+                    );
+                    res_columns.push(conf);
+                }
             }
-            for (let conf in res_columns) {
-                let column;
+            for (const conf in res_columns) {
+                const column = {};
                 column[name] = conf;
                 varcolumn_conf.push(column[name]);
             }
@@ -1879,7 +1882,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // exec regex on translated text
             const rgx_result = rgx.exec(translated_text);
 
-            const { page_widget_id } = rgx_result?.groups;
+            const { page_widget_id } = rgx_result ? rgx_result.groups : null;
 
             // TODO: find field_filter by page_widget_id instead of filter_name
             const page_widget = this.all_page_widget.find((pw: DashboardPageWidgetVO) => {
