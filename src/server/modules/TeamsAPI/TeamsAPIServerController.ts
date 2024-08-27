@@ -2,18 +2,12 @@ import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
-import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
-import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
-import TeamsWebhookContentColumnSetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnSetVO';
-import TeamsWebhookContentColumnVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnVO';
 import TeamsWebhookContentImageVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentImageVO';
-import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentTextBlockVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -25,7 +19,6 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ActionURLServerTools from '../ActionURL/ActionURLServerTools';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleOseliaServer from '../Oselia/ModuleOseliaServer';
-import ModuleTeamsAPIServer from './ModuleTeamsAPIServer';
 import SendTeamsLevelParam from './SendTeamsLevelParam';
 
 export default class TeamsAPIServerController {
@@ -35,14 +28,130 @@ export default class TeamsAPIServerController {
     /**
      * Utiliser uniquement si on ne veut pas de throttling, ou des boutons pour le moment
      *  sinon préférer send_teams_error, send_teams_info, send_teams_warn, send_teams_success
-     * @param webhook
+     * @param group_id
+     * @param channel_id
      * @param message
      * @returns
      */
-    public static async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
+    public static async send_to_teams_webhook(channel_id: string, group_id: string, message: TeamsWebhookContentVO) {
 
         if (ConfigurationService.node_configuration.block_teams_messages) {
             ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.attachments[0].content.body[0]['text'] ? message.attachments[0].content.body[0]['text'] : 'Error');
+            return;
+        }
+
+        if ((!group_id) || (!channel_id)) {
+            ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Impossible de trouver le groupe ou le channel pour envoyer le message Teams');
+            return;
+        }
+
+        const send_message_webhook = ConfigurationService.node_configuration.teams_webhook_send_message;
+        const { host, path } = this.getHostAndPathFromUrl(send_message_webhook);
+
+        const msg = TextHandler.getInstance().encode_object(message);
+        await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_POST,
+            host,
+            path,
+            msg,
+            null,
+            true,
+            null,
+            true,
+            true
+        );
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_oselia_action_needed(title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
+        await TeamsAPIServerController.send_teams_oselia_level('action_needed', title, message, thread_id, actions);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_oselia_error(title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
+        await TeamsAPIServerController.send_teams_oselia_level('error', title, message, thread_id, actions);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_oselia_info(title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
+        await TeamsAPIServerController.send_teams_oselia_level('info', title, message, thread_id, actions);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_oselia_warn(title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
+        await TeamsAPIServerController.send_teams_oselia_level('warn', title, message, thread_id, actions);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_oselia_success(title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
+        await TeamsAPIServerController.send_teams_oselia_level('success', title, message, thread_id, actions);
+    }
+
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_error(
+        title: string,
+        message: string,
+        actions: TeamsWebhookContentActionOpenUrlVO[] = [],
+        groupid_param_name: string = null,
+        groupid_default_value: string = null,
+        channelid_param_name: string = null,
+        channelid_default_value: string = null,
+    ) {
+        await TeamsAPIServerController.send_teams_level('error', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_info(
+        title: string,
+        message: string,
+        actions: TeamsWebhookContentActionOpenUrlVO[] = [],
+        groupid_param_name: string = null,
+        groupid_default_value: string = null,
+        channelid_param_name: string = null,
+        channelid_default_value: string = null,
+    ) {
+        await TeamsAPIServerController.send_teams_level('info', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_warn(
+        title: string,
+        message: string,
+        actions: TeamsWebhookContentActionOpenUrlVO[] = [],
+        groupid_param_name: string = null,
+        groupid_default_value: string = null,
+        channelid_param_name: string = null,
+        channelid_default_value: string = null,
+    ) {
+        await TeamsAPIServerController.send_teams_level('warn', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+    }
+
+    // istanbul ignore next: nothing to test : send_teams
+    public static async send_teams_success(
+        title: string,
+        message: string,
+        actions: TeamsWebhookContentActionOpenUrlVO[] = [],
+        groupid_param_name: string = null,
+        groupid_default_value: string = null,
+        channelid_param_name: string = null,
+        channelid_default_value: string = null,
+    ) {
+        await TeamsAPIServerController.send_teams_level('success', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
+    }
+
+    public static async update_teams_message(message_id: string, channel_id: string, group_id: string) {
+        const webhook = ConfigurationService.node_configuration.teams_webhook_update_message;
+
+        if (!webhook) {
+            ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de trouver le webhook pour envoyer le message Teams');
+            return;
+        }
+
+        const message = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body([{ "type": "TextBlock", "messageId": message_id, "channelId": channel_id, "organisationId": group_id, "message": "Action is already done." }]))]);
+
+        if (ConfigurationService.node_configuration.block_teams_messages) {
+            ConsoleHandler.log('ModuleTeamsAPIServer.update_teams_message: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.attachments[0].content.body[0]['text'] ? message.attachments[0].content.body[0]['text'] : 'Error');
             return;
         }
 
@@ -83,95 +192,30 @@ export default class TeamsAPIServerController {
     }
 
     // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_oselia_error(title: string, message: string, thread_id: number, webhook_param_name: string = ModuleOselia.WEBHOOK_TEAMS_PARAM_NAME, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_oselia_level('error', title, message, thread_id, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_oselia_info(title: string, message: string, thread_id: number, webhook_param_name: string = ModuleOselia.WEBHOOK_TEAMS_PARAM_NAME, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_oselia_level('info', title, message, thread_id, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_oselia_warn(title: string, message: string, thread_id: number, webhook_param_name: string = ModuleOselia.WEBHOOK_TEAMS_PARAM_NAME, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_oselia_level('warn', title, message, thread_id, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_oselia_success(title: string, message: string, thread_id: number, webhook_param_name: string = ModuleOselia.WEBHOOK_TEAMS_PARAM_NAME, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_oselia_level('success', title, message, thread_id, webhook_param_name, webhook_default_value);
-    }
-
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_error(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_level('error', title, message, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_info(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_level('info', title, message, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_warn(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_level('warn', title, message, webhook_param_name, webhook_default_value);
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    public static async send_teams_success(title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
-        await TeamsAPIServerController.send_teams_level('success', title, message, webhook_param_name, webhook_default_value);
-    }
-
-    public static async update_teams_message(message_id: string, channel_id: string, group_id: string) {
-        let webhook = ConfigurationService.node_configuration.teams_webhook_update_message;
-        const message = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body([{ "type": "TextBlock", "messageId": message_id, "channelId": channel_id, "organisationId": group_id, "message": "Action is already done." }]))]);
-
-        if (ConfigurationService.node_configuration.block_teams_messages) {
-            ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.attachments[0].content.body[0]['text'] ? message.attachments[0].content.body[0]['text'] : 'Error');
-            return;
-        }
-
-        const { host, path } = this.getHostAndPathFromUrl(webhook);
-        // const TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
-        // let msg = TextHandler.getInstance().sanityze_object(message);
-
-        const msg = TextHandler.getInstance().encode_object(message);
-        await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            host,
-            path,
-            msg,
-            null,
-            true,
-            null,
-            true,
-            true
-        );
-    }
-
-    // istanbul ignore next: nothing to test : send_teams
-    private static async send_teams_oselia_level(level: string, title: string, message: string, thread_id: number, webhook_param_name: string = null, webhook_default_value: string = null) {
+    private static async send_teams_oselia_level(level: string, title: string, message: string, thread_id: number, actions: TeamsWebhookContentActionOpenUrlVO[] = []) {
         try {
-            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) : null;
-            webhook = webhook ? webhook : ConfigurationService.node_configuration['teams_webhook__oselia_' + level.toLowerCase()];
+            const group_id: string = ConfigurationService.node_configuration.teams_groupid__oselia;
+            const channel_id: string = ConfigurationService.node_configuration['teams_channelid__oselia_' + level.toLowerCase()];
 
-            if (webhook) {
-
-                const body = [];
-                const m: TeamsWebhookContentVO = new TeamsWebhookContentVO();
-                const title_Text = new TeamsWebhookContentTextBlockVO().set_text(title).set_weight("bolder").set_size("large");
-                body.push(title_Text);
-                const image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
-                body.push(image);
-                const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message).set_size("small");
-                body.push(message_Text);
-                const actions = [];
-                const open_oselia: ActionURLVO = await this.create_action_button_open_oselia(thread_id);
-                actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Oselia'))
-                m.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Oselia Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
-                await TeamsAPIServerController.send_to_teams_webhook(webhook, m);
+            if (!group_id || !channel_id) {
+                ConsoleHandler.error('TeamsAPIServerController.send_teams_oselia_level:Impossible de trouver le groupe ou le channel pour envoyer le message Teams:' + group_id + ':' + channel_id + ':' + level + ':' + title + ':' + message);
+                return;
             }
+
+            title = (ConfigurationService.node_configuration.is_main_prod_env ? '' : (title.startsWith('[TEST] ') ? '' : '[TEST] ')) + title;
+
+            const body = [];
+            const m: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+            const title_Text = new TeamsWebhookContentTextBlockVO().set_text(title).set_weight("bolder").set_size("large");
+            body.push(title_Text);
+            const image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
+            body.push(image);
+            const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message).set_size("small");
+            body.push(message_Text);
+            const open_oselia: ActionURLVO = await this.create_action_button_open_oselia(thread_id);
+            actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Oselia'));
+            m.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Oselia Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
+            await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m);
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -180,29 +224,62 @@ export default class TeamsAPIServerController {
     // istanbul ignore next: nothing to test : send_teams
     private static get_throttle_send_teams_level() {
         if (!TeamsAPIServerController.throttle_send_teams) {
-            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_webhook__throttle_ms);
+            TeamsAPIServerController.throttle_send_teams = ThrottleHelper.declare_throttle_with_stackable_args(TeamsAPIServerController.throttled_send_teams_level, ConfigurationService.node_configuration.teams_throttle_ms);
         }
         return TeamsAPIServerController.throttle_send_teams;
     }
+
+    /**
+     * Envoyer un message Teams sur un channel donné
+     * @param level
+     * @param title
+     * @param message
+     * @param actions
+     * @param groupid_param_name
+     * @param groupid_default_value
+     * @param channelid_param_name
+     * @param channelid_default_value
+    */
     // istanbul ignore next: nothing to test : send_teams
-    private static async send_teams_level(level: string, title: string, message: string, webhook_param_name: string = null, webhook_default_value: string = null) {
+    private static async send_teams_level(
+        level: string,
+        title: string,
+        message: string,
+        actions: TeamsWebhookContentActionOpenUrlVO[] = [],
+        groupid_param_name: string = null,
+        groupid_default_value: string = null,
+        channelid_param_name: string = null,
+        channelid_default_value: string = null,
+    ) {
         try {
-            let webhook: string = webhook_param_name ? await ModuleParams.getInstance().getParamValueAsString(webhook_param_name, webhook_default_value, 180000) : null;
-            webhook = webhook ? webhook : ConfigurationService.node_configuration['teams_webhook__tech_' + level.toLowerCase()];
-
-            if (webhook) {
-
-                const param = new SendTeamsLevelParam(level, title, message, webhook);
-                await (TeamsAPIServerController.get_throttle_send_teams_level()(param));
+            let group_id: string = groupid_param_name ? await ModuleParams.getInstance().getParamValueAsString(groupid_param_name, groupid_default_value, 180000) : null;
+            if ((!group_id) && groupid_param_name) {
+                ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + groupid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration.teams_groupid__tech) + '"';
             }
+            group_id = group_id ? group_id : ConfigurationService.node_configuration.teams_groupid__tech;
+
+            let channel_id: string = channelid_param_name ? await ModuleParams.getInstance().getParamValueAsString(channelid_param_name, channelid_default_value, 180000) : null;
+            if ((!channel_id) && channelid_param_name) {
+                ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + channelid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration['teams_channelid__tech_' + level.toLowerCase()] + '"');
+            }
+            channel_id = channel_id ? channel_id : ConfigurationService.node_configuration['teams_groupid__tech' + level.toLowerCase()];
+
+            if (!group_id || !channel_id) {
+                ConsoleHandler.error('TeamsAPIServerController.send_teams_level:Impossible de trouver le groupe ou le channel pour envoyer le message Teams:' + group_id + ':' + channel_id + ':' + level + ':' + title + ':' + message + ':' + groupid_param_name + ':' + groupid_default_value + ':' + channelid_param_name + ':' + channelid_default_value);
+                return;
+            }
+
+            title = (ConfigurationService.node_configuration.is_main_prod_env ? '' : (title.startsWith('[TEST] ') ? '' : '[TEST] ')) + title;
+            const param = new SendTeamsLevelParam(level, title, message, actions, group_id, channel_id);
+            await (TeamsAPIServerController.get_throttle_send_teams_level()(param));
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
     // istanbul ignore next: nothing to test : get_key
-    private static get_key(title: string, webhook: string) {
-        return title + '_' + webhook;
+    private static get_key(title: string, group_id: string, channel_id: string) {
+        return title + '_' + group_id + '_' + channel_id;
     }
 
     // istanbul ignore next: nothing to test : get_key
@@ -213,7 +290,6 @@ export default class TeamsAPIServerController {
         // On n'envoie pas 2 fois le même message
         const messages: { [message: string]: boolean } = {};
 
-
         for (const i in params) {
             const param = params[i];
 
@@ -222,7 +298,7 @@ export default class TeamsAPIServerController {
             }
             messages[param.message] = true;
 
-            const key = TeamsAPIServerController.get_key(param.title, param.webhook);
+            const key = TeamsAPIServerController.get_key(param.title, param.groupid, param.channelid);
 
             if (!params_by_key[key]) {
                 params_by_key[key] = [];
@@ -234,8 +310,19 @@ export default class TeamsAPIServerController {
         for (const key in params_by_key) {
             const key_params = params_by_key[key];
             const body = [];
-            const actions = [];
-            const webhook: string = key_params[0].webhook;
+            const actions = []; // Pour le moment les actions ne sont pas gérés dans le cadre d'un throttle de messgae, il faudrait cumuler les actions ? ou juste refuser de throttle les messages avec actions ?
+
+            for (const i in key_params) {
+                const key_param = key_params[i];
+
+                if (key_param.actions && (key_param.actions.length > 0)) {
+                    ConsoleHandler.error('NOT IMPLEMENTED : TeamsAPIServerController.throttled_send_teams_level:Impossible de gérer les actions dans le cadre d\'un throttle de messages');
+                    break;
+                }
+            }
+
+            const group_id: string = key_params[0].groupid;
+            const channel_id: string = key_params[0].groupid;
             const level: string = key_params[0].level;
             const title: string = key_params[0].title;
 
@@ -244,7 +331,7 @@ export default class TeamsAPIServerController {
 
             let message: string = key_params.map((p) => p.message).join('<br><br>');
 
-            if (message.length > ConfigurationService.node_configuration.teams_webhook__message_max_size) {
+            if (message.length > ConfigurationService.node_configuration.teams_message_max_size) {
 
                 // if (ConfigurationService.node_configuration.teams_webhook__message_max_size_auto_summarize) {
                 //     try {
@@ -261,27 +348,27 @@ export default class TeamsAPIServerController {
                 //         message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
                 //     }
                 // } else {
-                message = message.substring(0, ConfigurationService.node_configuration.teams_webhook__message_max_size - 3) + '...';
+                message = message.substring(0, ConfigurationService.node_configuration.teams_message_max_size - 3) + '...';
                 // }
             }
-            let title_Text = new TeamsWebhookContentTextBlockVO().set_text(title).set_weight("bolder").set_size("large");
+            const title_Text = new TeamsWebhookContentTextBlockVO().set_text(title).set_weight("bolder").set_size("large");
             body.push(title_Text);
-            let activity_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
+            const activity_Image = new TeamsWebhookContentImageVO().set_url(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png").set_size("small");
             body.push(activity_Image);
-            let message_Text = new TeamsWebhookContentTextBlockVO().set_text(message);
+            const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message);
             body.push(message_Text);
 
             const attachments = new TeamsWebhookContentAttachmentsVO().set_name("Teams Level Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions));
-            m.set_channelId(ConfigurationService.node_configuration['teams_channel__tech_' + level.toLowerCase()])
-            m.set_groupId(ConfigurationService.node_configuration['teams_org__tech'])
-            m.set_attachments([attachments])
+            m.set_groupId(group_id);
+            m.set_channelId(channel_id);
+            m.set_attachments([attachments]);
             // m.summary = message;
             // m.sections.push(
             //     new TeamsWebhookContentSectionVO().set_text(message)
             //         .set_activityImage(ConfigurationService.node_configuration.base_url + "public/vuejsclient/img/" + level.toLowerCase() + ".png")
             // );
 
-            await TeamsAPIServerController.send_to_teams_webhook(webhook, m);
+            await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m);
         }
     }
 

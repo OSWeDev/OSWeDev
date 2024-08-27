@@ -208,35 +208,29 @@ export default class EnvParamsVO implements IDistantVOBase {
     // OPEN_API_API_KEY?: string;
     public open_api_api_key: string;
 
-    // teams_webhook__oselia_error
-    public teams_webhook__oselia_error: string;
-    // teams_webhook__oselia_warn
-    public teams_webhook__oselia_warn: string;
-    // teams_webhook__oselia_info
-    public teams_webhook__oselia_info: string;
-    // teams_webhook__oselia_success
-    public teams_webhook__oselia_success: string;
+    // TEAMS Webhooks
+    public teams_webhook_send_message?: string = null;
+    public teams_webhook_update_message?: string = null;
 
-    // TEAMS_WEBHOOK__TECH_ERROR?: string;
-    public teams_webhook__tech_error: string;
+    // TEAMS Organisations
+    public teams_groupid__oselia?: string = null;
+    public teams_groupid__tech?: string = null;
 
-    // TEAMS_WEBHOOK__TECH_WARN?: string;
-    public teams_webhook__tech_warn: string;
+    // TEAMS Channels
+    public teams_channelid__oselia_error?: string = null;
+    public teams_channelid__oselia_warn?: string = null;
+    public teams_channelid__oselia_info?: string = null;
+    public teams_channelid__oselia_success?: string = null;
+    public teams_channelid__oselia_action_needed?: string = null;
 
-    // TEAMS_WEBHOOK__TECH_INFO?: string;
-    public teams_webhook__tech_info: string;
+    public teams_channelid__tech_error?: string = null;
+    public teams_channelid__tech_warn?: string = null;
+    public teams_channelid__tech_info?: string = null;
+    public teams_channelid__tech_success?: string = null;
 
-    // TEAMS_WEBHOOK__TECH_SUCCESS?: string;
-    public teams_webhook__tech_success: string;
-
-    // TEAMS_WEBHOOK__THROTTLE_MS?: number;
-    public teams_webhook__throttle_ms: number;
-
-    // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE?: number;
-    public teams_webhook__message_max_size: number;
-
-    // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE?: boolean;
-    public teams_webhook__message_max_size_auto_summarize: boolean;
+    public teams_throttle_ms?: number = 15000;
+    public teams_message_max_size?: number = 10000;
+    public teams_message_max_size_auto_summarize?: boolean = false;
 
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
