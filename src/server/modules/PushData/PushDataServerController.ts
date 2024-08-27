@@ -79,7 +79,8 @@ export default class PushDataServerController {
     private PROMPT_UID: number = 0;
 
     private registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
-    private registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    private registeredSessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    private registeredSessions_by_sid: { [sid: string]: IServerUserSession } = {};
     private registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
     private registeredSockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
     private registereduid_by_socketid: { [socket_id: string]: number } = {};
@@ -228,11 +229,14 @@ export default class PushDataServerController {
         this.registereduid_by_socketid[socket.id] = session_uid;
         this.registeredclient_tab_id_by_socketid[socket.id] = client_tab_id;
 
-        if (!this.registeredSessions[session_uid]) {
-            this.registeredSessions[session_uid] = {};
+        if (!this.registeredSessions_by_uid[session_uid]) {
+            this.registeredSessions_by_uid[session_uid] = {};
         }
-        if (!this.registeredSessions[session_uid][session.id]) {
-            this.registeredSessions[session_uid][session.id] = session;
+        if (!this.registeredSessions_by_uid[session_uid][session.id]) {
+            this.registeredSessions_by_uid[session_uid][session.id] = session;
+        }
+        if (!this.registeredSessions_by_sid[session.sid]) {
+            this.registeredSessions_by_sid[session.sid] = session;
         }
     }
 
@@ -304,11 +308,14 @@ export default class PushDataServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        if (!this.registeredSessions[uid]) {
-            this.registeredSessions[uid] = {};
+        if (!this.registeredSessions_by_uid[uid]) {
+            this.registeredSessions_by_uid[uid] = {};
         }
-        if (!this.registeredSessions[uid][session.id]) {
-            this.registeredSessions[uid][session.id] = session;
+        if (!this.registeredSessions_by_uid[uid][session.id]) {
+            this.registeredSessions_by_uid[uid][session.id] = session;
+        }
+        if (!this.registeredSessions_by_sid[session.sid]) {
+            this.registeredSessions_by_sid[session.sid] = session;
         }
     }
 
@@ -338,8 +345,12 @@ export default class PushDataServerController {
             return;
         }
 
-        if (this.registeredSessions[uid] && this.registeredSessions[uid][session.id]) {
-            delete this.registeredSessions[uid][session.id];
+        if (this.registeredSessions_by_uid[uid] && this.registeredSessions_by_uid[uid][session.id]) {
+            delete this.registeredSessions_by_uid[uid][session.id];
+        }
+
+        if (this.registeredSessions_by_sid[session.sid]) {
+            delete this.registeredSessions_by_sid[session.sid];
         }
     }
 
@@ -359,8 +370,11 @@ export default class PushDataServerController {
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await this.notifyRedirectHomeAndDisconnect();
 
-        if (this.registeredSessions[uid] && this.registeredSessions[uid][session.id]) {
-            delete this.registeredSessions[uid][session.id];
+        if (this.registeredSessions_by_uid[uid] && this.registeredSessions_by_uid[uid][session.id]) {
+            delete this.registeredSessions_by_uid[uid][session.id];
+        }
+        if (this.registeredSessions_by_sid[session.sid]) {
+            delete this.registeredSessions_by_sid[session.sid];
         }
     }
 
@@ -392,7 +406,18 @@ export default class PushDataServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        return this.registeredSessions[userId];
+        return this.registeredSessions_by_uid[userId];
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param sid
+     */
+    public getSessionBySid(sid: string): IServerUserSession {
+
+        ForkedTasksController.assert_is_main_process();
+
+        return this.registeredSessions_by_sid[sid];
     }
 
     /**
@@ -583,10 +608,10 @@ export default class PushDataServerController {
     /**
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    public async notifyUserLoggedAndRedirect(redirect_uri: string = '/') {
+    public async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri, sso)) {
             return;
         }
 
@@ -604,7 +629,7 @@ export default class PushDataServerController {
                     session['last_fragmented_url'] = null;
                     notification.redirect_uri = url.replace(/\/f\//, '/#/');
                 } else {
-                    notification.redirect_uri = redirect_uri;
+                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.sid) : '');
                 }
             }
         } catch (error) {
