@@ -99,6 +99,7 @@ import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodule
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
+import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -187,6 +188,7 @@ export default abstract class GeneratorBase {
             Patch20240521ChangeFormatDbAssistants.getInstance(),
             Patch20240530AddUniqNameMailCategory.getInstance(),
             Patch2024OSELIAAssistantDescriptionNotNULL.getInstance(),
+            Patch20240827DeleteVersionedAssistantsWithoutInstructions.getInstance(),
         ];
 
         this.post_modules_workers = [
