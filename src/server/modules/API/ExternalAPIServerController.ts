@@ -33,10 +33,21 @@ export default class ExternalAPIServerController {
         if (external_api_authentication) {
             switch (external_api_authentication.type) {
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_BASIC:
-                    headers['Authorization'] = external_api_authentication.api_key;
+                    if (external_api_authentication.basic_login && external_api_authentication.basic_password) {
+                        headers['Authorization'] = 'Basic ' + Buffer.from(external_api_authentication.basic_login + ':' + external_api_authentication.basic_password).toString('base64');
+                    } else {
+                        headers['Authorization'] = 'Basic ' + external_api_authentication.api_key;
+                    }
+
                     break;
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_BEARER:
-                    headers['Authorization'] = "Bearer " + external_api_authentication.api_key;
+
+                    if (external_api_authentication.basic_login && external_api_authentication.basic_password) {
+                        headers['Authorization'] = 'Bearer ' + Buffer.from(external_api_authentication.basic_login + ':' + external_api_authentication.basic_password).toString('base64');
+                    } else {
+                        headers['Authorization'] = 'Bearer ' + external_api_authentication.api_key;
+                    }
+
                     break;
                 case ExternalAPIAuthentificationVO.TYPE_API_KEY_CUSTOM:
                     headers[external_api_authentication.custom_header_name] = external_api_authentication.api_key;
