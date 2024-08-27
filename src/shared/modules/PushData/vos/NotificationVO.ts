@@ -81,6 +81,7 @@ export default class NotificationVO implements IDistantVOBase {
     public vos: string;
 
     public room_id: string;
+    public redirect_uri: string;
 
     // For Redirection Notification
     public notif_route: string;

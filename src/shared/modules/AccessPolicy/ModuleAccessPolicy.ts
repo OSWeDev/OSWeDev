@@ -137,7 +137,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
-    public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public loginAndRedirect: (email: string, password: string, redirect_to: string, sso: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);

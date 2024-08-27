@@ -26,6 +26,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private password: string = "";
 
     private redirect_to: string = "/";
+    private sso: boolean = false;
     private message: string = null;
 
     private logo_url: string = null;
@@ -50,13 +51,23 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
+            if (j == 'sso') {
+                this.sso = ((this.$route.query[j] == "1") || (this.$route.query[j] == "true"));
+            }
         }
 
         let logged_id: number = null;
+        let session_id: string = null;
 
         promises.push((async () =>
             logged_id = await ModuleAccessPolicy.getInstance().getLoggedUserId()
         )());
+
+        if (this.sso) {
+            promises.push((async () =>
+                session_id = await ModuleAccessPolicy.getInstance().get_my_sid()
+            )());
+        }
 
         promises.push((async () =>
             this.signin_allowed = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
@@ -73,7 +84,17 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         await all_promises(promises);
 
         if (!!logged_id) {
-            window.location = this.redirect_to as any;
+            let location: string = this.redirect_to;
+
+            if (!location) {
+                location = "/";
+            }
+
+            if (this.sso) {
+                location += '?session_id=' + session_id;
+            }
+
+            window.location = (location as any);
         }
     }
 
@@ -98,7 +119,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         self.snotify.async(self.label('login.start'), () =>
             new Promise(async (resolve, reject) => {
 
-                let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to);
+                let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to, self.sso);
 
                 if (!logged_id) {
                     self.password = "";

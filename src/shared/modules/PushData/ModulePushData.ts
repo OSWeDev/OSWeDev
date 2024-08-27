@@ -113,6 +113,7 @@ export default class ModulePushData extends Module {
             new ModuleTableField(field_names<NotificationVO>().notif_route_params_name, ModuleTableField.FIELD_TYPE_string_array, 'Paramètres d\'URL', false),
             new ModuleTableField(field_names<NotificationVO>().notif_route_params_values, ModuleTableField.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
 
+            new ModuleTableField(field_names<NotificationVO>().redirect_uri, ModuleTableField.FIELD_TYPE_string, 'URI de redirection', false),
             new ModuleTableField(field_names<NotificationVO>().room_id, ModuleTableField.FIELD_TYPE_string, 'Room ID', false),
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");

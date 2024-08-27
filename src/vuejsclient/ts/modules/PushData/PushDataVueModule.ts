@@ -692,7 +692,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 //     timeout: 3000
                                 // });
                                 // setTimeout(() => {
-                                location.href = '/';
+                                location.href = notification.redirect_uri ? notification.redirect_uri : '/';
                                 // }, 3000);
                                 break;
 
