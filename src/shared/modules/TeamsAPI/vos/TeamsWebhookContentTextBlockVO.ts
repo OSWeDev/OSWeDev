@@ -1,4 +1,12 @@
+import { NodeHtmlMarkdown } from 'node-html-markdown';
+
 export default class TeamsWebhookContentTextBlockVO {
+
+    private static nhm = new NodeHtmlMarkdown(
+        /* options (optional) */ {},
+        /* customTransformers (optional) */ undefined,
+        /* customCodeBlockTranslators (optional) */ undefined
+    );
 
     public type: string = "TextBlock";
     public text: string;
@@ -16,7 +24,12 @@ export default class TeamsWebhookContentTextBlockVO {
     }
 
     public set_text(text: string): TeamsWebhookContentTextBlockVO {
-        this.text = text;
+
+        /**
+         * On traduit le HTML en markdown pour Teams
+         */
+
+        this.text = TeamsWebhookContentTextBlockVO.nhm.translate(text);
         return this;
     }
 

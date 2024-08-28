@@ -45,6 +45,9 @@ export default class TeamsAPIServerController {
             return;
         }
 
+        message.groupId = group_id;
+        message.channelId = channel_id;
+
         const send_message_webhook = ConfigurationService.node_configuration.teams_webhook_send_message;
         const { host, path } = this.getHostAndPathFromUrl(send_message_webhook);
 

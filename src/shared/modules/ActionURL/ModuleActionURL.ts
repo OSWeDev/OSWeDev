@@ -19,7 +19,7 @@ export default class ModuleActionURL extends Module {
 
     private static instance: ModuleActionURL = null;
 
-    public action_url: (code: string, do_not_redirect: boolean, message_id: string, channel_id: string, group_id: string) => Promise<boolean> = APIControllerWrapper.sah<UpdateTeamsMessageVO, boolean>(ModuleActionURL.APINAME_action_url);
+    public action_url: (code: string, do_not_redirect: boolean) => Promise<boolean> = APIControllerWrapper.sah<UpdateTeamsMessageVO, boolean>(ModuleActionURL.APINAME_action_url);
 
     private constructor() {
 

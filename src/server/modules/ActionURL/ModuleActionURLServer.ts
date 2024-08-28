@@ -82,7 +82,7 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, do_not_redirect: boolean, messageId: string, canalId: string, groupId: string, req: Request, res: Response): Promise<boolean> {
+    private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
 
         const uid = ModuleAccessPolicyServer.getLoggedUserId();
 

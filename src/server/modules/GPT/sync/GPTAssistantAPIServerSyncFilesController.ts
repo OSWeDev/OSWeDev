@@ -14,7 +14,6 @@ import FileServerController from '../../File/FileServerController';
 import GPTAssistantAPIServerController from '../GPTAssistantAPIServerController';
 import ModuleGPTServer from '../ModuleGPTServer';
 import GPTAssistantAPIServerSyncController from './GPTAssistantAPIServerSyncController';
-import ModuleOselia from '../../../../shared/modules/Oselia/ModuleOselia';
 
 export default class GPTAssistantAPIServerSyncFilesController {
 
@@ -74,7 +73,7 @@ export default class GPTAssistantAPIServerSyncFilesController {
             }
 
             // On charge le file à notre niveau, pour le récupérer si besoin depuis OpenAI
-            if (gpt_obj.id) {
+            if (gpt_obj && gpt_obj.id) {
 
                 const gpt_file_vo: GPTAssistantAPIFileVO = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, gpt_obj.id)
