@@ -72,6 +72,16 @@
         filter: blur(10px);
     }
 
+    .no_messages {
+        display: flex;
+        align-items: center;
+
+        i {
+            width: 5em;
+            text-align: left;
+        }
+    }
+
     .no_access,
     .too_many_assistants {
 
@@ -195,6 +205,7 @@
                     margin-top: 1em;
                     line-height: 1.5em;
                     margin-bottom: .4em;
+                    resize: none;
                 }
             }
 
