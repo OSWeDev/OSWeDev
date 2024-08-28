@@ -19,6 +19,15 @@ export default class OseliaServerController {
 
     public static authorized_oselia_partners: string[] = [];
 
+    public static has_authorization(partner_origin: string): boolean {
+        for (const i in OseliaServerController.authorized_oselia_partners) {
+            if (partner_origin.startsWith(OseliaServerController.authorized_oselia_partners[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static wrap_param_name_for_prompt(param_name: string): string {
         return OseliaServerController.PROMPT_PARAM_PREFIX + param_name + OseliaServerController.PROMPT_PARAM_SUFFIX;
     }

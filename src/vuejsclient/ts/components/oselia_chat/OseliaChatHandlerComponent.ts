@@ -10,25 +10,16 @@ import './OseliaChatHandlerComponent.scss';
     template: require('./OseliaChatHandlerComponent.pug')
 })
 export default class OseliaChatHandlerComponent extends VueComponentBase {
+
+    @ModuleDAOGetter
+    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+
     private url: string = null;
     private isActive: boolean = false;
     private isOpened: boolean = false;
     private widget: OseliaThreadWidgetComponent = null;
     private ott: string = null;
 
-    @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
-
-    public async mounted() {
-        const self = this;
-        this.url = this.$route.fullPath
-    }
-
-    @Watch('$route')
-    public async onRouteChange() {
-        this.url = this.$route.fullPath;
-        this.isActive = (await OseliaController.get_referrer_id(this.url)) != null;
-    }
 
     get oselia_url(): string {
 
@@ -38,6 +29,17 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
         const { protocol, hostname, port } = window.location;
         return `${protocol}//${hostname}${(port ? `:${port}` : '')}/api_handler/oselia__open_oselia_db/${this.ott}/_/_`;
+    }
+
+    @Watch('$route')
+    public async onRouteChange() {
+        this.url = this.$route.fullPath;
+        this.isActive = (await OseliaController.get_referrer_id(this.url)) != null;
+    }
+
+    public async mounted() {
+        const self = this;
+        this.url = this.$route.fullPath;
     }
 
     private async openClick() {

@@ -13,8 +13,10 @@ $padding-0: 0;
 $font-color-main: #000;
 $font-color-secondary: #4e4e4e;
 $button-background: $button_primary_bg_color;
-$background-popup-user: lighten($button-background, 40%);
-$background-popup: lighten(desaturate($button-background, 80%), 46%);
+// $background-popup-user: lighten($button-background, 40%);
+$background-popup-user: hsl(hue($button-background), 100%, 80%);
+// $background-popup: lighten(desaturate($button-background, 80%), 46%);
+$background-popup: hsl(hue($button-background), 50%, 95%);
 $button-border: $button-background;
 $button-shadow: rgba($button-background, .38);
 $button-hover-shadow: none;
@@ -47,7 +49,8 @@ $button-hover-shadow: none;
                                 padding-right: 5px;
 
                                 .thread_message_header_left_username {
-                                    font-size: .9em;
+                                    font-size: 1.2em;
+                                    color: $button-background;
                                 }
 
                                 .thread_message_header_left_avatar {
@@ -66,6 +69,8 @@ $button-hover-shadow: none;
                                     .thread_message_body_text {
                                         margin-bottom: 5px;
                                         padding-right: 30px;
+
+                                        background-color: $background-popup-user;
 
                                         p {
                                             margin-bottom: 0;
@@ -101,14 +106,14 @@ $button-hover-shadow: none;
 
                             .thread_message_header {
                                 flex-direction: column;
-                                align-items: flex-end;
-                                padding-right: 5px;
+                                align-items: flex-start;
+                                padding-left: 35px;
 
                                 .thread_message_header_left {
                                     padding-left: .3em;
 
                                     .thread_message_header_left_username {
-                                        font-size: .9em;
+                                        font-size: 1.2em;
                                     }
 
                                     .thread_message_header_left_avatar {
@@ -124,7 +129,7 @@ $button-hover-shadow: none;
 
                                 .thread_message_body_content {
                                     display: flex;
-                                    align-items: end;
+                                    align-items: start;
                                     flex-direction: column;
 
                                     .thread_message_body_text {

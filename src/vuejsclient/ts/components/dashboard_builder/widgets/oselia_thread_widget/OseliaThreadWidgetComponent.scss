@@ -1,6 +1,7 @@
 .oselia_thread_widget_component {
 
-    padding-right: 0 !important;
+    // padding-right: 0 !important;
+    width: -webkit-fill-available;
 
     .dragging_overlay {
         opacity: 0.3;
@@ -111,6 +112,7 @@
             margin-top: 2em;
             max-width: 768px;
             margin-left: 3em;
+            padding-bottom: 1em;
 
             .thread_images {
                 height: fit-content;

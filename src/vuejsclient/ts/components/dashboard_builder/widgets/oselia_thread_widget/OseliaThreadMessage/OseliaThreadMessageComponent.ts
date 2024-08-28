@@ -121,6 +121,10 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             return false;
         }
 
+        if (this.thread_message.role != GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+            return false;
+        }
+
         return this.thread_message.user_id == VueAppController.getInstance().data_user.id;
     }
 
@@ -174,17 +178,34 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             if (Array.isArray(ref_node)) {
                 ref_node = ref_node[0];
             }
-            range.selectNode(ref_node as any);
-            selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            const successful = document.execCommand('copy');
-            if (successful) {
-                await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
-            } else {
-                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            if (ref_node && (ref_node as any).$el) {
+                ref_node = (ref_node as any).$el;
             }
+
+            const textToCopy = (ref_node as any).textContent || (ref_node as any).innerText;
+
+            if (!textToCopy) {
+                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+                return;
+            }
+
+            navigator.clipboard.writeText(textToCopy.trim()).then(async () => {
+                await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
+            }).catch(async (err) => {
+                await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            });
+
+            // range.selectNode(ref_node as any);
+            // selection = window.getSelection();
+            // selection.removeAllRanges();
+            // selection.addRange(range);
+
+            // const successful = document.execCommand('copy');
+            // if (successful) {
+            //     await this.$snotify.success(this.label('oselia_thread_message.copy_success'));
+            // } else {
+            //     await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
+            // }
         } catch (err) {
             await this.$snotify.error(this.label('oselia_thread_message.copy_failed'));
             console.error('Unable to copy', err);
