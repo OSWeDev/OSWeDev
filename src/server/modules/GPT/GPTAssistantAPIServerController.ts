@@ -963,14 +963,16 @@ export default class GPTAssistantAPIServerController {
                         assistant_file_vo = new GPTAssistantAPIFileVO();
                         assistant_file_vo.file_id = file.id;
                         assistant_file_vo.purpose = GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo);
+                        assistant_file_vo.filename = file.path;
+                        assistant_file_vo.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo)).id;
                     }
-
+                    
                     assistant_files.push(assistant_file_vo);
                     file_ids.push(assistant_file_vo.gpt_file_id);
 
                     const attachment = new GPTAssistantAPIThreadMessageAttachmentVO();
                     attachment.file_id = assistant_file_vo.id;
+                    attachment.gpt_file_id = assistant_file_vo.gpt_file_id;
                     attachment.add_to_tool_code_interpreter = true;
                     attachment.add_to_tool_file_search = true;
                     attachment.weight = parseInt(i);

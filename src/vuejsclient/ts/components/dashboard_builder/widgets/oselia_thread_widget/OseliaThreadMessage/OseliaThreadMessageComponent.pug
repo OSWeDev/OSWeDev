@@ -39,7 +39,21 @@
                 .thread_message_header_right
                     .thread_message_header_right_date
                         | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
-
+            
+            template(v-if='thread_message.attachments')
+                .thread_message_attachments
+                    template(v-for='item in thread_message_files')
+                        template(v-for="(value, key) in item")
+                            template(v-if="value.path")
+                                .thread_message_attachment
+                                    template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                        img(:src="'/' + value.path")
+                                    template(v-else-if="key == '.pdf'")
+                                        img(:src="'/vuejsclient/public/img/pdf.png'")
+                            //- template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                
+                            //- template(v-else-if="key == '.pdf'")
+                            //-     img(:src="'/vuejsclient/public/img/pdf.png'")
             .thread_message_body(ref='thread_message_body_ref')
                 template(v-for='(message_content, i) in thread_message_contents')
                     .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.type')

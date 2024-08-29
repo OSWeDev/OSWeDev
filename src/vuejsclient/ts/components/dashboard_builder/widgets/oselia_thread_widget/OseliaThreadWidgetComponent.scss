@@ -98,29 +98,50 @@
             margin-top: 2em;
             max-width: 768px;
             margin-left: 3em;
-            .thread_images {
+            
+            .thread_files {
+                position: relative;
+                display: inline-flex;
 
-                img:hover{
-                    opacity: 0.5;
-                }
-
-                button {
-                    display:none;
-                }
-
-                button:hover {
-                    display:flex;
-                }
-
-                img {
-                    border: solid 2px #DDD;
+                .thread_file {
                     width: 30%;
                     height: 30%;
-                    vertical-align: middle;
+                    place-self: center;
+                    button {
+                        position: absolute;
+                        margin-left: 10%;
+                        top:30%;
+                        z-index: 15;
+                        display: none; /* Cacher le bouton par défaut */
+                        background-color: #e3e3eb;
+                        color: black;
+                        border: none;
+                        padding: 10px 20px;
+                        cursor: pointer;
+                        border-radius: 5px;
+                    }
+                    
+                    button:hover {
+                        background-color: #d3d3db;
+                    }
+
+                    img {
+                        display: block;
+                        border: solid 2px #DDD;
+                        width: 100%;
+                        height: 100%;
+                    }
+
+                    img:hover {
+                        opacity:0.5;
+                    }
                 }
-                height: fit-content;
-                width: fit-content;
+
+                .thread_file:hover button {
+                    display:block;
+                }
             }
+
             .thread_message_input_buttons {
 
                 display:flex;
@@ -143,7 +164,7 @@
                 }
 
                 .image_upload_menu {
-                        position: fixed;
+                        position: sticky;
                         background-color: white;
                         border-radius: 8px;
                         padding: 20px;

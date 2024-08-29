@@ -31,6 +31,8 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -84,8 +86,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private new_message_text: string = null;
     private is_dragging: boolean = false;
-    private thread_images: FileVO[] = [];
-
+    private thread_files: { [key: string]: FileVO }[] = [];
     private enable_image_upload_menu: boolean = false;
     private enable_link_image_menu: boolean = false;
     private link_image_url: string = null;
@@ -157,13 +158,20 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_link_image_menu = false;
     }
 
+    private async remove_file(index: number) {
+        await this.thread_files.splice(index, 1);
+    }
+
     private async open_file_upload() {
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
         try {
-            const fileHandle = await (window as any).showOpenFilePicker({
+            const [fileHandle] = await (window as any).showOpenFilePicker({
                 multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
             });
+
+            // Upload inspiré de feedback handler
+            await this.do_upload_file(fileHandle);
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -183,29 +191,35 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 excludeAcceptAllOption: true, // Exclure l'option "Tous les fichiers"
                 multiple: false // Pour permettre la sélection de plusieurs fichiers, mettre à true
             });
-            const file: File = await fileHandle.getFile();
-            const formData = new FormData();
-            const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png';
-            formData.append('file', file, file_name);
-
-            await AjaxCacheClientController.getInstance().post(
-                null,
-                '/ModuleFileServer/upload',
-                [FileVO.API_TYPE_ID],
-                formData,
-                null,
-                null,
-                false,
-                30000).then(() => {
-                    let new_file = new FileVO();
-                    new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-
-                    this.thread_images.push(new_file);
-                    this.enable_image_upload_menu = false;
-                });
+            await this.do_upload_file(fileHandle);
+            this.enable_image_upload_menu = false;
         } catch (error) {
             ConsoleHandler.error(error);
         }
+    }
+
+    private async do_upload_file(fileHandle: FileSystemFileHandle) {
+        const file: File = await fileHandle.getFile();
+        // Upload inspiré de feedback handler
+        const formData = new FormData();
+        const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+        formData.append('file', file, file_name);
+        await AjaxCacheClientController.getInstance().post(
+            null,
+            '/ModuleFileServer/upload',
+            [FileVO.API_TYPE_ID],
+            formData,
+            null,
+            null,
+            false,
+            30000).then(async () => {
+                // Upload via insert or update
+                const new_file = new FileVO();
+                new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+                const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+                new_file.id = resnew_file.id;
+                this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
+            });
     }
 
     private async handle_hover() {
@@ -381,6 +395,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         // self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
         //     new Promise(async (resolve, reject) => {
 
+        let files = self.thread_files.map((file) => {
+            return file[Object.keys(file)[0]];
+        });
         try {
             const message = self.new_message_text;
             self.new_message_text = null;
@@ -388,9 +405,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 self.assistant.gpt_assistant_id,
                 self.thread.gpt_thread_id,
                 message,
-                [],
+                files,
                 VueAppController.getInstance().data_user.id
             );
+
+            this.thread_files = []; // empty the thread files
 
             // if (!responses || !responses.length) {
             //     throw new Error('No response');

@@ -54,12 +54,17 @@
 
     
                 .thread_message_input
-                    template(v-if="thread_images.length > 0")
-                        .thread_images
-                            template(v-for="image in thread_images")
-                                template(v-if="image.path")
-                                    button.fa-solid.fa-xmark
-                                    img(:src="'/' + image.path" v-on:hover="handle_hover")
+                    template(v-if="thread_files.length > 0")
+                        .thread_files
+                            template(v-for="(item) in thread_files")
+                                template(v-for="(value, key, index) in item")
+                                    template(v-if="value.path")
+                                        .thread_file
+                                            button.fa-solid.fa-xmark(v-on:click='remove_file(index)')
+                                            template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                                img(:src="'/' + value.path")
+                                            template(v-else-if="key == '.pdf'")
+                                                img(:src="'/vuejsclient/public/img/pdf.png'")
                     .thread_message_input_textarea
                         textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                     .thread_message_input_buttons
