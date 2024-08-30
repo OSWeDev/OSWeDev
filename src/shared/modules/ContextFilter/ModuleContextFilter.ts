@@ -182,7 +182,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             CountValidSegmentationsParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
@@ -194,7 +194,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             SelectVosParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
@@ -206,7 +206,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             SelectFilterVisibleOptionsParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
@@ -218,7 +218,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             SelectDatatableRowsParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
@@ -230,7 +230,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             SelectCountParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
@@ -240,7 +240,7 @@ export default class ModuleContextFilter extends Module {
                 return [params.api_type_id];
             },
             QueryVOFromUniqueFieldContextFiltersParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
@@ -252,7 +252,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             BuildSelectQueryParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, string>(
             null,
@@ -263,7 +263,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             BuildSelectQueryParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
@@ -275,7 +275,7 @@ export default class ModuleContextFilter extends Module {
                 return Object.keys(res);
             },
             SelectVosParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
@@ -285,7 +285,7 @@ export default class ModuleContextFilter extends Module {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
             DeleteVosParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
@@ -295,7 +295,7 @@ export default class ModuleContextFilter extends Module {
                 return params.context_query ? [params.context_query.base_api_type_id] : null;
             },
             UpdateVosParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
     }
 

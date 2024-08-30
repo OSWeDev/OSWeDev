@@ -189,7 +189,7 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
@@ -206,14 +206,14 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
@@ -231,7 +231,7 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
@@ -249,14 +249,14 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type],
             null,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
@@ -264,7 +264,7 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_getVarImportsByMatroidParams,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
@@ -272,7 +272,7 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
@@ -280,7 +280,7 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_getColSumFilterByMatroid,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
@@ -288,7 +288,7 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
             APIDAONamedParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
         APIControllerWrapper.registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
             null,
@@ -323,7 +323,7 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_delete_all_vos_triggers_ok,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic,
-            APIDefinition.API_RETURN_TYPE_NOTIF,
+            // APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
     }
 
