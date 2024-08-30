@@ -456,7 +456,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
             feedback.confirmation_mail_id = mail ? mail.id : null;
 
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
             StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
@@ -465,7 +465,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error(error);
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return null;
         }
     }

@@ -6,9 +6,11 @@ import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import AjaxCacheController from '../../../shared/modules/AjaxCache/AjaxCacheController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
@@ -16,14 +18,12 @@ import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
-import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
 const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
-    private static instance: ModuleAPIServer = null;
     private static API_CALL_ID: number = 0;
+    private static instance: ModuleAPIServer = null;
 
     // istanbul ignore next: cannot test module constructor
     private constructor() {
@@ -150,10 +150,17 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             const notif_result_uid: number = req.session.uid;
             const notif_result_tab_id: string = req.headers.client_tab_id as string;
-            const do_notif_result: boolean = (
+            let do_notif_result: boolean = (
                 (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) &&
                 (!!notif_result_uid) &&
                 (!!notif_result_tab_id));
+
+            // On check aussi qu'on a bien un socket à date si on doit notif
+            do_notif_result = do_notif_result && (
+                (!!PushDataServerController.registeredSockets) &&
+                (!!PushDataServerController.registeredSockets[notif_result_uid]) &&
+                (!!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id]));
+
             let api_call_id = null;
 
             try {
@@ -174,6 +181,17 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 returnvalue = await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => (has_params && params && params.length) ? await api.SERVER_HANDLER(...params, req, res) : await api.SERVER_HANDLER(req, res));
+
+                // /**
+                //  * DELETE ME :IN: Juste pour un TEST
+                //  */
+                // ConsoleHandler.log("DELETE ME : Juste pour un TEST:IN:" + api.api_name);
+                // await ThreadHandler.sleep(2000, 'DELETE ME : Juste pour un TEST');
+                // ConsoleHandler.log("DELETE ME : Juste pour un TEST:OUT:" + api.api_name);
+                // /**
+                //  * DELETE ME :OUT: Juste pour un TEST
+                //  */
+
                 StatsController.register_stat_DUREE('ModuleAPIServer', 'api.SERVER_HANDLER', api.api_name, Dates.now_ms() - date_in_ms);
             } catch (error) {
                 ConsoleHandler.error(error);
@@ -195,32 +213,31 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
             }
 
-            if (api.api_return_type == APIDefinition.API_RETURN_TYPE_NOTIF) {
-                if (do_notif_result) {
-                    await PushDataServerController.getInstance().notifyAPIResult(
-                        notif_result_uid,
-                        notif_result_tab_id,
-                        api_call_id,
-                        APIControllerWrapper.try_translate_vo_to_api(returnvalue)
-                    );
-                    return;
-                }
+            switch (api.api_return_type) {
+                case APIDefinition.API_RETURN_TYPE_NOTIF:
+                    if (do_notif_result) {
+                        await this.try_send_notif_result(
+                            notif_result_uid,
+                            notif_result_tab_id,
+                            api_call_id,
+                            returnvalue,
+                        );
+                        return;
+                    }
 
-                returnvalue = APINotifTypeResultVO.createNew(
-                    null,
-                    APIControllerWrapper.try_translate_vo_to_api(returnvalue)
-                );
-                return;
+                    returnvalue = APIControllerWrapper.try_translate_vo_to_api(APINotifTypeResultVO.createNew(
+                        null,
+                        returnvalue
+                    ));
+                    break;
+
+                case APIDefinition.API_RETURN_TYPE_JSON:
+                case APIDefinition.API_RETURN_TYPE_FILE:
+                    returnvalue = APIControllerWrapper.try_translate_vo_to_api(returnvalue);
+                    break;
             }
 
-            if (
-                (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-                (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                returnvalue = APIControllerWrapper.try_translate_vo_to_api(returnvalue);
-                res.json(returnvalue);
-            }
-
-            res.end(returnvalue);
+            res.json(returnvalue);
         };
     }
 
@@ -230,10 +247,52 @@ export default class ModuleAPIServer extends ModuleServerBase {
             case APIDefinition.API_RETURN_TYPE_FILE:
                 res.json(null);
                 return;
-            case APIDefinition.API_RETURN_TYPE_RES:
+            // case APIDefinition.API_RETURN_TYPE_RES:
             default:
                 res.end(null);
                 return;
         }
+    }
+
+    private async try_send_notif_result(
+        notif_result_uid: number,
+        notif_result_tab_id: string,
+        api_call_id: number,
+        returnvalue: any,
+    ) {
+
+        // Tant qu'on a pas de socket avec cette tab à date, on attend sagement.
+        // On informe quand même au bout de 10 secondes en console et toutes les minutes par la suite en console
+        //  dans le cas où on aurait toujours pas de socket pour informer d'un pb problème
+        let i = 0;
+        let timeout = 18; // 3 minutes sans accès au socket, on bloque l'API et on logue
+
+        while (
+            (!PushDataServerController.registeredSockets) ||
+            (!PushDataServerController.registeredSockets[notif_result_uid]) ||
+            (!PushDataServerController.registeredSockets[notif_result_uid][notif_result_tab_id])
+        ) {
+
+            if (i == 0) {
+                ConsoleHandler.warn('Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
+            } else if (i % 6 == 0) {
+                ConsoleHandler.log('Still waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock');
+            }
+
+            await ThreadHandler.sleep(10000, 'Waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id);
+            i++;
+
+            if (i >= timeout) {
+                ConsoleHandler.error('Timeout waiting for socket to send notif result:' + notif_result_uid + ':' + notif_result_tab_id + ':' + i + ' * 10s - Probable deadlock - ABORTING');
+                return;
+            }
+        }
+
+        await PushDataServerController.notifyAPIResult(
+            notif_result_uid,
+            notif_result_tab_id,
+            api_call_id,
+            returnvalue,
+        );
     }
 }

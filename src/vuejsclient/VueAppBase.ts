@@ -73,11 +73,6 @@ export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VueAppBase {
-        return this.instance_;
-    }
-
     public vueInstance: VueComponentBase & Vue;
     public vueRouter: VueRouter;
 
@@ -86,6 +81,11 @@ export default abstract class VueAppBase {
         private initializeModulesDatas: () => Promise<unknown>,
     ) {
         VueAppBase.instance_ = this;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VueAppBase {
+        return this.instance_;
     }
 
     public async runApp() {
@@ -112,6 +112,7 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         PushDataVueModule.getInstance();
+
         StatsVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
@@ -543,8 +544,6 @@ export default abstract class VueAppBase {
         };
     }
 
-    protected abstract createVueMain(): VueComponentBase;
-    protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
@@ -560,4 +559,7 @@ export default abstract class VueAppBase {
             }
         }
     }
+
+    protected abstract createVueMain(): VueComponentBase;
+    protected abstract initializeVueAppModulesDatas(): Promise<any>;
 }

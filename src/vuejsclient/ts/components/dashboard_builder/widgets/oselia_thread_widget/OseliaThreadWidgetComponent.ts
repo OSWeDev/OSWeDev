@@ -31,6 +31,8 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
+import { watch } from 'fs';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -68,14 +70,26 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_dashboard_api_type_ids: string[];
 
+    @ModuleOseliaGetter
+    private get_too_many_assistants: boolean;
+    @ModuleOseliaGetter
+    private get_can_run_assistant: boolean;
+    @ModuleOseliaGetter
+    private get_oselia_first_loading_done: boolean;
+
+    @ModuleOseliaAction
+    private set_too_many_assistants: (too_many_assistants: boolean) => void;
+    @ModuleOseliaAction
+    private set_can_run_assistant: (can_run_assistant: boolean) => void;
+    @ModuleOseliaAction
+    private set_oselia_first_loading_done: (oselia_first_loading_done: boolean) => void;
+
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
 
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
 
-    private too_many_assistants: boolean = false;
-    private can_run_assistant: boolean = false;
     private assistant_is_busy: boolean = false;
 
     private current_thread_id: number = null;
@@ -94,6 +108,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
+    }
+
+    @Watch('get_too_many_assistants')
+    @Watch('get_can_run_assistant')
+    private init_oselia_first_loading_done() {
+        if ((!this.get_oselia_first_loading_done) && (!this.get_too_many_assistants) && this.get_can_run_assistant) {
+            this.set_oselia_first_loading_done(true);
+        }
     }
 
     @Watch('get_active_field_filters', { immediate: true, deep: true })
@@ -123,8 +145,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             this.is_loading_thread = false;
             this.has_access_to_thread = false;
             this.thread = null;
-            this.too_many_assistants = false;
-            this.can_run_assistant = false;
+
+            this.try_set_too_many_assistants(false);
+            this.try_set_can_run_assistant(false);
+
             return;
         }
 
@@ -250,7 +274,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         // On check qu'on a un assistant et un seul
         if (this.assistant) {
-            this.can_run_assistant = true;
+            this.try_set_can_run_assistant(true);
         }
 
         // On récupère les contenus du message
@@ -328,12 +352,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 .select_vo<GPTAssistantAPIAssistantVO>();
 
             if (!default_assistant) {
-                this.too_many_assistants = nb_assistants > 1;
+                this.try_set_too_many_assistants(nb_assistants > 1);
                 return;
             }
 
             this.assistant = default_assistant;
-            this.too_many_assistants = false;
+            this.try_set_too_many_assistants(false);
             return;
         }
 
@@ -342,7 +366,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
 
         if (nb_assistants > 1) {
-            this.too_many_assistants = true;
+            this.try_set_too_many_assistants(true);
             return;
         }
 
@@ -460,5 +484,17 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.$nextTick(() => {
             setTimeout(this.scroll_to_bottom.bind(this), 10);
         });
+    }
+
+    private try_set_too_many_assistants(too_many_assistants: boolean) {
+        if (this.get_too_many_assistants != too_many_assistants) {
+            this.set_too_many_assistants(too_many_assistants);
+        }
+    }
+
+    private try_set_can_run_assistant(can_run_assistant: boolean) {
+        if (this.get_can_run_assistant != can_run_assistant) {
+            this.set_can_run_assistant(can_run_assistant);
+        }
     }
 }

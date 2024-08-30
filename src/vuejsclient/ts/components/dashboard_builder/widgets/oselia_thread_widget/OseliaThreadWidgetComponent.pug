@@ -76,11 +76,11 @@
                                         i.fa-duotone.fa-images
                                         | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
                     .thread_message_input_send
-                        template(v-if='too_many_assistants')
+                        template(v-if='get_too_many_assistants')
                             .too_many_assistants.bg-warning
                                 i.fa-duotone.fa-comments-question
                                 | {{ label('oselia_thread_widget_component.too_many_assistants') }}
-                        template(v-else-if='!can_run_assistant')
+                        template(v-else-if='!get_can_run_assistant')
                             .no_assistant.bg-danger
                                 i.fa-duotone.fa-comments-question
                                 | {{ label('oselia_thread_widget_component.no_assistant') }}

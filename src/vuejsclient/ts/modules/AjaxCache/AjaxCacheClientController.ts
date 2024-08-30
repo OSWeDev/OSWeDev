@@ -33,15 +33,6 @@ import ThreadHandler from '../../../../shared/tools/ThreadHandler';
  */
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): AjaxCacheClientController {
-        if (!AjaxCacheClientController.instance) {
-            AjaxCacheClientController.instance = new AjaxCacheClientController();
-            AjaxCacheClientController.instance.processRequests();
-        }
-        return AjaxCacheClientController.instance;
-    }
-
     private static instance: AjaxCacheClientController = null;
 
     /**
@@ -79,6 +70,16 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      *  Si oui, inutile de le relancer
      */
     private is_processing_requests: boolean = false;
+
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): AjaxCacheClientController {
+        if (!AjaxCacheClientController.instance) {
+            AjaxCacheClientController.instance = new AjaxCacheClientController();
+            AjaxCacheClientController.instance.processRequests();
+        }
+        return AjaxCacheClientController.instance;
+    }
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
@@ -393,8 +394,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             this.cache.requestResponseCaches[index].reject_callbacks.push(reject);
 
             // On indique si on peut stacker ou pas
-            //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post
-            if (url.match(/^\/api_handler\/.*/ig) && (type != RequestResponseCacheVO.API_TYPE_POST)) {
+            //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post et les réponses en notif
+            // TODO on pourrait surement les wraps aussi mais complexe en vrai. à creuser
+            if (
+                url.match(/^\/api_handler\/.*/ig) &&
+                (type != RequestResponseCacheVO.API_TYPE_POST) &&
+                (apiDefinition.api_return_type != APIDefinition.API_RETURN_TYPE_NOTIF)) {
                 this.cache.requestResponseCaches[index].wrappable_request = true;
             }
         }

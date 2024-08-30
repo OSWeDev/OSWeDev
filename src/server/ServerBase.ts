@@ -205,6 +205,8 @@ export default abstract class ServerBase {
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
         this.port = process.env.PORT ? process.env.PORT : this.envParam.port;
 
+        PushDataServerController.initialize();
+
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         const pgp: pg_promise.IMain = pg_promise({
@@ -489,7 +491,7 @@ export default abstract class ServerBase {
                         if (uid && client_tab_id) {
                             StatsController.register_stat_COMPTEUR('express', 'version', 'reload');
                             ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
-                            await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                            await PushDataServerController.notifyTabReload(uid, client_tab_id);
                         }
 
                         res.setHeader("cache-control", "no-cache");
@@ -603,7 +605,7 @@ export default abstract class ServerBase {
                 if (uid && /^\/public\/[^/]+\.js$/i.test(url)) {
                     StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
                     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload after failing loading component");
-                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                    await PushDataServerController.notifyTabReload(uid, client_tab_id);
                 } else {
                     ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or not a component - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
                 }
@@ -731,7 +733,7 @@ export default abstract class ServerBase {
                                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                                 async () => {
 
-                                    await PushDataServerController.getInstance().unregisterSession(session);
+                                    await PushDataServerController.unregisterSession(session);
                                     session.destroy(async () => {
                                         await ServerBase.getInstance().redirect_login_or_home(req, res);
                                     });
@@ -758,7 +760,7 @@ export default abstract class ServerBase {
                             await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                             async () => {
 
-                                await PushDataServerController.getInstance().unregisterSession(session);
+                                await PushDataServerController.unregisterSession(session);
                                 session.destroy(async () => {
                                     await ServerBase.getInstance().redirect_login_or_home(req, res);
                                 });
@@ -768,7 +770,7 @@ export default abstract class ServerBase {
                     }
                 }
 
-                PushDataServerController.getInstance().registerSession(session);
+                PushDataServerController.registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
 
@@ -1087,7 +1089,7 @@ export default abstract class ServerBase {
                         await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => {
 
-                            await PushDataServerController.getInstance().unregisterSession(session);
+                            await PushDataServerController.unregisterSession(session);
                             session.destroy(async () => {
                                 await ServerBase.getInstance().redirect_login_or_home(req, res);
                             });
@@ -1096,7 +1098,7 @@ export default abstract class ServerBase {
                 }
                 session.last_check_blocked_or_expired = Dates.now();
 
-                PushDataServerController.getInstance().registerSession(session);
+                PushDataServerController.registerSession(session);
 
                 // On stocke le log de connexion en base
                 const user_log: UserLogVO = new UserLogVO();
@@ -1380,13 +1382,13 @@ export default abstract class ServerBase {
                     return;
                 }
 
-                PushDataServerController.getInstance().registerSocket(session, socket);
+                PushDataServerController.registerSocket(session, socket);
             }.bind(ServerBase.getInstance()));
 
             io.on('disconnect', function (socket: socketIO.Socket) {
                 const session: IServerUserSession = socket.handshake['session'];
 
-                PushDataServerController.getInstance().unregisterSocket(session, socket);
+                PushDataServerController.unregisterSocket(session, socket);
             });
 
             io.on('error', function (err) {

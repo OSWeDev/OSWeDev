@@ -1,8 +1,9 @@
 import IAPIController from '../../../shared/modules/API/interfaces/IAPIController';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ServerAPIController implements IAPIController {
+
+    private static instance: ServerAPIController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): ServerAPIController {
@@ -11,9 +12,6 @@ export default class ServerAPIController implements IAPIController {
         }
         return ServerAPIController.instance;
     }
-
-    private static instance: ServerAPIController = null;
-
 
     public get_shared_api_handler<T, U>(
         api_name: string,

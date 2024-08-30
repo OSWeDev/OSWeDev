@@ -146,7 +146,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         if (f.is_secured && !f.file_access_policy_name) {
 
             if (uid) {
-                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
+                await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
             }
             return false;
         }
@@ -158,7 +158,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
                 if (uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
@@ -179,7 +179,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
                 if (uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }

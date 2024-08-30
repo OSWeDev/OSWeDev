@@ -215,13 +215,13 @@ export default class ModuleCronServer extends ModuleServerBase {
         const uid: number = StackContext.get('UID');
         const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
-        await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
+        await PushDataServerController.notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
 
             await CronServerController.getInstance().executeWorkers();
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually.success');
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually.success');
         } catch (error) {
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually.failed');
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually.failed');
         }
     }
 
@@ -236,13 +236,13 @@ export default class ModuleCronServer extends ModuleServerBase {
         const uid: number = StackContext.get('UID');
         const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
-        await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
+        await PushDataServerController.notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {
 
             await CronServerController.getInstance().executeWorker(worker_uid);
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.success');
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.success');
         } catch (error) {
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.failed');
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.failed');
         }
     }
 
