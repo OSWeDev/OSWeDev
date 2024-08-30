@@ -1,0 +1,201 @@
+.cms_builder
+    template(v-if="!dashboard")
+        template(v-if="loading")
+            .is_loading
+                i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        template(v-else)
+            .loading_failed 
+                i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                | {{ label('dashboard_builder.loading_failed') }}
+    template(v-else)
+        .row 
+            .col-sm-12
+                .header 
+                    .row 
+                        .col-sm-2
+                            .title {{ label('dashboard_builder.title') }}
+
+                        .col-sm-4
+                            .name
+                                Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
+
+                        .col-sm-4
+                            .selector
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="dashboard"
+                                    :placeholder="label('dashboard_builder.select_dashboard')"
+                                    :options="dashboards_options"
+                                    :custom-label="dashboard_label"
+                                    :allow-empty="false",
+
+                                    autocomplete="off"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    track-by="id"
+
+                                    :id="'dashboard_selector'"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+
+                        .col-sm-2
+                            .btn-success.copy_dashboard(v-if="can_use_clipboard")
+                                i.fa-duotone.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
+                            .btn-warning.replace_dashboard(v-if="can_use_clipboard")
+                                i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
+                            .btn-danger.delete_dashboard
+                                i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard" v-tooltip='label("dashboard_builder.delete_dashboard")')
+                            .btn-primary.create_dashboard
+                                i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard" v-tooltip='label("dashboard_builder.create_dashboard")')
+                            .btn-primary.create_dashboard_from(v-if="can_use_clipboard")
+                                i.fa-duotone.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
+
+
+        .row 
+            .col-sm-12
+                template(v-if='!pages')
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_builder.loading_failed') }}
+
+                template(v-else)
+                    .row.steps
+                        .col-sm-3
+                            .step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
+                        .col-sm-3
+                            .step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
+                        .col-sm-3
+                            .step.menu_conf(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
+                        .col-sm-3 
+                            .step.shared_filters(v-if='can_build_page' @click='select_shared_filters' :class="{'selected' : show_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
+
+                    .pages
+                        template(v-if='has_navigation_history')
+                            .page
+                                .back
+                                    i.fa-duotone.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
+                        template(v-for='(page_, pagei) in pages')
+                            .page
+
+                                .btn-secondary.move_page(v-if='pagei > 0')
+                                    i.fa-duotone.fa-square-left.fa-fw.btn_icon(aria-hidden="true" @click="move_page_left(page_, pagei)")
+                                .btn-secondary.move_page(v-if='pagei < (pages.length-1)')
+                                    i.fa-duotone.fa-square-right.fa-fw.btn_icon(aria-hidden="true" @click="move_page_right(page_, pagei)")
+
+                                .btn-primary.select(v-if='page && (page_.id != page.id)')
+                                    i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
+                                .btn-success.selected(v-else)
+                                    i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
+                                .name
+                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
+                                .hide_navigation(:class='{"disabled" : !parseInt(pagei.toString()), "not_disabled": !!parseInt(pagei.toString())}')
+                                    template(v-if='parseInt(pagei.toString()) != 0')
+                                        template(v-if='page_.hide_navigation')
+                                            i.fa-duotone.fa-eye-slash.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_show_navigation")')
+                                        template(v-else)
+                                            i.fa-duotone.fa-eye.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_hide_navigation")')
+                                    template(v-else)
+                                        i.fa-duotone.fa-eye.fa-fw.btn_icon.disabled(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_cannot_hide_navigation")')
+
+                                .filters_params
+                                    .group_filters(v-if="page_", :key="'group_filters_' + page_.id")
+                                        .input_wrapper
+                                            toggle-button(
+                                                @change="switch_group_filters(page_)" 
+                                                :value="page_.group_filters" 
+                                                :sync="false"
+                                                :width="125"
+                                                :labels="{checked: label('dashboard_viewer.group_filters'), unchecked: label('dashboard_viewer.group_filters')}" 
+                                            )
+                                    template(v-if="page_.group_filters")
+                                        .collapse_filters(v-if="page_", :key="'collapse_filters_' + page_.id")
+                                            .input_wrapper
+                                                toggle-button(
+                                                    @change="switch_collapse_filters(page_)" 
+                                                    :value="page_.collapse_filters" 
+                                                    :sync="false"
+                                                    :width="150"
+                                                    :labels="{checked: label('dashboard_viewer.collapse_filters'), unchecked: label('dashboard_viewer.collapse_filters')}" 
+                                                )
+
+                                .btn-danger.delete 
+                                    i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
+
+                        .btn-primary.create_dashboard_page
+                            i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
+
+        template(v-if='!page')
+            .row
+                .col-sm-12
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa-duotone.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa-duotone.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_builder.loading_failed') }}
+
+        template(v-else)
+            .row(v-if='show_select_vos && dashboard && dashboard.id')
+                .col-sm-12.tables_graph_wrapper 
+                    Tablesgraphcomponent(
+                        :key='"Tablesgraphcomponent__" + dashboard.id' 
+                        :dashboard='dashboard' 
+                        @add_api_type_id='add_api_type_id' 
+                        @del_api_type_id='del_api_type_id'
+                        @update_discarded_field_paths='update_discarded_field_paths'
+                    )
+
+
+            .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
+                .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
+                    i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                    i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+
+                .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
+                    Dashboardbuilderwidgetscomponent(
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget'
+                        :dashboard_page='page'
+                        :dashboard_pages='pages'   
+
+                        @update_layout_widget='update_layout_widget'
+                        @added_widget_to_page='added_widget_to_page'
+                        @close_widget_options='close_widget_options'
+                    )
+                    Droppablevofieldscomponent(:dashboard='dashboard')
+
+            .row(v-if='show_build_page')
+                .col-sm-12.builder_wrapper
+                    Dashboardbuilderboardcomponent(
+                        ref='Dashboardbuilderboardcomponent'
+                        :dashboard_page='page' 
+                        :dashboard_pages='pages'
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget' 
+
+                        @select_widget='select_widget'
+                        @select_page='select_page'
+
+                        @removed_widget_from_page='removed_widget_from_page'
+                    )
+
+            .row(v-if='show_menu_conf')
+                .col-sm-12.menu_conf_wrapper 
+                    Dashboardmenuconfcomponent(:dashboard='dashboard')
+
+            .row(v-if='show_shared_filters')
+                .col-sm-12.shared_filters_wrapper 
+                    Dashboardsharedfilterscomponent(:dashboard='dashboard')
