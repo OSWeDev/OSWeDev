@@ -1,6 +1,3 @@
-import cluster from 'cluster';
-import os from 'os';
-import child_process from 'child_process';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
@@ -73,49 +70,58 @@ import PingForkMessage from './modules/Fork/messages/PingForkMessage';
 import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import APIControllerWrapper from '../shared/modules/API/APIControllerWrapper';
+import ServerAPIController from './modules/API/ServerAPIController';
+import IForkMessage from './modules/Fork/interfaces/IForkMessage';
+import AliveForkMessage from './modules/Fork/messages/AliveForkMessage';
 
-export default abstract class ServerBase {
 
-    protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
+export default abstract class ExpressServerBase {
 
     /* istanbul ignore next: nothing to test here */
-    protected static instance: ServerBase = null;
+    protected static instance: ExpressServerBase;
 
+    // protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
+
+    /**
+     * Local thread cache -----
+     */
     public csrfProtection;
     public version;
-    public io;
+    // public io;
 
-    protected db: IDatabase<any>;
-    protected spawn;
+    // protected db: IDatabase<any>;
+    // protected spawn;
     protected app;
-    protected port;
-    protected uiDebug;
+    // protected port;
+    // protected uiDebug;
     protected envParam: EnvParam;
-    private connectionString: string;
-    // private jwtSecret: string;
+
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
-    private session;
+    private UID: number;
 
-    private ROOT_FOLDER: string = null;
-    // private subscription;
+    // private connectionString: string;
+    // // private jwtSecret: string;
+    // private modulesService: ModuleServiceBase;
+    // private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
+
+    // private session;
+
+    // private ROOT_FOLDER: string = null;
 
 
-    /* istanbul ignore next: nothing to test here */
-    protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+    /**
+     * ----- Local thread cache
+     */
 
-        ForkedTasksController.init();
-        ForkedTasksController.assert_is_main_process();
+    public constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
-        // INIT Stats Server side
-        StatsController.THREAD_NAME = 'main';
-        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
-        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
-        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
-        StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
+        // On initialise le Controller pour les APIs
+        APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
-        ServerBase.instance = this;
+        ExpressServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
@@ -125,48 +131,141 @@ export default abstract class ServerBase {
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
-            ConsoleHandler.log("Main Process starting");
-        }).catch((reason) => {
-            ConsoleHandler.error("FileLogger prepare : " + reason);
-        });
-
-        // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
-        BGThreadServerController.init();
-        BGThreadServerController.register_bgthreads = true;
-        CronServerController.getInstance().register_crons = true;
+            ConsoleHandler.log("Cluster Process starting");
+        }).catch((error) => ConsoleHandler.error(error));
 
         ModulesManager.isServerSide = true;
+        PushDataServerController.initialize();
+
+        // Les bgthreads peuvent être register et run - reste à définir lesquels
+        BGThreadServerController.init();
+        BGThreadServerController.register_bgthreads = true;
+        BGThreadServerController.run_bgthreads = true;
+        CronServerController.getInstance().register_crons = true;
+        CronServerController.getInstance().run_crons = true;
+
+        try {
+
+            this.UID = parseInt(process.argv[2]);
+        } catch (error) {
+            ConsoleHandler.error("Failed loading argv on cluster process+" + error);
+            process.exit(1);
+        }
+
+        const thread_name = 'cluster_express_' + this.UID + '_';
+        StatsController.THREAD_NAME = thread_name;
+        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
+        StatsController.getInstance().UNSTACK_THROTTLE = 60000;
+        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
+        StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
+
         this.csrfProtection = csrf({
             cookie: true
         });
     }
 
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ServerBase {
-        return ServerBase.instance;
+    get process_UID(): number {
+        return this.UID;
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ExpressServerBase {
+        return ExpressServerBase.instance;
+    }
 
-    public async initializeNodeServer() {
-        if (cluster.isMaster) {
-            const numCPUs = os.cpus().length;
+    public async run() {
 
-            // Crée un worker pour chaque CPU disponible
-            for (let i = 0; i < numCPUs; i++) {
-                cluster.fork();
-            }
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
-            // Écoute les événements de sortie des workers
-            cluster.on('exit', (worker, code, signal) => {
-                ConsoleHandler.log(`Worker ${worker.process.pid} died, forking a new one.`);
-                cluster.fork();
-            });
+        const connectionString = envParam.connection_string;
 
-        } else {
-            // Le code existant pour configurer et démarrer le serveur
-            await ExpressServer.startExpressServer();
+        const pgp: pg_promise.IMain = pg_promise({});
+        const db: IDatabase<any> = pgp(connectionString);
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:register_all_modules:START');
         }
+        await this.modulesService.init_db(db);
+        await this.modulesService.register_all_modules();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:register_all_modules:END');
+        }
+
+        // On préload les droits / users / groupes / deps pour accélérer le démarrage
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:preload_access_rights:START');
+        }
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:preload_access_rights:END');
+        }
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:configure_server_modules:START');
+        }
+        await this.modulesService.configure_server_modules(null);
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ExpressServerBase:configure_server_modules:END');
+        }
+
+        await StatsController.init_params();
+
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations(false);
+
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
+        }
+        // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
+        const locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        const locales_corrected = {};
+        for (const lang in locales) {
+            if (lang && lang.indexOf('-') >= 0) {
+                const lang_parts = lang.split('-');
+                if (lang_parts.length == 2) {
+                    locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
+                }
+            }
+        }
+        const i18nextInit = I18nextInit.getInstance(locales_corrected);
+        LocaleManager.getInstance().i18n = i18nextInit.i18next;
+        if (ConfigurationService.node_configuration.debug_start_server) {
+            ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
+        }
+
+        BGThreadServerController.SERVER_READY = true;
+        CronServerController.getInstance().server_ready = true;
+
+        process.on('message', async (msg: IForkMessage) => {
+            msg = APIControllerWrapper.try_translate_vo_from_api(msg);
+            await ForkMessageController.message_handler(msg, process);
+        });
+
+        // On prévient le process parent qu'on est ready
+        await ForkMessageController.send(new AliveForkMessage());
+
+        ThreadHandler.set_interval(MemoryUsageStat.updateMemoryUsageStat, 45000, 'MemoryUsageStat.updateMemoryUsageStat', true);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* istanbul ignore next: nothing to test here */
     protected async hook_on_ready() { }
@@ -352,12 +451,11 @@ export default abstract class ServerBase {
         this.db.$pool.options.max = ConfigurationService.node_configuration.max_pool;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
-        const GM = this.modulesService;
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
-        await GM.init_db(this.db);
-        await GM.register_all_modules();
+        await this.modulesService.init_db(this.db);
+        await this.modulesService.register_all_modules();
         if (ConfigurationService.node_configuration.debug_start_server) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:END');
         }
