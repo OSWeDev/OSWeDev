@@ -5,12 +5,14 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
 import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
 import VarsServerController from '../../../modules/Var/VarsServerController';
 import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ModuleTableServerController from '../../DAO/ModuleTableServerController';
+import VarsComputationHole from '../bgthreads/processes/VarsComputationHole';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
@@ -199,7 +201,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * @param already_tried_load_cache_complet par défaut false, il faut mettre true uniquement si on a déjà essayé de charger la var en base de données et qu'on a pas réussi
      * @returns {VarDAGNode}
      */
-    public static async getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
+    public static async getInstance(
+        var_dag: VarDAG,
+        var_data: VarDataBaseVO,
+        already_tried_load_cache_complet: boolean = false,
+        ignore_waiting_for_computation_holes: boolean = false,
+    ): Promise<VarDAGNode> {
 
         if (var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
@@ -213,7 +220,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
-            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
+            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet, ignore_waiting_for_computation_holes);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
@@ -286,7 +293,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * @private
      * @throws Error si on essaie d'ajouter une var avec un maxrange quelque part qui casserait tout
      */
-    private static async getInstance_semaphored(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
+    private static async getInstance_semaphored(
+        var_dag: VarDAG,
+        var_data: VarDataBaseVO,
+        already_tried_load_cache_complet: boolean = false,
+        ignore_waiting_for_computation_holes: boolean = false,
+    ): Promise<VarDAGNode> {
 
         /**
          * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
@@ -305,6 +317,12 @@ export default class VarDAGNode extends DAGNodeBase {
             if (var_dag.nodes[var_data.index]) {
                 resolve(var_dag.nodes[var_data.index]);
                 return;
+            }
+
+            if (!ignore_waiting_for_computation_holes) {
+                while (VarsComputationHole.waiting_for_computation_hole || VarsComputationHole.currently_in_a_hole_semaphore || VarsComputationHole.redo_in_a_hole_semaphore) {
+                    await ThreadHandler.sleep(10, 'VarDAGNode.getInstance_semaphored:waiting_for_computation_hole');
+                }
             }
 
             const node = new VarDAGNode(var_dag, var_data);

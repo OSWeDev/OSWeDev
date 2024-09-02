@@ -439,7 +439,7 @@ export default class VarsDatasVoUpdateHandler {
             for (const i in invalidated_pixels_never_delete) {
                 const invalidated_pixel_never_delete = invalidated_pixels_never_delete[i];
 
-                all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true));
+                all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(invalidated_pixel_never_delete.index), true, true));
             }
         }
 
@@ -494,7 +494,7 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.log('VarsDatasVoUpdateHandler.handle_invalidators:REINSERT:' + index);
             }
             // Attention : bien forcer de recharger de la base puisque la version qu'on a ici est issue d'un cache local, pas de la base à date
-            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false));
+            all_vardagnode_promises.push(VarDAGNode.getInstance(CurrentVarDAGHolder.current_vardag, VarDataBaseVO.from_index(index), false, true));
         }
 
         await all_promises(all_vardagnode_promises);
