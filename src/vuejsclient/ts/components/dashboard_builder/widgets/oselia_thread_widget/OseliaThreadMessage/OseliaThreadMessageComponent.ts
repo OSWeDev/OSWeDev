@@ -28,6 +28,7 @@ import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadF
 import ImageViewComponent from '../../../../image/View/ImageViewComponent';
 import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
+import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -150,8 +151,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
-        this.throttle_load_thread_message_attachments();
-        this.throttle_load_thread_message();
+        await this.throttle_load_thread_message();
+        await this.throttle_load_thread_message_attachments();
     }
 
     @Watch('thread_message_contents', { deep: true })
@@ -302,12 +303,24 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         // On récupère les contenus des attachments
         for (const attachment of this.thread_message.attachments) {
-            const file: FileVO = await query(FileVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<FileVO>().id, attachment.file_id)
-                .set_limit(1)
-                .exec_as_server()
-                .select_vos<FileVO>()[0];
-            this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+            if (attachment.file_id) {
+                const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
+                    .filter_by_id(attachment.file_id)
+                    .select_vos<GPTAssistantAPIFileVO>();
+                const files: FileVO[] = []
+                for (const gpt_file of gpt_files) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(gpt_file.file_id)
+                        .select_vos<FileVO>();
+                    files.push(file[0]);
+                }
+                console.dir(files);
+                if (files.length > 0) {
+                    for (const file of files) {
+                        this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                    }
+                }
+            }
         }
 
 

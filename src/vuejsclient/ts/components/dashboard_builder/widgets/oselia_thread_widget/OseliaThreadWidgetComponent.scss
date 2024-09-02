@@ -116,7 +116,7 @@
             .thread_files {
                 position: relative;
                 display: inline-flex;
-
+                justify-content: space-between;
                 .thread_file {
                     width: 30%;
                     height: 30%;
@@ -142,8 +142,8 @@
                     img {
                         display: block;
                         border: solid 2px #DDD;
-                        width: 100%;
-                        height: 100%;
+                        width: 60px;
+                        height: 75px;
                     }
 
                     img:hover {

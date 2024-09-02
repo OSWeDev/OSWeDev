@@ -847,6 +847,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Insérer une image depuis un URL'
         }, 'oselia_thread_widget_component.link_image_menu.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fichier'
+        }, 'oselia_thread_widget_component.thread_message_attachment_file.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Fichier'
+        }, 'oselia_thread_widget_component.thread_message_attachment_image.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Exportable'
