@@ -225,30 +225,45 @@ export default class ModuleEnvParam extends Module {
         // OPEN_API_API_KEY ?: string;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().open_api_api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'Clé API Open API', false);
 
-        // teams_webhook__oselia_error
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_error, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les erreurs Oselia', false);
-        // teams_webhook__oselia_warn
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_warn, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les warnings Oselia', false);
-        // teams_webhook__oselia_info
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_info, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les infos Oselia', false);
-        // teams_webhook__oselia_success
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__oselia_success, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les succès Oselia', false);
+        // TEAMS Webhooks
+        // public teams_webhook_send_message?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook_send_message, ModuleTableFieldVO.FIELD_TYPE_string, 'URL Webhook Teams pour envoyer des messages', false);
+        // public teams_webhook_update_message?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook_update_message, ModuleTableFieldVO.FIELD_TYPE_string, 'URL Webhook Teams pour mettre à jour des messages', false);
 
-        // TEAMS_WEBHOOK__TECH_ERROR ?: string;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__tech_error, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les erreurs techniques', false);
-        // TEAMS_WEBHOOK__TECH_WARN ?: string;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__tech_warn, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les warnings techniques', false);
-        // TEAMS_WEBHOOK__TECH_INFO ?: string;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__tech_info, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les infos techniques', false);
-        // TEAMS_WEBHOOK__TECH_SUCCESS ?: string;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__tech_success, ModuleTableFieldVO.FIELD_TYPE_string, 'Webhook Teams pour les succès techniques', false);
+        // Organisations
+        // public teams_groupid__oselia?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_groupid__oselia, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du groupe Teams Oselia', false);
+        // public teams_groupid__tech?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_groupid__tech, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du groupe Teams Tech', false);
 
-        // TEAMS_WEBHOOK__THROTTLE_MS ?: number;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__throttle_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Throttle Teams', false);
-        // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE ?: number;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__message_max_size, ModuleTableFieldVO.FIELD_TYPE_int, 'Taille max des messages Teams', false);
-        // TEAMS_WEBHOOK__MESSAGE_MAX_SIZE_AUTO_SUMMARIZE ?: boolean;
-        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_webhook__message_max_size_auto_summarize, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Auto summarize Teams', true);
+        // Channels
+        // public teams_channelid__oselia_error?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__oselia_error, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les erreurs Oselia', false);
+        // public teams_channelid__oselia_warn?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__oselia_warn, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les warnings Oselia', false);
+        // public teams_channelid__oselia_info?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__oselia_info, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les infos Oselia', false);
+        // public teams_channelid__oselia_success?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__oselia_success, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les succès Oselia', false);
+        // public teams_channelid__oselia_action_needed?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__oselia_action_needed, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les actions nécessaires Oselia', false);
+
+        // public teams_channelid__tech_error?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__tech_error, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les erreurs techniques', false);
+        // public teams_channelid__tech_warn?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__tech_warn, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les warnings techniques', false);
+        // public teams_channelid__tech_info?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__tech_info, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les infos techniques', false);
+        // public teams_channelid__tech_success?: string = null;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_channelid__tech_success, ModuleTableFieldVO.FIELD_TYPE_string, 'ID du channel Teams pour les succès techniques', false);
+
+        // public teams_throttle_ms?: number = 15000;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_throttle_ms, ModuleTableFieldVO.FIELD_TYPE_int, 'Throttle Teams', false, true, 15000);
+        // public teams_message_max_size?: number = 10000;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_message_max_size, ModuleTableFieldVO.FIELD_TYPE_int, 'Taille max des messages Teams', false, true, 10000);
+        // public teams_message_max_size_auto_summarize?: boolean = false;
+        ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().teams_message_max_size_auto_summarize, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Auto summarize Teams', false, true, false);
 
         // BLOCK_TEAMS_MESSAGES ?: boolean;
         ModuleTableFieldController.create_new(EnvParamsVO.API_TYPE_ID, field_names<EnvParamsVO>().block_teams_messages, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Bloquer les messages Teams', true);

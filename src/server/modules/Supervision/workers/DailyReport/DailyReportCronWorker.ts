@@ -1,5 +1,4 @@
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -10,7 +9,6 @@ import TeamsWebhookContentAdaptiveCardVO from '../../../../../shared/modules/Tea
 import TeamsWebhookContentAttachmentsVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
 import TeamsWebhookContentColumnSetVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnSetVO';
 import TeamsWebhookContentColumnVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnVO';
-import TeamsWebhookContentSectionVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentTextBlockVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
 import TeamsWebhookContentVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -19,25 +17,18 @@ import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailServerController';
-import ModuleTeamsAPIServer from '../../../TeamsAPI/ModuleTeamsAPIServer';
 import TeamsAPIServerController from '../../../TeamsAPI/TeamsAPIServerController';
 
 export default class DailyReportCronWorker implements ICronWorker {
 
-    public static TEAMS_WEBHOOK_PARAM_NAME: string = 'DailyReportCronWorker.TEAMS_WEBHOOK';
+    public static TEAMS_GROUPID_PARAM_NAME: string = 'DailyReportCronWorker.TEAMS_GROUPID';
+    public static TEAMS_CHANNELID_PARAM_NAME: string = 'DailyReportCronWorker.TEAMS_CHANNELID';
+
     public static SENDINBLUE_TEMPLATEID_PARAM_NAME: string = 'DailyReportCronWorker.SENDINBLUE_TEMPLATEID';
     public static SENDINBLUE_TOMAIL_PARAM_NAME: string = 'DailyReportCronWorker.SENDINBLUE_TOMAIL';
     public static SENDINBLUE_TONAME_PARAM_NAME: string = 'DailyReportCronWorker.SENDINBLUE_TONAME';
 
     public static MAILCATEGORY_DailyReportCronWorker = 'MAILCATEGORY.DailyReportCronWorker';
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!DailyReportCronWorker.instance) {
-            DailyReportCronWorker.instance = new DailyReportCronWorker();
-        }
-        return DailyReportCronWorker.instance;
-    }
 
     private static instance: DailyReportCronWorker = null;
 
@@ -47,6 +38,14 @@ export default class DailyReportCronWorker implements ICronWorker {
     // istanbul ignore next: nothing to test : worker_uid
     get worker_uid(): string {
         return "DailyReportCronWorker";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!DailyReportCronWorker.instance) {
+            DailyReportCronWorker.instance = new DailyReportCronWorker();
+        }
+        return DailyReportCronWorker.instance;
     }
 
     // istanbul ignore next: nothing to test : work
@@ -72,61 +71,63 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     // istanbul ignore next: nothing to test : send_teams
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        const TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
+        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_CHANNELID_PARAM_NAME);
+
+        if (!group_id || !channel_id) {
+            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, les 2 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.TEAMS_GROUPID_PARAM_NAME + ':' + DailyReportCronWorker.TEAMS_CHANNELID_PARAM_NAME + ':');
+            return;
+        }
 
         if (ConfigurationService.node_configuration.block_mail_delivery) {
             return;
         }
 
-        if (TEAMS_WEBHOOK_PARAM_NAME) {
-            const body = [];
-            const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        const body = [];
+        const message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-            let title_Text = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision").set_weight("bolder").set_size("large");
-            body.push(title_Text);
+        let title_Text = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + "Bilan quotidien - Supervision").set_weight("bolder").set_size("large");
+        body.push(title_Text);
 
-            let error_Text = new TeamsWebhookContentTextBlockVO().set_text("Erreurs : " +
-                ((ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0) +
-                    (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ].length : 0))
-                + " dont " +
-                (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0)
-                + " non lues").set_size("small");
-            let error_Column = new TeamsWebhookContentColumnSetVO().set_style("attention").set_columns([new TeamsWebhookContentColumnVO().set_items([error_Text])]);
-            body.push(error_Column);
+        let error_Text = new TeamsWebhookContentTextBlockVO().set_text("Erreurs : " +
+            ((ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0) +
+                (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ].length : 0))
+            + " dont " +
+            (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0)
+            + " non lues").set_size("small");
+        let error_Column = new TeamsWebhookContentColumnSetVO().set_style("attention").set_columns([new TeamsWebhookContentColumnVO().set_items([error_Text])]);
+        body.push(error_Column);
 
-            const log_errors: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_ERROR]);
-            if (log_errors) {
-                body.push(new TeamsWebhookContentTextBlockVO().set_text(log_errors).set_size("small"));
-            }
-
-
-            let warning_Text = new TeamsWebhookContentTextBlockVO().set_text("Warnings : " +
-                ((ordered_supervised_items_by_state[SupervisionController.STATE_WARN] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN].length : 0) +
-                    (ordered_supervised_items_by_state[SupervisionController.STATE_WARN_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN_READ].length : 0))
-                + " dont " +
-                (ordered_supervised_items_by_state[SupervisionController.STATE_WARN] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN].length : 0)
-                + " non lues").set_size("small");
-            let warning_Column = new TeamsWebhookContentColumnSetVO().set_style("warning").set_columns([new TeamsWebhookContentColumnVO().set_items([warning_Text])]);
-            body.push(warning_Column);
-
-            const log_warnings: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_WARN]);
-            if (log_warnings) {
-                body.push(new TeamsWebhookContentTextBlockVO().set_text(log_warnings).set_size("small"));
-            }
-            let ok_Text = new TeamsWebhookContentTextBlockVO().set_text("OK : " +
-                (ordered_supervised_items_by_state[SupervisionController.STATE_OK] ? ordered_supervised_items_by_state[SupervisionController.STATE_OK].length : 0)
-                + " - En pause : " +
-                (ordered_supervised_items_by_state[SupervisionController.STATE_PAUSED] ? ordered_supervised_items_by_state[SupervisionController.STATE_PAUSED].length : 0)
-                + " - Inconnus : " +
-                (ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN] ? ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN].length : 0)
-                + "").set_size("small");
-            let ok_Column = new TeamsWebhookContentColumnSetVO().set_style("good").set_columns([new TeamsWebhookContentColumnVO().set_items([ok_Text])]);
-            body.push(ok_Column);
-            message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body)));
-            await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
-        } else {
-            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
+        const log_errors: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_ERROR]);
+        if (log_errors) {
+            body.push(new TeamsWebhookContentTextBlockVO().set_text(log_errors).set_size("small"));
         }
+
+
+        let warning_Text = new TeamsWebhookContentTextBlockVO().set_text("Warnings : " +
+            ((ordered_supervised_items_by_state[SupervisionController.STATE_WARN] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN].length : 0) +
+                (ordered_supervised_items_by_state[SupervisionController.STATE_WARN_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN_READ].length : 0))
+            + " dont " +
+            (ordered_supervised_items_by_state[SupervisionController.STATE_WARN] ? ordered_supervised_items_by_state[SupervisionController.STATE_WARN].length : 0)
+            + " non lues").set_size("small");
+        let warning_Column = new TeamsWebhookContentColumnSetVO().set_style("warning").set_columns([new TeamsWebhookContentColumnVO().set_items([warning_Text])]);
+        body.push(warning_Column);
+
+        const log_warnings: string = this.get_log_for_teams(ordered_supervised_items_by_state[SupervisionController.STATE_WARN]);
+        if (log_warnings) {
+            body.push(new TeamsWebhookContentTextBlockVO().set_text(log_warnings).set_size("small"));
+        }
+        let ok_Text = new TeamsWebhookContentTextBlockVO().set_text("OK : " +
+            (ordered_supervised_items_by_state[SupervisionController.STATE_OK] ? ordered_supervised_items_by_state[SupervisionController.STATE_OK].length : 0)
+            + " - En pause : " +
+            (ordered_supervised_items_by_state[SupervisionController.STATE_PAUSED] ? ordered_supervised_items_by_state[SupervisionController.STATE_PAUSED].length : 0)
+            + " - Inconnus : " +
+            (ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN] ? ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN].length : 0)
+            + "").set_size("small");
+        let ok_Column = new TeamsWebhookContentColumnSetVO().set_style("good").set_columns([new TeamsWebhookContentColumnVO().set_items([ok_Text])]);
+        body.push(ok_Column);
+        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body)));
+        await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 
     private get_log_for_teams(ordered_supervised_items: ISupervisedItem[]): string {

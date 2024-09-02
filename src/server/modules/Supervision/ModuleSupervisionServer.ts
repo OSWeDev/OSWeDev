@@ -14,20 +14,17 @@ import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/I
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
-import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
-import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
 import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
 import TeamsWebhookContentColumnSetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnSetVO';
 import TeamsWebhookContentColumnVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnVO';
 import TeamsWebhookContentImageVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentImageVO';
-import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentTextBlockVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -47,8 +44,18 @@ import SupervisionServerController from './SupervisionServerController';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
 
-    public static ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK';
-    public static ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK';
+    public static ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID';
+    public static ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_GROUPID';
+
+    public static ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID';
+    public static ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_CHANNELID';
+
+    private static instance: ModuleSupervisionServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleSupervision.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -56,13 +63,6 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             ModuleSupervisionServer.instance = new ModuleSupervisionServer();
         }
         return ModuleSupervisionServer.instance;
-    }
-
-    private static instance: ModuleSupervisionServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleSupervision.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -329,9 +329,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_new_unread_error(supervised_item: ISupervisedItem) {
-        const webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
+        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
 
-        if (!webhook) {
+        if ((!group_id) || (!channel_id)) {
+            ConsoleHandler.error('ModuleSuperVisionServer.on_new_unread_error: missing group_id or channel_id:' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_CHANNELID_PARAM_NAME);
             return;
         }
 
@@ -370,13 +372,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
-        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
-        const webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
+        const group_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME);
+        const channel_id: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
 
-        if (!webhook) {
+        if ((!group_id) || (!channel_id)) {
+            ConsoleHandler.error('ModuleSuperVisionServer.on_back_to_normal: missing group_id or channel_id:' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_GROUPID_PARAM_NAME + ' / ' + ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_CHANNELID_PARAM_NAME);
             return;
         }
 
@@ -411,7 +415,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
-        await TeamsAPIServerController.send_to_teams_webhook(webhook, message);
+        await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 
     // istanbul ignore next: cannot test execute_manually

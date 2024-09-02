@@ -68,9 +68,9 @@ import DBDisconnectionServerHandler from './modules/DAO/disconnection/DBDisconne
 import ForkMessageController from './modules/Fork/ForkMessageController';
 import IFork from './modules/Fork/interfaces/IFork';
 import PingForkMessage from './modules/Fork/messages/PingForkMessage';
+import OseliaServerController from './modules/Oselia/OseliaServerController';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
-import OseliaServerController from './modules/Oselia/OseliaServerController';
 
 export default abstract class ServerBase {
 
@@ -548,7 +548,7 @@ export default abstract class ServerBase {
             if ((!origin) || !(origin.length)) {
                 origin = req.get('Referer');
             }
-            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.authorized_oselia_partners.includes(origin))) {
+            if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
                 if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
@@ -648,9 +648,7 @@ export default abstract class ServerBase {
                 if (sid) {
                     req.session.sid = sid;
                 }
-            } catch (error) {
-
-            }
+            } catch (error) { }
             next();
         });
         // /**

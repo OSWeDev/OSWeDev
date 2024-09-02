@@ -223,7 +223,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async handle_hover() {
-        alert("hover")
+        alert("hover");
     }
 
     private async open_link_image() {

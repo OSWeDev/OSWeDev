@@ -1,0 +1,24 @@
+.tstz_filter_options
+    .segment_type
+        .label {{ label('tstz_filter_options.segment_type') }}
+        .input
+            multiselect.var_name_selector(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_segment_type"
+                :options="segment_type_options"
+                :allow-empty="false",
+
+                :searchable="true"
+                :internal-search="true"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="segment_type"
+            )

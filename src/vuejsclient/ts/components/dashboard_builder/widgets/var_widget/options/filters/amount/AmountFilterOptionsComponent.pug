@@ -2,27 +2,7 @@
     .currency
         .label {{ label('amount_filter_options.currency') }}
         .input
-            multiselect(
-                :preselect-first="false"
-                :multiple="false"
-                v-model="currency"
-                :options="implemented_currency"
-                :allow-empty="false",
-
-                :searchable="true"
-                :internal-search="true"
-
-                select-label=''
-                select-group-label=''
-                selected-label=''
-                deselect-label=''
-                deselect-group-label=''
-
-                placeholder=''
-
-                name="amount_filter_options_selector"
-            )
-            //- input(type='text' v-model='currency' @change='onchange_inputs')
+            input(type='text' v-model='currency' @change='onchange_inputs')
     .fractionalDigits
         .label {{ label('amount_filter_options.fractionalDigits') }}
         .input

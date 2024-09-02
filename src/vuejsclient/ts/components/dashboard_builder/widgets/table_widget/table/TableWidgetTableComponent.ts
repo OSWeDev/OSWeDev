@@ -234,16 +234,15 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      * Var Indicator
      *  - All vars indicator on the actual page to be exported
      *
-     * @return {ExportVarIndicatorVO[]}
+     * @return {ExportVarIndicatorVO}
      */
-    get vars_indicator(): ExportVarIndicatorVO[] {
+    get vars_indicator(): ExportVarIndicatorVO {
 
         if (!this.widget_options) {
             return;
         }
-        let res: ExportVarIndicatorVO[] = [];
-        let res_columns: ExportVarcolumnConfVO[] = [];
-        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
+
+        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
 
         // Find id of widget that have type "var"
         const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
@@ -258,39 +257,95 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             (pw) => pw.widget_id == var_widget_id
         );
 
-        for (const key in var_page_widgets) {
+        for (let key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];
+
             const options = JSON.parse(var_page_widget.json_options);
 
             const var_widget_options = new VarWidgetOptions().from(options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
-            for (let j = 0; j <= var_widget_options.vars.length; j++) {
-                const current_var = var_widget_options.vars[j];
-                const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-                    options.var_id,
-                    var_widget_options.filter_custom_field_filters[j],
-                    current_var.filter_type,
-                    current_var.filter_additional_params,
-                );
-                res_columns.push(conf);
-            }
-            for (let conf in res_columns) {
-                let column;
-                column[name] = conf;
-                varcolumn_conf.push(column[name]);
-            }
+
+            let conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                options.var_id,
+                var_widget_options.filter_custom_field_filters,
+                var_widget_options.filter_type,
+                var_widget_options.filter_additional_params,
+            );
+
+            varcolumn_conf[name] = conf;
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
-        for (const key in varcolumn_conf) {
-            res.push(ExportVarIndicatorVO.create_new(
-                ['name', 'value'],
-                { name: 'Nom', value: 'Valeur' },
-                varcolumn_conf[key]
-            ));
-        }
-        return res;
+        return ExportVarIndicatorVO.create_new(
+            ['name', 'value'],
+            { name: 'Nom', value: 'Valeur' },
+            varcolumn_conf
+        );
     }
+    // /**
+    //  * Var Indicator
+    //  *  - All vars indicator on the actual page to be exported
+    //  *
+    //  * @return {ExportVarIndicatorVO[]}
+    //  */
+    // get vars_indicator(): ExportVarIndicatorVO[] {
+
+    //     if (!this.widget_options) {
+    //         return;
+    //     }
+    //     let res: ExportVarIndicatorVO[] = [];
+    //     let res_columns: ExportVarcolumnConfVO[] = [];
+    //     const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
+
+    //     // Find id of widget that have type "var"
+    //     const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
+
+    //     // var_widget_id required to continue
+    //     if (!var_widget_id) {
+    //         return;
+    //     }
+
+    //     // Find all var widgets of actual page
+    //     const var_page_widgets = Object.values(this.all_page_widget)?.filter(
+    //         (pw) => pw.widget_id == var_widget_id
+    //     );
+
+    //     for (const key in var_page_widgets) {
+    //         const var_page_widget = var_page_widgets[key];
+    //         const options = JSON.parse(var_page_widget.json_options);
+
+    //         const var_widget_options = new VarWidgetOptions().from(options);
+    //         const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
+
+        //     if (var_widget_options.vars && var_widget_options.vars.length) {
+        //         for (let j = 0; j < var_widget_options.vars.length; j++) {
+        //             const current_var = var_widget_options.vars[j];
+        //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+        //                 options.var_id,
+        //                 var_widget_options.filter_custom_field_filters[j],
+        //                 current_var.filter_type,
+        //                 current_var.filter_additional_params,
+        //             );
+        //             res_columns.push(conf);
+        //         }
+        //     }
+        //     for (const conf in res_columns) {
+        //         const column = {};
+        //         column[name] = conf;
+        //         varcolumn_conf.push(column[name]);
+        //     }
+        // }
+
+        // // returns ordered_column_list, column_labels and varcolumn_conf
+        // for (const key in varcolumn_conf) {
+        //     res.push(ExportVarIndicatorVO.create_new(
+        //         ['name', 'value'],
+        //         { name: 'Nom', value: 'Valeur' },
+        //         varcolumn_conf[key]
+        //     ));
+        // }
+    //     return res;
+    // }
 
     get show_bulk_select_all(): boolean {
         return this.widget_options && this.widget_options.show_bulk_select_all;
@@ -1879,7 +1934,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             // exec regex on translated text
             const rgx_result = rgx.exec(translated_text);
 
-            const { page_widget_id } = rgx_result?.groups;
+            const { page_widget_id } = rgx_result ? rgx_result.groups : null;
 
             // TODO: find field_filter by page_widget_id instead of filter_name
             const page_widget = this.all_page_widget.find((pw: DashboardPageWidgetVO) => {

@@ -18,10 +18,15 @@ import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
-import { group } from 'console';
-import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
+
+    private static instance: ModuleActionURLServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleActionURL.getInstance().name);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -29,13 +34,6 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             ModuleActionURLServer.instance = new ModuleActionURLServer();
         }
         return ModuleActionURLServer.instance;
-    }
-
-    private static instance: ModuleActionURLServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleActionURL.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerAccessPolicies
@@ -84,10 +82,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
      * @param code
      * @returns
      */
-    private async action_url(code: string, do_not_redirect: boolean, messageId: string, canalId: string, groupId: string, req: Request, res: Response): Promise<boolean> {
+    private async action_url(code: string, do_not_redirect: boolean, req: Request, res: Response): Promise<boolean> {
 
         const uid = ModuleAccessPolicyServer.getLoggedUserId();
-        TeamsAPIServerController.update_teams_message(messageId, canalId, groupId);
+
         /**
          * On ne gère pas d'action anonyme pour le moment
          */
@@ -106,6 +104,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             ConsoleHandler.error('No action_url found for code:' + code + ': or this user does not have access to it:' + uid + ':');
             return false;
         }
+
+        // Si l'action n'est plus appelable, on modifie le message dans Teams pour supprimer le bouton
+        // TODO
+        // TeamsAPIServerController.update_teams_message(messageId, canalId, groupId);
 
         try {
             const action_res = await this.do_action_url(action_url, code, uid, req, res);

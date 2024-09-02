@@ -27,8 +27,8 @@
         width: 483px;
         position: fixed;
         right: 10px;
-        bottom: 60px;
-        height: 80vh;
+        bottom: 100px;
+        height: 990px;
         border: none;
         border-radius: 1em;
         box-shadow: 5px 5px 10px #CCC;
@@ -39,4 +39,33 @@
     display: inline-block;
     vertical-align: middle;
     margin: 0 5px;
+
+    .oselia_chat_btn_closed,
+    .oselia_chat_btn_opening,
+    .oselia_chat_btn_opened {
+        // position: fixed;
+        // bottom: 20px;
+        // right: 20px;
+        width: 80px;
+        height: 80px;
+        border: none;
+        cursor: pointer;
+        background-color: white;
+        border-radius: 50px;
+        z-index: 9999;
+        box-shadow: 10px 5px 11px #939393;
+    }
+
+    .oselia_chat_btn_closed,
+    .oselia_chat_btn_opened {
+        background: url(/vuejsclient/public/img/logo_oselia_fb.png) no-repeat center center;
+        background-color: white;
+        background-size: contain;
+    }
+
+    .oselia_chat_btn_opening i {
+        margin-left: 20px;
+        margin-top: 20px;
+        font-size: 42px;
+    }
 }

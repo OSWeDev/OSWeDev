@@ -17,17 +17,10 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import APINotifTypeResultVO from '../../../shared/modules/PushData/vos/APINotifTypeResultVO';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
-
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!ModuleAPIServer.instance) {
-            ModuleAPIServer.instance = new ModuleAPIServer();
-        }
-        return ModuleAPIServer.instance;
-    }
 
     private static instance: ModuleAPIServer = null;
     private static API_CALL_ID: number = 0;
@@ -35,6 +28,14 @@ export default class ModuleAPIServer extends ModuleServerBase {
     // istanbul ignore next: cannot test module constructor
     private constructor() {
         super(ModuleAPI.getInstance().name);
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!ModuleAPIServer.instance) {
+            ModuleAPIServer.instance = new ModuleAPIServer();
+        }
+        return ModuleAPIServer.instance;
     }
 
     public registerExpressApis(app: Express): void {
@@ -76,6 +77,16 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private createApiRequestHandler<T, U>(api: APIDefinition<T, U>): (req: Request, res: Response) => void {
         return async (req: Request, res: Response) => {
+
+            // /**
+            //  * DELETE ME :IN: Juste pour un TEST
+            //  */
+            // ConsoleHandler.log("DELETE ME : Juste pour un TEST:IN:" + api.api_name);
+            // await ThreadHandler.sleep(2000, 'DELETE ME : Juste pour un TEST');
+            // ConsoleHandler.log("DELETE ME : Juste pour un TEST:OUT:" + api.api_name);
+            // /**
+            //  * DELETE ME :OUT: Juste pour un TEST
+            //  */
 
             if (api.access_policy_name) {
                 if (!await StackContext.runPromise(

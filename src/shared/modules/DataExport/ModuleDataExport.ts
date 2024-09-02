@@ -37,14 +37,6 @@ export default class ModuleDataExport extends Module {
     public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
     public static APINAME_ExportContextQueryToXLSXParamVO: string = 'ExportContextQueryToXLSXParamVO';
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): ModuleDataExport {
-        if (!ModuleDataExport.instance) {
-            ModuleDataExport.instance = new ModuleDataExport();
-        }
-        return ModuleDataExport.instance;
-    }
-
     private static instance: ModuleDataExport = null;
 
     public exportContextQueryToXLSX: (
@@ -71,7 +63,8 @@ export default class ModuleDataExport extends Module {
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
 
-        vars_indicator?: ExportVarIndicatorVO[],
+        // vars_indicator?: ExportVarIndicatorVO[],
+        vars_indicator?: ExportVarIndicatorVO,
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (
@@ -110,6 +103,14 @@ export default class ModuleDataExport extends Module {
     private constructor() {
         super("data_export", "DataExport");
         this.forceActivationOnInstallation();
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): ModuleDataExport {
+        if (!ModuleDataExport.instance) {
+            ModuleDataExport.instance = new ModuleDataExport();
+        }
+        return ModuleDataExport.instance;
     }
 
     public initialize() {

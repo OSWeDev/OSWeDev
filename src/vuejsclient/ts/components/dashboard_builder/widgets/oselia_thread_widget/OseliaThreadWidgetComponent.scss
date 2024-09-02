@@ -1,6 +1,7 @@
 .oselia_thread_widget_component {
 
-    padding-right: 0 !important;
+    // padding-right: 0 !important;
+    width: -webkit-fill-available;
 
     .dragging_overlay {
         opacity: 0.3;
@@ -8,16 +9,18 @@
         height: -webkit-fill-available;
         width: -webkit-fill-available;
         text-align: center;
+
         .dragging_overlay_text {
             color: white;
             font-size: 2em;
             margin-top: 40%;
         }
     }
+
     .update_button {
         text-align: right;
     }
-    
+
     .link_image_menu {
         align-items: center;
         background-color: white;
@@ -30,7 +33,7 @@
 
         .label_link_menu {
             color: rgb(0, 0, 0);
-            border:rgb(0, 0, 0);
+            border: rgb(0, 0, 0);
             border-radius: 4px;
             padding: 10px 20px;
             margin: 10px 0;
@@ -43,7 +46,7 @@
             margin-right: auto;
         }
 
-        input{
+        input {
             font-size: 1em;
             font-weight: normal;
             padding: 0.4em 0.8em 0.4em 0.8em;
@@ -65,10 +68,21 @@
             background-color: #d3d3db;
         }
     }
-    
+
     .blur {
         filter: blur(10px);
     }
+
+    .no_messages {
+        display: flex;
+        align-items: center;
+
+        i {
+            width: 5em;
+            text-align: left;
+        }
+    }
+
     .no_access,
     .too_many_assistants {
 
@@ -144,7 +158,7 @@
 
             .thread_message_input_buttons {
 
-                display:flex;
+                display: flex;
 
                 .thread_message_input_image {
                     margin-left: 7px;
@@ -158,7 +172,7 @@
                     border: none;
                     padding: 8px;
                 }
-                
+
                 button:hover {
                     background-color: #d3d3db;
                 }
@@ -185,7 +199,7 @@
                         transition: background-color 0.3s;
                         font-size: 16px;
 
-                       
+
                         .fa-duotone {
                             margin-right: 5px;
                         }
@@ -211,6 +225,7 @@
                     margin-top: 1em;
                     line-height: 1.5em;
                     margin-bottom: .4em;
+                    resize: none;
                 }
             }
 

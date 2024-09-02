@@ -1,4 +1,4 @@
-.thread_message
+.thread_message(:class='{ thread_message_self: is_self_user, thread_message_assistant: thread_message.role == role_assistant, thread_message_system: thread_message.role == role_system, thread_message_tool: thread_message.role == role_tool, thread_message_function: thread_message.role == role_function }')
 
     template(v-if='is_loading_thread_message')
         .is_loading_thread_message
@@ -69,23 +69,26 @@
                         template(v-else)
                             template(v-if='message_content.type == message_content_type_text')
                                 Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
+                                .thread_message_header_right
+                                    .thread_message_header_right_date
+                                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
                                 .thread_message_footer_actions
                                     .thread_message_footer_action
                                         .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
                                             .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
-                                                i.fa-duotone.fa-clipboard
+                                                i.fa-regular.fa-copy
 
-                                    template(v-if='is_self_user')
+                                    //- template(v-if='is_self_user')
                                         //- .thread_message_footer_action
                                         //-     .thread_message_body_text_edit(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.edit")')
                                         //-         .thread_message_body_text_edit_button(@click='edit_thread_message_content(message_content)')
                                         //-             i.fa-duotone.fa-pen-to-square
 
-                                    template(v-if='thread_message.role == role_assistant')
-                                        .thread_message_footer_action
-                                            .thread_message_feedback(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.feedback")'  :class='{ active: show_feedback }')
-                                                .thread_message_feedback_button(@click='show_feedback = !show_feedback')
-                                                    i.fa-duotone.fa-comments
+                                    //- template(v-if='thread_message.role == role_assistant')
+                                    //-     .thread_message_footer_action
+                                    //-         .thread_message_feedback(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.feedback")'  :class='{ active: show_feedback }')
+                                    //-             .thread_message_feedback_button(@click='show_feedback = !show_feedback')
+                                    //-                 i.fa-duotone.fa-comments
 
                             template(v-else-if='message_content.type == message_content_type_action_url')
                                 .thread_message_body_action_url
@@ -104,10 +107,10 @@
                                         :imagevo_id='message_content.content_type_image_file.file_id'
                                     )
             
-            template(v-if='thread_message.role == role_assistant')
-                template(v-if='show_feedback')
-                    Oseliathreadfeedbackcomponent(
-                        :thread='thread'
-                    )
+            //- template(v-if='thread_message.role == role_assistant')
+            //-     template(v-if='show_feedback')
+            //-         Oseliathreadfeedbackcomponent(
+            //-             :thread='thread'
+            //-         )
 
             //- .thread_message_footer => on peut vouloir compléter cette partie pour modifier et rerun un message iso l'interface openai

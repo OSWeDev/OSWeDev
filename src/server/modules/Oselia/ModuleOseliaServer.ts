@@ -25,6 +25,7 @@ import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTA
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
+import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
@@ -55,7 +56,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
-import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -175,10 +175,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     /**
      * Fonction qui permet à Osélia de générer des images via OpenAI
-     * @param model 
-     * @param prompt 
-     * @param size 
-     * @param thread_vo 
+     * @param model
+     * @param prompt
+     * @param size
+     * @param thread_vo
      */
     public async generate_images(thread_vo: GPTAssistantAPIThreadVO, model: string, prompt: string, size: string, n: number) {
         try {
@@ -569,6 +569,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return null;
         }
 
+        // On sépare 2 fonctionnements : 1 cas où Osélia est utilisé en interne dans le site même qui contient les comptes utilisateurs.
+        //  Dans ce cas on ne doit pas en créer, et la liaison doit se faire avec les comptes existants automatiquement.
+        // 2ème cas, Osélia est utilisé en externe, et on doit créer les comptes utilisateurs si ils n'existent pas encore, mais on attend la validation pour lier le compte au partenaire
+        const is_internal_behaviour = (referrer.referrer_origin == ConfigurationService.node_configuration.base_url);
+
         try {
 
             // Check if the user exists
@@ -576,6 +581,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 .filter_by_text_eq(field_names<UserVO>().email, user_email, UserVO.API_TYPE_ID, true)
                 .exec_as_server()
                 .select_vo<UserVO>();
+
+            if (is_internal_behaviour && !user) {
+                ConsoleHandler.error('link_user_to_oselia_referrer_obj:User not found bu internal behaviour:' + user_email);
+                return null;
+            }
 
             if (!user) {
 
@@ -619,7 +629,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 link.actif = true;
                 link.referrer_id = referrer.id;
                 link.user_id = user.id;
-                link.user_validated = false;
+                link.user_validated = is_internal_behaviour;
                 link.referrer_user_uid = referrer_user_uid;
 
                 try {
@@ -628,6 +638,11 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     ConsoleHandler.error('Error while creating link:' + error);
                     return null;
                 }
+            }
+
+            if ((!link.user_validated) && is_internal_behaviour) {
+                link.user_validated = true;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(link);
             }
 
             const new_ott = new OseliaUserReferrerOTTVO();
@@ -987,9 +1002,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
     /**
      * Méthode qui télécharge l'image chez OpenAI et la sauvegarde en local et crée le fileVO et le renvoie
-     * @param openai_image_url 
-     * @param local_path 
-     * @returns 
+     * @param openai_image_url
+     * @param local_path
+     * @returns
      */
     private async download_image_form_openai_url(
         openai_image_url: string,
@@ -1026,7 +1041,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         .on('error', (err) => {
                             ConsoleHandler.error('ModuleOseliaServer:generate_image:Error while saving the image:', err);
                             reject(err);
-                        })
+                        });
                 }).catch(err => {
                     ConsoleHandler.error('ModuleOseliaServer:generate_image:Erreur lors du téléchargement de l\'image :', err);
                     reject(err);

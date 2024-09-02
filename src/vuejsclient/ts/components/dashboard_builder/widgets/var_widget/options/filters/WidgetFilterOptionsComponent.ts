@@ -31,9 +31,6 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
     @Prop({ default: null })
     private actual_filter_type: string;
 
-    @Prop({ default: null })
-    private actual_var_index: number;
-
     private filter_type: string = null;
     private filter_uids: string[] = [
         'none',
@@ -82,14 +79,14 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
     }
 
     private update_additional_options(additional_options) {
-        this.$emit('update_additional_options', additional_options, this.actual_var_index);
+        this.$emit('update_additional_options', additional_options);
     }
 
     @Watch('filter_type')
     private onchange_filter_type() {
         const ftype = this.filter_by_names[this.filter_type];
         if (ftype != this.actual_filter_type) {
-            this.$emit('update_filter_type', ftype, this.actual_var_index);
+            this.$emit('update_filter_type', ftype);
         }
     }
 }

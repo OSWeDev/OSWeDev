@@ -52,18 +52,79 @@ export default class VarWidgetManager {
         return custom_filters;
     }
 
+    // /**
+    //  * Var Exportable Indicator
+    //  *  - All vars indicator on the actual page to be exported
+    //  *
+    //  * @return {ExportVarIndicatorVO}
+    //  */
+    // public static async get_exportable_vars_indicator(
+    //     dashboard_page_id: number,
+    //     // ): Promise<ExportVarIndicatorVO[]> {
+    //     ): Promise<ExportVarIndicatorVO> {
+    //     // let res: ExportVarIndicatorVO[] = [];
+    //     let res_columns: ExportVarcolumnConfVO[] = [];
+    //     // const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
+    //     const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
+
+    //     const var_page_widgets: {
+    //         [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
+    //     } = await DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name(
+    //         [dashboard_page_id],
+    //         'var'
+    //     );
+
+    //     for (const key in var_page_widgets) {
+    //         const var_page_widget = var_page_widgets[key];
+    //         const var_widget_options = new VarWidgetOptionsVO().from(var_page_widget.widget_options);
+    //         const name = var_widget_options.get_title_name_code_text(var_page_widget.page_widget_id);
+
+    //         if (var_widget_options.vars && var_widget_options.vars.length) {
+    //             for (let j = 0; j < var_widget_options.vars.length; j++) {
+    //                 const current_var = var_widget_options.vars[j];
+    //                 const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+    //                     current_var.var_id,
+    //                     var_widget_options.filter_custom_field_filters[j],
+    //                     current_var.filter_type,
+    //                     current_var.filter_additional_params
+    //                 );
+    //                 res_columns.push(conf);
+    //             }
+    //         }
+    //         for (const conf in res_columns) {
+    //             const column = {};
+    //             column[name] = conf;
+    //             varcolumn_conf.push(column[name]);
+    //         }
+    //     }
+
+    //     // returns ordered_column_list, column_labels and varcolumn_conf
+    //     // for (const key in varcolumn_conf) {
+    //     //     res.push(ExportVarIndicatorVO.create_new(
+    //     //         ['name', 'value'],
+    //     //         { name: 'Nom', value: 'Valeur' },
+    //     //         varcolumn_conf[key]
+    //     //     ));
+    //     // }
+    //     // return res;
+    //     return ExportVarIndicatorVO.create_new(
+    //         ['name', 'value'],
+    //         { name: 'Nom', value: 'Valeur' },
+    //         varcolumn_conf
+    //     );
+    // }
+
     /**
-     * Var Exportable Indicator
-     *  - All vars indicator on the actual page to be exported
-     *
-     * @return {ExportVarIndicatorVO[]}
-     */
+ * Var Exportable Indicator
+ *  - All vars indicator on the actual page to be exported
+ *
+ * @return {ExportVarIndicatorVO}
+ */
     public static async get_exportable_vars_indicator(
         dashboard_page_id: number,
-    ): Promise<ExportVarIndicatorVO[]> {
-        let res: ExportVarIndicatorVO[] = [];
-        let res_columns: ExportVarcolumnConfVO[] = [];
-        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO }[] = [{}];
+    ): Promise<ExportVarIndicatorVO> {
+
+        const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConfVO } = {};
 
         const var_page_widgets: {
             [page_widget_id: string]: { widget_options: any, widget_name: string, dashboard_page_id: number, page_widget_id: number }
@@ -74,34 +135,26 @@ export default class VarWidgetManager {
 
         for (const key in var_page_widgets) {
             const var_page_widget = var_page_widgets[key];
+
             const var_widget_options = new VarWidgetOptionsVO().from(var_page_widget.widget_options);
             const name = var_widget_options.get_title_name_code_text(var_page_widget.page_widget_id);
-            for (let j = 0; j <= var_widget_options.vars.length; j++) {
-                const current_var = var_widget_options.vars[j];
-                const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-                    current_var.var_id,
-                    var_widget_options.filter_custom_field_filters[j],
-                    current_var.filter_type,
-                    current_var.filter_additional_params
-                );
-                res_columns.push(conf);
-            }
-            for (let conf in res_columns) {
-                let column;
-                column[name] = conf;
-                varcolumn_conf.push(column[name]);
-            }
+
+            const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+                var_widget_options.var_id,
+                var_widget_options.filter_custom_field_filters,
+                var_widget_options.filter_type,
+                var_widget_options.filter_additional_params
+            );
+
+            varcolumn_conf[name] = conf;
         }
 
         // returns ordered_column_list, column_labels and varcolumn_conf
-        for (const key in varcolumn_conf) {
-            res.push(ExportVarIndicatorVO.create_new(
-                ['name', 'value'],
-                { name: 'Nom', value: 'Valeur' },
-                varcolumn_conf[key]
-            ));
-        }
-        return res;
+        return ExportVarIndicatorVO.create_new(
+            ['name', 'value'],
+            { name: 'Nom', value: 'Valeur' },
+            varcolumn_conf
+        );
     }
 
     // istanbul ignore next: nothing to test

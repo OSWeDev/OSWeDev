@@ -113,39 +113,29 @@ export default class EnvParam implements IEnvParam {
 
     public block_teams_messages?: boolean = true;
 
-    // Webhooks
+    // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
     public teams_webhook_update_message?: string = null;
 
-    // Organisations
-    public teams_org__oselia: string = null;
-    public teams_org__tech: string = null;
-    public teams_org_dev: string = null;
+    // TEAMS Organisations
+    public teams_groupid__oselia?: string = null;
+    public teams_groupid__tech?: string = null;
 
-    // Channels
-    public teams_channel__oselia_error: string = null;
-    public teams_channel__oselia_warn: string = null;
-    public teams_channel__oselia_info: string = null;
-    public teams_channel__oselia_success: string = null;
+    // TEAMS Channels
+    public teams_channelid__oselia_error?: string = null;
+    public teams_channelid__oselia_warn?: string = null;
+    public teams_channelid__oselia_info?: string = null;
+    public teams_channelid__oselia_success?: string = null;
+    public teams_channelid__oselia_action_needed?: string = null;
 
-    public teams_channel__tech_error: string = null;
-    public teams_channel__tech_warn: string = null;
-    public teams_channel__tech_info: string = null;
-    public teams_channel__tech_success: string = null;
+    public teams_channelid__tech_error?: string = null;
+    public teams_channelid__tech_warn?: string = null;
+    public teams_channelid__tech_info?: string = null;
+    public teams_channelid__tech_success?: string = null;
 
-    public teams_webhook__oselia_error?: string = null;
-    public teams_webhook__oselia_warn?: string = null;
-    public teams_webhook__oselia_info?: string = null;
-    public teams_webhook__oselia_success?: string = null;
-
-    public teams_webhook__tech_error?: string = null;
-    public teams_webhook__tech_warn?: string = null;
-    public teams_webhook__tech_info?: string = null;
-    public teams_webhook__tech_success?: string = null;
-
-    public teams_webhook__throttle_ms?: number = 15000;
-    public teams_webhook__message_max_size?: number = 10000;
-    public teams_webhook__message_max_size_auto_summarize?: boolean = false;
+    public teams_throttle_ms?: number = 15000;
+    public teams_message_max_size?: number = 10000;
+    public teams_message_max_size_auto_summarize?: boolean = false;
 
     public express_secret: string = null;
     public logo_path?: string = null;

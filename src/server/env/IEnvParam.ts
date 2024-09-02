@@ -88,39 +88,29 @@ export default interface IEnvParam {
 
     open_api_api_key?: string;
 
-    // Webhooks
+    // TEAMS Webhooks
     teams_webhook_send_message?: string;
     teams_webhook_update_message?: string;
 
-    // Organisations
-    teams_org__oselia: string;
-    teams_org__tech: string;
-    teams_org_dev: string;
+    // TEAMS Organisations
+    teams_groupid__oselia?: string;
+    teams_groupid__tech?: string;
 
-    // Channels
-    teams_channel__oselia_error: string;
-    teams_channel__oselia_warn: string;
-    teams_channel__oselia_info: string;
-    teams_channel__oselia_success: string;
+    // TEAMS Channels
+    teams_channelid__oselia_error?: string;
+    teams_channelid__oselia_warn?: string;
+    teams_channelid__oselia_info?: string;
+    teams_channelid__oselia_success?: string;
+    teams_channelid__oselia_action_needed?: string;
 
-    teams_channel__tech_error: string;
-    teams_channel__tech_warn: string;
-    teams_channel__tech_info: string;
-    teams_channel__tech_success: string;
+    teams_channelid__tech_error?: string;
+    teams_channelid__tech_warn?: string;
+    teams_channelid__tech_info?: string;
+    teams_channelid__tech_success?: string;
 
-    teams_webhook__oselia_error?: string;
-    teams_webhook__oselia_warn?: string;
-    teams_webhook__oselia_info?: string;
-    teams_webhook__oselia_success?: string;
-
-    teams_webhook__tech_error?: string;
-    teams_webhook__tech_warn?: string;
-    teams_webhook__tech_info?: string;
-    teams_webhook__tech_success?: string;
-
-    teams_webhook__throttle_ms?: number;
-    teams_webhook__message_max_size?: number;
-    teams_webhook__message_max_size_auto_summarize?: boolean;
+    teams_throttle_ms?: number;
+    teams_message_max_size?: number;
+    teams_message_max_size_auto_summarize?: boolean;
 
     block_teams_messages?: boolean;
 

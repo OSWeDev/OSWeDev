@@ -62,4 +62,9 @@ export default class ActionURLVO implements IDistantVOBase {
     public params_json: string;
 
     public action_remaining_counter: number;
+
+    public teams_auto_close_message_on_completion: boolean;
+    public teams_message_id: string;
+    public teams_group_id: string;
+    public teams_channel_id: string;
 }
