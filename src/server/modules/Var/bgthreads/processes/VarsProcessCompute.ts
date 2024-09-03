@@ -17,7 +17,7 @@ export default class VarsProcessCompute extends VarsProcessBase {
     private static instance: VarsProcessCompute = null;
 
     private constructor() {
-        super('VarsProcessCompute', VarDAGNode.TAG_4_IS_COMPUTABLE, VarDAGNode.TAG_4_COMPUTING, VarDAGNode.TAG_4_COMPUTED, 10);
+        super('VarsProcessCompute', VarDAGNode.TAG_4_IS_COMPUTABLE, VarDAGNode.TAG_4_COMPUTING, VarDAGNode.TAG_4_COMPUTED, 2);
     }
 
     protected async worker_async(node: VarDAGNode): Promise<boolean> {

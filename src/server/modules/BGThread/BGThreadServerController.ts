@@ -126,7 +126,7 @@ export default class BGThreadServerController {
 
                 if ((now - last_tick_s) > timeout_s) {
                     ConsoleHandler.error("BGThreadServerController.check_bgthreads_last_alive_ticks timeout on " +
-                        bgthread_name + " :last_tick_s=" + last_tick_s + ":timeout_s=" + timeout_s + ": => killing process");
+                        bgthread_name + " :last_tick_s=" + last_tick_s + ":timeout_s=" + timeout_s + ": => killing process"); // TODO FIXME ça semble totalement inefficace non ?
                     if (ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name]) {
                         await ForkMessageController.send(

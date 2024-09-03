@@ -54,7 +54,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private disableCache = false;
     private defaultInvalidationTimeout: number = 300; //seconds
-    private maxWrappedRequestByBarrel: number = 10;
+    // private maxWrappedRequestByBarrel: number = 20;
 
     // // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
     // private api_logs_limit: number = 101;
@@ -553,11 +553,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 request_barrel_num_from_request_uid[request_uid] = request_barrel_num;
             }
 
-            // Si on dépasse la limite et donc tous les barrels sont utilisés, on repush la requête dans le pool
-            if (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] && (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length >= this.maxWrappedRequestByBarrel)) {
-                this.waitingForRequest.push(request);
-                continue;
-            }
+            // // Si on dépasse la limite et donc tous les barrels sont utilisés, on repush la requête dans le pool
+            // if (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] && (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length >= this.maxWrappedRequestByBarrel)) {
+            //     this.waitingForRequest.push(request);
+            //     continue;
+            // }
 
             // Ajout de la requête dans le pool
             if (!wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
@@ -600,7 +600,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
 
             if (sendable_objects.length == 1) {
-                await this.resolve_non_wrappable_request(wrappable_requests_by_request_num[i][0]);
+                await promise_pipeline.push(async () => {
+                    await this.resolve_non_wrappable_request(wrappable_requests_by_request_num[i][0]);
+                });
                 continue;
             }
 
@@ -669,7 +671,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         while (true) {
 
             if (this.waitingForRequest.length <= 0) {
-                await ThreadHandler.sleep(50, 'AjaxCacheClientController.processRequests');
+                await ThreadHandler.sleep(20, 'AjaxCacheClientController.processRequests');
+                continue;
             }
 
             const this_batch_requests = this.waitingForRequest;

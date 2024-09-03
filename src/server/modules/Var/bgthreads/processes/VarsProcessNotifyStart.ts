@@ -17,7 +17,7 @@ export default class VarsProcessNotifyStart extends VarsProcessBase {
     private static instance: VarsProcessNotifyStart = null;
 
     private constructor() {
-        super('VarsProcessNotifyStart', VarDAGNode.TAG_0_CREATED, VarDAGNode.TAG_1_NOTIFYING_START, VarDAGNode.TAG_1_NOTIFIED_START, 10, true);
+        super('VarsProcessNotifyStart', VarDAGNode.TAG_0_CREATED, VarDAGNode.TAG_1_NOTIFYING_START, VarDAGNode.TAG_1_NOTIFIED_START, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

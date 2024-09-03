@@ -205,7 +205,7 @@ export default class VarDAGNode extends DAGNodeBase {
         var_dag: VarDAG,
         var_data: VarDataBaseVO,
         already_tried_load_cache_complet: boolean = false,
-        ignore_waiting_for_computation_holes: boolean = false,
+        // ignore_waiting_for_computation_holes: boolean = false, TODO FIXME: il y a une difficulté avec cette logique, il faudrait la revoir. On est sur un sémaphore de création, donc on n'aura qu'une valeur prise en compte pour ce param, mais si c'est false la première fois et true la deuxième, on est bloqués à vie... car le deuxième est une dep dont on a besoin pour résoudre l'arbre et le premier est peut-etre une ligne d'un export qui va bloquer en attendant le hole...
     ): Promise<VarDAGNode> {
 
         if (var_dag.nodes[var_data.index]) {
@@ -220,7 +220,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
-            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet, ignore_waiting_for_computation_holes);
+            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet/*, ignore_waiting_for_computation_holes*/);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
@@ -297,7 +297,7 @@ export default class VarDAGNode extends DAGNodeBase {
         var_dag: VarDAG,
         var_data: VarDataBaseVO,
         already_tried_load_cache_complet: boolean = false,
-        ignore_waiting_for_computation_holes: boolean = false,
+        // ignore_waiting_for_computation_holes: boolean = false, TODO FIXME: il y a une difficulté avec cette logique, il faudrait la revoir. On est sur un sémaphore de création, donc on n'aura qu'une valeur prise en compte pour ce param, mais si c'est false la première fois et true la deuxième, on est bloqués à vie... car le deuxième est une dep dont on a besoin pour résoudre l'arbre et le premier est peut-etre une ligne d'un export qui va bloquer en attendant le hole...
     ): Promise<VarDAGNode> {
 
         /**
@@ -319,11 +319,12 @@ export default class VarDAGNode extends DAGNodeBase {
                 return;
             }
 
-            if (!ignore_waiting_for_computation_holes) {
-                while (VarsComputationHole.waiting_for_computation_hole || VarsComputationHole.currently_in_a_hole_semaphore || VarsComputationHole.redo_in_a_hole_semaphore) {
-                    await ThreadHandler.sleep(10, 'VarDAGNode.getInstance_semaphored:waiting_for_computation_hole');
-                }
-            }
+            // ATTENTION FIXME TODO outre le pb remonté sur ce param, si on veut réactiver il faut aussi s'assurer que lors de l'invalidation, les var datas à remettre dans l'arbre sont bien ajoutés en ignore_waiting_for_computation_holes
+            // if (!ignore_waiting_for_computation_holes) {
+            //     while (VarsComputationHole.waiting_for_computation_hole || VarsComputationHole.currently_in_a_hole_semaphore) {
+            //         await ThreadHandler.sleep(10, 'VarDAGNode.getInstance_semaphored:waiting_for_computation_hole');
+            //     }
+            // }
 
             const node = new VarDAGNode(var_dag, var_data);
 

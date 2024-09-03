@@ -18,6 +18,10 @@ export default abstract class VarsProcessBase {
      */
     protected waiting_valid_nodes: { [node_name: string]: VarDAGNode } = null;
 
+    protected thread_sleep_coef: number = 1;
+    protected thread_sleep_max_coef: number = 10;
+    protected thread_sleep_evol_coef: number = 1.1;
+
     /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)
      * @param TAG_BY_PASS_NAME Tag qui permet de dire que si le noeud est valide pour execution, on ne le traite pas et on pose le tag out directement
@@ -97,20 +101,25 @@ export default abstract class VarsProcessBase {
             //     }
             // }
 
-            if (!this.as_batch) {
-                did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
-            } else {
-                did_something = await this.handle_batch_worker(valid_nodes);
+            if (valid_nodes && Object.keys(valid_nodes).length) {
+                if (!this.as_batch) {
+                    did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
+                } else {
+                    did_something = await this.handle_batch_worker(valid_nodes);
+                }
             }
 
             if (!did_something) {
-
                 if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
                 }
 
-                await ThreadHandler.sleep(this.thread_sleep, this.name);
+                this.thread_sleep_coef = Math.min(this.thread_sleep_max_coef, this.thread_sleep_coef * this.thread_sleep_evol_coef);
+            } else {
+                this.thread_sleep_coef = 1;
             }
+
+            await ThreadHandler.sleep(this.thread_sleep * this.thread_sleep_coef, this.name);
 
             // On attend d'avoir un slot de disponible si besoin avant de refaire une boucle
             if (promise_pipeline) {
@@ -252,6 +261,15 @@ export default abstract class VarsProcessBase {
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
 
         if (!CurrentVarDAGHolder.current_vardag) {
+            return null;
+        }
+
+        if (VarsComputationHole.currently_in_a_hole_semaphore) {
+
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:IN:currently_in_a_hole_semaphore');
+            }
+
             return null;
         }
 
