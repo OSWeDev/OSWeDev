@@ -265,7 +265,7 @@ export default class TeamsAPIServerController {
             if ((!channel_id) && channelid_param_name) {
                 ConsoleHandler.warn('TeamsAPIServerController.send_teams_level:Le paramètre "' + channelid_param_name + '" n\'a pas été trouvé, on utilise la valeur par défaut de configuration "' + ConfigurationService.node_configuration['teams_channelid__tech_' + level.toLowerCase()] + '"');
             }
-            channel_id = channel_id ? channel_id : ConfigurationService.node_configuration['teams_groupid__tech' + level.toLowerCase()];
+            channel_id = channel_id ? channel_id : ConfigurationService.node_configuration['teams_channelid__tech_' + level.toLowerCase()];
 
             if (!group_id || !channel_id) {
                 ConsoleHandler.error('TeamsAPIServerController.send_teams_level:Impossible de trouver le groupe ou le channel pour envoyer le message Teams:' + group_id + ':' + channel_id + ':' + level + ':' + title + ':' + message + ':' + groupid_param_name + ':' + groupid_default_value + ':' + channelid_param_name + ':' + channelid_default_value);
