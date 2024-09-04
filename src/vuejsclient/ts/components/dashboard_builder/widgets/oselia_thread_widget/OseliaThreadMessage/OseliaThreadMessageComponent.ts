@@ -83,6 +83,10 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
 
+    get is_default_avatar() {
+        return (!this.avatar_url) || (this.avatar_url == ModuleAccessPolicy.AVATAR_DEFAULT_URL);
+    }
+
     get role_assistant() {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT;
     }

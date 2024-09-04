@@ -999,7 +999,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return '/vuejsclient/public/img/avatars/unknown.png';
+        return ModuleAccessPolicy.AVATAR_DEFAULT_URL;
         // TODO
         // let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
