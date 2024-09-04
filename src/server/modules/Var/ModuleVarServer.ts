@@ -1111,7 +1111,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             const vars_to_notif: VarDataValueResVO[] = [];
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
-            await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+            await PushDataServerController.notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
             StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', notifyable_vars.length);
 

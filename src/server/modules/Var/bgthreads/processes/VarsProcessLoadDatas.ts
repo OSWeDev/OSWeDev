@@ -13,7 +13,7 @@ export default class VarsProcessLoadDatas extends VarsProcessBase {
     private static instance: VarsProcessLoadDatas = null;
 
     private constructor() {
-        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 10, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
+        super('VarsProcessLoadDatas', VarDAGNode.TAG_2_DEPLOYED, VarDAGNode.TAG_3_DATA_LOADING, VarDAGNode.TAG_3_DATA_LOADED, 2, false, ConfigurationService.node_configuration.max_varsprocessloaddatas);
     }
 
     // istanbul ignore next: nothing to test : getInstance

@@ -4,6 +4,12 @@ import IDistantVOBase from '../../IDistantVOBase';
 export default class APINotifTypeResultVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "apintres";
 
+    public id: number;
+    public _type: string = APINotifTypeResultVO.API_TYPE_ID;
+
+    public api_call_id: number;
+    public res: any;
+
     public static createNew(
         api_call_id: number,
         res: any): APINotifTypeResultVO {
@@ -15,10 +21,4 @@ export default class APINotifTypeResultVO implements IDistantVOBase {
 
         return resu;
     }
-
-    public id: number;
-    public _type: string = APINotifTypeResultVO.API_TYPE_ID;
-
-    public api_call_id: number;
-    public res: any;
 }

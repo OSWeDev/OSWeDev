@@ -33,15 +33,6 @@ import ThreadHandler from '../../../../shared/tools/ThreadHandler';
  */
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): AjaxCacheClientController {
-        if (!AjaxCacheClientController.instance) {
-            AjaxCacheClientController.instance = new AjaxCacheClientController();
-            AjaxCacheClientController.instance.processRequests();
-        }
-        return AjaxCacheClientController.instance;
-    }
-
     private static instance: AjaxCacheClientController = null;
 
     /**
@@ -63,7 +54,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private disableCache = false;
     private defaultInvalidationTimeout: number = 300; //seconds
-    private maxWrappedRequestByBarrel: number = 10;
+    // private maxWrappedRequestByBarrel: number = 20;
 
     // // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
     // private api_logs_limit: number = 101;
@@ -79,6 +70,16 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      *  Si oui, inutile de le relancer
      */
     private is_processing_requests: boolean = false;
+
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): AjaxCacheClientController {
+        if (!AjaxCacheClientController.instance) {
+            AjaxCacheClientController.instance = new AjaxCacheClientController();
+            AjaxCacheClientController.instance.processRequests();
+        }
+        return AjaxCacheClientController.instance;
+    }
 
     public async getCSRFToken() {
         StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
@@ -393,8 +394,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             this.cache.requestResponseCaches[index].reject_callbacks.push(reject);
 
             // On indique si on peut stacker ou pas
-            //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post
-            if (url.match(/^\/api_handler\/.*/ig) && (type != RequestResponseCacheVO.API_TYPE_POST)) {
+            //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post et les réponses en notif
+            // TODO on pourrait surement les wraps aussi mais complexe en vrai. à creuser
+            if (
+                url.match(/^\/api_handler\/.*/ig) &&
+                (type != RequestResponseCacheVO.API_TYPE_POST) &&
+                (apiDefinition.api_return_type != APIDefinition.API_RETURN_TYPE_NOTIF)) {
                 this.cache.requestResponseCaches[index].wrappable_request = true;
             }
         }
@@ -548,11 +553,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 request_barrel_num_from_request_uid[request_uid] = request_barrel_num;
             }
 
-            // Si on dépasse la limite et donc tous les barrels sont utilisés, on repush la requête dans le pool
-            if (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] && (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length >= this.maxWrappedRequestByBarrel)) {
-                this.waitingForRequest.push(request);
-                continue;
-            }
+            // // Si on dépasse la limite et donc tous les barrels sont utilisés, on repush la requête dans le pool
+            // if (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]] && (wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]].length >= this.maxWrappedRequestByBarrel)) {
+            //     this.waitingForRequest.push(request);
+            //     continue;
+            // }
 
             // Ajout de la requête dans le pool
             if (!wrappable_requests_by_request_num[request_barrel_num_from_request_uid[request_uid]]) {
@@ -595,7 +600,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
 
             if (sendable_objects.length == 1) {
-                await this.resolve_non_wrappable_request(wrappable_requests_by_request_num[i][0]);
+                await promise_pipeline.push(async () => {
+                    await this.resolve_non_wrappable_request(wrappable_requests_by_request_num[i][0]);
+                });
                 continue;
             }
 
@@ -664,7 +671,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         while (true) {
 
             if (this.waitingForRequest.length <= 0) {
-                await ThreadHandler.sleep(50, 'AjaxCacheClientController.processRequests');
+                await ThreadHandler.sleep(20, 'AjaxCacheClientController.processRequests');
+                continue;
             }
 
             const this_batch_requests = this.waitingForRequest;

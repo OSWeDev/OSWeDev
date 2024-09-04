@@ -4,6 +4,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -196,17 +197,27 @@ export default class VarsImportsHandler {
             [var_data_index: string]: VarDataBaseVO;
         } = {};
 
+        const promises = [];
         for (const i in imported_datas) {
             const imported_data = imported_datas[i];
 
             aggregated_datas[imported_data.index] = imported_data;
+            /**
+             * On indique qu'on a déjà fait un chargement du cache complet
+             */
+            promises.push(VarDAGNode.getInstance(node.var_dag, imported_data, true/*, true*/));
         }
 
         for (const i in remaining_computations) {
             const remaining_computation = remaining_computations[i];
 
             aggregated_datas[remaining_computation.index] = remaining_computation;
+            /**
+             * On indique qu'on a pas encore fait de chargement du cache complet
+             */
+            promises.push(VarDAGNode.getInstance(node.var_dag, remaining_computation, false/*, true*/));
         }
+        await all_promises(promises);
 
         node.is_aggregator = true;
         node.aggregated_datas = aggregated_datas;

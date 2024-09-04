@@ -271,7 +271,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
         if (target_user_id) {
-            await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
+            await PushDataServerController.notifySimpleINFO(target_user_id, null, 'exportContextQueryToXLSX.starting.___LABEL___', true);
         }
 
         const export_query = ExportContextQueryToXLSXQueryVO.create_new(
@@ -508,7 +508,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 if (!datas_with_vars) {
                     ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
-                    await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                    await PushDataServerController.notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
                     return null;
                 }
                 return datas_with_vars;
@@ -577,7 +577,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             } catch (error) {
                 ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
-                await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                await PushDataServerController.notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
                 return;
             }
         }
@@ -613,7 +613,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 );
             }
 
-            await PushDataServerController.getInstance().notifySimpleINFO(
+            await PushDataServerController.notifySimpleINFO(
                 target_user_id,
                 null,
                 'exportContextQueryToXLSX.file_ready.___LABEL___',
@@ -622,7 +622,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 fullpath
             );
 
-            await PushDataServerController.getInstance().notifyDownloadFile(
+            await PushDataServerController.notifyDownloadFile(
                 target_user_id,
                 null,
                 ConfigurationService.node_configuration.base_url + filepath

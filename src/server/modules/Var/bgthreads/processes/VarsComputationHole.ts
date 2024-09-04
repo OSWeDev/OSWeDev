@@ -16,9 +16,16 @@ export default class VarsComputationHole {
      *  attendre la fin de l'invalidation. Le process d'invalidation doit indiquer qu'il a fini l'invalidation (waiting_for_invalidation = false).
      *  Enfin les autres process doivent indiquer qu'ils ne sont plus en attente de l'invalidation (processes_waiting_for_invalidation_end[process_name] = false)
      *  et reprendre leur travail.
-     */
+    */
     public static waiting_for_computation_hole: boolean = false;
-    public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
+    // public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
+    public static currently_in_a_hole_semaphore: boolean = false;
+    public static redo_in_a_hole_semaphore: boolean = false;
+
+    private static current_cbs_stack: Array<() => {}> = [];
+    private static currently_waiting_for_hole_semaphore: boolean = false;
+
+    protected constructor() { }
 
     public static init() {
         // istanbul ignore next: nothing to test : register_task
@@ -52,11 +59,6 @@ export default class VarsComputationHole {
             await VarsComputationHole.wait_for_hole();
         });
     }
-
-    private static current_cbs_stack: Array<() => {}> = [];
-    private static currently_waiting_for_hole_semaphore: boolean = false;
-    private static currently_in_a_hole_semaphore: boolean = false;
-    private static redo_in_a_hole_semaphore: boolean = false;
 
     private static async wait_for_hole() {
 
@@ -107,7 +109,7 @@ export default class VarsComputationHole {
             }
             await VarsComputationHole.handle_hole();
 
-            await VarsComputationHole.free_everyone();
+            // await VarsComputationHole.free_everyone();
         } catch (error) {
             ConsoleHandler.error('VarsComputationHole:wrap_handle_hole:' + error);
         }
@@ -115,8 +117,8 @@ export default class VarsComputationHole {
 
     private static async handle_hole() {
 
-        VarsComputationHole.currently_waiting_for_hole_semaphore = false;
         VarsComputationHole.currently_in_a_hole_semaphore = true;
+        VarsComputationHole.currently_waiting_for_hole_semaphore = false;
 
         // On fait les cbs à la suite, pas en // par ce que si on demande un trou c'est probablement pour être seul sur l'arbre
         while (VarsComputationHole.current_cbs_stack.length) {
@@ -130,19 +132,20 @@ export default class VarsComputationHole {
     private static async wait_for_everyone_to_be_ready(): Promise<void> {
 
         let start_date = Dates.now();
-        while (true) {
+        // while (true) {
+        while (CurrentVarDAGHolder.current_vardag && CurrentVarDAGHolder.current_vardag.nodes && CurrentVarDAGHolder.current_vardag.nb_nodes) {
 
-            let all_ready = true;
-            for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
-                if (!VarsComputationHole.processes_waiting_for_computation_hole_end[i]) {
-                    all_ready = false;
-                    break;
-                }
-            }
+            // let all_ready = true;
+            // for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+            //     if (!VarsComputationHole.processes_waiting_for_computation_hole_end[i]) {
+            //         all_ready = false;
+            //         break;
+            //     }
+            // }
 
-            if (all_ready) {
-                break;
-            }
+            // if (all_ready) {
+            //     break;
+            // }
 
             await ThreadHandler.sleep(2, 'VarsComputationHole:wait_for_everyone_to_be_ready');
 
@@ -158,12 +161,10 @@ export default class VarsComputationHole {
         }
     }
 
-    private static async free_everyone(): Promise<void> {
+    // private static async free_everyone(): Promise<void> {
 
-        for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
-            VarsComputationHole.processes_waiting_for_computation_hole_end[i] = false;
-        }
-    }
-
-    protected constructor() { }
+    //     for (const i in VarsComputationHole.processes_waiting_for_computation_hole_end) {
+    //         VarsComputationHole.processes_waiting_for_computation_hole_end[i] = false;
+    //     }
+    // }
 }

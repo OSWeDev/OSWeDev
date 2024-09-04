@@ -1040,7 +1040,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (session && !!session.impersonated_from) {
 
                 await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
-                await PushDataServerController.getInstance().unregisterSession(session);
+                await PushDataServerController.unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
                 delete session.impersonated_from;
@@ -1055,7 +1055,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             } else {
 
                 await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
-                await PushDataServerController.getInstance().unregisterSession(session);
+                await PushDataServerController.unregisterSession(session);
 
                 session.uid = null;
                 session.user_vo = null;
@@ -1292,7 +1292,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
+            const sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getUserSessions(uid);
             for (const i in sessions) {
                 const session: IServerUserSession = sessions[i];
 
@@ -1302,7 +1302,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 try {
                     await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
-                    await PushDataServerController.getInstance().unregisterSession(session);
+                    await PushDataServerController.unregisterSession(session);
                     session.destroy(() => {
                     });
                 } catch (error) {
@@ -1328,7 +1328,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.getInstance().notifySession(
+                await PushDataServerController.notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
                     NotificationVO.SIMPLE_ERROR
                 );
@@ -1360,7 +1360,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
 
-            PushDataServerController.getInstance().registerSession(session);
+            PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -1372,7 +1372,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
+            await PushDataServerController.notifyUserLoggedAndRedirect();
 
             return true;
         } catch (error) {
@@ -1864,7 +1864,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.getInstance().notifySession(
+                await PushDataServerController.notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
                     NotificationVO.SIMPLE_ERROR
                 );
@@ -1872,7 +1872,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
+                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -1923,7 +1923,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             session.uid = user.id;
             session.user_vo = user;
-            PushDataServerController.getInstance().registerSession(session);
+            PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -1934,7 +1934,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
+            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -1951,7 +1951,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                await PushDataServerController.getInstance().notifySession(
+                await PushDataServerController.notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
                     NotificationVO.SIMPLE_ERROR
                 );
@@ -1959,7 +1959,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
+                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
                 return session.uid;
             }
 
@@ -2003,7 +2003,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             session.uid = user.id;
             session.user_vo = user;
 
-            PushDataServerController.getInstance().registerSession(session);
+            PushDataServerController.registerSession(session);
 
             // On stocke le log de connexion en base
             const user_log = new UserLogVO();
@@ -2015,7 +2015,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirect(redirect_to);
+            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
 
             return user.id;
         } catch (error) {
@@ -2050,7 +2050,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
-            await PushDataServerController.getInstance().notifySimpleERROR(
+            await PushDataServerController.notifySimpleERROR(
                 StackContext.get('UID'),
                 StackContext.get('CLIENT_TAB_ID'),
                 'error.global_update_blocker.activated.___LABEL___'
@@ -2075,7 +2075,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (user.blocked || user.invalidated || user.archived) {
             ConsoleHandler.error("impersonate:blocked or invalidated or archived");
             context_query.log(true);
-            await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
+            await PushDataServerController.notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué, invalidé ou archivé', true);
             return null;
         }
 
@@ -2083,7 +2083,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         session.uid = user.id;
         session.user_vo = user;
 
-        PushDataServerController.getInstance().registerSession(session);
+        PushDataServerController.registerSession(session);
 
         // On stocke le log de connexion en base
         const user_log = new UserLogVO();
@@ -2095,7 +2095,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-        await PushDataServerController.getInstance().notifyUserLoggedAndRedirect();
+        await PushDataServerController.notifyUserLoggedAndRedirect();
 
         return user.id;
     }
@@ -2185,7 +2185,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         const uid: number = StackContext.get('UID');
         const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
-        await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
+        await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
@@ -2336,7 +2336,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         while (session && !!session.impersonated_from) {
 
             await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
-            await PushDataServerController.getInstance().unregisterSession(session, false);
+            await PushDataServerController.unregisterSession(session, false);
 
             session = Object.assign(session, session.impersonated_from);
             // delete session.impersonated_from;
@@ -2355,7 +2355,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
-        await PushDataServerController.getInstance().unregisterSession(session, true);
+        await PushDataServerController.unregisterSession(session, true);
 
         session.uid = null;
         session.user_vo = null;

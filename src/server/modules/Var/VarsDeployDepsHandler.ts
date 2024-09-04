@@ -290,10 +290,12 @@ export default class VarsDeployDepsHandler {
         /**
          * On n'a pas tenté de charger les pixels
          */
+        const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            await VarDAGNode.getInstance(node.var_dag, aggregated_data, false);
+            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, false/*, true*/));
         }
+        await all_promises(promises);
 
         node.is_aggregator = true;
         node.aggregated_datas = aggregated_datas;
@@ -379,12 +381,12 @@ export default class VarsDeployDepsHandler {
         /**
          * On indique qu'on a déjà fait un chargement du cache complet pour les pixels
          */
+        const promises = [];
         for (const depi in aggregated_datas) {
             const aggregated_data = aggregated_datas[depi];
-            const agg_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, true);
-            // agg_node.is_client_sub_dep = node.is_client_sub || node.is_client_sub_dep;
-            // agg_node.is_server_sub_dep = node.is_server_sub || node.is_server_sub_dep;
+            promises.push(VarDAGNode.getInstance(node.var_dag, aggregated_data, true/*, true*/));
         }
+        await all_promises(promises);
 
         const nb_known_pixels = known_pixels ? known_pixels.length : 0;
         const nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
@@ -479,7 +481,7 @@ export default class VarsDeployDepsHandler {
                 const data = node.aggregated_datas[i];
                 aggregated_deps['AGG_' + (index++)] = data;
 
-                promises.push(VarDAGNode.getInstance(node.var_dag, data, true));
+                promises.push(VarDAGNode.getInstance(node.var_dag, data, true/*, true*/));
             }
             await all_promises(promises);
 
@@ -561,7 +563,7 @@ export default class VarsDeployDepsHandler {
 
             promises.push((async () => {
 
-                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false);
+                const dep_node = await VarDAGNode.getInstance(node.var_dag, dep, false/*, true*/);
                 if (!dep_node) {
                     return;
                 }

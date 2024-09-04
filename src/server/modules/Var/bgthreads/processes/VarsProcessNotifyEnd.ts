@@ -20,7 +20,7 @@ export default class VarsProcessNotifyEnd extends VarsProcessBase {
     private static instance: VarsProcessNotifyEnd = null;
 
     private constructor() {
-        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 10, true);
+        super('VarsProcessNotifyEnd', VarDAGNode.TAG_4_COMPUTED, VarDAGNode.TAG_5_NOTIFYING_END, VarDAGNode.TAG_5_NOTIFIED_END, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {

@@ -23,6 +23,23 @@ $button-hover-shadow: none;
 
 .OseliaDBComponent {
 
+    .oselia_db_wrapper {
+        opacity: 1;
+        pointer-events: all;
+
+        // Animation pour l'opacity quand on passe de 0 à 1, par contre de 1 à 0, on le fait directement
+        transition: none; // Pas de transition ici
+    }
+
+    .oselia_db_wrapper.is_loading_oselia {
+        // display but hide
+        opacity: 0;
+        pointer-events: none;
+
+        // Animation pour l'opacity quand on passe de 0 à 1, par contre de 1 à 0, on le fait directement
+        transition: opacity .3s ease-in-out;
+    }
+
     .vue-grid-layout {
         .widget_component_wrapper {
             background: $background-popup !important;
@@ -206,5 +223,68 @@ $button-hover-shadow: none;
                 }
             }
         }
+    }
+}
+
+@media (max-width: 640px) {
+
+    html {
+        background: none !important;
+        background-color: white !important;
+    }
+
+    header,
+    footer {
+        display: none;
+    }
+
+    .content {
+        padding: 0 !important;
+    }
+
+    body.page-oselia {
+
+        .main-header,
+        .main-sidebar {
+            display: none;
+        }
+
+        .dashboard_viewer {
+
+            margin-bottom: 0;
+
+            .row.header_wrapper,
+            .row.pages_wrapper,
+            .row.no_page_wrapper {
+                display: none;
+            }
+
+            .favorites_filters_modal_component_wrapper {
+                display: none;
+            }
+
+            .header {
+
+                .name,
+                .edit {
+                    display: none;
+                }
+            }
+
+            .widget_name__fieldvaluefilter,
+            .widget_name__datatable {
+                display: none;
+            }
+
+            .vue-grid-layout {
+                height: 100% !important;
+                margin: 0 !important;
+            }
+        }
+    }
+
+    .vars_manager,
+    .footer_fixed {
+        display: none;
     }
 }

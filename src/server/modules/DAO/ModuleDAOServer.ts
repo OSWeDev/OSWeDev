@@ -1753,7 +1753,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ConsoleHandler.error(error);
             const uid: number = StackContext.get('UID');
             const CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
         }
     }
 
@@ -2377,7 +2377,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //                         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
     //                         if (uid && CLIENT_TAB_ID) {
-    //                             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+    //                             await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
     //                         }
     //                         StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'error');
 
