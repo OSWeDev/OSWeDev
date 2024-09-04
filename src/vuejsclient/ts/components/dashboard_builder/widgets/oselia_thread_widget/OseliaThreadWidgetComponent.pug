@@ -74,6 +74,13 @@
                     .thread_message_input_textarea
                         textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                     .thread_message_input_buttons
+                        .thread_message_input_file_system
+                            button.fa-solid.fa-files(v-on:click='open_file_system_upload')
+                            template(v-if="enable_file_system_menu")
+                                multiselect(
+                                    :options='get_files()'
+                                    v-model='selected_file_system'
+                                )
                         .thread_message_input_file
                             button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
                         .thread_message_input_image
