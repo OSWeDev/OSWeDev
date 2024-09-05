@@ -161,6 +161,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp);
         preUpdateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp_preu);
 
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, this, this.set_has_content_on_thread_and_update_thread_title);
+
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, this, this.set_thread_oswedev_creation_date);
+
         const oselia_partners: OseliaReferrerVO[] = await query(OseliaReferrerVO.API_TYPE_ID)
             .exec_as_server()
             .select_vos<OseliaReferrerVO>();
@@ -1097,5 +1101,97 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             user.email,
             user.id.toString()
         );
+    }
+
+    /**
+     * Puisqu'on on ajoute un contenu à la discussion, elle n'est plus vide
+     * @param thread_message_content
+     */
+    private async set_has_content_on_thread_and_update_thread_title(thread_message_content: GPTAssistantAPIThreadMessageContentVO) {
+        const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_message_content.thread_message_id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+            .using(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .exec_as_server().select_vo<GPTAssistantAPIThreadVO>();
+
+        let needs_update = false;
+
+        if (thread && !thread.has_content) {
+            thread.has_content = true;
+            needs_update = true;
+        }
+
+        if (thread && thread.needs_thread_title_build) {
+
+            // On charge l'assistant pour avoir le titre
+            const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, GPTAssistantAPIThreadVO.OSELIA_THREAD_TITLE_BUILDER_ASSISTANT_NAME)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            if (assistant && (assistant.gpt_assistant_id != 'TODO')) {
+
+                // On charge les contenus dans l'ordre et on en tire les 100 premiers mots pour le titre
+                const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                    .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .using(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
+                    .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+
+                let words = [];
+                for (const i in contents) {
+                    const content = contents[i];
+
+                    if ((!content.content_type_text) || (!content.content_type_text.value)) {
+                        continue;
+                    }
+
+                    words = words.concat(content.content_type_text.value.split(' '));
+
+                    if (words.length >= 100) {
+                        break;
+                    }
+                }
+
+                const words_100 = words.slice(0, 100).join(' ');
+
+                const responses: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
+                    assistant.gpt_assistant_id,
+                    null,
+                    words_100,
+                    null,
+                    null
+                );
+
+                const response = responses ? responses[0] : null;
+                const response_contents = response ?
+                    await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                        .filter_by_id(response.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                        .exec_as_server()
+                        .select_vos<GPTAssistantAPIThreadMessageContentVO>()
+                    : null;
+
+                for (const i in response_contents) {
+                    const response_content = response_contents[i];
+
+                    if (response_content.content_type_text) {
+                        thread.thread_title = response_content.content_type_text.value;
+                        thread.needs_thread_title_build = (words.length < 100);
+                        needs_update = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (needs_update) {
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+        }
+    }
+
+    private async set_thread_oswedev_creation_date(thread: GPTAssistantAPIThreadVO): Promise<boolean> {
+        thread.oswedev_created_at = Dates.now();
+        return true;
     }
 }

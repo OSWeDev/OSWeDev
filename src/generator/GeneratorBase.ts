@@ -100,6 +100,8 @@ import VersionUpdater from './version_updater/VersionUpdater';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
+import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
+import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -219,6 +221,8 @@ export default abstract class GeneratorBase {
             Patch20240619DeclareFunctionOseliaGenerateImages.getInstance(),
             Patch20240619AddRightsSeeGeneratedImages.getInstance(),
             Patch20240701AddDbOseliaAssistantsetfonctions.getInstance(),
+            Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
+            Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
