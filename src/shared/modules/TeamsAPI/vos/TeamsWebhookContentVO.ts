@@ -5,6 +5,7 @@ import TeamsWebhookContentSectionVO from './TeamsWebhookContentSectionVO';
 export default class TeamsWebhookContentVO {
     public channelId: string = null;
     public groupId: string = null;
+    public messageId: string = null;
     public attachments: TeamsWebhookContentAttachmentsVO[] = [];
     // public "@type": string = "MessageCard";
     // public "@context": string = "http://schema.org/extensions";
@@ -13,6 +14,10 @@ export default class TeamsWebhookContentVO {
     // public sections: TeamsWebhookContentSectionVO[] = [];
     // public potentialAction: TeamsWebhookContentActionCardVO[] = [];
 
+    public set_messageId(messageId: string): TeamsWebhookContentVO {
+        this.messageId = messageId;
+        return this;
+    }
 
     public set_channelId(channelId: string): TeamsWebhookContentVO {
         this.channelId = channelId;

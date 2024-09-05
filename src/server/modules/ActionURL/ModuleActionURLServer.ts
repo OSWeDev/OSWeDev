@@ -27,6 +27,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleActionURLServer extends ModuleServerBase {
 
@@ -196,10 +197,10 @@ export default class ModuleActionURLServer extends ModuleServerBase {
             }
             const body = [];
 
-            const title_elt = new TeamsWebhookContentTextBlockVO().set_text(title_content).set_weight("bolder").set_size("large");
+            const title_elt = new TeamsWebhookContentTextBlockVO().set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + title_content).set_weight("bolder").set_size("large");
             body.push(title_elt);
-            // const content_elt = new TeamsWebhookContentTextBlockVO().set_text(message_content).set_size("small");
-            // body.push(content_elt);
+            const content_elt = new TeamsWebhookContentTextBlockVO().set_text(message_content).set_size("small");
+            body.push(content_elt);
 
             const nouveau_contenu: TeamsWebhookContentVO = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body))]);
             await TeamsAPIServerController.update_teams_message(action_url.teams_message_id, action_url.teams_channel_id, action_url.teams_group_id, nouveau_contenu);
