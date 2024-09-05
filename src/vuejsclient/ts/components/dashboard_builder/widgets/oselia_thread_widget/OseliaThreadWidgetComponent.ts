@@ -453,7 +453,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async scroll_to_bottom() {
-        const thread_container_el = this.$refs.thread_container as HTMLElement;
+        let thread_container_el: any = this.$parent;
+
+        if ((!thread_container_el) || (!thread_container_el.$refs) || (!thread_container_el.$refs.widget_component_wrapper)) {
+            return;
+        }
+
+        thread_container_el = thread_container_el.$refs.widget_component_wrapper as HTMLElement;
 
         if (!thread_container_el) {
             return;

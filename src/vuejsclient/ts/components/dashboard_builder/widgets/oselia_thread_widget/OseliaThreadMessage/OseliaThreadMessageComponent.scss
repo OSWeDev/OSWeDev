@@ -45,31 +45,31 @@
         }
     }
 
-    .thread_message_footer_actions {
-        display: flex;
-        margin-left: 3em;
-        transition: all 0.3s ease-in-out;
+    // .thread_message_footer_actions {
+    //     display: flex;
+    //     margin-left: 3em;
+    //     transition: all 0.3s ease-in-out;
 
-        .thread_message_footer_action {
-            margin: 0em .3em;
-            cursor: pointer;
-            padding: .2em;
-            font-size: large;
-            opacity: .5;
-            width: 1em;
-            transition: all 0.3s ease-in-out;
+    //     .thread_message_footer_action {
+    //         margin: 0em .3em;
+    //         cursor: pointer;
+    //         padding: .2em;
+    //         font-size: large;
+    //         opacity: .5;
+    //         width: 1em;
+    //         transition: all 0.3s ease-in-out;
 
-            &:hover {
-                opacity: 1;
-                transition: all 0.3s ease-in-out;
-            }
+    //         &:hover {
+    //             opacity: 1;
+    //             transition: all 0.3s ease-in-out;
+    //         }
 
-            .thread_message_rerun,
-            .thread_message_body_text_edit {
-                display: none;
-            }
-        }
-    }
+    //         .thread_message_rerun,
+    //         .thread_message_body_text_edit {
+    //             display: none;
+    //         }
+    //     }
+    // }
 
     .thread_message_body {
         text-align: left;
@@ -80,18 +80,39 @@
             max-width: 100% !important;
         }
 
-        .thread_message_footer_actions {
-            margin-left: 0;
-            transition: all 0.3s ease-in-out;
-        }
+        // .thread_message_footer_actions {
+        //     margin-left: 0;
+        //     transition: all 0.3s ease-in-out;
+        // }
 
         .thread_message_body_content {
             display: block;
             transition: all 0.3s ease-in-out;
 
+            .sized_by_markdown {
+
+                width: fit-content;
+
+                .thread_message_copy {
+                    transition: all 0.3s ease-in-out;
+                    margin: 0.1em;
+                    cursor: pointer;
+                    padding: 0;
+                    opacity: 0.5;
+                    float: right;
+                    margin-bottom: -2em;
+                    padding-right: 4px;
+                    padding-top: 2px;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+            }
+
             &.thread_message_body_content_type_2,
             &.thread_message_body_content_type_3 {
-                display: inline-flex;
+                display: inline-flex !important;
                 transition: all 0.3s ease-in-out;
             }
 
@@ -103,15 +124,23 @@
                 text-align: left;
                 width: fit-content;
                 transition: all 0.3s ease-in-out;
+                padding-right: 2em;
             }
 
             .thread_message_body_action_url {
-                margin: 1em 1em 1em 0em;
+                margin: 1em 1em 0em 0em;
                 transition: all 0.3s ease-in-out;
 
                 button {
                     border-radius: 1em;
                     transition: all 0.3s ease-in-out;
+                    padding: .2em .3em !important;
+
+                    i {
+                        font-size: 1em;
+                        margin-left: 3px;
+                        margin-right: 8px;
+                    }
                 }
             }
 

@@ -31,18 +31,24 @@ export default class TeamsAPIServerController {
      * @param group_id
      * @param channel_id
      * @param message
-     * @returns
+     * @param action_urls On passe les action url pour update le message_id par la suite dessus, et pouvoir modifier/supprimer le message quand on veut
+     * @returns le message_id du message créé par la webhook
      */
-    public static async send_to_teams_webhook(channel_id: string, group_id: string, message: TeamsWebhookContentVO) {
+    public static async send_to_teams_webhook(
+        channel_id: string,
+        group_id: string,
+        message: TeamsWebhookContentVO,
+        action_urls: ActionURLVO[] = []
+    ): Promise<string> {
 
         if (ConfigurationService.node_configuration.block_teams_messages) {
             ConsoleHandler.log('ModuleTeamsAPIServer.send_to_teams_webhook: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.attachments[0].content.body[0]['text'] ? message.attachments[0].content.body[0]['text'] : 'Error');
-            return;
+            return null;
         }
 
         if ((!group_id) || (!channel_id)) {
             ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Impossible de trouver le groupe ou le channel pour envoyer le message Teams');
-            return;
+            return null;
         }
 
         message.groupId = group_id;
@@ -52,7 +58,7 @@ export default class TeamsAPIServerController {
         const { host, path } = this.getHostAndPathFromUrl(send_message_webhook);
 
         const msg = TextHandler.getInstance().encode_object(message);
-        await ModuleRequest.getInstance().sendRequestFromApp(
+        const webhook_response = await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
             host,
             path,
@@ -63,6 +69,26 @@ export default class TeamsAPIServerController {
             true,
             true
         );
+
+        try {
+            const message = webhook_response.toString('utf-8');
+            console.log(message);
+
+            const message_id: string = message.split(': ')[1].trim();
+            ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Réponse de Teams:message_id:' + message_id);
+
+            for (const action_url of action_urls) {
+                action_url.teams_message_id = message_id;
+                action_url.teams_group_id = group_id;
+                action_url.teams_channel_id = channel_id;
+            }
+            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(action_urls);
+
+            return message_id;
+        } catch (error) {
+            ConsoleHandler.error('TeamsAPIServerController.send_to_teams_webhook:Impossible de récupérer le messageId du message Teams créé:' + group_id + ':' + channel_id + ':' + JSON.stringify(message) + ':' + error + ':' + JSON.stringify(webhook_response));
+            return null;
+        }
     }
 
     // istanbul ignore next: nothing to test : send_teams
@@ -143,13 +169,18 @@ export default class TeamsAPIServerController {
         await TeamsAPIServerController.send_teams_level('success', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
     }
 
-    public static async update_teams_message(message_id: string, channel_id: string, group_id: string) {
+    public static async update_teams_message(message_id: string, channel_id: string, group_id: string, messag: TeamsWebhookContentVO) {
         const webhook = ConfigurationService.node_configuration.teams_webhook_update_message;
 
         if (!webhook) {
             ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de trouver le webhook pour envoyer le message Teams');
             return;
         }
+
+        // if ((!message) || (!message.attachments) || (!message.attachments[0]) || (!message.attachments[0].content) || (!message.attachments[0].content.body) || (!message.attachments[0].content.body[0])) {
+        //     ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de trouver le message à envoyer');
+        //     return;
+        // }
 
         const message = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body([{ "type": "TextBlock", "messageId": message_id, "channelId": channel_id, "organisationId": group_id, "message": "Action is already done." }]))]);
 
@@ -162,6 +193,10 @@ export default class TeamsAPIServerController {
         // const TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
         // let msg = TextHandler.getInstance().sanityze_object(message);
 
+        // message.attachments[0].content.body[0]['messageId'] = message_id;
+        // message.attachments[0].content.body[0]['channelId'] = channel_id;
+        // message.attachments[0].content.body[0]['organisationId'] = group_id;
+        // message.attachments[0].content.body[0]['message'] = "pasteque";
         const msg = TextHandler.getInstance().encode_object(message);
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
@@ -218,7 +253,7 @@ export default class TeamsAPIServerController {
             const open_oselia: ActionURLVO = await this.create_action_button_open_oselia(thread_id);
             actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Oselia'));
             m.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Oselia Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
-            await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m);
+            await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m, [open_oselia]);
         } catch (error) {
             ConsoleHandler.error(error);
         }

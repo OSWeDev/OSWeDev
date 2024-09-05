@@ -518,7 +518,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     return;
                 }
 
-                const translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, this_context_query.fields?.length > 0);
+                const translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, this_context_query, target_user_id, this_context_query.fields?.length > 0);
 
                 if (ConfigurationService.node_configuration.debug_export_context_query_to_xlsx_translated_datas) {
                     for (const i in translated_datas) {
@@ -665,7 +665,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public async translate_context_query_fields_from_bdd(
         datas: any[],
         context_query: ContextQueryVO,
-        use_raw_field: boolean = false
+        target_user_id: number,
+        use_raw_field: boolean = false,
     ): Promise<any[]> {
         if (!(datas?.length > 0)) {
             return null;
@@ -689,7 +690,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             for (const i in res) {
                 const e = res[i];
-                res[i] = this.get_xlsx_version(table, e);
+                res[i] = this.get_xlsx_version(table, e, target_user_id);
             }
 
             return res;
@@ -730,6 +731,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         table_field,
                         res[i],
                         res[i],
+                        target_user_id,
                         field.alias,
                         use_raw_field,
                     );
@@ -747,6 +749,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      */
     public async exportModuletableDataToXLSXFile(
         api_type_id: string,
+        target_user_id: number,
         lang_id: number = null,
         filename: string = null,
         file_access_policy_name: string = null
@@ -769,7 +772,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const vos = await query(api_type_id).select_vos();
         for (const i in vos) {
-            const vo = this.get_xlsx_version(modultable, vos[i]);
+            const vo = this.get_xlsx_version(modultable, vos[i], target_user_id);
             if (vo) {
                 datas.push(vo);
             }
@@ -1297,7 +1300,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
-    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO, e: T): Promise<any> {
+    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTableVO, e: T, target_user_id: number): Promise<any> {
         if (!e) {
             return null;
         }
@@ -1315,7 +1318,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         for (const i in fields) {
             const field = fields[i];
 
-            promises.push(this.field_to_xlsx(field, e, res));
+            promises.push(this.field_to_xlsx(field, e, res, target_user_id));
         }
 
         await all_promises(promises);
@@ -1334,6 +1337,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         field: ModuleTableFieldVO,
         src_vo: any,
         dest_vo: any,
+        target_user_id: number,
         field_alias: string = null,
         use_raw_field: boolean = false
     ): Promise<any> {
@@ -1455,11 +1459,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_enum:
-                const user = await ModuleAccessPolicy.getInstance().getSelfUser();
+                // eslint-disable-next-line no-case-declarations
                 const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
                     .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(user.id))
+                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(target_user_id))
                     .select_vos();
+                // eslint-disable-next-line no-case-declarations
                 const trad = trads ? trads[0] : null;
                 dest_vo[dest_field_id] = trad ? trad.translated : null;
                 break;

@@ -14,7 +14,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
-    private url: string = null;
     private isActive: boolean = false;
     private is_open: boolean = false;
     private widget: OseliaThreadWidgetComponent = null;
@@ -33,13 +32,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
 
     @Watch('$route')
     public async onRouteChange() {
-        this.url = this.$route.fullPath;
-        this.isActive = (await OseliaController.get_referrer_id(this.url)) != null;
-    }
-
-    public async mounted() {
-        const self = this;
-        this.url = this.$route.fullPath;
+        this.isActive = (await OseliaController.get_referrer_id(document.location.href)) != null;
     }
 
     private async openClick() {
@@ -47,6 +40,6 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
         if (this.ott) {
             this.ott = null;
         }
-        this.ott = await ModuleOselia.getInstance().get_token_oselia(this.url);
+        this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
     }
 }

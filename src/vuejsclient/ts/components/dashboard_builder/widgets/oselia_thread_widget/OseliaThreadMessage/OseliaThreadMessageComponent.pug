@@ -1,4 +1,4 @@
-.thread_message(:class='{ thread_message_self: is_self_user, thread_message_assistant: thread_message.role == role_assistant, thread_message_system: thread_message.role == role_system, thread_message_tool: thread_message.role == role_tool, thread_message_function: thread_message.role == role_function }')
+.thread_message(:class='{ thread_message_self: is_self_user, thread_message_other_user: ((thread_message.role == role_user) && (!is_self_user)), thread_message_assistant: thread_message.role == role_assistant, thread_message_system: thread_message.role == role_system, thread_message_tool: thread_message.role == role_tool, thread_message_function: thread_message.role == role_function }')
 
     template(v-if='is_loading_thread_message')
         .is_loading_thread_message
@@ -29,7 +29,7 @@
                         .thread_message_header_left_username
                             | {{ label('oselia_thread_widget_component.thread_message_header_left_username.function') }}
                     template(v-else-if='thread_message.role == role_user')
-                        .thread_message_header_left_avatar
+                        .thread_message_header_left_avatar(v-if='!is_default_avatar')
                             img(:src='avatar_url')
                         .thread_message_header_left_username
                             template(v-if='is_self_user')
@@ -78,15 +78,21 @@
                                     button.btn.btn-primary(@click='save_edit_thread_message_content(message_content, i)' :disabled='!changed_input[i]') {{ label('oselia_thread_widget_component.thread_message_body_edit_buttons.save') }}
                         template(v-else)
                             template(v-if='message_content.type == message_content_type_text')
-                                Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
+
+                                .sized_by_markdown
+                                    .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
+                                        .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
+                                            i.fa-regular.fa-copy
+
+                                    Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
                                 .thread_message_header_right
                                     .thread_message_header_right_date
                                         | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
-                                .thread_message_footer_actions
-                                    .thread_message_footer_action
-                                        .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
-                                            .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
-                                                i.fa-regular.fa-copy
+                                //- .thread_message_footer_actions
+                                //-     .thread_message_footer_action
+                                //-         .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
+                                //-             .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
+                                //-                 i.fa-regular.fa-copy
 
                                     //- template(v-if='is_self_user')
                                         //- .thread_message_footer_action
