@@ -296,7 +296,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private async load_thread_message_attachments() {
 
         this.is_loading_thread_message = true;
-        if (!this.thread_message && !this.thread_message.attachments) {
+        if (!this.thread_message || !this.thread_message.attachments) {
             this.is_loading_thread_message = false;
             return;
         }
@@ -314,7 +314,6 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                         .select_vos<FileVO>();
                     files.push(file[0]);
                 }
-                console.dir(files);
                 if (files.length > 0) {
                     for (const file of files) {
                         this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });

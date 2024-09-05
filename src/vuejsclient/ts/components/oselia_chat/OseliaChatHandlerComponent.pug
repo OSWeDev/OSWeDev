@@ -1,13 +1,6 @@
 .oselia_chat_handler(v-if="isActive")
     .openclose_oselia_chat_handler_module_wrapper
-
-        template(v-if="!isOpened")
-            .oselia_chat_btn_closed(@click='openClick()')
-        template(v-else-if="!oselia_url")
-            .oselia_chat_btn_opening
-                i.fa-duotone.fa-spinner-third.fa-spin
-        template(v-else)
-            .oselia_chat_btn_opened(@click='closeClick()')
+        .oselia_chat_btn_closed(@click='openClick()')
         
-        template(v-if="isOpened && oselia_url")
+        template(v-if="oselia_url && is_open")
             iframe(:src="oselia_url" id="OseliaContainer")

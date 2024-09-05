@@ -33,6 +33,7 @@ import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheCl
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -234,7 +235,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.selected_file_system) {
             return;
         }
-        console.dir(this.selected_file_system);
         // const file: File = this.selected_file_system;
         // const formData = new FormData();
         // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
