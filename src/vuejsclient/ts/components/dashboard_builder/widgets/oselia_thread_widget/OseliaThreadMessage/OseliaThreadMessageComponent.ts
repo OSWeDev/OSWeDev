@@ -29,6 +29,7 @@ import ImageViewComponent from '../../../../image/View/ImageViewComponent';
 import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -156,7 +157,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
         await this.throttle_load_thread_message();
-        await this.throttle_load_thread_message_attachments();
+        // await this.throttle_load_thread_message_attachments();
     }
 
     @Watch('thread_message_contents', { deep: true })
@@ -275,8 +276,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         await this.unregister_all_vo_event_callbacks();
 
-        if (!this.thread_message) {
-
+        if (!this.thread_message || !this.thread_message.attachments) {
             this.is_loading_thread_message = false;
             return;
         }
@@ -287,6 +287,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             reflect<this>().thread_message_contents,
             [filter(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id).by_num_eq(this.thread_message.id)]
         );
+
+        await this.load_thread_message_attachments();
 
         await this.load_avatar_url_and_user_name();
 
@@ -310,6 +312,23 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
             if (attachment.file_id) {
                 const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
                     .filter_by_id(attachment.file_id)
+                    .select_vos<GPTAssistantAPIFileVO>();
+                const files: FileVO[] = []
+                for (const gpt_file of gpt_files) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(gpt_file.file_id)
+                        .select_vos<FileVO>();
+                    files.push(file[0]);
+                }
+                if (files.length > 0) {
+                    for (const file of files) {
+                        this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                    }
+                }
+            }
+            if (attachment.gpt_file_id) {
+                const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, attachment.gpt_file_id)
                     .select_vos<GPTAssistantAPIFileVO>();
                 const files: FileVO[] = []
                 for (const gpt_file of gpt_files) {

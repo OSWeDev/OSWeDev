@@ -93,6 +93,9 @@
                                     .image_upload_menu_item(v-on:click='open_link_image')
                                         i.fa-duotone.fa-images
                                         | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
+                        .thread_message_input_image
+                            button.fa-solid.fa-vial(v-on:click='run_test')
+                            
                     .thread_message_input_send
                         template(v-if='get_too_many_assistants')
                             .too_many_assistants.bg-warning

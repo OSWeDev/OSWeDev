@@ -34,6 +34,9 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
+import GPTAssistantAPIThreadMessageContentVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
+import { Module } from 'module';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -480,8 +483,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
         const self = this;
         this.assistant_is_busy = true;
-        // self.snotify.async(self.label('OseliaThreadWidgetComponent.send_message.start'), () =>
-        //     new Promise(async (resolve, reject) => {
 
         let files = self.thread_files.map((file) => {
             return file[Object.keys(file)[0]];
@@ -489,6 +490,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         try {
             const message = self.new_message_text;
             self.new_message_text = null;
+            this.thread_files = []; // empty the thread files
             const responses = await ModuleGPT.getInstance().ask_assistant(
                 self.assistant.gpt_assistant_id,
                 self.thread.gpt_thread_id,
@@ -497,7 +499,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 VueAppController.getInstance().data_user.id
             );
 
-            this.thread_files = []; // empty the thread files
 
             // if (!responses || !responses.length) {
             //     throw new Error('No response');
@@ -533,6 +534,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
         self.assistant_is_busy = false;
         // }));
+    }
+
+    private async run_test() {
+        // try {
+
+        // } catch (error) {
+        //     ConsoleHandler.error(error);
+        // }
     }
 
     private handle_new_message_text_keydown(event: KeyboardEvent) {

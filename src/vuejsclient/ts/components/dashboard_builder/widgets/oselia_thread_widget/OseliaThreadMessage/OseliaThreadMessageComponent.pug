@@ -56,9 +56,10 @@
                                 template(v-else-if="key == '.txt'")
                                     img(:src="'/vuejsclient/public/img/txt.png'")
                                 span 
-                                .thread_message_attachment_content
+                                .thread_message_attachment_content                                    
                                     .thread_message_attachment_content_title 
-                                        | {{ value.path.split('/').pop() }}
+                                        a(:href='value.path' target='_blank')
+                                            | {{ value.path.split('/').pop() }}
                                     .thread_message_attachment_content_description
                                         template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
                                             | {{ label('oselia_thread_widget_component.thread_message_attachment_image') }}

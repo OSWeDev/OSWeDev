@@ -88,7 +88,13 @@
         .thread_message_body_content {
             display: block;
             transition: all 0.3s ease-in-out;
-
+            .thread_message_body_text {
+                max-width: 600px;
+                pre {
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                }
+            }
             .sized_by_markdown {
 
                 width: fit-content;
@@ -152,7 +158,9 @@
     }
 
     .thread_message_attachments {
-        padding-left: 3em;
+        flex-direction: row-reverse;
+        display:flex;
+        align-items: end;
         .thread_message_attachment {
             img {
                 vertical-align: middle;
