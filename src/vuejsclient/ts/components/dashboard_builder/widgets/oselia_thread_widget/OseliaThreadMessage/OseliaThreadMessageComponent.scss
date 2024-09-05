@@ -150,4 +150,38 @@
             }
         }
     }
+
+    .thread_message_attachments {
+        padding-left: 3em;
+        .thread_message_attachment {
+            img {
+                vertical-align: middle;
+                border-style: none;
+                height: 35px;
+                width: 30px;
+            }
+            span {
+                width: 10px;
+            }
+
+            .thread_message_attachment_content {
+                .thread_message_attachment_content_title {
+                    font-weight: bold;
+                    height: fit-content;
+                }
+                .thread_message_attachment_content_description {
+                    font-weight: lighter;
+                    font-size: smaller;
+                    height: fit-content;
+                }
+            }
+            display: inline-flex;
+            justify-content: space-evenly;
+            border: solid;
+            border-radius: .5rem;
+            border-color: darkgray;
+            padding: .2rem;
+            border-width: thin;
+        }
+    }
 }

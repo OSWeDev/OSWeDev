@@ -30,6 +30,8 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
+import { readFileSync } from 'fs';
 
 export default class GPTAssistantAPIServerController {
 
@@ -938,7 +940,9 @@ export default class GPTAssistantAPIServerController {
         new_msg_content_text: string,
         new_msg_files: FileVO[],
     ): Promise<GPTAssistantAPIThreadMessageVO> {
+        let has_image_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
+        const files_images: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {
 
             asking_message_vo = new GPTAssistantAPIThreadMessageVO();
@@ -963,18 +967,25 @@ export default class GPTAssistantAPIServerController {
                         assistant_file_vo = new GPTAssistantAPIFileVO();
                         assistant_file_vo.file_id = file.id;
                         assistant_file_vo.purpose = GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS;
-                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo);
+                        assistant_file_vo.filename = file.path;
+                        assistant_file_vo.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(assistant_file_vo)).id;
                     }
 
                     assistant_files.push(assistant_file_vo);
                     file_ids.push(assistant_file_vo.gpt_file_id);
 
-                    const attachment = new GPTAssistantAPIThreadMessageAttachmentVO();
-                    attachment.file_id = assistant_file_vo.id;
-                    attachment.add_to_tool_code_interpreter = true;
-                    attachment.add_to_tool_file_search = true;
-                    attachment.weight = parseInt(i);
-                    asking_message_vo.attachments.push(attachment);
+                    if (file.path.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                        has_image_file = true;
+                        files_images.push(file);
+                    } else {
+                        const attachment = new GPTAssistantAPIThreadMessageAttachmentVO();
+                        attachment.file_id = assistant_file_vo.id;
+                        attachment.gpt_file_id = assistant_file_vo.gpt_file_id;
+                        attachment.add_to_tool_code_interpreter = true;
+                        attachment.add_to_tool_file_search = true;
+                        attachment.weight = parseInt(i);
+                        asking_message_vo.attachments.push(attachment);
+                    }
                 }
 
                 if (!new_msg_content_text) {
@@ -990,6 +1001,22 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
 
+            if (has_image_file) {
+                for (const images of files_images) {
+                    const content = new GPTAssistantAPIThreadMessageContentVO();
+                    content.thread_message_id = asking_message_vo.id;
+                    content.content_type_image_url = new GPTAssistantAPIThreadMessageContentImageURLVO();
+                    // const imageFilePath = images.path;
+                    // const imageBuffer = readFileSync(imageFilePath);
+                    // const base64Image = imageBuffer.toString('base64');
+                    content.content_type_image_url.detail = "auto";
+                    content.content_type_image_url.url = ConfigurationService.node_configuration.base_url + images.path;
+                    content.gpt_thread_message_id = asking_message_vo.gpt_id;
+                    content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
+                    content.weight = 0;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+                }
+            }
             const content = new GPTAssistantAPIThreadMessageContentVO();
             content.thread_message_id = asking_message_vo.id;
             content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();

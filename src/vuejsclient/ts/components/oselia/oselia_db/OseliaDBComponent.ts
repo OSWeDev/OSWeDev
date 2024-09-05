@@ -33,8 +33,9 @@ export default class OseliaDBComponent extends VueComponentBase {
     private oselia_db_id: number = null;
 
     private async mounted() {
-        this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME);
-
+        // this.oselia_db_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_DB_ID_PARAM_NAME);
+        // console.dir(this.oselia_db_id)
+        this.oselia_db_id = 1;
         if (!this.oselia_db_id) {
             this.$router.push({
                 name: 'oselia_referrer_not_found'

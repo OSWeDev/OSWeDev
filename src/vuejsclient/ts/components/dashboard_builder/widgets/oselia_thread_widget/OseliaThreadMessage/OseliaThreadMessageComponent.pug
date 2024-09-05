@@ -36,7 +36,34 @@
                                 | {{ label('oselia_thread_widget_component.thread_message_header_left_username.me') }}
                             template(v-else)
                                 | {{ user_name }}
-
+                .thread_message_header_right
+                    .thread_message_header_right_date
+                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+            
+            .thread_message_attachments
+                template(v-for='item in thread_message_files')
+                    template(v-for="(value, key) in item")
+                        template(v-if="value.path")
+                            .thread_message_attachment
+                                template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                    img(:src="'/' + value.path")
+                                template(v-else-if="key == '.pdf'")
+                                    img(:src="'/vuejsclient/public/img/pdf.png'")
+                                template(v-else-if="key == '.csv'")
+                                    img(:src="'/vuejsclient/public/img/csv.png'")
+                                template(v-else-if="key == '.xlsx'")
+                                    img(:src="'/vuejsclient/public/img/xlsx.png'")
+                                template(v-else-if="key == '.txt'")
+                                    img(:src="'/vuejsclient/public/img/txt.png'")
+                                span 
+                                .thread_message_attachment_content
+                                    .thread_message_attachment_content_title 
+                                        | {{ value.path.split('/').pop() }}
+                                    .thread_message_attachment_content_description
+                                        template(v-if="key == '.png' || key == '.jpg' || key == '.jpeg' || key == '.gif' || key == '.webp'")
+                                            | {{ label('oselia_thread_widget_component.thread_message_attachment_image') }}
+                                        template(v-else) 
+                                            | {{ label('oselia_thread_widget_component.thread_message_attachment_file') }}
             .thread_message_body(ref='thread_message_body_ref')
                 template(v-for='(message_content, i) in thread_message_contents')
                     .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.type')

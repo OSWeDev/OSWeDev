@@ -15,7 +15,7 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     private isActive: boolean = false;
-    private isOpened: boolean = false;
+    private is_open: boolean = false;
     private widget: OseliaThreadWidgetComponent = null;
     private ott: string = null;
 
@@ -36,12 +36,10 @@ export default class OseliaChatHandlerComponent extends VueComponentBase {
     }
 
     private async openClick() {
-        this.isOpened = true;
+        this.is_open = !this.is_open;
+        if (this.ott) {
+            this.ott = null;
+        }
         this.ott = await ModuleOselia.getInstance().get_token_oselia(document.location.href);
-    }
-
-    private closeClick() {
-        this.isOpened = false;
-        this.ott = null;
     }
 }

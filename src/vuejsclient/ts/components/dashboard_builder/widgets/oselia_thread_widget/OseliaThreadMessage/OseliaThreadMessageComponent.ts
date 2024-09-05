@@ -26,6 +26,9 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
 import ImageViewComponent from '../../../../image/View/ImageViewComponent';
+import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
+import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
+import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -60,6 +63,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
+    private thread_message_files: { [key: string]: FileVO }[] = [];
 
     public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
 
@@ -82,6 +86,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     };
 
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
+    private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(this.load_thread_message_attachments.bind(this), 10);
 
     get is_default_avatar() {
         return (!this.avatar_url) || (this.avatar_url == ModuleAccessPolicy.AVATAR_DEFAULT_URL);
@@ -150,7 +155,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
-        this.throttle_load_thread_message();
+        await this.throttle_load_thread_message();
+        await this.throttle_load_thread_message_attachments();
     }
 
     @Watch('thread_message_contents', { deep: true })
@@ -289,6 +295,39 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         this.$nextTick(() => {
             this.$emit('thread_message_updated');
         });
+    }
+
+    private async load_thread_message_attachments() {
+
+        this.is_loading_thread_message = true;
+        if (!this.thread_message || !this.thread_message.attachments) {
+            this.is_loading_thread_message = false;
+            return;
+        }
+
+        // On récupère les contenus des attachments
+        for (const attachment of this.thread_message.attachments) {
+            if (attachment.file_id) {
+                const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
+                    .filter_by_id(attachment.file_id)
+                    .select_vos<GPTAssistantAPIFileVO>();
+                const files: FileVO[] = []
+                for (const gpt_file of gpt_files) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(gpt_file.file_id)
+                        .select_vos<FileVO>();
+                    files.push(file[0]);
+                }
+                if (files.length > 0) {
+                    for (const file of files) {
+                        this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                    }
+                }
+            }
+        }
+
+
+        this.is_loading_thread_message = false;
     }
 
     private async load_avatar_url_and_user_name() {
