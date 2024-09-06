@@ -91,6 +91,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_active_field_filters: (param: FieldFiltersVO) => void;
 
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
+
     @Prop()
     private dashboard_page: DashboardPageVO;
 
@@ -493,7 +496,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             if (json_options && json_options.hide_filter) {
                 return true;
             }
-        } catch { }
+        } catch {
+            return false;
+        }
 
         return false;
     }
