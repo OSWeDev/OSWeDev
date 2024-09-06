@@ -35,8 +35,8 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             if ((params.pre_update_vo.archived == params.post_update_vo.archived) &&
                 (params.pre_update_vo.gpt_thread_id == params.post_update_vo.gpt_thread_id) &&
                 (params.pre_update_vo.created_at == params.post_update_vo.created_at) &&
-                (params.pre_update_vo.metadata == params.post_update_vo.metadata) &&
-                (params.pre_update_vo.tool_resources == params.post_update_vo.tool_resources)) {
+                (JSON.stringify(params.pre_update_vo.metadata) == JSON.stringify(params.post_update_vo.metadata)) &&
+                (JSON.stringify(params.pre_update_vo.tool_resources) == JSON.stringify(params.post_update_vo.tool_resources))) {
                 return true;
             }
 
@@ -83,11 +83,12 @@ export default class GPTAssistantAPIServerSyncThreadsController {
             let gpt_obj: Thread = vo.gpt_thread_id ? await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, vo.gpt_thread_id) : null;
 
-            // Si le vo est archivé, on doit supprimer en théorie dans OpenAI. On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
+            // Si le vo est archivé, on ignore toute synchro.
+            // OLD COMMENT - on a changé d'usage du archived a priori et on ignore simplement la modif, puisqu'on ne peut pas supprimer dans tous les cas dans openai : on doit supprimer en théorie dans OpenAI.On log pout le moment une erreur, on ne devrait pas arriver ici dans tous les cas
             if (vo.archived) {
-                if (!!gpt_obj) {
-                    ConsoleHandler.error('Error while pushing thread to OpenAI : thread is archived in Osélia but not in OpenAI');
-                }
+                // if (!!gpt_obj) {
+                //     ConsoleHandler.error('Error while pushing thread to OpenAI : thread is archived in Osélia but not in OpenAI');
+                // }
                 return null;
             }
 
@@ -124,7 +125,8 @@ export default class GPTAssistantAPIServerSyncThreadsController {
                         ConsoleHandler.log('GPTAssistantAPIServerSyncThreadsController:push_thread_to_openai - updating thread');
                     }
 
-                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                    if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai &&
+                        !ConfigurationService.node_configuration.unblock_openai_push_to_openai_gpt_assistant_thread) {
                         throw new Error('Error while pushing obj to OpenAI : block_openai_sync_push_to_openai');
                     }
 
@@ -215,6 +217,11 @@ export default class GPTAssistantAPIServerSyncThreadsController {
         for (const i in threads_vos) {
             const thread_vo = threads_vos[i];
 
+            if (thread_vo.archived) {
+                // On ignore toute synchro si le thread est archivé dans Osélia
+                continue;
+            }
+
             await promise_pipeline.push(async () => {
                 const thread_gpt = await GPTAssistantAPIServerController.wrap_api_call(
                     ModuleGPTServer.openai.beta.threads.retrieve, ModuleGPTServer.openai.beta.threads, thread_vo.gpt_thread_id);
@@ -269,9 +276,9 @@ export default class GPTAssistantAPIServerSyncThreadsController {
         }
 
         return !(
-            GPTAssistantAPIServerSyncController.compare_values(thread_vo.gpt_thread_id, thread_gpt.id) ||
-            GPTAssistantAPIServerSyncController.compare_values(thread_vo.created_at, thread_gpt.created_at) ||
-            GPTAssistantAPIServerSyncController.compare_values(thread_vo.metadata, thread_gpt.metadata) ||
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.gpt_thread_id, thread_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.created_at, thread_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(thread_vo.metadata, thread_gpt.metadata) &&
             GPTAssistantAPIServerSyncController.compare_values(thread_vo_to_openai_tool_resources, thread_gpt.tool_resources));
     }
 

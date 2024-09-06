@@ -1,10 +1,7 @@
 import { IDatabase } from 'pg-promise';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import { field_names } from '../../../shared/tools/ObjectHandler';
-import IGeneratorWorker from '../../IGeneratorWorker';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20240905InitAllThreadsOseliaToHavingContents implements IGeneratorWorker {
 

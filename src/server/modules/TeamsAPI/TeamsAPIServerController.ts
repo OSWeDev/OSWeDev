@@ -358,7 +358,7 @@ export default class TeamsAPIServerController {
             }
 
             const group_id: string = key_params[0].groupid;
-            const channel_id: string = key_params[0].groupid;
+            const channel_id: string = key_params[0].channelid;
             const level: string = key_params[0].level;
             const title: string = key_params[0].title;
 

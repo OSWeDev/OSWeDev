@@ -10,6 +10,7 @@ import GPTAssistantAPIFunctionParamVO from '../../../shared/modules/GPT/vos/GPTA
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageAttachmentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
+import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
@@ -30,8 +31,6 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
-import { readFileSync } from 'fs';
 
 export default class GPTAssistantAPIServerController {
 
@@ -774,10 +773,18 @@ export default class GPTAssistantAPIServerController {
         let thread_vo: GPTAssistantAPIThreadVO = gpt_thread_id ?
             await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>() :
             null;
+
+        user_id = (user_id ? user_id : (thread_vo ? thread_vo.user_id : null));
+
+        if (!user_id) {
+            user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+        }
+
         if (!thread_vo) {
             thread_vo = new GPTAssistantAPIThreadVO();
             thread_vo.current_default_assistant_id = assistant_vo.id;
             thread_vo.current_oselia_assistant_id = assistant_vo.id;
+            thread_vo.user_id = user_id;
         }
 
         // On indique que Osélia est en train de travailler sur cette discussion
@@ -886,8 +893,8 @@ export default class GPTAssistantAPIServerController {
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
                 .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
-                .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().weight, asking_message_vo.weight)
-                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().date, asking_message_vo.date)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, true))
                 .exec_as_server()
                 .select_vos<GPTAssistantAPIThreadMessageVO>();
 

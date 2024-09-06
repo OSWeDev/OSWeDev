@@ -550,6 +550,14 @@ export default abstract class ServerBase {
             if ((!origin) || !(origin.length)) {
                 origin = req.get('Referer');
             }
+
+            if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
+                origin = origin + '/';
+            }
+
+            // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
+            origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
+
             if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 

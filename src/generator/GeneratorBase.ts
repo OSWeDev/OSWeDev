@@ -61,6 +61,9 @@ import Patch20240507AddDefaultRightsAPIsOselia from './patchs/postmodules/Patch2
 import Patch20240514AddAssistantFunctionGetVoTypeDescription from './patchs/postmodules/Patch20240514AddAssistantFunctionGetVoTypeDescription';
 import Patch20240524InitExistingGPTMessageThreadAndRunGPTIds from './patchs/postmodules/Patch20240524InitExistingGPTMessageThreadAndRunGPTIds';
 import Patch20240619AddRightsSeeGeneratedImages from './patchs/postmodules/Patch20240619AddRightsSeeGeneratedImages';
+import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
+import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
+import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -96,12 +99,10 @@ import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunSt
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
 import Patch20240530AddUniqNameMailCategory from './patchs/premodules/Patch20240530AddUniqNameMailCategory';
 import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodules/Patch20240619DeclareFunctionOseliaGenerateImages';
-import VersionUpdater from './version_updater/VersionUpdater';
-import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
-import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
-import Patch20240905InitAllThreadsOseliaToHavingContents from './patchs/postmodules/Patch20240905InitAllThreadsOseliaToHavingContents';
-import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
+import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
+import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -223,6 +224,7 @@ export default abstract class GeneratorBase {
             Patch20240701AddDbOseliaAssistantsetfonctions.getInstance(),
             Patch20240905InitAllThreadsOseliaToHavingContents.getInstance(),
             Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
+            Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

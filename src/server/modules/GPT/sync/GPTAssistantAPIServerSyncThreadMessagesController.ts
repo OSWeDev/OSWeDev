@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { Annotation, FileCitationAnnotation, FilePathAnnotation, ImageFileContentBlock, ImageURLContentBlock, Message, MessageContent, MessageContentPartParam, MessageCreateParams, MessagesPage, TextContentBlock, TextContentBlockParam } from 'openai/resources/beta/threads/messages';
 import { Thread } from 'openai/resources/beta/threads/threads';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import GPTAssistantAPIFileVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
@@ -32,6 +33,33 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
     public static syncing_semaphores_promises: { [gpt_thread_id: string]: Promise<void> } = {};
 
     public static already_syncing_thread_message: { [id: number]: boolean } = {};
+
+    public static get_user_info_prefix_for_content_text(
+        user: UserVO,
+        no_name: boolean = false,
+        include_user_id: boolean = true,
+        separator_chars: string = '<  [:]> '
+    ): string {
+        if (!user) {
+            return '';
+        }
+
+        if ((!no_name) && (user.firstname || user.lastname)) {
+            return separator_chars[0] + (user.firstname ? user.firstname : '') + separator_chars[1] + (user.lastname ? user.lastname : '') +
+                (
+                    include_user_id ?
+                        separator_chars[2] + separator_chars[3] + 'user_id' + separator_chars[4] + user.id + separator_chars[5] + separator_chars[6] + separator_chars[7] :
+                        separator_chars[6] + separator_chars[7]
+                );
+        }
+
+        return separator_chars[0] + user.name +
+            (
+                include_user_id ?
+                    separator_chars[2] + separator_chars[3] + 'user_id' + separator_chars[4] + user.id + separator_chars[5] + separator_chars[6] + separator_chars[7] :
+                    separator_chars[6] + separator_chars[7]
+            );
+    }
 
     /**
      * GPTAssistantAPIThreadMessageContentVO
@@ -126,9 +154,15 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 return null;
             }
 
+            const user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
             const attachments: MessageCreateParams.Attachment[] = GPTAssistantAPIServerSyncThreadMessagesController.attachments_to_openai_api(vo);
             const message_contents_full: MessageContent[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_api(vo);
-            const message_contents_create: MessageContentPartParam[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_create_api(vo);
+            const message_contents_create: MessageContentPartParam[] = await GPTAssistantAPIServerSyncThreadMessagesController.message_contents_to_openai_create_api(vo, user);
+
+            if ((!vo.metadata) || (!vo.metadata['user_id'])) {
+                vo.metadata = vo.metadata ? cloneDeep(vo.metadata) : {};
+                vo.metadata['user_id'] = user.id.toString();
+            }
 
             if (!gpt_obj) {
 
@@ -324,8 +358,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             thread_message_vo = new GPTAssistantAPIThreadMessageVO();
             needs_update = true;
 
-            // Si on a pas de user à associé, on prend celui du thread
-            thread_message_vo.user_id = thread_vo.user_id;
+            // Si on a pas de user à associer, on prend celui du thread
+            thread_message_vo.user_id = (thread_message.metadata && thread_message.metadata['user_id']) ? parseInt(thread_message.metadata['user_id']) : thread_vo.user_id;
 
             await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(thread_message_vo, thread_message, weight);
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_message_vo);
@@ -439,6 +473,15 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         }
 
         let found_vo: GPTAssistantAPIThreadMessageContentVO = null;
+        let text_content = msg_content.text.value;
+
+        if (thread_message_vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+            // Cas des contenus de type text où on a ajouté dans GPT les users
+            if (/^<[^[>]+\[[^\]]+\]> /.test(text_content)) {
+                text_content = text_content.replace(/^<[^[>]+\[[^\]]+\]> /, '');
+            }
+        }
+
         for (const i in thread_message_content_vos) {
             const thread_message_content_vo = thread_message_content_vos[i];
 
@@ -446,7 +489,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 continue;
             }
 
-            if (thread_message_content_vo.content_type_text && (thread_message_content_vo.content_type_text.value == msg_content.text.value)) {
+            if (thread_message_content_vo.content_type_text && (thread_message_content_vo.content_type_text.value == text_content)) {
                 found_vo = thread_message_content_vo;
                 break;
             }
@@ -461,7 +504,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         }
 
         needs_update = needs_update || !(
-            (found_vo.content_type_text && (found_vo.content_type_text.value == msg_content.text.value)) &&
+            (found_vo.content_type_text && (found_vo.content_type_text.value == text_content)) &&
             (found_vo.gpt_thread_message_id == thread_message_vo.gpt_id) &&
             (found_vo.thread_message_id == thread_message_vo.id)
         );
@@ -473,7 +516,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             }
 
             found_vo.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
-            found_vo.content_type_text.value = msg_content.text.value;
+
+            found_vo.content_type_text.value = text_content;
             found_vo.gpt_thread_message_id = thread_message_vo.gpt_id;
             found_vo.thread_message_id = thread_message_vo.id;
             found_vo.weight = (found_vo.weight != null) ? found_vo.weight : weight;
@@ -695,6 +739,8 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             .exec_as_server()
             .select_vos<GPTAssistantAPIThreadMessageContentVO>();
 
+        let user = null;
+
         for (const i in contents) {
             const content = contents[i];
 
@@ -734,10 +780,24 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                         }
                     }
 
+                    // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
+                    // eslint-disable-next-line no-case-declarations
+                    let content_type_text = content.content_type_text.value;
+                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                        if (!user) {
+                            user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
+                        }
+
+                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                        if (!content_type_text.startsWith(intro_info_user)) {
+                            content_type_text = intro_info_user + content_type_text;
+                        }
+                    }
+
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
                         text: {
-                            value: content.content_type_text.value,
+                            value: content_type_text,
                             annotations: annotations,
                         }
                     } as TextContentBlock);
@@ -774,7 +834,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
         return res;
     }
 
-    private static async message_contents_to_openai_create_api(vo: GPTAssistantAPIThreadMessageVO): Promise<MessageContentPartParam[]> {
+    private static async message_contents_to_openai_create_api(vo: GPTAssistantAPIThreadMessageVO, user: UserVO): Promise<MessageContentPartParam[]> {
         const res: MessageContentPartParam[] = [];
 
         if (!vo) {
@@ -792,9 +852,20 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
             switch (content.type) {
                 case GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT:
+
+                    // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
+                    // eslint-disable-next-line no-case-declarations
+                    let content_type_text = content.content_type_text.value;
+                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                        if (!content_type_text.startsWith(intro_info_user)) {
+                            content_type_text = intro_info_user + content_type_text;
+                        }
+                    }
+
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
-                        text: content.content_type_text.value,
+                        text: content_type_text,
                     } as TextContentBlockParam);
                     break;
                 case GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL:

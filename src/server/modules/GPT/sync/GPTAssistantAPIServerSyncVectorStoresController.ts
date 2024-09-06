@@ -282,20 +282,20 @@ export default class GPTAssistantAPIServerSyncVectorStoresController {
         }
 
         return !(
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.gpt_id, vector_store_gpt.id),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.created_at, vector_store_gpt.created_at),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.name, vector_store_gpt.name),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.usage_bytes, vector_store_gpt.usage_bytes),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_in_progress, (vector_store_gpt.file_counts?.in_progress ? vector_store_gpt.file_counts?.in_progress : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_completed, (vector_store_gpt.file_counts?.completed ? vector_store_gpt.file_counts?.completed : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_failed, (vector_store_gpt.file_counts?.failed ? vector_store_gpt.file_counts?.failed : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_cancelled, (vector_store_gpt.file_counts?.cancelled ? vector_store_gpt.file_counts?.cancelled : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_total, (vector_store_gpt.file_counts?.total ? vector_store_gpt.file_counts?.total : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.status, GPTAssistantAPIVectorStoreVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_anchor, (vector_store_gpt.expires_after?.anchor ? GPTAssistantAPIVectorStoreVO.FROM_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vector_store_gpt.expires_after?.anchor] : null)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_days, (vector_store_gpt.expires_after?.days ? vector_store_gpt.expires_after?.days : 0)),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_at, vector_store_gpt.expires_at),
-            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.last_active_at, vector_store_gpt.last_active_at),
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.gpt_id, vector_store_gpt.id) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.created_at, vector_store_gpt.created_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.name, vector_store_gpt.name) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.usage_bytes, vector_store_gpt.usage_bytes) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_in_progress, (vector_store_gpt.file_counts?.in_progress ? vector_store_gpt.file_counts?.in_progress : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_completed, (vector_store_gpt.file_counts?.completed ? vector_store_gpt.file_counts?.completed : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_failed, (vector_store_gpt.file_counts?.failed ? vector_store_gpt.file_counts?.failed : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_cancelled, (vector_store_gpt.file_counts?.cancelled ? vector_store_gpt.file_counts?.cancelled : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.file_counts_total, (vector_store_gpt.file_counts?.total ? vector_store_gpt.file_counts?.total : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.status, GPTAssistantAPIVectorStoreVO.FROM_OPENAI_STATUS_MAP[vector_store_gpt.status]) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_anchor, (vector_store_gpt.expires_after?.anchor ? GPTAssistantAPIVectorStoreVO.FROM_OPENAI_EXPIRES_AFTER_ANCHOR_MAP[vector_store_gpt.expires_after?.anchor] : null)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_after_days, (vector_store_gpt.expires_after?.days ? vector_store_gpt.expires_after?.days : 0)) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.expires_at, vector_store_gpt.expires_at) &&
+            GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.last_active_at, vector_store_gpt.last_active_at) &&
             GPTAssistantAPIServerSyncController.compare_values(vector_store_vo.metadata, vector_store_gpt.metadata));
     }
 

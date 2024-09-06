@@ -481,7 +481,7 @@ export default class ModuleGPT extends Module {
     private initializeGPTAssistantAPIThreadVO() {
 
         const user_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
         const current_default_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_default_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant par défaut pour les prochains messages / prompts', false);
         const current_oselia_assistant_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant Osélia en cours de run', false);
         const current_oselia_prompt_id = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().current_oselia_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt Osélia en cours de réponse', false);
@@ -492,7 +492,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().tool_resources, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ressources des outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread', false);
+        const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().needs_thread_title_build, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Dois build encore le titre', true, true, true);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().has_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'N\'est pas vide', true, true, false);
