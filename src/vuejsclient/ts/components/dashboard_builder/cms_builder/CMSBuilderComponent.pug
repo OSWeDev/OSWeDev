@@ -72,14 +72,10 @@
 
                 template(v-else)
                     .row.steps
-                        //- .col-sm-3
-                        //-     .step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
                         .col-sm-3
-                            .step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
+                            .step.build_page(@click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
                         .col-sm-3
-                            .step.menu_conf(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
-                        //- .col-sm-3 
-                        //-     .step.shared_filters(v-if='can_build_page' @click='select_shared_filters' :class="{'selected' : show_shared_filters}") {{ label('dashboard_builder.shared_filters') }}
+                            .step.menu_conf(@click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
 
                     .pages
                         template(v-if='has_navigation_history')
@@ -148,17 +144,7 @@
                             | {{ label('dashboard_builder.loading_failed') }}
 
         template(v-else)
-            .row(v-if='show_select_vos && dashboard && dashboard.id')
-                .col-sm-12.tables_graph_wrapper 
-                    Tablesgraphcomponent(
-                        :key='"Tablesgraphcomponent__" + dashboard.id' 
-                        :dashboard='dashboard' 
-                        @add_api_type_id='add_api_type_id' 
-                        @del_api_type_id='del_api_type_id'
-                        @update_discarded_field_paths='update_discarded_field_paths'
-                    )
-
-
+            
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
                 .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                     i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
@@ -195,7 +181,3 @@
             .row(v-if='show_menu_conf')
                 .col-sm-12.menu_conf_wrapper 
                     Dashboardmenuconfcomponent(:dashboard='dashboard')
-
-            .row(v-if='show_shared_filters')
-                .col-sm-12.shared_filters_wrapper 
-                    Dashboardsharedfilterscomponent(:dashboard='dashboard')

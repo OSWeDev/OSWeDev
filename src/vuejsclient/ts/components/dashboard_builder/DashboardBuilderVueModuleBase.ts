@@ -12,7 +12,6 @@ import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFiel
 import VarMixedChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarMixedChartWidgetOptionsVO';
 import VarRadarChartWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/VarRadarChartWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -25,8 +24,8 @@ import OseliaThreadWidgetOptions from './widgets/oselia_thread_widget/options/Os
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
-import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarChoroplethChartWidgetOptions from './widgets/var_choropleth_chart_widget/options/VarChoroplethChartWidgetOptions';
+import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -39,10 +38,16 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         if (!this.policies_needed) {
             this.policies_needed = [
-                ModuleDashboardBuilder.POLICY_FO_ACCESS
+                ModuleDashboardBuilder.POLICY_FO_ACCESS,
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS
             ];
-        } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
-            this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
+        } else {
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_FO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_FO_ACCESS);
+            }
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS);
+            }
         }
     }
 
@@ -57,64 +62,71 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     public async initializeAsync() {
 
-        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS]) {
+        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS] &&
+            !this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS]) {
             return;
         }
 
-        // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
-        let url: string = "/dashboard/view/:dashboard_id";
-        let main_route_name: string = 'Dashboard View';
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_FO_ACCESS]) {
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
-            () => import('./viewer/DashboardViewerComponent'),
-            true,
-        ));
+            // On crée les routes names, mais pas les liens de menus qui seront créés dans le dashboard builder directement
+            let url: string = "/dashboard/view/:dashboard_id";
+            let main_route_name: string = 'Dashboard View';
 
-        url = "/dashboard_builder";
-        main_route_name = 'DashboardBuilder';
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+                url,
+                main_route_name,
+                () => import('./viewer/DashboardViewerComponent'),
+                true,
+            ));
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import('./DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: null
-            })
-        });
+            url = "/dashboard_builder";
+            main_route_name = 'DashboardBuilder';
 
-        url = "/dashboard_builder" + "/:dashboard_id";
-        main_route_name = 'DashboardBuilder_id';
+            this.routes.push({
+                path: url,
+                name: main_route_name,
+                component: () => import('./DashboardBuilderComponent'),
+                props: (route) => ({
+                    dashboard_id: null
+                })
+            });
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
-            () => import('./DashboardBuilderComponent'),
-            true,
-        ));
+            url = "/dashboard_builder" + "/:dashboard_id";
+            main_route_name = 'DashboardBuilder_id';
 
-        url = "/cms_builder";
-        main_route_name = 'CMSBuilder';
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+                url,
+                main_route_name,
+                () => import('./DashboardBuilderComponent'),
+                true,
+            ));
+        }
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import('./cms_builder/CMSBuilderComponent'),
-            props: (route) => ({
-                cms_id: null
-            })
-        });
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS]) {
 
-        url = "/cms_builder" + "/:cms_id";
-        main_route_name = 'CMSBuilder_id';
+            let url = "/cms_builder";
+            let main_route_name = 'CMSBuilder';
 
-        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
-            url,
-            main_route_name,
-            () => import('./cms_builder/CMSBuilderComponent'),
-            true,
-        ));
+            this.routes.push({
+                path: url,
+                name: main_route_name,
+                component: () => import('./cms_builder/CMSBuilderComponent'),
+                props: (route) => ({
+                    cms_id: null
+                })
+            });
+
+            url = "/cms_builder" + "/:cms_id";
+            main_route_name = 'CMSBuilder_id';
+
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForCMS(
+                url,
+                main_route_name,
+                () => import('./cms_builder/CMSBuilderComponent'),
+                true,
+            ));
+        }
 
         await this.initializeDefaultWidgets();
     }

@@ -135,9 +135,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null; // The current page
 
-    private show_shared_filters: boolean = false;
-    private show_build_page: boolean = false;
-    private show_select_vos: boolean = true;
+    private show_build_page: boolean = true;
     private show_menu_conf: boolean = false;
 
     private selected_widget: DashboardPageWidgetVO = null;
@@ -153,10 +151,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
         return this.get_page_history && (this.get_page_history.length > 0);
     }
 
-
-    get can_build_page() {
-        return !!(this.get_dashboard_api_type_ids && this.get_dashboard_api_type_ids.length);
-    }
     get dashboard_name_code_text(): string {
         if (!this.dashboard) {
             return null;
@@ -234,7 +228,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
             );
 
             this.$router.push({
-                name: 'DashboardBuilder_id',
+                name: 'CMSBuilder_id',
                 params: {
                     dashboard_id: this.dashboard.id.toString(),
                 },
@@ -885,9 +879,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
      *  - Initialize the dashboard tab to show in case when the dashboard is loaded or changed
      */
     private init_dashboard_tab() {
-        this.show_build_page = this.can_build_page;
-        this.show_select_vos = !this.show_build_page;
-        this.show_shared_filters = false;
+        this.show_build_page = true;
         this.show_menu_conf = false;
     }
 
@@ -1043,18 +1035,10 @@ export default class CMSBuilderComponent extends VueComponentBase {
             return;
         }
 
-        this.show_shared_filters = false;
-        this.show_select_vos = false;
         this.show_build_page = false;
         this.show_menu_conf = false;
 
         switch (activate_tab) {
-            case 'shared_filters':
-                this.show_shared_filters = true;
-                break;
-            case 'select_vos':
-                this.show_select_vos = true;
-                break;
             case 'menu_conf':
                 this.show_menu_conf = true;
                 break;
@@ -1064,20 +1048,12 @@ export default class CMSBuilderComponent extends VueComponentBase {
         }
     }
 
-    private select_vos() {
-        this.select_configuration_tab('select_vos');
-    }
-
     private build_page() {
         this.select_configuration_tab('build_page');
     }
 
     private menu_conf() {
         this.select_configuration_tab('menu_conf');
-    }
-
-    private select_shared_filters() {
-        this.select_configuration_tab('shared_filters');
     }
 
     private async add_api_type_id(api_type_id: string) {

@@ -1544,7 +1544,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'menu.menuelements.admin.DashboardBuilderAdminVueModule.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'CMS Builder'
-        }, 'menu.menuelements.admin.CMSBuilderAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.CMSBuilder.___LABEL___'));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({

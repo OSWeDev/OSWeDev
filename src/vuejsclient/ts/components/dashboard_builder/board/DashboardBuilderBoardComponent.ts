@@ -493,7 +493,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             if (json_options && json_options.hide_filter) {
                 return true;
             }
-        } catch { }
+        } catch {
+            return false;
+        }
 
         return false;
     }

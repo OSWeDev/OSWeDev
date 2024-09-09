@@ -12,15 +12,6 @@ import DashboardBuilderVueModuleBase from './DashboardBuilderVueModuleBase';
 
 export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardBuilderAdminVueModule {
-        if (!DashboardBuilderAdminVueModule.instance) {
-            DashboardBuilderAdminVueModule.instance = new DashboardBuilderAdminVueModule();
-        }
-
-        return DashboardBuilderAdminVueModule.instance;
-    }
-
     protected static instance: DashboardBuilderAdminVueModule = null;
 
     protected constructor() {
@@ -29,11 +20,26 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
 
         if (!this.policies_needed) {
             this.policies_needed = [
-                ModuleDashboardBuilder.POLICY_BO_ACCESS
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS
             ];
-        } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_BO_ACCESS) < 0) {
-            this.policies_needed.push(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+        } else {
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_BO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+            }
+            if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS) < 0) {
+                this.policies_needed.push(ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS);
+            }
         }
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DashboardBuilderAdminVueModule {
+        if (!DashboardBuilderAdminVueModule.instance) {
+            DashboardBuilderAdminVueModule.instance = new DashboardBuilderAdminVueModule();
+        }
+
+        return DashboardBuilderAdminVueModule.instance;
     }
 
     public async initializeAsync() {

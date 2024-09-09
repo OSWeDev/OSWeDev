@@ -107,6 +107,7 @@ export default class ModuleDashboardBuilder extends Module {
     private init_DashboardVO(): ModuleTableVO {
 
         ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardVO.API_TYPE_ID, field_names<DashboardVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
 
         const res = ModuleTableController.create_new(this.name, DashboardVO, null, "Dashboards");
         return res;
@@ -156,6 +157,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().default_background, ModuleTableFieldVO.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5');
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_filter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_filter', true, true, false);
         ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_validation_filters, ModuleTableFieldVO.FIELD_TYPE_boolean, 'is_validation_filters', true, true, false);
+        ModuleTableFieldController.create_new(DashboardWidgetVO.API_TYPE_ID, field_names<DashboardWidgetVO>().is_cms_compatible, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est compatible avec le CMS Builder ?', false, true, false);
 
         return ModuleTableController.create_new(this.name, DashboardWidgetVO, name, "Widgets de Dashboard");
     }
