@@ -1542,6 +1542,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Dashboard Builder'
         }, 'menu.menuelements.admin.DashboardBuilderAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'CMS Builder'
+        }, 'menu.menuelements.admin.CMSBuilderAdminVueModule.___LABEL___'));
 
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -3494,6 +3497,32 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         front_access_dependency.src_pol_id = fo_access.id;
         front_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         front_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+
+        let bo_CMS_VERSION_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_CMS_VERSION_access.group_id = group.id;
+        bo_CMS_VERSION_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_CMS_VERSION_access.translatable_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS;
+        bo_CMS_VERSION_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_CMS_VERSION_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'Administration des Dashboards type CMS'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_CMS_VERSION_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_CMS_VERSION_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_CMS_VERSION_access_dependency.src_pol_id = bo_CMS_VERSION_access.id;
+        admin_CMS_VERSION_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_CMS_VERSION_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_CMS_VERSION_access_dependency);
+
+        let fo_CMS_VERSION_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_CMS_VERSION_access.group_id = group.id;
+        fo_CMS_VERSION_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_CMS_VERSION_access.translatable_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS;
+        fo_CMS_VERSION_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_CMS_VERSION_access, DefaultTranslationVO.create_new({
+            'fr-fr': 'Consultation des Dashboards type CMS'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_CMS_VERSION_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_CMS_VERSION_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_CMS_VERSION_access_dependency.src_pol_id = fo_CMS_VERSION_access.id;
+        front_CMS_VERSION_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        front_CMS_VERSION_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_CMS_VERSION_access_dependency);
     }
 
     private async onCDashboardVO(e: DashboardVO): Promise<boolean> {

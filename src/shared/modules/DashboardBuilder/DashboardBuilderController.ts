@@ -69,6 +69,37 @@ export default class DashboardBuilderController {
         return routes;
     }
 
+    public addRouteForCMS(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
+        const routes = [{
+            path: path,
+            name: name,
+            component: component,
+            props: true,
+        }];
+
+        if (crud) {
+            name += DashboardBuilderController.ROUTE_NAME_CRUD;
+
+            routes.push({
+                path: path + '/:cms_vo_action/:cms_vo_id',
+                name: name,
+                component: component,
+                props: true,
+            });
+
+            name += DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
+
+            routes.push({
+                path: path + '/:cms_vo_action/:cms_vo_id/:api_type_id_action',
+                name: name,
+                component: component,
+                props: true,
+            });
+        }
+
+        return routes;
+    }
+
     public add_table_row_context(
         context: FieldFiltersVO,
         columns: TableColumnDescVO[],

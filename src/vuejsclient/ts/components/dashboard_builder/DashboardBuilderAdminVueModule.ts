@@ -40,12 +40,13 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
 
         await super.initializeAsync();
 
-        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {
-            return;
-        }
+        let menuBranch: MenuElementVO = null;
 
-        const menuBranch: MenuElementVO =
-            await MenuController.getInstance().declare_menu_element(
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS] ||
+            this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS]
+        ) {
+
+            menuBranch = await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
                     ModuleDashboardBuilder.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
@@ -55,6 +56,30 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
                     null
                 )
             );
+        }
+
+        if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS]) {
+
+            let main_route_name_cms: string = 'CMSBuilder';
+
+            const menuCMSPointer = MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                main_route_name_cms,
+                "fa-area-chart",
+                10,
+                main_route_name_cms,
+                true,
+                menuBranch.id
+            );
+
+            //TODO FIXME ajouter les liens pour chaque checklist
+            await MenuController.getInstance().declare_menu_element(menuCMSPointer);
+        }
+
+        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {
+            return;
+        }
 
         let main_route_name: string = 'DashboardBuilder';
 

@@ -94,6 +94,28 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             true,
         ));
 
+        url = "/cms_builder";
+        main_route_name = 'CMSBuilder';
+
+        this.routes.push({
+            path: url,
+            name: main_route_name,
+            component: () => import('./cms_builder/CMSBuilderComponent'),
+            props: (route) => ({
+                cms_id: null
+            })
+        });
+
+        url = "/cms_builder" + "/:cms_id";
+        main_route_name = 'CMSBuilder_id';
+
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import('./cms_builder/CMSBuilderComponent'),
+            true,
+        ));
+
         await this.initializeDefaultWidgets();
     }
 

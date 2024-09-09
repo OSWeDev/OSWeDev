@@ -37,10 +37,13 @@ import VOFieldRefVO from './vos/VOFieldRefVO';
 export default class ModuleDashboardBuilder extends Module {
 
     public static MODULE_NAME: string = "DashboardBuilder";
+    public static CMS_VERSION: string = "CMSBuilder";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_CMS_VERSION_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".BO_ACCESS";
+    public static POLICY_CMS_VERSION_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.CMS_VERSION + ".FO_ACCESS";
 
     public static APINAME_START_EXPORT_FAVORITES_FILTERS_DATATABLE: string = "start_export_favorites_filters_datatable";
 
