@@ -24,6 +24,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
     public static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
     public static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
+    public static PARAM_NAME_WARN_MAX_EXECUTION_TIME_SECOND: string = 'VarsdatasComputerBGThread.WARN_MAX_EXECUTION_TIME_SECOND';
+    public static PARAM_NAME_ALERT_MAX_EXECUTION_TIME_SECOND: string = 'VarsdatasComputerBGThread.ALERT_MAX_EXECUTION_TIME_SECOND';
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {

@@ -41,6 +41,7 @@ export default class EnvParam implements IEnvParam {
     public debug_vars?: boolean = false;
     public debug_vars_processes?: boolean = false;
     public debug_vars_invalidation?: boolean = false;
+    public debug_vars_invalidation_param_intersector?: boolean = false;
     public debug_vars_current_tree?: boolean = false;
     public debug_vars_db_param_builder?: boolean = false;
     public debug_vars_server_subs_cbs?: boolean = false;

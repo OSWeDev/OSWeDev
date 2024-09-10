@@ -197,6 +197,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     private async call_api(modelId: string, currentMessages: ChatCompletionMessageParam[]): Promise<any> {
         try {
+            if (!ModuleGPTServer.openai?.chat?.completions) {
+                return null;
+            }
+
             return await ModuleGPTServer.openai.chat.completions.create({
                 model: modelId,
                 messages: currentMessages as ChatCompletionMessageParam[],
@@ -204,12 +208,14 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 
     private async api_response_handler(conversation: GPTCompletionAPIConversationVO, result: any): Promise<GPTCompletionAPIMessageVO> {
         try {
-            const responseText = result.choices.shift().message.content;
-            const responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
+            let responseText = result?.choices?.length ? result.choices.shift().message.content : null;
+            let responseMessage: GPTCompletionAPIMessageVO = new GPTCompletionAPIMessageVO();
             responseMessage.date = Dates.now();
             responseMessage.content = responseText;
             responseMessage.role_type = GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_ASSISTANT;
@@ -222,5 +228,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         } catch (err) {
             ConsoleHandler.error(err);
         }
+
+        return null;
     }
 }

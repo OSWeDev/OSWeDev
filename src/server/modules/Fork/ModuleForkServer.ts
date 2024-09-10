@@ -58,9 +58,12 @@ export default class ModuleForkServer extends ModuleServerBase {
         ForkMessageController.register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
     }
 
-    public async kill_process(throttle: number = 10) {
+    public async kill_process(throttle: number = 10, force_empty_vars_datas_vo_update_cache: boolean = true) {
         this.is_killing = true;
-        await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
+
+        if (force_empty_vars_datas_vo_update_cache) {
+            await VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache();
+        }
 
         while (throttle > 0) {
             ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
@@ -223,11 +226,11 @@ export default class ModuleForkServer extends ModuleServerBase {
         return true;
     }
 
-    private async handle_kill_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+    private async handle_kill_message(msg: KillForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
 
         const throttle = msg ? msg.message_content : 10;
 
-        await ModuleForkServer.getInstance().kill_process(throttle);
+        await ModuleForkServer.getInstance().kill_process(throttle, msg.force_empty_vars_datas_vo_update_cache);
         return false;
     }
 

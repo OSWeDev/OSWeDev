@@ -625,7 +625,7 @@ export default abstract class ServerBase {
                     req.session.sid = sid;
                 }
             } catch (error) {
-
+                ConsoleHandler.error('ServerBase:express:use:cookie: ' + error);
             }
             next();
         });
