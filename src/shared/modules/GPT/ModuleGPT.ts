@@ -79,13 +79,16 @@ export default class ModuleGPT extends Module {
      * Demander un run d'un assistant suite à un nouveau message
      * @param assistant_id id de l'assistant au sens de l'API GPT
      * @param thread_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param thread_title titre du nouveau thread
      * @param content contenu text du nouveau message
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
+     * @param user_id id de l'utilisateur
      * @returns
      */
     public ask_assistant: (
         assistant_id: string,
         thread_id: string,
+        thread_title: string,
         content: string,
         files: FileVO[],
         user_id: number
@@ -493,7 +496,8 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
 
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().needs_thread_title_build, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Dois build encore le titre', true, true, true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().needs_thread_title_build, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Dois build le titre', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title_auto_build_locked, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Le titre est fiable', true, true, false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().has_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'N\'est pas vide', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oswedev_created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création OsWeDev', false);

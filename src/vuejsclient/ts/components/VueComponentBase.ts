@@ -31,6 +31,7 @@ import IDeclareVueComponent from "./IDeclareVueComponent";
 import { Snotify, SnotifyType } from "vue-snotify";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ModuleTableController from "../../../shared/modules/DAO/ModuleTableController";
+import VueAppBase from "../../VueAppBase";
 
 // MONTHS MIXIN
 const months = [
@@ -946,12 +947,21 @@ export default class VueComponentBase extends Vue
     }
 
     protected async unregister_all_vo_event_callbacks() {
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('unregister_all_vo_event_callbacks:IN:');
+        // }
+
         const promises = [];
         for (const i in this.vo_events_registration_keys_by_room_id) {
             promises.push(this.unregister_room_id_vo_event_callbacks(i));
         }
         await all_promises(promises);
         this.vo_events_registration_keys_by_room_id = {};
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('unregister_all_vo_event_callbacks:OUT:');
+        // }
     }
 
     protected handle_created_vo_event_callback(list_name: string, sort_function: (a, b) => number, created_vo: IDistantVOBase, map_name: string = null) {
@@ -970,6 +980,10 @@ export default class VueComponentBase extends Vue
 
         const list = map_name ? this[map_name][list_name] : this[list_name];
 
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('handle_created_vo_event_callback:IN:' + JSON.stringify(list));
+        // }
+
         const index = list.findIndex((vo) => vo.id == created_vo.id);
         if (index < 0) {
 
@@ -983,6 +997,10 @@ export default class VueComponentBase extends Vue
             }
             list.splice(insert_index, 0, created_vo);
         }
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('handle_created_vo_event_callback:OUT:' + JSON.stringify(list));
+        // }
     }
 
     /**
@@ -1004,6 +1022,10 @@ export default class VueComponentBase extends Vue
         simple_sorts_by_on_api_type_id: SortByVO[] = [],
         map_name: string = null,
     ) {
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('register_vo_updates_on_list:IN:' + API_TYPE_ID + ':' + list_name + ':' + JSON.stringify(simple_filters_on_api_type_id) + ':' + JSON.stringify(simple_sorts_by_on_api_type_id) + ':' + map_name);
+        // }
 
         this.assert_compatibility_for_register_vo_list_updates(API_TYPE_ID, list_name, simple_filters_on_api_type_id, simple_sorts_by_on_api_type_id);
 
@@ -1082,6 +1104,11 @@ export default class VueComponentBase extends Vue
         })());
 
         await all_promises(promises);
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('register_vo_updates_on_list:OUT:' + API_TYPE_ID + ':' + list_name + ':' + JSON.stringify(simple_filters_on_api_type_id) + ':' + JSON.stringify(simple_sorts_by_on_api_type_id) + ':' + map_name);
+        // }
+
     }
 
     /**
@@ -1101,6 +1128,10 @@ export default class VueComponentBase extends Vue
         field_name: string,
         vo_has_been_preloaded: boolean = true,
     ) {
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('register_vo_updates_on_list:IN:' + API_TYPE_ID + ':' + vo_id + ':' + field_name + ':' + vo_has_been_preloaded);
+        // }
 
         this.assert_compatibility_for_register_single_vo_updates(API_TYPE_ID, vo_id, field_name);
 
@@ -1152,6 +1183,10 @@ export default class VueComponentBase extends Vue
         })());
 
         await all_promises(promises);
+
+        // if (true) { /** FIXME DEBUG */
+        //     ConsoleHandler.log('register_vo_updates_on_list:OUT:' + API_TYPE_ID + ':' + vo_id + ':' + field_name + ':' + vo_has_been_preloaded);
+        // }
     }
 
 

@@ -57,10 +57,16 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
     public thread_title: string;
 
     /**
-     * Init à true lors de la création d'un nouveau thread, on le fait passer à false quand dans le trigger de build du titre
-     * on a déjà au mois 100 mots dans la discussion. à ce stade on considère que le titre construit est fiable.
+     * Semaphore de reconstruction du titre de la discussion déclenché quand on ajoute un message à une discussion dont le titre n'est pas thread_title_auto_build_locked
+     * et que le nombre de messages de la discussion est supérieur ou égal à 2.
      */
     public needs_thread_title_build: boolean;
+
+    /**
+     * Init à false lors de la création d'un nouveau thread, sauf à fournir un titre lors de la création, on le fait passer à true quand dans le trigger de build du titre
+     * on a déjà au mois 100 mots dans la discussion. à ce stade on considère que le titre construit est fiable.
+     */
+    public thread_title_auto_build_locked: boolean;
 
     /**
      * Tant qu'on a aucun contenu dans une discussion, on ne l'affiche pas dans les listes de discussions et on la supprimera automatiquement

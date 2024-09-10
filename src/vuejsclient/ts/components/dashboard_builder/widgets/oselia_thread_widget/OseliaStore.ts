@@ -9,6 +9,7 @@ export interface IOseliaState {
     too_many_assistants: boolean;
     can_run_assistant: boolean;
     oselia_first_loading_done: boolean;
+    left_panel_open: boolean;
 }
 
 export default class OseliaStore implements IStoreModule<IOseliaState, OseliaContext> {
@@ -22,6 +23,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
         set_too_many_assistants(state: IOseliaState, too_many_assistants: boolean) { state.too_many_assistants = too_many_assistants; },
         set_can_run_assistant(state: IOseliaState, can_run_assistant: boolean) { state.can_run_assistant = can_run_assistant; },
         set_oselia_first_loading_done(state: IOseliaState, oselia_first_loading_done: boolean) { state.oselia_first_loading_done = oselia_first_loading_done; },
+        set_left_panel_open(state: IOseliaState, left_panel_open: boolean) { state.left_panel_open = left_panel_open; },
     };
     public actions: ActionTree<IOseliaState, OseliaContext>;
     public namespaced: boolean = true;
@@ -34,6 +36,7 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             too_many_assistants: false,
             can_run_assistant: false,
             oselia_first_loading_done: false,
+            left_panel_open: false,
         };
 
 
@@ -42,12 +45,14 @@ export default class OseliaStore implements IStoreModule<IOseliaState, OseliaCon
             get_too_many_assistants(state: IOseliaState): boolean { return state.too_many_assistants; },
             get_can_run_assistant(state: IOseliaState): boolean { return state.can_run_assistant; },
             get_oselia_first_loading_done(state: IOseliaState): boolean { return state.oselia_first_loading_done; },
+            get_left_panel_open(state: IOseliaState): boolean { return state.left_panel_open; },
         };
 
         this.actions = {
             set_too_many_assistants: (context: OseliaContext, too_many_assistants: boolean) => context.commit(store_mutations_names(this).set_too_many_assistants, too_many_assistants),
             set_can_run_assistant: (context: OseliaContext, can_run_assistant: boolean) => context.commit(store_mutations_names(this).set_can_run_assistant, can_run_assistant),
             set_oselia_first_loading_done: (context: OseliaContext, oselia_first_loading_done: boolean) => context.commit(store_mutations_names(this).set_oselia_first_loading_done, oselia_first_loading_done),
+            set_left_panel_open: (context: OseliaContext, left_panel_open: boolean) => context.commit(store_mutations_names(this).set_left_panel_open, left_panel_open),
         };
     }
 

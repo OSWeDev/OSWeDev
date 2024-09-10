@@ -4,12 +4,17 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FieldFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFiltersVOManager';
 import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import FieldFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
+import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../../../../shared/modules/GPT/ModuleGPT';
 import GPTAssistantAPIAssistantVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
@@ -18,6 +23,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueAppController from '../../../../../VueAppController';
+import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
@@ -25,15 +31,10 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
+import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
 import './OseliaThreadWidgetComponent.scss';
-import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
-import ModuleFile from '../../../../../../shared/modules/File/ModuleFile';
-import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
+import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
@@ -42,10 +43,16 @@ import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Mailideventscomponent: MailIDEventsComponent,
-        Oseliathreadmessagecomponent: OseliaThreadMessageComponent
+        Oseliathreadmessagecomponent: OseliaThreadMessageComponent,
+        Oselialeftpanelcomponent: OseliaLeftPanelComponent,
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+
+    @ModuleOseliaAction
+    private set_left_panel_open: (left_panel_open: boolean) => void;
+    @ModuleOseliaGetter
+    private get_left_panel_open: boolean;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
@@ -126,6 +133,35 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_load_thread();
     }
 
+    @Watch('selected_file_system')
+    private async on_selected_file_system_change() {
+        if (!this.selected_file_system) {
+            return;
+        }
+        // const file: File = this.selected_file_system;
+        // const formData = new FormData();
+        // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
+        // formData.append('file', file, file_name);
+        // await AjaxCacheClientController.getInstance().post(
+        //     null,
+        //     '/ModuleFileServer/upload',
+        //     [FileVO.API_TYPE_ID],
+        //     formData,
+        //     null,
+        //     null,
+        //     false,
+        //     30000).then(async () => {
+        //         // Upload via insert or update
+        //         const new_file = new FileVO();
+        //         new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+        //         const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
+        //         new_file.id = resnew_file.id;
+        //         this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
+        //     });
+        this.selected_file_system = null;
+        this.enable_file_system_menu = false;
+    }
+
     @Watch('thread', { immediate: true })
     private async onchange_thread() {
         this.throttle_register_thread();
@@ -133,6 +169,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
+    }
+
+    private openLeftPanel() {
+        this.set_left_panel_open(true);
     }
 
     private async load_thread() {
@@ -228,35 +268,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-    }
-
-    @Watch('selected_file_system')
-    private async on_selected_file_system_change() {
-        if (!this.selected_file_system) {
-            return;
-        }
-        // const file: File = this.selected_file_system;
-        // const formData = new FormData();
-        // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
-        // formData.append('file', file, file_name);
-        // await AjaxCacheClientController.getInstance().post(
-        //     null,
-        //     '/ModuleFileServer/upload',
-        //     [FileVO.API_TYPE_ID],
-        //     formData,
-        //     null,
-        //     null,
-        //     false,
-        //     30000).then(async () => {
-        //         // Upload via insert or update
-        //         const new_file = new FileVO();
-        //         new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-        //         const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-        //         new_file.id = resnew_file.id;
-        //         this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-        //     });
-        this.selected_file_system = null;
-        this.enable_file_system_menu = false;
     }
 
     private async do_upload_file(fileHandle: FileSystemFileHandle) {
@@ -492,6 +503,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             const responses = await ModuleGPT.getInstance().ask_assistant(
                 self.assistant.gpt_assistant_id,
                 self.thread.gpt_thread_id,
+                null,
                 message,
                 files,
                 VueAppController.getInstance().data_user.id

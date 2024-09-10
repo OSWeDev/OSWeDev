@@ -747,11 +747,14 @@ export default class GPTAssistantAPIServerController {
      * @param gpt_thread_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
      * @param content_text contenu text du nouveau message
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
+     * @param user_id id de l'utilisateur qui demande
+     * @param thread_title titre de la discussion => pour éviter de passer par le système de génération de titre
      * @returns
      */
     public static async ask_assistant(
         gpt_assistant_id: string,
         gpt_thread_id: string,
+        thread_title: string,
         content_text: string,
         files: FileVO[],
         user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
@@ -785,6 +788,12 @@ export default class GPTAssistantAPIServerController {
             thread_vo.current_default_assistant_id = assistant_vo.id;
             thread_vo.current_oselia_assistant_id = assistant_vo.id;
             thread_vo.user_id = user_id;
+        }
+
+        if ((!thread_vo.thread_title) && (!!thread_title)) {
+            thread_vo.thread_title = thread_title;
+            thread_vo.needs_thread_title_build = false;
+            thread_vo.thread_title_auto_build_locked = true;
         }
 
         // On indique que Osélia est en train de travailler sur cette discussion
@@ -934,10 +943,14 @@ export default class GPTAssistantAPIServerController {
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
         await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
 
-        thread_vo.oselia_is_running = false;
-        thread_vo.current_oselia_assistant_id = null;
-        thread_vo.current_oselia_prompt_id = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+        await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id)
+            .exec_as_server()
+            .update_vos<GPTAssistantAPIThreadVO>({
+                oselia_is_running: false,
+                current_oselia_assistant_id: null,
+                current_oselia_prompt_id: null,
+            });
     }
 
     private static async get_asking_message(

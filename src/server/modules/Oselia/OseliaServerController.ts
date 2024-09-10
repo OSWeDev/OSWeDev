@@ -35,6 +35,7 @@ export default class OseliaServerController {
     public static async prompt_oselia_by_prompt_name(
         prompt_name: string,
         prompt_parameters: { [param_name: string]: string },
+        thread_title: string,
         thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
@@ -43,12 +44,13 @@ export default class OseliaServerController {
             .filter_by_text_eq(field_names<OseliaPromptVO>().name, prompt_name)
             .exec_as_server()
             .select_vo<OseliaPromptVO>();
-        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread, user_id, files);
+        return await OseliaServerController.prompt_oselia(prompt, prompt_parameters, thread_title, thread, user_id, files);
     }
 
     public static async prompt_oselia(
         prompt: OseliaPromptVO,
         prompt_parameters: { [param_name: string]: string },
+        thread_title: string,
         thread: GPTAssistantAPIThreadVO = null,
         user_id: number = null,
         files: FileVO[] = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
@@ -97,6 +99,11 @@ export default class OseliaServerController {
                 thread = new_thread.thread_vo;
             }
 
+            if (!thread.thread_title) {
+                thread.thread_title = thread_title;
+                thread.needs_thread_title_build = !thread_title;
+            }
+
             // Si on a des paramètres on les ajoute aux metadatas du thread
             if (prompt_parameters) {
                 if (!thread.metadata) {
@@ -118,6 +125,7 @@ export default class OseliaServerController {
             await GPTAssistantAPIServerController.ask_assistant(
                 assistant.gpt_assistant_id,
                 thread.gpt_thread_id,
+                thread_title,
                 prompt_string,
                 files,
                 user_id
