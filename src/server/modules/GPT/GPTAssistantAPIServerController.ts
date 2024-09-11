@@ -31,6 +31,7 @@ import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 
 export default class GPTAssistantAPIServerController {
 
@@ -899,6 +900,11 @@ export default class GPTAssistantAPIServerController {
 
             await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
 
+            const run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
+            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
                 .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
@@ -1271,6 +1277,9 @@ export default class GPTAssistantAPIServerController {
                 thread_vo.gpt_thread_id,
                 run.id
             );
+
+            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
 
             if (!run) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run not found');
