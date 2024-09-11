@@ -8,6 +8,9 @@ import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsController';
 import './DashboardBuilderWidgetsComponent.scss';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import WeightHandler from '../../../../../shared/tools/WeightHandler';
+import { field_names } from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -70,7 +73,23 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     private async mounted() {
 
         await DashboardBuilderWidgetsController.getInstance().initialize();
-        this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        if (this.dashboard?.is_cms_compatible) {
+
+            const sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
+                .filter_is_true(field_names<DashboardWidgetVO>().is_cms_compatible)
+                .select_vos<DashboardWidgetVO>();
+
+            if (sorted_widgets) {
+                WeightHandler.getInstance().sortByWeight(
+                    sorted_widgets
+                );
+                this.widgets = sorted_widgets;
+            }
+
+        } else {
+
+            this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        }
 
         await this.onchange_selected_widget();
 

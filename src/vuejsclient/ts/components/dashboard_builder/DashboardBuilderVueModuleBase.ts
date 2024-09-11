@@ -105,8 +105,19 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS]) {
 
-            let url = "/cms_builder";
-            let main_route_name = 'CMSBuilder';
+            // On crée les routes names, mais pas les liens de menus qui seront créés dans le cms builder directement
+            let url: string = "/cms/view/:dashboard_id";
+            let main_route_name: string = 'CMS View';
+
+            this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForCMS(
+                url,
+                main_route_name,
+                () => import('./viewer/DashboardViewerComponent'),
+                true,
+            ));
+
+            url = "/cms_builder";
+            main_route_name = 'CMSBuilder';
 
             this.routes.push({
                 path: url,
@@ -117,7 +128,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
                 })
             });
 
-            url = "/cms_builder" + "/:cms_id";
+            url = "/cms_builder" + "/:dashboard_id";
             main_route_name = 'CMSBuilder_id';
 
             this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForCMS(

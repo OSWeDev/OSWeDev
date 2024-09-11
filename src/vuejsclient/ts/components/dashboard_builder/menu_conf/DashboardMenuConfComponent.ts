@@ -52,8 +52,14 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
         for (const i in this.app_names) {
             const app_name = this.app_names[i];
 
-            const db_menu: MenuElementVO = await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
-                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
+            let db_menu: MenuElementVO = new MenuElementVO();
+
+            db_menu = this.dashboard?.is_cms_compatible
+                ? await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
+                    MenuElementVO.API_TYPE_ID, 'cms__menu__' + app_name + '__' + this.dashboard.id)
+                : await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
+                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id)
+
             if (db_menu) {
                 this.menu_app[db_menu.app_name] = db_menu.id;
             }
@@ -68,13 +74,21 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
         const res: MenuElementVO = new MenuElementVO();
 
-        res.access_policy_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
+        if (this.dashboard?.is_cms_compatible) {
+
+            res.access_policy_name = ModuleDashboardBuilder.POLICY_CMS_VERSION_FO_ACCESS;
+            res.target = 'CMS View';
+            res.name = 'cms__menu__' + app_name + '__' + this.dashboard.id;
+        } else {
+
+            res.access_policy_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
+            res.target = 'Dashboard View';
+            res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
+        }
         res.app_name = app_name;
         res.fa_class = "fa-area-chart";
         res.hidden = true;
         res.menu_parent_id = null;
-        res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
-        res.target = 'Dashboard View';
         res.target_is_routename = true;
         res.target_route_params = '{ "dashboard_id": ' + this.dashboard.id + ' }';
         res.weight = -1;
@@ -87,8 +101,12 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
         if (this.dashboard) {
 
-            let db_menu: MenuElementVO = await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
-                MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id);
+            let db_menu: MenuElementVO = new MenuElementVO();
+            db_menu = this.dashboard?.is_cms_compatible
+                ? await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
+                    MenuElementVO.API_TYPE_ID, 'cms__menu__' + app_name + '__' + this.dashboard.id)
+                : await ModuleDAO.getInstance().getNamedVoByName<MenuElementVO>(
+                    MenuElementVO.API_TYPE_ID, 'dashboard__menu__' + app_name + '__' + this.dashboard.id)
 
             if (this.menu_app[app_name]) {
 

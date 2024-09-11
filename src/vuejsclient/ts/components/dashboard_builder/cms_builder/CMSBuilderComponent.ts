@@ -199,7 +199,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
         this.loading = true;
 
         // Load all the dashboards
-        this.dashboards = await this.load_all_dashboards();
+        this.dashboards = await this.load_all_dashboards({ refresh: true });
 
         if (!this.dashboard_id) {
             await this.init_dashboard();
@@ -669,6 +669,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
                 ],
             },
             options,
+            true,
         );
 
         return dashboards;
@@ -886,6 +887,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private async create_new_dashboard() {
         this.dashboard = new DashboardVO();
         this.set_dashboard_api_type_ids([]);
+        this.dashboard.is_cms_compatible = true;
 
         const insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
             this.dashboard,
@@ -1091,6 +1093,13 @@ export default class CMSBuilderComponent extends VueComponentBase {
 
         if (body) {
             body.classList.add("sidenav-toggled");
+        }
+
+        this.dashboards = await this.load_all_dashboards(
+            { refresh: true },
+        );
+        if (this.dashboards?.length > 0) {
+            this.dashboard = this.dashboards[0];
         }
     }
 

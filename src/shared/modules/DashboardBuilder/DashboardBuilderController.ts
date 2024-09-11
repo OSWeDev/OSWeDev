@@ -24,6 +24,8 @@ export default class DashboardBuilderController {
 
     public static ROUTE_NAME_CRUD: string = "__CRUD";
     public static ROUTE_NAME_CRUD_ALL: string = "__all";
+    public static ROUTE_NAME_CMS_CRUD: string = "_CMS__CRUD";
+    public static ROUTE_NAME_CMS_CRUD_ALL: string = "_CMS__all";
 
     private static instance: DashboardBuilderController = null;
 
@@ -79,7 +81,7 @@ export default class DashboardBuilderController {
         }];
 
         if (crud) {
-            name += DashboardBuilderController.ROUTE_NAME_CRUD;
+            name += DashboardBuilderController.ROUTE_NAME_CMS_CRUD;
 
             routes.push({
                 path: path + '/:cms_vo_action/:cms_vo_id',
@@ -88,7 +90,7 @@ export default class DashboardBuilderController {
                 props: true,
             });
 
-            name += DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
+            name += DashboardBuilderController.ROUTE_NAME_CMS_CRUD_ALL;
 
             routes.push({
                 path: path + '/:cms_vo_action/:cms_vo_id/:api_type_id_action',

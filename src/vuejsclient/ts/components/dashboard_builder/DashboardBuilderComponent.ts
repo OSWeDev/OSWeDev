@@ -1117,6 +1117,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (body) {
             body.classList.add("sidenav-toggled");
         }
+
+        this.dashboards = await this.load_all_dashboards(
+            { refresh: true },
+        );
+        if (this.dashboards?.length > 0) {
+            this.dashboard = this.dashboards[0];
+        }
     }
 
     private beforeDestroy() {
