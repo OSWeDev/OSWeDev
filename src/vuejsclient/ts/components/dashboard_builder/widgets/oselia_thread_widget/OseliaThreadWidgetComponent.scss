@@ -27,6 +27,7 @@ $button-hover-shadow: none;
 
 .oselia_thread_widget_component_wrapper {
     padding: 0em !important;
+    width: -webkit-fill-available;
 
     .oselia_thread_widget_header {
         position: fixed;
@@ -136,9 +137,15 @@ $button-hover-shadow: none;
             display: flex;
             align-items: center;
 
+            padding: 1em;
+            background: #888;
+            border-radius: 1em;
+            color: white;
+
             i {
-                width: 5em;
                 text-align: left;
+                font-size: x-large;
+                margin-right: .6em;
             }
         }
 
