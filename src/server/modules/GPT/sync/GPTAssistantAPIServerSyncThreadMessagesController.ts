@@ -108,6 +108,11 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
     }
 
     public static async push_thread_message_id(thread_message_id: number) {
+        if (thread_message_id && GPTAssistantAPIServerSyncThreadMessagesController.already_syncing_thread_message[thread_message_id]) {
+            ConsoleHandler.log('push_thread_message_id: Already syncing thread message for thread_message_id ' + thread_message_id);
+            return;
+        }
+
         const thread_message = thread_message_id ? await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID).filter_by_id(thread_message_id).exec_as_server().select_vo<GPTAssistantAPIThreadMessageVO>() : null;
 
         if (!thread_message) {
@@ -941,42 +946,48 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
 
     private static async assign_vo_from_gpt(vo: GPTAssistantAPIThreadMessageVO, gpt_obj: Message, weight: number) {
         if (gpt_obj.assistant_id) {
-            const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
+            if ((!vo.assistant_id) || (gpt_obj.assistant_id != vo.gpt_assistant_id)) {
+                const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
 
-            if (!assistant) {
-                throw new Error('Error while pushing thread message to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
+                if (!assistant) {
+                    throw new Error('Error while pushing thread message to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
+                }
+
+                vo.gpt_assistant_id = gpt_obj.assistant_id;
+                vo.assistant_id = assistant.id;
             }
-
-            vo.gpt_assistant_id = gpt_obj.assistant_id;
-            vo.assistant_id = assistant.id;
         } else {
             vo.gpt_assistant_id = null;
             vo.assistant_id = null;
         }
 
         if (gpt_obj.run_id) {
-            const run = await GPTAssistantAPIServerSyncRunsController.get_run_or_sync(gpt_obj.thread_id, gpt_obj.run_id);
+            if ((!vo.run_id) || (gpt_obj.run_id != vo.gpt_run_id)) {
+                const run = await GPTAssistantAPIServerSyncRunsController.get_run_or_sync(gpt_obj.thread_id, gpt_obj.run_id);
 
-            if (!run) {
-                throw new Error('Error while pushing thread message to OpenAI : run not found : ' + gpt_obj.run_id);
+                if (!run) {
+                    throw new Error('Error while pushing thread message to OpenAI : run not found : ' + gpt_obj.run_id);
+                }
+
+                vo.gpt_run_id = gpt_obj.run_id;
+                vo.run_id = run.id;
             }
-
-            vo.gpt_run_id = gpt_obj.run_id;
-            vo.run_id = run.id;
         } else {
             vo.gpt_run_id = null;
             vo.run_id = null;
         }
 
         if (gpt_obj.thread_id) {
-            const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
+            if ((!vo.thread_id) || (gpt_obj.thread_id != vo.gpt_thread_id)) {
+                const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
 
-            if (!thread) {
-                throw new Error('Error while pushing thread message to OpenAI : thread not found : ' + gpt_obj.thread_id);
+                if (!thread) {
+                    throw new Error('Error while pushing thread message to OpenAI : thread not found : ' + gpt_obj.thread_id);
+                }
+
+                vo.gpt_thread_id = gpt_obj.thread_id;
+                vo.thread_id = thread.id;
             }
-
-            vo.gpt_thread_id = gpt_obj.thread_id;
-            vo.thread_id = thread.id;
         } else {
             vo.gpt_thread_id = null;
             vo.thread_id = null;

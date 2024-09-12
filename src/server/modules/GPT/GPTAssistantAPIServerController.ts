@@ -760,28 +760,30 @@ export default class GPTAssistantAPIServerController {
         files: FileVO[],
         user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
-        const assistant_vo: GPTAssistantAPIAssistantVO = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_assistant_id);
+        // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
+
+        let assistant_vo: GPTAssistantAPIAssistantVO = null;
+        let thread_vo: GPTAssistantAPIThreadVO = null;
+
+        await all_promises([
+            (async () => {
+                assistant_vo = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_assistant_id);
+            })(),
+            (async () => {
+                thread_vo = gpt_thread_id ?
+                    await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>() :
+                    null;
+                user_id = (user_id ? user_id : (thread_vo ? thread_vo.user_id : null));
+
+                if (!user_id) {
+                    user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+                }
+            })()
+        ]);
 
         if ((!assistant_vo) || (!assistant_vo.gpt_assistant_id)) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: assistant not found/synced: ' + gpt_assistant_id);
             return null;
-        }
-
-        // On récupère les fonctions configurées sur cet assistant
-        const { availableFunctions, availableFunctionsParameters }: {
-            availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
-            availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
-        } =
-            await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
-
-        let thread_vo: GPTAssistantAPIThreadVO = gpt_thread_id ?
-            await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>() :
-            null;
-
-        user_id = (user_id ? user_id : (thread_vo ? thread_vo.user_id : null));
-
-        if (!user_id) {
-            user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
         }
 
         if (!thread_vo) {
@@ -841,6 +843,16 @@ export default class GPTAssistantAPIServerController {
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
+
+            // On récupère les fonctions configurées sur cet assistant
+            const { availableFunctions, availableFunctionsParameters }: {
+                availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
+                availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
+            } =
+                await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
+
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
@@ -1269,7 +1281,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
 
-            await ThreadHandler.sleep(300, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(100, 'GPTAssistantAPIServerController.ask_assistant');
 
             run = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.retrieve,

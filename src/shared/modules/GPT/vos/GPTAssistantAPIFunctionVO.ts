@@ -50,6 +50,8 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
+            strict: true,
+
             parameters: {
                 type: 'object',
                 properties: gpt_params,

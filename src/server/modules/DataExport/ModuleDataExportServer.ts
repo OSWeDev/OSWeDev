@@ -1459,14 +1459,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 break;
 
             case ModuleTableFieldVO.FIELD_TYPE_enum:
-                // eslint-disable-next-line no-case-declarations
-                const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(target_user_id))
-                    .select_vos();
-                // eslint-disable-next-line no-case-declarations
-                const trad = trads ? trads[0] : null;
-                dest_vo[dest_field_id] = trad ? trad.translated : null;
+
+                if ((src_vo[src_field_id] != null) && (field.enum_values[src_vo[src_field_id]] != null)) {
+
+                    // eslint-disable-next-line no-case-declarations
+                    const trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_num_in(field_names<TranslationVO>().lang_id, query(UserVO.API_TYPE_ID).field(field_names<UserVO>().lang_id).filter_by_id(target_user_id))
+                        .select_vos();
+                    // eslint-disable-next-line no-case-declarations
+                    const trad = trads ? trads[0] : null;
+                    dest_vo[dest_field_id] = trad ? trad.translated : null;
+                } else {
+                    dest_vo[dest_field_id] = null;
+                }
                 break;
 
 

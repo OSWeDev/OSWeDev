@@ -286,6 +286,32 @@ export default class GPTAssistantAPIServerSyncRunsController {
         return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];
     }
 
+    public static async sync_run_from_gpt(run_vo: GPTAssistantAPIRunVO) {
+
+        let needs_update = false;
+
+        const run: Run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, run_vo.gpt_thread_id, run_vo.gpt_run_id);
+        if (!run) {
+            ConsoleHandler.warn('Run not found in OpenAI : ' + run_vo.gpt_run_id + ' - Cancelling sync');
+        }
+
+        needs_update = needs_update ||
+            GPTAssistantAPIServerSyncRunsController.run_has_diff(run_vo, GPTAssistantAPIServerSyncController.to_openai_error(run_vo.last_error) as Run.LastError, run);
+
+        if (!needs_update) {
+            return;
+        }
+
+        if (ConfigurationService.node_configuration.debug_openai_sync) {
+            ConsoleHandler.log('sync_runs: Updating run in Osélia : ' + run.id + ' - ' + run.thread_id);
+        }
+
+        await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+    }
+
+
     public static async assign_vo_from_gpt(vo: GPTAssistantAPIRunVO, gpt_obj: Run) {
 
         if (gpt_obj.assistant_id) {

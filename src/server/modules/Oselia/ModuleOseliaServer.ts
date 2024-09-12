@@ -61,6 +61,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -148,6 +149,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             'oselia_thread_widget_component.thread_message_footer_actions.feedback.___LABEL___'));
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
+        ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
 
         ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
         // ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_init_missing_thread_titles, this.init_missing_thread_titles.bind(this));

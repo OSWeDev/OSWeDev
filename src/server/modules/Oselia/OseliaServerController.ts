@@ -99,9 +99,10 @@ export default class OseliaServerController {
                 thread = new_thread.thread_vo;
             }
 
-            if (!thread.thread_title) {
+            if ((!!thread_title) && !thread.thread_title_auto_build_locked) {
                 thread.thread_title = thread_title;
-                thread.needs_thread_title_build = !thread_title;
+                thread.needs_thread_title_build = false;
+                thread.thread_title_auto_build_locked = true;
             }
 
             // Si on a des paramètres on les ajoute aux metadatas du thread
