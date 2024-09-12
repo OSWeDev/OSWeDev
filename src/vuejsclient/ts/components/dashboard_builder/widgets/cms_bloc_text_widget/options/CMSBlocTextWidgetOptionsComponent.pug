@@ -1,0 +1,91 @@
+.cms_bloc_text_widget_options_component
+    .cms_bloc_text_widget_options_component_wrapper
+
+        .widget_title_label {{ label('cms_bloc_text.widget_option.titre') }}
+            .widget_title_wrapper
+                input(
+                    type="text"
+                    v-model="titre"
+                )
+            .input_label {{ label('cms_bloc_text.widget_option.alignement_titre') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="alignement_titre_selected"
+                    :options="alignement_options"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="titre_alignement_selector"
+                )
+
+        .widget_subtitle_label {{ label('cms_bloc_text.widget_option.sous_titre') }}
+            .widget_title_wrapper
+                input(
+                    type="text"
+                    v-model="sous_titre"
+                )
+
+            .input_label {{ label('cms_bloc_text.widget_option.alignement_sous_titre') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="alignement_sous_titre_selected"
+                    :options="alignement_options"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="sous_titre_alignement_selector"
+                )
+
+        .widget_title_label {{ label('cms_bloc_text.widget_option.contenu') }}
+            .widget_title_wrapper
+                input(
+                    type="text"
+                    v-model="contenu"
+                )
+
+            .input_label {{ label('cms_bloc_text.widget_option.alignement_contenu') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="alignement_contenu_selected"
+                    :options="alignement_options"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="contenu_alignement_selector"
+                )

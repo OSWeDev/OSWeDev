@@ -180,6 +180,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_ShowFavoritesFilters();
 
         await this.initializeWidget_OseliaThread();
+
+        await this.initializeWidget_CMSBlocText();
     }
 
     private async initializeWidget_BulkOps() {
@@ -626,7 +628,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         BlocText.default_height = 5;
         BlocText.default_width = 2;
-        BlocText.name = 'BlocText';
+        BlocText.name = DashboardWidgetVO.WIDGET_NAME_bloctext;
         BlocText.widget_component = 'BlocTextwidgetcomponent';
         BlocText.options_component = 'BlocTextwidgetoptionscomponent';
         BlocText.weight = 3;
@@ -640,6 +642,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('BlocTextwidgetoptionscomponent', () => import('./widgets/bloc_text_widget/options/BlocTextWidgetOptionsComponent'));
         Vue.component('BlocTextwidgeticoncomponent', () => import('./widgets/bloc_text_widget/icon/BlocTextWidgetIconComponent'));
     }
+
     private async initializeWidget_SuiviCompetences() {
         let SuiviCompetences = new DashboardWidgetVO();
 
@@ -700,5 +703,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Pageswitchwidgetcomponent', () => import('./widgets/page_switch_widget/PageSwitchWidgetComponent'));
         Vue.component('Pageswitchwidgetoptionscomponent', () => import('./widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
         Vue.component('Pageswitchwidgeticoncomponent', () => import('./widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSBlocText() {
+        const CMSBlocText = new DashboardWidgetVO();
+
+        CMSBlocText.default_height = 5;
+        CMSBlocText.default_width = 2;
+        CMSBlocText.name = DashboardWidgetVO.WIDGET_NAME_cmsbloctext;
+        CMSBlocText.widget_component = 'CMSBlocTextwidgetcomponent';
+        CMSBlocText.options_component = 'CMSBlocTextwidgetoptionscomponent';
+        CMSBlocText.weight = 3;
+        CMSBlocText.default_background = '#f5f5f5';
+        CMSBlocText.icon_component = 'CMSBlocTextwidgeticoncomponent';
+        CMSBlocText.is_filter = true;
+        CMSBlocText.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSBlocText, null, null);
+
+        Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
+        Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
+        Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
     }
 }
