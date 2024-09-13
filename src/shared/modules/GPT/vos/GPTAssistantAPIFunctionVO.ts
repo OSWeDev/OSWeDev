@@ -27,6 +27,14 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
 
     public archived: boolean;
 
+    /**
+     * Pour créer un entennoir via un PromisePipeline sur l'ensemble des appels à cette fonction
+     *  Par exemple certaines actions peuvent avoir besoin de supprimer et recréer des vos, et si on le lance 2 fois en même temps ça peut poser problème
+     */
+    public use_promise_pipeline: boolean;
+    public promise_pipeline_max_concurrency: number;
+
+
     // IVersionedVO
     public parent_id: number;
     public trashed: boolean;
@@ -56,6 +64,7 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
                 type: 'object',
                 properties: gpt_params,
                 required: params.filter((param) => param.required).map((param) => param.gpt_funcparam_name),
+                additionalProperties: false,
             }
         };
 

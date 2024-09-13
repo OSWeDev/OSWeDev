@@ -297,7 +297,7 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().role_type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de rôle', true, true, GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_SYSTEM).setEnumValues(GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_LABELS);
         ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().content, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
-        ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true);
+        ModuleTableFieldController.create_new(GPTCompletionAPIMessageVO.API_TYPE_ID, field_names<GPTCompletionAPIMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
         ModuleTableController.create_new(this.name, GPTCompletionAPIMessageVO, null, 'GPT Completion API - Message');
 
@@ -307,7 +307,7 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTCompletionAPIConversationVO() {
 
-        const label = ModuleTableFieldController.create_new(GPTCompletionAPIConversationVO.API_TYPE_ID, field_names<GPTCompletionAPIConversationVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
+        const label = ModuleTableFieldController.create_new(GPTCompletionAPIConversationVO.API_TYPE_ID, field_names<GPTCompletionAPIConversationVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableController.create_new(this.name, GPTCompletionAPIConversationVO, label, 'GPT Completion API - Conversation');
     }
 
@@ -318,7 +318,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().nom, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().model, ModuleTableFieldVO.FIELD_TYPE_string, 'Modèle', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().instructions, ModuleTableFieldVO.FIELD_TYPE_string, 'Instructions', true);
         ModuleTableFieldController.create_new(GPTAssistantAPIAssistantVO.API_TYPE_ID, field_names<GPTAssistantAPIAssistantVO>().tools_code_interpreter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Outils - Interpréteur de code', true, true, false);
@@ -359,6 +359,9 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().json_stringify_output, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Transformer la sortie de la fonction en JSON', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
+        ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().use_promise_pipeline, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utiliser un PromisePipeline', true, true, false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIFunctionVO.API_TYPE_ID, field_names<GPTAssistantAPIFunctionVO>().promise_pipeline_max_concurrency, ModuleTableFieldVO.FIELD_TYPE_int, 'PromisePipeline - Max concurrence', true, true, 1);
+
         const table = ModuleTableController.create_new(this.name, GPTAssistantAPIFunctionVO, label, 'GPT Assistant API - Fonction');
         VersionedVOController.getInstance().registerModuleTable(table);
     }
@@ -386,7 +389,7 @@ export default class ModuleGPT extends Module {
     private initializeGPTAssistantAPIVectorStoreVO() {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().usage_bytes, ModuleTableFieldVO.FIELD_TYPE_int, 'Bytes utilisés', false, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().file_counts_in_progress, ModuleTableFieldVO.FIELD_TYPE_int, 'Fichiers en cours', false, true, 0);
@@ -397,8 +400,8 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().status, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', false).setEnumValues(GPTAssistantAPIVectorStoreVO.STATUS_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().expires_after_anchor, ModuleTableFieldVO.FIELD_TYPE_enum, 'Expire après - Ancrage', false).setEnumValues(GPTAssistantAPIVectorStoreVO.EXPIRES_AFTER_ANCHOR_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().expires_after_days, ModuleTableFieldVO.FIELD_TYPE_int, 'Expire après - Jours', false, true, 0);
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().expires_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Expire à', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().last_active_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière activité', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().expires_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Expire à', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().last_active_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Dernière activité', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
@@ -408,7 +411,7 @@ export default class ModuleGPT extends Module {
 
     private initializeGPTAssistantAPIVectorStoreFileBatchVO() {
         const label = ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID', true).unique();
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().vector_store_gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID du vector store', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileBatchVO>().vector_store_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Vector Store', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIVectorStoreVO.API_TYPE_ID);
@@ -432,7 +435,7 @@ export default class ModuleGPT extends Module {
             .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().status, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', false).setEnumValues(GPTAssistantAPIVectorStoreFileVO.STATUS_LABELS);
-        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().last_error, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dernière erreur', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().usage_bytes, ModuleTableFieldVO.FIELD_TYPE_int, 'Bytes utilisés', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, field_names<GPTAssistantAPIVectorStoreFileVO>().vector_store_gpt_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT ID du vector store', true);
@@ -450,7 +453,7 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().purpose, ModuleTableFieldVO.FIELD_TYPE_enum, 'Params', true, true, GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS).setEnumValues(GPTAssistantAPIFileVO.PURPOSE_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().filename, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du fichier', true);
-        ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().bytes, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Bytes', true, true, 0);
         ModuleTableFieldController.create_new(GPTAssistantAPIFileVO.API_TYPE_ID, field_names<GPTAssistantAPIFileVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
@@ -492,7 +495,7 @@ export default class ModuleGPT extends Module {
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oselia_is_running, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Osélia en cours de réflexion', true, true, false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().tool_resources, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Ressources des outils', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
 
@@ -501,7 +504,7 @@ export default class ModuleGPT extends Module {
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().thread_title_auto_build_locked, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Le titre est fiable', true, true, false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().has_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'N\'est pas vide', true, true, false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oswedev_created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création OsWeDev', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().oswedev_created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création OsWeDev', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
 
         ModuleTableController.create_new(this.name, GPTAssistantAPIThreadVO, label, 'GPT Assistant API - Thread');
 
@@ -604,18 +607,18 @@ export default class ModuleGPT extends Module {
             .set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().role, ModuleTableFieldVO.FIELD_TYPE_enum, 'Rôle', true, true, GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER).setEnumValues(GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_LABELS);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création (OSWedev)', true);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création (OSWedev)', true).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().archived, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Archivé', true, true, false);
 
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_assistant_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Assistant ID', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Run ID', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().gpt_thread_id, ModuleTableFieldVO.FIELD_TYPE_string, 'GPT Thread ID', false);
 
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().status, ModuleTableFieldVO.FIELD_TYPE_enum, 'Status', false).setEnumValues(GPTAssistantAPIThreadMessageVO.STATUS_LABELS);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().incomplete_details, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Détails raisons message incomplet', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().completed_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
-        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().incomplete_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'incomplétion', false);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().completed_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().incomplete_at, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date d\'incomplétion', false).set_segmentation_type(TimeSegment.TYPE_SECOND);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().attachments, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Pièces jointes', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().metadata, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Métadonnées', false);
         ModuleTableFieldController.create_new(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);

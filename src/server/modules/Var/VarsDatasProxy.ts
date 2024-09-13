@@ -226,6 +226,12 @@ export default class VarsDatasProxy {
             while (VarsComputationHole.waiting_for_computation_hole) {
                 await ThreadHandler.sleep(100, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
                 n++;
+
+                // Toutes les 2 secondes, on indique qu'on est en attente pour essayer de sortir du hole
+                if (n % 20 == 0) {
+                    VarsComputationHole.ask_for_hole_termination = true;
+                }
+
                 if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.throttle_log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
                     if (n % 50 == 0) { // On log toutes les 5 secondes

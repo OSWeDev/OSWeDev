@@ -4,7 +4,6 @@ import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ForkedTasksController from '../../../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from '../../CurrentVarDAGHolder';
-import VarDAG from '../../vos/VarDAG';
 
 export default class VarsComputationHole {
 
@@ -21,6 +20,8 @@ export default class VarsComputationHole {
     // public static processes_waiting_for_computation_hole_end: { [process_name: string]: boolean } = {};
     public static currently_in_a_hole_semaphore: boolean = false;
     public static redo_in_a_hole_semaphore: boolean = false;
+
+    public static ask_for_hole_termination: boolean = false;
 
     private static current_cbs_stack: Array<() => {}> = [];
     private static currently_waiting_for_hole_semaphore: boolean = false;
@@ -69,9 +70,9 @@ export default class VarsComputationHole {
 
         VarsComputationHole.currently_waiting_for_hole_semaphore = true;
 
-        VarsComputationHole.waiting_for_computation_hole = true;
-
         do {
+            VarsComputationHole.waiting_for_computation_hole = true;
+
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 ConsoleHandler.log('VarsComputationHole:wait_for_hole:wrap_handle_hole:IN');
             }
@@ -83,9 +84,8 @@ export default class VarsComputationHole {
 
             if (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length) {
 
-                if (ConfigurationService.node_configuration.debug_vars_invalidation || ConfigurationService.node_configuration.debug_vars_processes) {
-                    await ThreadHandler.sleep(100, 'VarsComputationHole.wait_for_hole.pause_between_holes');
-                }
+                VarsComputationHole.waiting_for_computation_hole = false;
+                await ThreadHandler.sleep(100, 'VarsComputationHole.wait_for_hole.pause_between_holes');
             }
         } while (VarsComputationHole.redo_in_a_hole_semaphore && VarsComputationHole.current_cbs_stack.length);
         VarsComputationHole.redo_in_a_hole_semaphore = false;
@@ -120,11 +120,18 @@ export default class VarsComputationHole {
         VarsComputationHole.currently_in_a_hole_semaphore = true;
         VarsComputationHole.currently_waiting_for_hole_semaphore = false;
 
+        VarsComputationHole.ask_for_hole_termination = false;
+
         // On fait les cbs à la suite, pas en // par ce que si on demande un trou c'est probablement pour être seul sur l'arbre
         while (VarsComputationHole.current_cbs_stack.length) {
             const cb = VarsComputationHole.current_cbs_stack.shift();
             await cb();
+
+            if (VarsComputationHole.ask_for_hole_termination) {
+                break;
+            }
         }
+        VarsComputationHole.ask_for_hole_termination = false;
 
         VarsComputationHole.currently_in_a_hole_semaphore = false;
     }

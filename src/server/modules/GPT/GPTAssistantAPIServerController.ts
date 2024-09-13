@@ -21,6 +21,7 @@ import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerV
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -30,10 +31,12 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
-import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
+import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 
 export default class GPTAssistantAPIServerController {
+
+    public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -1240,7 +1243,27 @@ export default class GPTAssistantAPIServerController {
 
                                     const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
-                                    function_response = await function_to_call.call(null, ...ordered_args);
+
+                                    // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
+                                    if (function_vo.use_promise_pipeline) {
+
+                                        if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
+                                            GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
+                                        }
+
+                                        // On attend non seulement le push mais la résolution de la méthode push
+                                        await (await GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].push(async () => {
+                                            try {
+                                                function_response = await function_to_call.call(null, ...ordered_args);
+                                            } catch (error) {
+                                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
+                                                function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+                                            }
+                                        }))();
+                                    } else {
+                                        function_response = await function_to_call.call(null, ...ordered_args);
+                                    }
+
                                     function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                     return;
 

@@ -67,13 +67,18 @@ export default class VarsProcessInvalidator {
             //  puis on génère ceux liés à des invalidations/modifs de VOS (qui sont déployés avant ajout à la liste des intersecteurs)
             //  et on les applique
 
+            // On limite à 500 invalidateurs : totalement arbitraire, comme les 500 vos cuds ...
+            // // On déploie les intersecteurs pour les demandes liées à des vars invalidées
+            // const invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
+            // VarsDatasVoUpdateHandler.invalidators = [];
+
             // On déploie les intersecteurs pour les demandes liées à des vars invalidées
-            const invalidators = VarsDatasVoUpdateHandler.invalidators ? VarsDatasVoUpdateHandler.invalidators : [];
-            VarsDatasVoUpdateHandler.invalidators = [];
+            const max_invalidators = 500;
+            const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, max_invalidators).filter((e) => !!e) : [];
 
             let has_first_invalidator = false;
+            ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + max_invalidators + ' max');
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length);
                 if (invalidators && invalidators.length) {
                     ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
                     invalidators[0].console_log();
@@ -82,16 +87,12 @@ export default class VarsProcessInvalidator {
             }
 
             if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
-                let ordered_vos_cud = [];
 
                 // On limite à 500VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
-                for (let i = 0; (i < 500) && VarsDatasVoUpdateHandler.ordered_vos_cud.length; i++) {
-                    const vo = VarsDatasVoUpdateHandler.ordered_vos_cud.shift();
+                const max_ordered_vos_cud = 500;
+                const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
 
-                    if (vo) {
-                        ordered_vos_cud.push(vo);
-                    }
-                }
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max');
 
                 /**
                  * On se base sur les ordered_vos_cud pour définir l'invalidation ciblée du cache des datasources

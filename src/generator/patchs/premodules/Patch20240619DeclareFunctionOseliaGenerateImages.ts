@@ -54,7 +54,7 @@ export default class Patch20240619DeclareFunctionOseliaGenerateImages implements
             argument_target_id.gpt_funcparam_name = "model";
             argument_target_id.required = true;
             argument_target_id.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
-            argument_target_id.string_enum = ["dall-e-2", "dall-e-3"]
+            argument_target_id.string_enum = ["dall-e-2", "dall-e-3"];
             argument_target_id.weight = 1;
             argument_target_id.default_json_value = '"dall-e-3"';
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_target_id);
