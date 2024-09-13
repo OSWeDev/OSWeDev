@@ -32,7 +32,8 @@ import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAP
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import { readFileSync } from 'fs';
-
+import { toBase64 } from 'openai/core';
+import * as fs from 'fs';
 export default class GPTAssistantAPIServerController {
 
     /**
@@ -1003,14 +1004,15 @@ export default class GPTAssistantAPIServerController {
 
             if (has_image_file) {
                 for (const images of files_images) {
+                    const image_path = ConfigurationService.node_configuration.base_url + images.path.substring(2);
                     const content = new GPTAssistantAPIThreadMessageContentVO();
                     content.thread_message_id = asking_message_vo.id;
                     content.content_type_image_url = new GPTAssistantAPIThreadMessageContentImageURLVO();
-                    // const imageFilePath = images.path;
-                    // const imageBuffer = readFileSync(imageFilePath);
-                    // const base64Image = imageBuffer.toString('base64');
+                    const imageBuffer = fs.readFileSync(image_path); // Lire l'image sous forme de buffer
+                    const base64Image = imageBuffer.toString('base64');
+                    const url = `data:image/jpeg;base64,${base64Image}`;
                     content.content_type_image_url.detail = "auto";
-                    content.content_type_image_url.url = ConfigurationService.node_configuration.base_url + images.path;
+                    content.content_type_image_url.url = url;
                     content.gpt_thread_message_id = asking_message_vo.gpt_id;
                     content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
                     content.weight = 0;

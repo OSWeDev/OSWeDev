@@ -203,6 +203,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private show_export_alert: boolean = false;
     private already_use_load_widgets_prevalidation: boolean = false;
 
+    private export_to_oselia: boolean = false; // For oselia export
+    private export_to_oselia_limit: number = 10; // For oselia export
+    private export_to_oselia_count: number = 0; // For oselia export
+
     private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
 
     get all_page_widgets_by_id(): { [id: number]: DashboardPageWidgetVO } {
@@ -317,33 +321,33 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     //         const var_widget_options = new VarWidgetOptions().from(options);
     //         const name = var_widget_options.get_title_name_code_text(var_page_widget.id);
 
-        //     if (var_widget_options.vars && var_widget_options.vars.length) {
-        //         for (let j = 0; j < var_widget_options.vars.length; j++) {
-        //             const current_var = var_widget_options.vars[j];
-        //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
-        //                 options.var_id,
-        //                 var_widget_options.filter_custom_field_filters[j],
-        //                 current_var.filter_type,
-        //                 current_var.filter_additional_params,
-        //             );
-        //             res_columns.push(conf);
-        //         }
-        //     }
-        //     for (const conf in res_columns) {
-        //         const column = {};
-        //         column[name] = conf;
-        //         varcolumn_conf.push(column[name]);
-        //     }
-        // }
+    //     if (var_widget_options.vars && var_widget_options.vars.length) {
+    //         for (let j = 0; j < var_widget_options.vars.length; j++) {
+    //             const current_var = var_widget_options.vars[j];
+    //             const conf: ExportVarcolumnConfVO = ExportVarcolumnConfVO.create_new(
+    //                 options.var_id,
+    //                 var_widget_options.filter_custom_field_filters[j],
+    //                 current_var.filter_type,
+    //                 current_var.filter_additional_params,
+    //             );
+    //             res_columns.push(conf);
+    //         }
+    //     }
+    //     for (const conf in res_columns) {
+    //         const column = {};
+    //         column[name] = conf;
+    //         varcolumn_conf.push(column[name]);
+    //     }
+    // }
 
-        // // returns ordered_column_list, column_labels and varcolumn_conf
-        // for (const key in varcolumn_conf) {
-        //     res.push(ExportVarIndicatorVO.create_new(
-        //         ['name', 'value'],
-        //         { name: 'Nom', value: 'Valeur' },
-        //         varcolumn_conf[key]
-        //     ));
-        // }
+    // // returns ordered_column_list, column_labels and varcolumn_conf
+    // for (const key in varcolumn_conf) {
+    //     res.push(ExportVarIndicatorVO.create_new(
+    //         ['name', 'value'],
+    //         { name: 'Nom', value: 'Valeur' },
+    //         varcolumn_conf[key]
+    //     ));
+    // }
     //     return res;
     // }
 
@@ -2324,6 +2328,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         const vos_by_id: { [id: number]: any } = {};
         for (const i in rows) {
             const row = rows[i];
+            rows[i]['selected'] = false;
             vos_by_id[this.get_identifier(row)] = row;
         }
 
@@ -2378,9 +2383,34 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         await this.throttle_do_update_visible_options();
     }
 
+    private async select_row(row: any) {
+        row['selected'] = !row['selected'];
+        if (row['selected'] == true) {
+            if (this.export_to_oselia_limit != this.export_to_oselia_count) {
+                this.export_to_oselia_count++;
+            }
+        } else {
+            this.export_to_oselia_count--;
+        }
+    }
 
+    private async do_export_to_oselia() {
+        const export_to_oselia_files_id: string[] = [];
+        this.data_rows.forEach((row) => {
+            if (row['selected'] == true) {
+                export_to_oselia_files_id.push(row['file___id']);
+            }
+        });
+        window.opener.postMessage(export_to_oselia_files_id);
+        window.close();
+    }
 
     private async mounted() {
+
+        if (window.opener && window.opener.name == "ExportTo") {
+            this.export_to_oselia = true;
+        }
+
         const validation_page_widgets = this.get_validation_page_widgets();
 
         if (validation_page_widgets?.length > 0) {

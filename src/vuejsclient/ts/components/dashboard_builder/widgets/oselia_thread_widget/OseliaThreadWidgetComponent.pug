@@ -22,7 +22,7 @@
                 i.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
-            .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : ''")
+            .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : '' ")  
                 //- .update_button 
                 //-     button.btn.btn-sm.btn-primary(v-on:click='force_reload')
                 //-         i.fa-duotone.fa-sync
@@ -76,11 +76,6 @@
                     .thread_message_input_buttons
                         .thread_message_input_file_system
                             button.fa-solid.fa-files(v-on:click='open_file_system_upload')
-                            template(v-if="enable_file_system_menu")
-                                multiselect(
-                                    :options='get_files()'
-                                    v-model='selected_file_system'
-                                )
                         .thread_message_input_file
                             button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
                         .thread_message_input_image

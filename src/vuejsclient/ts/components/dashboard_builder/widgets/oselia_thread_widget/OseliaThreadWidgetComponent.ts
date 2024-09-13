@@ -34,10 +34,7 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
-import GPTAssistantAPIThreadMessageContentVO from '../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
-import { Module } from 'module';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-
+import ConfigurationService from '../../../../../../server/env/ConfigurationService';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -90,16 +87,12 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
-
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
-
     private assistant_is_busy: boolean = false;
-
     private current_thread_id: number = null;
     private assistant: GPTAssistantAPIAssistantVO = null;
-
-    private selected_file_system: FileVO = null;
+    private selected_file_system: FileVO[] = [];
     private new_message_text: string = null;
     private is_dragging: boolean = false;
     private thread_files: { [key: string]: FileVO }[] = [];
@@ -107,11 +100,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private enable_link_image_menu: boolean = false;
     private enable_file_system_menu: boolean = false;
     private link_image_url: string = null;
+    private dashboard_system_id: number = 44;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
+
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
+    }
+
+    get file_system_url() {
+        const { protocol, hostname, port } = window.location;
+        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard_builder/` + this.dashboard_system_id;
     }
 
     @Watch('get_too_many_assistants')
@@ -190,10 +190,40 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.thread_files.splice(index, 1);
     }
 
+    private async listen_for_message(): Promise<any> {
+        return new Promise((resolve) => {
+            window.name = "ExportTo";
+            const export_window = window.open(this.file_system_url);
+            window.addEventListener("message", (event: MessageEvent) => {
+                const source = event.source as Window;
+                if (source.location.href !== this.file_system_url) {
+                    return;
+                }
+                resolve(event.data);
+            }, { once: true });
+        });
+    }
     private async open_file_system_upload() {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
+        const files_id = await this.listen_for_message();
+
+        if (files_id.length > 0) {
+            for (let id of files_id) {
+                const file = await query(FileVO.API_TYPE_ID)
+                    .filter_by_id(id)
+                    .set_limit(1)
+                    .select_vo<FileVO>();
+                if (file) {
+                    this.selected_file_system.push(file);
+                }
+            }
+        }
+
+        for (let file of this.selected_file_system) {
+            this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
+        }
     }
 
     private async open_file_upload() {
@@ -231,35 +261,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
-    }
-
-    @Watch('selected_file_system')
-    private async on_selected_file_system_change() {
-        if (!this.selected_file_system) {
-            return;
-        }
-        // const file: File = this.selected_file_system;
-        // const formData = new FormData();
-        // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
-        // formData.append('file', file, file_name);
-        // await AjaxCacheClientController.getInstance().post(
-        //     null,
-        //     '/ModuleFileServer/upload',
-        //     [FileVO.API_TYPE_ID],
-        //     formData,
-        //     null,
-        //     null,
-        //     false,
-        //     30000).then(async () => {
-        //         // Upload via insert or update
-        //         const new_file = new FileVO();
-        //         new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-        //         const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-        //         new_file.id = resnew_file.id;
-        //         this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-        //     });
-        this.selected_file_system = null;
-        this.enable_file_system_menu = false;
     }
 
     private async do_upload_file(fileHandle: FileSystemFileHandle) {

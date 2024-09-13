@@ -339,7 +339,14 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                 }
                 if (files.length > 0) {
                     for (const file of files) {
-                        this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                        if (this.thread_message_files.every((value) => {
+                            if (value['.' + file.path.split('.').pop()].id = file.id) {
+                                return false;
+                            }
+                            return true;
+                        })) {
+                            this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                        }
                     }
                 }
             }

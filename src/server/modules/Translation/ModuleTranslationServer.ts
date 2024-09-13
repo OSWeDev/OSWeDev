@@ -190,6 +190,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Exporter'
         }, 'crud.actions.export.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Exporter vers osélia'
+        }, 'crud.actions.export_to_oselia.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Actualiser'
         }, 'crud.actions.refresh.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
