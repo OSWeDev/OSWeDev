@@ -38,6 +38,28 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
     private style_sous_titre: string = null;
     private style_contenu: string = null;
 
+    get base_style(): string {
+        return "word-wrap: break-word;";
+    }
+
+    get widget_options(): CMSBlocTextWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: CMSBlocTextWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as CMSBlocTextWidgetOptionsVO;
+                options = options ? new CMSBlocTextWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
@@ -85,28 +107,6 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
             default:
                 break;
         }
-    }
-
-    get base_style(): string {
-        return "word-wrap: break-word;";
-    }
-
-    get widget_options(): CMSBlocTextWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: CMSBlocTextWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as CMSBlocTextWidgetOptionsVO;
-                options = options ? new CMSBlocTextWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
 }

@@ -2,6 +2,8 @@ import AbstractVO from "../../VO/abstract/AbstractVO";
 
 export default class BlocTextWidgetOptionsVO extends AbstractVO {
 
+    public bloc_text: string;
+
     public static createNew(
         bloc_text: string
     ): BlocTextWidgetOptionsVO {
@@ -11,7 +13,5 @@ export default class BlocTextWidgetOptionsVO extends AbstractVO {
 
         return res;
     }
-
-    public bloc_text: string;
 
 }

@@ -1,5 +1,9 @@
 export default class CMSBlocTextWidgetController {
 
+    private static instance = null;
+
+    private constructor() { }
+
     public static getInstance(): CMSBlocTextWidgetController {
         if (!this.instance) {
             this.instance = new CMSBlocTextWidgetController();
@@ -7,9 +11,5 @@ export default class CMSBlocTextWidgetController {
 
         return this.instance;
     }
-
-    private static instance = null;
-
-    private constructor() { }
 
 }

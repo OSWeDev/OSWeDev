@@ -182,6 +182,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_OseliaThread();
 
         await this.initializeWidget_CMSBlocText();
+        await this.initializeWidget_CMSImage();
+        await this.initializeWidget_CMSLinkButton();
     }
 
     private async initializeWidget_BulkOps() {
@@ -470,7 +472,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarRadarChart() {
-        let VarRadarChart = new DashboardWidgetVO();
+        const VarRadarChart = new DashboardWidgetVO();
 
         VarRadarChart.default_height = 10;
         VarRadarChart.default_width = 2;
@@ -489,7 +491,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_VarMixedChart() {
-        let VarMixedChart = new DashboardWidgetVO();
+        const VarMixedChart = new DashboardWidgetVO();
 
         VarMixedChart.default_height = 10;
         VarMixedChart.default_width = 2;
@@ -644,7 +646,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_SuiviCompetences() {
-        let SuiviCompetences = new DashboardWidgetVO();
+        const SuiviCompetences = new DashboardWidgetVO();
 
         SuiviCompetences.default_height = 5;
         SuiviCompetences.default_width = 2;
@@ -724,5 +726,47 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSBlocTextwidgetcomponent', () => import('./widgets/cms_bloc_text_widget/CMSBlocTextWidgetComponent'));
         Vue.component('CMSBlocTextwidgetoptionscomponent', () => import('./widgets/cms_bloc_text_widget/options/CMSBlocTextWidgetOptionsComponent'));
         Vue.component('CMSBlocTextwidgeticoncomponent', () => import('./widgets/cms_bloc_text_widget/icon/CMSBlocTextWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSImage() {
+        const CMSImage = new DashboardWidgetVO();
+
+        CMSImage.default_height = 5;
+        CMSImage.default_width = 2;
+        CMSImage.name = DashboardWidgetVO.WIDGET_NAME_cmsimage;
+        CMSImage.widget_component = 'CMSImagewidgetcomponent';
+        CMSImage.options_component = 'CMSImagewidgetoptionscomponent';
+        CMSImage.weight = 3;
+        CMSImage.default_background = '#f5f5f5';
+        CMSImage.icon_component = 'CMSImagewidgeticoncomponent';
+        CMSImage.is_filter = true;
+        CMSImage.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSImage, null, null);
+
+        Vue.component('CMSImagewidgetcomponent', () => import('./widgets/cms_image_widget/CMSImageWidgetComponent'));
+        Vue.component('CMSImagewidgetoptionscomponent', () => import('./widgets/cms_image_widget/options/CMSImageWidgetOptionsComponent'));
+        Vue.component('CMSImagewidgeticoncomponent', () => import('./widgets/cms_image_widget/icon/CMSImageWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLinkButton() {
+        const CMSLinkButton = new DashboardWidgetVO();
+
+        CMSLinkButton.default_height = 5;
+        CMSLinkButton.default_width = 2;
+        CMSLinkButton.name = DashboardWidgetVO.WIDGET_NAME_cmslinkbutton;
+        CMSLinkButton.widget_component = 'CMSLinkButtonwidgetcomponent';
+        CMSLinkButton.options_component = 'CMSLinkButtonwidgetoptionscomponent';
+        CMSLinkButton.weight = 3;
+        CMSLinkButton.default_background = '#f5f5f5';
+        CMSLinkButton.icon_component = 'CMSLinkButtonwidgeticoncomponent';
+        CMSLinkButton.is_filter = true;
+        CMSLinkButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLinkButton, null, null);
+
+        Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
+        Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
+        Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
     }
 }

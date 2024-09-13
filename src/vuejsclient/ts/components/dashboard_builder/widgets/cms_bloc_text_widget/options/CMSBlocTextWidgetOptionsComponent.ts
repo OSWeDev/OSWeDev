@@ -43,6 +43,25 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private next_update_options: CMSBlocTextWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
+
+    get widget_options(): CMSBlocTextWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: CMSBlocTextWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as CMSBlocTextWidgetOptionsVO;
+                options = options ? new CMSBlocTextWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
     @Watch('alignement_titre_selected')
     private async onchange_alignement_titre_selected() {
         this.alignement_titre = this.alignement_titre_selected;
@@ -150,24 +169,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
-    }
-
-    get widget_options(): CMSBlocTextWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: CMSBlocTextWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as CMSBlocTextWidgetOptionsVO;
-                options = options ? new CMSBlocTextWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 
 }

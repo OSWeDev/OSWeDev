@@ -7,6 +7,13 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
     public static ALIGNER_DROITE: string = 'cms_bloc_text.alignement.droite';
     public static ALIGNER_JUSTIFIE: string = 'cms_bloc_text.alignement.justifie';
 
+    public titre: string;
+    public alignement_titre: string;
+    public sous_titre: string;
+    public alignement_sous_titre: string;
+    public contenu: string;
+    public alignement_contenu: string;
+
     public static createNew(
         titre: string,
         alignement_titre: string,
@@ -26,11 +33,4 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
 
         return res;
     }
-
-    public titre: string;
-    public alignement_titre: string;
-    public sous_titre: string;
-    public alignement_sous_titre: string;
-    public contenu: string;
-    public alignement_contenu: string;
 }

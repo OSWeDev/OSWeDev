@@ -66,7 +66,7 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
 
         if (this.policies_loaded[ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS]) {
 
-            let main_route_name_cms: string = 'CMSBuilder';
+            const main_route_name_cms: string = 'CMSBuilder';
 
             const menuCMSPointer = MenuElementVO.create_new(
                 ModuleDashboardBuilder.POLICY_CMS_VERSION_BO_ACCESS,

@@ -2,6 +2,12 @@ import DashboardBuilderVueModuleBase from './DashboardBuilderVueModuleBase';
 
 export default class DashboardBuilderClientVueModule extends DashboardBuilderVueModuleBase {
 
+    protected static instance: DashboardBuilderClientVueModule = null;
+
+    protected constructor() {
+        super();
+    }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): DashboardBuilderClientVueModule {
         if (!DashboardBuilderClientVueModule.instance) {
@@ -9,12 +15,6 @@ export default class DashboardBuilderClientVueModule extends DashboardBuilderVue
         }
 
         return DashboardBuilderClientVueModule.instance;
-    }
-
-    protected static instance: DashboardBuilderClientVueModule = null;
-
-    protected constructor() {
-        super();
     }
 
     public async initializeAsync() {
