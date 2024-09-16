@@ -289,8 +289,7 @@ export default class SendInBlueMailServerController {
             params.BASE_URL = ConfigurationService.node_configuration.base_url;
         }
 
-        const session = StackContext.get('SESSION');
-        const sid = session ? session.sid : null;
+        const sid = StackContext.get('SID');
         params['SESSION_SHARE_SID'] = sid ? encodeURIComponent(sid) : null;
     }
 

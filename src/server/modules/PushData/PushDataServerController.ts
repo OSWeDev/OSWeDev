@@ -541,15 +541,15 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            session = session ? session : StackContext.get('SESSION');
-            if (!session) {
+            const sid = (session && session.sid) ? session.sid : StackContext.get('SID');
+            if (!sid) {
                 return;
             }
 
-            if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[session.id]) {
+            if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[sid]) {
                 notification = PushDataServerController.getTechNotif(
                     null, null,
-                    Object.values(PushDataServerController.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+                    Object.values(PushDataServerController.registeredSockets_by_sessionid[sid]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -628,60 +628,6 @@ export default class PushDataServerController {
         await PushDataServerController.notify(notification);
         // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyTabReload');
     }
-
-    // /**
-    //  * On notifie toutes les tabs subscribed à cet index pour reload
-    //  */
-    // public static async notifyVarsTabsReload(var_index: string) {
-
-    //     // Permet d'assurer un lancement uniquement sur le main process
-    //     return new Promise(async (resolve, reject) => {
-
-    //         if (!await ForkedTasksController.exec_self_on_main_process_and_return_value(
-    //             reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
-    //             return;
-    //         }
-
-    //         let tabs: { [user_id: number]: { [client_tab_id: string]: number } } = VarsTabsSubsController.get_subscribed_tabs_ids(var_index);
-    //         for (let uid in tabs) {
-    //             let tab = tabs[uid];
-
-    //             for (let tabid in tab) {
-    //                 await PushDataServerController.notifyTabReload(parseInt(uid.toString()), tabid);
-    //             }
-    //         }
-    //         resolve(true);
-    //     });
-    // }
-
-
-    // /**
-    //  * On notifie les sockets de la session qu'il faut un reload (exemple lors du login)
-    //  */
-    // public static async notifyReload() {
-
-    //     // Permet d'assurer un lancement uniquement sur le main process
-    //     if (!ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyReload)) {
-    //         return;
-    //     }
-
-    //     let notification: NotificationVO = null;
-    //     try {
-    //         let session: IServerUserSession = StackContext.get('SESSION');
-    //         notification = PushDataServerController.getTechNotif(
-    //             null, null,
-    //             Object.values(PushDataServerController.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
-    //     } catch (error) {
-    //         ConsoleHandler.error(error);
-    //     }
-
-    //     if (!notification) {
-    //         return;
-    //     }
-
-    //     await PushDataServerController.notify(notification);
-    //     await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
-    // }
 
     /**
      * On notifie un utilisateur, via son user_id et son client_tab_id pour notifier la fenêtre abonnée uniquement
@@ -948,9 +894,9 @@ export default class PushDataServerController {
         }
 
         try {
-            const session: IServerUserSession = StackContext.get('SESSION');
-            if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[session.id]) {
-                await PushDataServerController.notifySimple(Object.values(PushDataServerController.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
+            const sid: string = StackContext.get('SID');
+            if (PushDataServerController.registeredSockets_by_sessionid && PushDataServerController.registeredSockets_by_sessionid[sid]) {
+                await PushDataServerController.notifySimple(Object.values(PushDataServerController.registeredSockets_by_sessionid[sid]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);
             }
         } catch (error) {

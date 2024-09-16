@@ -148,8 +148,7 @@ export default class PasswordRecovery {
             .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, PasswordRecovery.CODE_TEXT_SMS_RECOVERY, TranslatableTextVO.API_TYPE_ID)
             .filter_by_id(user.lang_id, LangVO.API_TYPE_ID).select_vo<TranslationVO>();
 
-        const session = StackContext.get('SESSION');
-        const sid = session.sid;
+        const sid = StackContext.get('SID');
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

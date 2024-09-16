@@ -40,6 +40,9 @@ export default class VarsProcessInvalidator {
 
             if (!did_something) {
                 await ThreadHandler.sleep(this.thread_sleep, this.name);
+            } else {
+                // On va quand même attendre un peu pour laisser le temps aux autres process de push des vars par exemple
+                await ThreadHandler.sleep(10, this.name);
             }
         }
     }

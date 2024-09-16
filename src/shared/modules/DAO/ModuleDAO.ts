@@ -174,7 +174,7 @@ export default class ModuleDAO extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+        APIControllerWrapper.registerApi((new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
@@ -189,9 +189,9 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
+        APIControllerWrapper.registerApi((new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
@@ -206,17 +206,17 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
+        APIControllerWrapper.registerApi((new PostAPIDefinition<APIDAOParamsVO, any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi((new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_VOS,
             (params: IDistantVOBase[]) => {
@@ -231,10 +231,10 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi((new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
@@ -249,82 +249,82 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             },
             null,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
-        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
+        APIControllerWrapper.registerApi((new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type],
             null,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_getVarImportsByMatroidParams,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
             null,
             ModuleDAO.APINAME_getColSumFilterByMatroid,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
+        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
             null,
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
             APIDAONamedParamVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
-        APIControllerWrapper.registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
+        APIControllerWrapper.registerApi((new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS,
             (API_TYPE_ID: APIDAOTypeLimitOffsetVO) => [API_TYPE_ID.API_TYPE_ID],
             APIDAOTypeLimitOffsetVOStatic
-        ));
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new GetAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi((new GetAPIDefinition<void, string>(
             null,
             ModuleDAO.APINAME_GET_BASE_URL,
             [],
             null,
-        ));
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOselectUsersForCheckUnicityVO, boolean>(
+        APIControllerWrapper.registerApi((new PostForGetAPIDefinition<APIDAOselectUsersForCheckUnicityVO, boolean>(
             null,
             ModuleDAO.APINAME_selectUsersForCheckUnicity,
             [UserVO.API_TYPE_ID],
             APIDAOselectUsersForCheckUnicityVOStatic,
-        ));
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi((new PostAPIDefinition<StringParamVO, void>(
             ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
             ModuleDAO.APINAME_truncate,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic,
-        ));
+        )).exec_on_api_bgthread());
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi((new PostAPIDefinition<StringParamVO, void>(
             ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
             ModuleDAO.APINAME_delete_all_vos_triggers_ok,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic,
-            // APIDefinition.API_RETURN_TYPE_NOTIF,
-        ));
+            APIDefinition.API_RETURN_TYPE_NOTIF,
+        )).exec_on_api_bgthread());
     }
 
     public initialize() {

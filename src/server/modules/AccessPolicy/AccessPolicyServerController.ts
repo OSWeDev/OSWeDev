@@ -1222,6 +1222,8 @@ export default class AccessPolicyServerController {
             );
 
             // On ajoute la session au bgthread d'invalidation si on a un sid
+            // TODO FIXME : Attention avec les modifs d'api dans le bgthread des apis, on a pas d'objet session nécessairement ici, alors qu'on pourrait avoir un SID
+            //  Donc c'est un peu dommage de pas adapter l'invalidation à l'usage du SID. On traine moins d'infos et on couvre plus de cas...
             const session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
                 ForkedTasksController.exec_self_on_bgthread(

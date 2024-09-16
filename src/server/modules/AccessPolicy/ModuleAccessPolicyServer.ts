@@ -61,8 +61,6 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
-import UserAPIVO from '../../../shared/modules/AccessPolicy/vos/UserAPIVO';
-import ConfigurationService from '../../env/ConfigurationService';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -95,11 +93,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            const session = StackContext.get('SESSION');
-
-            if (session && session.uid) {
-                return session.uid;
-            }
+            return StackContext.get('UID');
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -2300,11 +2294,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private get_my_sid(req: Request, res: Response) {
-        // let session = StackContext.get('SESSION');
-        // if (!session) {
-        //     return null;
-        // }
-        // return session.id;
         return res.req.cookies['sid'];
     }
 

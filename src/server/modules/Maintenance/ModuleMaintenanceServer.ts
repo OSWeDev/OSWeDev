@@ -1,6 +1,5 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
@@ -9,7 +8,6 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -30,19 +28,19 @@ import MaintenanceServerController from './MaintenanceServerController';
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
 
+    private static instance: ModuleMaintenanceServer = null;
+
+    // istanbul ignore next: cannot test module constructor
+    private constructor() {
+        super(ModuleMaintenance.getInstance().name);
+    }
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
             ModuleMaintenanceServer.instance = new ModuleMaintenanceServer();
         }
         return ModuleMaintenanceServer.instance;
-    }
-
-    private static instance: ModuleMaintenanceServer = null;
-
-    // istanbul ignore next: cannot test module constructor
-    private constructor() {
-        super(ModuleMaintenance.getInstance().name);
     }
 
     // istanbul ignore next: cannot test registerCrons
@@ -150,11 +148,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        const session = StackContext.get('SESSION');
-
-        if (session && !session.uid) {
-            return;
-        }
+        const uid = StackContext.get('UID');
 
         const maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).exec_as_server().select_vo<MaintenanceVO>();
 
@@ -165,7 +159,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
-        await PushDataServerController.notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        if (!!uid) {
+            await PushDataServerController.notifyDAOGetVoById(uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        }
     }
 
     public async end_planned_maintenance(): Promise<void> {
@@ -180,15 +176,15 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        const session = StackContext.get('SESSION');
+        const uid = StackContext.get('UID');
 
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = Dates.now();
 
         await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(planned_maintenance);
-        if (session && !!session.uid) {
-            await PushDataServerController.notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
+        if (!!uid) {
+            await PushDataServerController.notifyDAOGetVoById(uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
         }
     }
 
@@ -208,10 +204,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         const maintenance: MaintenanceVO = new MaintenanceVO();
 
-        const session = StackContext.get('SESSION');
+        const uid = StackContext.get('UID');
 
-        if (session && !!session.uid) {
-            maintenance.author_id = session.uid;
+        if (!!uid) {
+            maintenance.author_id = uid;
         }
         maintenance.broadcasted_msg1 = true;
         maintenance.broadcasted_msg2 = true;
@@ -251,10 +247,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return false;
         }
 
-        const session = StackContext.get('SESSION');
+        const uid = StackContext.get('UID');
 
         maintenance.creation_date = Dates.now();
-        maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);
+        maintenance.author_id = maintenance.author_id ? maintenance.author_id : uid;
 
         return true;
     }

@@ -1301,10 +1301,6 @@ export default abstract class ServerBase {
             });
         }
 
-        // this.initializePush();
-        // this.initializePushApis(this.app);
-        this.registerApis(this.app);
-
         if (ConfigurationService.node_configuration.activate_long_john) {
             require('longjohn');
         }
