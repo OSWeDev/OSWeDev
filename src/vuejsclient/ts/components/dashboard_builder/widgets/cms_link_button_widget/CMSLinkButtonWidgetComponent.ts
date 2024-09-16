@@ -1,12 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import CMSLinkButtonWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import './CMSLinkButtonWidgetComponent.scss';
-import CMSLinkButtonWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSLinkButtonWidgetOptionsVO';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./CMSLinkButtonWidgetComponent.pug'),
@@ -17,18 +15,12 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
-    @Prop({ default: null })
-    private all_page_widget: DashboardPageWidgetVO[];
-
-    @Prop({ default: null })
-    private dashboard: DashboardVO;
-
-    @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
-
     private url: string = null;
     private title: string = null;
     private color: string = null;
+    private text_color: string = null;
+    private about_blank: boolean = null;
+    private start_update: boolean = false;
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
         if (!this.page_widget) {
@@ -48,22 +40,47 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         return options;
     }
 
+    get style(): string {
+        return 'background-color: ' + this.color + '; color: ' + this.text_color + ';';
+    }
+
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
         if (!this.widget_options) {
             this.url = null;
             this.title = null;
-            this.color = null;
+            this.color = '#003c7d';
+            this.text_color = '#ffffff';
+            this.about_blank = false;
 
             return;
         }
         this.url = this.widget_options.url;
         this.title = this.widget_options.title;
         this.color = this.widget_options.color;
+        this.text_color = this.widget_options.text_color;
+        this.about_blank = this.widget_options.about_blank;
     }
 
     private async mounted() {
         this.onchange_widget_options();
     }
 
+    private go_to_link() {
+        if (this.start_update) {
+            return;
+        }
+
+        this.start_update = true;
+
+        if (this.about_blank) {
+
+            window.open(this.url, '_blank');
+        } else {
+
+            window.open(this.url, '_self');
+        }
+
+        this.start_update = false;
+    }
 }

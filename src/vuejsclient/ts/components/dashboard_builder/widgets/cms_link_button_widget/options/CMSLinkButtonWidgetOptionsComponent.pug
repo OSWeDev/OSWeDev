@@ -1,2 +1,38 @@
 .cms_link_button_widget_options_component
     .cms_link_button_widget_options_component_wrapper
+
+        .widget_url_label {{ label('cms_link_button.widget_option.url') }}
+            .widget_url_wrapper
+                input(
+                    type="text"
+                    v-model="url"
+                    v-tooltip.top='label("cms_link_button.tooltip_url")'
+                )
+        
+        .widget_title_label {{ label('cms_link_button.widget_option.titre') }}
+            .widget_title_wrapper
+                input(
+                    type="text"
+                    v-model="title"
+                )
+        
+        .about_blank_label {{ label('cms_link_button.widget_option.about_blank') }}
+        toggle-button(
+            @change="switch_about_blank"
+            :value="about_blank" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_link_button.widget_option.about_blank.true'), unchecked: label('cms_link_button.widget_option.about_blank.false')}"
+        )
+
+        .widget_button_color {{ label("cms_link_button.widget_option.color") }}
+        color-picker(v-model="color" @change='throttled_update_options')
+
+        .text_color_label {{ label('cms_link_button.widget_option.text_color') }}
+        toggle-button(
+            @change="switch_text_color"
+            :value="is_text_color_white"
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('cms_link_button.widget_option.text_color.blanc'), unchecked: label('cms_link_button.widget_option.text_color.noir')}"
+        )

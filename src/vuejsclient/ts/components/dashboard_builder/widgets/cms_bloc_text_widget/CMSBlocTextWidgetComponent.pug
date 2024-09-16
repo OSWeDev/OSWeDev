@@ -2,8 +2,8 @@ include ../../../../../views/mixins/loading.pug
 
 .cms_bloc_text_widget_component
     template(v-if='titre')
-        h1(v-html="titre" style=style_titre)
+        h1(v-html="titre" :style="style_titre")
     template(v-if='sous_titre')
-        h2(v-html="sous_titre" style=style_sous_titre)
+        h2(v-html="sous_titre" :style="style_sous_titre")
     template(v-if='contenu')
-        div(v-html="contenu" style=style_contenu)
+        div(v-html="contenu" :style="style_contenu")

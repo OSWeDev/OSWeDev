@@ -3471,6 +3471,47 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'cms_bloc_text.alignement.justifie.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "URL" },
+            'cms_link_button.widget_option.url.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Texte du bouton" },
+            'cms_link_button.widget_option.titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Lien vers lequel le bouton doit renvoyer." },
+            'cms_link_button.tooltip_url.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ouvrir dans un autre onglet ?" },
+            'cms_link_button.widget_option.about_blank.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui" },
+            'cms_link_button.widget_option.about_blank.true.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non" },
+            'cms_link_button.widget_option.about_blank.false.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du bouton" },
+            'cms_link_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Blanc" },
+            'cms_link_button.widget_option.text_color.blanc.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Noir" },
+            'cms_link_button.widget_option.text_color.noir.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur du texte du bouton" },
+            'cms_link_button.widget_option.text_color.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
