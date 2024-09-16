@@ -57,6 +57,8 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
     // Dans le cas d'un email, le lien vers le mail
     public content_type_email_id: number;
 
+    public hidden: boolean;
+
     public weight: number;
     public type: number;
 }

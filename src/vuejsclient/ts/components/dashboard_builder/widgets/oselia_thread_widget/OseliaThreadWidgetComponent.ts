@@ -138,6 +138,17 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.unregister_all_vo_event_callbacks();
     }
 
+    private mounted() {
+        window.addEventListener('paste', e => {
+            if (e.clipboardData.files.length > 0) {
+                Array.from(e.clipboardData.items).forEach(async (item: DataTransferItem, i) => {
+                    // If pasted items aren't files, reject them
+                    await this.do_upload_file(null, item.getAsFile());
+                });
+            }
+        });
+    }
+
     private async load_thread() {
 
         this.is_loading_thread = true;
@@ -174,9 +185,16 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async handle_drop(event: DragEvent) {
+    private async handle_drop(event: any) {
+        event.preventDefault();
         if (this.has_access_to_thread && !this.is_loading_thread) {
             this.is_dragging = false;
+        }
+        if (event.dataTransfer.files.length > 0) {
+            [...event.dataTransfer.items].forEach(async (item: DataTransferItem, i) => {
+                // If dropped items aren't files, reject them
+                await this.do_upload_file(null, item.getAsFile());
+            });
         }
     }
 
@@ -263,8 +281,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async do_upload_file(fileHandle: FileSystemFileHandle) {
-        const file: File = await fileHandle.getFile();
+    private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
+        let file: File;
+        if (files) {
+            file = files;
+        } else {
+            file = await fileHandle.getFile();
+        }
         // Upload inspiré de feedback handler
         const formData = new FormData();
         const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();

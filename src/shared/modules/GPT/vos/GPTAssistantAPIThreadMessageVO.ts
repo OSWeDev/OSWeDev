@@ -141,4 +141,6 @@ export default class GPTAssistantAPIThreadMessageVO implements IDistantVOBase {
     public metadata: unknown;
 
     public weight: number;
+
+    public is_ready: boolean;
 }

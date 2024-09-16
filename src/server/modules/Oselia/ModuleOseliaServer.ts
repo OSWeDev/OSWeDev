@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { createWriteStream } from 'fs';
-import { ImagesResponse } from 'openai/resources';
+import { ChatCompletion, ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../../../shared/modules/API/vos/ExternalAPIAuthentificationVO';
@@ -56,6 +56,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
+import fs from "fs";
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -248,6 +249,61 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:generate_image:Error while generating image:" + error);
             return 'Erreur lors de la génération de l\'image:' + error;
+        }
+    }
+
+    /**
+     * Fonction qui permet à Osélia d'analyser des images via OpenAI - Vision
+     * @param code
+     * @param prompt
+     * @param thread_vo
+     */
+    public async analyse_image(thread_vo: GPTAssistantAPIThreadVO, code: string, prompt: string): Promise<string> {
+        try {
+
+            if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                ConsoleHandler.log('ModuleOseliaServer:analyse_image:Analysing image with code:' + code + ':thread_vo gptid:' + thread_vo.gpt_thread_id);
+            }
+
+            // Get the file vo from the code
+            const file_vo = await query(FileVO.API_TYPE_ID)
+                .filter_by_id(parseFloat(code))
+                .exec_as_server()
+                .select_vo<FileVO>();
+
+            const image_path = file_vo.path;
+            const base64Image = fs.readFileSync(image_path, { encoding: 'base64' });
+
+            const response = await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer.openai.chat.completions.create,
+                ModuleGPTServer.openai.chat.completions,
+                {
+                    model: "gpt-4o",
+                    messages: [
+                        {
+                            role: "user",
+                            content: [
+                                {
+                                    type: "text",
+                                    text: prompt
+                                },
+                                {
+                                    type: "image_url",
+                                    image_url: {
+                                        url: `data:image/png;base64,${base64Image}`
+                                    },
+                                },
+                            ],
+                        }
+                    ]
+                });
+
+            const data = (response as ChatCompletion).choices[0];
+            ConsoleHandler.log('Images analysé avec succès : ' + file_vo.path)
+            return data.message.content;
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:analyse_image:Error while analysing image:" + error);
+            return null;
         }
     }
 

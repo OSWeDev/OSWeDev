@@ -1000,25 +1000,9 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
             asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
             asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
+            asking_message_vo.is_ready = !has_image_file;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
 
-            if (has_image_file) {
-                for (const images of files_images) {
-                    const image_path = ConfigurationService.node_configuration.base_url + images.path.substring(2);
-                    const content = new GPTAssistantAPIThreadMessageContentVO();
-                    content.thread_message_id = asking_message_vo.id;
-                    content.content_type_image_url = new GPTAssistantAPIThreadMessageContentImageURLVO();
-                    const imageBuffer = fs.readFileSync(image_path); // Lire l'image sous forme de buffer
-                    const base64Image = imageBuffer.toString('base64');
-                    const url = `data:image/jpeg;base64,${base64Image}`;
-                    content.content_type_image_url.detail = "auto";
-                    content.content_type_image_url.url = url;
-                    content.gpt_thread_message_id = asking_message_vo.gpt_id;
-                    content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL;
-                    content.weight = 0;
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
-                }
-            }
             const content = new GPTAssistantAPIThreadMessageContentVO();
             content.thread_message_id = asking_message_vo.id;
             content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
@@ -1027,6 +1011,23 @@ export default class GPTAssistantAPIServerController {
             content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content.weight = 0;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+
+            if (has_image_file) {
+                for (const images of files_images) {
+                    const content = new GPTAssistantAPIThreadMessageContentVO();
+                    content.thread_message_id = asking_message_vo.id;
+                    content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+                    content.content_type_text.value = "[" + images.path + ":" + images.id.toString() + "]";
+                    content.gpt_thread_message_id = asking_message_vo.gpt_id;
+                    content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+                    content.weight = 0;
+                    content.hidden = true;
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+                }
+                asking_message_vo.is_ready = has_image_file;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
+            }
+
         }
 
         return asking_message_vo ? asking_message_vo : last_thread_msg;
