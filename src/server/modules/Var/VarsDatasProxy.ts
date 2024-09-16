@@ -1,21 +1,23 @@
 
 
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottlePipelineHelper from '../../../shared/tools/ThrottlePipelineHelper';
 import ConfigurationService from '../../env/ConfigurationService';
+import VarDAGNode from '../../modules/Var/vos/VarDAGNode';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import CurrentVarDAGHolder from './CurrentVarDAGHolder';
 import VarsBGThreadNameHolder from './VarsBGThreadNameHolder';
 import VarsComputationHole from './bgthreads/processes/VarsComputationHole';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -27,6 +29,11 @@ export default class VarsDatasProxy {
     public static TASK_NAME_add_to_tree_and_return_datas_that_need_notification = 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification';
 
     public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
+
+    private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
+        'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
+        this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
+    );
 
     /**
      * Multithreading notes :
@@ -145,11 +152,6 @@ export default class VarsDatasProxy {
         return result;
     }
 
-    private static get_var_data_or_ask_to_bgthread: <T extends VarDataBaseVO>(throttle_index: string, param_index: string) => Promise<T> = ThrottlePipelineHelper.declare_throttled_pipeline(
-        'VarsDatasProxy.get_var_data_or_ask_to_bgthread',
-        this._get_var_datas_or_ask_to_bgthread.bind(this), 10, 500, 20
-    );
-
     /**
      * CALLABLE FROM ANY THREAD
      * 1 - On cherche dans la bdd => si ok on renvoie comme notifiables
@@ -222,21 +224,26 @@ export default class VarsDatasProxy {
             /**
              * Si on est en attente d'un computation_hole, on patiente avant d'empiler ces nouvelles demandes
              */
-            let n = 0;
+            let hole_wait = Dates.now_ms();
+            let log_wait = Dates.now_ms();
+            const start_wait = Dates.now();
             while (VarsComputationHole.waiting_for_computation_hole) {
-                await ThreadHandler.sleep(100, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
-                n++;
+                await ThreadHandler.sleep(1, 'VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
 
-                // Toutes les 2 secondes, on indique qu'on est en attente pour essayer de sortir du hole
-                if (n % 20 == 0) {
+                // Toutes les secondes, on indique qu'on est en attente pour essayer de sortir du hole
+                if ((Dates.now_ms() - hole_wait) > 1000) {
                     VarsComputationHole.ask_for_hole_termination = true;
+                    hole_wait = Dates.now_ms();
                 }
 
                 if (ConfigurationService.node_configuration.debug_vars) {
                     ConsoleHandler.throttle_log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole');
-                    if (n % 50 == 0) { // On log toutes les 5 secondes
-                        ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole - ' + n + ' - Indexes: ' + indexs.join(' && '));
-                    }
+                }
+
+                // On log toutes les 5 secondes
+                if ((Dates.now_ms() - log_wait) > 5000) {
+                    ConsoleHandler.log('VarsDatasProxy.add_to_tree_and_return_datas_that_need_notification:waiting_for_computation_hole - ' + Dates.format_segment(start_wait, TimeSegment.TYPE_SECOND) + ' - Indexes: ' + indexs.join(' && '));
+                    log_wait = Dates.now_ms();
                 }
             }
 

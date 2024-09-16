@@ -89,7 +89,7 @@ export default class VarsProcessInvalidator {
             if (VarsDatasVoUpdateHandler && VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) {
 
                 // On limite à 500VOs invalidés à la fois => plus ou moins arbitraire, faudrait probablement trouver des façons plus convenables de choisir ce nombre...
-                const max_ordered_vos_cud = 500;
+                const max_ordered_vos_cud = 100;
                 const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
 
                 ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max');
