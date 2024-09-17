@@ -327,129 +327,139 @@ $button-hover-shadow: none;
 
             .thread_messages {
 
-                // CSS pour le message de l'utilisateur
-                .thread_message.thread_message_self {
-                    position: relative;
-
-                    .thread_message_header {
-                        flex-direction: column;
-                        align-items: flex-end;
-                        padding-right: 5px;
-
-                        .thread_message_header_left_username {
-                            font-size: 1.2em;
-                            color: $button-background;
-                        }
-
-                        .thread_message_header_left_avatar {
-                            display: none;
-                        }
-                    }
-
-                    .thread_message_body {
-                        position: relative;
-
-                        .thread_message_body_content {
-                            display: flex;
-                            align-items: end;
-                            flex-direction: column;
-
-                            .thread_message_body_text {
-                                margin-bottom: 5px;
-                                padding-right: 30px;
-
-                                background-color: $background-popup-user;
-
-                                p {
-                                    margin-bottom: 0;
-                                }
-                            }
-
-                            .thread_message_footer_actions {
-                                .thread_message_footer_action {
-                                    position: absolute;
-                                    top: 0;
-                                    right: 5px;
-
-                                    .thread_message_copy_button {
-                                        i {
-                                            font-size: 14px;
-                                            color: $button-background;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                .thread_message {
 
                     .thread_message_header_right_date {
                         font-size: .9em;
                         color: $font-color-secondary;
                     }
-                }
+                    
+                    // CSS pour le message de l'utilisateur
+                    &.thread_message_self {
+                        position: relative;
 
-                // CSS pour le message d'Oselia et des autres users
-                .thread_message.thread_message_assistant,
-                .thread_message.thread_message_other_user {
-                    position: relative;
-
-                    .thread_message_header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        padding-left: 35px;
-
-                        .thread_message_header_left {
-                            padding-left: .3em;
+                        .thread_message_header {
+                            flex-direction: column;
+                            align-items: flex-end;
+                            padding-right: 5px;
 
                             .thread_message_header_left_username {
                                 font-size: 1.2em;
+                                color: $button-background;
                             }
 
                             .thread_message_header_left_avatar {
-                                position: absolute;
-                                bottom: 0;
-                                left: 0;
+                                display: none;
                             }
                         }
-                    }
 
-                    .thread_message_body {
-                        position: relative;
+                        .thread_message_body {
+                            position: relative;
 
-                        .thread_message_body_content {
-                            display: flex;
-                            align-items: start;
-                            flex-direction: column;
+                            .thread_message_body_content {
+                                display: flex;
+                                align-items: end;
+                                flex-direction: column;
 
-                            .thread_message_body_text {
-                                margin-bottom: 5px;
-                                padding-right: 30px;
+                                .thread_message_body_text {
+                                    margin-bottom: 5px;
+                                    padding-right: 30px;
 
-                                p {
-                                    margin-bottom: 0;
+                                    background-color: $background-popup-user;
+
+                                    p {
+                                        margin-bottom: 0;
+                                    }
                                 }
-                            }
 
-                            .thread_message_footer_actions {
-                                .thread_message_footer_action {
-                                    position: absolute;
-                                    top: 0;
-                                    right: 5px;
+                                .thread_message_footer_actions {
+                                    .thread_message_footer_action {
+                                        position: absolute;
+                                        top: 0;
+                                        right: 5px;
 
-                                    .thread_message_copy_button {
-                                        i {
-                                            font-size: 14px;
-                                            color: $button-background;
+                                        .thread_message_copy_button {
+                                            i {
+                                                font-size: 14px;
+                                                color: $button-background;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
+                        .thread_message_footer {
+                            flex-direction: column;
+                            align-items: flex-end;
+                            padding-right: 5px;
+                        }
                     }
 
-                    .thread_message_header_right_date {
-                        font-size: .9em;
-                        color: $font-color-secondary;
+                    // CSS pour le message d'Oselia et des autres users
+                    &.thread_message_assistant,
+                    &.thread_message_other_user {
+                        position: relative;
+
+                        .thread_message_header {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            padding-left: 35px;
+
+                            .thread_message_header_left {
+                                padding-left: .3em;
+
+                                .thread_message_header_left_username {
+                                    font-size: 1.2em;
+                                }
+
+                                .thread_message_header_left_avatar {
+                                    position: absolute;
+                                    bottom: 0;
+                                    left: 0;
+                                }
+                            }
+                        }
+
+                        .thread_message_body {
+                            position: relative;
+
+                            .thread_message_body_content {
+                                display: flex;
+                                align-items: start;
+                                flex-direction: column;
+
+                                .thread_message_body_text {
+                                    margin-bottom: 5px;
+                                    padding-right: 30px;
+
+                                    p {
+                                        margin-bottom: 0;
+                                    }
+                                }
+
+                                .thread_message_footer_actions {
+                                    .thread_message_footer_action {
+                                        position: absolute;
+                                        top: 0;
+                                        right: 5px;
+
+                                        .thread_message_copy_button {
+                                            i {
+                                                font-size: 14px;
+                                                color: $button-background;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        .thread_message_footer {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            padding-left: 35px;
+                        }
                     }
                 }
             }

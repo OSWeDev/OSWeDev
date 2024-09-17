@@ -294,7 +294,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         await this.unregister_all_vo_event_callbacks();
 
-        if (!this.thread_message || !this.thread_message.attachments) {
+        if (!this.thread_message/* || !this.thread_message.attachments*/) {
             this.is_loading_thread_message = false;
             return;
         }
@@ -319,9 +319,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private async load_thread_message_attachments() {
 
-        this.is_loading_thread_message = true;
+        // this.is_loading_thread_message = true;
         if (!this.thread_message || !this.thread_message.attachments) {
-            this.is_loading_thread_message = false;
+            // this.is_loading_thread_message = false;
             return;
         }
 
@@ -371,7 +371,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         }
 
 
-        this.is_loading_thread_message = false;
+        // this.is_loading_thread_message = false;
     }
 
     private async load_avatar_url_and_user_name() {

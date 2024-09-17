@@ -36,9 +36,6 @@
                                 | {{ label('oselia_thread_widget_component.thread_message_header_left_username.me') }}
                             template(v-else)
                                 | {{ user_name }}
-                .thread_message_header_right
-                    .thread_message_header_right_date
-                        | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
             
             .thread_message_attachments
                 template(v-for='item in thread_message_files')
@@ -87,9 +84,7 @@
                                                 i.fa-regular.fa-copy
 
                                         Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
-                                    .thread_message_header_right
-                                        .thread_message_header_right_date
-                                            | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+                                    
                                     //- .thread_message_footer_actions
                                     //-     .thread_message_footer_action
                                     //-         .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
@@ -135,6 +130,11 @@
                                             | {{ message_content.content_type_text.value.split('[')[1].split(']')[0].split(':')[0].split('/').pop() }}
                                     .thread_message_attachment_content_description
                                         | {{ label('oselia_thread_widget_component.thread_message_attachment_image') }}
+
+            .thread_message_footer
+                .thread_message_footer_date
+                    | {{ format_date(thread_message.date, t('DD/MM/YYYY HH:mm:ss')) }}
+
             //- template(v-if='thread_message.role == role_assistant')
             //-     template(v-if='show_feedback')
             //-         Oseliathreadfeedbackcomponent(
