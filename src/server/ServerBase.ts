@@ -17,7 +17,6 @@ import winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
-import UserSessionVO from '../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -454,7 +453,7 @@ export default abstract class ServerBase {
             store: ExpressDBSessionsServerController.getInstance({
                 conString: this.connectionString,
                 schemaName: 'ref',
-                tableName: UserSessionVO.API_TYPE_ID,
+                tableName: 'module_expressdbsessions_express_session', // En dur pour le chargement de l'appli
             }),
             cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
         });

@@ -28,7 +28,6 @@ import RoleVO from './vos/RoleVO';
 import UserAPIVO from './vos/UserAPIVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
-import UserSessionVO from './vos/UserSessionVO';
 import UserVO from './vos/UserVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
@@ -424,7 +423,6 @@ export default class ModuleAccessPolicy extends Module {
     public initialize() {
         this.initializeUser();
         // Pour le moment on initialize pas car conflit entre la génération de la table et le module pgsession
-        this.initializeUserSession();
         this.initializeRole();
         this.initializeUserRoles();
         this.initializeModuleAccessPolicyGroup();
@@ -484,19 +482,6 @@ export default class ModuleAccessPolicy extends Module {
         datatable.set_is_archived();
 
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID]);
-    }
-
-    private initializeUserSession() {
-        const label_field = ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sid, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'SID' })).unique();
-
-        const datatable_fields = [
-            label_field,
-            ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().sess, ModuleTableFieldVO.FIELD_TYPE_string, DefaultTranslationVO.create_new({ 'fr-fr': 'Information session' })),
-            ModuleTableFieldController.create_new(UserSessionVO.API_TYPE_ID, field_names<UserSessionVO>().expire, ModuleTableFieldVO.FIELD_TYPE_tstz, DefaultTranslationVO.create_new({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-        ];
-
-        const datatable: ModuleTableVO = ModuleTableController.create_new(this.name, UserSessionVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': "Sessions des utilisateurs" }));
-        datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
     }
 
     private initializeRole() {
