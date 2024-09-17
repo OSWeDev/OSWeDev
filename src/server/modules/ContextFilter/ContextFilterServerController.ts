@@ -18,6 +18,7 @@ import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ContextQueryServerController from './ContextQueryServerController';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 
 export default class ContextFilterServerController {
 
@@ -3226,61 +3227,38 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_refrange_array:
 
+                        let ranges: IRange[] = [];
+
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
-                                context_filter.param_numranges, field, field.field_type
-                            );
-
-                            if (!range_to_db) {
-                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
-                            }
-
-                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_numranges).length;
-
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
-
-                            where_conditions.push(
-                                '(' +
-                                '  select count(1)' +
-                                '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
-                                '  from ' + table.full_name + ' tempo2' +
-                                '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
-                                '  where tempo1.a <@ ' + ranges_query +
-                                '  ) >= ' + nb_values + ' ');
-                            break;
+                            ranges = context_filter.param_numranges;
                         }
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
+                            ranges = context_filter.param_tsranges;
+                        }
 
-                            let range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
-                                context_filter.param_tsranges, field, field.field_type
-                            );
-
-                            if (!range_to_db) {
-                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
-                            }
-
-                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_tsranges).length;
-
-                            let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
-                            let table_name = table.full_name.split('.')[1];
-                            let ranges_query = 'ANY(' + range_to_db + ')';
-
-                            where_conditions.push(
-                                '(' +
-                                '  select count(1)' +
-                                '  from (' +
-                                '   select unnest(tempo2.' + field.field_id + ') a' +
-                                '  from ' + table.full_name + ' tempo2' +
-                                '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
-                                '  where tempo1.a <@ ' + ranges_query +
-                                '  ) >= ' + nb_values + ' ');
+                        if (!ranges?.length) {
                             break;
                         }
+
+                        let ranges_exploded: number[] = RangeHandler.get_all_segmented_elements_from_ranges(ranges);
+
+                        if (!ranges_exploded?.length) {
+                            throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
+                        }
+
+                        let table = VOsTypesManager.moduleTables_by_voType[context_filter.vo_type];
+
+                        where_conditions.push(
+                            '(' +
+                            'select count(tempo1.a) ' +
+                            'from (select unnest(ARRAY[' + ranges_exploded.join(', ') + ']) a) tempo1 ' +
+                            'cross join ' + table.full_name + ' tempo2 ' +
+                            'where tempo1.a::numeric <@ ANY(tempo2.' + field.field_id + ') ' +
+                            'and tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id ' +
+
+                            '  ) = ' + ranges_exploded.length + ' ');
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
