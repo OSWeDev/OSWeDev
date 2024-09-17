@@ -105,11 +105,12 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public async ask_assistant(
         assistant_id: string,
         thread_id: string,
+        thread_title: string,
         content: string,
         files: FileVO[],
         user_id: number = null
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
+        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id);
     }
 
     public async assistant_function_get_vo_type_description_controller(

@@ -22,14 +22,6 @@ import ModuleDataImportServer from '../ModuleDataImportServer';
 
 export default class DataImportBGThread implements IBGThread {
 
-    // istanbul ignore next: nothing to test : getInstance
-    public static getInstance() {
-        if (!DataImportBGThread.instance) {
-            DataImportBGThread.instance = new DataImportBGThread();
-        }
-        return DataImportBGThread.instance;
-    }
-
     private static instance: DataImportBGThread = null;
 
     // private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
@@ -54,6 +46,14 @@ export default class DataImportBGThread implements IBGThread {
 
     get name(): string {
         return "DataImportBGThread";
+    }
+
+    // istanbul ignore next: nothing to test : getInstance
+    public static getInstance() {
+        if (!DataImportBGThread.instance) {
+            DataImportBGThread.instance = new DataImportBGThread();
+        }
+        return DataImportBGThread.instance;
     }
 
     public async work(): Promise<number> {

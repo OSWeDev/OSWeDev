@@ -19,12 +19,17 @@ import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
+import OseliaAssistantPriceVO from './vos/OseliaAssistantPriceVO';
 import OseliaChatVO from './vos/OseliaChatVO';
+import OseliaImagePriceVO from './vos/OseliaImagePriceVO';
+import OseliaModelVO from './vos/OseliaModelVO';
 import OseliaReferrerExternalAPIVO from './vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from './vos/OseliaReferrerVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
+import OseliaTokenPriceVO from './vos/OseliaTokenPriceVO';
 import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
+import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
 import ModuleDAO from '../DAO/ModuleDAO';
@@ -97,6 +102,12 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaThreadReferrerVO();
         this.initializeOseliaUserReferrerOTTVO();
         this.initializeOseliaChatVO();
+
+        this.initializeOseliaModelVO();
+        this.initializeOseliaTokenPriceVO();
+        this.initializeOseliaVisionPriceVO();
+        this.initializeOseliaImagePriceVO();
+        this.initializeOseliaAssistantPriceVO();
     }
 
     public initializeOseliaChatVO() {
@@ -320,6 +331,121 @@ export default class ModuleOselia extends Module {
                 OseliaUserReferrerVO,
                 null,
                 DefaultTranslationVO.create_new({ 'fr-fr': "Lien Utilisateur/Partenaire Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaModelVO() {
+
+        const name = ModuleTableFieldController.create_new(OseliaModelVO.API_TYPE_ID, field_names<OseliaModelVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true).unique();
+        ModuleTableFieldController.create_new(OseliaModelVO.API_TYPE_ID, field_names<OseliaModelVO>().description, ModuleTableFieldVO.FIELD_TYPE_string, 'Description', false);
+
+        ModuleTableFieldController.create_new(OseliaModelVO.API_TYPE_ID, field_names<OseliaModelVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Plage de dates de validité de ce modèle', true);
+        ModuleTableFieldController.create_new(OseliaModelVO.API_TYPE_ID, field_names<OseliaModelVO>().is_alias, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Est un alias', true, true, false);
+        ModuleTableFieldController.create_new(OseliaModelVO.API_TYPE_ID, field_names<OseliaModelVO>().alias_model_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Modèle original (si c\'est un alias)', false)
+            .set_many_to_one_target_moduletable_name(OseliaModelVO.API_TYPE_ID);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaModelVO,
+                name,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Modèle Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaTokenPriceVO() {
+
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().model_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange, 'Modèles associés', true)
+            .set_many_to_one_target_moduletable_name(OseliaModelVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Plage de dates de validité de ce prix', true);
+
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().million_input_token_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix / 1M tokens en entrée', true);
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().million_output_token_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix / 1M tokens en sortie', true);
+
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().partner_million_input_token_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix de revente / 1M tokens en entrée', true);
+        ModuleTableFieldController.create_new(OseliaTokenPriceVO.API_TYPE_ID, field_names<OseliaTokenPriceVO>().partner_million_output_token_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix de revente / 1M tokens en sortie', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaTokenPriceVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Prix des tokens Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaVisionPriceVO() {
+
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().model_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange, 'Modèles associés', true)
+            .set_many_to_one_target_moduletable_name(OseliaModelVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Plage de dates de validité de ce prix', true);
+
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().million_token_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix / 1M tokens', true);
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().base_tokens, ModuleTableFieldVO.FIELD_TYPE_float, 'Tokens de base', true);
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().tokens_per_tile, ModuleTableFieldVO.FIELD_TYPE_float, 'Tokens par tuile', true);
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().tile_width_px, ModuleTableFieldVO.FIELD_TYPE_float, 'Largeur tuile en px', true);
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().tile_height_px, ModuleTableFieldVO.FIELD_TYPE_float, 'Hauteur tuile en px', true);
+
+        ModuleTableFieldController.create_new(OseliaVisionPriceVO.API_TYPE_ID, field_names<OseliaVisionPriceVO>().partner_million_token_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix de revente / 1M tokens', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaVisionPriceVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Prix de la vision Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaImagePriceVO() {
+
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().model_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange, 'Modèles associés', true)
+            .set_many_to_one_target_moduletable_name(OseliaModelVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Plage de dates de validité de ce prix', true);
+
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().quality_filter, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Filtre qualité', true);
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().resolution_filter, ModuleTableFieldVO.FIELD_TYPE_string_array, 'Filtre résolution', true);
+
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix', true);
+        ModuleTableFieldController.create_new(OseliaImagePriceVO.API_TYPE_ID, field_names<OseliaImagePriceVO>().reseller_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix revendeur', true);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaImagePriceVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Prix des images Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaAssistantPriceVO() {
+
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().model_id_ranges, ModuleTableFieldVO.FIELD_TYPE_numrange, 'Modèles associés', true)
+            .set_many_to_one_target_moduletable_name(OseliaModelVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().ts_range, ModuleTableFieldVO.FIELD_TYPE_tsrange, 'Plage de dates de validité de ce prix', true);
+
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().code_interpreter_session_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix session Code Interpreter', true);
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().file_search_gibibyte_daily_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix /GB Vector-Storage/Jour', true);
+
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().partner_code_interpreter_session_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix de revente session Code Interpreter', true);
+        ModuleTableFieldController.create_new(OseliaAssistantPriceVO.API_TYPE_ID, field_names<OseliaAssistantPriceVO>().partner_file_search_gibibyte_daily_base_price, ModuleTableFieldVO.FIELD_TYPE_float, 'Prix de revente /GB Vector-Storage/Jour', true);
+
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaAssistantPriceVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Prix des assistants Osélia" })
             )
         );
     }

@@ -26,6 +26,14 @@ export default class VarsTabsSubsController {
     public static notify_vardatas = ThrottleHelper.declare_throttle_with_stackable_args(
         this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
+    /**
+     * Les client_tab_ids abonnés à chaque var_index
+     * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
+     */
+    private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
+
+    private static last_subs_clean: number = 0;
+
     public static init() {
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
@@ -223,13 +231,6 @@ export default class VarsTabsSubsController {
         return true;
     }
 
-    /**
-     * Les client_tab_ids abonnés à chaque var_index
-     * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
-     */
-    private static _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: { last_notif_value_ts: number, last_registration_ts: number } } } } = {};
-
-    private static last_subs_clean: number = 0;
 
     // /**
     //  * Méthode qui permet de filtrer un tableau de vars et de récupérer les vars actuellement subscribed par des utilisateurs.

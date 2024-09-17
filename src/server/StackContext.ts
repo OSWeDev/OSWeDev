@@ -15,8 +15,10 @@ export default class StackContext {
     }
 
     /**
-     * Replace when possible by StackContext.set, or contextqueries excec_as_admin, or insert_vos(vos, true)
-     * @deprecated Should only be used on ServerBase for the main request
+     * Limiter l'usage, pas compatible avec les throttles, promisepipeline, ...
+     * @param scope_overloads
+     * @param callback
+     * @returns
      */
     public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
 
@@ -36,7 +38,7 @@ export default class StackContext {
             try {
                 result = await callback();
             } catch (error) {
-
+                //
             }
 
             for (const field_name in scope_overloads) {

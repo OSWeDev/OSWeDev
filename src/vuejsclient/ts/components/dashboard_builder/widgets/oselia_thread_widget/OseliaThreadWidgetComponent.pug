@@ -1,25 +1,38 @@
-.oselia_thread_widget_component(@dragover.prevent='handle_drag_over' @drop.prevent='handle_drop' @dragleave.prevent='handle_drag_leave')
+.oselia_thread_widget_component_wrapper(@dragover.prevent='handle_drag_over' @drop.prevent='handle_drop' @dragleave.prevent='handle_drag_leave')
     //- template(v-if='too_many_threads')
     //-     .too_many_threads.bg-primary
     //-         i.fa-duotone.fa-filters
     //-         | {{ label('oselia_thread_widget_component.too_many_threads') }}
-    template(v-if='is_dragging')
-        .dragging_overlay
-            .dragging_overlay_text
-                i.fa-duotone.fa-upload
-                | {{ label('oselia_thread_widget_component.dragging_overlay_text') }}
 
-    template(v-if="enable_link_image_menu")
-        .link_image_menu
-            .label_link_menu {{ label('oselia_thread_widget_component.link_image_menu.title') }}
-                input(v-model='link_image_url' :placeholder="label('oselia_thread_widget_component.link_image_menu.url_placeholder')")
-            .buttons
-                button(v-on:click='upload_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
-                button(v-on:click='cancel_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.cancel') }}
-    template(v-if='has_access_to_thread')
-        template(v-if='is_loading_thread')
-            .is_loading_thread
-                i.fa-duotone.fa-spinner-third.fa-spin
+    Oselialeftpanelcomponent(
+        :class="{'opened': get_left_panel_open}"
+        :current_thread_id='current_thread_id'
+    )
+    
+    .oselia_thread_widget_header 
+        template(v-if='!get_left_panel_open')
+            .oselia_thread_widget_header_icon_open
+                i.fa.fa-chevron-right(@click="openLeftPanel")
+
+    .oselia_thread_widget_component
+
+        template(v-if='is_dragging')
+            .dragging_overlay
+                .dragging_overlay_text
+                    i.fa-duotone.fa-upload
+                    | {{ label('oselia_thread_widget_component.dragging_overlay_text') }}
+
+        template(v-if="enable_link_image_menu")
+            .link_image_menu
+                .label_link_menu {{ label('oselia_thread_widget_component.link_image_menu.title') }}
+                    input(v-model='link_image_url' :placeholder="label('oselia_thread_widget_component.link_image_menu.url_placeholder')")
+                .buttons
+                    button(v-on:click='upload_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
+                    button(v-on:click='cancel_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.cancel') }}
+        template(v-if='has_access_to_thread')
+            template(v-if='is_loading_thread')
+                .is_loading_thread
+                    i.fa-duotone.fa-spinner-third.fa-spin
 
         template(v-else)
             .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : '' ")  
@@ -47,10 +60,10 @@
                                     .thread_message_header_left_username
                                         | {{ label('oselia_thread_widget_component.thread_message_header_left_username.oselia') }}
 
-                            .thread_message_body
-                                .thread_message_body_content
-                                    .thread_message_body_text
-                                        i.fa-duotone.fa-spinner-third.fa-spin
+                                .thread_message_body
+                                    .thread_message_body_content
+                                        .thread_message_body_text
+                                            i.fa-duotone.fa-spinner-third.fa-spin
 
     
                 .thread_message_input
@@ -105,7 +118,7 @@
                                 i.fa-duotone.fa-paper-plane
                                 | {{ label('oselia_thread_widget_component.send_message') }}
 
-    template(v-else)
-        .no_access.bg-warning
-            i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
-            | {{ label('oselia_thread_widget_component.no_access') }}
+        template(v-else)
+            .no_access.bg-warning
+                i.fa-duotone.fa-user-lock.fa-beat-fade(style='--fa-animation-iteration-count: 3')
+                | {{ label('oselia_thread_widget_component.no_access') }}

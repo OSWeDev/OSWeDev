@@ -286,6 +286,90 @@ export default class GPTAssistantAPIServerSyncRunsController {
         return GPTAssistantAPIServerSyncRunsController.syncing_semaphores_promises[gpt_thread_id];
     }
 
+    public static async sync_run_from_gpt(run_vo: GPTAssistantAPIRunVO) {
+
+        let needs_update = false;
+
+        const run: Run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, run_vo.gpt_thread_id, run_vo.gpt_run_id);
+        if (!run) {
+            ConsoleHandler.warn('Run not found in OpenAI : ' + run_vo.gpt_run_id + ' - Cancelling sync');
+        }
+
+        needs_update = needs_update ||
+            GPTAssistantAPIServerSyncRunsController.run_has_diff(run_vo, GPTAssistantAPIServerSyncController.to_openai_error(run_vo.last_error) as Run.LastError, run);
+
+        if (!needs_update) {
+            return;
+        }
+
+        if (ConfigurationService.node_configuration.debug_openai_sync) {
+            ConsoleHandler.log('sync_runs: Updating run in Osélia : ' + run.id + ' - ' + run.thread_id);
+        }
+
+        await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+    }
+
+
+    public static async assign_vo_from_gpt(vo: GPTAssistantAPIRunVO, gpt_obj: Run) {
+
+        if (gpt_obj.assistant_id) {
+            const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
+
+            if (!assistant) {
+                throw new Error('Error while pushing run to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
+            }
+
+            vo.gpt_assistant_id = gpt_obj.assistant_id;
+            vo.assistant_id = assistant.id;
+        } else {
+            vo.gpt_assistant_id = null;
+            vo.assistant_id = null;
+        }
+
+        if (gpt_obj.thread_id) {
+            const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
+
+            if (!thread) {
+                throw new Error('Error while pushing run to OpenAI : assistant not found : ' + gpt_obj.thread_id);
+            }
+
+            vo.gpt_thread_id = gpt_obj.thread_id;
+            vo.thread_id = thread.id;
+        } else {
+            vo.gpt_thread_id = null;
+            vo.thread_id = null;
+        }
+
+        vo.cancelled_at = gpt_obj.cancelled_at;
+        vo.created_at = gpt_obj.created_at;
+        vo.completed_at = gpt_obj.completed_at;
+        vo.expires_at = gpt_obj.expires_at;
+        vo.failed_at = gpt_obj.failed_at;
+        vo.incomplete_details = cloneDeep(gpt_obj.incomplete_details);
+        vo.last_error = GPTAssistantAPIServerSyncController.from_openai_error(gpt_obj.last_error);
+        vo.started_at = gpt_obj.started_at;
+        vo.status = GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status];
+        vo.gpt_run_id = gpt_obj.id;
+        vo.instructions = gpt_obj.instructions;
+        vo.completion_tokens = gpt_obj.usage?.completion_tokens;
+        vo.prompt_tokens = gpt_obj.usage?.prompt_tokens;
+        vo.total_tokens = gpt_obj.usage?.total_tokens;
+        vo.max_completion_tokens = gpt_obj.max_completion_tokens;
+        vo.max_prompt_tokens = gpt_obj.max_prompt_tokens;
+        vo.metadata = cloneDeep(gpt_obj.metadata);
+        vo.model = gpt_obj.model;
+        vo.response_format = cloneDeep(gpt_obj.response_format);
+        vo.temperature = gpt_obj.temperature;
+        vo.tool_choice = cloneDeep(gpt_obj.tool_choice);
+        vo.tools = cloneDeep(gpt_obj.tools);
+        vo.top_p = gpt_obj.top_p;
+        vo.required_action = cloneDeep(gpt_obj.required_action);
+        vo.truncation_strategy = cloneDeep(gpt_obj.truncation_strategy);
+        vo.archived = false;
+    }
+
     private static async get_all_runs(gpt_thread_id: string): Promise<Run[]> {
 
         let res: Run[] = [];
@@ -333,6 +417,11 @@ export default class GPTAssistantAPIServerSyncRunsController {
             GPTAssistantAPIServerSyncController.compare_values(run_vo.started_at, run_gpt.started_at) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.status, GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[run_gpt.status]) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.instructions, run_gpt.instructions) &&
+
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.completion_tokens, run_gpt.usage?.completion_tokens) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.prompt_tokens, run_gpt.usage?.prompt_tokens) &&
+            GPTAssistantAPIServerSyncController.compare_values(run_vo.total_tokens, run_gpt.usage?.total_tokens) &&
+
             GPTAssistantAPIServerSyncController.compare_values(run_vo.max_completion_tokens, run_gpt.max_completion_tokens) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.max_prompt_tokens, run_gpt.max_prompt_tokens) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.model, run_gpt.model) &&
@@ -346,60 +435,5 @@ export default class GPTAssistantAPIServerSyncRunsController {
             GPTAssistantAPIServerSyncController.compare_values(run_vo.incomplete_details, run_gpt.incomplete_details) &&
             GPTAssistantAPIServerSyncController.compare_values(to_openai_last_error, run_gpt.last_error) &&
             GPTAssistantAPIServerSyncController.compare_values(run_vo.required_action, run_gpt.required_action));
-    }
-
-    private static async assign_vo_from_gpt(vo: GPTAssistantAPIRunVO, gpt_obj: Run) {
-
-        if (gpt_obj.assistant_id) {
-            const assistant = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_obj.assistant_id);
-
-            if (!assistant) {
-                throw new Error('Error while pushing run to OpenAI : assistant not found : ' + gpt_obj.assistant_id);
-            }
-
-            vo.gpt_assistant_id = gpt_obj.assistant_id;
-            vo.assistant_id = assistant.id;
-        } else {
-            vo.gpt_assistant_id = null;
-            vo.assistant_id = null;
-        }
-
-        if (gpt_obj.thread_id) {
-            const thread = await GPTAssistantAPIServerSyncThreadsController.get_thread_or_sync(gpt_obj.thread_id);
-
-            if (!thread) {
-                throw new Error('Error while pushing run to OpenAI : assistant not found : ' + gpt_obj.thread_id);
-            }
-
-            vo.gpt_thread_id = gpt_obj.thread_id;
-            vo.thread_id = thread.id;
-        } else {
-            vo.gpt_thread_id = null;
-            vo.thread_id = null;
-        }
-
-        vo.cancelled_at = gpt_obj.cancelled_at;
-        vo.created_at = gpt_obj.created_at;
-        vo.completed_at = gpt_obj.completed_at;
-        vo.expires_at = gpt_obj.expires_at;
-        vo.failed_at = gpt_obj.failed_at;
-        vo.incomplete_details = cloneDeep(gpt_obj.incomplete_details);
-        vo.last_error = GPTAssistantAPIServerSyncController.from_openai_error(gpt_obj.last_error);
-        vo.started_at = gpt_obj.started_at;
-        vo.status = GPTAssistantAPIRunVO.FROM_OPENAI_STATUS_MAP[gpt_obj.status];
-        vo.gpt_run_id = gpt_obj.id;
-        vo.instructions = gpt_obj.instructions;
-        vo.max_completion_tokens = gpt_obj.max_completion_tokens;
-        vo.max_prompt_tokens = gpt_obj.max_prompt_tokens;
-        vo.metadata = cloneDeep(gpt_obj.metadata);
-        vo.model = gpt_obj.model;
-        vo.response_format = cloneDeep(gpt_obj.response_format);
-        vo.temperature = gpt_obj.temperature;
-        vo.tool_choice = cloneDeep(gpt_obj.tool_choice);
-        vo.tools = cloneDeep(gpt_obj.tools);
-        vo.top_p = gpt_obj.top_p;
-        vo.required_action = cloneDeep(gpt_obj.required_action);
-        vo.truncation_strategy = cloneDeep(gpt_obj.truncation_strategy);
-        vo.archived = false;
     }
 }

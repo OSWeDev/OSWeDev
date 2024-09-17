@@ -20,6 +20,7 @@ import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerV
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -29,12 +30,14 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
+import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import { readFileSync } from 'fs';
-import { toBase64 } from 'openai/core';
-import * as fs from 'fs';
+
 export default class GPTAssistantAPIServerController {
+
+    public static promise_pipeline_by_function: { [function_id: number]: PromisePipeline } = {};
 
     /**
      * Cette méthode a pour but de wrapper l'appel aux APIs OpenAI
@@ -749,36 +752,55 @@ export default class GPTAssistantAPIServerController {
      * @param gpt_thread_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
      * @param content_text contenu text du nouveau message
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
+     * @param user_id id de l'utilisateur qui demande
+     * @param thread_title titre de la discussion => pour éviter de passer par le système de génération de titre
      * @returns
      */
     public static async ask_assistant(
         gpt_assistant_id: string,
         gpt_thread_id: string,
+        thread_title: string,
         content_text: string,
         files: FileVO[],
         user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
-        const assistant_vo: GPTAssistantAPIAssistantVO = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_assistant_id);
+        // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
+
+        let assistant_vo: GPTAssistantAPIAssistantVO = null;
+        let thread_vo: GPTAssistantAPIThreadVO = null;
+
+        await all_promises([
+            (async () => {
+                assistant_vo = await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(gpt_assistant_id);
+            })(),
+            (async () => {
+                thread_vo = gpt_thread_id ?
+                    await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>() :
+                    null;
+                user_id = (user_id ? user_id : (thread_vo ? thread_vo.user_id : null));
+
+                if (!user_id) {
+                    user_id = await ModuleVersionedServer.getInstance().get_robot_user_id();
+                }
+            })()
+        ]);
 
         if ((!assistant_vo) || (!assistant_vo.gpt_assistant_id)) {
             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: assistant not found/synced: ' + gpt_assistant_id);
             return null;
         }
 
-        // On récupère les fonctions configurées sur cet assistant
-        const { availableFunctions, availableFunctionsParameters }: {
-            availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
-            availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
-        } =
-            await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
-
-        let thread_vo: GPTAssistantAPIThreadVO = gpt_thread_id ?
-            await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_text_eq(field_names<GPTAssistantAPIThreadVO>().gpt_thread_id, gpt_thread_id).exec_as_server().select_vo<GPTAssistantAPIThreadVO>() :
-            null;
         if (!thread_vo) {
             thread_vo = new GPTAssistantAPIThreadVO();
             thread_vo.current_default_assistant_id = assistant_vo.id;
             thread_vo.current_oselia_assistant_id = assistant_vo.id;
+            thread_vo.user_id = user_id;
+        }
+
+        if ((!thread_vo.thread_title) && (!!thread_title)) {
+            thread_vo.thread_title = thread_title;
+            thread_vo.needs_thread_title_build = false;
+            thread_vo.thread_title_auto_build_locked = true;
         }
 
         // On indique que Osélia est en train de travailler sur cette discussion
@@ -825,6 +847,16 @@ export default class GPTAssistantAPIServerController {
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
+
+            // On récupère les fonctions configurées sur cet assistant
+            const { availableFunctions, availableFunctionsParameters }: {
+                availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
+                availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] }
+            } =
+                await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
+
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
@@ -884,11 +916,16 @@ export default class GPTAssistantAPIServerController {
 
             await GPTAssistantAPIServerController.close_thread_oselia(thread_vo);
 
+            const run = await GPTAssistantAPIServerController.wrap_api_call(ModuleGPTServer.openai.beta.threads.runs.retrieve, ModuleGPTServer.openai.beta.threads.runs, thread_vo.gpt_thread_id, run_vo.gpt_run_id);
+            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+
             const new_messages = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .filter_by_num_eq(field_names<GPTAssistantAPIThreadMessageVO>().thread_id, thread_vo.id)
                 .filter_is_false(field_names<GPTAssistantAPIThreadMessageVO>().archived)
-                .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().weight, asking_message_vo.weight)
-                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().weight, true))
+                .filter_by_num_sup(field_names<GPTAssistantAPIThreadMessageVO>().date, asking_message_vo.date)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().date, true))
                 .exec_as_server()
                 .select_vos<GPTAssistantAPIThreadMessageVO>();
 
@@ -928,10 +965,14 @@ export default class GPTAssistantAPIServerController {
     private static async close_thread_oselia(thread_vo: GPTAssistantAPIThreadVO) {
         await GPTAssistantAPIServerController.resync_thread_messages(thread_vo);
 
-        thread_vo.oselia_is_running = false;
-        thread_vo.current_oselia_assistant_id = null;
-        thread_vo.current_oselia_prompt_id = null;
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+        await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id)
+            .exec_as_server()
+            .update_vos<GPTAssistantAPIThreadVO>({
+                oselia_is_running: false,
+                current_oselia_assistant_id: null,
+                current_oselia_prompt_id: null,
+            });
     }
 
     private static async get_asking_message(
@@ -1205,7 +1246,27 @@ export default class GPTAssistantAPIServerController {
 
                                     const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
-                                    function_response = await function_to_call.call(null, ...ordered_args);
+
+                                    // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
+                                    if (function_vo.use_promise_pipeline) {
+
+                                        if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
+                                            GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
+                                        }
+
+                                        // On attend non seulement le push mais la résolution de la méthode push
+                                        await (await GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].push(async () => {
+                                            try {
+                                                function_response = await function_to_call.call(null, ...ordered_args);
+                                            } catch (error) {
+                                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
+                                                function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+                                            }
+                                        }))();
+                                    } else {
+                                        function_response = await function_to_call.call(null, ...ordered_args);
+                                    }
+
                                     function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                     return;
 
@@ -1246,7 +1307,7 @@ export default class GPTAssistantAPIServerController {
                     break;
             }
 
-            await ThreadHandler.sleep(300, 'GPTAssistantAPIServerController.ask_assistant');
+            await ThreadHandler.sleep(100, 'GPTAssistantAPIServerController.ask_assistant');
 
             run = await GPTAssistantAPIServerController.wrap_api_call(
                 ModuleGPTServer.openai.beta.threads.runs.retrieve,
@@ -1254,6 +1315,9 @@ export default class GPTAssistantAPIServerController {
                 thread_vo.gpt_thread_id,
                 run.id
             );
+
+            await GPTAssistantAPIServerSyncRunsController.assign_vo_from_gpt(run_vo, run);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
 
             if (!run) {
                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run not found');

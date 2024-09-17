@@ -9,6 +9,10 @@ import { field_names } from '../shared/tools/ObjectHandler';
 
 export default class ServerExpressController {
 
+    private static instance: ServerExpressController = null;
+
+    private constructor() { }
+
     // istanbul ignore next: nothing to test
     public static getInstance(): ServerExpressController {
         if (!ServerExpressController.instance) {
@@ -17,11 +21,11 @@ export default class ServerExpressController {
         return ServerExpressController.instance;
     }
 
-    private static instance: ServerExpressController = null;
-
-    private constructor() { }
-
-    public async getStackContextFromReq(req: Request, session: IServerUserSession) {
+    public async getStackContextFromReq(
+        req: Request,
+        session: IServerUserSession,
+        filter_for_execution_on_bgthread: boolean = false
+    ) {
 
         const apiKey = req.headers['x-api-key'] as string;
 
@@ -29,12 +33,13 @@ export default class ServerExpressController {
             return {
                 IS_CLIENT: true,
                 REFERER: req.headers.referer,
-                UID: session.uid,
-                SESSION: session,
+                UID: session ? session.uid : null,
+                SID: session ? session.sid : null,
+                SESSION: filter_for_execution_on_bgthread ? null : session,
                 CLIENT_TAB_ID: req.headers.client_tab_id,
                 SELF_USER: (session.user_vo && session.user_vo.id) ?
                     // On rafraîchi souvent l'info, mais pas dans la milliseconde non plus...
-                    await query(UserVO.API_TYPE_ID).filter_by_id(session.user_vo.id).set_max_age_ms(100).exec_as_server().select_vo<UserVO>() :
+                    await query(UserVO.API_TYPE_ID).filter_by_id(session.user_vo.id).set_max_age_ms(1000).exec_as_server().select_vo<UserVO>() :
                     null,
             };
         }
@@ -43,7 +48,7 @@ export default class ServerExpressController {
         const exist_user_vo: UserVO = await query(UserVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<UserAPIVO>().api_key, apiKey, UserAPIVO.API_TYPE_ID)
             .exec_as_server()
-            .set_max_age_ms(100)
+            .set_max_age_ms(1000)
             .select_vo<UserVO>();
 
         if (!exist_user_vo) {
@@ -51,7 +56,8 @@ export default class ServerExpressController {
                 IS_CLIENT: true,
                 REFERER: req.headers.referer,
                 UID: null,
-                SESSION: session,
+                SID: session ? session.sid : null,
+                SESSION: filter_for_execution_on_bgthread ? null : session,
                 CLIENT_TAB_ID: null,
                 SELF_USER: null
             };
@@ -61,7 +67,8 @@ export default class ServerExpressController {
             IS_CLIENT: true,
             REFERER: req.headers.referer,
             UID: exist_user_vo.id,
-            SESSION: session,
+            SID: session ? session.sid : null,
+            SESSION: filter_for_execution_on_bgthread ? null : session,
             CLIENT_TAB_ID: null,
             SELF_USER: exist_user_vo
         };

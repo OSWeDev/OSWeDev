@@ -48,6 +48,10 @@ export default class PromisePipeline {
         }
     }
 
+    get has_running_or_waiting_promises(): boolean {
+        return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
+    }
+
     public async await_free_slot(): Promise<void> {
         if (this.has_free_slot()) {
             return;
@@ -73,15 +77,13 @@ export default class PromisePipeline {
         });
     }
 
-    get has_running_or_waiting_promises(): boolean {
-        return (this.nb_running_promises > 0) || (Object.keys(this.all_waiting_and_running_promises_by_cb_uid).length > 0);
-    }
-
     /**
      * Objectif : Ajouter une promise au pipeline, mais uniquement quand on aura de la place dans le pipeline
+     *      On renvoie la promise de la méthode cb, donc si on await le push on attend que cb soit lancée, et si on await await push on attend que cb soit terminée
      * @param cb la méthode à appeler quand on peut, et qui renverra une promise supplémentaire
+     * @returns la promise de la méthode cb
      */
-    public async push(cb: () => Promise<any>): Promise<void> {
+    public async push<T>(cb: () => Promise<T>): Promise<() => Promise<T>> {
 
         if (!(typeof cb === 'function')) {
             throw new Error(`Unexpected type of callback given : ${typeof cb}`);
@@ -95,6 +97,7 @@ export default class PromisePipeline {
             StatsController.register_stat_COMPTEUR('PromisePipeline', this.stat_name, 'IN', 1);
         }
 
+        let cb_uid = null;
         if (this.has_free_slot()) {
 
             if (EnvHandler.debug_promise_pipeline) {
@@ -103,7 +106,7 @@ export default class PromisePipeline {
 
             this.cb_uid++;
 
-            const cb_uid = this.cb_uid;
+            cb_uid = this.cb_uid;
 
             // Add/Append in the waitlist for each given callback
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
@@ -139,7 +142,7 @@ export default class PromisePipeline {
 
             this.cb_uid++;
 
-            const cb_uid = this.cb_uid;
+            cb_uid = this.cb_uid;
 
             // Add/Append in the waitlist for each given callback
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
@@ -148,6 +151,12 @@ export default class PromisePipeline {
         if (EnvHandler.debug_promise_pipeline) {
             ConsoleHandler.log('PromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
+
+        if (cb_uid === null) {
+            throw new Error('Unexpected null cb_uid');
+        }
+
+        return async () => this.all_waiting_and_running_promises_by_cb_uid[cb_uid];
     }
 
     public has_free_slot(): boolean {

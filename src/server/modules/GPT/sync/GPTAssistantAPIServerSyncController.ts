@@ -103,6 +103,12 @@ export default class GPTAssistantAPIServerSyncController {
             return true;
         }
 
+        // Géré en amont
+        // // Cas des contenus de type text où on a ajouté dans GPT les users
+        // if (/^<[^[>]+\[[^\]]+\]> /.test(gpt_value as string)) {
+        //     (gpt_value as string) = (gpt_value as string).replace(/^<[^[>]+\[[^\]]+\]> /, '');
+        // }
+
         return gpt_value == oswedev_value;
     }
 }

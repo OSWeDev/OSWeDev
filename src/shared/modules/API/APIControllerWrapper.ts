@@ -2,16 +2,15 @@
 import moment from 'moment';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
+import ModuleTableController from '../DAO/ModuleTableController';
 import IRange from '../DataRender/interfaces/IRange';
 import IDistantVOBase from '../IDistantVOBase';
-import ModuleTableVO from '../DAO/vos/ModuleTableVO';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import IDateAPI from './interfaces/IDateAPI';
 import IDurationAPI from './interfaces/IDurationAPI';
 import IMomentAPI from './interfaces/IMomentAPI';
 import APIDefinition from './vos/APIDefinition';
-import ModuleTableController from '../DAO/ModuleTableController';
 
 export default class APIControllerWrapper {
 

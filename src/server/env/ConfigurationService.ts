@@ -20,6 +20,16 @@ export default class ConfigurationService {
      * ----- Local thread cache
      */
 
+
+    /**
+     * Local thread cache -----
+     */
+    private static nodeEnv: string;
+    private static STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
+    /**
+     * ----- Local thread cache
+     */
+
     public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
         if (!ConfigurationService.nodeEnv) {
             ConfigurationService.init();
@@ -34,13 +44,4 @@ export default class ConfigurationService {
         ConfigurationService.nodeInstall = (process.env.NODE_INSTALL == 'true');
         ConfigurationService.nodeInstallFullSegments = (process.env.NODE_INSTALL_FULL_SEGMENTS == 'true');
     }
-
-    /**
-     * Local thread cache -----
-     */
-    private static nodeEnv: string;
-    private static STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
-    /**
-     * ----- Local thread cache
-     */
 }

@@ -17,7 +17,6 @@ import winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
-import UserSessionVO from '../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -454,7 +453,7 @@ export default abstract class ServerBase {
             store: ExpressDBSessionsServerController.getInstance({
                 conString: this.connectionString,
                 schemaName: 'ref',
-                tableName: UserSessionVO.API_TYPE_ID,
+                tableName: 'module_expressdbsessions_express_session', // En dur pour le chargement de l'appli
             }),
             cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
         });
@@ -550,6 +549,14 @@ export default abstract class ServerBase {
             if ((!origin) || !(origin.length)) {
                 origin = req.get('Referer');
             }
+
+            if (!/^(https?:\/\/[^/]+\/).*/i.test(origin)) {
+                origin = origin + '/';
+            }
+
+            // On veut que la partie de l'URL qui nous intéresse (https://www.monsite.com) et pas le reste
+            origin = origin.replace(/^(https?:\/\/[^/]+)\/?.*/i, '$1');
+
             if (origin && (ConfigurationService.node_configuration.base_url.toLowerCase().startsWith(origin.toLowerCase()) || OseliaServerController.has_authorization(origin))) {
                 res.setHeader('X-Frame-Options', `ALLOW-FROM ${origin}`);
 
@@ -1292,10 +1299,6 @@ export default abstract class ServerBase {
                 res.send();
             });
         }
-
-        // this.initializePush();
-        // this.initializePushApis(this.app);
-        this.registerApis(this.app);
 
         if (ConfigurationService.node_configuration.activate_long_john) {
             require('longjohn');

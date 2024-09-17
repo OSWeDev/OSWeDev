@@ -32,6 +32,14 @@ export default abstract class APIDefinition<T, U> {
     public needs_response_param: boolean = true;
 
     /**
+     * Si on a pas besoin de
+     * - la session
+     * - le req / le res
+     * On peut exécuter l'api sur un bgthread ce qui permet de libérer ExpressJS
+     */
+    public can_exec_on_api_bgthread: boolean = false;
+
+    /**
      * @param access_policy_name Par défaut utiliser null pour indiquer pas de vérification, cas typique des apis de récupération des vos dont les droits
      *  sont gérés dans le dao directement => ce droit n'est checké QUE pour un appel d'api issu du client, pour protéger les apis des appels externes
      *  Côté serveur les vérifications se font toujours dans la fonction. ça peut être redondant du coup, mais ça évite de surcharger le serveur
@@ -57,6 +65,18 @@ export default abstract class APIDefinition<T, U> {
 
     public does_not_need_response_param(): APIDefinition<T, U> {
         this.needs_response_param = false;
+        return this;
+    }
+
+    /**
+     * Si on a pas besoin de
+     * - la session
+     * - le req / le res
+     * On peut exécuter l'api sur un bgthread ce qui permet de libérer ExpressJS
+     * @returns self
+     */
+    public exec_on_api_bgthread(): APIDefinition<T, U> {
+        this.can_exec_on_api_bgthread = true;
         return this;
     }
 }

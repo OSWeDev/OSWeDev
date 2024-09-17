@@ -47,6 +47,7 @@ import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../../..
 })
 export default class OseliaThreadMessageComponent extends VueComponentBase {
 
+
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
 
@@ -64,9 +65,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_message: GPTAssistantAPIThreadMessageVO;
-    private thread_message_files: { [key: string]: FileVO }[] = [];
 
     public thread_message_contents: GPTAssistantAPIThreadMessageContentVO[] = [];
+    private thread_message_files: { [key: string]: FileVO }[] = [];
 
     private is_loading_thread_message: boolean = true;
 
@@ -74,6 +75,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private user_name: string = null;
 
     private new_message_text: string = null;
+    private current_thread_message_id: number = null;
 
     private is_editing_content: boolean[] = [];
     private changed_input: boolean[] = [];
@@ -269,6 +271,22 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private async load_thread_message() {
 
+        if (!this.thread_message) {
+
+            this.thread_message_contents = [];
+            this.is_editing_content = [];
+            this.changed_input = [];
+            this.is_loading_thread_message = false;
+            await this.unregister_all_vo_event_callbacks();
+            return;
+        }
+
+        if (this.current_thread_message_id == this.thread_message.id) {
+            return;
+        }
+
+        this.current_thread_message_id = this.thread_message.id;
+
         this.is_loading_thread_message = true;
         this.thread_message_contents = [];
         this.is_editing_content = [];
@@ -313,7 +331,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                 const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
                     .filter_by_id(attachment.file_id)
                     .select_vos<GPTAssistantAPIFileVO>();
-                const files: FileVO[] = []
+                const files: FileVO[] = [];
                 for (const gpt_file of gpt_files) {
                     const file = await query(FileVO.API_TYPE_ID)
                         .filter_by_id(gpt_file.file_id)

@@ -169,7 +169,7 @@ export default class TeamsAPIServerController {
         await TeamsAPIServerController.send_teams_level('success', title, message, actions, groupid_param_name, groupid_default_value, channelid_param_name, channelid_default_value);
     }
 
-    public static async update_teams_message(message_id: string, channel_id: string, group_id: string, messag: TeamsWebhookContentVO) {
+    public static async update_teams_message(message_id: string, channel_id: string, group_id: string, message: TeamsWebhookContentVO) {
         const webhook = ConfigurationService.node_configuration.teams_webhook_update_message;
 
         if (!webhook) {
@@ -177,12 +177,12 @@ export default class TeamsAPIServerController {
             return;
         }
 
-        // if ((!message) || (!message.attachments) || (!message.attachments[0]) || (!message.attachments[0].content) || (!message.attachments[0].content.body) || (!message.attachments[0].content.body[0])) {
-        //     ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de trouver le message à envoyer');
-        //     return;
-        // }
+        if ((!message) || (!channel_id) || (!group_id) || (!message_id)) {
+            ConsoleHandler.error('TeamsAPIServerController.update_teams_message:Impossible de trouver le message à envoyer ou les paramètres pour envoyer le message Teams');
+            return;
+        }
 
-        const message = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body([{ "type": "TextBlock", "messageId": message_id, "channelId": channel_id, "organisationId": group_id, "message": "Action is already done." }]))]);
+        // const message = new TeamsWebhookContentVO().set_attachments([new TeamsWebhookContentAttachmentsVO().set_name("Update").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body([{ "type": "TextBlock", "messageId": message_id, "channelId": channel_id, "organisationId": group_id, "message": "Action is already done." }]))]);
 
         if (ConfigurationService.node_configuration.block_teams_messages) {
             ConsoleHandler.log('ModuleTeamsAPIServer.update_teams_message: BLOCK_TEAMS_MESSAGES in ConfigurationService.node_configuration : Aborting :' + message.attachments[0].content.body[0]['text'] ? message.attachments[0].content.body[0]['text'] : 'Error');
@@ -190,13 +190,11 @@ export default class TeamsAPIServerController {
         }
 
         const { host, path } = this.getHostAndPathFromUrl(webhook);
-        // const TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
-        // let msg = TextHandler.getInstance().sanityze_object(message);
 
-        // message.attachments[0].content.body[0]['messageId'] = message_id;
-        // message.attachments[0].content.body[0]['channelId'] = channel_id;
-        // message.attachments[0].content.body[0]['organisationId'] = group_id;
-        // message.attachments[0].content.body[0]['message'] = "pasteque";
+        message.groupId = group_id;
+        message.channelId = channel_id;
+        message.messageId = message_id;
+
         const msg = TextHandler.getInstance().encode_object(message);
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
@@ -360,7 +358,7 @@ export default class TeamsAPIServerController {
             }
 
             const group_id: string = key_params[0].groupid;
-            const channel_id: string = key_params[0].groupid;
+            const channel_id: string = key_params[0].channelid;
             const level: string = key_params[0].level;
             const title: string = key_params[0].title;
 

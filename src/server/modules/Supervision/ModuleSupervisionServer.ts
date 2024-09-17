@@ -371,7 +371,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(url.url).set_title(url.label));
         }
 
-        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
+        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Supervision").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
         await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 
@@ -414,7 +414,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(url.url).set_title(url.label));
         }
 
-        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
+        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Supervision").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
         await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 

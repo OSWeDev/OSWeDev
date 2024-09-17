@@ -16,12 +16,16 @@ import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import APIBGThread from './bgthreads/APIBGThread';
 const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
+    private static EXEC_ON_API_BGTHREAD_TASK_UID: string = 'ModuleAPIServer.EXEC_ON_API_BGTHREAD_TASK_UID';
     private static API_CALL_ID: number = 0;
     private static instance: ModuleAPIServer = null;
 
@@ -36,6 +40,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
             ModuleAPIServer.instance = new ModuleAPIServer();
         }
         return ModuleAPIServer.instance;
+    }
+
+    public async configure(): Promise<void> {
+        ModuleBGThreadServer.getInstance().registerBGThread(APIBGThread.getInstance());
     }
 
     public registerExpressApis(app: Express): void {
@@ -178,9 +186,23 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     res.json(APIControllerWrapper.try_translate_vo_to_api(notif_result));
                 }
 
-                returnvalue = await StackContext.runPromise(
-                    await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => (has_params && params && params.length) ? await api.SERVER_HANDLER(...params, req, res) : await api.SERVER_HANDLER(req, res));
+                if (api.needs_response_param) {
+                    await StackContext.runPromise(
+                        await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
+                        async () => {
+                            if (has_params && params && params.length) {
+                                returnvalue = await api.SERVER_HANDLER(...params, req, res);
+                            } else {
+                                returnvalue = await api.SERVER_HANDLER(req, res);
+                            }
+                        });
+                } else {
+                    returnvalue = await this.exec_api_on_bg_thread(
+                        await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession, true),
+                        api.api_name,
+                        has_params,
+                        ...params);
+                }
 
                 // /**
                 //  * DELETE ME :IN: Juste pour un TEST
@@ -294,5 +316,45 @@ export default class ModuleAPIServer extends ModuleServerBase {
             api_call_id,
             returnvalue,
         );
+    }
+
+    private async exec_api_on_bg_thread(
+        scope_overloads: any,
+        api_name: string,
+        has_params: boolean,
+        ...params: any
+    ) {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!await ForkedTasksController.exec_self_on_bgthread_and_return_value(
+                reject,
+                APIBGThread.BGTHREAD_name,
+                ModuleAPIServer.EXEC_ON_API_BGTHREAD_TASK_UID,
+                resolve,
+                scope_overloads,
+                api_name,
+                has_params,
+                ...params)) {
+                return;
+            }
+
+            try {
+                const api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[api_name];
+                resolve(await StackContext.runPromise(
+                    scope_overloads,
+                    async () => {
+                        if (has_params && params && params.length) {
+                            return await api.SERVER_HANDLER(...params);
+                        } else {
+                            return await api.SERVER_HANDLER();
+                        }
+                    }));
+
+            } catch (error) {
+                ConsoleHandler.error(error);
+                reject(error);
+            }
+        });
     }
 }

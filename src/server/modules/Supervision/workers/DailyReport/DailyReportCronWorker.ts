@@ -126,7 +126,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             + "").set_size("small");
         let ok_Column = new TeamsWebhookContentColumnSetVO().set_style("good").set_columns([new TeamsWebhookContentColumnVO().set_items([ok_Text])]);
         body.push(ok_Column);
-        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body)));
+        message.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Daily Report").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body)));
         await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, message);
     }
 
