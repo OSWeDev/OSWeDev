@@ -1,3 +1,6 @@
 include ../../../../../views/mixins/loading.pug
 
 .cms_image_widget_component
+    span.logo-lg(:style="widget_style")
+        template(v-if="img_path")
+            img.img_path(:src="img_path" :style="img_style")

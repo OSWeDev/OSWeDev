@@ -3455,6 +3455,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'cms_bloc_text.widget_option.contenu.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du titre" },
+            'cms_bloc_text.widget_option.alignement_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du sous-titre" },
+            'cms_bloc_text.widget_option.alignement_sous_titre.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Alignement du contenu" },
+            'cms_bloc_text.widget_option.alignement_contenu.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Gauche" },
             'cms_bloc_text.alignement.gauche.___LABEL___'
         ));
@@ -3510,6 +3522,24 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': "Couleur du texte du bouton" },
             'cms_link_button.widget_option.text_color.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Arrondir les angles (valeur en degrés)" },
+            'cms_image.widget_option.radius.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bouton de redirection" },
+            'dashboards.widgets.icons_tooltips.cmslinkbutton.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Image simple" },
+            'dashboards.widgets.icons_tooltips.cmsimage.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bloc de texte" },
+            'dashboards.widgets.icons_tooltips.cmsbloctext.___LABEL___'
         ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

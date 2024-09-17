@@ -1,2 +1,14 @@
 .cms_image_widget_options_component
     .cms_image_widget_options_component_wrapper
+        .image_bloc
+            span.logo-lg
+                vue-dropzone(ref="filedropzone" id="filedropzone" :options="dropzoneOptions")
+
+        .radius_bloc 
+            .input_label {{ label('cms_image.widget_option.radius') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="radius"
+                    v-tooltip="label('var_pie_chart_widget_options_component.circumference.tooltip')"
+                )
