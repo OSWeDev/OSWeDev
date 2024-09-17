@@ -63,7 +63,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
-
+    public static TASK_NAME_notifyScreenshot: string = 'PushDataServerController' + '.notifyScreenshot';
     public static TASK_NAME_notify_vo_creation: string = 'PushDataServerController' + '.notify_vo_creation';
     public static TASK_NAME_notify_vo_update: string = 'PushDataServerController' + '.notify_vo_update';
     public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
@@ -164,6 +164,7 @@ export default class PushDataServerController {
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, PushDataServerController.notify_vo_update.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, PushDataServerController.notify_vo_deletion.bind(this));
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyScreenshot, PushDataServerController.notifyScreenshot.bind(this));
     }
 
     public static getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -602,6 +603,23 @@ export default class PushDataServerController {
         // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyUserLoggedAndRedirectHome');
     }
 
+
+    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string) {
+        let notification: NotificationVO = null;
+        try {
+            notification = PushDataServerController.getTechNotif(
+                UID, CLIENT_TAB_ID,
+                null, NotificationVO.TECH_SCREENSHOT);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        if (!notification) {
+            return;
+        }
+
+        await PushDataServerController.notify(notification);
+    }
     /**
      * On notifie une tab pour reload
      */

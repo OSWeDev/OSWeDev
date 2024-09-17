@@ -57,6 +57,10 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
 import fs from "fs";
+import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
+import PushDataServerController from '../PushData/PushDataServerController';
+import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import StackContext from '../../StackContext';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -141,6 +145,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Donnez votre avis sur ce résultat' },
             'oselia_thread_widget_component.thread_message_footer_actions.feedback.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Nous allons vous demander l\'autorisation de capturer votre écran, veuillez accepter' },
+            'oselia.screenshot.notify.___LABEL___'));
 
         ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
 
@@ -306,6 +313,33 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return null;
         }
     }
+
+    /**
+     * Fonction qui permet à Osélia d'analyser des images via OpenAI - Vision
+     * @param thread_vo
+     */
+    public async take_screenshot(thread_vo: GPTAssistantAPIThreadVO): Promise<string> {
+        try {
+
+            if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Taking screenshot:thread_vo gptid:' + thread_vo.gpt_thread_id);
+            }
+
+            PushDataServerController.notifyScreenshot(
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
+            )
+
+            ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Screenshot pris avec succès')
+            return 'Screenshot pris avec succès';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:take_screenshot:Error while taking screenshot:" + error);
+            return null;
+        }
+    }
+
+
+
 
     /**
      * On définit les droits d'accès du module

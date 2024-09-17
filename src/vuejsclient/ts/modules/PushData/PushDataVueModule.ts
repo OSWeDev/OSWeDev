@@ -712,6 +712,11 @@ export default class PushDataVueModule extends VueModuleBase {
                                     window.location.reload();
                                 }, 3000);
                                 break;
+                            case NotificationVO.TECH_SCREENSHOT:
+                                const screenshot_content = LocaleManager.getInstance().i18n.t("oselia.screenshot.notify.___LABEL___");
+                                VueAppBase.instance_.vueInstance.snotify.info(screenshot_content, {
+                                    timeout: 3000,
+                                });
 
                             default:
                                 break;

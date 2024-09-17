@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificationVO';
@@ -10,6 +11,8 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import FileVO from '../File/vos/FileVO';
+import Dates from '../FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
@@ -24,7 +27,9 @@ import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
-
+import ModuleDAO from '../DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
+import ModuleFile from '../File/ModuleFile';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
