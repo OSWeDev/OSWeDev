@@ -55,11 +55,11 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
     }
 
     get img_style(): string {
-        return this.radius ? 'border-radius: ' + this.radius + '%;' : '';
+        return this.radius ? 'border-radius: ' + this.radius + '%; max-height: 100%; max-width: 100%;' : '';
     }
 
     get widget_style(): string {
-        return 'height: 100%; display: flex; justify-content: center; flex-direction: column;';
+        return 'max-height: 100%; max-width: 100%; display: flex; justify-content: center; flex-direction: column;';
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
