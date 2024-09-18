@@ -739,14 +739,12 @@ export default class ModuleVar extends Module {
     private initializeVarConfAutoDepVO(): ModuleTableFieldVO {
 
         const var_id = ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().var_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
-        const datatable_fields = [
-            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
-            var_id,
-            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().static_value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
-            ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().params_transform_strategies, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
-        ];
 
-        const datatable = ModuleTableController.create_new(this.name, VarConfAutoDepVO, null, 'Configuration de dependance pour var automatique');
+        ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().type, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS);
+        ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().static_value, ModuleTableFieldVO.FIELD_TYPE_float, 'Valeur fixe', false, true, 0);
+        ModuleTableFieldController.create_new(VarConfAutoDepVO.API_TYPE_ID, field_names<VarConfAutoDepVO>().params_transform_strategies, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false);
+
+        ModuleTableController.create_new(this.name, VarConfAutoDepVO, null, 'Configuration de dependance pour var automatique');
 
         return var_id;
     }
@@ -754,38 +752,34 @@ export default class ModuleVar extends Module {
     private initializeVarConfVO() {
 
         const labelField = ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom du compteur').unique();
-        const datatable_fields = [
-            labelField,
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().is_auto, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_operator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().is_auto, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_operator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_deps, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_deps, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_api_type_id, ModuleTableFieldVO.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_vofieldref_field_name, ModuleTableFieldVO.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
-
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_discarded_field_paths, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_use_technical_field_versioning, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_api_type_ids, ModuleTableFieldVO.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_discarded_field_paths, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().auto_param_context_use_technical_field_versioning, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false);
 
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().var_data_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VoType des données'),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().segment_types, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().show_help_tooltip, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().disable_var, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().var_data_vo_type, ModuleTableFieldVO.FIELD_TYPE_string, 'VoType des données');
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().segment_types, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().show_help_tooltip, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().disable_var, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().aggregator, ModuleTableFieldVO.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_never_delete, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, false),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_activated, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_fields, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().pixel_never_delete, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, false);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().cache_only_exact_sub, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true),
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().cache_only_exact_sub, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Mettre en cache les subs uniquements', true, true, true);
 
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_no_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a pas d\'imports', true, true, true),
-            ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_only_atomic_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a que des imports indépendants', true, true, false),
-        ];
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_no_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a pas d\'imports', true, true, true);
+        ModuleTableFieldController.create_new(VarConfVO.API_TYPE_ID, field_names<VarConfVO>().optimization__has_only_atomic_imports, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Optimisation: n\'a que des imports indépendants', true, true, false);
 
         const datatable = ModuleTableController.create_new(this.name, VarConfVO, labelField, VarConfVO.API_TYPE_ID);
         const var_id = this.initializeVarConfAutoDepVO();
