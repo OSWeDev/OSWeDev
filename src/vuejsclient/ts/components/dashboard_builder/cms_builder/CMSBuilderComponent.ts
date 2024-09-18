@@ -45,6 +45,8 @@ import TablesGraphComponent from '../../dashboard_builder/tables_graph/TablesGra
 import DashboardBuilderWidgetsComponent from '../../dashboard_builder/widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from '../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from '../../dashboard_builder/widgets/IExportableWidgetOptions';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
+import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -132,6 +134,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private dashboard: DashboardVO = null;
     private loading: boolean = true;
 
+    private show_cms_dashboard_pages: boolean = true;
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null; // The current page
 
@@ -144,6 +147,8 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private collapsed_fields_wrapper_2: boolean = true;
 
     private can_use_clipboard: boolean = false;
+
+    private screen_type: string = '';
 
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
@@ -1100,6 +1105,18 @@ export default class CMSBuilderComponent extends VueComponentBase {
         );
         if (this.dashboards?.length > 0) {
             this.dashboard = this.dashboards[0];
+        }
+
+        this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES)
+
+        const width = window.innerWidth;
+
+        if (width < 768) {
+            this.screen_type = 'mobile';
+        } else if (width >= 768 && width < 1024) {
+            this.screen_type = 'tablet';
+        } else {
+            this.screen_type = 'desktop';
         }
     }
 
