@@ -71,7 +71,7 @@ import StackContext from '../../StackContext';
 export default class ModuleOseliaServer extends ModuleServerBase {
 
     private static instance: ModuleOseliaServer = null;
-
+    private static screen_track: MediaStreamTrack = null;
     private static referers_triggers_hooks_condition_UID_cache: { [trigger_type_UID: string]: { [condition_UID: string]: [(params: unknown, exec_as_server?: boolean) => Promise<unknown>] } } = {};
     private static TASK_NAME_clear_reapply_referrers_triggers_OnThisThread: string = 'ModuleOseliaServer.clear_reapply_referrers_triggers_OnThisThread';
     // private static TASK_NAME_init_missing_thread_titles: string = 'ModuleOseliaServer.init_missing_thread_titles';
@@ -97,6 +97,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_accept_link, this.accept_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_refuse_link, this.refuse_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -198,159 +200,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.update_authorized_oselia_partners_ond);
     }
 
-    public async build_thread_title(thread: GPTAssistantAPIThreadVO, build_title_assistant: GPTAssistantAPIAssistantVO) {
-        if ((!thread) || (!thread.needs_thread_title_build) || (!build_title_assistant)) {
-            return;
-        }
-
-        // On évite de tourner en rond, si le thread en param est un thread de construction de titre, on ne le traite pas
-        if (thread.current_default_assistant_id == build_title_assistant.id) {
-            thread.needs_thread_title_build = false;
-            thread.thread_title = 'Build Title: ' + Dates.format_segment(thread.oswedev_created_at, TimeSegment.TYPE_SECOND);
-            thread.thread_title_auto_build_locked = true;
-            return;
-        }
-
-        // On charge les contenus dans l'ordre et on en tire les 100 premiers mots pour le titre
-        const contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-            .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
-            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
-
-        const user_by_thread_message_id: { [thread_message_id: number]: UserVO } = {};
-        const user_by_id: { [id: number]: UserVO } = {};
-        const thread_messages: GPTAssistantAPIThreadMessageVO[] = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .filter_by_id(thread.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIThreadMessageVO>();
-        const thread_messages_by_id: { [id: number]: GPTAssistantAPIThreadMessageVO } = VOsTypesManager.vosArray_to_vosByIds(thread_messages);
-
-        // Si on a pas au moins 2 messages, on ne peut pas construire de titre
-        if (thread_messages.length < 2) {
-            return;
-        }
-
-        for (const i in thread_messages) {
-            const thread_message = thread_messages[i];
-            user_by_thread_message_id[thread_message.id] = user_by_id[thread_message.user_id] ? user_by_id[thread_message.user_id] :
-                await query(UserVO.API_TYPE_ID)
-                    .filter_by_id(thread_message.user_id)
-                    .exec_as_server()
-                    .select_vo<UserVO>();
-            user_by_id[thread_message.user_id] = user_by_thread_message_id[thread_message.id];
-        }
-
-        const words = [];
-        let nb_added_words = 0;
-        for (const i in contents) {
-            const content = contents[i];
-
-            if ((!content.content_type_text) || (!content.content_type_text.value)) {
-                continue;
-            }
-
-            if ((thread_messages_by_id[content.thread_message_id].role !== GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) &&
-                (thread_messages_by_id[content.thread_message_id].role !== GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT)) {
-                continue;
-            }
-
-            const content_words = content.content_type_text.value.trim().split(' ');
-            let has_added_message_intro = false;
-            for (const j in content_words) {
-                const word = content_words[j].trim();
-
-                if ((!word) || (!word.length)) {
-                    continue;
-                }
-
-                if (word == '\\n') {
-                    continue;
-                }
-
-                if (!has_added_message_intro) {
-                    if (thread_messages_by_id[content.thread_message_id].role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        words.push(GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(
-                            user_by_thread_message_id[content.thread_message_id],
-                            true,
-                            false,
-                            '[  [:]] ',
-                        ) + ':');
-                    } else {
-                        words.push('[IA]:');
-                    }
-                    has_added_message_intro = true;
-                }
-
-                words.push(word.trim());
-                nb_added_words++;
-
-                if (nb_added_words >= 100) {
-                    break;
-                }
-            }
-
-            if (has_added_message_intro) {
-                words.push('\n');
-            }
-
-            if (nb_added_words >= 100) {
-                break;
-            }
-        }
-
-        if (!nb_added_words) {
-            return;
-        }
-
-        // /**
-        //  * On triche un peu pour éviter d'empiler des infos de comptes en début de demande pour l'ia, en utilisant pour ce thread / message, le user_id du premier message du texte dont on cherche le titre
-        //  */
-        // const uid_str = words[0].replace(/^<[^>]+\[user_id:([0-9]+)\]> .*$/, '$1');
-
-        const words_100 = words.join(' ');
-
-        const responses: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
-            build_title_assistant.gpt_assistant_id,
-            null,
-            'Build Title: ' + Dates.format_segment(thread.oswedev_created_at, TimeSegment.TYPE_SECOND),
-            words_100,
-            null,
-            null,
-            // parseInt(uid_str),
-        );
-
-        if (!responses) {
-            ConsoleHandler.warn('ModuleOseliaServer:build_thread_title:No response from assistant:' + build_title_assistant.gpt_assistant_id + ':words:' + words_100 + ':thread_id:' + thread.id);
-            return;
-        }
-
-        const response = responses[0];
-
-        if (!response) {
-            ConsoleHandler.warn('ModuleOseliaServer:build_thread_title:No response from assistant:' + build_title_assistant.gpt_assistant_id + ':words:' + words_100 + ':thread_id:' + thread.id);
-            return;
-        }
-
-        const response_contents = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-            .filter_by_id(response.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-            .exec_as_server()
-            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
-
-        for (const i in response_contents) {
-            const response_content = response_contents[i];
-
-            if (response_content.content_type_text) {
-                thread.thread_title = response_content.content_type_text.value;
-                thread.needs_thread_title_build = false;
-                thread.thread_title_auto_build_locked = (words.length >= 100);
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
-                return;
-            }
-        }
-    }
-
     /**
      * Fonction qui permet à Osélia de générer des images via OpenAI
      * @param model
@@ -442,11 +291,20 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 ConsoleHandler.log('ModuleOseliaServer:analyse_image:Analysing image with code:' + code + ':thread_vo gptid:' + thread_vo.gpt_thread_id);
             }
 
-            // Get the file vo from the code
-            const file_vo = await query(FileVO.API_TYPE_ID)
-                .filter_by_id(parseFloat(code))
-                .exec_as_server()
-                .select_vo<FileVO>();
+            let file_vo: FileVO = null;
+            if (!code.includes('/')) {
+                // Get the file vo from the code
+                file_vo = await query(FileVO.API_TYPE_ID)
+                    .filter_by_id(parseFloat(code))
+                    .exec_as_server()
+                    .select_vo<FileVO>();
+            } else {
+                // Get the file vo from the path
+                file_vo = await query(FileVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<FileVO>().path, code)
+                    .exec_as_server()
+                    .select_vo<FileVO>();
+            }
 
             const image_path = file_vo.path;
             const base64Image = fs.readFileSync(image_path, { encoding: 'base64' });
@@ -480,7 +338,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return data.message.content;
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:analyse_image:Error while analysing image:" + error);
-            return null;
+            return "Erreur lors de l'analyse de l'image, est-ce que le code envoyé est correct ?";
         }
     }
 
@@ -494,16 +352,115 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             if (ConfigurationService.node_configuration.debug_openai_generate_image) {
                 ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Taking screenshot:thread_vo gptid:' + thread_vo.gpt_thread_id);
             }
+            const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(thread_vo.current_oselia_assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
 
-            PushDataServerController.notifyScreenshot(
+            await PushDataServerController.notifyScreenshot(
                 StackContext.get('UID'),
                 StackContext.get('CLIENT_TAB_ID'),
+                assistant.gpt_assistant_id,
+                thread_vo.gpt_thread_id
             )
 
             ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Screenshot pris avec succès')
-            return 'Screenshot pris avec succès';
+            return ' ';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:take_screenshot:Error while taking screenshot:" + error);
+            return null;
+        }
+    }
+
+
+    /**
+     * Fonction qui permet à Osélia d'appeler un autre assistant
+     * @param thread_vo
+     * @param purpose_id
+     */
+    public async ask_assistant(thread_vo: GPTAssistantAPIThreadVO, purpose_id: number): Promise<string> {
+        try {
+
+            if (ConfigurationService.node_configuration.debug_openai_generate_image) {
+                ConsoleHandler.log('ModuleOseliaServer:ask_assistant:Asking assistant:thread_vo gptid:' + thread_vo.gpt_thread_id + ':purpose_id:' + purpose_id);
+            }
+
+            switch (purpose_id) {
+                case 0:
+
+                    // On charge l'assistant pour avoir le titre
+                    const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                        .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, GPTAssistantAPIThreadVO.OSELIA_THREAD_HELPER_ASSISTANT_NAME)
+                        .exec_as_server()
+                        .select_vo<GPTAssistantAPIAssistantVO>();
+
+                    if ((!assistant)) {
+                        ConsoleHandler.error('ModuleOseliaServer:ask_assistant: - No assistant found');
+                        return ' ';
+                    }
+
+                    const message = "Bonjour, analyse le fichier texte que je t'envoies, il contient le contenu d'une conversation entre un utilisateur et Osélia, tu dois analyser la conversation et synthétiser de façon concise les informations importantes.";
+                    let messages_contents: string = "";
+
+                    const thread_messages: GPTAssistantAPIThreadMessageVO[] = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                        .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                        .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, false))
+                        .exec_as_server()
+                        .select_vos<GPTAssistantAPIThreadMessageVO>();
+
+                    for (const message of thread_messages) {
+
+                        const message_content = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                            .filter_by_id(message.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
+                            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+                        for (const content of message_content) {
+                            if ((!content.content_type_text) || (!content.content_type_text.value)) {
+                                continue;
+                            }
+                            let new_content = "";
+                            switch (message.role) {
+                                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER:
+
+                                    const sender = await query(UserVO.API_TYPE_ID)
+                                        .filter_by_id(message.user_id)
+                                        .select_vo<UserVO>();
+                                    if (content.hidden) {
+                                        if (content.content_type_text.value.startsWith("<") && content.content_type_text.value.endsWith(">")) {
+                                            new_content = "[Champs technique de : " + sender.name + "]" + " : " + content.content_type_text.value;
+                                        } else {
+                                            new_content = "[Fichier de : " + sender.name + "]" + " : " + content.content_type_text.value;
+                                        }
+                                    } else {
+                                        new_content = "[" + sender.name + "] : " + content.content_type_text.value;
+                                    }
+                                    break;
+                                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT:
+                                    new_content = "[Oselia] : " + content.content_type_text.value;
+                                    break;
+                            }
+                            messages_contents += "\n" + new_content;
+                        }
+                    }
+                    const file_name = 'oselia_' + thread_vo.gpt_thread_id + '.txt'
+                    const text_file = new FileVO();
+                    text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
+                    text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
+
+                    fs.writeFileSync(text_file.path, messages_contents, 'utf8');
+                    GPTAssistantAPIServerController.ask_assistant(assistant.gpt_assistant_id, thread_vo.gpt_thread_id, thread_vo.thread_title, message, [text_file], null, true);
+
+
+                    return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran"
+                case 1:
+                    break;
+            }
+
+            ConsoleHandler.log('ModuleOseliaServer:ask_assistant:Demande d\'assistant effectuée avec succès')
+            return ' ';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:ask_assistant:Error while taking screenshot:" + error);
             return null;
         }
     }
@@ -595,6 +552,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
     }
 
+
+    private async set_screen_track(track: MediaStreamTrack): Promise<void> {
+        ModuleOseliaServer.screen_track = track;
+    }
+
+    private async get_screen_track() {
+        return ModuleOseliaServer.screen_track;
+    }
 
     private async open_oselia_db(
         referrer_user_ott: string,

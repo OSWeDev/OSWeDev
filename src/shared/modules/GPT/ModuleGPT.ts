@@ -1,6 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -84,6 +85,7 @@ export default class ModuleGPT extends Module {
      * @param content contenu text du nouveau message
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
      * @param user_id id de l'utilisateur
+     * @param hide_content si on veut cacher le texte
      * @returns
      */
     public ask_assistant: (
@@ -92,7 +94,8 @@ export default class ModuleGPT extends Module {
         thread_title: string,
         content: string,
         files: FileVO[],
-        user_id: number
+        user_id: number,
+        hide_content: boolean
     ) => Promise<GPTAssistantAPIThreadMessageVO[]> = APIControllerWrapper.sah<APIGPTAskAssistantParam, GPTAssistantAPIThreadMessageVO[]>(ModuleGPT.APINAME_ask_assistant);
 
     /**
@@ -160,7 +163,8 @@ export default class ModuleGPT extends Module {
                 GPTAssistantAPIThreadMessageContentImageFileVO.API_TYPE_ID,
                 GPTAssistantAPIThreadMessageContentImageURLVO.API_TYPE_ID
             ],
-            APIGPTAskAssistantParamStatic
+            APIGPTAskAssistantParamStatic,
+            APIDefinition.API_RETURN_TYPE_NOTIF,
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, GPTAssistantAPIThreadMessageVO[]>(

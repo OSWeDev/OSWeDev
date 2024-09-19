@@ -35,6 +35,7 @@ import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOS
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../File/ModuleFile';
+import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
@@ -64,7 +65,8 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_token_oselia: string = "oselia__get_token_oselia";
     public static APINAME_accept_link: string = "oselia__accept_link";
     public static APINAME_refuse_link: string = "oselia__refuse_link";
-
+    public static APINAME_set_screen_track: string = "oselia__set_screen_track";
+    public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
     private static instance: ModuleOselia = null;
@@ -77,7 +79,8 @@ export default class ModuleOselia extends Module {
     public get_referrer_name: (referrer_user_ott: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
     public accept_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
     public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
-
+    public set_screen_track: (track: MediaStreamTrack) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_screen_track);
+    public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
 
     private constructor() {
@@ -153,7 +156,17 @@ export default class ModuleOselia extends Module {
             [OseliaUserReferrerVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-
+        APIControllerWrapper.registerApi(new PostAPIDefinition<OseliaScreenshotParamVO, void>(
+            null,
+            ModuleOselia.APINAME_set_screen_track,
+            null,
+            OseliaScreenshotParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, MediaStreamTrack | null>(
+            null,
+            ModuleOselia.APINAME_get_screen_track,
+            null
+        ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, string>(
             null,

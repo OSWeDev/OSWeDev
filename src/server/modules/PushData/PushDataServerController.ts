@@ -604,12 +604,12 @@ export default class PushDataServerController {
     }
 
 
-    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string) {
+    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string, gpt_assistant_id: string, gpt_thread_id: string) {
         let notification: NotificationVO = null;
         try {
             notification = PushDataServerController.getTechNotif(
                 UID, CLIENT_TAB_ID,
-                null, NotificationVO.TECH_SCREENSHOT);
+                null, NotificationVO.TECH_SCREENSHOT, gpt_assistant_id, gpt_thread_id);
         } catch (error) {
             ConsoleHandler.error(error);
         }
@@ -1205,7 +1205,7 @@ export default class PushDataServerController {
         return notification;
     }
 
-    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string): NotificationVO {
+    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string, gpt_assistant_id?: string, gpt_thread_id?: string): NotificationVO {
 
         const notification: NotificationVO = new NotificationVO();
 
@@ -1216,9 +1216,17 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        notification.vos = [{
-            marker
-        } as any];
+        if (gpt_assistant_id && gpt_thread_id) {
+            notification.vos = [{
+                marker,
+                gpt_assistant_id,
+                gpt_thread_id
+            } as any];
+        } else {
+            notification.vos = [{
+                marker
+            } as any];
+        }
         return notification;
     }
 

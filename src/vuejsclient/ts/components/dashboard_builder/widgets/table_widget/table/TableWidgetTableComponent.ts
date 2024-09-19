@@ -2384,12 +2384,13 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async select_row(row: any) {
-        row['selected'] = !row['selected'];
-        if (row['selected'] == true) {
-            if (this.export_to_oselia_limit != this.export_to_oselia_count) {
+        if (row['selected'] == false) {
+            if (this.export_to_oselia_count < this.export_to_oselia_limit) {
+                row['selected'] = !row['selected'];
                 this.export_to_oselia_count++;
             }
         } else {
+            row['selected'] = !row['selected'];
             this.export_to_oselia_count--;
         }
     }

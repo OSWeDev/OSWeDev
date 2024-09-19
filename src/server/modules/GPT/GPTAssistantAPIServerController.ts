@@ -34,6 +34,7 @@ import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServe
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import { readFileSync } from 'fs';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -754,6 +755,7 @@ export default class GPTAssistantAPIServerController {
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
      * @param user_id id de l'utilisateur qui demande
      * @param thread_title titre de la discussion => pour éviter de passer par le système de génération de titre
+     * @param hide_content si on veut cacher le contenu du message
      * @returns
      */
     public static async ask_assistant(
@@ -762,7 +764,8 @@ export default class GPTAssistantAPIServerController {
         thread_title: string,
         content_text: string,
         files: FileVO[],
-        user_id: number = null): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        user_id: number = null,
+        hide_content: boolean = false): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
 
@@ -837,7 +840,8 @@ export default class GPTAssistantAPIServerController {
                 last_thread_msg,
                 user_id,
                 content_text,
-                files
+                files,
+                hide_content
             );
 
             //  La discussion est en place, on peut demander à l'assistant de répondre
@@ -981,6 +985,7 @@ export default class GPTAssistantAPIServerController {
         user_id: number,
         new_msg_content_text: string,
         new_msg_files: FileVO[],
+        hide_content: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
@@ -1041,9 +1046,11 @@ export default class GPTAssistantAPIServerController {
             asking_message_vo.weight = last_thread_msg ? last_thread_msg.weight + 1 : 0;
             asking_message_vo.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
             asking_message_vo.user_id = user_id ? user_id : thread_vo.user_id;
-            asking_message_vo.is_ready = !has_image_file;
+            asking_message_vo.is_ready = false;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
 
+
+            const current_user = await query(UserVO.API_TYPE_ID).filter_by_id(user_id).set_limit(1).select_vo<UserVO>();
             const content = new GPTAssistantAPIThreadMessageContentVO();
             content.thread_message_id = asking_message_vo.id;
             content.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
@@ -1051,7 +1058,48 @@ export default class GPTAssistantAPIServerController {
             content.gpt_thread_message_id = asking_message_vo.gpt_id;
             content.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
             content.weight = 0;
+            content.hidden = hide_content;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+
+            const content_name = new GPTAssistantAPIThreadMessageContentVO();
+            content_name.thread_message_id = asking_message_vo.id;
+            content_name.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+            content_name.content_type_text.value = '<name:' + current_user.name + '>';
+            content_name.gpt_thread_message_id = asking_message_vo.gpt_id;
+            content_name.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+            content_name.weight = 0;
+            content_name.hidden = true;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_name);
+
+            const content_email = new GPTAssistantAPIThreadMessageContentVO();
+            content_email.thread_message_id = asking_message_vo.id;
+            content_email.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+            content_email.content_type_text.value = '<email:' + current_user.email + '>';
+            content_email.gpt_thread_message_id = asking_message_vo.gpt_id;
+            content_email.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+            content_email.weight = 0;
+            content_email.hidden = true;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_email);
+
+            const content_phone = new GPTAssistantAPIThreadMessageContentVO();
+            content_phone.thread_message_id = asking_message_vo.id;
+            content_phone.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+            content_phone.content_type_text.value = '<phone:' + current_user.phone + '>';
+            content_phone.gpt_thread_message_id = asking_message_vo.gpt_id;
+            content_phone.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+            content_phone.weight = 0;
+            content_phone.hidden = true;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_phone);
+
+            const content_user_id = new GPTAssistantAPIThreadMessageContentVO();
+            content_user_id.thread_message_id = asking_message_vo.id;
+            content_user_id.content_type_text = new GPTAssistantAPIThreadMessageContentTextVO();
+            content_user_id.content_type_text.value = '<user_id:' + user_id.toString() + '>';
+            content_user_id.gpt_thread_message_id = asking_message_vo.gpt_id;
+            content_user_id.type = GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT;
+            content_user_id.weight = 0;
+            content_user_id.hidden = true;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content_user_id);
 
             if (has_image_file) {
                 for (const images of files_images) {
@@ -1065,10 +1113,9 @@ export default class GPTAssistantAPIServerController {
                     content.hidden = true;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
                 }
-                asking_message_vo.is_ready = has_image_file;
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
             }
-
+            asking_message_vo.is_ready = true;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(asking_message_vo);
         }
 
         return asking_message_vo ? asking_message_vo : last_thread_msg;

@@ -107,6 +107,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private enable_link_image_menu: boolean = false;
     private enable_file_system_menu: boolean = false;
     private link_image_url: string = null;
+    private is_expanded: boolean = false;
+    private frame: HTMLElement = null;
     private dashboard_system_id: number = 44;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
@@ -118,7 +120,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
-        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard_builder/` + this.dashboard_system_id;
+        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/` + this.dashboard_system_id;
     }
 
     @Watch('get_too_many_assistants')
@@ -141,26 +143,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.selected_file_system) {
             return;
         }
-        // const file: File = this.selected_file_system;
-        // const formData = new FormData();
-        // const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
-        // formData.append('file', file, file_name);
-        // await AjaxCacheClientController.getInstance().post(
-        //     null,
-        //     '/ModuleFileServer/upload',
-        //     [FileVO.API_TYPE_ID],
-        //     formData,
-        //     null,
-        //     null,
-        //     false,
-        //     30000).then(async () => {
-        //         // Upload via insert or update
-        //         const new_file = new FileVO();
-        //         new_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
-        //         const resnew_file: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_file); // Renvoie un InsertOrDeleteQueryResult qui contient l'id cherché
-        //         new_file.id = resnew_file.id;
-        //         this.thread_files.push({ ['.' + file.name.split('.').pop()]: new_file });
-        //     });
         this.selected_file_system = null;
         this.enable_file_system_menu = false;
     }
@@ -179,6 +161,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private mounted() {
+        this.frame = parent.document.getElementById('OseliaContainer');
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
                 Array.from(e.clipboardData.items).forEach(async (item: DataTransferItem, i) => {
@@ -561,7 +544,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 null,
                 message,
                 files,
-                VueAppController.getInstance().data_user.id
+                VueAppController.getInstance().data_user.id,
+                false
             );
 
 
@@ -601,18 +585,27 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         // }));
     }
 
-    private async run_test() {
-        // try {
-
-        // } catch (error) {
-        //     ConsoleHandler.error(error);
-        // }
+    private expand_window() {
+        this.is_expanded = !this.is_expanded;
+        this.frame.style.width = this.is_expanded ? '25%' : '19%';
     }
 
     private handle_new_message_text_keydown(event: KeyboardEvent) {
         this.$nextTick(() => {
             setTimeout(this.adjustTextareaHeight.bind(this), 10);
         });
+
+        if (this.new_message_text && this.new_message_text.length > 0) {
+            if (this.new_message_text.includes("<") && event.key === ">") {
+                for (let i = this.new_message_text.length; i >= 0; i--) {
+                    if (this.new_message_text[i] === "<") {
+                        this.new_message_text = this.new_message_text.replace(this.new_message_text.substring(this.new_message_text.length, i), "");
+                        this.snotify.error(this.t('OseliaThreadWidgetComponent.send_message.error_tech_message'));
+                    }
+                }
+                event.preventDefault();
+            }
+        }
 
         if (event.key === 'Enter') {
             if (event.shiftKey) {

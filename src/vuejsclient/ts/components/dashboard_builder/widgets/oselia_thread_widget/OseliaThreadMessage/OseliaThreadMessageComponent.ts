@@ -81,7 +81,7 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private changed_input: boolean[] = [];
 
     private show_feedback: boolean = false;
-
+    private show_current_message: boolean = false;
     private markdown_options = {
         html: true,
         linkify: true,
@@ -164,6 +164,11 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Watch('thread_message_contents', { deep: true })
     private on_change_thread_message_contents() {
+        for (let content of this.thread_message_contents) {
+            if (content.hidden == false) {
+                this.show_current_message = true;
+            }
+        }
         this.is_editing_content = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
         this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
     }

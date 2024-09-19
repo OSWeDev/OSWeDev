@@ -803,6 +803,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Echec de l\'envoi du message'
         }, 'OseliaThreadWidgetComponent.send_message.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Vous ne pouvez pas envoyer de message contenant ce format'
+        }, 'OseliaThreadWidgetComponent.send_message.error_tech_message.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Envoyer le message à Osélia'
