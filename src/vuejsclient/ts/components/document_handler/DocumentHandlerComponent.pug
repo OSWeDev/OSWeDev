@@ -11,22 +11,11 @@
     template(v-if='loaded')
         template(v-if="(list?.length > 0)")
             isotope.documents_wrapper(ref="isotope" :options='options' :list="list")
-                .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
-                    .document_name {{ d.name }}
-
-                    .document_type(v-if="d.show_icon")
-                        template(v-if='d.type==type_video')
-                            i.fa.fa-solid.fa-youtube-play.fa-fw(aria-hidden="true")
-                        template(v-if='d.type==type_pdf')
-                            i.fa.fa-solid.fa-file-pdf.fa-fw(aria-hidden="true")
-                        template(v-if='d.type==type_xls')
-                            i.fa.fa-solid.fa-file-excel.fa-fw(aria-hidden="true")
-                        template(v-if='d.type==type_doc')
-                            i.fa.fa-solid.fa-file-word.fa-fw(aria-hidden="true")
-                        template(v-if='d.type==type_ppt')
-                            i.fa.fa-solid.fa-file-powerpoint.fa-fw(aria-hidden="true")
-                        template(v-if='d.type==type_other')
-                            i.fa.fa-solid.fa-file.fa-fw(aria-hidden="true")
+                Documentcomponent(
+                    v-for="d in list"
+                    :document='d'
+                    :key='d.id'
+                )
 
         template(v-else)
             h2.text-center {{ label('document_handler_component.no_document') }}
