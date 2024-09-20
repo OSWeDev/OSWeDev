@@ -120,6 +120,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private dragged = null;
 
+    private breakpoints: { [key: string]: number } = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
+    private cols: { [key: string]: number } = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
+
     private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
@@ -313,12 +316,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }
 
                     // On reload les widgets
-                    let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    const widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
 
                     if (widgets?.length) {
                         widgets.sort((a, b) => {
-                            let a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
-                            let b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
+                            const a_weight: number = parseFloat(a.y.toString() + "." + a.x.toString());
+                            const b_weight: number = parseFloat(b.y.toString() + "." + b.x.toString());
 
                             return a_weight - b_weight;
                         });

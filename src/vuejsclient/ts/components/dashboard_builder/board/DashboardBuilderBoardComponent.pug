@@ -28,6 +28,8 @@
                 :use-css-transforms="true"
                 :margin="[10, 10]"
                 :key="'Gridlayout__' + dashboard_page.id"
+                :breakpoints="breakpoints"
+                :cols="cols"
             )
                 template(v-if="dashboard_page.group_filters")
                     .filters-bloc.mt-3

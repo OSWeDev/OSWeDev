@@ -148,8 +148,6 @@ export default class CMSBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
-    private screen_type: string = '';
-
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
     get has_navigation_history(): boolean {
@@ -1107,17 +1105,7 @@ export default class CMSBuilderComponent extends VueComponentBase {
             this.dashboard = this.dashboards[0];
         }
 
-        this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES)
-
-        const width = window.innerWidth;
-
-        if (width < 768) {
-            this.screen_type = 'mobile';
-        } else if (width >= 768 && width < 1024) {
-            this.screen_type = 'tablet';
-        } else {
-            this.screen_type = 'desktop';
-        }
+        this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES);
     }
 
     private beforeDestroy() {
