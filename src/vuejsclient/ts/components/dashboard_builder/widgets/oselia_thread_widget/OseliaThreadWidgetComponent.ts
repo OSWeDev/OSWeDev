@@ -109,7 +109,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private link_image_url: string = null;
     private is_expanded: boolean = false;
     private frame: HTMLElement = null;
-    private dashboard_system_id: number = 44;
+    private dashboard_system_id: number = 30;
+    private wait_for_data: boolean = false;
+    private data_received: any = null;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -152,6 +154,26 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.throttle_register_thread();
     }
 
+    @Watch('data_received')
+    private async onchange_data_receieved() {
+        const files = [];
+        if (this.data_received.length > 0) {
+            for (let id of this.data_received) {
+                const file = await query(FileVO.API_TYPE_ID)
+                    .filter_by_id(id)
+                    .set_limit(1)
+                    .select_vo<FileVO>();
+                if (file) {
+                    files.push(file);
+                }
+            }
+        }
+
+        for (let file of files) {
+            this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
+        }
+    }
+
     private async beforeDestroy() {
         await this.unregister_all_vo_event_callbacks();
     }
@@ -168,6 +190,16 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                     // If pasted items aren't files, reject them
                     await this.do_upload_file(null, item.getAsFile());
                 });
+            }
+        });
+        window.addEventListener("message", (event: MessageEvent) => {
+            const source = event.source as Window;
+            if (source.location.href !== this.file_system_url) {
+                return;
+            } else {
+                if(this.wait_for_data) {
+                    this.data_received = event.data; 
+                }
             }
         });
     }
@@ -231,40 +263,18 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.thread_files.splice(index, 1);
     }
 
-    private async listen_for_message(): Promise<any> {
-        return new Promise((resolve) => {
-            window.name = "ExportTo";
-            const export_window = window.open(this.file_system_url);
-            window.addEventListener("message", (event: MessageEvent) => {
-                const source = event.source as Window;
-                if (source.location.href !== this.file_system_url) {
-                    return;
-                }
-                resolve(event.data);
-            }, { once: true });
-        });
+    private async listen_for_message() {
+        (window as any).instructions = {'Export': 1};
+
+        const export_window = window.open(this.file_system_url);
+        this.wait_for_data = true;
     }
+
     private async open_file_system_upload() {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
-        const files_id = await this.listen_for_message();
-
-        if (files_id.length > 0) {
-            for (let id of files_id) {
-                const file = await query(FileVO.API_TYPE_ID)
-                    .filter_by_id(id)
-                    .set_limit(1)
-                    .select_vo<FileVO>();
-                if (file) {
-                    this.selected_file_system.push(file);
-                }
-            }
-        }
-
-        for (let file of this.selected_file_system) {
-            this.thread_files.push({ ['.' + file.path.split('.').pop()]: file });
-        }
+        await this.listen_for_message();
     }
 
     private async open_file_upload() {

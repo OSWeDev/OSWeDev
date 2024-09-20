@@ -36,13 +36,17 @@ include ../../../../../../views/mixins/loading.pug
                     @change_limit='change_limit'
                 )
 
-                template(v-if="export_to_oselia")
-                    .export_button(v-if="export_to_oselia_count>0") 
-                        button.btn.btn-sm.btn-outline-dark(@click="do_export_to_oselia")
+                template(v-if="export_to")
+                    .select_all_button
+                        button.btn.btn-sm.btn-outline-dark(@click="do_select_all")
                             i.fa-duotone.fa-download.fa-lg.btn_icon
-                            | {{ label('crud.actions.export_to_oselia') }}
+                            | {{ label('crud.actions.select_all') }}
+                    .export_button(v-if="export_count>0") 
+                        button.btn.btn-sm.btn-outline-dark(@click="do_export" :disabled="(export_count > export_limit)")
+                            i.fa-duotone.fa-download.fa-lg.btn_icon
+                            | {{ label('crud.actions.export_to') }}
                     .col-sm-2
-                        .selected_count {{ export_to_oselia_count + ' / ' + export_to_oselia_limit }}
+                        .selected_count(:class="(export_count > export_limit) ? 'exceed' : 'no_exceed' ") {{ export_count + ' / ' + export_limit }}
 
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none
@@ -147,7 +151,7 @@ include ../../../../../../views/mixins/loading.pug
                                             Inlinetranslatabletext()
                     template(v-if="update_cpt_live <= 1")
                         tbody
-                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row), "selected" : row["selected"] }' @click="export_to_oselia ? select_row(row) : null")
+                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row), "selected" : row["selected"] }' @click="export_to ? select_row(row) : null")
                                 template(v-if="show_bulk_edit")
                                     td.text-center
                                         input(type="checkbox" v-model="selected_vos[get_identifier(row)]" :checked="selected_vos[get_identifier(row)]")

@@ -69,7 +69,15 @@
             margin-top: 6px;
             margin-bottom: 0.2em;
 
-            .selected_count {
+            .exceed {
+                background-color: red;
+                color:white;
+                border-radius: 20em;
+                padding: 0.2em;
+                text-align: center;
+            }
+
+            .no_exceed {
                 background-color: white;
                 border-radius: 20em;
                 padding: 0.2em;
