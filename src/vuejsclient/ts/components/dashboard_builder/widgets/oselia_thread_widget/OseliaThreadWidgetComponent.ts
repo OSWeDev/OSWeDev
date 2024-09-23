@@ -112,9 +112,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private dashboard_system_id: number = 30;
     private wait_for_data: boolean = false;
     private data_received: any = null;
+    private export_num: number = 4;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
-
 
     get role_assistant_avatar_url() {
         return '/vuejsclient/public/img/avatars/oselia.png';
@@ -264,7 +264,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async listen_for_message() {
-        (window as any).instructions = {'Export': 1};
+        (window as any).instructions = {'Export': this.export_num};
 
         const export_window = window.open(this.file_system_url);
         this.wait_for_data = true;

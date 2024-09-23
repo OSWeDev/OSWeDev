@@ -67,6 +67,8 @@ import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/G
 import PushDataServerController from '../PushData/PushDataServerController';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import StackContext from '../../StackContext';
+import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -388,7 +390,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             switch (purpose_id) {
                 case 0:
 
-                    // On charge l'assistant pour avoir le titre
                     const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                         .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, GPTAssistantAPIThreadVO.OSELIA_THREAD_HELPER_ASSISTANT_NAME)
                         .exec_as_server()
@@ -443,14 +444,19 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                             messages_contents += "\n" + new_content;
                         }
                     }
-                    const file_name = 'oselia_' + thread_vo.gpt_thread_id + '.txt'
+                    const new_thread = (await GPTAssistantAPIServerController.get_thread(null,null,assistant.id)).thread_vo;
+                    
+                    const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt'
                     const text_file = new FileVO();
                     text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
                     text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
-
+                    
                     fs.writeFileSync(text_file.path, messages_contents, 'utf8');
-                    GPTAssistantAPIServerController.ask_assistant(assistant.gpt_assistant_id, thread_vo.gpt_thread_id, thread_vo.thread_title, message, [text_file], null, true);
-
+                    GPTAssistantAPIServerController.ask_assistant(assistant.gpt_assistant_id, new_thread.gpt_thread_id, new_thread.thread_title, message, [text_file], null, true);
+                    const action = new TeamsWebhookContentActionOpenUrlVO();
+                    action.set_title("Ouvrir le fichier texte");
+                    action.set_url(ConfigurationService.node_configuration.base_url + text_file.path.substring(2));
+                    TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver","Bonjour, un bug a été remonté !", new_thread.id, [action]);
 
                     return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran"
                 case 1:
