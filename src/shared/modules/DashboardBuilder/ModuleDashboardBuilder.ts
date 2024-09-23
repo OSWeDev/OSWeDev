@@ -24,10 +24,13 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import VarConfVO from '../Var/vos/VarConfVO';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DashboardActiveonViewportVO from './vos/DashboardActiveonViewportVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
+import DashboardViewportVO from './vos/DashboardViewportVO';
+import DashboardWidgetPositionVO from './vos/DashboardWidgetPositionVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
@@ -103,6 +106,10 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_SelectBoxDatatableFieldVO();
         this.initialize_SimpleDatatableFieldVO();
         this.initialize_VarDatatableFieldVO();
+
+        this.initialize_DashboardViewportVO();
+        this.initialize_DashboardWidgetPositionVO();
+        this.initialize_DashboardActiveonViewportVO();
     }
 
     private init_DashboardVO(): ModuleTableVO {
@@ -622,5 +629,41 @@ export default class ModuleDashboardBuilder extends Module {
 
         var_id.set_many_to_one_target_moduletable_name(VarConfVO.API_TYPE_ID);
         dashboard_id.set_many_to_one_target_moduletable_name(DashboardVO.API_TYPE_ID);
+    }
+
+    private initialize_DashboardViewportVO() {
+        const field_name = ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur minimum de l\'écran');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().is_default, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Viewport par défaut ?');
+
+        ModuleTableController.create_new(this.name, DashboardViewportVO, field_name, "Viewport de Dashboard");
+    }
+
+    private initialize_DashboardWidgetPositionVO() {
+        const dashboard_page_widget_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Page Widget");
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport");
+
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().w, ModuleTableFieldVO.FIELD_TYPE_int, 'w', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().h, ModuleTableFieldVO.FIELD_TYPE_int, 'h', true, true, 0);
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_int, 'show_widget_on_viewport', true, true, true);
+
+        ModuleTableController.create_new(this.name, DashboardWidgetPositionVO, null, "Position de widget");
+
+        dashboard_page_widget_id.set_many_to_one_target_moduletable_name(DashboardPageWidgetVO.API_TYPE_ID);
+        dashboard_viewport_id.set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
+    }
+
+    private initialize_DashboardActiveonViewportVO() {
+        const dashboard_page_id = ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().dashboard_page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Page");
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport");
+
+        ModuleTableFieldController.create_new(DashboardActiveonViewportVO.API_TYPE_ID, field_names<DashboardActiveonViewportVO>().active, ModuleTableFieldVO.FIELD_TYPE_boolean, 'actif', true, true, false);
+
+        ModuleTableController.create_new(this.name, DashboardActiveonViewportVO, null, "Dashboard actif sur le viewport");
+
+        dashboard_page_id.set_many_to_one_target_moduletable_name(DashboardPageVO.API_TYPE_ID);
+        dashboard_viewport_id.set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
     }
 }

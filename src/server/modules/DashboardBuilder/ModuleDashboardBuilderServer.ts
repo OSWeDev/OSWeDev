@@ -3,15 +3,22 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTableController from '../../../shared/modules/DAO/ModuleTableController';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardActiveonViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
+import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import DashboardWidgetPositionVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetPositionVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -3550,6 +3557,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(DashboardViewportVO.API_TYPE_ID, this, this.postCreateDashboardViewport);
+        postCreateTrigger.registerHandler(DashboardPageVO.API_TYPE_ID, this, this.postCreateDashboardPage);
+        postCreateTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.postCreateDashboardPageWidget);
+
+        // const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -3697,5 +3711,102 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         e.i = max_i + 1;
 
         return;
+    }
+
+    private async postCreateDashboardPageWidget(widget: DashboardPageWidgetVO) {
+        if (!widget) {
+            return;
+        }
+
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        const liaisons_position: DashboardWidgetPositionVO[] = [];
+
+        for (const i in viewports) {
+            const viewport = viewports[i];
+
+            let liaison: DashboardWidgetPositionVO = new DashboardWidgetPositionVO();
+            liaison.x = widget?.x;
+            liaison.y = widget?.y;
+            liaison.w = widget?.w;
+            liaison.h = widget?.h;
+            liaison.dashboard_page_widget_id = widget.id;
+            liaison.dashboard_viewport_id = viewport.id;
+            liaison.show_widget_on_viewport = true;
+
+            liaisons_position.push(liaison);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_position);
+    }
+
+    private async postCreateDashboardPage(page: DashboardPageVO) {
+        if (!page) {
+            return;
+        }
+
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        const liens_actifs: DashboardActiveonViewportVO[] = [];
+
+        for (const i in viewports) {
+            const viewport = viewports[i];
+
+            let lien_actif: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            lien_actif.active = viewport?.is_default;
+            lien_actif.dashboard_page_id = page.id;
+            lien_actif.dashboard_viewport_id = viewport.id;
+
+            liens_actifs.push(lien_actif);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liens_actifs);
+    }
+
+    private async postCreateDashboardViewport(viewport: DashboardViewportVO) {
+        if (!viewport) {
+            return;
+        }
+
+        // Liaison des dashboards au viewport
+        const dbb_pages: DashboardPageVO[] = await query(DashboardPageVO.API_TYPE_ID).select_vos();
+        let liaisons_dbbs_viewports: DashboardActiveonViewportVO[] = [];
+
+        for (const i in dbb_pages) {
+            const dbb = dbb_pages[i];
+
+            const liaison: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            liaison.dashboard_page_id = dbb.id;
+            liaison.dashboard_viewport_id = viewport.id;
+
+            // À la création, on n'active le dashboard que sur le viewport par défaut
+            if (viewport.is_default) {
+                liaison.active = true;
+            } else {
+                liaison.active = false;
+            }
+
+            liaisons_dbbs_viewports.push(liaison);
+        }
+
+        // Liaison des widgets aux viewports
+        const widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID).select_vos();
+        let liaisons_widgets_viewports: DashboardWidgetPositionVO[] = [];
+
+        for (const i in widgets) {
+            const widget = widgets[i];
+
+            let widget_position: DashboardWidgetPositionVO = new DashboardWidgetPositionVO();
+            widget_position.x = widget?.x;
+            widget_position.y = widget?.y;
+            widget_position.w = widget?.w;
+            widget_position.h = widget?.h;
+            widget_position.show_widget_on_viewport = true;
+            widget_position.dashboard_page_widget_id = widget.id;
+            widget_position.dashboard_viewport_id = viewport.id;
+
+            liaisons_widgets_viewports.push(widget_position);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_dbbs_viewports);
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_widgets_viewports);
     }
 }

@@ -92,6 +92,7 @@ import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch2024032
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 import Patch20240917ParamShowCmsPages from './patchs/postmodules/Patch20240917ParamShowCmsPages';
+import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
 
 export default abstract class GeneratorBase {
 
@@ -202,6 +203,7 @@ export default abstract class GeneratorBase {
             // Patch20240409RetrieveOpenAIRunStats.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
             Patch20240917ParamShowCmsPages.getInstance(),
+            Patch20240923AddViewportDatas.getInstance(),
         ];
     }
 

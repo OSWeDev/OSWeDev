@@ -120,9 +120,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private dragged = null;
 
-    private breakpoints: { [key: string]: number } = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-    private cols: { [key: string]: number } = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
-
     private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
