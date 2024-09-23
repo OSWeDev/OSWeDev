@@ -793,6 +793,7 @@ export default class ModuleVar extends Module {
         ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_type, ModuleTableFieldVO.FIELD_TYPE_int, 'Type', true);
         ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().value_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date', false);
         ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().is_computing, ModuleTableFieldVO.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false);
+        ModuleTableFieldController.create_new(VarDataValueResVO.API_TYPE_ID, field_names<VarDataValueResVO>().notif_ts, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de notification', false);
 
         ModuleTableController.create_new(this.name, VarDataValueResVO, null, VarDataValueResVO.API_TYPE_ID);
     }

@@ -9,6 +9,7 @@ import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyLoginComponent.scss';
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -73,6 +74,9 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         await all_promises(promises);
 
         if (logged_id) {
+
+            ConsoleHandler.log('AccessPolicyLoginComponent mounted logged_id:' + logged_id + ':redirect_to:' + this.redirect_to);
+
             window.location = this.redirect_to as any;
         }
     }

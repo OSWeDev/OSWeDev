@@ -6,6 +6,7 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 @Component({
     template: require('./AccessPolicySigninComponent.pug'),
@@ -33,11 +34,15 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
 
         const logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
         if (logged_id) {
+            ConsoleHandler.log('Already logged, redirecting to ' + this.redirect_to);
+
             window.location = this.redirect_to as any;
         }
 
         const signin_allowed: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
         if (!signin_allowed) {
+            ConsoleHandler.log('Signin not allowed, redirecting to ' + this.redirect_to);
+
             window.location = this.redirect_to as any;
         }
     }

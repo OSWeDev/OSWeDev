@@ -1,5 +1,6 @@
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -179,44 +180,74 @@ export default class VarsTabsSubsController {
 
         await this.clean_old_subs();
 
-        const datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
+        // Si on a plusieurs notifs pour un même index de var, on envoie que la dernière
+        const params_by_index: { [index: string]: { ts_ms: number, var_data: VarDataBaseVO, is_computing: boolean } } = {};
         for (const parami in params) {
             const param = params[parami];
 
             for (const i in param.var_datas) {
                 const var_data = param.var_datas[i];
-                const users_tabs_subs = this._tabs_subs[var_data.index];
-                // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+                if (!params_by_index[var_data.index]) {
+                    params_by_index[var_data.index] = {
+                        ts_ms: param.ts_ms,
+                        var_data: var_data,
+                        is_computing: param.is_computing
+                    };
+                }
 
-                for (const user_id in users_tabs_subs) {
-                    const tabs_subs = users_tabs_subs[user_id];
+                if (param.ts_ms > params_by_index[var_data.index].ts_ms) {
+                    params_by_index[var_data.index] = {
+                        ts_ms: param.ts_ms,
+                        var_data: var_data,
+                        is_computing: param.is_computing
+                    };
+                }
+            }
+        }
 
-                    /**
-                     * On doit demander tous les sockets actifs pour une tab
-                     */
-                    for (const client_tab_id in tabs_subs) {
-                        const sub = tabs_subs[client_tab_id];
+        const datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
+        for (const parami in params_by_index) {
+            const param = params_by_index[parami];
+            const var_data = param.var_data;
+            const is_computing = param.is_computing;
+            const ts_ms = param.ts_ms;
 
-                        if (!sub) {
-                            continue;
+            const users_tabs_subs = this._tabs_subs[var_data.index];
+            // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+
+            for (const user_id in users_tabs_subs) {
+                const tabs_subs = users_tabs_subs[user_id];
+
+                /**
+                 * On doit demander tous les sockets actifs pour une tab
+                 */
+                for (const client_tab_id in tabs_subs) {
+                    const sub = tabs_subs[client_tab_id];
+
+                    if (!sub) {
+                        continue;
+                    }
+
+                    // On peut pas faire ça sinon on n'envoie pas les notifs pour is_cumputing par exemple
+                    // // On envoie l'info que si elle est plus récente que la dernière notif pour ce client
+                    // if (sub.last_notif_value_ts > var_data.value_ts) {
+                    //     continue;
+                    // }
+
+                    sub.last_notif_value_ts = var_data.value_ts;
+
+                    const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(user_id.toString()), client_tab_id);
+
+                    for (const j in sockets) {
+                        const socket: SocketWrapper = sockets[j];
+
+                        if (!datas_by_socketid_for_notif[socket.socketId]) {
+                            datas_by_socketid_for_notif[socket.socketId] = [];
                         }
+                        datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(is_computing).set_notif_ts(ts_ms));
 
-                        // On envoie l'info que si elle est plus récente que la dernière notif pour ce client
-                        if (sub.last_notif_value_ts >= var_data.value_ts) {
-                            continue;
-                        }
-
-                        sub.last_notif_value_ts = var_data.value_ts;
-
-                        const sockets: SocketWrapper[] = PushDataServerController.getUserSockets(parseInt(user_id.toString()), client_tab_id);
-
-                        for (const j in sockets) {
-                            const socket: SocketWrapper = sockets[j];
-
-                            if (!datas_by_socketid_for_notif[socket.socketId]) {
-                                datas_by_socketid_for_notif[socket.socketId] = [];
-                            }
-                            datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(param.is_computing));
+                        if (ConfigurationService.node_configuration.debug_vars_notifs) {
+                            ConsoleHandler.log('VarsTabsSubsController:notify_vardatas:socketid:' + socket.socketId + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':var_index:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + is_computing + ':' + ts_ms + ':');
                         }
                     }
                 }

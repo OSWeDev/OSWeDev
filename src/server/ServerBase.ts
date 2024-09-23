@@ -872,6 +872,11 @@ export default abstract class ServerBase {
                 if (req.url.indexOf('/f/') >= 0) {
                     // req.session.last_fragmented_url = req.url;
                     // à creuser mais si on stocke ici en session, ça pose des pbs ensuite quand on logas, ... et je suppode que le /f/ résoud le pb en fait directement donc j'aurai tendance à voir si on peut pas le supprimer tout simplement...
+
+                    if (ConfigurationService.node_configuration.log_login_redirects) {
+                        ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting:' + req.url + ' to ' + req.url.replace(/\/f\//, '/#/'));
+                    }
+
                     res.redirect(307, req
                         .url
                         .replace(/\/f\//, '/#/'));
@@ -1141,6 +1146,11 @@ export default abstract class ServerBase {
             // res.redirect('/');
 
             const PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+
+            if (ConfigurationService.node_configuration.log_login_redirects) {
+                ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting:logout to ' + PARAM_TECH_DISCONNECT_URL);
+            }
+
             res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
 
@@ -1495,16 +1505,29 @@ export default abstract class ServerBase {
     protected async redirect_login_or_home(req: Request, res: Response, url: string = null) {
         if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
             const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+            if (ConfigurationService.node_configuration.log_login_redirects) {
+                ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to login:fullUrl:' + fullUrl + ':url:' + url + ':req.originalUrl:' + req.originalUrl);
+            }
+
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
             return;
         }
 
         if (req.session && req.session.last_fragmented_url) {
+            if (ConfigurationService.node_configuration.log_login_redirects) {
+                ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to login:req.session.last_fragmented_url:' + req.session.last_fragmented_url + ':url:' + url + ':req.originalUrl:' + req.originalUrl);
+            }
             req.session.last_fragmented_url = null;
+
             res.redirect(307, req
                 .url
                 .replace(/\/f\//, '/#/'));
             return;
+        }
+
+        if (ConfigurationService.node_configuration.log_login_redirects) {
+            ConsoleHandler.log('ServerBase:redirect_login_or_home:redirecting to home:url:' + url + ':req.originalUrl:' + req.originalUrl);
         }
 
         res.redirect(url ? url : '/');

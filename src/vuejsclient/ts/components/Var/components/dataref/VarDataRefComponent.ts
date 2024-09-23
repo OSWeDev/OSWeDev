@@ -23,6 +23,7 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
 import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
@@ -111,7 +112,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: true, trailing: true });
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
@@ -131,7 +132,18 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
-            this.var_data_updater.bind(this),
+            (async (varData: VarDataBaseVO | VarDataValueResVO) => {
+
+                if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                    if (varData) {
+                        ConsoleHandler.log('VarDataRefComponent:varUpdateCallbacks:' + varData.index + ':' + varData.value + ':' + varData.value_ts + ':' + varData.value_type + ':');
+                    } else {
+                        ConsoleHandler.log('VarDataRefComponent:varUpdateCallbacks:null');
+                    }
+                }
+
+                await this.var_data_updater();
+            }).bind(this),
             VarUpdateCallback.VALUE_TYPE_ALL
         )
     };
@@ -496,7 +508,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         return this.var_data_value;
     }
 
-    @Watch('var_data')
+    @Watch('var_data', { deep: true })
     private onchange_var_data() {
         this.debounce_onchange_var_data();
     }
@@ -627,12 +639,23 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private var_data_updater() {
         if (!this.var_param) {
+            if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                ConsoleHandler.log('var_data_updater:null');
+            }
             this.var_data = null;
             return;
         }
 
 
         this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
+
+        if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+            if (this.var_data) {
+                ConsoleHandler.log('var_data_updater:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
+            } else {
+                ConsoleHandler.log('var_data_updater:' + this.var_param.index + ':null');
+            }
+        }
     }
 
     private async mounted() {
@@ -754,7 +777,16 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private set_is_being_updated() {
-        this.is_being_updated = !this.var_data || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+
+        if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+            if (this.var_data) {
+                ConsoleHandler.log('set_is_being_updated:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
+            } else {
+                ConsoleHandler.log('set_is_being_updated:' + this.var_param.index + ':null');
+            }
+        }
+
+        this.is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }
 
     private set_var_data_value() {

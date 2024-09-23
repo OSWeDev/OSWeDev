@@ -1,10 +1,17 @@
-import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import NotifVardatasParam from '../../notifs/NotifVardatasParam';
+import VarsTabsSubsController from '../../VarsTabsSubsController';
 import VarsProcessBase from './VarsProcessBase';
 
 export default class VarsProcessNotifyStart extends VarsProcessBase {
+
+    private static instance: VarsProcessNotifyStart = null;
+
+    private constructor() {
+        super('VarsProcessNotifyStart', VarDAGNode.TAG_0_CREATED, VarDAGNode.TAG_1_NOTIFYING_START, VarDAGNode.TAG_1_NOTIFIED_START, 2, true);
+    }
 
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
@@ -12,12 +19,6 @@ export default class VarsProcessNotifyStart extends VarsProcessBase {
             VarsProcessNotifyStart.instance = new VarsProcessNotifyStart();
         }
         return VarsProcessNotifyStart.instance;
-    }
-
-    private static instance: VarsProcessNotifyStart = null;
-
-    private constructor() {
-        super('VarsProcessNotifyStart', VarDAGNode.TAG_0_CREATED, VarDAGNode.TAG_1_NOTIFYING_START, VarDAGNode.TAG_1_NOTIFIED_START, 2, true);
     }
 
     protected worker_sync(node: VarDAGNode): boolean {
@@ -47,7 +48,7 @@ export default class VarsProcessNotifyStart extends VarsProcessBase {
         }
 
         // Les notifs arrivent dans le désordre, on désactive pour tester
-        // await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
+        await VarsTabsSubsController.notify_vardatas(notifVardatasParams);
         return true;
     }
 }

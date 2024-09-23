@@ -7,7 +7,7 @@
 
     .document_name {{ document.name }}
 
-    .document_type(v-if="document.show_icon")
+    .document_type(v-if="document.show_icon && !hide_icon")
         template(v-if='document.type==type_video')
             i.fa.fa-solid.fa-youtube-play.fa-fw(aria-hidden="true")
         template(v-if='document.type==type_pdf')

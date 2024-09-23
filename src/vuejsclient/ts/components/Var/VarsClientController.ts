@@ -8,10 +8,10 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
+import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
-
     /**
      * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
@@ -22,18 +22,6 @@ export default class VarsClientController {
      * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
      */
     public static cached_var_datas: { [index: string]: VarDataValueResVO } = {};
-
-    public static get_CB_UID(): number {
-        return this.CB_UID++;
-    }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarsClientController {
-        if (!VarsClientController.instance) {
-            VarsClientController.instance = new VarsClientController();
-        }
-        return VarsClientController.instance;
-    }
 
     private static CB_UID: number = 0;
     private static instance: VarsClientController = null;
@@ -64,6 +52,20 @@ export default class VarsClientController {
         // On lance aussi un process pour update les subs côté serveur et pas les perdre sur un timeout
         this.update_params_registration().then().catch((err) => ConsoleHandler.error(err));
     }
+
+
+    public static get_CB_UID(): number {
+        return this.CB_UID++;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VarsClientController {
+        if (!VarsClientController.instance) {
+            VarsClientController.instance = new VarsClientController();
+        }
+        return VarsClientController.instance;
+    }
+
 
     /**
      * L'objectif est de stocker les registered_params et d'envoyer une requête pour avoir une valeur :
@@ -263,6 +265,10 @@ export default class VarsClientController {
             const registered_var = VarsClientController.registered_var_params[var_data.index];
             const uids_to_remove: number[] = [];
 
+            if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                ConsoleHandler.log('VarsClientController:notifyCallbacks:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':registered_var:' + !!registered_var);
+            }
+
             if (!registered_var) {
                 continue;
             }
@@ -273,14 +279,39 @@ export default class VarsClientController {
                 // cas d'un callback en VALID uniquement
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_VALID) && (
                     (!var_data) ||
+                    (!VarsClientController.cached_var_datas[var_data.index]) ||
                     (typeof VarsClientController.cached_var_datas[var_data.index].value == 'undefined') ||
                     (!VarsClientController.cached_var_datas[var_data.index].value_ts))
                 ) {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:ignore callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:ignore callback: no var_data');
+                        }
+                    }
+
                     continue;
                 }
 
                 if (callback.callback) {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:push callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:push callback: no var_data');
+                        }
+                    }
+
                     promises.push(callback.callback(var_data));
+                } else {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:no callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:no callback: no var_data');
+                        }
+                    }
                 }
 
                 if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -289,6 +320,10 @@ export default class VarsClientController {
             }
 
             for (const j in uids_to_remove) {
+                if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                    ConsoleHandler.log('VarsClientController:notifyCallbacks:deleteuid:' + uids_to_remove[j]);
+                }
+
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
@@ -342,6 +377,7 @@ export default class VarsClientController {
                 this.throttled_server_registration(check_params);
             }
         } catch (error) {
+            //
         }
         this.prepare_next_check();
     }

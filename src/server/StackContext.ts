@@ -55,7 +55,10 @@ export default class StackContext {
      */
     public static get(key: string) {
         if (StackContext.ns && StackContext.ns.active) {
-            return StackContext.ns.get(key);
+            const res = StackContext.ns.get(key);
+            if (typeof res !== 'undefined') {
+                return res;
+            }
         }
         return null;
     }

@@ -1,8 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import DocumentVO from '../../../../../shared/modules/Document/vos/DocumentVO';
-import './DocumentComponent.scss';
 import VueComponentBase from '../../VueComponentBase';
+import './DocumentComponent.scss';
 
 @Component({
     template: require('./DocumentComponent.pug'),
@@ -12,6 +12,10 @@ export default class DocumentComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private document: DocumentVO;
+
+    @Prop({ default: false })
+    private hide_icon: boolean;
+
     private classnames: string[] = [
         'XS',
         'S',
