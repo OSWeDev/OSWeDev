@@ -147,22 +147,21 @@
         template(v-else)
 
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
-                div(:class="screen_type")
-                    .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
-                        i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
-                        i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+                .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
+                    i.fa-duotone.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                    i.fa-duotone.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
 
-                    .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
-                        Dashboardbuilderwidgetscomponent(
-                            :dashboard='dashboard' 
-                            :selected_widget='selected_widget'
-                            :dashboard_page='page'
-                            :dashboard_pages='pages'   
+                .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
+                    Dashboardbuilderwidgetscomponent(
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget'
+                        :dashboard_page='page'
+                        :dashboard_pages='pages'   
 
-                            @update_layout_widget='update_layout_widget'
-                            @added_widget_to_page='added_widget_to_page'
-                            @close_widget_options='close_widget_options'
-                        )
+                        @update_layout_widget='update_layout_widget'
+                        @added_widget_to_page='added_widget_to_page'
+                        @close_widget_options='close_widget_options'
+                    )
 
             .row(v-if='show_build_page')
                 .col-sm-12.builder_wrapper

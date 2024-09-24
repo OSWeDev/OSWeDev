@@ -29,6 +29,7 @@ import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -46,6 +47,8 @@ import { field_names } from '../../../../../shared/tools/ObjectHandler';
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
+
+    public static GridLayout_DEFAULT_NB_COLUMNS: number = 12;
 
     public static GridLayout_TOTAL_HEIGHT: number = 720;
     public static GridLayout_TOTAL_ROWS: number = 72;
@@ -106,6 +109,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @Prop({ default: true })
     private editable: boolean;
 
+    @Prop()
+    private viewports: DashboardViewportVO[];
+
+    @Prop()
+    private selected_viewport: DashboardViewportVO;
+
     private elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
     private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
@@ -120,6 +129,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private dragged = null;
 
+    private nb_columns: number = DashboardBuilderBoardComponent.GridLayout_DEFAULT_NB_COLUMNS;
+
     private throttled_rebuild_page_layout = ThrottleHelper.declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
@@ -133,6 +144,15 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     get resizable(): boolean {
         return this.editable;
+    }
+
+    @Watch("selected_viewport", { immediate: true })
+    private async onchange_selected_viewport() {
+        if (!this.selected_viewport) {
+            return;
+        }
+
+        this.nb_columns = this.selected_viewport.nb_columns;
     }
 
     @Watch("dashboard", { immediate: true })
@@ -203,6 +223,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
+
+        this.nb_columns = this.selected_viewport?.nb_columns ? this.selected_viewport.nb_columns : DashboardBuilderBoardComponent.GridLayout_DEFAULT_NB_COLUMNS;
     }
 
     private async rebuild_page_layout() {

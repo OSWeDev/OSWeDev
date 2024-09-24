@@ -45,6 +45,7 @@ import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -148,6 +149,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private viewports: DashboardViewportVO[] = [];
+    private selected_viewport: DashboardViewportVO = null;
+
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
     get has_navigation_history(): boolean {
@@ -172,6 +176,15 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return this.dashboards;
+    }
+
+    get viewports_options() {
+
+        if (!this.viewports) {
+            return [];
+        }
+
+        return this.viewports;
     }
 
     get pages_name_code_text(): string[] {
@@ -251,6 +264,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return dashboard.id + ' | ' + this.t(dashboard.translatable_name_code_text);
+    }
+
+    private viewport_label(viewport: DashboardViewportVO): string {
+        if ((viewport == null) || (typeof viewport == 'undefined')) {
+            return '';
+        }
+
+        return viewport.id + ' | ' + viewport.name + ' | ' + viewport.screen_min_width + ' px | ' + viewport.nb_columns + this.label('dashboard_builder.viewport.columns');
     }
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
@@ -1123,6 +1144,17 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         );
         if (this.dashboards?.length > 0) {
             this.dashboard = this.dashboards[0];
+        }
+
+        if (!this.selected_viewport) {
+
+            if (!this.viewports) {
+                this.viewports = await query(DashboardViewportVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().id))
+                    .select_vos();
+            }
+
+            this.selected_viewport = this.viewports.find((v) => v.is_default);
         }
     }
 

@@ -47,6 +47,7 @@ import DashboardBuilderWidgetsController from '../../dashboard_builder/widgets/D
 import IExportableWidgetOptions from '../../dashboard_builder/widgets/IExportableWidgetOptions';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -147,6 +148,9 @@ export default class CMSBuilderComponent extends VueComponentBase {
     private collapsed_fields_wrapper_2: boolean = true;
 
     private can_use_clipboard: boolean = false;
+
+    private viewports: DashboardViewportVO[] = [];
+    private selected_viewport: DashboardViewportVO = null;
 
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
@@ -1106,6 +1110,15 @@ export default class CMSBuilderComponent extends VueComponentBase {
         }
 
         this.show_cms_dashboard_pages = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDashboardBuilder.PARAM_NAME_SHOW_CMS_DASHBOARD_PAGES);
+
+        if (!this.selected_viewport) {
+
+            if (!this.viewports) {
+                this.viewports = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+            }
+
+            this.selected_viewport = this.viewports.find((v) => v.is_default);
+        }
     }
 
     private beforeDestroy() {

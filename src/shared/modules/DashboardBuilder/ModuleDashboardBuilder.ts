@@ -635,6 +635,7 @@ export default class ModuleDashboardBuilder extends Module {
         const field_name = ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom');
         ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, ModuleTableFieldVO.FIELD_TYPE_int, 'Largeur minimum de l\'écran');
         ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().is_default, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Viewport par défaut ?');
+        ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de colonnes');
 
         ModuleTableController.create_new(this.name, DashboardViewportVO, field_name, "Viewport de Dashboard");
     }
@@ -647,7 +648,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);
         ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().w, ModuleTableFieldVO.FIELD_TYPE_int, 'w', true, true, 0);
         ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().h, ModuleTableFieldVO.FIELD_TYPE_int, 'h', true, true, 0);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_int, 'show_widget_on_viewport', true, true, true);
+        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
 
         ModuleTableController.create_new(this.name, DashboardWidgetPositionVO, null, "Position de widget");
 

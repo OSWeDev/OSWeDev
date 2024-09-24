@@ -18,5 +18,6 @@ export default class DashboardViewportVO extends AbstractVO implements IDistantV
 
     public screen_min_width: number;
     public is_default: boolean;
+    public nb_columns: number;
 
 }
