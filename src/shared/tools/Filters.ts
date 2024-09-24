@@ -90,7 +90,8 @@ export default class FilterObj<T, U, K> {
 
 const readToTstzFilter = (
     value: number | string,
-    segment_type: number = TimeSegment.TYPE_DAY
+    segment_type: number = TimeSegment.TYPE_DAY,
+    localized: boolean = true,
 ): string => {
     if (value == null || typeof value == "undefined") {
         return null;
@@ -109,7 +110,7 @@ const readToTstzFilter = (
         return null;
     }
 
-    return Dates.format_segment(value, segment_type);
+    return Dates.format_segment(value, segment_type, localized);
 };
 
 const writeToTstzFilter = (value: string | number): number => {
