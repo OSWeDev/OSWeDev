@@ -1,3 +1,4 @@
+import { debug } from 'console';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
@@ -78,7 +79,7 @@ export default class VarsClientController {
      *                  le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
      * @remark rajoute les callbacks dans registered_var_params pour les var_params spécifiés
      */
-    public async registerParams(
+    public registerParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null
     ) {
@@ -99,16 +100,29 @@ export default class VarsClientController {
 
             if (!VarsClientController.registered_var_params[var_param.index]) {
 
+                //vvvvvv! DEBUG DELETE ME !vvvvvv
+                if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                    ConsoleHandler.warn('register new index:' + var_param.index);
+                }
+                //^^^^^^! DEBUG DELETE ME !^^^^^^
+
                 needs_registration[var_param.index] = var_param;
                 VarsClientController.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
-                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             } else {
+
+                //vvvvvv! DEBUG DELETE ME !vvvvvv
+                if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                    ConsoleHandler.warn('register nb_registrations++:' + var_param.index + ':' + VarsClientController.registered_var_params[var_param.index].nb_registrations + '++');
+                }
+                //^^^^^^! DEBUG DELETE ME !^^^^^^
+
                 VarsClientController.registered_var_params[var_param.index].nb_registrations++;
 
                 if (callbacks) {
-                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             }
         }
@@ -183,7 +197,7 @@ export default class VarsClientController {
             }, value_type);
             callbacks[callback.UID] = callback;
 
-            await this.registerParams(filtered_var_params, callbacks);
+            this.registerParams(filtered_var_params, callbacks);
         });
     }
 
@@ -201,7 +215,7 @@ export default class VarsClientController {
                 value_type
             );
 
-            await this.registerParams([var_param], { [callback.UID]: callback });
+            this.registerParams([var_param], { [callback.UID]: callback });
         });
     }
 
@@ -212,7 +226,7 @@ export default class VarsClientController {
      * @param var_params Les paramètres à désinscrire
      * @param callbacks Les callbacks associés - les mêmes uids que lors du register
      */
-    public async unRegisterParams(
+    public unRegisterParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null
     ) {
@@ -302,6 +316,14 @@ export default class VarsClientController {
                             ConsoleHandler.log('VarsClientController:notifyCallbacks:push callback: no var_data');
                         }
                     }
+
+                    //vvvvvv! DEBUG DELETE ME !vvvvvv
+                    if (var_data && var_data.index && var_data.index.startsWith('4W|') && var_data.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                        ConsoleHandler.warn('Calling callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        // // eslint-disable-next-line no-debugger
+                        // debugger;
+                    }
+                    //^^^^^^! DEBUG DELETE ME !^^^^^^
 
                     promises.push(callback.callback(var_data));
                 } else {

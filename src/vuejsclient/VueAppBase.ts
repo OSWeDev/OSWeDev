@@ -33,6 +33,7 @@ import Module from '../shared/modules/Module';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import ModulesManager from '../shared/modules/ModulesManager';
 import StatsController from "../shared/modules/Stats/StatsController";
+import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -40,6 +41,7 @@ import LocaleManager from '../shared/tools/LocaleManager';
 import { all_promises } from "../shared/tools/PromiseTools";
 import VueAppController from './VueAppController';
 import PWAController from "./public/pwa/PWAController";
+import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 import VarsClientController from "./ts/components/Var/VarsClientController";
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
@@ -56,8 +58,6 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import ModuleSuiviCompetences from "../shared/modules/SuiviCompetences/ModuleSuiviCompetences";
-import SuiviCompetencesVueController from "./ts/components/SuiviCompetences/SuiviCompetencesVueController";
 
 // const loadComponent = async (component) => {
 //     try {
@@ -455,7 +455,7 @@ export default abstract class VueAppBase {
         Vue.component('v-slider', async () => (await import('vue-slider-component')));
         Vue.component('vue-dropzone', async () => (await import('vue2-dropzone')));
         Vue.component('var-data', () => import('./ts/components/Var/components/dataref/VarDataRefComponent'));
-        Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
+        // Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
         Vue.component('vars-data', () => import('./ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
         Vue.component('var-desc', () => import('./ts/components/Var/components/desc/VarDescComponent'));
         Vue.component('var-if', () => import('./ts/components/Var/components/varif/VarDataIfComponent'));
@@ -538,7 +538,12 @@ export default abstract class VueAppBase {
                 return message;
             }
 
-            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.error(err));
+            try {
+
+                self.unregisterVarsBeforeUnload();
+            } catch (error) {
+                ConsoleHandler.error(error);
+            }
 
             return null;
         };
@@ -547,7 +552,7 @@ export default abstract class VueAppBase {
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
-    protected async unregisterVarsBeforeUnload() {
+    protected unregisterVarsBeforeUnload() {
         if (VarsClientController.registered_var_params) {
             const params: VarDataBaseVO[] = [];
             for (const i in VarsClientController.registered_var_params) {
@@ -555,7 +560,7 @@ export default abstract class VueAppBase {
                 params.push(wrapper.var_param);
             }
             if (params.length) {
-                await VarsClientController.getInstance().unRegisterParams(params);
+                VarsClientController.getInstance().unRegisterParams(params);
             }
         }
     }

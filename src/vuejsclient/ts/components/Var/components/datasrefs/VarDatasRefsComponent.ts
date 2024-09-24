@@ -9,6 +9,8 @@ import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from './paramselect/VarDatasRefsParamSelectComponent';
 import './VarDatasRefsComponent.scss';
+import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./VarDatasRefsComponent.pug')
@@ -32,9 +34,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     @Prop({ default: null })
     public prefix: string;
 
@@ -54,21 +53,35 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
     private this_uid: number = VarDatasRefsComponent.UID++;
 
+    private currently_registered_params: VarDataBaseVO[] = null;
+    private semaphore_unregister: boolean = false;
+    private semaphore_register: boolean = false;
+
+    private been_destroyed: boolean = false;
+
     private var_datas: VarDataValueResVO[] = [];
-    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.declare_throttle_without_args(this.var_datas_updater.bind(this), 200, { leading: false, trailing: true });
+
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200, { leading: true, trailing: true });
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200, { leading: true, trailing: true });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
-    };
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
+            (async (varData: VarDataBaseVO | VarDataValueResVO) => {
 
-    private var_datas_updater() {
-        const var_datas: VarDataValueResVO[] = [];
-        for (const i in this.var_params) {
-            const var_param = this.var_params[i];
-            var_datas.push(VarsClientController.cached_var_datas[var_param.index]);
-        }
-        this.var_datas = var_datas;
-    }
+                if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                    if (varData) {
+                        ConsoleHandler.log('VarDatasRefsComponent:varUpdateCallbacks:' + varData.index + ':' + varData.value + ':' + varData.value_ts + ':' + varData.value_type + ':');
+                    } else {
+                        ConsoleHandler.log('VarDatasRefsComponent:varUpdateCallbacks:null');
+                    }
+                }
+
+                await this.throttled_var_datas_updater();
+            }).bind(this),
+            VarUpdateCallback.VALUE_TYPE_ALL
+        )
+    };
 
     get is_being_updated(): boolean {
 
@@ -125,48 +138,24 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         return false;
     }
 
-    private async destroyed() {
-        await this.unregister(this.var_params);
-    }
-
-    private async mounted() {
-        await this.intersect_in();
-    }
-
-    private async intersect_in() {
-        this.entered_once = true;
-
-        await this.register(this.var_params);
-    }
-
-    private async intersect_out() {
-        await this.unregister(this.var_params);
-    }
-
-    private async register(var_params: VarDataBaseVO[]) {
-        if (!this.entered_once) {
-            return;
+    get is_computing() {
+        if (!this.var_datas) {
+            return false;
         }
 
-        if (var_params && var_params.length) {
-            await VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
-        }
-    }
+        for (const i in this.var_datas) {
+            const var_data = this.var_datas[i];
 
-    private async unregister(var_params: VarDataBaseVO[]) {
-        if (!this.entered_once) {
-            return;
+            if (var_data && var_data.is_computing) {
+                return true;
+            }
         }
 
-        this.var_datas = null;
-
-        if (var_params && var_params.length) {
-            await VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
-        }
+        return false;
     }
 
     @Watch('var_params')
-    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -177,13 +166,110 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
-        if (old_var_params && old_var_params.length) {
-            await this.unregister(old_var_params);
+        this.throttled_register();
+    }
+
+    private var_datas_updater() {
+        const var_datas: VarDataValueResVO[] = [];
+        for (const i in this.var_params) {
+            const var_param = this.var_params[i];
+            var_datas.push(VarsClientController.cached_var_datas[var_param.index]);
+        }
+        this.var_datas = var_datas;
+    }
+
+    private destroyed() {
+        this.been_destroyed = true;
+        this.unregister();
+    }
+
+    private mounted() {
+        this.intersect_in();
+    }
+
+    private async intersect_in() {
+        this.entered_once = true;
+
+        this.throttled_register();
+    }
+
+    // private async intersect_out() {
+    //     await this.unregister(this.var_params);
+    // }
+
+    private register() {
+        // if (!this.entered_once) {
+        //     return;
+        // }
+
+        if (this.semaphore_register) {
+            return;
+        }
+        this.semaphore_register = true;
+
+        const var_params = this.var_params;
+
+        // Si on a les mêmes params déjà enregistrés, on ne fait rien
+        if (VarsController.isSameParamArray(this.currently_registered_params, var_params)) {
+            this.semaphore_register = false;
+            return;
         }
 
-        if (new_var_params) {
-            await this.register(new_var_params);
+        // Changement de méthode : on a une seule liste registered à la fois.
+        //  Donc si des params sont déjà enregistrés, on les désenregistre avant d'enregistrer les nouveaux
+        if (this.currently_registered_params && this.currently_registered_params.length) {
+            this.unregister();
         }
+
+        if ((!var_params) || !var_params.length) {
+            return;
+        }
+
+        //vvvvvv! DEBUG DELETE ME !vvvvvv
+        if (var_params[1] && var_params[1].index && var_params[1].index.startsWith('4W|') && var_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
+            ConsoleHandler.warn('VarDatasRefsComponent:register:' + var_params[1].index);
+        }
+        //^^^^^^! DEBUG DELETE ME !^^^^^^
+
+        // De manière générale, si on est destroyed, on ne fait rien
+        if (this.been_destroyed) {
+            this.semaphore_register = false;
+            return;
+        }
+
+        VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
+        this.currently_registered_params = var_params;
+        this.semaphore_register = false;
+    }
+
+    private unregister() {
+
+        if (this.semaphore_unregister) {
+            return;
+        }
+        this.semaphore_unregister = true;
+
+        // if (!this.entered_once) {
+        //     return;
+        // }
+
+        const currently_registered_params = this.currently_registered_params;
+        this.currently_registered_params = null;
+
+        if ((!currently_registered_params) || !currently_registered_params.length) {
+            this.semaphore_unregister = false;
+            return;
+        }
+
+        //vvvvvv! DEBUG DELETE ME !vvvvvv
+        if (currently_registered_params[1] && currently_registered_params[1].index && currently_registered_params[1].index.startsWith('4W|') && currently_registered_params[1].index.endsWith('|1&3|P5@A;&PR:qo')) {
+            ConsoleHandler.warn('VarDatasRefsComponent:unregister:' + currently_registered_params[1].index);
+        }
+        //^^^^^^! DEBUG DELETE ME !^^^^^^
+
+        VarsClientController.getInstance().unRegisterParams(currently_registered_params, this.varUpdateCallbacks);
+        this.var_datas = null;
+        this.semaphore_unregister = false;
     }
 
     private selectVar() {
@@ -203,21 +289,5 @@ export default class VarDatasRefsComponent extends VueComponentBase {
                 scrollable: true
             }
         );
-    }
-
-    get is_computing() {
-        if (!this.var_datas) {
-            return false;
-        }
-
-        for (const i in this.var_datas) {
-            const var_data = this.var_datas[i];
-
-            if (var_data && var_data.is_computing) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

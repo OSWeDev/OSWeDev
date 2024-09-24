@@ -30,7 +30,7 @@ export default class VarsDirective {
     private constructor() {
     }
 
-    public async bind(el, binding, vnode) {
+    public bind(el, binding, vnode) {
 
         if (!binding || !binding.value) {
             return;
@@ -52,11 +52,11 @@ export default class VarsDirective {
 
             VarsDirective.getInstance().callbacks[var_param.index] = VarsDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
 
-            await VarsClientController.getInstance().registerParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+            VarsClientController.getInstance().registerParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
         }
     }
 
-    public async unbind(el, binding, vnode) {
+    public unbind(el, binding, vnode) {
 
         if (!binding || !binding.value) {
             return;
@@ -78,7 +78,7 @@ export default class VarsDirective {
 
             VarsDirective.getInstance().callbacks[var_param.index] = VarsDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
 
-            await VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+            VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
         }
     }
 

@@ -177,7 +177,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     }
 
     @Watch('var_params_condition', { immediate: true })
-    private async onChangeVarParam(new_var_param: VarDataBaseVO[], old_var_param: VarDataBaseVO[]) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO[], old_var_param: VarDataBaseVO[]) {
         let new_is_empty = false;
         let old_is_empty = false
         if (new_var_param.length > 0 && old_var_param.length > 0) {
@@ -203,12 +203,12 @@ export default class VarWidgetComponent extends VueComponentBase {
 
         if (!old_is_empty) {
             console.log('unregister')
-            await VarsClientController.getInstance().unRegisterParams(old_var_param, this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams(old_var_param, this.varUpdateCallbacks);
         }
 
         if (!new_is_empty) {
             console.log('register')
-            await VarsClientController.getInstance().registerParams(new_var_param, this.varUpdateCallbacks);
+            VarsClientController.getInstance().registerParams(new_var_param, this.varUpdateCallbacks);
         }
 
     }
