@@ -82,6 +82,7 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -204,7 +205,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private already_use_load_widgets_prevalidation: boolean = false;
 
     private export_to: boolean = false; 
-    private export_limit: number = 10; 
+    private export_limit: NumRange = null; 
     private export_count: number = 0;
     private selected_filevo_id_export = []; 
     private has_selected_all: boolean = false;
@@ -2386,7 +2387,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async select_row(row: any) {
-        if(this.export_limit == 1) {
+        if(this.export_limit.max == 1 && this.export_limit.max_inclusiv) {
             this.selected_filevo_id_export.push(row['file___id']);
             this.do_export();
         }
@@ -2402,8 +2403,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async do_export() {
-        if(this.export_count > this.export_limit) {
-            return;
+        if(this.export_limit.max_inclusiv) {
+            if(this.export_count > this.export_limit.max) {
+                return;
+            }
+        } else {
+            if(this.export_count >= this.export_limit.max) {
+                return;
+            }
         }
         window.opener.postMessage(this.selected_filevo_id_export);
         window.close();
@@ -3084,7 +3091,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
-
+            this.has_selected_all = false;
+            this.selected_rows = [];
+            this.export_count = 0;
             this.selected_vos = {};
 
             await this.throttle_do_update_visible_options();

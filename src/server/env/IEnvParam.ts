@@ -128,4 +128,5 @@ export default interface IEnvParam {
     unblock_openai_push_to_openai_gpt_assistant?: boolean;
 
     silent_no_sort_by_but_query_limit?: boolean;
+    dashboard_export_page_id?: number;
 }

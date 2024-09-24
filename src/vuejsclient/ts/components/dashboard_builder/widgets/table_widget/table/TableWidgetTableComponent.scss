@@ -1,3 +1,5 @@
+@import "skin-variables.scss";
+
 .table_widget_component {
 
     overflow-y: auto;
@@ -19,7 +21,7 @@
         height: -webkit-fill-available;
         
         .selected {
-            background: #f16f0b77;
+            background: lighten($color: $button_primary_bg_color, $amount: 50%);
         }
         >.col-sm-12 {
             height: -webkit-fill-available;
@@ -70,15 +72,12 @@
             margin-bottom: 0.2em;
 
             .exceed {
-                background-color: red;
-                color:white;
                 border-radius: 20em;
                 padding: 0.2em;
                 text-align: center;
             }
 
             .no_exceed {
-                background-color: white;
                 border-radius: 20em;
                 padding: 0.2em;
                 text-align: center;

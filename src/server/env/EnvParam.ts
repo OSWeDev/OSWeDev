@@ -151,4 +151,7 @@ export default class EnvParam implements IEnvParam {
     public unblock_openai_push_to_openai_gpt_assistant?: boolean = false;
 
     public silent_no_sort_by_but_query_limit?: boolean = true;
+
+    // Dashboard export
+    public dashboard_export_page_id?: number = null;
 }

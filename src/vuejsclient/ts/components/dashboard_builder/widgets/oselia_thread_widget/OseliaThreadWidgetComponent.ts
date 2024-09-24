@@ -36,6 +36,8 @@ import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMess
 import './OseliaThreadWidgetComponent.scss';
 import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent';
 import ConfigurationService from '../../../../../../server/env/ConfigurationService';
+import EnvHandler from '../../../../../../shared/tools/EnvHandler';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -109,7 +111,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private link_image_url: string = null;
     private is_expanded: boolean = false;
     private frame: HTMLElement = null;
-    private dashboard_system_id: number = 30;
     private wait_for_data: boolean = false;
     private data_received: any = null;
     private export_num: number = 4;
@@ -122,7 +123,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
-        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/` + this.dashboard_system_id;
+        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/` + 30;
     }
 
     @Watch('get_too_many_assistants')
@@ -264,7 +265,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async listen_for_message() {
-        (window as any).instructions = {'Export': this.export_num};
+        const num_range : NumRange = NumRange.createNew(0,4,true,true,0);
+        (window as any).instructions = {'Export': num_range};
 
         const export_window = window.open(this.file_system_url);
         this.wait_for_data = true;

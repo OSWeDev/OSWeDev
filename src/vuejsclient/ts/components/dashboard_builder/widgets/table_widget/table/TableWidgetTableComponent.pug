@@ -42,11 +42,11 @@ include ../../../../../../views/mixins/loading.pug
                             i.fa-duotone.fa-download.fa-lg.btn_icon
                             | {{ label('crud.actions.select_all') }}
                     .export_button(v-if="export_count>0") 
-                        button.btn.btn-sm.btn-outline-dark(@click="do_export" :disabled="(export_count > export_limit)")
+                        button.btn.btn-sm.btn-outline-dark(@click="do_export" :disabled="( (export_limit.min_inclusiv ? (export_count < export_limit.min) : (export_count <= export_limit.min) ) || ( export_limit.max_inclusiv ? (export_count > export_limit.max) : (export_count >= export_limit.max) ))")
                             i.fa-duotone.fa-download.fa-lg.btn_icon
                             | {{ label('crud.actions.export_to') }}
                     .col-sm-2
-                        .selected_count(:class="(export_count > export_limit) ? 'exceed' : 'no_exceed' ") {{ export_count + ' / ' + export_limit }}
+                        .selected_count(:class=" ( ((export_limit.min_inclusiv ? (export_count < export_limit.min) : (export_count <= export_limit.min) ) ||  (export_limit.max_inclusiv ? (export_count > export_limit.max) : (export_count >= export_limit.max) ) ) ? 'bg-danger exceed' :  'bg-success no_exceed' )") {{ export_count + ' / ' + (export_limit.max_inclusiv ? export_limit.max : export_limit.max-1 ) }}
 
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none

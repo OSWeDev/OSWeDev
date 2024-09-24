@@ -15,6 +15,7 @@ export default class EnvHandler {
     public static zoom_auto: boolean = false;
     public static debug_throttle_uid: boolean = false;
     public static logo_path: string = null;
+    public static dashboard_export_page_id: number = null;
 
     private constructor() { }
 }
