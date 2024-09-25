@@ -42,9 +42,10 @@ export default class ModuleOselia extends Module {
 
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleOselia.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.BO_ACCESS';
-
+    public static POLICY_SELECT_THREAD_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.SELECT_THREAD_ACCESS';
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
-
+    public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
+    public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
     public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
 
     /**

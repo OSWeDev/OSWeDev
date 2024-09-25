@@ -444,19 +444,19 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                             messages_contents += "\n" + new_content;
                         }
                     }
-                    const new_thread = (await GPTAssistantAPIServerController.get_thread(null,null,assistant.id)).thread_vo;
-                    
+                    const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
+
                     const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt'
                     const text_file = new FileVO();
                     text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
                     text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
-                    
+
                     fs.writeFileSync(text_file.path, messages_contents, 'utf8');
                     GPTAssistantAPIServerController.ask_assistant(assistant.gpt_assistant_id, new_thread.gpt_thread_id, new_thread.thread_title, message, [text_file], null, true);
                     const action = new TeamsWebhookContentActionOpenUrlVO();
                     action.set_title("Ouvrir le fichier texte");
                     action.set_url(ConfigurationService.node_configuration.base_url + text_file.path.substring(2));
-                    TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver","Bonjour, un bug a été remonté !", new_thread.id, [action]);
+                    TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver", "Bonjour, un bug a été remonté !", new_thread.id, [action]);
 
                     return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran"
                 case 1:
@@ -492,6 +492,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, DefaultTranslationVO.create_new({
             'fr-fr': 'Administration d\'Osélia'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
@@ -544,6 +545,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         POLICY_THREAD_FEEDBACK_ACCESS.translatable_name = ModuleOselia.POLICY_BO_ACCESS;
         POLICY_THREAD_FEEDBACK_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_THREAD_FEEDBACK_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Feedback sur les threads d\'Osélia'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_SELECT_THREAD_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_SELECT_THREAD_ACCESS.group_id = group.id;
+        POLICY_SELECT_THREAD_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_SELECT_THREAD_ACCESS.translatable_name = ModuleOselia.POLICY_SELECT_THREAD_ACCESS;
+        POLICY_SELECT_THREAD_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_SELECT_THREAD_ACCESS, DefaultTranslationVO.create_new({
+            'fr-fr': 'Permission d\'accéder à n\'importe quel thread'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 

@@ -1,0 +1,19 @@
+@import 'skin-variables.scss';
+
+.select_threads {
+    position: fixed;
+    right: 2%;
+    button {
+        background-color: $button_primary_bg_color;
+        font-size: 18px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        border: none;
+        padding: 6px;
+        color:white;
+    }
+
+    button:hover {
+        background-color: $button_primary_active_bg_color;
+    }
+}

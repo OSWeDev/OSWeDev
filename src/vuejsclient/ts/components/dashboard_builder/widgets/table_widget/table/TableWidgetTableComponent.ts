@@ -204,11 +204,13 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private show_export_alert: boolean = false;
     private already_use_load_widgets_prevalidation: boolean = false;
 
-    private export_to: boolean = false; 
-    private export_limit: NumRange = null; 
+    private export_to: boolean = false;
+    private export_limit: NumRange = null;
     private export_count: number = 0;
-    private selected_filevo_id_export = []; 
+    private selected_row_export = [];
     private has_selected_all: boolean = false;
+    private max_export_limit: number = null;
+    private min_export_limit: number = null;
 
     private throttle_update_query_strings = ThrottleHelper.declare_throttle_without_args(this.update_query_strings.bind(this), 100);
 
@@ -2387,59 +2389,66 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     private async select_row(row: any) {
-        if(this.export_limit.max == 1 && this.export_limit.max_inclusiv) {
-            this.selected_filevo_id_export.push(row['file___id']);
+        if (this.max_export_limit - this.min_export_limit == 1) {
+            this.selected_row_export.push(row);
             this.do_export();
         }
         if (row['selected'] == false) {
-                row['selected'] = !row['selected'];
-                this.export_count++;
-                this.selected_filevo_id_export.push(row['file___id']);
+            row['selected'] = !row['selected'];
+            this.export_count++;
+            this.selected_row_export.push(row);
         } else {
             row['selected'] = !row['selected'];
             this.export_count--;
-            this.selected_filevo_id_export.splice(this.selected_filevo_id_export.indexOf(row['file___id'],1));
+            this.selected_row_export.splice(this.selected_row_export.indexOf(row, 1));
         }
     }
 
     private async do_export() {
-        if(this.export_limit.max_inclusiv) {
-            if(this.export_count > this.export_limit.max) {
-                return;
-            }
-        } else {
-            if(this.export_count >= this.export_limit.max) {
-                return;
-            }
+        if (this.export_count > this.max_export_limit) {
+            return;
         }
-        window.opener.postMessage(this.selected_filevo_id_export);
+        window.opener.postMessage(this.selected_row_export);
         window.close();
     }
 
     private async do_select_all() {
-        if(this.has_selected_all) {
-            for(let row of this.data_rows) {
+        if (this.has_selected_all) {
+            for (let row of this.data_rows) {
                 row['selected'] = false;
             }
             this.export_count = 0;
-            this.selected_filevo_id_export = [];
+            this.selected_row_export = [];
         } else {
-            for(let row of this.data_rows) {
+            for (let row of this.data_rows) {
                 row['selected'] = true;
-                this.selected_filevo_id_export.push(row['file___id']);
+                this.selected_row_export.push(row);
             }
             this.export_count = this.data_rows.length;
         }
-        this.has_selected_all=!this.has_selected_all;
+        this.has_selected_all = !this.has_selected_all;
     }
 
     private async mounted() {
 
 
         if (window.opener && window.opener.instructions) {
-            if(window.opener.instructions["Export"]) {
+            if (window.opener.instructions["Export"]) {
                 this.export_to = true;
                 this.export_limit = window.opener.instructions["Export"];
+                this.max_export_limit = NumRange.getSegmentedMax(
+                    this.export_limit.min,
+                    this.export_limit.min_inclusiv,
+                    this.export_limit.max,
+                    this.export_limit.max_inclusiv,
+                    this.export_limit.segment_type);
+
+                this.min_export_limit = NumRange.getSegmentedMin(
+                    this.export_limit.min,
+                    this.export_limit.min_inclusiv,
+                    this.export_limit.max,
+                    this.export_limit.max_inclusiv,
+                    this.export_limit.segment_type);
             }
         }
 

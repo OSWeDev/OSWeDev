@@ -199,7 +199,6 @@ export default abstract class ServerBase {
         EnvHandler.zoom_auto = !!this.envParam.zoom_auto;
         EnvHandler.debug_vars = !!this.envParam.debug_vars;
         EnvHandler.logo_path = this.envParam.logo_path;
-
         this.connectionString = this.envParam.connection_string;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
         this.port = process.env.PORT ? process.env.PORT : this.envParam.port;

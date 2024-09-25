@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -29,7 +29,7 @@ import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/Tr
 import VueComponentBase from '../../../VueComponentBase';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import MailIDEventsComponent from '../../../mail_id_events/MailIDEventsComponent';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import { ModuleOseliaAction, ModuleOseliaGetter } from './OseliaStore';
 import OseliaThreadMessageComponent from './OseliaThreadMessage/OseliaThreadMessageComponent';
@@ -38,6 +38,8 @@ import OseliaLeftPanelComponent from './OseliaLeftPanel/OseliaLeftPanelComponent
 import ConfigurationService from '../../../../../../server/env/ConfigurationService';
 import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
+import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -113,7 +115,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private frame: HTMLElement = null;
     private wait_for_data: boolean = false;
     private data_received: any = null;
-    private export_num: number = 4;
+    private dashboard_export_id: number = null;
+
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -123,7 +126,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     get file_system_url() {
         const { protocol, hostname, port } = window.location;
-        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/` + 30;
+        return `${protocol}//${hostname}${(port ? `:${port}` : '')}/admin#/dashboard/view/`;
     }
 
     @Watch('get_too_many_assistants')
@@ -159,13 +162,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private async onchange_data_receieved() {
         const files = [];
         if (this.data_received.length > 0) {
-            for (let id of this.data_received) {
-                const file = await query(FileVO.API_TYPE_ID)
-                    .filter_by_id(id)
-                    .set_limit(1)
-                    .select_vo<FileVO>();
-                if (file) {
-                    files.push(file);
+            for (let row of this.data_received) {
+                if (row['file___id']) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(row['file___id'])
+                        .select_vo<FileVO>();
+                    if (file) {
+                        files.push(file);
+                    }
                 }
             }
         }
@@ -185,6 +189,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private mounted() {
         this.frame = parent.document.getElementById('OseliaContainer');
+
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
                 Array.from(e.clipboardData.items).forEach(async (item: DataTransferItem, i) => {
@@ -195,11 +200,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         });
         window.addEventListener("message", (event: MessageEvent) => {
             const source = event.source as Window;
-            if (source.location.href !== this.file_system_url) {
+            if ((source.location.href !== this.file_system_url + this.dashboard_export_id)) {
                 return;
             } else {
-                if(this.wait_for_data) {
-                    this.data_received = event.data; 
+                if (this.wait_for_data) {
+                    this.data_received = event.data;
                 }
             }
         });
@@ -264,11 +269,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.thread_files.splice(index, 1);
     }
 
-    private async listen_for_message() {
-        const num_range : NumRange = NumRange.createNew(0,4,true,true,0);
-        (window as any).instructions = {'Export': num_range};
+    private async listen_for_message(page_id: number, num_range: NumRange) {
+        (window as any).instructions = { 'Export': num_range };
 
-        const export_window = window.open(this.file_system_url);
+        const export_window = window.open(this.file_system_url + page_id);
         this.wait_for_data = true;
     }
 
@@ -276,7 +280,9 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.enable_file_system_menu = !this.enable_file_system_menu;
         this.enable_image_upload_menu = false;
         this.enable_link_image_menu = false;
-        await this.listen_for_message();
+        this.dashboard_export_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleOselia.OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME);
+        const num_range: NumRange = NumRange.createNew(0, 10, true, true, 0);
+        await this.listen_for_message(this.dashboard_export_id, num_range);
     }
 
     private async open_file_upload() {
