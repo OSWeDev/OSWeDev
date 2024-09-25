@@ -108,6 +108,18 @@
 
                 width: fit-content;
 
+                .thread_message_certitude_button {
+                    transition: all 0.3s ease-in-out;
+                    margin: 0.1em;
+                    cursor: pointer;
+                    padding: 0;
+                    opacity: 0.5;
+                    float: right;
+                    margin-bottom: -2em;
+                    margin-right: 20px;
+                    padding-top: 2px;
+                }
+
                 .thread_message_copy {
                     transition: all 0.3s ease-in-out;
                     margin: 0.1em;
@@ -139,7 +151,7 @@
                 text-align: left;
                 width: fit-content;
                 transition: all 0.3s ease-in-out;
-                padding-right: 2em;
+                padding-right: 3em;
             }
 
             .thread_message_body_action_url {

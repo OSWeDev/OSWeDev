@@ -69,6 +69,7 @@ export default class TeamsAPIServerController {
             true,
             true
         );
+        ConsoleHandler.log('TeamsAPIServerController.send_to_teams_webhook:Message envoyé');
 
         try {
             const message = webhook_response.toString('utf-8');
@@ -249,7 +250,7 @@ export default class TeamsAPIServerController {
             const message_Text = new TeamsWebhookContentTextBlockVO().set_text(message).set_size("small");
             body.push(message_Text);
             const open_oselia: ActionURLVO = await this.create_action_button_open_oselia(thread_id);
-            actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Oselia'));
+            actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Ouvrir oselia'));
             m.attachments.push(new TeamsWebhookContentAttachmentsVO().set_name("Oselia Attachment").set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
             await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m, [open_oselia]);
         } catch (error) {
@@ -408,7 +409,7 @@ export default class TeamsAPIServerController {
         }
     }
 
-    private static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
+    public static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
         const action = new ActionURLVO();
 
         action.action_name = 'En parler avec Osélia [' + thread_id + ']';

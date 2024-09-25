@@ -82,7 +82,9 @@
                                             .thread_message_copy(v-tooltip='label("oselia_thread_widget_component.thread_message_footer_actions.copy")')
                                                 .thread_message_copy_button(@click='copy("thread_message_body_content_" + i + "_ref")')
                                                     i.fa-regular.fa-copy
-
+                                            template(v-if="oselia_certitude")
+                                                .thread_message_certitude_button(v-tooltip='label("oselia_thread_widget_component.thread_message_certitude.tooltip") + oselia_certitude + "%"')
+                                                    i.fa-solid.fa-circle(:style='{ color: ( oselia_certitude >= 80 ? "green" : ( oselia_certitude >= 50 ? "orange" : "red" ) ) }')
                                             Vuemarkdown.thread_message_body_text(:source='message_content.content_type_text.value' :ref='"thread_message_body_content_" + i + "_ref"' :options='markdown_options')
                                         
                                         //- .thread_message_footer_actions

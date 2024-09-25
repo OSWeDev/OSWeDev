@@ -157,6 +157,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             { 'fr-fr': 'Donnez votre avis sur ce résultat' },
             'oselia_thread_widget_component.thread_message_footer_actions.feedback.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Certitude : ' },
+            'oselia_thread_widget_component.thread_message_certitude.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nous allons vous demander l\'autorisation de capturer votre écran, veuillez accepter' },
             'oselia.screenshot.notify.___LABEL___'));
 
@@ -456,7 +459,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     const action = new TeamsWebhookContentActionOpenUrlVO();
                     action.set_title("Ouvrir le fichier texte");
                     action.set_url(ConfigurationService.node_configuration.base_url + text_file.path.substring(2));
-                    TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver", "Bonjour, un bug a été remonté !", new_thread.id, [action]);
+
+                    const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
+                    const action_2 = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Ouvrir la conversation de l\'utilisateur');
+                    TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver", "Bonjour, un bug a été remonté !", new_thread.id, [action, action_2]);
 
                     return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran"
                 case 1:
