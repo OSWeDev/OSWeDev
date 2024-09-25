@@ -227,10 +227,10 @@ export default class RangeHandler {
      * @param target_segment_type
      * @param strict force exacte segmentation_type in result, not just minimum type
      */
-    public static get_ranges_according_to_segment_type(ranges: IRange[], target_segment_type: number, strict: boolean = false): IRange[] {
+    public static get_ranges_according_to_segment_type<T extends IRange>(ranges: T[], target_segment_type: number, strict: boolean = false): T[] {
 
         let has_changed: boolean = false;
-        let res: IRange[] = [];
+        let res: T[] = [];
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -277,7 +277,7 @@ export default class RangeHandler {
      * On part d'un ensemble continu de ranges, et on en sort le plus petit ensemble couvrant le segment_type (supérieur) indiqué en param
      *  Par exemple on a du 01/01/2020 au 10/01/2020 et du 02/02/2020 au 03/02/2020 en segment type DAY, on passe en MONTH, on renvoie 01/2020 - 02/2020
      */
-    public static get_contiguous_ranges_on_new_segment_type(ranges: IRange[], target_segment_type: number): IRange[] {
+    public static get_contiguous_ranges_on_new_segment_type<T extends IRange>(ranges: T[], target_segment_type: number): T[] {
 
         return [
             RangeHandler.createNew(
@@ -383,7 +383,7 @@ export default class RangeHandler {
      * On essaie de réduire le nombre d'ensemble si certains s'entrecoupent
      * @param ranges
      */
-    public static getRangesUnion(ranges: IRange[]): IRange[] {
+    public static getRangesUnion<T extends IRange>(ranges: T[]): T[] {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -400,7 +400,7 @@ export default class RangeHandler {
 
         let cloned = ranges.filter((c) => !!c);
         cloned = RangeHandler.cloneArrayFrom(cloned);
-        cloned.sort((rangea: IRange, rangeb: IRange) => {
+        cloned.sort((rangea: T, rangeb: T) => {
 
             if (!rangea) {
                 return null;
@@ -412,10 +412,10 @@ export default class RangeHandler {
             return (rangea.min) - (rangeb.min);
         });
 
-        let res: IRange[] = [];
+        let res: T[] = [];
         let i = 0;
-        let B: IRange = null;
-        let A: IRange = null;
+        let B: T = null;
+        let A: T = null;
 
         while (i < cloned.length) {
             A = cloned[i];
@@ -434,7 +434,7 @@ export default class RangeHandler {
      * On retourne les intersections de 2 ranges (uniquement de même type) (si différent on favorise le segment_type le plus petit)
      * @param ranges
      */
-    public static getIntersectionFromRanges(range_a: IRange, range_b: IRange): IRange {
+    public static getIntersectionFromRanges<T extends IRange>(range_a: T, range_b: T): T {
         if ((!range_a) || (!range_b) || (range_a.range_type != range_b.range_type)) {
             return null;
         }
@@ -786,8 +786,8 @@ export default class RangeHandler {
         return false;
     }
 
-    public static get_ranges_any_range_intersects_any_range(ranges_a: IRange[], ranges_b: IRange[]): IRange[] {
-        let ranges: IRange[] = [];
+    public static get_ranges_any_range_intersects_any_range<T extends IRange>(ranges_a: T[], ranges_b: T[]): T[] {
+        let ranges: T[] = [];
 
         if ((!ranges_b) || (!ranges_a) || (!ranges_b.length) || (!ranges_a.length)) {
             return null;
@@ -900,13 +900,13 @@ export default class RangeHandler {
      * Renvoie le plus petit ensemble permettant d'entourer les ranges passés en param
      * @param ranges
      */
-    public static getMinSurroundingRange(ranges: IRange[]): IRange {
+    public static getMinSurroundingRange<T extends IRange>(ranges: T[]): T {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
         }
 
-        let res: IRange = null;
+        let res: T = null;
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -1003,7 +1003,7 @@ export default class RangeHandler {
         return '[' + min_str + ', ' + max_str + (prefer_inclusive_max ? ']' : ')');
     }
 
-    public static rangesFromIndex(index: string, range_type: number): IRange[] {
+    public static rangesFromIndex<T extends IRange>(index: string, range_type: number): T[] {
         return MatroidIndexHandler.from_normalized_ranges(index, range_type);
     }
 
@@ -1286,16 +1286,16 @@ export default class RangeHandler {
         return new RangesCutResult([coupe], remaining_items);
     }
 
-    public static create_single_elt_range(range_type: number, elt: number, segment_type: number): IRange {
+    public static create_single_elt_range<T extends IRange>(range_type: number, elt: number, segment_type: number): T {
 
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_NumRange(elt, segment_type) as any as T;
             case HourRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_HourRange(elt, segment_type) as any as T;
             case TSRange.RANGE_TYPE:
-                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as any as IRange;
+                return RangeHandler.create_single_elt_TSRange(elt, segment_type) as any as T;
         }
 
         return null;
@@ -1411,13 +1411,13 @@ export default class RangeHandler {
     /**
      * Returns new ranges, iso previous but shifted of the given segment amounts
      */
-    public static get_ranges_shifted_by_x_segments(ranges: IRange[], shift_value: number, shift_segment_type: number): IRange[] {
+    public static get_ranges_shifted_by_x_segments<T extends IRange>(ranges: T[], shift_value: number, shift_segment_type: number): T[] {
 
         if ((!ranges) || (!ranges[0])) {
             return null;
         }
 
-        let res: IRange[] = [];
+        let res: T[] = [];
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -1508,21 +1508,21 @@ export default class RangeHandler {
         }
     }
 
-    public static getMaxRange(table_field: ModuleTableField<any>): IRange {
+    public static getMaxRange<T extends IRange>(table_field: ModuleTableField<any>): T {
         switch (table_field.field_type) {
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_refrange_array:
-                return RangeHandler.getMaxNumRange() as any as IRange;
+                return RangeHandler.getMaxNumRange() as any as T;
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return RangeHandler.getMaxTSRange() as any as IRange;
+                return RangeHandler.getMaxTSRange() as any as T;
 
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return RangeHandler.getMaxHourRange() as any as IRange;
+                return RangeHandler.getMaxHourRange() as any as T;
 
             default:
                 return null;
@@ -1544,7 +1544,7 @@ export default class RangeHandler {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public static get_range_shifted_by_x_segments(range: IRange, shift_value: number, shift_segment_type: number): IRange {
+    public static get_range_shifted_by_x_segments<T extends IRange>(range: T, shift_value: number, shift_segment_type: number): T {
 
         if (!range) {
             return null;
@@ -1556,14 +1556,14 @@ export default class RangeHandler {
                 switch (shift_segment_type) {
                     case NumSegment.TYPE_INT:
                     default:
-                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                        return RangeHandler.createNew(range.range_type, (range.min) + shift_value, (range.max) + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as T;
                 }
 
             case HourRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Durations.add(range.min, shift_value, shift_segment_type), Durations.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as T;
 
             case TSRange.RANGE_TYPE:
-                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange;
+                return RangeHandler.createNew(range.range_type, Dates.add(range.min, shift_value, shift_segment_type), Dates.add(range.max, shift_value, shift_segment_type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as T;
         }
     }
 
@@ -2294,7 +2294,7 @@ export default class RangeHandler {
         return false;
     }
 
-    public static createNew<T, U extends IRange>(range_type: number, start: number, end: number, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
+    public static createNew<U extends IRange>(range_type: number, start: number, end: number, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
         if ((start == null) || (end == null)) {
             return null;
         }

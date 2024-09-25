@@ -162,7 +162,7 @@ export default class MatroidIndexHandler {
         return res;
     }
 
-    public static from_normalized_ranges(index: string, range_type: number, is_matroid_index: boolean = false, matroid_segmentations: { [field_id: string]: number } = null, field_id: string = null): IRange[] {
+    public static from_normalized_ranges<T extends IRange>(index: string, range_type: number, is_matroid_index: boolean = false, matroid_segmentations: { [field_id: string]: number } = null, field_id: string = null): T[] {
 
         if (index == null) {
             return null;

@@ -136,5 +136,10 @@ export default class HourRange implements IRange {
     public segment_type: number;
     public range_type: number = HourRange.RANGE_TYPE;
 
+    /**
+     * Ignore this property - only used for type checking
+     */
+    private is_hour_range: boolean = true;
+
     private constructor() { }
 }
