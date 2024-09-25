@@ -93,6 +93,7 @@ import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduni
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 import Patch20240917ParamShowCmsPages from './patchs/postmodules/Patch20240917ParamShowCmsPages';
 import Patch20240923AddViewportDatas from './patchs/postmodules/Patch20240923AddViewportDatas';
+import Patch20240925AddUnicityForFieldsCouple from './patchs/premodules/Patch20240925AddUnicityForFieldsCouple';
 
 export default abstract class GeneratorBase {
 
@@ -176,6 +177,7 @@ export default abstract class GeneratorBase {
             Patch20240222RenameFieldIdsToFieldNames.getInstance(),
             Patch20240305EmptyPixelFieldsFromVarConf.getInstance(),
             Patch20240415Adduniqmail_id.getInstance(),
+            Patch20240925AddUnicityForFieldsCouple.getInstance(),
         ];
 
         this.post_modules_workers = [

@@ -46,6 +46,8 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
 import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
+import DashboardWidgetPositionVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetPositionVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -151,6 +153,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private viewports: DashboardViewportVO[] = [];
     private selected_viewport: DashboardViewportVO = null;
+    private is_dbb_actived_on_viewport: boolean = false;
 
     private throttle_on_dashboard_loaded = ThrottleHelper.declare_throttle_without_args(this.on_dashboard_loaded, 50);
 
@@ -201,6 +204,30 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    @Watch('selected_viewport')
+    private async onchange_selected_viewport() {
+        this.select_widget(null);
+
+        if (!this.selected_viewport || !this.page) {
+            return;
+        }
+
+        // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+        const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .select_vo();
+
+        // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+        if (!action_viewport || !action_viewport.active) {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
+        if (action_viewport?.active == true) {
+            this.is_dbb_actived_on_viewport = true;
+        }
     }
 
     @Watch('page')
@@ -1125,6 +1152,98 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.set_discarded_field_paths(discarded_field_paths);
     }
 
+    private async set_dbb_actived_on_viewport(set_position_default: boolean) {
+        if (!this.page?.id || !this.selected_viewport?.id) {
+            return;
+        }
+
+        // Check de l'activation du viewport pour le dashboard, si on n'en a pas on le crée
+        let action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+            .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .select_vo();
+
+        if (!action_viewport) {
+            action_viewport = new DashboardActiveonViewportVO();
+            action_viewport.dashboard_page_id = this.page.id;
+            action_viewport.dashboard_viewport_id = this.selected_viewport.id;
+        }
+
+        // On récupère tous les pages widgets de la page
+        const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page.id)
+            .select_vos();
+
+        // On récupère tous les ids des pages widgets
+        const sorted_page_widget: DashboardPageWidgetVO[] = page_widgets.sort((a, b) => a.weight - b.weight);
+        const page_widget_ids: number[] = sorted_page_widget.map((pw) => pw.id);
+
+        // On récupère toutes les positions des pages widgets pour le viewport par défaut
+        const default_viewport: DashboardViewportVO = this.viewports.find((v) => v.is_default);
+        if (!default_viewport) {
+            return;
+        }
+
+        const default_positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
+            .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, default_viewport.id)
+            .select_vos();
+
+        if (set_position_default) {
+            // On récupère toutes les positions des pages widgets pour le viewport actuel
+            const positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
+                .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
+                .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vos();
+
+            const positions_tosave: DashboardWidgetPositionVO[] = [];
+            // Pour chaque page widget, on crée une position par défaut
+            for (const i in sorted_page_widget) {
+                const pos: DashboardWidgetPositionVO = positions.find((p) => p.dashboard_page_widget_id == page_widgets[i].id);
+
+                // On va mettre toutes les positions avec la même largeur et hauteur que le viewport par défaut
+                pos.w = default_positions[i].w;
+                pos.h = default_positions[i].h;
+
+                // Pour les positions x et y, on va mettre le 1er à 0 0 et les autres à la suite en dessous
+                if (i == '0') {
+                    pos.x = 0;
+                    pos.y = 0;
+                } else {
+                    pos.x = 0;
+                    // y = y du précédent + h du précédent
+                    pos.y = positions_tosave[parseInt(i) - 1].y + positions_tosave[parseInt(i) - 1].h;
+                }
+
+                positions_tosave.push(pos);
+            }
+
+            await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
+
+        } else {
+            // On récupère toutes les positions des pages widgets pour le viewport par défaut
+            const positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
+                .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
+                .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vos();
+
+            const positions_tosave: DashboardWidgetPositionVO[] = [];
+            for (const i in positions) {
+                const default_pos: DashboardWidgetPositionVO = default_positions.find((p) => p.dashboard_page_widget_id == default_positions[i].dashboard_page_widget_id);
+                const pos: DashboardWidgetPositionVO = positions[i];
+
+                pos.h = default_pos.h;
+                pos.w = default_pos.w;
+                pos.x = default_pos.x;
+                pos.y = default_pos.y;
+
+                positions_tosave.push(pos);
+            }
+
+            await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
+        }
+    }
+
     private async mounted() {
         const self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
@@ -1146,15 +1265,44 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.dashboard = this.dashboards[0];
         }
 
-        if (!this.selected_viewport) {
+        if (!this.viewports?.length) {
+            const base_window_width: number = window.innerWidth;
 
-            if (!this.viewports) {
-                this.viewports = await query(DashboardViewportVO.API_TYPE_ID)
-                    .set_sort(new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().id))
-                    .select_vos();
+            // On ne charge que les viewports qui sont plus petits ou égaux à la largeur de la fenêtre
+            this.viewports = await query(DashboardViewportVO.API_TYPE_ID)
+                .filter_by_num_inf_eq(field_names<DashboardViewportVO>().screen_min_width, base_window_width)
+                .set_sorts([
+                    new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().screen_min_width, false),
+                    new SortByVO(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, false),
+                ])
+                .select_vos();
+        }
+
+        if (!this.selected_viewport) {
+            this.selected_viewport = this.viewports.find((v) => v.is_default);
+
+            if (!this.selected_viewport) {
+                this.selected_viewport = this.viewports[0];
+            }
+        }
+
+        if (this.page?.id && this.selected_viewport?.id) {
+            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vo();
+
+            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+            if (!action_viewport || !action_viewport.active) {
+                this.is_dbb_actived_on_viewport = false;
             }
 
-            this.selected_viewport = this.viewports.find((v) => v.is_default);
+            if (action_viewport?.active == true) {
+                this.is_dbb_actived_on_viewport = true;
+            }
+        } else {
+            this.is_dbb_actived_on_viewport = false;
         }
     }
 

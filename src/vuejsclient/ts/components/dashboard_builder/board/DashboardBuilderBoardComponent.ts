@@ -146,6 +146,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         return this.editable;
     }
 
+    get style_gridlayout(): string {
+        return 'max-width: ' + this.selected_viewport.screen_min_width + 'px; border-left: 2px solid #ccc; border-right: 2px solid #ccc; border-radius: 8px;';
+    }
+
     @Watch("selected_viewport", { immediate: true })
     private async onchange_selected_viewport() {
         if (!this.selected_viewport) {

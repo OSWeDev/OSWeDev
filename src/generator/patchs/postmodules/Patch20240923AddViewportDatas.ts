@@ -40,7 +40,7 @@ export default class Patch20240923AddViewportDatas implements IGeneratorWorker {
 
         const mobile_viewport: DashboardViewportVO = new DashboardViewportVO();
         mobile_viewport.name = 'Mobile';
-        mobile_viewport.screen_min_width = 0;
+        mobile_viewport.screen_min_width = 320;
         mobile_viewport.is_default = false;
         mobile_viewport.nb_columns = 1;
 

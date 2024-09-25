@@ -207,21 +207,39 @@
                     Droppablevofieldscomponent(:dashboard='dashboard')
 
             .row(v-if='show_build_page')
-                .col-sm-12.builder_wrapper
-                    Dashboardbuilderboardcomponent(
-                        ref='Dashboardbuilderboardcomponent'
-                        :dashboard_page='page' 
-                        :dashboard_pages='pages'
-                        :dashboard='dashboard' 
-                        :selected_widget='selected_widget'
-                        :viewports='viewports'
-                        :selected_viewport='selected_viewport'
+                template(v-if='is_dbb_actived_on_viewport')
+                    .col-sm-12.builder_wrapper
+                        Dashboardbuilderboardcomponent(
+                            ref='Dashboardbuilderboardcomponent'
+                            :dashboard_page='page' 
+                            :dashboard_pages='pages'
+                            :dashboard='dashboard' 
+                            :selected_widget='selected_widget'
+                            :viewports='viewports'
+                            :selected_viewport='selected_viewport'
 
-                        @select_widget='select_widget'
-                        @select_page='select_page'
+                            @select_widget='select_widget'
+                            @select_page='select_page'
 
-                        @removed_widget_from_page='removed_widget_from_page'
-                    )
+                            @removed_widget_from_page='removed_widget_from_page'
+                        )
+                template(v-else)
+                    .col-sm-4
+                    .col-sm-4.message-box(style='border: 2px solid #ccc; border-radius: 8px; padding: 10px;')
+                        span {{ label('dashboard_builder.viewport_not_activated') }}
+                        .row
+                            .col-sm-1
+                            .col-sm-4
+                                .btn-success(@click="set_dbb_actived_on_viewport(true)")
+                                    .fa-duotone.fa-check
+                                    span {{ label("dashboard_builder.viewport_not_activated.yes") }}
+                            .col-sm-2
+                            .col-sm-4
+                                .btn-danger(@click="set_dbb_actived_on_viewport(false)")
+                                    .fa-duotone.fa-times
+                                    span {{ label("dashboard_builder.viewport_not_activated.no") }}
+                            .col-sm-1
+                    .col-sm-4
 
             .row(v-if='show_menu_conf')
                 .col-sm-12.menu_conf_wrapper 

@@ -3562,6 +3562,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': " colonnes" },
             'dashboard_builder.viewport.columns.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Ce viewport n'a pas été encore activé pour cette page. La disposition de vos widgets risque de ne pas être compatible avec ce nouveau viewport. Souhaitez-vous qu'un positionnement par défaut soit appliqué à vos widgets ?" },
+            'dashboard_builder.viewport_not_activated.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Oui, définir une disposition par défaut." },
+            'dashboard_builder.viewport_not_activated.yes.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Non, garder l'ancienne disposition." },
+            'dashboard_builder.viewport_not_activated.no.___LABEL___'
+        ));
 
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
@@ -3760,7 +3772,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         for (const i in viewports) {
             const viewport = viewports[i];
 
-            let lien_actif: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
+            const lien_actif: DashboardActiveonViewportVO = new DashboardActiveonViewportVO();
             lien_actif.active = viewport?.is_default;
             lien_actif.dashboard_page_id = page.id;
             lien_actif.dashboard_viewport_id = viewport.id;
