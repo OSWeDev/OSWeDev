@@ -270,16 +270,28 @@ export default class SendInBlueMailServerController {
             params = {};
         }
 
-        // On ajoute les params d'environnement
-        const envs: EnvParam = ConfigurationService.node_configuration;
-        for (const i in envs) {
-            if (!params[i]) {
-                params[i] = envs[i];
-            }
+        // On ajoute CERTAINS params d'environnement en maj
+        if (!params.APP_TITLE) {
+            params.APP_TITLE = ConfigurationService.node_configuration.app_title;
         }
 
-        const session = StackContext.get('SESSION');
-        const sid = session ? session.sid : null;
+        if (!params.PORT) {
+            params.PORT = ConfigurationService.node_configuration.port;
+        }
+
+        if (!params.URL_RECOVERY_CHALLENGE) {
+            params.URL_RECOVERY_CHALLENGE = ConfigurationService.node_configuration.url_recovery_challenge;
+        }
+
+        if (!params.URL_RECOVERY) {
+            params.URL_RECOVERY = ConfigurationService.node_configuration.url_recovery;
+        }
+
+        if (!params.BASE_URL) {
+            params.BASE_URL = ConfigurationService.node_configuration.base_url;
+        }
+
+        const sid = StackContext.get('SID');
         params['SESSION_SHARE_SID'] = sid ? encodeURIComponent(sid) : null;
     }
 
