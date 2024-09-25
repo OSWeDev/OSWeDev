@@ -99,6 +99,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_accept_link, this.accept_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_refuse_link, this.refuse_link.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_account_waiting_link_status, this.account_waiting_link_status.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_send_join_request, this.send_join_request.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
     }
@@ -988,6 +989,27 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         return (!user_referrer.user_validated) ? 'waiting' : 'validated';
+    }
+
+    private async send_join_request(asking_user_id: number, target_thread_id: number) {
+        ConsoleHandler.log('ModuleOseliaServer:send_join_request:Sending join request:asking_user_id:' + asking_user_id + ':target_thread_id:' + target_thread_id);
+        const target_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(target_thread_id)
+            .select_vo<GPTAssistantAPIThreadVO>();
+        const asking_user = await query(UserVO.API_TYPE_ID)
+            .filter_by_id(asking_user_id)
+            .select_vo<UserVO>();
+        if (target_thread.user_id != asking_user_id) {
+            // Ici envoyer demande sur la page de l'utilisateur à rejoindre / Attendre sa réponse ou time out si trop long avec un return timed out
+            await PushDataServerController.notifySimpleINFO(
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
+                'Request refused'
+            )
+            return 'denied';
+        } else {
+            return 'accepted';
+        }
     }
 
     private async clear_referrers_triggers() {

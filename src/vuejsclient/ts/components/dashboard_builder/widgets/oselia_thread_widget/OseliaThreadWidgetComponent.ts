@@ -40,6 +40,9 @@ import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
+import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import UserRoleVO from '../../../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import RoleVO from '../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -405,6 +408,20 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (this.current_thread_id == this.thread.id) {
             return;
         }
+
+        const current_user = VueAppController.getInstance().data_user;
+        const current_user_role = await query(UserRoleVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<UserRoleVO>().user_id, current_user.id)
+            .select_vo<UserRoleVO>();
+        if (this.thread.user_id != 2) {
+            if (current_user.id != this.thread.user_id && current_user_role.role_id == 3) { // == 3 pas sûr mais pas trouvé de static avec le role admin, query du coup ?
+                // do something here
+                if (await ModuleOselia.getInstance().send_join_request(current_user.id, this.thread.id) == 'denied') {
+                    return;
+                }
+            }
+        }
+
 
         await this.unregister_all_vo_event_callbacks();
         this.current_thread_id = this.thread.id;

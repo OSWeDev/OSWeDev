@@ -36,6 +36,7 @@ import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../File/ModuleFile';
 import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
+import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
@@ -69,6 +70,7 @@ export default class ModuleOselia extends Module {
     public static APINAME_set_screen_track: string = "oselia__set_screen_track";
     public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
+    public static APINAME_send_join_request: string = "oselia__send_join_request";
 
     private static instance: ModuleOselia = null;
 
@@ -83,6 +85,7 @@ export default class ModuleOselia extends Module {
     public set_screen_track: (track: MediaStreamTrack) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_screen_track);
     public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
+    public send_join_request: (asking_user_id: number, thread_id: number) => Promise<'accepted' | 'denied' | 'timed out'> = APIControllerWrapper.sah(ModuleOselia.APINAME_send_join_request);
 
     private constructor() {
 
@@ -181,6 +184,13 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_open_oselia_db,
             null,
             OpenOseliaDBParamVOStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<UserParamVO, void>(
+            null,
+            ModuleOselia.APINAME_send_join_request,
+            [UserVO.API_TYPE_ID, GPTAssistantAPIThreadVO.API_TYPE_ID],
+            UserParamStatic
         ));
     }
 
