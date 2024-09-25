@@ -1,4 +1,3 @@
-import IBGThread from './interfaces/IBGThread';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -10,16 +9,17 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ForkMessageController from '../Fork/ForkMessageController';
 import ForkServerController from '../Fork/ForkServerController';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
-import ForkedTasksController from '../Fork/ForkedTasksController';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -166,6 +166,11 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                         new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10, 60 * 60 * 1000)),
                         ForkServerController.fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
                 }
+            };
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name["RUN ASAP BGTHREAD : " + bgthread.name] =
+            async () => {
+                await BGThreadServerController.force_run_asap_by_bgthread_name[bgthread.name]();
             };
 
         // On vérifie qu'on peut lancer des bgthreads

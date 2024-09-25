@@ -80,7 +80,9 @@ export default class VarsProcessInvalidator {
             const invalidators = (VarsDatasVoUpdateHandler.invalidators && VarsDatasVoUpdateHandler.invalidators.length) ? VarsDatasVoUpdateHandler.invalidators.splice(0, max_invalidators).filter((e) => !!e) : [];
 
             let has_first_invalidator = false;
-            ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + max_invalidators + ' max');
+            if (invalidators.length) {
+                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb invalidators:' + invalidators.length + '/' + max_invalidators + ' max');
+            }
             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
                 if (invalidators && invalidators.length) {
                     ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:first invalidator for example:');
@@ -95,7 +97,9 @@ export default class VarsProcessInvalidator {
                 const max_ordered_vos_cud = 100;
                 const ordered_vos_cud = (VarsDatasVoUpdateHandler.ordered_vos_cud && VarsDatasVoUpdateHandler.ordered_vos_cud.length) ? VarsDatasVoUpdateHandler.ordered_vos_cud.splice(0, max_ordered_vos_cud).filter((e) => !!e) : [];
 
-                ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max');
+                if (ordered_vos_cud.length) {
+                    ConsoleHandler.log('VarsProcessInvalidator:exec_in_computation_hole:nb ordered_vos_cud:' + ordered_vos_cud.length + '/' + max_ordered_vos_cud + ' max');
+                }
 
                 /**
                  * On se base sur les ordered_vos_cud pour définir l'invalidation ciblée du cache des datasources
