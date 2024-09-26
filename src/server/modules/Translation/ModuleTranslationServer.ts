@@ -190,6 +190,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Exporter'
         }, 'crud.actions.export.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Exporter vers osélia'
+        }, 'crud.actions.export_to_oselia.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Actualiser'
         }, 'crud.actions.refresh.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -199,8 +202,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Query string'
         }, 'crud.actions.getquerystr.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Tout sélectionner'
+        }, 'crud.actions.select_all.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Exporter'
+        }, 'crud.actions.export_to.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Copié dans le presse-papier !'
         }, 'copied_to_clipboard.___LABEL___'));
+        
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Supprimer TOUTES les données ? Les filtrages sont ignorés'

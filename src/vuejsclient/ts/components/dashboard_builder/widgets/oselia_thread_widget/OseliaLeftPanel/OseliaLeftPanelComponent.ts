@@ -4,11 +4,13 @@ import { ModuleOseliaAction } from '../OseliaStore';
 import './OseliaLeftPanelComponent.scss';
 import OseliaLastThreadsComponent from '../OseliaLastThreads/OseliaLastThreadsComponent';
 import { Prop } from 'vue-property-decorator';
+import OseliaSelectThreadComponent from '../OseliaSelectThread/OseliaSelectThreadComponent';
 
 @Component({
     template: require('./OseliaLeftPanelComponent.pug'),
     components: {
         Oselialastthreadscomponent: OseliaLastThreadsComponent,
+        Oseliaselectthreadcomponent: OseliaSelectThreadComponent
     }
 })
 export default class OseliaLeftPanelComponent extends VueComponentBase {

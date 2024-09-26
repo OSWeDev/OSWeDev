@@ -24,14 +24,14 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
     public static TYPE_EMAIL: number = 3;
     public static TYPE_IMAGE_URL: number = 4;
     public static FROM_OPENAI_TYPE_MAP: { [key: string]: number } = {
-        "image": GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE,
+        "image_file": GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE,
         "text": GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT,
         "action_url": GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL,
         "email": GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL,
         "image_url": GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE_URL,
     };
     public static TO_OPENAI_TYPE_MAP: { [key: number]: string } = {
-        [GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE]: "image",
+        [GPTAssistantAPIThreadMessageContentVO.TYPE_IMAGE]: "image_file",
         [GPTAssistantAPIThreadMessageContentVO.TYPE_TEXT]: "text",
         [GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL]: "action_url",
         [GPTAssistantAPIThreadMessageContentVO.TYPE_EMAIL]: "email",
@@ -56,6 +56,8 @@ export default class GPTAssistantAPIThreadMessageContentVO implements IDistantVO
 
     // Dans le cas d'un email, le lien vers le mail
     public content_type_email_id: number;
+
+    public hidden: boolean;
 
     public weight: number;
     public type: number;

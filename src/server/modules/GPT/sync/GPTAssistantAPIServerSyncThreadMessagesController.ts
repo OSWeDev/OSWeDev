@@ -172,7 +172,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
             if (!gpt_obj) {
 
                 // Si on a aucun contenu à envoyer à OpenAI, on a pas de message non plus et c'est normal
-                if ((!message_contents_create) || (!message_contents_create.length)) {
+                if ((!message_contents_create) || (!message_contents_create.length) || (!vo.is_ready)) {
                     return null;
                 }
 
@@ -245,7 +245,18 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     break;
                 }
             }
+            if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, /*message_contents_full,*/ gpt_obj) || vo.archived) {
 
+                if (ConfigurationService.node_configuration.debug_openai_sync) {
+                    ConsoleHandler.log('push_thread_message_to_openai: Updating thread message in Osélia : ' + vo.id);
+                }
+
+                await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(vo, gpt_obj, weight);
+
+                if (!is_trigger_pre_x) {
+                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
+                }
+            }
             // Si on a une diff sur les contenus, et qu'on est en pleine synchro, on peut pas pousser une nouvelle modif du VO
             // TODO FIXME : Par contre est-ce qu'il faudrait pas relancer une synchro sur ce threadmessage à la limite à la fin de la synchro ? pour s'assurer que tout est ok ? et sinon peter une erreur ?
             if (!GPTAssistantAPIServerSyncController.compare_values(message_contents_full, gpt_obj.content)) {
@@ -261,18 +272,7 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                 }
             }
 
-            if (GPTAssistantAPIServerSyncThreadMessagesController.thread_message_has_diff(vo, attachments, /*message_contents_full,*/ gpt_obj) || vo.archived) {
 
-                if (ConfigurationService.node_configuration.debug_openai_sync) {
-                    ConsoleHandler.log('push_thread_message_to_openai: Updating thread message in Osélia : ' + vo.id);
-                }
-
-                await GPTAssistantAPIServerSyncThreadMessagesController.assign_vo_from_gpt(vo, gpt_obj, weight);
-
-                if (!is_trigger_pre_x) {
-                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vo);
-                }
-            }
 
             return gpt_obj;
         } catch (error) {
@@ -788,16 +788,16 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
                     let content_type_text = content.content_type_text.value;
-                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        if (!user) {
-                            user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
-                        }
+                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                    //     if (!user) {
+                    //         user = await query(UserVO.API_TYPE_ID).filter_by_id(vo.user_id).exec_as_server().select_vo<UserVO>();
+                    //     }
 
-                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
-                        if (!content_type_text.startsWith(intro_info_user)) {
-                            content_type_text = intro_info_user + content_type_text;
-                        }
-                    }
+                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                    //     if (!content_type_text.startsWith(intro_info_user)) {
+                    //         content_type_text = intro_info_user + content_type_text;
+                    //     }
+                    // }
 
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],
@@ -861,12 +861,12 @@ export default class GPTAssistantAPIServerSyncThreadMessagesController {
                     // On ajoute le nom de l'emetteur du message + son id - si on est sur un message de type user
                     // eslint-disable-next-line no-case-declarations
                     let content_type_text = content.content_type_text.value;
-                    if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
-                        const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
-                        if (!content_type_text.startsWith(intro_info_user)) {
-                            content_type_text = intro_info_user + content_type_text;
-                        }
-                    }
+                    // if (vo.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER) {
+                    //     const intro_info_user = GPTAssistantAPIServerSyncThreadMessagesController.get_user_info_prefix_for_content_text(user);
+                    //     if (!content_type_text.startsWith(intro_info_user)) {
+                    //         content_type_text = intro_info_user + content_type_text;
+                    //     }
+                    // }
 
                     res.push({
                         type: GPTAssistantAPIThreadMessageContentVO.TO_OPENAI_TYPE_MAP[content.type],

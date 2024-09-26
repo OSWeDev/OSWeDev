@@ -24,6 +24,11 @@ import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
 import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
 import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
 import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import ModuleOselia from "../../../../shared/modules/Oselia/ModuleOselia";
+import OseliaController from "../../../../shared/modules/Oselia/OseliaController";
+import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
+import VueAppController from "../../../VueAppController";
+import FileVO from "../../../../shared/modules/File/vos/FileVO";
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -798,6 +803,57 @@ export default class PushDataVueModule extends VueModuleBase {
                                     window.location.reload();
                                 }, 3000);
                                 break;
+                            case NotificationVO.TECH_SCREENSHOT:
+                                if (vo.gpt_assistant_id == null || vo.gpt_assistant_id == undefined) {
+                                    ConsoleHandler.error('No gpt_assistant_id');
+                                    return;
+                                }
+                                if (!vo.gpt_thread_id || vo.gpt_thread_id == null || vo.gpt_thread_id == undefined) {
+                                    ConsoleHandler.error('No gpt_thread_id');
+                                    return;
+                                }
+                                const screenshot_content = LocaleManager.getInstance().i18n.t("oselia.screenshot.notify.___LABEL___");
+                                VueAppBase.instance_.vueInstance.snotify.info(screenshot_content, {
+                                    timeout: 3000,
+                                });
+                                setTimeout(async () => {
+                                    const { imgData, new_file, fileName } = await OseliaController.do_take_screenshot();
+                                    if (!imgData) {
+                                        return;
+                                    }
+                                    if (!imgData) {
+                                        ConsoleHandler.error('No imgData');
+                                        return;
+                                    }
+
+                                    const formData = new FormData();
+                                    formData.append('file', imgData, fileName);
+
+                                    const res = await AjaxCacheClientController.getInstance().post(
+                                        null,
+                                        '/ModuleFileServer/upload',
+                                        [FileVO.API_TYPE_ID],
+                                        formData,
+                                        null,
+                                        null,
+                                        false,
+                                        30000);
+
+                                    if (!res) {
+                                        return;
+                                    }
+
+                                    const message = "Voici le screenshot que tu m'as demandé!";
+                                    ModuleGPT.getInstance().ask_assistant(
+                                        vo.gpt_assistant_id,
+                                        vo.gpt_thread_id,
+                                        null,
+                                        message,
+                                        [new_file],
+                                        VueAppController.getInstance().data_user.id,
+                                        true
+                                    );
+                                }, 3000);
 
                             default:
                                 break;

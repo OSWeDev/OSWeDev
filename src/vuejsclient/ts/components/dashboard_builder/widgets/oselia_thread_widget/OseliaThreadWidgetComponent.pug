@@ -29,13 +29,14 @@
                 .buttons
                     button(v-on:click='upload_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.upload') }}
                     button(v-on:click='cancel_link_image') {{ label('oselia_thread_widget_component.image_upload_menu_item.cancel') }}
+
         template(v-if='has_access_to_thread')
             template(v-if='is_loading_thread')
                 .is_loading_thread
                     i.fa-duotone.fa-spinner-third.fa-spin
 
             template(v-else)
-                .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : ''")
+                .thread_container(ref='thread_container' :class="is_dragging ? 'blur' : '' ")  
                     //- .update_button 
                     //-     button.btn.btn-sm.btn-primary(v-on:click='force_reload')
                     //-         i.fa-duotone.fa-sync
@@ -60,10 +61,10 @@
                                         .thread_message_header_left_username
                                             | {{ label('oselia_thread_widget_component.thread_message_header_left_username.oselia') }}
 
-                                .thread_message_body
-                                    .thread_message_body_content
-                                        .thread_message_body_text
-                                            i.fa-duotone.fa-spinner-third.fa-spin
+                                    .thread_message_body
+                                        .thread_message_body_content
+                                            .thread_message_body_text
+                                                i.fa-duotone.fa-spinner-third.fa-spin
 
         
                     .thread_message_input
@@ -89,11 +90,6 @@
                         .thread_message_input_buttons
                             .thread_message_input_file_system
                                 button.fa-solid.fa-files(v-on:click='open_file_system_upload')
-                                template(v-if="enable_file_system_menu")
-                                    multiselect(
-                                        :options='get_files()'
-                                        v-model='selected_file_system'
-                                    )
                             .thread_message_input_file
                                 button.fa-solid.fa-paperclip(v-on:click='open_file_upload')
                             .thread_message_input_image
@@ -106,6 +102,9 @@
                                         .image_upload_menu_item(v-on:click='open_link_image')
                                             i.fa-duotone.fa-images
                                             | {{ label('oselia_thread_widget_component.image_upload_menu_item.link') }}
+                            .thread_message_expand
+                                button.fa-solid.fa-up-right-and-down-left-from-center(v-on:click='expand_window')
+                                
                         .thread_message_input_send
                             template(v-if='get_too_many_assistants')
                                 .too_many_assistants.bg-warning

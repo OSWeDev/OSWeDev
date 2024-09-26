@@ -63,7 +63,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
     public static TASK_NAME_notifyDownloadFile: string = 'PushDataServerController' + '.notifyDownloadFile';
-
+    public static TASK_NAME_notifyScreenshot: string = 'PushDataServerController' + '.notifyScreenshot';
     public static TASK_NAME_notify_vo_creation: string = 'PushDataServerController' + '.notify_vo_creation';
     public static TASK_NAME_notify_vo_update: string = 'PushDataServerController' + '.notify_vo_update';
     public static TASK_NAME_notify_vo_deletion: string = 'PushDataServerController' + '.notify_vo_deletion';
@@ -165,6 +165,7 @@ export default class PushDataServerController {
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_update, PushDataServerController.notify_vo_update.bind(this));
         // istanbul ignore next: nothing to test : register_task
         ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notify_vo_deletion, PushDataServerController.notify_vo_deletion.bind(this));
+        ForkedTasksController.register_task(PushDataServerController.TASK_NAME_notifyScreenshot, PushDataServerController.notifyScreenshot.bind(this));
     }
 
     public static getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
@@ -627,6 +628,23 @@ export default class PushDataServerController {
         // await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyUserLoggedAndRedirectHome');
     }
 
+
+    public static async notifyScreenshot(UID: number, CLIENT_TAB_ID: string, gpt_assistant_id: string, gpt_thread_id: string) {
+        let notification: NotificationVO = null;
+        try {
+            notification = PushDataServerController.getTechNotif(
+                UID, CLIENT_TAB_ID,
+                null, NotificationVO.TECH_SCREENSHOT, gpt_assistant_id, gpt_thread_id);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        if (!notification) {
+            return;
+        }
+
+        await PushDataServerController.notify(notification);
+    }
     /**
      * On notifie une tab pour reload
      */
@@ -1212,7 +1230,7 @@ export default class PushDataServerController {
         return notification;
     }
 
-    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string): NotificationVO {
+    private static getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string, gpt_assistant_id?: string, gpt_thread_id?: string): NotificationVO {
 
         const notification: NotificationVO = new NotificationVO();
 
@@ -1223,9 +1241,17 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        notification.vos = [{
-            marker
-        } as any];
+        if (gpt_assistant_id && gpt_thread_id) {
+            notification.vos = [{
+                marker,
+                gpt_assistant_id,
+                gpt_thread_id
+            } as any];
+        } else {
+            notification.vos = [{
+                marker
+            } as any];
+        }
         return notification;
     }
 

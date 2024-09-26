@@ -36,6 +36,18 @@ include ../../../../../../views/mixins/loading.pug
                     @change_limit='change_limit'
                 )
 
+                template(v-if="export_to")
+                    .select_all_button
+                        button.btn.btn-sm.btn-outline-dark(@click="do_select_all")
+                            i.fa-duotone.fa-download.fa-lg.btn_icon
+                            | {{ label('crud.actions.select_all') }}
+                    .export_button(v-if="export_count>0") 
+                        button.btn.btn-sm.btn-outline-dark(@click="do_export" :disabled="( export_count > max_export_limit || export_count < min_export_limit )")
+                            i.fa-duotone.fa-download.fa-lg.btn_icon
+                            | {{ label('crud.actions.export_to') }}
+                    .col-sm-2
+                        .selected_count(:class="(  ( export_count > max_export_limit || export_count < min_export_limit ) ? 'bg-danger exceed' :  'bg-success no_exceed' )") {{ export_count + ' / ' + max_export_limit }}
+
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none
                         button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
@@ -50,6 +62,8 @@ include ../../../../../../views/mixins/loading.pug
                         button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
                             i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                             | {{ label('crud.actions.create') }}
+
+              
 
             template(v-if='!!show_export_maintenance_alert')
                 .alert.alert-danger.mt-2(v-if="show_export_alert")
@@ -137,7 +151,7 @@ include ../../../../../../views/mixins/loading.pug
                                             Inlinetranslatabletext()
                     template(v-if="update_cpt_live <= 1")
                         tbody
-                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row)}')
+                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row), "selected" : row["selected"] }' @click="export_to ? select_row(row) : null")
                                 template(v-if="show_bulk_edit")
                                     td.text-center
                                         input(type="checkbox" v-model="selected_vos[get_identifier(row)]" :checked="selected_vos[get_identifier(row)]")

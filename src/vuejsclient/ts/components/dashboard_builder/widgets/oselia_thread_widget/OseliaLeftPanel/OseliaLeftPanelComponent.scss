@@ -26,7 +26,8 @@
 
     .oselia_left_panel_header {
         margin-bottom: .4em;
-
+        flex-flow: row;
+        display: flex;
         i {
             background: $button_primary_bg_color;
             border-radius: 10px;

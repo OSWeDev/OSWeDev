@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificationVO';
@@ -10,6 +11,8 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
+import FileVO from '../File/vos/FileVO';
+import Dates from '../FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
@@ -29,16 +32,20 @@ import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
 import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
-
+import ModuleDAO from '../DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
+import ModuleFile from '../File/ModuleFile';
+import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
 
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleOselia.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.BO_ACCESS';
-
+    public static POLICY_SELECT_THREAD_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.SELECT_THREAD_ACCESS';
     public static OSELIA_DB_ID_PARAM_NAME: string = 'ModuleOselia.oselia_db_id';
-
+    public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
+    public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
     public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
 
     /**
@@ -59,7 +66,8 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_token_oselia: string = "oselia__get_token_oselia";
     public static APINAME_accept_link: string = "oselia__accept_link";
     public static APINAME_refuse_link: string = "oselia__refuse_link";
-
+    public static APINAME_set_screen_track: string = "oselia__set_screen_track";
+    public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
     private static instance: ModuleOselia = null;
@@ -72,7 +80,8 @@ export default class ModuleOselia extends Module {
     public get_referrer_name: (referrer_user_ott: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
     public accept_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
     public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
-
+    public set_screen_track: (track: MediaStreamTrack) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_set_screen_track);
+    public get_screen_track: () => Promise<MediaStreamTrack | null> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_screen_track);
     public account_waiting_link_status: (referrer_user_ott: string) => Promise<'validated' | 'waiting' | 'none'> = APIControllerWrapper.sah(ModuleOselia.APINAME_account_waiting_link_status);
 
     private constructor() {
@@ -148,7 +157,17 @@ export default class ModuleOselia extends Module {
             [OseliaUserReferrerVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-
+        APIControllerWrapper.registerApi(new PostAPIDefinition<OseliaScreenshotParamVO, void>(
+            null,
+            ModuleOselia.APINAME_set_screen_track,
+            null,
+            OseliaScreenshotParamVOStatic
+        ));
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, MediaStreamTrack | null>(
+            null,
+            ModuleOselia.APINAME_get_screen_track,
+            null
+        ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<RequestOseliaUserConnectionParamVO, string>(
             null,

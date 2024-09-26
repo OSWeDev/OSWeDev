@@ -29,6 +29,7 @@ import ImageViewComponent from '../../../../image/View/ImageViewComponent';
 import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -80,13 +81,13 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private changed_input: boolean[] = [];
 
     private show_feedback: boolean = false;
-
+    private show_current_message: boolean = false;
     private markdown_options = {
         html: true,
         linkify: true,
         typographer: true,
     };
-
+    private oselia_certitude: number = null;
     private throttle_load_thread_message = ThrottleHelper.declare_throttle_without_args(this.load_thread_message.bind(this), 10);
     private throttle_load_thread_message_attachments = ThrottleHelper.declare_throttle_without_args(this.load_thread_message_attachments.bind(this), 10);
 
@@ -158,11 +159,34 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     @Watch('thread_message', { immediate: true })
     private async on_change_thread_message() {
         await this.throttle_load_thread_message();
-        await this.throttle_load_thread_message_attachments();
+        // await this.throttle_load_thread_message_attachments();
     }
 
     @Watch('thread_message_contents', { deep: true })
     private on_change_thread_message_contents() {
+        for (let content of this.thread_message_contents) {
+            if (this.thread_message.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT) {
+                if (content.content_type_text.value && content.content_type_text.value.length > 0) {
+                    if (content.content_type_text.value.includes("<certitude")) {
+                        for (let i = content.content_type_text.value.indexOf('<certitude'); i < content.content_type_text.value.length; i++) {
+                            if (content.content_type_text.value[i] === ">") {
+                                let certitude = (content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1));
+                                certitude = certitude.substring(certitude.indexOf(':') + 1, certitude.indexOf('>'));
+                                this.oselia_certitude = parseInt(certitude);
+
+                                content.content_type_text.value = content.content_type_text.value.replace(content.content_type_text.value.substring(content.content_type_text.value.indexOf('<certitude'), i + 1), "");
+                                break;
+                            }
+                        }
+                        event.preventDefault();
+                    }
+                }
+
+            }
+            if (content.hidden == false) {
+                this.show_current_message = true;
+            }
+        }
         this.is_editing_content = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
         this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
     }
@@ -293,12 +317,19 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
         await this.unregister_all_vo_event_callbacks();
 
+        if (!this.thread_message/* || !this.thread_message.attachments*/) {
+            this.is_loading_thread_message = false;
+            return;
+        }
+
         // On récupère les contenus du message
         await this.register_vo_updates_on_list(
             GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID,
             reflect<this>().thread_message_contents,
             [filter(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().thread_message_id).by_num_eq(this.thread_message.id)]
         );
+
+        await this.load_thread_message_attachments();
 
         await this.load_avatar_url_and_user_name();
 
@@ -311,9 +342,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     private async load_thread_message_attachments() {
 
-        this.is_loading_thread_message = true;
+        // this.is_loading_thread_message = true;
         if (!this.thread_message || !this.thread_message.attachments) {
-            this.is_loading_thread_message = false;
+            // this.is_loading_thread_message = false;
             return;
         }
 
@@ -336,10 +367,34 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                     }
                 }
             }
+            if (attachment.gpt_file_id) {
+                const gpt_files: GPTAssistantAPIFileVO[] = await query(GPTAssistantAPIFileVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFileVO>().gpt_file_id, attachment.gpt_file_id)
+                    .select_vos<GPTAssistantAPIFileVO>();
+                const files: FileVO[] = []
+                for (const gpt_file of gpt_files) {
+                    const file = await query(FileVO.API_TYPE_ID)
+                        .filter_by_id(gpt_file.file_id)
+                        .select_vos<FileVO>();
+                    files.push(file[0]);
+                }
+                if (files.length > 0) {
+                    for (const file of files) {
+                        if (this.thread_message_files.every((value) => {
+                            if (value['.' + file.path.split('.').pop()].id = file.id) {
+                                return false;
+                            }
+                            return true;
+                        })) {
+                            this.thread_message_files.push({ ['.' + file.path.split('.').pop()]: file });
+                        }
+                    }
+                }
+            }
         }
 
 
-        this.is_loading_thread_message = false;
+        // this.is_loading_thread_message = false;
     }
 
     private async load_avatar_url_and_user_name() {
