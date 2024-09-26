@@ -37,10 +37,13 @@ import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../File/ModuleFile';
 import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
 import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
+import OseliaThreadUsersVO from './vos/OseliaThreadUserVO';
+import OseliaThreadUserVO from './vos/OseliaThreadUserVO';
+import OseliaThreadRoleVO from './vos/OseliaThreadRoleVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
-
+    public static ROLE_UID_PREFIX: string = 'oselia.thread.roles.names.';
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleOselia.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_SELECT_THREAD_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleOselia.MODULE_NAME + '.SELECT_THREAD_ACCESS';
@@ -48,6 +51,12 @@ export default class ModuleOselia extends Module {
     public static OSELIA_EXPORT_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_export_dashboard_id';
     public static OSELIA_THREAD_DASHBOARD_ID_PARAM_NAME: string = 'ModuleOselia.oselia_thread_dashboard_id';
     public static WEBHOOK_TEAMS_PARAM_NAME: string = 'ModuleOselia.WEBHOOK_TEAMS';
+
+    /**
+     * Définition des noms des rôles de thread
+     */
+    public static ROLE_OWNER = ModuleOselia.ROLE_UID_PREFIX + 'owner';
+    public static ROLE_USER = ModuleOselia.ROLE_UID_PREFIX + 'user';
 
     /**
      * Droit d'accès aux discussions sur le front
@@ -115,6 +124,8 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaVisionPriceVO();
         this.initializeOseliaImagePriceVO();
         this.initializeOseliaAssistantPriceVO();
+        this.initializeOseliaThreadRoleVO();
+        this.initializeOseliaThreadUserVO();
     }
 
     public initializeOseliaChatVO() {
@@ -473,4 +484,39 @@ export default class ModuleOselia extends Module {
             )
         );
     }
+
+    private initializeOseliaThreadRoleVO() {
+        ModuleTableFieldController.create_new(OseliaThreadRoleVO.API_TYPE_ID, field_names<OseliaThreadRoleVO>().translatable_name, ModuleTableFieldVO.FIELD_TYPE_translatable_text, 'Nom', true)
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaThreadRoleVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Role Thread Osélia" })
+            )
+        );
+    }
+
+    private initializeOseliaThreadUserVO() {
+        ModuleTableFieldController.create_new(OseliaThreadUserVO.API_TYPE_ID, field_names<OseliaThreadUserVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaThreadUserVO.API_TYPE_ID, field_names<OseliaThreadUserVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+
+        ModuleTableFieldController.create_new(OseliaThreadUserVO.API_TYPE_ID, field_names<OseliaThreadUserVO>().role_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Role', true)
+            .set_many_to_one_target_moduletable_name(OseliaThreadRoleVO.API_TYPE_ID);
+
+        VersionedVOController.getInstance().registerModuleTable(
+            ModuleTableController.create_new(
+                this.name,
+                OseliaThreadUserVO,
+                null,
+                DefaultTranslationVO.create_new({ 'fr-fr': "Lien Thread/Utilisateur/Role Osélia" })
+            )
+        );
+    }
+
+
 }

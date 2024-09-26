@@ -35,6 +35,9 @@ import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssista
 import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
 import { readFileSync } from 'fs';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
+import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
+import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 
 export default class GPTAssistantAPIServerController {
 
@@ -455,6 +458,15 @@ export default class GPTAssistantAPIServerController {
         thread_vo.user_id = user_id ? user_id : await ModuleVersionedServer.getInstance().get_robot_user_id();
         thread_vo.current_default_assistant_id = current_default_assistant_id;
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+
+        // ML : Si on créer un thread, on doit aussi rajouter le créateur dans les user du thread et lui mettre le rôle propriétaire
+        const thread_user_vo = new OseliaThreadUserVO();
+        thread_user_vo.thread_id = thread_vo.id;
+        thread_user_vo.user_id = thread_vo.user_id;
+        thread_user_vo.role_id = (await query(OseliaThreadRoleVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadRoleVO>().translatable_name, ModuleOselia.ROLE_OWNER)
+            .select_vo<OseliaThreadRoleVO>()).id; // Propriétaire
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
 
         return thread_vo;
     }
