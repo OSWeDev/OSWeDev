@@ -27,6 +27,9 @@ export default class SuiviCompetencesWidgetController {
                 if ($('.suivi_competences_widget_component_container').find('.groupe_name').length > 0) {
                     clearInterval(timeOut);
 
+                    // On attend 3 secondes supplémentaires pour s'assurer que tout est bien chargé, sinon dans certains cas on a pas tout
+                    await new Promise((resolve) => setTimeout(resolve, 3000));
+
                     let html_content: string = $('.suivi_competences_widget_component_container')[0].outerHTML;
                     let limit = EnvHandler.max_pool / 2; // front
                     let promise_pipeline = new PromisePipeline(limit);
@@ -60,7 +63,7 @@ export default class SuiviCompetencesWidgetController {
                     await promise_pipeline.end();
 
                     let sous_rep: string = grille.base_export_file_name;
-                    let file_name: string = grille.base_export_file_name + '_' + Dates.format(rapport.date, 'DD-MM-YYYY', false) + '_' + user.id + '.pdf';
+                    let file_name: string = grille.base_export_file_name + '_' + (user.name ? user.name : '') + '_' + Dates.format(rapport.date, 'DD-MM-YYYY', false) + '_' + user.id + '.pdf';
 
                     let logo_html: string =
                         '<div class="logo">' +
