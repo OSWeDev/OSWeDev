@@ -225,7 +225,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -267,7 +267,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptionsVO(
             null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false,
-            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, false, null, null, null
+            false, null, false, true, true, true, false, false, false, false, false, false, [], false, false, [], null
         ), TableWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
@@ -349,7 +349,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(
             AdvancedDateFilter,
-            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false),
+            () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false, null, false, false, false, false, null, false, false, null, null),
             AdvancedDateFilterWidgetOptions.get_selected_fields
         );
 

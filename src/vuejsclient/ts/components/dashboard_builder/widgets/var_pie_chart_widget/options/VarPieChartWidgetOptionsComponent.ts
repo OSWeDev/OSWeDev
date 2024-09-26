@@ -55,7 +55,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         "ColorBrewer",
         "Matplotlib",
         "Coolors",
-    ]
+    ];
     private color_palettes: string[][] = [
         [
             '#4E79A7', // Bleu
@@ -145,7 +145,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_WEEK),
             // this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
             [TimeSegment.TYPE_MINUTE]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
-            [TimeSegment.TYPE_SECOND]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND)
+            [TimeSegment.TYPE_SECOND]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
+            [TimeSegment.TYPE_QUARTER]: this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_QUARTER),
         };
 
     private dimension_custom_filter_segment_types_values: string[] = Object.values(this.dimension_custom_filter_segment_types);
@@ -665,7 +666,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
 
             this.tmp_selected_var_name_1 = null;
             this.custom_filter_names_1 = {};
-            this.tmp_selected_color_palette = "None"
+            this.tmp_selected_color_palette = "None";
             this.color_palettes = null;
             this.bg_colors = null;
             this.bg_gradient = false;
@@ -812,7 +813,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                     return res >= 0 ? res : null;
                 }
             }
-            return null
+            return null;
         }
     }
 

@@ -43,6 +43,12 @@ export default class AdvancedDateFilterWidgetOptions implements IExportableWidge
         public hide_opts: boolean,
         public refuse_left_open: boolean,
         public refuse_right_open: boolean,
+        public is_relative_to_other_filter: boolean,
+        public relative_to_other_filter_id: number,
+        public hide_filter: boolean,
+        public is_relative_to_today: boolean,
+        public auto_select_relative_date_min: number,
+        public auto_select_relative_date_max: number,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

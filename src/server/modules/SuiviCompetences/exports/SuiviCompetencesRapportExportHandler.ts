@@ -11,6 +11,7 @@ import SuiviCompetencesGroupeResult from "../../../../shared/modules/SuiviCompet
 import ExportSuiviCompetencesRapportHandlerParam from "../../../../shared/modules/SuiviCompetences/exports/ExportSuiviCompetencesRapportHandlerParam";
 import SuiviCompetencesIndicateurTableFieldTypeController from "../../../../shared/modules/SuiviCompetences/fields/indicateur/SuiviCompetencesIndicateurTableFieldTypeController";
 import SuiviCompetencesIndicateurVO from "../../../../shared/modules/SuiviCompetences/fields/indicateur/vos/SuiviCompetencesIndicateurVO";
+import SuiviCompetencesGrilleVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesGrilleVO";
 import SuiviCompetencesItemRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemRapportVO";
 import SuiviCompetencesItemVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesItemVO";
 import SuiviCompetencesRapportVO from "../../../../shared/modules/SuiviCompetences/vos/SuiviCompetencesRapportVO";
@@ -77,8 +78,14 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             await query(SuiviCompetencesRapportVO.API_TYPE_ID).filter_by_ids(import_params.rapport_id_ranges).select_vos<SuiviCompetencesRapportVO>()
         );
 
+        let grille_id_ranges: NumRange[] = RangeHandler.create_multiple_NumRange_from_ids(ObjectHandler.arrayFromMap(rapport_by_ids).map((e) => e.suivi_comp_grille_id), NumSegment.TYPE_INT);
+
+        let grille_by_ids: { [id: number]: SuiviCompetencesGrilleVO } = VOsTypesManager.vosArray_to_vosByIds(
+            await query(SuiviCompetencesGrilleVO.API_TYPE_ID).filter_by_ids(grille_id_ranges).select_vos<SuiviCompetencesGrilleVO>()
+        );
+
         let all_groupe: SuiviCompetencesGroupeResult[] = await ModuleSuiviCompetences.getInstance().get_all_suivi_competences_groupe(
-            RangeHandler.create_multiple_NumRange_from_ids(ObjectHandler.arrayFromMap(rapport_by_ids).map((e) => e.suivi_comp_grille_id), NumSegment.TYPE_INT)
+            grille_id_ranges
         );
 
         let item_rapport_by_item_id_rapport_id: { [item_id: number]: { [rapport_id: number]: SuiviCompetencesItemRapportVO } } = {};
@@ -125,6 +132,8 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
                             let item_rapport_indicateur: SuiviCompetencesIndicateurVO = (item_rapport.indicateur > 0) ? indicateurs[(item_rapport.indicateur - 1)] : null;
 
                             data['commentaires_' + rapport_id] = item_rapport.etat_des_lieux;
+                            data['cible_' + rapport_id] = item_rapport.cible;
+                            data['delais_' + rapport_id] = item_rapport.delais;
                             data['plan_action_' + rapport_id] = item_rapport.plan_action;
 
                             if (item_rapport_indicateur) {
@@ -140,7 +149,45 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         }
 
         this.set_column_labels(import_params.rapport_id_ranges, rapport_by_ids);
-        this.set_ordered_column_list(import_params.rapport_id_ranges);
+
+        let show_column_rapport_plan_action: boolean = false;
+        let show_column_rapport_etat_des_lieux: boolean = false;
+        let show_column_rapport_cible: boolean = false;
+        let show_column_rapport_delais: boolean = false;
+        let show_column_rapport_indicateur: boolean = false;
+
+        for (let i in rapport_by_ids) {
+            let grille: SuiviCompetencesGrilleVO = grille_by_ids[rapport_by_ids[i].suivi_comp_grille_id];
+
+            if (!grille) {
+                continue;
+            }
+
+            if (grille.show_column_rapport_plan_action) {
+                show_column_rapport_plan_action = true;
+            }
+            if (grille.show_column_rapport_etat_des_lieux) {
+                show_column_rapport_etat_des_lieux = true;
+            }
+            if (grille.show_column_rapport_cible) {
+                show_column_rapport_cible = true;
+            }
+            if (grille.show_column_rapport_delais) {
+                show_column_rapport_delais = true;
+            }
+            if (grille.show_column_rapport_indicateur) {
+                show_column_rapport_indicateur = true;
+            }
+        }
+
+        this.set_ordered_column_list(
+            import_params.rapport_id_ranges,
+            show_column_rapport_plan_action,
+            show_column_rapport_etat_des_lieux,
+            show_column_rapport_cible,
+            show_column_rapport_delais,
+            show_column_rapport_indicateur,
+        );
 
         return res;
     }
@@ -162,6 +209,8 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
             res['indicateur_' + rapport_id] = rapport.name;
             res['indicateur_detail_' + rapport_id] = "Détail de l'indicateur";
             res['commentaires_' + rapport_id] = "Commentaires";
+            res['cible_' + rapport_id] = "Cible";
+            res['delais_' + rapport_id] = "Delais";
             res['plan_action_' + rapport_id] = "Plan d'action";
         });
 
@@ -170,6 +219,11 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
 
     private set_ordered_column_list(
         rapport_id_ranges: NumRange[],
+        show_column_rapport_plan_action: boolean,
+        show_column_rapport_etat_des_lieux: boolean,
+        show_column_rapport_cible: boolean,
+        show_column_rapport_delais: boolean,
+        show_column_rapport_indicateur: boolean,
     ) {
         let res: string[] = [
             'groupe',
@@ -179,12 +233,24 @@ export default class SuiviCompetencesRapportExportHandler extends ExportHandlerB
         ];
 
         RangeHandler.foreach_ranges_sync(rapport_id_ranges, (rapport_id: number) => {
-            res.push(
-                'indicateur_' + rapport_id,
-                'indicateur_detail_' + rapport_id,
-                'commentaires_' + rapport_id,
-                'plan_action_' + rapport_id,
-            );
+            if (show_column_rapport_indicateur) {
+                res.push(
+                    'indicateur_' + rapport_id,
+                    'indicateur_detail_' + rapport_id,
+                );
+            }
+            if (show_column_rapport_cible) {
+                res.push('cible_' + rapport_id);
+            }
+            if (show_column_rapport_etat_des_lieux) {
+                res.push('commentaires_' + rapport_id);
+            }
+            if (show_column_rapport_plan_action) {
+                res.push('plan_action_' + rapport_id);
+            }
+            if (show_column_rapport_delais) {
+                res.push('delais_' + rapport_id);
+            }
         });
 
         this.ordered_column_list = res;
