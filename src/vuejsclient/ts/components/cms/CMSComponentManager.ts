@@ -3,6 +3,10 @@ import ICMSComponentTemplateVue from './interfaces/ICMSComponentTemplateVue';
 
 export default class CMSComponentManager {
 
+    private static instance: CMSComponentManager;
+
+    public template_component_vue_by_type_id: { [api_type_id: string]: VueConstructor<ICMSComponentTemplateVue> } = {};
+
     // istanbul ignore next: nothing to test : getInstance
     public static getInstance() {
 
@@ -11,10 +15,6 @@ export default class CMSComponentManager {
         }
         return CMSComponentManager.instance;
     }
-
-    private static instance: CMSComponentManager;
-
-    public template_component_vue_by_type_id: { [api_type_id: string]: VueConstructor<ICMSComponentTemplateVue> } = {};
 
     public registerCMSTemplateComponent(type_id: string, vueComponent: VueConstructor<ICMSComponentTemplateVue>) {
         if (!this.template_component_vue_by_type_id[type_id]) {

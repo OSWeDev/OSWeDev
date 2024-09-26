@@ -93,6 +93,43 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         return options;
     }
 
+    get vo_field_ref(): VOFieldRefVO {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get segmentation_type(): number {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        return options ? options.segmentation_type : null;
+    }
+
+    get exclude_values(): TSRange {
+        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
+
+        if (!options) {
+            return null;
+        }
+
+        return options.exclude_ts_range_values;
+    }
+
+    get field_date(): SimpleDatatableFieldVO<any, any> {
+        const field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
+            .setModuleTable(ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id]);
+
+        if (this.segmentation_type != null) {
+            field.segmentation_type = this.segmentation_type;
+        }
+
+        return field;
+    }
+
     /**
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
@@ -228,42 +265,5 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             }
             return;
         }
-    }
-
-    get vo_field_ref(): VOFieldRefVO {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get segmentation_type(): number {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        return options ? options.segmentation_type : null;
-    }
-
-    get exclude_values(): TSRange {
-        const options: FieldValueFilterWidgetOptionsVO = this.widget_options;
-
-        if (!options) {
-            return null;
-        }
-
-        return options.exclude_ts_range_values;
-    }
-
-    get field_date(): SimpleDatatableFieldVO<any, any> {
-        const field = SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id)
-            .setModuleTable(ModuleTableController.module_tables_by_vo_type[this.vo_field_ref.api_type_id]);
-
-        if (this.segmentation_type != null) {
-            field.segmentation_type = this.segmentation_type;
-        }
-
-        return field;
     }
 }
