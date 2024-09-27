@@ -818,7 +818,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         // On sépare 2 fonctionnements : 1 cas où Osélia est utilisé en interne dans le site même qui contient les comptes utilisateurs.
         //  Dans ce cas on ne doit pas en créer, et la liaison doit se faire avec les comptes existants automatiquement.
         // 2ème cas, Osélia est utilisé en externe, et on doit créer les comptes utilisateurs si ils n'existent pas encore, mais on attend la validation pour lier le compte au partenaire
-        const is_internal_behaviour = (referrer.referrer_origin == ConfigurationService.node_configuration.base_url);
+        const is_internal_behaviour = ((referrer.referrer_origin == ConfigurationService.node_configuration.base_url) || ((referrer.referrer_origin + '/') == ConfigurationService.node_configuration.base_url));
 
         try {
 

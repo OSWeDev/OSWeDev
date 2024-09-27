@@ -28,6 +28,29 @@ import { AssistantResponseFormatOption } from 'openai/resources/beta/threads/thr
 export default class GPTAssistantAPIServerSyncAssistantsController {
 
     /**
+     * On ajoute une méthode pour créer un nouvel assistant côté openai et récupérer l'id pour initialiser le vo chez nous
+     */
+    public static async create_new_assistant_and_get_gpt_id(): Promise<string> {
+        const gpt_obj: Assistant = await GPTAssistantAPIServerController.wrap_api_call(
+            ModuleGPTServer.openai.beta.assistants.create,
+            ModuleGPTServer.openai.beta.assistants,
+            {
+                model: 'gpt-4o-mini',
+                name: 'New Assistant',
+                description: 'New Assistant',
+                instructions: 'New Assistant',
+                metadata: {},
+                response_format: "auto",
+                temperature: 1,
+                tool_resources: null,
+                tools: null,
+                top_p: 1,
+            });
+
+        return gpt_obj.id;
+    }
+
+    /**
      * GPTAssistantAPIFunctionVO
      * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
      */

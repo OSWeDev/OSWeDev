@@ -58,7 +58,7 @@ export default class GPTAssistantAPIFunctionVO implements IDistantVOBase, IVersi
             description: this.gpt_function_description,
 
             name: this.gpt_function_name,
-            strict: true,
+            // strict: true, ça a pas l'air totalement au point ce truc.... pour le moment on peut pas en tout cas déclarer des fonctions avec des params optionnels en strict... à voir si c'est normal mais c'est pas documenté en l'état
 
             parameters: {
                 type: 'object',

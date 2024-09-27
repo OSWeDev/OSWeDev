@@ -36,6 +36,7 @@ export default class ModulesManager {
         ModuleTableFieldController.create_new(ModuleVO.API_TYPE_ID, field_names<ModuleVO>().actif, ModuleTableFieldVO.FIELD_TYPE_boolean, DefaultTranslationVO.create_new({ 'fr-fr': 'Actif' }), true);
 
         ModuleTableController.create_new(null, ModuleVO, label_field, DefaultTranslationVO.create_new({ 'fr-fr': 'Modules' }))
+            .set_description('Les modules disponibles / activés pour cette instance d\'OSWEDEV')
             .set_bdd_ref('admin', 'modules');
     }
 

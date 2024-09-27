@@ -106,6 +106,16 @@ import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodule
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
+import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -230,6 +240,17 @@ export default abstract class GeneratorBase {
             Patch20240905AddOseliaAssistantThreadTitleWriter.getInstance(),
             Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
             Patch20240912PreinitOseliaPrices.getInstance(),
+
+            Patch20240926AddOseliaFunction_TRELLO_trello_create_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_search_trello.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_update_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_delete_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_action.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

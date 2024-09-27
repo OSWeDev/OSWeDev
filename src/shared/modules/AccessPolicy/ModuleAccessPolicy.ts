@@ -434,17 +434,13 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserAPIVO() {
-        let label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let field_user_id = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let datatable_fields = [
-            label,
-            field_user_id,
-            ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique()
-        ];
+        const label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique();
 
-        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }));
-
-        field_user_id.set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }))
+            .set_description('Clefs d\'API des utilisateurs pour les appels API');
     }
 
     private initializeUser() {
@@ -475,7 +471,7 @@ export default class ModuleAccessPolicy extends Module {
             label_field,
             DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }),
             field_names<UserVO>().name
-        );
+        ).set_description('Comptes utilisateurs');
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 
