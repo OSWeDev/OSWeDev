@@ -53,9 +53,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of
             function_TRELLO_trello_get_members_of_a_board.json_stringify_output = true;
             function_TRELLO_trello_get_members_of_a_board.gpt_function_description = "Get the Members for a board";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_members_of_a_board);
+        }
 
-
-            const argument_id = new GPTAssistantAPIFunctionParamVO();
+        let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'id')
+            .filter_by_id(function_TRELLO_trello_get_members_of_a_board.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_id) {
+            argument_id = new GPTAssistantAPIFunctionParamVO();
             argument_id.archived = false;
             argument_id.function_id = function_TRELLO_trello_get_members_of_a_board.id;
             argument_id.gpt_funcparam_description = "The ID of the board";

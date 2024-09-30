@@ -53,9 +53,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             function_TRELLO_trello_get_board_actions.json_stringify_output = true;
             function_TRELLO_trello_get_board_actions.gpt_function_description = "Get all of the actions of a Board";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_board_actions);
+        }
 
-
-            const argument_boardId = new GPTAssistantAPIFunctionParamVO();
+        let argument_boardId = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'boardId')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_boardId) {
+            argument_boardId = new GPTAssistantAPIFunctionParamVO();
             argument_boardId.archived = false;
             argument_boardId.function_id = function_TRELLO_trello_get_board_actions.id;
             argument_boardId.gpt_funcparam_description = "The ID of the Board";
@@ -65,8 +71,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             argument_boardId.not_in_function_params = true;
             argument_boardId.weight = 0;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_boardId);
+        }
 
-            const argument_limit = new GPTAssistantAPIFunctionParamVO();
+        let argument_limit = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'limit')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_limit) {
+            argument_limit = new GPTAssistantAPIFunctionParamVO();
             argument_limit.archived = false;
             argument_limit.function_id = function_TRELLO_trello_get_board_actions.id;
             argument_limit.gpt_funcparam_description = "The limit of the number of responses, between 0 and 1000";
@@ -76,9 +89,16 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             argument_limit.not_in_function_params = false;
             argument_limit.weight = 1;
             argument_limit.default_json_value = JSON.stringify(50);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_limit);
+        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_limit);
 
-            const argument_page = new GPTAssistantAPIFunctionParamVO();
+        let argument_page = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'page')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_page) {
+            argument_page = new GPTAssistantAPIFunctionParamVO();
             argument_page.archived = false;
             argument_page.function_id = function_TRELLO_trello_get_board_actions.id;
             argument_page.gpt_funcparam_description = "The page of results for actions";
@@ -88,9 +108,16 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             argument_page.not_in_function_params = false;
             argument_page.weight = 2;
             argument_page.default_json_value = JSON.stringify(0);
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_page);
+        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_page);
 
-            const argument_before = new GPTAssistantAPIFunctionParamVO();
+        let argument_before = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'before')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_before) {
+            argument_before = new GPTAssistantAPIFunctionParamVO();
             argument_before.archived = false;
             argument_before.function_id = function_TRELLO_trello_get_board_actions.id;
             argument_before.gpt_funcparam_description = "Actions before an Action ID";
@@ -100,8 +127,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_acti
             argument_before.not_in_function_params = false;
             argument_before.weight = 3;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_before);
+        }
 
-            const argument_since = new GPTAssistantAPIFunctionParamVO();
+        let argument_since = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'since')
+            .filter_by_id(function_TRELLO_trello_get_board_actions.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_since) {
+            argument_since = new GPTAssistantAPIFunctionParamVO();
             argument_since.archived = false;
             argument_since.function_id = function_TRELLO_trello_get_board_actions.id;
             argument_since.gpt_funcparam_description = "Actions since an Action ID";

@@ -53,9 +53,16 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_card imple
             function_TRELLO_trello_get_card.json_stringify_output = true;
             function_TRELLO_trello_get_card.gpt_function_description = "Get a card by its ID";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_card);
+        }
 
 
-            const argument_id = new GPTAssistantAPIFunctionParamVO();
+        let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'id')
+            .filter_by_id(function_TRELLO_trello_get_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_id) {
+            argument_id = new GPTAssistantAPIFunctionParamVO();
             argument_id.archived = false;
             argument_id.function_id = function_TRELLO_trello_get_card.id;
             argument_id.gpt_funcparam_description = "The ID of the Card";

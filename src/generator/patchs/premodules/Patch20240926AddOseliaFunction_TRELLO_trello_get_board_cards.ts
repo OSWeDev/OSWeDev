@@ -53,9 +53,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_get_board_card
             function_TRELLO_trello_get_board_cards.json_stringify_output = true;
             function_TRELLO_trello_get_board_cards.gpt_function_description = "Get all of the actions of a Board";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_get_board_cards);
+        }
 
-
-            const argument_id = new GPTAssistantAPIFunctionParamVO();
+        let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'id')
+            .filter_by_id(function_TRELLO_trello_get_board_cards.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_id) {
+            argument_id = new GPTAssistantAPIFunctionParamVO();
             argument_id.archived = false;
             argument_id.function_id = function_TRELLO_trello_get_board_cards.id;
             argument_id.gpt_funcparam_description = "The ID of the Board";

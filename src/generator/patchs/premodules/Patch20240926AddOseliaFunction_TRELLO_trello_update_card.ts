@@ -53,9 +53,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             function_TRELLO_trello_update_card.json_stringify_output = true;
             function_TRELLO_trello_update_card.gpt_function_description = "Update a Card";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_update_card);
+        }
 
-
-            const argument_id = new GPTAssistantAPIFunctionParamVO();
+        let argument_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'id')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_id) {
+            argument_id = new GPTAssistantAPIFunctionParamVO();
             argument_id.archived = false;
             argument_id.function_id = function_TRELLO_trello_update_card.id;
             argument_id.gpt_funcparam_description = "The ID of the Card";
@@ -65,8 +71,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_id.not_in_function_params = true;
             argument_id.weight = 0;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_id);
+        }
 
-            const argument_name = new GPTAssistantAPIFunctionParamVO();
+        let argument_name = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'name')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_name) {
+            argument_name = new GPTAssistantAPIFunctionParamVO();
             argument_name.archived = false;
             argument_name.function_id = function_TRELLO_trello_update_card.id;
             argument_name.gpt_funcparam_description = "The name for the card";
@@ -76,8 +89,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_name.not_in_function_params = false;
             argument_name.weight = 1;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_name);
+        }
 
-            const argument_desc = new GPTAssistantAPIFunctionParamVO();
+        let argument_desc = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'desc')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_desc) {
+            argument_desc = new GPTAssistantAPIFunctionParamVO();
             argument_desc.archived = false;
             argument_desc.function_id = function_TRELLO_trello_update_card.id;
             argument_desc.gpt_funcparam_description = "The description for the card";
@@ -87,8 +107,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_desc.not_in_function_params = false;
             argument_desc.weight = 2;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_desc);
+        }
 
-            const argument_pos = new GPTAssistantAPIFunctionParamVO();
+        let argument_pos = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'pos')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_pos) {
+            argument_pos = new GPTAssistantAPIFunctionParamVO();
             argument_pos.archived = false;
             argument_pos.function_id = function_TRELLO_trello_update_card.id;
             argument_pos.gpt_funcparam_description = "The position of the new card. top, bottom, or a positive float";
@@ -98,9 +125,16 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_pos.not_in_function_params = false;
             argument_pos.weight = 3;
             argument_pos.default_json_value = '"top"';
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_pos);
+        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_pos);
 
-            const argument_due = new GPTAssistantAPIFunctionParamVO();
+        let argument_due = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'due')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_due) {
+            argument_due = new GPTAssistantAPIFunctionParamVO();
             argument_due.archived = false;
             argument_due.function_id = function_TRELLO_trello_update_card.id;
             argument_due.gpt_funcparam_description = "A due date for the card";
@@ -110,8 +144,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_due.not_in_function_params = false;
             argument_due.weight = 4;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_due);
+        }
 
-            const argument_idList = new GPTAssistantAPIFunctionParamVO();
+        let argument_idList = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idList')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idList) {
+            argument_idList = new GPTAssistantAPIFunctionParamVO();
             argument_idList.archived = false;
             argument_idList.function_id = function_TRELLO_trello_update_card.id;
             argument_idList.gpt_funcparam_description = "The ID of the list the card should be created in";
@@ -121,8 +162,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idList.not_in_function_params = false;
             argument_idList.weight = 5;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idList);
+        }
 
-            const argument_idMembers = new GPTAssistantAPIFunctionParamVO();
+        let argument_idMembers = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idMembers')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idMembers) {
+            argument_idMembers = new GPTAssistantAPIFunctionParamVO();
             argument_idMembers.archived = false;
             argument_idMembers.function_id = function_TRELLO_trello_update_card.id;
             argument_idMembers.gpt_funcparam_description = "Comma-separated list of member IDs to add to the card";
@@ -132,8 +180,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idMembers.not_in_function_params = false;
             argument_idMembers.weight = 6;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idMembers);
+        }
 
-            const argument_idLabels = new GPTAssistantAPIFunctionParamVO();
+        let argument_idLabels = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idLabels')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idLabels) {
+            argument_idLabels = new GPTAssistantAPIFunctionParamVO();
             argument_idLabels.archived = false;
             argument_idLabels.function_id = function_TRELLO_trello_update_card.id;
             argument_idLabels.gpt_funcparam_description = "Comma-separated list of label IDs to add to the card";
@@ -143,8 +198,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_idLabels.not_in_function_params = false;
             argument_idLabels.weight = 7;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idLabels);
+        }
 
-            const argument_closed = new GPTAssistantAPIFunctionParamVO();
+        let argument_closed = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'closed')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_closed) {
+            argument_closed = new GPTAssistantAPIFunctionParamVO();
             argument_closed.archived = false;
             argument_closed.function_id = function_TRELLO_trello_update_card.id;
             argument_closed.gpt_funcparam_description = "Whether the card should be archived (closed: true)";
@@ -154,9 +216,16 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_closed.not_in_function_params = false;
             argument_closed.weight = 8;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_closed);
+        }
 
 
-            const argument_address = new GPTAssistantAPIFunctionParamVO();
+        let argument_address = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'address')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_address) {
+            argument_address = new GPTAssistantAPIFunctionParamVO();
             argument_address.archived = false;
             argument_address.function_id = function_TRELLO_trello_update_card.id;
             argument_address.gpt_funcparam_description = "For use with/by the Map View";
@@ -166,8 +235,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_address.not_in_function_params = false;
             argument_address.weight = 12;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_address);
+        }
 
-            const argument_coordinates = new GPTAssistantAPIFunctionParamVO();
+        let argument_coordinates = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'coordinates')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_coordinates) {
+            argument_coordinates = new GPTAssistantAPIFunctionParamVO();
             argument_coordinates.archived = false;
             argument_coordinates.function_id = function_TRELLO_trello_update_card.id;
             argument_coordinates.gpt_funcparam_description = "For use with/by the Map View. Should take the form latitude,longitude";
@@ -177,8 +253,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_update_card im
             argument_coordinates.not_in_function_params = false;
             argument_coordinates.weight = 13;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_coordinates);
+        }
 
-            const argument_locationName = new GPTAssistantAPIFunctionParamVO();
+        let argument_locationName = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'locationName')
+            .filter_by_id(function_TRELLO_trello_update_card.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_locationName) {
+            argument_locationName = new GPTAssistantAPIFunctionParamVO();
             argument_locationName.archived = false;
             argument_locationName.function_id = function_TRELLO_trello_update_card.id;
             argument_locationName.gpt_funcparam_description = "For use with/by the Map View";

@@ -53,9 +53,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             function_TRELLO_trello_search_trello.json_stringify_output = true;
             function_TRELLO_trello_search_trello.gpt_function_description = "Find what you're looking for in Trello";
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(function_TRELLO_trello_search_trello);
+        }
 
-
-            const argument_query = new GPTAssistantAPIFunctionParamVO();
+        let argument_query = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'query')
+            .filter_by_id(function_TRELLO_trello_search_trello.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_query) {
+            argument_query = new GPTAssistantAPIFunctionParamVO();
             argument_query.archived = false;
             argument_query.function_id = function_TRELLO_trello_search_trello.id;
             argument_query.gpt_funcparam_description = "The search query with a length of 1 to 16384 characters";
@@ -65,8 +71,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_query.not_in_function_params = true;
             argument_query.weight = 0;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_query);
+        }
 
-            const argument_idBoards = new GPTAssistantAPIFunctionParamVO();
+        let argument_idBoards = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idBoards')
+            .filter_by_id(function_TRELLO_trello_search_trello.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idBoards) {
+            argument_idBoards = new GPTAssistantAPIFunctionParamVO();
             argument_idBoards.archived = false;
             argument_idBoards.function_id = function_TRELLO_trello_search_trello.id;
             argument_idBoards.gpt_funcparam_description = "'mine' or a comma-separated list of Board IDs";
@@ -76,8 +89,15 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_idBoards.not_in_function_params = false;
             argument_idBoards.weight = 1;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idBoards);
+        }
 
-            const argument_idOrganizations = new GPTAssistantAPIFunctionParamVO();
+        let argument_idOrganizations = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idOrganizations')
+            .filter_by_id(function_TRELLO_trello_search_trello.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idOrganizations) {
+            argument_idOrganizations = new GPTAssistantAPIFunctionParamVO();
             argument_idOrganizations.archived = false;
             argument_idOrganizations.function_id = function_TRELLO_trello_search_trello.id;
             argument_idOrganizations.gpt_funcparam_description = "A comma-separated list of Organization IDs";
@@ -87,19 +107,24 @@ export default class Patch20240926AddOseliaFunction_TRELLO_trello_search_trello 
             argument_idOrganizations.not_in_function_params = false;
             argument_idOrganizations.weight = 2;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idOrganizations);
+        }
 
-            const argument_idCards = new GPTAssistantAPIFunctionParamVO();
+        let argument_idCards = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'idCards')
+            .filter_by_id(function_TRELLO_trello_search_trello.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_idCards) {
+            argument_idCards = new GPTAssistantAPIFunctionParamVO();
             argument_idCards.archived = false;
             argument_idCards.function_id = function_TRELLO_trello_search_trello.id;
             argument_idCards.gpt_funcparam_description = "A comma-separated list of Card IDs";
             argument_idCards.gpt_funcparam_name = "idCards";
             argument_idCards.required = false;
             argument_idCards.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
-            argument_idCards.not_in_function_params = false;
-            argument_idCards.weight = 3;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idCards);
-
-
         }
+        argument_idCards.not_in_function_params = false;
+        argument_idCards.weight = 3;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_idCards);
     }
 }
