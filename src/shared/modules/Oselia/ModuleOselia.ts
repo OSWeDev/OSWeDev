@@ -70,9 +70,13 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
 
+    // public static APINAME_get_thread_text_content: string = "get_thread_text_content";
+
     private static instance: ModuleOselia = null;
 
     public get_token_oselia: (url: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_token_oselia);
+
+    // public get_thread_text_content: (thread_vo_id: number) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_thread_text_content);
 
     public open_oselia_db: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
     public link_user_to_oselia_referrer: (referrer_code: string, user_email: string, referrer_user_uid: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_link_user_to_oselia_referrer);

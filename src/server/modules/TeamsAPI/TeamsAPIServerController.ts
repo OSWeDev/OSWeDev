@@ -25,6 +25,34 @@ export default class TeamsAPIServerController {
 
     private static throttle_send_teams = null;
 
+    public static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
+        const action = new ActionURLVO();
+
+        action.action_name = 'En parler avec Osélia [' + thread_id + ']';
+        action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
+        action.action_remaining_counter = -1; // infini
+        action.params_json = thread_id.toString();
+        action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
+
+        action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;
+        action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
+
+        action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY;
+        action.button_translatable_name = 'TeamsAPIServerController.open_oselia';
+        action.button_translatable_name_params_json = null;
+        action.button_fc_icon_classnames = ['fa-duotone', 'fa-comment-heart'];
+
+        const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.error('Impossible de créer l\'action URL pour le bouton de discussion avec Osélia : ' + action.action_name);
+            return null;
+        }
+
+        await ActionURLServerTools.add_right_for_admins_on_action_url(action);
+
+        return action;
+    }
+
     /**
      * Utiliser uniquement si on ne veut pas de throttling, ou des boutons pour le moment
      *  sinon préférer send_teams_error, send_teams_info, send_teams_warn, send_teams_success
@@ -407,33 +435,5 @@ export default class TeamsAPIServerController {
 
             await TeamsAPIServerController.send_to_teams_webhook(channel_id, group_id, m);
         }
-    }
-
-    public static async create_action_button_open_oselia(thread_id: number): Promise<ActionURLVO> {
-        const action = new ActionURLVO();
-
-        action.action_name = 'En parler avec Osélia [' + thread_id + ']';
-        action.action_code = ActionURLServerTools.get_unique_code_from_text(action.action_name);
-        action.action_remaining_counter = -1; // infini
-        action.params_json = thread_id.toString();
-        action.valid_ts_range = RangeHandler.createNew(TSRange.RANGE_TYPE, Dates.now(), Dates.add(Dates.now(), 60, TimeSegment.TYPE_DAY), true, true, TimeSegment.TYPE_DAY);
-
-        action.action_callback_function_name = reflect<ModuleOseliaServer>().open_oselia_db_from_action_url;
-        action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-
-        action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_PRIMARY;
-        action.button_translatable_name = 'TeamsAPIServerController.open_oselia';
-        action.button_translatable_name_params_json = null;
-        action.button_fc_icon_classnames = ['fa-duotone', 'fa-comment-heart'];
-
-        const res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action);
-        if ((!res) || (!res.id)) {
-            ConsoleHandler.error('Impossible de créer l\'action URL pour le bouton de discussion avec Osélia : ' + action.action_name);
-            return null;
-        }
-
-        await ActionURLServerTools.add_right_for_admins_on_action_url(action);
-
-        return action;
     }
 }
