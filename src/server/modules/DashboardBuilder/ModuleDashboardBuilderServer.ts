@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -11,7 +12,6 @@ import DashboardPageVO from '../../../shared/modules/DashboardBuilder/vos/Dashbo
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardViewportVO from '../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
-import DashboardWidgetPositionVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetPositionVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -3700,8 +3700,33 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_i(e);
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_weight(e);
+        await ModuleDashboardBuilderServer.getInstance().duplicate_for_others_viewports(e);
 
         return true;
+    }
+
+    private async duplicate_for_others_viewports(widget: DashboardPageWidgetVO) {
+        if (!widget) {
+            return;
+        }
+
+        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
+        const viewport_of_widget: DashboardViewportVO = await query(DashboardViewportVO.API_TYPE_ID).filter_by_id(widget.dashboard_viewport_id).select_vo();
+        const duplicates: DashboardPageWidgetVO[] = [];
+        for (const i in viewports) {
+            const viewport = viewports[i];
+
+            if (viewport.id == viewport_of_widget.id) {
+                continue;
+            }
+
+            const widget_copy = cloneDeep(widget);
+            widget_copy.dashboard_viewport_id = viewport.id;
+
+            duplicates.push(widget_copy);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(duplicates);
     }
 
     private async check_DashboardPageWidgetVO_weight(e: DashboardPageWidgetVO) {
@@ -3735,36 +3760,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         return;
     }
-
-    // private async postCreateDashboardPageWidget(widget: DashboardPageWidgetVO) {
-    //     if (!widget) {
-    //         return;
-    //     }
-
-    //     const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
-    //     const liaisons_position: DashboardWidgetPositionVO[] = [];
-
-    //     for (const i in viewports) {
-    //         const viewport = viewports[i];
-
-    //         const liaison: DashboardWidgetPositionVO = new DashboardWidgetPositionVO();
-    //         liaison.x = widget?.x;
-    //         liaison.y = widget?.y;
-    //         liaison.w = widget?.w;
-    //         liaison.h = widget?.h;
-    //         liaison.i = widget?.i;
-    //         liaison.static = widget?.static;
-
-    //         liaison.dashboard_page_widget_id = widget.id;
-    //         liaison.dashboard_viewport_id = viewport.id;
-    //         liaison.widget_id = widget.widget_id;
-    //         liaison.show_widget_on_viewport = true;
-
-    //         liaisons_position.push(liaison);
-    //     }
-
-    //     await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(liaisons_position);
-    // }
 
     private async postCreateDashboardPage(page: DashboardPageVO) {
         if (!page) {

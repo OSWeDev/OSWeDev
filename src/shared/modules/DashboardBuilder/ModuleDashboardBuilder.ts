@@ -31,7 +31,6 @@ import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
 import DashboardViewportVO from './vos/DashboardViewportVO';
-import DashboardWidgetPositionVO from './vos/DashboardWidgetPositionVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import SharedFiltersVO from './vos/SharedFiltersVO';
@@ -109,7 +108,6 @@ export default class ModuleDashboardBuilder extends Module {
         this.initialize_VarDatatableFieldVO();
 
         this.initialize_DashboardViewportVO();
-        this.initialize_DashboardWidgetPositionVO();
         this.initialize_DashboardActiveonViewportVO();
     }
 
@@ -175,7 +173,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         const widget_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Widget', true);
         const page_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().page_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
-        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", true, true, 1);
+        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", true, true, 1);
 
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
@@ -186,7 +184,7 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().json_options, ModuleTableFieldVO.FIELD_TYPE_string, 'json_options', false);
         ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().background, ModuleTableFieldVO.FIELD_TYPE_string, 'background', true);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
+        ModuleTableFieldController.create_new(DashboardPageWidgetVO.API_TYPE_ID, field_names<DashboardPageWidgetVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
 
         ModuleTableController.create_new(
             this.name,
@@ -642,26 +640,6 @@ export default class ModuleDashboardBuilder extends Module {
         ModuleTableFieldController.create_new(DashboardViewportVO.API_TYPE_ID, field_names<DashboardViewportVO>().nb_columns, ModuleTableFieldVO.FIELD_TYPE_int, 'Nombre de colonnes');
 
         ModuleTableController.create_new(this.name, DashboardViewportVO, field_name, "Viewport de Dashboard");
-    }
-
-    private initialize_DashboardWidgetPositionVO() {
-        const dashboard_page_widget_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Page Widget", true);
-        const dashboard_viewport_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Viewport", true);
-        const widget_id = ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().widget_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, "Dashboard Widget", true);
-
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().x, ModuleTableFieldVO.FIELD_TYPE_int, 'x', true, true, 0);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().y, ModuleTableFieldVO.FIELD_TYPE_int, 'y', true, true, 0);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().w, ModuleTableFieldVO.FIELD_TYPE_int, 'w', true, true, 0);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().h, ModuleTableFieldVO.FIELD_TYPE_int, 'h', true, true, 0);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().show_widget_on_viewport, ModuleTableFieldVO.FIELD_TYPE_boolean, 'show_widget_on_viewport', true, true, true);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().i, ModuleTableFieldVO.FIELD_TYPE_int, 'i', true);
-        ModuleTableFieldController.create_new(DashboardWidgetPositionVO.API_TYPE_ID, field_names<DashboardWidgetPositionVO>().static, ModuleTableFieldVO.FIELD_TYPE_boolean, 'static', true, true, false);
-
-        ModuleTableController.create_new(this.name, DashboardWidgetPositionVO, null, "Position de widget");
-
-        dashboard_page_widget_id.set_many_to_one_target_moduletable_name(DashboardPageWidgetVO.API_TYPE_ID);
-        dashboard_viewport_id.set_many_to_one_target_moduletable_name(DashboardViewportVO.API_TYPE_ID);
-        widget_id.set_many_to_one_target_moduletable_name(DashboardWidgetVO.API_TYPE_ID);
     }
 
     private initialize_DashboardActiveonViewportVO() {

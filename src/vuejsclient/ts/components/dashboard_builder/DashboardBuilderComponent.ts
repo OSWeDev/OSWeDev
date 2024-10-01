@@ -47,7 +47,6 @@ import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgets
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
 import DashboardViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardActiveonViewportVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
-import DashboardWidgetPositionVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetPositionVO';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -145,8 +144,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private show_menu_conf: boolean = false;
 
     private selected_widget: DashboardPageWidgetVO = null;
-    private selected_widget_position: DashboardWidgetPositionVO = null;
-    private widget_position_by_page_widget_id: { [page_widget_id: number]: DashboardWidgetPositionVO } = {};
 
     private collapsed_fields_wrapper: boolean = true;
     private collapsed_fields_wrapper_2: boolean = true;
@@ -208,29 +205,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('selected_widget')
-    @Watch('selected_widget.w')
-    @Watch('selected_widget.h')
-    @Watch('selected_widget.x')
-    @Watch('selected_widget.y')
-    private async onchange_selected_widget() {
-        if (!this.selected_widget) {
-            this.selected_widget_position = null;
-            return;
-        }
-
-        this.selected_widget_position = this.widget_position_by_page_widget_id[this.selected_widget.id];
-
-        this.selected_widget_position.w = this.selected_widget.w;
-        this.selected_widget_position.h = this.selected_widget.h;
-        this.selected_widget_position.x = this.selected_widget.x;
-        this.selected_widget_position.y = this.selected_widget.y;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.selected_widget_position);
-    }
-
     @Watch('selected_viewport')
     private async onchange_selected_viewport() {
-        this.select_widget(null);
 
         if (!this.selected_viewport || !this.page) {
             return;
@@ -804,9 +780,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             await this.create_dashboard_page();
         }
 
-        const page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
+        let page_widgets: DashboardPageWidgetVO[] = await this.load_page_widgets_by_page_ids(
             this.pages.map((p) => p.id),
         );
+
+        // On ne prend que les widgets du viewport actif
+        if (this.selected_viewport?.id) {
+            page_widgets = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        }
 
         this.set_page_widgets(page_widgets);
 
@@ -857,13 +838,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.is_dbb_actived_on_viewport = false;
         }
 
-        const page_widgets_ids: number[] = page_widgets.map((pw) => pw.id);
-        const widgets_positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
-            .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
-            .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widgets_ids)
-            .select_vos();
-
-        this.widget_position_by_page_widget_id = ObjectHandler.mapByStringFieldFromArray(widgets_positions, field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id);
     }
 
     private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
@@ -1225,32 +1199,24 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page.id)
             .select_vos();
 
-        // On récupère tous les ids des pages widgets
-        const sorted_page_widget: DashboardPageWidgetVO[] = page_widgets.sort((a, b) => a.weight - b.weight);
-        const page_widget_ids: number[] = sorted_page_widget.map((pw) => pw.id);
-
         // On récupère toutes les positions des pages widgets pour le viewport par défaut
         const default_viewport: DashboardViewportVO = this.viewports.find((v) => v.is_default);
         if (!default_viewport) {
             return;
         }
 
-        const default_positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
-            .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
-            .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, default_viewport.id)
-            .select_vos();
+        // On récupère tous les pages widgets de la page du viewport par défaut
+        const default_positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == default_viewport.id);
+
+        // On récupère toutes les positions des pages widgets pour le viewport actuel
+        const positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
 
         if (set_position_default) {
-            // On récupère toutes les positions des pages widgets pour le viewport actuel
-            const positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
-                .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
-                .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
-                .select_vos();
 
-            const positions_tosave: DashboardWidgetPositionVO[] = [];
+            const positions_tosave: DashboardPageWidgetVO[] = [];
             // Pour chaque page widget, on crée une position par défaut
-            for (const i in sorted_page_widget) {
-                const pos: DashboardWidgetPositionVO = positions.find((p) => p.dashboard_page_widget_id == page_widgets[i].id);
+            for (const i in positions) {
+                const pos: DashboardPageWidgetVO = positions[i];
 
                 // On va mettre toutes les positions avec la même hauteur que le viewport par défaut mais on adapte la largeur
                 pos.w = (default_positions[i].w > this.selected_viewport.screen_min_width) ? this.selected_viewport.screen_min_width : default_positions[i].w;
@@ -1272,16 +1238,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
 
         } else {
-            // On récupère toutes les positions des pages widgets pour le viewport par défaut
-            const positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
-                .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widget_ids)
-                .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
-                .select_vos();
-
-            const positions_tosave: DashboardWidgetPositionVO[] = [];
+            const positions_tosave: DashboardPageWidgetVO[] = [];
             for (const i in positions) {
-                const default_pos: DashboardWidgetPositionVO = default_positions.find((p) => p.dashboard_page_widget_id == default_positions[i].dashboard_page_widget_id);
-                const pos: DashboardWidgetPositionVO = positions[i];
+                const default_pos: DashboardPageWidgetVO = default_positions.find((p) => p.i == default_positions[i].i);
+                const pos: DashboardPageWidgetVO = positions[i];
 
                 pos.h = default_pos.h;
                 pos.w = default_pos.w;
