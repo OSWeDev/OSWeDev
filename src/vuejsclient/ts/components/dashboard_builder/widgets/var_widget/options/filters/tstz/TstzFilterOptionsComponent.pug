@@ -11,7 +11,7 @@
 
                 :searchable="true"
                 :internal-search="true"
-                
+
                 select-label=''
                 select-group-label=''
                 selected-label=''
@@ -19,6 +19,15 @@
                 deselect-group-label=''
 
                 placeholder=''
-                
+
                 name="segment_type"
             )
+    .localized
+        .label {{ label('tstz_filter_options.localized') }}
+        .input
+            toggle-button(
+                @change="switch_localized" 
+                :value="localized" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")

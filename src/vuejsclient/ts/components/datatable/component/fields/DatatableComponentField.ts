@@ -332,7 +332,7 @@ export default class DatatableComponentField extends VueComponentBase {
                 const tsrange_value: TSRange = this.vo[this.field.datatable_field_uid + '__raw'];
 
                 const min_value: string = this.get_filtered_value_ungrouped(RangeHandler.getSegmentedMin(tsrange_value));
-                const max_value: string = this.get_filtered_value_ungrouped(RangeHandler.getSegmentedMax(tsrange_value));
+                const max_value: string = this.get_filtered_value_ungrouped(RangeHandler.getSegmentedMax(tsrange_value, null, this.field.max_range_offset));
 
                 if (min_value) {
                     res_tsrange.push(min_value);

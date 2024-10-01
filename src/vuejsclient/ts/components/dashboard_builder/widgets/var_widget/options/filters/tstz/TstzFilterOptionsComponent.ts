@@ -27,6 +27,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
         this.label('TstzFilterOptionsComponent.segment_types.' + TimeSegment.TYPE_QUARTER),
     ];
     private tmp_segment_type: string = null;
+    private localized: boolean = false;
 
     @Watch('actual_additional_options', { immediate: true })
     private onchange_actual_additional_options() {
@@ -35,6 +36,7 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
             const options = this.actual_additional_options ? ObjectHandler.try_get_json(this.actual_additional_options) : null;
 
             this.tmp_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
+            this.localized = (options && ((options[1] == false) || (options[1] == true))) ? options[1] : false;
             this.onchange_inputs();
         } catch (error) {
             ConsoleHandler.error(error);
@@ -46,9 +48,11 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
 
         let options = JSON.parse(this.actual_additional_options);
         const option_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
-        if ((!options) || (options[0] == null) || (option_segment_type != this.tmp_segment_type)) {
+        const localized = (options && ((options[1] == false) || (options[1] == true))) ? options[1] : false;
+        if ((!options) || (options[0] == null) || (option_segment_type != this.tmp_segment_type) || (localized != this.localized)) {
             options = [
-                this.get_segment_type_from_selected_option(this.tmp_segment_type)
+                this.get_segment_type_from_selected_option(this.tmp_segment_type),
+                this.localized
             ];
         }
 
@@ -60,5 +64,11 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
             const res = this.segment_type_options.indexOf(selected_option);
             return res >= 0 ? res : null;
         }
+    }
+
+    private switch_localized() {
+        this.localized = !this.localized;
+
+        this.onchange_inputs();
     }
 }

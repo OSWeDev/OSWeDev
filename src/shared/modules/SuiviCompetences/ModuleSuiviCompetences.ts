@@ -194,6 +194,7 @@ export default class ModuleSuiviCompetences extends Module {
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_prochain_suivi, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : prochain suivi', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_points_cles, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : points clés', true, true, true),
             ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_objectif_prochaine_visite, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher champ : objectif prochaine visite', true, true, true),
+            ModuleTableFieldController.create_new(SuiviCompetencesGrilleVO.API_TYPE_ID, field_names<SuiviCompetencesGrilleVO>().show_btn_details, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Afficher bouton : Détail'),
         ];
 
         ModuleTableController.create_new(this.name, SuiviCompetencesGrilleVO, name, "Suivi Competences Grille");
