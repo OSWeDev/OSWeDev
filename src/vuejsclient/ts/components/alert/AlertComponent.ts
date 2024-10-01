@@ -48,13 +48,13 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_popover: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     private is_in_list: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: null })
     private title_translatable_code: string;
 
-    @Prop({ default: true })
+    @Prop({ default: {} })
     private title_translation_params: { [param_name: string]: any };
 
     public mounted() {
