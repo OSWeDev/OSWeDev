@@ -29,6 +29,9 @@ import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/op
 import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
 import TableWidgetController from '../../TableWidgetController';
 import './TableWidgetColumnOptionsComponent.scss';
+import DataFilterOption from '../../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import TimeSegment from '../../../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import VOFieldRefVOHandler from '../../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOHandler';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -99,6 +102,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private colors_by_value_and_conditions: Array<{ value: string, condition: string, color: { bg: string, text: string } }> = [];
     private selectionnable_cell_color_conditions: Array<{ value: string, label: string }> = [];
+
+    private column_dynamic_page_widget_id: number = null;
+    private column_dynamic_component: string = null;
+    private column_dynamic_var: string = null;
+    private column_dynamic_page_widget: DashboardPageWidgetVO = null;
+    private tmp_column_dynamic_time_segment: DataFilterOption = null;
+    private page_widget_options: DashboardPageWidgetVO[] = [];
 
     private async switch_kanban_use_weight() {
         this.kanban_use_weight = !this.kanban_use_weight;
@@ -420,7 +430,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     @Watch('column', { immediate: true })
-    private onchange_column() {
+    private async onchange_column() {
         this.column_width = this.object_column ? this.object_column.column_width : 0;
         this.default_sort_field = this.object_column ? this.object_column.default_sort_field : null;
 
@@ -456,6 +466,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 cloneDeep(this.object_column.colors_by_value_and_conditions) :
                 [];
 
+            this.selectionnable_cell_color_conditions = [];
+
             for (const i in ConditionStatement) {
                 const condition = ConditionStatement[i];
 
@@ -471,6 +483,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
         this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
         this.kanban_use_weight = this.object_column ? this.object_column.kanban_use_weight : false;
+
+        this.column_dynamic_page_widget_id = this.object_column ? this.object_column.column_dynamic_page_widget_id : null;
+        this.column_dynamic_component = this.object_column ? this.object_column.column_dynamic_component : null;
+        this.column_dynamic_var = this.object_column ? this.object_column.column_dynamic_var : null;
+
+        this.page_widget_options = await query(DashboardPageWidgetVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.page_widget.page_id)
+            .filter_by_num_not_eq(field_names<DashboardPageWidgetVO>().id, this.page_widget.id)
+            .filter_is_true(field_names<DashboardWidgetVO>().is_filter, DashboardWidgetVO.API_TYPE_ID)
+            .select_vos();
+
+        if (this.column_dynamic_page_widget_id) {
+            this.column_dynamic_page_widget = this.page_widget_options.find((page_widget) => {
+                return (page_widget.id == this.column_dynamic_page_widget_id);
+            });
+        }
+
+        if (this.object_column && this.object_column.column_dynamic_time_segment != null) {
+            if (this.tmp_column_dynamic_time_segment?.id != this.object_column.column_dynamic_time_segment) {
+                this.tmp_column_dynamic_time_segment = !!this.object_column.column_dynamic_time_segment ? this.segmentation_type_options.find((e) => e.id == this.object_column.column_dynamic_time_segment) : null;
+            }
+        }
     }
 
     @Watch('column_width', { immediate: true })
@@ -486,6 +520,66 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     @Watch('colors_by_value_and_conditions', { deep: true })
     private onchange_colors_by_value_and_conditions() {
         this.throttled_update_colors_by_value_and_conditions();
+    }
+
+    @Watch('column_dynamic_page_widget')
+    private async onchange_column_dynamic_page_widget() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.column_dynamic_page_widget_id == this.column_dynamic_page_widget?.id) {
+            return;
+        }
+
+        this.object_column.column_dynamic_page_widget_id = this.column_dynamic_page_widget?.id;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('column_dynamic_component')
+    private async onchange_column_dynamic_component() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.column_dynamic_component == this.column_dynamic_component) {
+            return;
+        }
+
+        this.object_column.column_dynamic_component = this.column_dynamic_component;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('column_dynamic_var')
+    private async onchange_column_dynamic_var() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.column_dynamic_var == this.column_dynamic_var) {
+            return;
+        }
+
+        this.object_column.column_dynamic_var = this.column_dynamic_var;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('tmp_column_dynamic_time_segment')
+    private async onchange_tmp_column_dynamic_time_segment() {
+        if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.column_dynamic_time_segment == this.tmp_column_dynamic_time_segment?.id) {
+            return;
+        }
+
+        this.object_column.column_dynamic_time_segment = this.tmp_column_dynamic_time_segment?.id;
+
+        this.$emit('update_column', this.object_column);
     }
 
     private async update_column_width() {
@@ -840,6 +934,31 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
     }
 
+    // creation de la column dynamic
+    private add_dynamic_column(event) {
+
+        let new_column = new TableColumnDescVO();
+        new_column.type = TableColumnDescVO.TYPE_dynamic;
+        new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
+        new_column.sortable = true;
+        new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
+        new_column.can_filter_by = false;
+        new_column.column_width = 0;
+        new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
+
+        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
+        this.$emit('add_column', new_column);
+    }
+
     private async switch_readonly() {
         if (!this.column) {
             return;
@@ -964,6 +1083,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         this.column.is_sticky = !this.column.is_sticky;
         this.$emit('update_column', this.column);
+    }
+
+    private page_widget_label(p_widget: DashboardPageWidgetVO): string {
+        return "Widget ID: " + p_widget.id.toString();
     }
 
     /**
@@ -1127,4 +1250,33 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_html);
     }
 
+    get segmentation_type_options(): DataFilterOption[] {
+        let res: DataFilterOption[] = [];
+
+        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            let new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            res.push(new_opt);
+        }
+
+        return res;
+    }
+
+    get column_dynamic_page_widget_is_type_date(): boolean {
+        if (!this.column_dynamic_page_widget) {
+            return false;
+        }
+
+        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
+
+        if (!options?.vo_field_ref) {
+            return false;
+        }
+
+        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
+    }
 }

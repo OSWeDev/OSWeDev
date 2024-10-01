@@ -23,6 +23,7 @@ import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../../../../shared/tools/SemaphoreHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import PushDataVueModule from '../../../../modules/PushData/PushDataVueModule';
 import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
@@ -59,9 +60,6 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     @Prop({ default: null })
     public prefix: string;
 
@@ -80,8 +78,8 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public consider_zero_value_as_null: boolean;
 
-    @Prop({ default: true })
-    public use_intersector: boolean;
+    // @Prop({ default: true })
+    // public use_intersector: boolean;
 
     @Prop({ default: false })
     public add_infos: string[]; // tableau de champs que l'on veut afficher
@@ -111,7 +109,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private can_explain_var: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false, trailing: true });
+    private throttled_var_data_updater = ThrottleHelper.declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: true, trailing: true });
 
     // Pour éviter de rentrer en conflit avec le clic
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
@@ -121,6 +119,12 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private aggregated_var_param: VarDataBaseVO = null;
 
+    private currently_registered_param: VarDataBaseVO = null;
+    private semaphore_unregister: boolean = false;
+    private semaphore_register: boolean = false;
+    private throttled_unregister = ThrottleHelper.declare_throttle_without_args(this.unregister.bind(this), 200, { leading: true, trailing: true });
+    private throttled_register = ThrottleHelper.declare_throttle_without_args(this.register.bind(this), 200, { leading: true, trailing: true });
+
     private var_data_value_is_imported: boolean = false;
     private var_data_value_is_denied: boolean = false;
     private is_being_updated: boolean = true;
@@ -129,9 +133,22 @@ export default class VarDataRefComponent extends VueComponentBase {
     private var_conf: VarConfVO = null;
     private editable_field: SimpleDatatableFieldVO<any, any> = null;
 
+    private been_destroyed: boolean = false;
+
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(
-            this.var_data_updater.bind(this),
+            (async (varData: VarDataBaseVO | VarDataValueResVO) => {
+
+                if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                    if (varData) {
+                        ConsoleHandler.log('VarDataRefComponent:varUpdateCallbacks:' + varData.index + ':' + varData.value + ':' + varData.value_ts + ':' + varData.value_type + ':');
+                    } else {
+                        ConsoleHandler.log('VarDataRefComponent:varUpdateCallbacks:null');
+                    }
+                }
+
+                await this.var_data_updater();
+            }).bind(this),
             VarUpdateCallback.VALUE_TYPE_ALL
         )
     };
@@ -496,7 +513,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         return this.var_data_value;
     }
 
-    @Watch('var_data')
+    @Watch('var_data', { deep: true })
     private onchange_var_data() {
         this.debounce_onchange_var_data();
     }
@@ -517,13 +534,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        if (old_var_param) {
-            await this.unregister(old_var_param);
-        }
-
-        if (new_var_param) {
-            await this.register();
-        }
+        await this.throttled_register();
     }
 
     @Watch('can_edit')
@@ -589,7 +600,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             }
         };
 
-        await VarsClientController.getInstance().registerParams([clone], {
+        VarsClientController.getInstance().registerParams([clone], {
             [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
         });
 
@@ -627,12 +638,23 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private var_data_updater() {
         if (!this.var_param) {
+            if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                ConsoleHandler.log('var_data_updater:null');
+            }
             this.var_data = null;
             return;
         }
 
 
         this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
+
+        if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+            if (this.var_data) {
+                ConsoleHandler.log('var_data_updater:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
+            } else {
+                ConsoleHandler.log('var_data_updater:' + this.var_param.index + ':null');
+            }
+        }
     }
 
     private async mounted() {
@@ -660,61 +682,114 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private async destroyed() {
-        await this.unregister();
+        this.been_destroyed = true;
+        this.unregister();
     }
 
     private async intersect_in() {
         this.entered_once = true;
-        await this.register();
+        this.throttled_register();
     }
 
-    private async intersect_out() {
-        await this.unregister();
-    }
+    // private async intersect_out() {
+    //     await this.unregister();
+    // }
 
-    private async register(var_param: VarDataBaseVO = null) {
-        if (!this.entered_once) {
+    private async register() {
+        // if (!this.entered_once) {
+        //     return;
+        // }
+
+        if (this.semaphore_register) {
+            return;
+        }
+        this.semaphore_register = true;
+
+        const var_param = this.var_param;
+
+        // Si on a les mêmes params déjà enregistrés, on ne fait rien
+        if (VarsController.isSameParam(this.currently_registered_param, var_param)) {
+            this.semaphore_register = false;
             return;
         }
 
-        if (var_param || this.var_param) {
-            await VarsClientController.getInstance().registerParams(
-                [var_param ? var_param : this.var_param],
-                this.varUpdateCallbacks
-            );
+        // Changement de méthode : on a une seule liste registered à la fois.
+        //  Donc si des params sont déjà enregistrés, on les désenregistre avant d'enregistrer les nouveaux
+        if (this.currently_registered_param) {
+            this.unregister();
+        }
+        this.currently_registered_param = var_param;
 
-            if (this.show_import_aggregated) {
-                await ModuleVar.getInstance().getAggregatedVarDatas(
-                    (var_param ? var_param : this.var_param)
-                ).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
-                    let aggregated_var_param = null;
+        if (!var_param) {
+            this.semaphore_register = false;
+            return;
+        }
 
-                    for (const var_data_index in datas) {
-                        if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
-                            aggregated_var_param = cloneDeep(datas[var_data_index]);
-                            break;
-                        }
+
+        //vvvvvv! DEBUG DELETE ME !vvvvvv
+        if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+            ConsoleHandler.warn('VarDataRefComponent:register:' + var_param.index);
+        }
+        //^^^^^^! DEBUG DELETE ME !^^^^^^
+
+        // De manière générale, si on est destroyed, on ne fait rien
+        if (this.been_destroyed) {
+            this.semaphore_register = false;
+            return;
+        }
+
+        VarsClientController.getInstance().registerParams(
+            [var_param],
+            this.varUpdateCallbacks
+        );
+
+        if (this.show_import_aggregated) {
+            await ModuleVar.getInstance().getAggregatedVarDatas(var_param).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                let aggregated_var_param = null;
+
+                for (const var_data_index in datas) {
+                    if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+                        aggregated_var_param = cloneDeep(datas[var_data_index]);
+                        break;
                     }
+                }
 
-                    this.aggregated_var_param = aggregated_var_param;
-                });
-            }
+                this.aggregated_var_param = aggregated_var_param;
+            });
         }
+        this.semaphore_register = false;
     }
 
-    private async unregister(var_param: VarDataBaseVO = null) {
-        if (!this.entered_once) {
+    private unregister() {
+        // if (!this.entered_once) {
+        //     return;
+        // }
+
+        if (this.semaphore_unregister) {
+            return;
+        }
+        this.semaphore_unregister = true;
+
+        if (!this.currently_registered_param) {
+            this.semaphore_unregister = false;
             return;
         }
 
-        this.var_data = null;
+        const currently_registered_param = this.currently_registered_param;
+        this.currently_registered_param = null;
 
-        if (var_param || this.var_param) {
-            await VarsClientController.getInstance().unRegisterParams(
-                [var_param ? var_param : this.var_param],
-                this.varUpdateCallbacks
-            );
+        //vvvvvv! DEBUG DELETE ME !vvvvvv
+        if (currently_registered_param && currently_registered_param.index && currently_registered_param.index.startsWith('4W|') && currently_registered_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+            ConsoleHandler.warn('VarDataRefComponent:unregister:' + currently_registered_param.index);
         }
+        //^^^^^^! DEBUG DELETE ME !^^^^^^
+
+        VarsClientController.getInstance().unRegisterParams(
+            [currently_registered_param],
+            this.varUpdateCallbacks
+        );
+        this.var_data = null;
+        this.semaphore_unregister = false;
     }
 
     private close_inline_editing() {
@@ -754,7 +829,14 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private set_is_being_updated() {
-        this.is_being_updated = !this.var_data || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
+
+        //vvvvvv! DEBUG DELETE ME !vvvvvv
+        if (this.var_param && this.var_data && this.var_param.index && this.var_param.index.startsWith('4W|') && this.var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+            ConsoleHandler.log('set_is_being_updated:' + this.var_param.index + ':' + this.var_data.value + ':' + this.var_data.value_ts + ':' + this.var_data.value_type + ':' + this.var_data.is_computing);
+        }
+        //^^^^^^! DEBUG DELETE ME !^^^^^^
+
+        this.is_being_updated = (!this.var_data) || (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }
 
     private set_var_data_value() {

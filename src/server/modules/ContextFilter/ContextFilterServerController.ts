@@ -1418,6 +1418,8 @@ export default class ContextFilterServerController {
                             throw new Error('Not Implemented');
                         }
                         break;
+                    case ModuleTableFieldVO.FIELD_TYPE_password:
+                        throw new Error('Not Implemented');
 
                     case ModuleTableFieldVO.FIELD_TYPE_string:
                     case ModuleTableFieldVO.FIELD_TYPE_html:
@@ -3282,6 +3284,8 @@ export default class ContextFilterServerController {
                             break;
                         }
 
+                        break;
+
                     case ModuleTableFieldVO.FIELD_TYPE_amount:
                     case ModuleTableFieldVO.FIELD_TYPE_enum:
                     case ModuleTableFieldVO.FIELD_TYPE_file_ref:
@@ -3316,31 +3320,7 @@ export default class ContextFilterServerController {
                         let ranges: IRange[] = [];
 
                         if (context_filter.param_numranges && context_filter.param_numranges.length) {
-
-                            const range_to_db = DAOServerController.get_ranges_translated_to_bdd_queryable_ranges(
-                                context_filter.param_numranges, field, field.field_type
-                            );
-
-                            if (!range_to_db) {
-                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
-                            }
-
-                            const nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(context_filter.param_numranges).length;
-
-                            const table = ModuleTableController.module_tables_by_vo_type[context_filter.vo_type];
-                            const table_name = table.full_name.split('.')[1];
-                            const ranges_query = 'ANY(' + range_to_db + ')';
-
-                            where_conditions.push(
-                                '(' +
-                                '  select count(1)' +
-                                '  from (' +
-                                '   select unnest(tempo2.' + field.field_name + ') a' +
-                                '  from ' + table.full_name + ' tempo2' +
-                                '  where tempo2.id = ' + tables_aliases_by_type[context_filter.vo_type] + '.id) tempo1' +
-                                '  where tempo1.a <@ ' + ranges_query +
-                                '  ) >= ' + nb_values + ' ');
-                            break;
+                            ranges = context_filter.param_numranges;
                         }
 
                         if (context_filter.param_tsranges && context_filter.param_tsranges.length) {
@@ -3452,6 +3432,8 @@ export default class ContextFilterServerController {
                                 '  ) = array_length(' + tables_aliases_by_type[context_filter.vo_type] + '.' + field.field_name + ',1) ');
                             break;
                         }
+
+                        break;
 
                     case ModuleTableFieldVO.FIELD_TYPE_amount:
                     case ModuleTableFieldVO.FIELD_TYPE_enum:

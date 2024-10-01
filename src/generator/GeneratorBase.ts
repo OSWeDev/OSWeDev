@@ -60,6 +60,7 @@ import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240
 import Patch20240507AddDefaultRightsAPIsOselia from './patchs/postmodules/Patch20240507AddDefaultRightsAPIsOselia';
 import Patch20240514AddAssistantFunctionGetVoTypeDescription from './patchs/postmodules/Patch20240514AddAssistantFunctionGetVoTypeDescription';
 import Patch20240524InitExistingGPTMessageThreadAndRunGPTIds from './patchs/postmodules/Patch20240524InitExistingGPTMessageThreadAndRunGPTIds';
+import Patch20240612DbbAdvancedDateFilterChangeIsFilter from './patchs/postmodules/Patch20240612DbbAdvancedDateFilterChangeIsFilter';
 import Patch20240619AddRightsSeeGeneratedImages from './patchs/postmodules/Patch20240619AddRightsSeeGeneratedImages';
 import Patch20240701AddDbOseliaAssistantsetfonctions from './patchs/postmodules/Patch20240701AddDbOseliaAssistantsetfonctions';
 import Patch20240905AddOseliaAssistantThreadTitleWriter from './patchs/postmodules/Patch20240905AddOseliaAssistantThreadTitleWriter';
@@ -94,6 +95,9 @@ import Patch20240329Adduniqroleconstraint from './patchs/premodules/Patch2024032
 import Patch20240329Adduniqtranslatabletextconstraint from './patchs/premodules/Patch20240329Adduniqtranslatabletextconstraint';
 import Patch20240329Adduniquserconstraints from './patchs/premodules/Patch20240329Adduniquserconstraints';
 import Patch20240329CeliaToOseliaDBWidget from './patchs/premodules/Patch20240329CeliaToOseliaDBWidget';
+// import Patch20240409RetrieveOpenAIRunStats from './patchs/postmodules/Patch20240409RetrieveOpenAIRunStats';
+import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
+import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
 import Patch20240415Adduniqmail_id from './patchs/premodules/Patch20240415Adduniqmail_id';
 import Patch20240515RunStatusToEnum from './patchs/premodules/Patch20240515RunStatusToEnum';
 import Patch20240521ChangeFormatDbAssistants from './patchs/premodules/Patch20240521ChangeFormatDbAssistants';
@@ -102,9 +106,19 @@ import Patch20240619DeclareFunctionOseliaGenerateImages from './patchs/premodule
 import Patch20240827DeleteVersionedAssistantsWithoutInstructions from './patchs/premodules/Patch20240827DeleteVersionedAssistantsWithoutInstructions';
 import Patch2024OSELIAAssistantDescriptionNotNULL from './patchs/premodules/Patch2024OSELIAAssistantDescriptionNotNULL';
 import VersionUpdater from './version_updater/VersionUpdater';
-import Patch20240906DeleteOldAssistantObjDBLinks from './patchs/postmodules/Patch20240906DeleteOldAssistantObjDBLinks';
-import Patch20240912PreinitOseliaPrices from './patchs/postmodules/Patch20240912PreinitOseliaPrices';
 import Patch20240926PreInitOseliaThreadRoles from './patchs/postmodules/Patch20240926PreInitOseliaThreadRoles';
+import Patch20240926AddOseliaFunction_TRELLO_trello_search_trello from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_search_trello';
+import Patch20240926AddOseliaFunction_TRELLO_trello_create_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_create_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board';
+import Patch20240926AddOseliaFunction_TRELLO_trello_update_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_update_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_delete_card from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_delete_card';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_action from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_action';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards';
+import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
+import Patch20240930AddOseliaFunction_get_thread_text_content from './patchs/postmodules/Patch20240930AddOseliaFunction_get_thread_text_content';
+import Patch20240930AddOseliaFunction_send_teams_messages from './patchs/postmodules/Patch20240930AddOseliaFunction_send_teams_messages';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -215,6 +229,7 @@ export default abstract class GeneratorBase {
             Patch20230927AddSupervisionToCrons.getInstance(),
             Patch20230927AddAliveTimeoutToSomeBGThreads.getInstance(),
             Patch20231123AddRightsSharedFilters.getInstance(),
+            Patch20240612DbbAdvancedDateFilterChangeIsFilter.getInstance(),
             Patch20240305MigrationCodesTradsMinusculesENV.getInstance(),
             Patch20240307DuplicateRightsSupervision.getInstance(),
             Patch20240409RetrieveOpenAIRunStats.getInstance(),
@@ -229,6 +244,21 @@ export default abstract class GeneratorBase {
             Patch20240906DeleteOldAssistantObjDBLinks.getInstance(),
             Patch20240912PreinitOseliaPrices.getInstance(),
             Patch20240926PreInitOseliaThreadRoles.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_create_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_lists_on_a_board.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_search_trello.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_members_of_a_board.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_update_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_delete_card.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_action.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions.getInstance(),
+            Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards.getInstance(),
+
+            Patch20240930AddOseliaFunction_get_thread_text_content.getInstance(),
+
+            Patch20240930AddOseliaFunction_send_teams_messages.getInstance(),
+
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

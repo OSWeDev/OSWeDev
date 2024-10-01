@@ -189,11 +189,32 @@ export default class VarsController {
             const p1: VarDataBaseVO = ps1[i];
             const p2: VarDataBaseVO = ps2[i];
 
-            if (p1.index != p2.index) {
+            if (!this.isSameParam(p1, p2)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Compare params. Return true if same
+     * @param p1
+     * @param p2
+     */
+    public static isSameParam(p1: VarDataBaseVO, p2: VarDataBaseVO): boolean {
+        if (p1 && !p2) {
+            return false;
+        }
+
+        if (!p1 && p2) {
+            return false;
+        }
+
+        if (!p1 && !p2) {
+            return true;
+        }
+
+        return p1.index == p2.index;
     }
 
     /**

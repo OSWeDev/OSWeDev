@@ -1,4 +1,3 @@
-import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
@@ -11,15 +10,6 @@ import MenuController from '../menu/MenuController';
 
 export default class DocumentAdminVueModule extends VueModuleBase {
 
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DocumentAdminVueModule {
-        if (!DocumentAdminVueModule.instance) {
-            DocumentAdminVueModule.instance = new DocumentAdminVueModule();
-        }
-
-        return DocumentAdminVueModule.instance;
-    }
-
     private static instance: DocumentAdminVueModule = null;
 
     private constructor() {
@@ -28,6 +18,15 @@ export default class DocumentAdminVueModule extends VueModuleBase {
         this.policies_needed = [
             ModuleDocument.POLICY_BO_ACCESS
         ];
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DocumentAdminVueModule {
+        if (!DocumentAdminVueModule.instance) {
+            DocumentAdminVueModule.instance = new DocumentAdminVueModule();
+        }
+
+        return DocumentAdminVueModule.instance;
     }
 
     public async initializeAsync() {

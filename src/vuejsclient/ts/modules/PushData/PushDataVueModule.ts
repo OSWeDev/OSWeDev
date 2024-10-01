@@ -21,6 +21,9 @@ import ClientAPIController from "../API/ClientAPIController";
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 import VOEventRegistrationsHandler from "./VOEventRegistrationsHandler";
+import EnvParamsVO from "../../../../shared/modules/EnvParam/vos/EnvParamsVO";
+import ModuleEnvParam from "../../../../shared/modules/EnvParam/ModuleEnvParam";
+import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleOselia from "../../../../shared/modules/Oselia/ModuleOselia";
 import OseliaController from "../../../../shared/modules/Oselia/OseliaController";
 import ModuleGPT from "../../../../shared/modules/GPT/ModuleGPT";
@@ -33,6 +36,9 @@ export default class PushDataVueModule extends VueModuleBase {
 
     public throttled_notifications_handler = ThrottleHelper.declare_throttle_with_stackable_args(
         this.notifications_handler.bind(this), 100, { leading: true, trailing: true });
+
+    public env_params: EnvParamsVO = null;
+    public var_debug_notif_id: number = 0;
 
     protected socket;
 
@@ -85,6 +91,13 @@ export default class PushDataVueModule extends VueModuleBase {
                 }
             }
             await ModulePushData.getInstance().join_io_room(room_fields);
+        }
+    }
+
+    public async initializeAsync(): Promise<void> {
+        const has_access_to_env_params = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS);
+        if (has_access_to_env_params) {
+            this.env_params = await ModuleEnvParam.getInstance().get_env_params();
         }
     }
 
@@ -590,6 +603,7 @@ export default class PushDataVueModule extends VueModuleBase {
                     for (const j in notification.vos) {
                         const e: VarDataValueResVO = notification.vos[j] as VarDataValueResVO;
 
+                        this.var_debug_notif_id++;
 
                         // On log les notifications sur l'index sélectionné en description actuellement
                         const selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
@@ -600,27 +614,95 @@ export default class PushDataVueModule extends VueModuleBase {
                                 'value_type:' + e.value_type + ':' +
                                 'value_ts:' + e.value_ts + ':' +
                                 'is_computing:' + e.is_computing + ':' +
-                                'index:' + e.index + ':',
+                                'index:' + e.index + ':' +
+                                'notif_ts:' + e.notif_ts + ':'
+                            );
+                        }
+
+                        if (this.env_params && this.env_params.debug_vars_notifs) {
+                            ConsoleHandler.log('Notification pour var - debug :' +
+                                'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                'id:' + e.id + ':' +
+                                'value:' + e.value + ':' +
+                                'value_type:' + e.value_type + ':' +
+                                'value_ts:' + e.value_ts + ':' +
+                                'is_computing:' + e.is_computing + ':' +
+                                'index:' + e.index + ':' +
+                                'notif_ts:' + e.notif_ts + ':'
                             );
                         }
 
                         // Si on a une notif qui indique une value pas computing et valide, on met à jour pour éviter de relancer un register
                         if ((!e.is_computing) && (e.value_ts) && VarsClientController.getInstance().registered_var_params_to_check_next_time[e.index]) {
+                            if (this.env_params && this.env_params.debug_vars_notifs) {
+                                ConsoleHandler.log('Notification pour var - debug :' +
+                                    'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                    'index:' + e.index + ':' +
+                                    'DELETE registered_var_params_to_check_next_time'
+                                );
+                            }
+
                             delete VarsClientController.getInstance().registered_var_params_to_check_next_time[e.index];
                         }
 
                         // On check les dates aussi
                         if ((!var_by_indexes[e.index]) || (!var_by_indexes[e.index].value_ts)) {
                             var_by_indexes[e.index] = e;
+
+                            if (this.env_params && this.env_params.debug_vars_notifs) {
+                                ConsoleHandler.log('Notification pour var - debug :' +
+                                    'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                    'index:' + e.index + ':' +
+                                    'OK - value_ts'
+                                );
+                            }
                             continue;
                         }
 
                         if (!e.value_ts) {
+                            if (this.env_params && this.env_params.debug_vars_notifs) {
+                                ConsoleHandler.log('Notification pour var - debug :' +
+                                    'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                    'index:' + e.index + ':' +
+                                    'SKIP - value_ts null'
+                                );
+                            }
+
                             continue;
                         }
 
                         if (var_by_indexes[e.index].value_ts > e.value_ts) {
+                            if (this.env_params && this.env_params.debug_vars_notifs) {
+                                ConsoleHandler.log('Notification pour var - debug :' +
+                                    'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                    'index:' + e.index + ':' +
+                                    'SKIP - value_ts older'
+                                );
+                            }
+
                             continue;
+                        }
+
+                        if (var_by_indexes[e.index].value_ts == e.value_ts) {
+                            if (var_by_indexes[e.index].notif_ts > e.notif_ts) {
+                                if (this.env_params && this.env_params.debug_vars_notifs) {
+                                    ConsoleHandler.log('Notification pour var - debug :' +
+                                        'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                        'index:' + e.index + ':' +
+                                        'SKIP - notif_ts older'
+                                    );
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        if (this.env_params && this.env_params.debug_vars_notifs) {
+                            ConsoleHandler.log('Notification pour var - debug :' +
+                                'var_debug_notif_id:' + this.var_debug_notif_id + ':' +
+                                'index:' + e.index + ':' +
+                                'OK'
+                            );
                         }
 
                         var_by_indexes[e.index] = e;
@@ -643,6 +725,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 const vo = vos[i];
 
                 // ConsoleHandler.log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
+                types[vo._type] = true;
 
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
@@ -655,14 +738,16 @@ export default class PushDataVueModule extends VueModuleBase {
                         vo.value_ts = stored_var.value_ts;
                         vo.value_type = stored_var.value_type;
                         vo.id = stored_var.id;
+                    } else {
+                        continue;
                     }
                 }
                 VarsClientController.cached_var_datas[vo.index] = vo;
+            }
 
-                if (!types[vo._type]) {
-                    types[vo._type] = true;
-                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
-                }
+            const vo_types = Object.keys(types);
+            if (vo_types && vo_types.length) {
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(vo_types);
             }
 
             // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
@@ -704,6 +789,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 //     timeout: 3000
                                 // });
                                 // setTimeout(() => {
+                                ConsoleHandler.log('NotificationVO.TECH_LOGGED_AND_REDIRECT:redirect_uri:' + notification.redirect_uri);
                                 location.href = notification.redirect_uri ? notification.redirect_uri : '/';
                                 // }, 3000);
                                 break;
@@ -729,7 +815,7 @@ export default class PushDataVueModule extends VueModuleBase {
                                 const screenshot_content = LocaleManager.getInstance().i18n.t("oselia.screenshot.notify.___LABEL___");
                                 VueAppBase.instance_.vueInstance.snotify.info(screenshot_content, {
                                     timeout: 3000,
-                                })
+                                });
                                 setTimeout(async () => {
                                     const { imgData, new_file, fileName } = await OseliaController.do_take_screenshot();
                                     if (!imgData) {

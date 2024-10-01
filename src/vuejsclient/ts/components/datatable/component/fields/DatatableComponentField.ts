@@ -27,6 +27,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 import './DatatableComponentField.scss';
 import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
@@ -324,6 +325,42 @@ export default class DatatableComponentField extends VueComponentBase {
                     return this.get_filtered_value_ungrouped(val);
                 }
 
+            case ModuleTableFieldVO.FIELD_TYPE_tstz:
+                return this.get_filtered_value_ungrouped(this.vo[this.field.datatable_field_uid + '__raw']);
+            case ModuleTableFieldVO.FIELD_TYPE_tsrange:
+                const res_tsrange: string[] = [];
+                const tsrange_value: TSRange = this.vo[this.field.datatable_field_uid + '__raw'];
+
+                const min_value: string = this.get_filtered_value_ungrouped(RangeHandler.getSegmentedMin(tsrange_value));
+                const max_value: string = this.get_filtered_value_ungrouped(RangeHandler.getSegmentedMax(tsrange_value, null, this.field.max_range_offset));
+
+                if (min_value) {
+                    res_tsrange.push(min_value);
+                }
+
+                if (max_value && (max_value != min_value)) {
+                    res_tsrange.push(max_value);
+                }
+
+                return res_tsrange.join(' - ');
+            case ModuleTableFieldVO.FIELD_TYPE_tstz_array:
+                const res_tstz_array: string[] = [];
+                const tstz_value: number[] = this.vo[this.field.datatable_field_uid + '__raw'];
+
+                for (const i in tstz_value) {
+                    const this_val = tstz_value[i];
+                    const filtered_val = this.get_filtered_value_ungrouped(this_val);
+
+                    if (filtered_val == null) {
+                        continue;
+                    }
+
+                    if (!res_tstz_array.includes(filtered_val)) {
+                        res_tstz_array.push(filtered_val);
+                    }
+                }
+
+                return res_tstz_array.join(', ');
             default:
                 return this.get_filtered_value_ungrouped(val);
         }

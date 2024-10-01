@@ -9,6 +9,7 @@ import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyLoginComponent.scss';
+import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -26,6 +27,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private password: string = "";
 
     private redirect_to: string = "/";
+    private sso: boolean = false;
     private message: string = null;
 
     private logo_url: string = null;
@@ -40,6 +42,10 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private is_ok_loging: boolean = false;
 
+    get nfcconnect_available() {
+        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
+    }
+
     private async mounted() {
         const promises = [];
         this.is_ok_loging = false;
@@ -50,13 +56,23 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
+            if (j == 'sso') {
+                this.sso = ((this.$route.query[j] == "1") || (this.$route.query[j] == "true"));
+            }
         }
 
         let logged_id: number = null;
+        let session_id: string = null;
 
         promises.push((async () =>
             logged_id = await ModuleAccessPolicy.getInstance().getLoggedUserId()
         )());
+
+        if (this.sso) {
+            promises.push((async () =>
+                session_id = await ModuleAccessPolicy.getInstance().get_my_sid()
+            )());
+        }
 
         promises.push((async () =>
             this.signin_allowed = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
@@ -72,8 +88,20 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
         await all_promises(promises);
 
-        if (logged_id) {
-            window.location = this.redirect_to as any;
+        if (!!logged_id) {
+            let location: string = this.redirect_to;
+
+            if (!location) {
+                location = "/";
+            }
+
+            if (this.sso) {
+                location += '?session_id=' + session_id;
+            }
+
+            ConsoleHandler.log('AccessPolicyLoginComponent mounted logged_id:' + logged_id + ':redirect_to:' + location);
+
+            window.location = (location as any);
         }
     }
 
@@ -98,7 +126,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         self.snotify.async(self.label('login.start'), () =>
             new Promise(async (resolve, reject) => {
 
-                const logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to);
+                const logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to, self.sso);
 
                 if (!logged_id) {
                     self.password = "";
@@ -162,9 +190,5 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private set_show_password(show_password: boolean) {
         this.show_password = show_password;
-    }
-
-    get nfcconnect_available() {
-        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
     }
 }

@@ -77,7 +77,8 @@ export default class PushDataServerController {
     public static registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
     private static PROMPT_UID: number = 0;
 
-    private static registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    private static registeredSessions_by_uid: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    private static registeredSessions_by_sid: { [sid: string]: IServerUserSession } = {};
     private static registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
     private static registeredSockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
     private static registereduid_by_socketid: { [socket_id: string]: number } = {};
@@ -219,11 +220,14 @@ export default class PushDataServerController {
         PushDataServerController.registereduid_by_socketid[socket.id] = session_uid;
         PushDataServerController.registeredclient_tab_id_by_socketid[socket.id] = client_tab_id;
 
-        if (!PushDataServerController.registeredSessions[session_uid]) {
-            PushDataServerController.registeredSessions[session_uid] = {};
+        if (!PushDataServerController.registeredSessions_by_uid[session_uid]) {
+            PushDataServerController.registeredSessions_by_uid[session_uid] = {};
         }
-        if (!PushDataServerController.registeredSessions[session_uid][session.id]) {
-            PushDataServerController.registeredSessions[session_uid][session.id] = session;
+        if (!PushDataServerController.registeredSessions_by_uid[session_uid][session.id]) {
+            PushDataServerController.registeredSessions_by_uid[session_uid][session.id] = session;
+        }
+        if (!PushDataServerController.registeredSessions_by_sid[session.sid]) {
+            PushDataServerController.registeredSessions_by_sid[session.sid] = session;
         }
     }
 
@@ -295,11 +299,14 @@ export default class PushDataServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        if (!PushDataServerController.registeredSessions[uid]) {
-            PushDataServerController.registeredSessions[uid] = {};
+        if (!PushDataServerController.registeredSessions_by_uid[uid]) {
+            PushDataServerController.registeredSessions_by_uid[uid] = {};
         }
-        if (!PushDataServerController.registeredSessions[uid][session.id]) {
-            PushDataServerController.registeredSessions[uid][session.id] = session;
+        if (!PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
+            PushDataServerController.registeredSessions_by_uid[uid][session.id] = session;
+        }
+        if (!PushDataServerController.registeredSessions_by_sid[session.sid]) {
+            PushDataServerController.registeredSessions_by_sid[session.sid] = session;
         }
     }
 
@@ -329,8 +336,12 @@ export default class PushDataServerController {
             return;
         }
 
-        if (PushDataServerController.registeredSessions[uid] && PushDataServerController.registeredSessions[uid][session.id]) {
-            delete PushDataServerController.registeredSessions[uid][session.id];
+        if (PushDataServerController.registeredSessions_by_uid[uid] && PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
+            delete PushDataServerController.registeredSessions_by_uid[uid][session.id];
+        }
+
+        if (PushDataServerController.registeredSessions_by_sid[session.sid]) {
+            delete PushDataServerController.registeredSessions_by_sid[session.sid];
         }
     }
 
@@ -350,8 +361,11 @@ export default class PushDataServerController {
         // PushDataServerController.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await PushDataServerController.notifyRedirectHomeAndDisconnect();
 
-        if (PushDataServerController.registeredSessions[uid] && PushDataServerController.registeredSessions[uid][session.id]) {
-            delete PushDataServerController.registeredSessions[uid][session.id];
+        if (PushDataServerController.registeredSessions_by_uid[uid] && PushDataServerController.registeredSessions_by_uid[uid][session.id]) {
+            delete PushDataServerController.registeredSessions_by_uid[uid][session.id];
+        }
+        if (PushDataServerController.registeredSessions_by_sid[session.sid]) {
+            delete PushDataServerController.registeredSessions_by_sid[session.sid];
         }
     }
 
@@ -383,7 +397,18 @@ export default class PushDataServerController {
 
         ForkedTasksController.assert_is_main_process();
 
-        return PushDataServerController.registeredSessions[userId];
+        return PushDataServerController.registeredSessions_by_uid[userId];
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param sid
+     */
+    public static getSessionBySid(sid: string): IServerUserSession {
+
+        ForkedTasksController.assert_is_main_process();
+
+        return PushDataServerController.registeredSessions_by_sid[sid];
     }
 
     /**
@@ -567,10 +592,10 @@ export default class PushDataServerController {
     /**
      * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/') {
+    public static async notifyUserLoggedAndRedirect(redirect_uri: string = '/', sso: boolean = false) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri)) {
+        if (!await ForkedTasksController.exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirect, redirect_uri, sso)) {
             return;
         }
 
@@ -588,7 +613,7 @@ export default class PushDataServerController {
                     session['last_fragmented_url'] = null;
                     notification.redirect_uri = url.replace(/\/f\//, '/#/');
                 } else {
-                    notification.redirect_uri = redirect_uri;
+                    notification.redirect_uri = redirect_uri + (sso ? ('?session_id=' + session.sid) : '');
                 }
             }
         } catch (error) {

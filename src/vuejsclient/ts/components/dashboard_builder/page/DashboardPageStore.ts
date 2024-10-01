@@ -57,15 +57,6 @@ export interface IDashboardPageState {
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardPageStore {
-        if (!DashboardPageStore.instance) {
-            DashboardPageStore.instance = new DashboardPageStore();
-        }
-        return DashboardPageStore.instance;
-    }
-
     private static instance: DashboardPageStore;
 
     public module_name: string;
@@ -411,7 +402,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_page_widget_component_by_pwid: (context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) => context.commit(store_mutations_names(this).set_page_widget_component_by_pwid, param),
         };
     }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DashboardPageStore {
+        if (!DashboardPageStore.instance) {
+            DashboardPageStore.instance = new DashboardPageStore();
+        }
+        return DashboardPageStore.instance;
+    }
 }
+
 
 export const DashboardPageStoreInstance = DashboardPageStore.getInstance();
 

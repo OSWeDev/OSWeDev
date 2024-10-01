@@ -81,9 +81,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
     @Prop({ default: null })
     public filter_additional_params: any[];
 
-    @Prop({ default: false })
-    public reload_on_mount: boolean;
-
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 
@@ -308,12 +305,12 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
     }
 
-    private async destroyed() {
+    private destroyed() {
 
         for (let chart_key in this.charts_var_params) {
             let chart_var_params = this.charts_var_params[chart_key];
 
-            await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
         }
     }
 
@@ -371,7 +368,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
     }
 
     @Watch('charts_var_params', { immediate: true })
-    private async onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
+    private onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
 
         // On doit vérifier qu'ils sont bien différents
         if (isEqual(new_charts_var_params, old_charts_var_params)) {
@@ -382,7 +379,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const chart_key in old_charts_var_params) {
                 const old_chart_var_params = old_charts_var_params[chart_key];
 
-                await VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
+                VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
             }
         }
 
@@ -390,7 +387,7 @@ export default class VarMixedChartComponent extends VueComponentBase {
             for (const chart_key in new_charts_var_params) {
                 const new_chart_var_params = new_charts_var_params[chart_key];
 
-                await VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
+                VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
             }
         }
 

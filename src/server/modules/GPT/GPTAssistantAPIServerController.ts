@@ -62,7 +62,12 @@ export default class GPTAssistantAPIServerController {
                 if (error.statusCode === 429) {
                     console.log(`Rate limit exceeded. Attempt ${attempt} of ${maxRetries}. Retrying in ${delay / 1000} seconds...`);
                     await ThreadHandler.sleep(delay, 'OpenAI - Rate limit exceeded');
+                } if ((error.statusCode === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
+                    ConsoleHandler.error('GPTAssistantAPIServerController.wrap_api_call:\'tool_outputs\' too large: ' + JSON.stringify(error));
+                    // TODO FIXME : Handle this error properly args.tool_outputs = null par exemple ou plutôt en forwardant le message d'erreur clairement ? ou en ellipsis sur le res trop long ?
+                    throw error;
                 } else {
+                    ConsoleHandler.error('GPTAssistantAPIServerController.wrap_api_call: ' + JSON.stringify(error));
                     throw error;
                 }
             }

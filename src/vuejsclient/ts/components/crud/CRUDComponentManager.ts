@@ -55,6 +55,7 @@ export default class CRUDComponentManager {
      * @param crud Pas obligatoire, le crud sera alors créé avec les infos par défaut du moduletable que l'on retrouve avec le API_TYPE_ID
      * @param menuElement
      * @param routes
+     * @deprecated Replace with corresponding DashBoard in each project
      */
     public async registerCRUD<T extends IDistantVOBase>(
         API_TYPE_ID: string,                //id du VO

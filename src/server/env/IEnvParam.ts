@@ -44,6 +44,7 @@ export default interface IEnvParam {
     debug_vars_current_tree?: boolean;
     debug_vars_db_param_builder?: boolean;
     debug_vars_server_subs_cbs?: boolean;
+    debug_vars_notifs?: boolean;
     debug_start_server?: boolean;
     debug_imports?: boolean;
     debug_exports?: boolean;
@@ -128,4 +129,6 @@ export default interface IEnvParam {
     unblock_openai_push_to_openai_gpt_assistant?: boolean;
 
     silent_no_sort_by_but_query_limit?: boolean;
+
+    log_login_redirects?: boolean;
 }

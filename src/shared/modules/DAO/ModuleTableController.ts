@@ -56,7 +56,7 @@ export default class ModuleTableController {
     /**
      * Les constructeurs des vos par vo_type
      */
-    public static vo_constructor_by_vo_type: { [vo_type: string]: { new(): IDistantVOBase } } = {};
+    public static vo_constructor_by_vo_type: { [vo_type: string]: new () => IDistantVOBase } = {};
     /**
      * Les vo_types déclarés par module
      */
@@ -248,7 +248,7 @@ export default class ModuleTableController {
                 continue;
             }
 
-            const new_id = translate_field_id ? fieldIdToAPIMap[field.field_name] : field.field_name;
+            const new_id = (fieldIdToAPIMap && translate_field_id) ? fieldIdToAPIMap[field.field_name] : field.field_name;
             res[new_id] = ModuleTableFieldController.translate_field_to_api(e[field.field_name], field, translate_plain_obj_inside_fields_ids);
         }
 
@@ -310,7 +310,7 @@ export default class ModuleTableController {
                 continue;
             }
 
-            const old_id = fieldIdToAPIMap[field.field_name];
+            const old_id = fieldIdToAPIMap ? fieldIdToAPIMap[field.field_name] : field.field_name;
             res[field.field_name] = ModuleTableFieldController.translate_field_from_api(e[old_id], field);
         }
 

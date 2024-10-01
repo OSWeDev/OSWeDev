@@ -86,23 +86,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private can_edit: boolean = false;
 
-
-    private select_widget(page_widget) {
-        this.selected_widget = page_widget;
-    }
-
     get has_navigation_history(): boolean {
         return this.get_page_history && (this.get_page_history.length > 0);
-    }
-
-    private select_previous_page() {
-        this.page = this.get_page_history[this.get_page_history.length - 1];
-        this.pop_page_history(null);
-    }
-
-    private select_page_clear_navigation(page: DashboardPageVO) {
-        this.set_page_history([]);
-        this.page = page;
     }
 
     get visible_pages(): DashboardPageVO[] {
@@ -123,10 +108,39 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
-    private async init_api_type_ids_and_discarded_field_paths() {
-        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
-        this.set_dashboard_api_type_ids(api_type_ids);
-        this.set_discarded_field_paths(discarded_field_paths);
+    get dashboard_name_code_text(): string {
+        if (!this.dashboard) {
+            return null;
+        }
+
+        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text : null;
+    }
+
+    get pages_name_code_text(): string[] {
+        const res: string[] = [];
+
+        if (!this.pages) {
+            return res;
+        }
+
+        for (const i in this.pages) {
+            const page = this.pages[i];
+
+            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
+        }
+
+        return res;
+    }
+
+    @Watch("dashboard", { immediate: true })
+    private async onchange_dashboard() {
+        // We should load the shared_filters with the current dashboard
+        await DashboardVOManager.load_shared_filters_with_dashboard(
+            this.dashboard,
+            this.get_dashboard_navigation_history,
+            this.get_active_field_filters,
+            this.set_active_field_filters
+        );
     }
 
     /**
@@ -185,7 +199,10 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.dashboard.id,
         );
 
-        this.add_shared_filters_to_map(shared_filters);
+        if (shared_filters?.length > 0) {
+
+            this.add_shared_filters_to_map(shared_filters);
+        }
 
         this.pages = await this.load_dashboard_pages_by_dashboard_id(
             this.dashboard.id
@@ -207,6 +224,26 @@ export default class DashboardViewerComponent extends VueComponentBase {
         );
 
         this.loading = false;
+    }
+
+    private select_widget(page_widget) {
+        this.selected_widget = page_widget;
+    }
+    private select_previous_page() {
+        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.pop_page_history(null);
+    }
+
+    private select_page_clear_navigation(page: DashboardPageVO) {
+        this.set_page_history([]);
+        this.page = page;
+    }
+
+
+    private async init_api_type_ids_and_discarded_field_paths() {
+        const { api_type_ids, discarded_field_paths } = await DashboardBuilderBoardManager.get_api_type_ids_and_discarded_field_paths(this.dashboard.id);
+        this.set_dashboard_api_type_ids(api_type_ids);
+        this.set_discarded_field_paths(discarded_field_paths);
     }
 
     /**
@@ -241,42 +278,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.select_widget(null);
         this.page = page;
     }
-
-    get dashboard_name_code_text(): string {
-        if (!this.dashboard) {
-            return null;
-        }
-
-        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text : null;
-    }
-
-    get pages_name_code_text(): string[] {
-        const res: string[] = [];
-
-        if (!this.pages) {
-            return res;
-        }
-
-        for (const i in this.pages) {
-            const page = this.pages[i];
-
-            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
-        }
-
-        return res;
-    }
-
-    @Watch("dashboard", { immediate: true })
-    private async onchange_dashboard() {
-        // We should load the shared_filters with the current dashboard
-        await DashboardVOManager.load_shared_filters_with_dashboard(
-            this.dashboard,
-            this.get_dashboard_navigation_history,
-            this.get_active_field_filters,
-            this.set_active_field_filters
-        );
-    }
-
 
     // private mounted() {
     //     let body = document.getElementById('page-top');

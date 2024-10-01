@@ -333,7 +333,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     @Watch('deps_params')
-    private async onChangeDepsParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
+    private onChangeDepsParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -345,11 +345,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         if (old_var_params && ObjectHandler.hasAtLeastOneAttribute(old_var_params)) {
-            await this.unregister(old_var_params);
+            this.unregister(old_var_params);
         }
 
         if (new_var_params && ObjectHandler.hasAtLeastOneAttribute(new_var_params)) {
-            await this.register(new_var_params);
+            this.register(new_var_params);
         }
     }
 
@@ -397,31 +397,31 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return VarsController.var_conf_by_name[name].id;
     }
 
-    private async destroyed() {
-        await this.unregister(this.deps_params);
+    private destroyed() {
+        this.unregister(this.deps_params);
     }
 
-    private async register(deps_params: { [dep_id: string]: VarDataBaseVO }) {
+    private register(deps_params: { [dep_id: string]: VarDataBaseVO }) {
         if (!deps_params) {
             return;
         }
 
         if (deps_params && ObjectHandler.hasAtLeastOneAttribute(deps_params)) {
-            await VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
+            VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 
-    private async unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
+    private unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
         if (!deps_params) {
             return;
         }
 
         if (deps_params && ObjectHandler.hasAtLeastOneAttribute(deps_params)) {
-            await VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 
-    private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         if ((!new_var_param) && (!old_var_param)) {
             return;
@@ -433,11 +433,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            await VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
         }
 
         if (new_var_param) {
-            await VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
+            VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 

@@ -24,9 +24,6 @@ export default class VarDataIfComponent extends VueComponentBase {
     public condition: (value: VarDataValueResVO) => boolean;
 
     @Prop({ default: false })
-    public reload_on_mount: boolean;
-
-    @Prop({ default: false })
     public preload_content: boolean;
 
     private var_data: VarDataValueResVO = null;
@@ -44,16 +41,16 @@ export default class VarDataIfComponent extends VueComponentBase {
         this.var_data = VarsClientController.cached_var_datas[this.var_param.index];
     }
 
-    private async destroyed() {
+    private destroyed() {
         if (!this.var_param) {
             return;
         }
 
-        await VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
+        VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
     }
 
     @Watch('var_param', { immediate: true })
-    private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
@@ -61,11 +58,11 @@ export default class VarDataIfComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            await VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
+            VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
         }
 
         if (new_var_param) {
-            await VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
+            VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 

@@ -622,7 +622,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     private expand_window() {
         this.is_expanded = !this.is_expanded;
-        this.frame.style.width = this.is_expanded ? '25%' : '19%';
+        this.frame.style.width = this.is_expanded ? '640px' : '483px'; // c'est pas des %, c'est des px qu'on doit utiliser (cf scss qui définit la media query)
     }
 
     private handle_new_message_text_keydown(event: KeyboardEvent) {

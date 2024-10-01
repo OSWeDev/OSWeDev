@@ -1938,7 +1938,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
-    private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
+    private async loginAndRedirect(email: string, password: string, redirect_to: string, sso: boolean): Promise<number> {
 
         try {
             const session = StackContext.get('SESSION');
@@ -1953,7 +1953,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
+                await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
                 return session.uid;
             }
 
@@ -2009,7 +2009,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
-            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to);
+            await PushDataServerController.notifyUserLoggedAndRedirect(redirect_to, sso);
 
             return user.id;
         } catch (error) {

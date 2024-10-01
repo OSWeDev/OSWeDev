@@ -36,8 +36,12 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import DefaultTranslationsServerManager from '../Translation/DefaultTranslationsServerManager';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SuiviCompetencesRapportExportHandler from './exports/SuiviCompetencesRapportExportHandler';
+import VarDayLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDayLastSuiviCompetencesNiveauMaturiteGroupeController';
+import VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteGroupeController';
 import VarDaySuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarDaySuiviCompetencesNiveauMaturiteSousGroupeController';
+import VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController';
+import VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController from './vars/VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController';
 
 export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
 
@@ -193,6 +197,15 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
             "fr-fr": 'Objectif de la prochaine visite'
         }, 'suivi_competences_widget_component.objectif_prochaine_visite.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": 'Commentaire 1'
+        }, 'suivi_competences_widget_component.commentaire_1.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": 'Commentaire 2'
+        }, 'suivi_competences_widget_component.commentaire_2.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": 'Prochain suivi'
+        }, 'suivi_competences_widget_component.prochain_suivi.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": 'KPI'
         }, 'suivi_competences_widget_component.kpi.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
@@ -207,6 +220,12 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             "fr-fr": "Plan d'action"
         }, 'suivi_competences_widget_component.plan_action.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": "Cible"
+        }, 'suivi_competences_widget_component.cible.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            "fr-fr": "Délais"
+        }, 'suivi_competences_widget_component.delais.grille_' + vo.id + DefaultTranslationVO.DEFAULT_LABEL_EXTENSION));
 
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
     }
@@ -392,8 +411,12 @@ export default class ModuleSuiviCompetencesServer extends ModuleServerBase {
     }
 
     private async configure_vars() {
+        await VarQuarterLastSuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
+        await VarQuarterLastSuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
         await VarDaySuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
         await VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
+        await VarDayLastSuiviCompetencesNiveauMaturiteGroupeController.getInstance().initialize();
+        await VarDayLastSuiviCompetencesNiveauMaturiteSousGroupeController.getInstance().initialize();
     }
 
     private registerTranslations() {

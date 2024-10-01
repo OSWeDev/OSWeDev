@@ -8,6 +8,7 @@ import LangVO from "../../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import TranslationVO from "../../../../../shared/modules/Translation/vos/TranslationVO";
 import { field_names, reflect } from "../../../../../shared/tools/ObjectHandler";
+import { all_promises } from "../../../../../shared/tools/PromiseTools";
 import ModuleDAOServer from "../../../DAO/ModuleDAOServer";
 import ModuleGPTServer from "../../ModuleGPTServer";
 import AssistantVoFieldDescription from "./AssistantVoFieldDescription";
@@ -58,6 +59,7 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         field_desc_id.vo_field_name = 'id';
         field_desc_id.name = 'Identifiant unique du VO';
         field_desc_id.description = 'Identifiant unique de type number, auto-incrémenté en base de données';
+        field_desc_id.vo_field_type = 'number';
         fields.push(field_desc_id);
 
         const field_desc_type = new AssistantVoFieldDescription();
@@ -65,26 +67,19 @@ export default class GPTAssistantAPIFunctionGetVoTypeDescriptionController {
         field_desc_type.vo_field_name = '_type';
         field_desc_type.name = 'Type du VO - équivalent à l\'api_type_id';
         field_desc_type.description = 'Type de l\'objet, permet de différencier les objets de différents types. Correspond à l\'api_type_id de l\'objet';
+        field_desc_type.vo_field_type = 'string';
         fields.push(field_desc_type);
 
+        const promises = [];
         for (const i in module_table_fields) {
             const field = module_table_fields[i];
-            const field_desc = new AssistantVoFieldDescription();
-            field_desc.vo_field_name = field.field_name;
-            field_desc.api_type_id = api_type_id;
 
-            if (field.default_translation && field.default_translation.code_text) {
-                const trad = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<TranslatableTextVO>().code_text, field.default_translation.code_text, TranslatableTextVO.API_TYPE_ID)
-                    .filter_by_text_eq(field_names<LangVO>().code_lang, DefaultTranslationVO.DEFAULT_LANG_DEFAULT_TRANSLATION, LangVO.API_TYPE_ID)
-                    .exec_as_server()
-                    .select_vo<TranslationVO>();
-                field_desc.name = trad ? trad.translated : null;
-            }
-
-            field_desc.description = field.description;
-            fields.push(field_desc);
+            promises.push((async () => {
+                const field_desc = await AssistantVoFieldDescription.from_vo_field(field);
+                fields.push(field_desc);
+            })());
         }
+        await all_promises(promises);
 
         res.fields = fields;
 

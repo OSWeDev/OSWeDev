@@ -131,7 +131,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public impersonate: (uid: number) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonate);
-    public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public loginAndRedirect: (email: string, password: string, redirect_to: string, sso: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
     public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
@@ -434,17 +434,13 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserAPIVO() {
-        let label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
-        let field_user_id = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let datatable_fields = [
-            label,
-            field_user_id,
-            ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique()
-        ];
+        const label = ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom', true);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', true)
+            .set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableFieldController.create_new(UserAPIVO.API_TYPE_ID, field_names<UserAPIVO>().api_key, ModuleTableFieldVO.FIELD_TYPE_string, 'API Key', true).unique();
 
-        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }));
-
-        field_user_id.set_many_to_one_target_moduletable_name(ModuleTableController.module_tables_by_vo_id[UserVO.API_TYPE_ID]);
+        ModuleTableController.create_new(this.name, UserAPIVO, label, DefaultTranslationVO.create_new({ 'fr-fr': "Clefs d'API des utilisateurs" }))
+            .set_description('Clefs d\'API des utilisateurs pour les appels API');
     }
 
     private initializeUser() {
@@ -475,7 +471,7 @@ export default class ModuleAccessPolicy extends Module {
             label_field,
             DefaultTranslationVO.create_new({ 'fr-fr': "Utilisateurs" }),
             field_names<UserVO>().name
-        );
+        ).set_description('Comptes utilisateurs');
         field_lang_id.set_many_to_one_target_moduletable_name(LangVO.API_TYPE_ID);
         datatable.set_bdd_ref('ref', 'user');
 

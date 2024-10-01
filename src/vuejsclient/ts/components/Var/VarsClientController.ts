@@ -1,3 +1,4 @@
+import { debug } from 'console';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
@@ -8,10 +9,10 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
+import PushDataVueModule from '../../modules/PushData/PushDataVueModule';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
-
     /**
      * Les vars params registered et donc registered aussi côté serveur, si on est déjà registered on a pas besoin de rajouter des instances
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
@@ -22,18 +23,6 @@ export default class VarsClientController {
      * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
      */
     public static cached_var_datas: { [index: string]: VarDataValueResVO } = {};
-
-    public static get_CB_UID(): number {
-        return this.CB_UID++;
-    }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): VarsClientController {
-        if (!VarsClientController.instance) {
-            VarsClientController.instance = new VarsClientController();
-        }
-        return VarsClientController.instance;
-    }
 
     private static CB_UID: number = 0;
     private static instance: VarsClientController = null;
@@ -65,6 +54,20 @@ export default class VarsClientController {
         this.update_params_registration().then().catch((err) => ConsoleHandler.error(err));
     }
 
+
+    public static get_CB_UID(): number {
+        return this.CB_UID++;
+    }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): VarsClientController {
+        if (!VarsClientController.instance) {
+            VarsClientController.instance = new VarsClientController();
+        }
+        return VarsClientController.instance;
+    }
+
+
     /**
      * L'objectif est de stocker les registered_params et d'envoyer une requête pour avoir une valeur :
      *  - soit par ce qu'on a pas de valeur connue pour cet index
@@ -76,7 +79,7 @@ export default class VarsClientController {
      *                  le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
      * @remark rajoute les callbacks dans registered_var_params pour les var_params spécifiés
      */
-    public async registerParams(
+    public registerParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null
     ) {
@@ -97,16 +100,29 @@ export default class VarsClientController {
 
             if (!VarsClientController.registered_var_params[var_param.index]) {
 
+                //vvvvvv! DEBUG DELETE ME !vvvvvv
+                if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                    ConsoleHandler.warn('register new index:' + var_param.index);
+                }
+                //^^^^^^! DEBUG DELETE ME !^^^^^^
+
                 needs_registration[var_param.index] = var_param;
                 VarsClientController.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
-                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             } else {
+
+                //vvvvvv! DEBUG DELETE ME !vvvvvv
+                if (var_param && var_param.index && var_param.index.startsWith('4W|') && var_param.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                    ConsoleHandler.warn('register nb_registrations++:' + var_param.index + ':' + VarsClientController.registered_var_params[var_param.index].nb_registrations + '++');
+                }
+                //^^^^^^! DEBUG DELETE ME !^^^^^^
+
                 VarsClientController.registered_var_params[var_param.index].nb_registrations++;
 
                 if (callbacks) {
-                    await VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    VarsClientController.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             }
         }
@@ -181,7 +197,7 @@ export default class VarsClientController {
             }, value_type);
             callbacks[callback.UID] = callback;
 
-            await this.registerParams(filtered_var_params, callbacks);
+            this.registerParams(filtered_var_params, callbacks);
         });
     }
 
@@ -199,7 +215,7 @@ export default class VarsClientController {
                 value_type
             );
 
-            await this.registerParams([var_param], { [callback.UID]: callback });
+            this.registerParams([var_param], { [callback.UID]: callback });
         });
     }
 
@@ -210,7 +226,7 @@ export default class VarsClientController {
      * @param var_params Les paramètres à désinscrire
      * @param callbacks Les callbacks associés - les mêmes uids que lors du register
      */
-    public async unRegisterParams(
+    public unRegisterParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null
     ) {
@@ -263,6 +279,10 @@ export default class VarsClientController {
             const registered_var = VarsClientController.registered_var_params[var_data.index];
             const uids_to_remove: number[] = [];
 
+            if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                ConsoleHandler.log('VarsClientController:notifyCallbacks:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':registered_var:' + !!registered_var);
+            }
+
             if (!registered_var) {
                 continue;
             }
@@ -273,14 +293,47 @@ export default class VarsClientController {
                 // cas d'un callback en VALID uniquement
                 if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_VALID) && (
                     (!var_data) ||
+                    (!VarsClientController.cached_var_datas[var_data.index]) ||
                     (typeof VarsClientController.cached_var_datas[var_data.index].value == 'undefined') ||
                     (!VarsClientController.cached_var_datas[var_data.index].value_ts))
                 ) {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:ignore callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:ignore callback: no var_data');
+                        }
+                    }
+
                     continue;
                 }
 
                 if (callback.callback) {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:push callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:push callback: no var_data');
+                        }
+                    }
+
+                    //vvvvvv! DEBUG DELETE ME !vvvvvv
+                    if (var_data && var_data.index && var_data.index.startsWith('4W|') && var_data.index.endsWith('|1&3|P5@A;&PR:qo')) {
+                        ConsoleHandler.warn('Calling callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        // // eslint-disable-next-line no-debugger
+                        // debugger;
+                    }
+                    //^^^^^^! DEBUG DELETE ME !^^^^^^
+
                     promises.push(callback.callback(var_data));
+                } else {
+                    if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                        if (var_data) {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:no callback:' + var_data.index + ':' + var_data.value + ':' + var_data.value_ts + ':' + var_data.value_type + ':' + var_data.is_computing + ':callback.value_type:' + callback.value_type);
+                        } else {
+                            ConsoleHandler.log('VarsClientController:notifyCallbacks:no callback: no var_data');
+                        }
+                    }
                 }
 
                 if (callback.type == VarUpdateCallback.TYPE_ONCE) {
@@ -289,6 +342,10 @@ export default class VarsClientController {
             }
 
             for (const j in uids_to_remove) {
+                if (PushDataVueModule.getInstance().env_params && PushDataVueModule.getInstance().env_params.debug_vars_notifs) {
+                    ConsoleHandler.log('VarsClientController:notifyCallbacks:deleteuid:' + uids_to_remove[j]);
+                }
+
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
@@ -342,6 +399,7 @@ export default class VarsClientController {
                 this.throttled_server_registration(check_params);
             }
         } catch (error) {
+            //
         }
         this.prepare_next_check();
     }

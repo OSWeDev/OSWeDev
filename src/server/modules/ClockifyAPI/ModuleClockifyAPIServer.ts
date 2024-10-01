@@ -15,6 +15,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -278,26 +279,39 @@ export default class ModuleClockifyAPIServer extends ModuleServerBase {
         const api_key: string = await ModuleParams.getInstance().getParamValueAsString(ModuleClockifyAPI.ClockifyAPI_API_KEY_API_PARAM_NAME);
 
         while (has_more) {
-            const elts: any[] = await ModuleRequest.getInstance().sendRequestFromApp(
-                ModuleRequest.METHOD_GET,
-                ModuleClockifyAPI.ClockifyAPI_BaseURL,
-                (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
-                    page: page.toString(),
-                    start: Dates.format(start_time, "YYYY-MM-DD", true) + "T00:00:00Z",
-                    end: Dates.format(end_time, "YYYY-MM-DD", true) + "T23:59:59Z",
-                }),
-                null,
-                {
-                    'X-Api-Key': api_key,
-                    'Content-Type': 'application/json',
-                },
-                true,
-                null,
-                false,
-            );
+            /**
+             * L'api sort une erreur 429 si on fait une requête qui sort [] comme résultat
+             * et fait tout planter
+             */
+            let elts: any[] = [];
+            try {
+                elts = await ModuleRequest.getInstance().sendRequestFromApp(
+                    ModuleRequest.METHOD_GET,
+                    ModuleClockifyAPI.ClockifyAPI_BaseURL,
+                    (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
+                        page: page.toString(),
+                        start: Dates.format(start_time, "YYYY-MM-DD", true) + "T00:00:00Z",
+                        end: Dates.format(end_time, "YYYY-MM-DD", true) + "T23:59:59Z",
+                    }),
+                    null,
+                    {
+                        'X-Api-Key': api_key,
+                        'Content-Type': 'application/json',
+                    },
+                    true,
+                    null,
+                    false,
+                );
 
-            res = res.concat(elts);
-            page++;
+            } catch (error) {
+                ConsoleHandler.log('Probablement une 429, c\'est juste qu\'on récupère une page sans data (celle après la dernière): ', error);
+                elts = [];
+            }
+
+            if (elts.length > 0) {
+                res = res.concat(elts);
+                page++;
+            }
 
             has_more = elts?.length > 0;
         }

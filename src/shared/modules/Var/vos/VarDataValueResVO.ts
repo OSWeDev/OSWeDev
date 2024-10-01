@@ -13,7 +13,11 @@ export default class VarDataValueResVO {
     public is_computing: boolean;
     public value: number;
     public value_type: number;
+    // Date de calul
     public value_ts: number;
+
+    // Date de notif
+    public notif_ts: number;
 
     public constructor() { }
 
@@ -49,6 +53,11 @@ export default class VarDataValueResVO {
 
     public set_is_computing(is_computing: boolean): VarDataValueResVO {
         this.is_computing = is_computing;
+        return this;
+    }
+
+    public set_notif_ts(notif_ts: number): VarDataValueResVO {
+        this.notif_ts = notif_ts;
         return this;
     }
 }

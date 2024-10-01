@@ -30,12 +30,8 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
 import './VarPieChartWidgetComponent.scss';
-import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
-import DefaultTranslationVO from '../../../../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import { Chart } from 'vue-chartjs';
-import { color } from 'chart.js/helpers';
+import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
 
 @Component({
     template: require('./VarPieChartWidgetComponent.pug')
@@ -175,26 +171,26 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
                     onHover: function (evt, item, legend) {
                         if (item.fillStyle.includes('rgba')) {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.replace(/[^,]+(?=\))/, 1) : color.replace(/[^,]+(?=\))/, 0.2);
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.replace(/[^,]+(?=\))/, 1) : color_value.replace(/[^,]+(?=\))/, 0.2);
                             });
 
                         } else {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.slice(2, color.length) + 'FF' : color.slice(0, color.length - 2) + '33';
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.slice(2, color_value.length) + 'FF' : color_value.slice(0, color_value.length - 2) + '33';
                             });
                         }
                         legend.chart.update();
                     },
                     onLeave: function (evt, item, legend) {
                         if (item.fillStyle.includes('rgba')) {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
                                 let opacity = (1 - (1 / colors.length) * index);
-                                colors[index] = index === item.index ? color.replace(/[^,]+(?=\))/, opacity) : color.replace(/[^,]+(?=\))/, opacity);
+                                colors[index] = index === item.index ? color_value.replace(/[^,]+(?=\))/, opacity) : color_value.replace(/[^,]+(?=\))/, opacity);
                             });
                         } else {
-                            legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index ? color.replace('FF', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16)) : color.replace('33', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16));
+                            legend.chart.data.datasets[0].backgroundColor.forEach((color_value, index, colors) => {
+                                colors[index] = index === item.index ? color_value.replace('FF', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16)) : color_value.replace('33', Math.floor(255 * (1 - (1 / colors.length) * index)).toString(16));
                             });
                         }
                         legend.chart.update();
@@ -287,13 +283,13 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
                     for (const i in this.ordered_dimension) {
                         const nb = parseInt(i);
-                        let color = base_color;
+                        let color_value = base_color;
                         if (is_rbga) {
-                            color += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                            color_value += (1 - (1 / this.ordered_dimension.length) * nb) + ')';
                         } else {
-                            color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                            color_value += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
                         }
-                        colors.push(color);
+                        colors.push(color_value);
                     }
 
                     return new VarPieDataSetDescriptor(

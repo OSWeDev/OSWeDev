@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
-import { createWriteStream } from 'fs';
+import fs, { createWriteStream } from "fs";
 import { ChatCompletion, ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
@@ -33,7 +33,6 @@ import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUs
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
-import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -55,14 +54,11 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from '../GPT/sync/GPTAssistantAPIServerSyncAssistantsController';
-import GPTAssistantAPIServerSyncThreadMessagesController from '../GPT/sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
-import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
-import fs from "fs";
 import GPTAssistantAPIThreadMessageContentTextVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentTextVO';
 import PushDataServerController from '../PushData/PushDataServerController';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
@@ -72,6 +68,7 @@ import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI
 import SocketWrapper from '../PushData/vos/SocketWrapper';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -416,49 +413,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     }
 
                     const message = "Bonjour, analyse le fichier texte que je t'envoies, il contient le contenu d'une conversation entre un utilisateur et Osélia, tu dois analyser la conversation et synthétiser de façon concise les informations importantes.";
-                    let messages_contents: string = "";
+                    const messages_contents: string = await this.get_thread_text_content(thread_vo.id);
 
-                    const thread_messages: GPTAssistantAPIThreadMessageVO[] = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                        .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-                        .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, false))
-                        .exec_as_server()
-                        .select_vos<GPTAssistantAPIThreadMessageVO>();
-
-                    for (const message of thread_messages) {
-
-                        const message_content = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
-                            .filter_by_id(message.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                            .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
-                            .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
-                            .select_vos<GPTAssistantAPIThreadMessageContentVO>();
-                        for (const content of message_content) {
-                            if ((!content.content_type_text) || (!content.content_type_text.value)) {
-                                continue;
-                            }
-                            let new_content = "";
-                            switch (message.role) {
-                                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER:
-
-                                    const sender = await query(UserVO.API_TYPE_ID)
-                                        .filter_by_id(message.user_id)
-                                        .select_vo<UserVO>();
-                                    if (content.hidden) {
-                                        if (content.content_type_text.value.startsWith("<") && content.content_type_text.value.endsWith(">")) {
-                                            new_content = "[Champs technique de : " + sender.name + "]" + " : " + content.content_type_text.value;
-                                        } else {
-                                            new_content = "[Fichier de : " + sender.name + "]" + " : " + content.content_type_text.value;
-                                        }
-                                    } else {
-                                        new_content = "[" + sender.name + "] : " + content.content_type_text.value;
-                                    }
-                                    break;
-                                case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT:
-                                    new_content = "[Oselia] : " + content.content_type_text.value;
-                                    break;
-                            }
-                            messages_contents += "\n" + new_content;
-                        }
-                    }
                     const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
 
                     const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt'
@@ -476,12 +432,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     const action_2 = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Ouvrir la conversation de l\'utilisateur');
                     TeamsAPIServerController.send_teams_oselia_info("Test - assistant bug resolver", "Bonjour, un bug a été remonté !", new_thread.id, [action, action_2]);
 
-                    return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran"
+                    return "Ne réponds pas à ce message, l'assistant a été appelé, lance ta capture d'écran";
                 case 1:
                     break;
             }
 
-            ConsoleHandler.log('ModuleOseliaServer:ask_assistant:Demande d\'assistant effectuée avec succès')
+            ConsoleHandler.log('ModuleOseliaServer:ask_assistant:Demande d\'assistant effectuée avec succès');
             return ' ';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:ask_assistant:Error while taking screenshot:" + error);
@@ -489,7 +445,131 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
     }
 
+    public async send_message_to_teams_info_oselia(
+        thread_vo: GPTAssistantAPIThreadVO,
+        title: string,
+        content: string,
+    ): Promise<string> {
+        try {
+            // On envoie une notification à Teams
+            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
+            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
+            await TeamsAPIServerController.send_teams_oselia_info(title, content, thread_vo.id, [action_button_teams]);
+            return 'Message envoyé';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_info_oselia:Error while sending message to Teams:" + error);
+            return "send_message_to_teams_info_oselia:Error while sending message to Teams:" + error;
+        }
+    }
 
+    public async send_message_to_teams_warn_oselia(
+        thread_vo: GPTAssistantAPIThreadVO,
+        title: string,
+        content: string,
+    ): Promise<string> {
+        try {
+            // On envoie une notification à Teams
+            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
+            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
+            await TeamsAPIServerController.send_teams_oselia_warn(title, content, thread_vo.id, [action_button_teams]);
+            return 'Message envoyé';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_warn_oselia:Error while sending message to Teams:" + error);
+            return "send_message_to_teams_warn_oselia:Error while sending message to Teams:" + error;
+        }
+    }
+
+    public async send_message_to_teams_success_oselia(
+        thread_vo: GPTAssistantAPIThreadVO,
+        title: string,
+        content: string,
+    ): Promise<string> {
+        try {
+            // On envoie une notification à Teams
+            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
+            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
+            await TeamsAPIServerController.send_teams_oselia_success(title, content, thread_vo.id, [action_button_teams]);
+            return 'Message envoyé';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_success_oselia:Error while sending message to Teams:" + error);
+            return "send_message_to_teams_success_oselia:Error while sending message to Teams:" + error;
+        }
+    }
+
+    public async send_message_to_teams_error_oselia(
+        thread_vo: GPTAssistantAPIThreadVO,
+        title: string,
+        content: string,
+    ): Promise<string> {
+        try {
+            // On envoie une notification à Teams
+            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
+            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
+            await TeamsAPIServerController.send_teams_oselia_error(title, content, thread_vo.id, [action_button_teams]);
+            return 'Message envoyé';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_error_oselia:Error while sending message to Teams:" + error);
+            return "send_message_to_teams_error_oselia:Error while sending message to Teams:" + error;
+        }
+    }
+
+    /**
+     * Un méthode qui permet de récupérer le contenu d'un autre thread via un appel de fonction
+     */
+    public async get_thread_text_content(thread_vo_id: number): Promise<string> {
+        try {
+
+            let messages_contents: string = "";
+
+            const thread_messages: GPTAssistantAPIThreadMessageVO[] = await query(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                .filter_by_id(thread_vo_id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+                .set_sort(new SortByVO(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().created_at, false))
+                .exec_as_server()
+                .select_vos<GPTAssistantAPIThreadMessageVO>();
+
+            for (const message of thread_messages) {
+
+                const message_content = await query(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID)
+                    .filter_by_id(message.id, GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
+                    .select_vos<GPTAssistantAPIThreadMessageContentVO>();
+                for (const content of message_content) {
+                    if ((!content.content_type_text) || (!content.content_type_text.value)) {
+                        continue;
+                    }
+                    let new_content = "";
+                    switch (message.role) {
+                        case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER:
+
+                            // eslint-disable-next-line no-case-declarations
+                            const sender = await query(UserVO.API_TYPE_ID)
+                                .filter_by_id(message.user_id)
+                                .select_vo<UserVO>();
+                            if (content.hidden) {
+                                if (content.content_type_text.value.startsWith("<") && content.content_type_text.value.endsWith(">")) {
+                                    new_content = "[Champs technique de : " + sender.name + "]" + " : " + content.content_type_text.value;
+                                } else {
+                                    new_content = "[Fichier de : " + sender.name + "]" + " : " + content.content_type_text.value;
+                                }
+                            } else {
+                                new_content = "[" + sender.name + "] : " + content.content_type_text.value;
+                            }
+                            break;
+                        case message.role = GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT:
+                            new_content = "[Oselia] : " + content.content_type_text.value;
+                            break;
+                    }
+                    messages_contents += "\n" + new_content;
+                }
+            }
+
+            return messages_contents;
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:get_thread_text_content:FAILED:" + error);
+            return 'get_thread_text_content FAILED: ' + error;
+        }
+    }
 
 
     /**
@@ -830,7 +910,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         // On sépare 2 fonctionnements : 1 cas où Osélia est utilisé en interne dans le site même qui contient les comptes utilisateurs.
         //  Dans ce cas on ne doit pas en créer, et la liaison doit se faire avec les comptes existants automatiquement.
         // 2ème cas, Osélia est utilisé en externe, et on doit créer les comptes utilisateurs si ils n'existent pas encore, mais on attend la validation pour lier le compte au partenaire
-        const is_internal_behaviour = (referrer.referrer_origin == ConfigurationService.node_configuration.base_url);
+        const is_internal_behaviour = ((referrer.referrer_origin == ConfigurationService.node_configuration.base_url) || ((referrer.referrer_origin + '/') == ConfigurationService.node_configuration.base_url));
 
         try {
 

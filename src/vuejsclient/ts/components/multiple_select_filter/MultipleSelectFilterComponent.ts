@@ -125,159 +125,6 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     private actual_query: string = null;
 
-    /**
-     * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
-     */
-    public force_active_options(active_options: DataFilterOption[]) {
-        this.tmp_active_filter_options = active_options;
-    }
-
-    @Watch('tmp_active_filter_options')
-    public onchange_tmp_active_filter_options() {
-
-        /**
-         * On check avant le commit si il y a une modification de la sélection
-         */
-        const old_value = this.active_filter_options;
-        const new_value = this.tmp_active_filter_options;
-
-        if (ArrayHandler.is_same(old_value, new_value)) {
-            return;
-        }
-
-        if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
-            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
-        } else {
-            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
-        }
-    }
-
-    @Watch('$route', { immediate: true })
-    public async onRouteChange() {
-        try {
-            this.tmp_active_filter_options = this.active_filter_options;
-            this.actual_query = null;
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-    }
-
-    @Watch('active_filter_options')
-    public async onchange_active_filter_options() {
-        this.actual_query = null;
-
-        if (!isEqual(this.tmp_active_filter_options, this.active_filter_options)) {
-
-            if (!(this.active_filter_options?.length > 0)) {
-                const res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
-
-                if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
-                    const selected = res[ObjectHandler.getFirstAttributeName(res)];
-
-                    const option = new DataFilterOption(
-                        DataFilterOption.STATE_SELECTABLE,
-                        this.get_label(selected),
-                        selected.id
-                    );
-
-                    this.tmp_active_filter_options = [option];
-                } else {
-                    this.tmp_active_filter_options = this.active_filter_options;
-                }
-            } else {
-                this.tmp_active_filter_options = this.active_filter_options;
-            }
-        }
-    }
-
-    @Watch('selectable_options_by_ids', { immediate: true })
-    private onchange_selectable_options_by_ids() {
-
-        if (!this.update_selectable_options_in_store) {
-            return;
-        }
-
-        const selectable_options_by_ids: {
-            [id: number]: IDistantVOBase
-        } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
-
-        // Avant de commit, on check si il y a une modification pour éviter de boucler
-        if (isEqual(selectable_options_by_ids, this.selectable_options_by_ids)) {
-            return;
-        }
-
-        if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
-            this.$store.commit(this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
-        } else {
-            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
-        }
-    }
-
-    private async on_input(selected: []) {
-        this.$emit('select', selected);
-    }
-
-    private get_label(vo: IDistantVOBase, dfo_options: DataFilterOption[] = null): string {
-
-        if (!vo) {
-            return null;
-        }
-
-        if (!this.option_label_func) {
-            // On utilise la fonction de label de la table
-            if (this.moduletable?.default_label_field) {
-                return vo[this.moduletable.default_label_field.field_id];
-            }
-
-            if (this.moduletable?.table_label_function) {
-                return this.moduletable.table_label_function(vo);
-            }
-        } else {
-            return this.option_label_func(vo, dfo_options);
-        }
-
-        return null;
-    }
-
-    private multiselectOptionLabel(filter_item: DataFilterOption): string {
-        if ((filter_item == null) || (typeof filter_item == 'undefined')) {
-            return '';
-        }
-
-        return filter_item.label;
-    }
-
-    private updateMultiSelectFilterOptions(query) {
-        this.actual_query = query;
-    }
-
-    private select_none() {
-        this.tmp_active_filter_options = [];
-    }
-
-    private async select_all() {
-        const res: DataFilterOption[] = [];
-
-        for (const i in this.selectable_options_by_ids) {
-            const vo: IDistantVOBase = this.selectable_options_by_ids[i];
-
-            const option = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.get_label(vo),
-                vo.id
-            );
-
-            res.push(option);
-        }
-
-        this.tmp_active_filter_options = res;
-    }
-
-    private mounted() {
-        // TODO A tester
-        this.$refs.multiselectRef['$refs'].search.setAttribute("autocomplete", "off");
-    }
-
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
         const id_marker: number[] = [];
@@ -431,5 +278,158 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     get internal_store_all_by_ids_state_uid(): string {
         return 'all_' + this.api_type_id + '_by_ids';
+    }
+
+    @Watch('tmp_active_filter_options')
+    public onchange_tmp_active_filter_options() {
+
+        /**
+         * On check avant le commit si il y a une modification de la sélection
+         */
+        const old_value = this.active_filter_options;
+        const new_value = this.tmp_active_filter_options;
+
+        if (ArrayHandler.is_same(old_value, new_value)) {
+            return;
+        }
+
+        if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
+            this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
+        } else {
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_uid, this.tmp_active_filter_options);
+        }
+    }
+
+    @Watch('$route', { immediate: true })
+    public async onRouteChange() {
+        try {
+            this.tmp_active_filter_options = this.active_filter_options;
+            this.actual_query = null;
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+    }
+
+    @Watch('active_filter_options')
+    public async onchange_active_filter_options() {
+        this.actual_query = null;
+
+        if (!isEqual(this.tmp_active_filter_options, this.active_filter_options)) {
+
+            if (!(this.active_filter_options?.length > 0)) {
+                const res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
+
+                if (ObjectHandler.hasOneAndOnlyOneAttribute(res)) {
+                    const selected = res[ObjectHandler.getFirstAttributeName(res)];
+
+                    const option = new DataFilterOption(
+                        DataFilterOption.STATE_SELECTABLE,
+                        this.get_label(selected),
+                        selected.id
+                    );
+
+                    this.tmp_active_filter_options = [option];
+                } else {
+                    this.tmp_active_filter_options = this.active_filter_options;
+                }
+            } else {
+                this.tmp_active_filter_options = this.active_filter_options;
+            }
+        }
+    }
+
+    @Watch('selectable_options_by_ids', { immediate: true })
+    private onchange_selectable_options_by_ids() {
+
+        if (!this.update_selectable_options_in_store) {
+            return;
+        }
+
+        const selectable_options_by_ids: {
+            [id: number]: IDistantVOBase
+        } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
+
+        // Avant de commit, on check si il y a une modification pour éviter de boucler
+        if (isEqual(selectable_options_by_ids, this.selectable_options_by_ids)) {
+            return;
+        }
+
+        if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
+            this.$store.commit(this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
+        } else {
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_selectable_options_by_ids_uid, this.selectable_options_by_ids);
+        }
+    }
+
+    /**
+     * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
+     */
+    public force_active_options(active_options: DataFilterOption[]) {
+        this.tmp_active_filter_options = active_options;
+    }
+
+    private async on_input(selected: []) {
+        this.$emit('select', selected);
+    }
+
+    private get_label(vo: IDistantVOBase, dfo_options: DataFilterOption[] = null): string {
+
+        if (!vo) {
+            return null;
+        }
+
+        if (!this.option_label_func) {
+            // On utilise la fonction de label de la table
+            if (this.moduletable?.default_label_field) {
+                return vo[this.moduletable.default_label_field.field_id];
+            }
+
+            if (this.moduletable?.table_label_function) {
+                return this.moduletable.table_label_function(vo);
+            }
+        } else {
+            return this.option_label_func(vo, dfo_options);
+        }
+
+        return null;
+    }
+
+    private multiselectOptionLabel(filter_item: DataFilterOption): string {
+        if ((filter_item == null) || (typeof filter_item == 'undefined')) {
+            return '';
+        }
+
+        return filter_item.label;
+    }
+
+    private updateMultiSelectFilterOptions(query) {
+        this.actual_query = query;
+    }
+
+    private select_none() {
+        this.tmp_active_filter_options = [];
+    }
+
+    private async select_all() {
+        const res: DataFilterOption[] = [];
+
+        for (const i in this.selectable_options_by_ids) {
+            const vo: IDistantVOBase = this.selectable_options_by_ids[i];
+
+            const option = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.get_label(vo),
+                vo.id
+            );
+
+            res.push(option);
+        }
+
+        this.tmp_active_filter_options = res;
+    }
+
+    private mounted() {
+        // TODO A tester
+        this.$refs.multiselectRef['$refs'].search.setAttribute("autocomplete", "off");
     }
 }

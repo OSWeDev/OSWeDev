@@ -249,4 +249,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     public unblock_openai_push_to_openai_gpt_assistant: boolean;
 
     public silent_no_sort_by_but_query_limit: boolean;
+
+    public debug_vars_notifs: boolean;
+    public log_login_redirects: boolean;
 }

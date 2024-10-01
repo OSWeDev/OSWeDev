@@ -68,19 +68,24 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
 
         let param: SuiviCompetencesRapportSousGroupeDataRangesVO = (varDAGNode.var_data as SuiviCompetencesRapportSousGroupeDataRangesVO);
 
-        // Si on a pas de sous groupe ou qu'un seul, on n'a pas de dépendance
-        if (!param.suivi_comp_sous_groupe_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_sous_groupe_id_ranges).length <= 1) {
+        // Si on a pas de sous groupe ou qu'un seul ET un seul rapport, on n'a pas de dépendance
+        if (
+            (!param.suivi_comp_sous_groupe_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_sous_groupe_id_ranges).length <= 1) &&
+            (!param.suivi_comp_rapport_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_rapport_id_ranges).length <= 1)
+        ) {
             return null;
         }
 
-        RangeHandler.foreach_ranges_sync(param.suivi_comp_sous_groupe_id_ranges, (sous_groupe_id: number) => {
-            res[VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.DEP_DaySuiviCompetencesNiveauMaturiteSousGroupe + '_' + sous_groupe_id] = SuiviCompetencesRapportSousGroupeDataRangesVO.createNew(
-                SuiviCompetencesVarsNamesHolder.VarDaySuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME,
-                false,
-                param.suivi_comp_rapport_id_ranges,
-                param.suivi_comp_groupe_id_ranges,
-                [RangeHandler.create_single_elt_NumRange(sous_groupe_id, NumSegment.TYPE_INT)],
-            );
+        RangeHandler.foreach_ranges_sync(param.suivi_comp_rapport_id_ranges, (rapport_id: number) => {
+            RangeHandler.foreach_ranges_sync(param.suivi_comp_sous_groupe_id_ranges, (sous_groupe_id: number) => {
+                res[VarDaySuiviCompetencesNiveauMaturiteSousGroupeController.DEP_DaySuiviCompetencesNiveauMaturiteSousGroupe + '_' + rapport_id + '_' + sous_groupe_id] = SuiviCompetencesRapportSousGroupeDataRangesVO.createNew(
+                    SuiviCompetencesVarsNamesHolder.VarDaySuiviCompetencesNiveauMaturiteSousGroupeController_VAR_NAME,
+                    false,
+                    [RangeHandler.create_single_elt_NumRange(rapport_id, NumSegment.TYPE_INT)],
+                    param.suivi_comp_groupe_id_ranges,
+                    [RangeHandler.create_single_elt_NumRange(sous_groupe_id, NumSegment.TYPE_INT)],
+                );
+            });
         });
 
         return res;
@@ -205,12 +210,15 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
 
         let param: SuiviCompetencesRapportSousGroupeDataRangesVO = (varDAGNode.var_data as SuiviCompetencesRapportSousGroupeDataRangesVO);
 
-        // Si on a pas de sous groupe ou qu'un seul, on n'a pas de dépendance donc on calcul
-        if (!param.suivi_comp_sous_groupe_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_sous_groupe_id_ranges).length <= 1) {
+        // Si on a pas de sous groupe ou qu'un seul ET un seul rapport, on n'a pas de dépendance
+        if (
+            (!param.suivi_comp_sous_groupe_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_sous_groupe_id_ranges).length <= 1) &&
+            (!param.suivi_comp_rapport_id_ranges?.length || RangeHandler.get_all_segmented_elements_from_ranges(param.suivi_comp_rapport_id_ranges).length <= 1)
+        ) {
             let item_value: number = varDAGNode.datasources[SuiviCompetencesItemRangesDatasourceController.getInstance().name];
             let item_rapport_value: number = varDAGNode.datasources[SuiviCompetencesItemRapportRangesDatasourceController.getInstance().name];
 
-            if (!item_value) {
+            if ((item_value == null) || (item_rapport_value == null)) {
                 return null;
             }
 
@@ -229,12 +237,10 @@ export default class VarDaySuiviCompetencesNiveauMaturiteSousGroupeController ex
                 continue;
             }
 
-            cpt++;
-
             if ((value == null) || (typeof value == 'undefined')) {
                 continue;
             }
-
+            cpt++;
             res += value;
         }
 

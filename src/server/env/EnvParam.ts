@@ -44,6 +44,7 @@ export default class EnvParam implements IEnvParam {
     public debug_vars_current_tree?: boolean = false;
     public debug_vars_db_param_builder?: boolean = false;
     public debug_vars_server_subs_cbs?: boolean = false;
+    public debug_vars_notifs?: boolean = false;
     public debug_param_queries?: boolean = false;
     public debug_deletevos?: boolean = false;
     public debug_start_server?: boolean = false;
@@ -151,4 +152,6 @@ export default class EnvParam implements IEnvParam {
     public unblock_openai_push_to_openai_gpt_assistant?: boolean = false;
 
     public silent_no_sort_by_but_query_limit?: boolean = true;
+
+    public log_login_redirects?: boolean = false;
 }
