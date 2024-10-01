@@ -145,6 +145,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private show_menu_conf: boolean = false;
 
     private selected_widget: DashboardPageWidgetVO = null;
+    private selected_widget_position: DashboardWidgetPositionVO = null;
+    private widget_position_by_page_widget_id: { [page_widget_id: number]: DashboardWidgetPositionVO } = {};
 
     private collapsed_fields_wrapper: boolean = true;
     private collapsed_fields_wrapper_2: boolean = true;
@@ -206,6 +208,26 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         return res;
     }
 
+    @Watch('selected_widget')
+    @Watch('selected_widget.w')
+    @Watch('selected_widget.h')
+    @Watch('selected_widget.x')
+    @Watch('selected_widget.y')
+    private async onchange_selected_widget() {
+        if (!this.selected_widget) {
+            this.selected_widget_position = null;
+            return;
+        }
+
+        this.selected_widget_position = this.widget_position_by_page_widget_id[this.selected_widget.id];
+
+        this.selected_widget_position.w = this.selected_widget.w;
+        this.selected_widget_position.h = this.selected_widget.h;
+        this.selected_widget_position.x = this.selected_widget.x;
+        this.selected_widget_position.y = this.selected_widget.y;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.selected_widget_position);
+    }
+
     @Watch('selected_viewport')
     private async onchange_selected_viewport() {
         this.select_widget(null);
@@ -228,6 +250,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (action_viewport?.active == true) {
             this.is_dbb_actived_on_viewport = true;
         }
+
+        this.throttle_on_dashboard_loaded();
     }
 
     @Watch('page')
@@ -813,6 +837,33 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         WeightHandler.getInstance().sortByWeight(this.pages);
 
         this.page = this.pages[0];
+
+        if (this.page?.id && this.selected_viewport?.id) {
+            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
+            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
+                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
+                .select_vo();
+
+            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
+            if (!action_viewport || !action_viewport.active) {
+                this.is_dbb_actived_on_viewport = false;
+            }
+
+            if (action_viewport?.active == true) {
+                this.is_dbb_actived_on_viewport = true;
+            }
+        } else {
+            this.is_dbb_actived_on_viewport = false;
+        }
+
+        const page_widgets_ids: number[] = page_widgets.map((pw) => pw.id);
+        const widgets_positions: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, page_widgets_ids)
+            .select_vos();
+
+        this.widget_position_by_page_widget_id = ObjectHandler.mapByStringFieldFromArray(widgets_positions, field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id);
     }
 
     private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
@@ -1201,8 +1252,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             for (const i in sorted_page_widget) {
                 const pos: DashboardWidgetPositionVO = positions.find((p) => p.dashboard_page_widget_id == page_widgets[i].id);
 
-                // On va mettre toutes les positions avec la même largeur et hauteur que le viewport par défaut
-                pos.w = default_positions[i].w;
+                // On va mettre toutes les positions avec la même hauteur que le viewport par défaut mais on adapte la largeur
+                pos.w = (default_positions[i].w > this.selected_viewport.screen_min_width) ? this.selected_viewport.screen_min_width : default_positions[i].w;
                 pos.h = default_positions[i].h;
 
                 // Pour les positions x et y, on va mettre le 1er à 0 0 et les autres à la suite en dessous
@@ -1242,6 +1293,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
             await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
         }
+
+        action_viewport.active = !action_viewport.active;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(action_viewport);
+
+        this.is_dbb_actived_on_viewport = action_viewport?.active;
     }
 
     private async mounted() {
@@ -1284,25 +1341,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             if (!this.selected_viewport) {
                 this.selected_viewport = this.viewports[0];
             }
-        }
-
-        if (this.page?.id && this.selected_viewport?.id) {
-            // Check de l'activation du viewport pour le dashboard (couple FKs unique => Patch20240925AddUnicityForFieldsCouple)
-            const action_viewport: DashboardActiveonViewportVO = await query(DashboardActiveonViewportVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_page_id, this.page.id)
-                .filter_by_num_eq(field_names<DashboardActiveonViewportVO>().dashboard_viewport_id, this.selected_viewport.id)
-                .select_vo();
-
-            // NOK or NULL => on demande à l'utilisateur s'il veut générer un layout par défaut
-            if (!action_viewport || !action_viewport.active) {
-                this.is_dbb_actived_on_viewport = false;
-            }
-
-            if (action_viewport?.active == true) {
-                this.is_dbb_actived_on_viewport = true;
-            }
-        } else {
-            this.is_dbb_actived_on_viewport = false;
         }
     }
 

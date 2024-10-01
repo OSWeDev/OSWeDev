@@ -43,6 +43,9 @@ export default class DashboardPageWidgetVO extends AbstractVO implements IDistan
 
     public background: string;
 
+    public show_widget_on_viewport: boolean;
+    public dashboard_viewport_id: number;
+
     get translatable_name_code_text(): string {
 
         if (!this.widget_id) {

@@ -230,12 +230,12 @@
                         .row
                             .col-sm-1
                             .col-sm-4
-                                .btn-success(@click="set_dbb_actived_on_viewport(true)")
+                                button.btn-success(@click="set_dbb_actived_on_viewport(true)")
                                     .fa-duotone.fa-check
                                     span {{ label("dashboard_builder.viewport_not_activated.yes") }}
                             .col-sm-2
                             .col-sm-4
-                                .btn-danger(@click="set_dbb_actived_on_viewport(false)")
+                                button.btn-danger(@click="set_dbb_actived_on_viewport(false)")
                                     .fa-duotone.fa-times
                                     span {{ label("dashboard_builder.viewport_not_activated.no") }}
                             .col-sm-1

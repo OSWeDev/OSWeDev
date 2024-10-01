@@ -30,6 +30,7 @@ import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
 import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
+import DashboardWidgetPositionVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetPositionVO';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -157,6 +158,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
 
         this.nb_columns = this.selected_viewport.nb_columns;
+
+        await this.throttled_rebuild_page_layout();
     }
 
     @Watch("dashboard", { immediate: true })
@@ -249,10 +252,17 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             this.select_widget(page_widget);
         }
 
+        // On récupère les positions pour le viewport selectionné pour les insérer dans le layout
+        const widget_ids: number[] = this.widgets.map((w) => w.id);
+        const position_layout: DashboardWidgetPositionVO[] = await query(DashboardWidgetPositionVO.API_TYPE_ID)
+            .filter_by_num_has(field_names<DashboardWidgetPositionVO>().dashboard_page_widget_id, widget_ids)
+            .filter_by_num_eq(field_names<DashboardWidgetPositionVO>().dashboard_viewport_id, this.selected_viewport.id)
+            .select_vos();
+
         this.is_filtres_deplie = this.dashboard_page?.collapse_filters;
 
         this.editable_dashboard_page = Object.assign({
-            layout: this.widgets
+            layout: position_layout
         }, this.dashboard_page);
     }
 

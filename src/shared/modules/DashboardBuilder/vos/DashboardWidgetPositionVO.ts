@@ -1,10 +1,11 @@
 import IDistantVOBase from "../../IDistantVOBase";
+import IDashboardGridItem from "../interfaces/IDashboardGridItem";
 
 /**
  * @class DashboardWidgetPositionVO
  *  - DashboardWidgetPositionVO resprésente la position d'un widget dans un dashboard selon un layout donné
  */
-export default class DashboardWidgetPositionVO implements IDistantVOBase {
+export default class DashboardWidgetPositionVO implements IDistantVOBase, IDashboardGridItem {
     public static API_TYPE_ID: string = "dashboard_widget_position";
 
     public id: number;
@@ -19,4 +20,9 @@ export default class DashboardWidgetPositionVO implements IDistantVOBase {
 
     public dashboard_page_widget_id: number;
     public dashboard_viewport_id: number;
+
+    public i: number;
+    public static: boolean;
+
+    public widget_id: number;
 }
