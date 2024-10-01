@@ -1,7 +1,8 @@
+import ModulesManager from "../../shared/modules/ModulesManager";
+
 export default class PreloadedModuleServerController {
 
     public static has_preloaded_modules_is_actif: boolean = false;
-    public static preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
 
     public static db: any;
 
@@ -16,7 +17,7 @@ export default class PreloadedModuleServerController {
             for (let i in rows) {
                 let row = rows[i];
 
-                PreloadedModuleServerController.preloaded_modules_is_actif[row.name] = row.actif;
+                ModulesManager.preloaded_modules_is_actif[row.name] = row.actif;
             }
         } catch (e) {
             console.error(e);
@@ -29,7 +30,7 @@ export default class PreloadedModuleServerController {
             await PreloadedModuleServerController.preload_modules_is_actif();
         }
 
-        let is_actif = PreloadedModuleServerController.preloaded_modules_is_actif[module.name];
+        let is_actif = ModulesManager.preloaded_modules_is_actif[module.name];
         if (typeof is_actif === "undefined") {
             // La ligne n'existe pas, on l'ajoute
             module.actif = module.activate_on_installation;

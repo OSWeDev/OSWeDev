@@ -86,22 +86,12 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private isValid: boolean = true;
     private colorGenerated: boolean = false;
 
-    @Watch('options')
-    @Watch('var_dataset_descriptor')
-    @Watch('var_params')
-    @Watch('plugins')
-    private async onOptionsChange() {
-        if (!this.options || !this.var_dataset_descriptor || !this.var_params) {
-            return;
-        }
 
-        this.current_options = this.options;
-        this.current_var_dataset_descriptor = this.var_dataset_descriptor;
-        this.current_var_params = this.var_params;
-        this.current_plugins = this.plugins;
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
-    get var_filter(): () => string {
+    get var_filter(): (...params) => string {
         if (!this.widget_options) {
             return null;
         }
@@ -133,26 +123,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         return 'Title';
     }
 
-    private get_bool_option(option: string, default_value: boolean): boolean {
-        return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
-    }
-
-    private getLabels(value, context) {
-        if (this.var_filter) {
-            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
-        } else {
-            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
-        }
-    }
-
-    private getLabelsForTooltip(context) {
-        let value = context.raw;
-        if (this.var_filter) {
-            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter.apply(this, [value].concat(this.var_filter_additional_params));
-        } else {
-            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
-        }
-    }
 
     get options() {
         const self = this;
@@ -284,15 +254,6 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             : {};
     }
 
-    private getlabel(var_param: VarDataBaseVO) {
-
-        if (!this.label_by_index) {
-            return null;
-        }
-
-        return this.label_by_index[var_param.id];
-    }
-
     /**
      * 2 cas : soit on a 2 vars, soit on a 1 var et une dimension sur laquelle on déploie la var
      */
@@ -379,7 +340,21 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
     }
 
+    get var_custom_filters_1(): { [var_param_field_name: string]: string } {
+        if (!this.widget_options) {
+            return null;
+        }
 
+        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_1) ? this.widget_options.filter_custom_field_filters_1 : null;
+    }
+
+    get var_custom_filters_2(): { [var_param_field_name: string]: string } {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_2) ? this.widget_options.filter_custom_field_filters_2 : null;
+    }
 
     get var_params(): VarDataBaseVO[] {
 
@@ -422,26 +397,108 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
     }
 
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: VarPieChartWidgetOptions = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
+                options = options ? new VarPieChartWidgetOptions(
+                    options.bg_color,
+                    options.legend_display,
+                    options.label_display,
+                    options.legend_position,
+                    options.legend_font_color,
+                    options.legend_font_size,
+                    options.legend_box_width,
+                    options.legend_padding,
+                    options.legend_use_point_style,
+                    options.title_display,
+                    options.title_font_color,
+                    options.title_font_size,
+                    options.title_padding,
+                    options.cutout_percentage,
+                    options.rotation,
+                    options.circumference,
+                    options.has_dimension,
+                    options.max_dimension_values,
+                    options.sort_dimension_by_vo_field_ref,
+                    options.sort_dimension_by_asc,
+                    options.dimension_is_vo_field_ref,
+                    options.dimension_vo_field_ref,
+                    options.dimension_custom_filter_name,
+                    options.dimension_custom_filter_segment_type,
+                    options.filter_type,
+                    options.filter_additional_params,
+                    options.var_id_1,
+                    options.filter_custom_field_filters_1,
+                    options.color_palette,
+                    options.bg_colors,
+                    options.bg_gradient,
+                    options.bg_color_1,
+                    options.border_color_1,
+                    options.border_width_1,
+                    options.var_id_2,
+                    options.filter_custom_field_filters_2,
+                    options.bg_color_2,
+                    options.border_color_2,
+                    options.border_width_2,
+                    options.max_is_sum_of_var_1_and_2) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        await this.throttled_update_visible_options();
+    }
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
 
-    get var_custom_filters_1(): { [var_param_field_name: string]: string } {
-        if (!this.widget_options) {
-            return null;
+    @Watch('options')
+    @Watch('var_dataset_descriptor')
+    @Watch('var_params')
+    @Watch('plugins')
+    private async onOptionsChange() {
+        if (!this.options || !this.var_dataset_descriptor || !this.var_params) {
+            return;
         }
 
-        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_1) ? this.widget_options.filter_custom_field_filters_1 : null;
+        this.current_options = this.options;
+        this.current_var_dataset_descriptor = this.var_dataset_descriptor;
+        this.current_var_params = this.var_params;
+        this.current_plugins = this.plugins;
     }
 
-    get var_custom_filters_2(): { [var_param_field_name: string]: string } {
-        if (!this.widget_options) {
-            return null;
-        }
+    private get_bool_option(option: string, default_value: boolean): boolean {
+        return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
+    }
 
-        return ObjectHandler.hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters_2) ? this.widget_options.filter_custom_field_filters_2 : null;
+    private getLabels(value, context) {
+        if (this.var_filter) {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter([value].concat(this.var_filter_additional_params));
+        } else {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
+        }
+    }
+
+    private getLabelsForTooltip(context) {
+        let value = context.raw;
+        if (this.var_filter) {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + this.var_filter([value].concat(this.var_filter_additional_params));
+        } else {
+            return context.chart.data.labels[context.dataIndex] + ' :\n' + value;
+        }
     }
 
     private async update_visible_options(force: boolean = false) {
@@ -454,8 +511,14 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         await this.throttle_do_update_visible_options();
     }
 
-    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+
+    private getlabel(var_param: VarDataBaseVO) {
+
+        if (!this.label_by_index) {
+            return null;
+        }
+
+        return this.label_by_index[var_param.id];
     }
 
     private has_widget_validation_filtres(): boolean {
@@ -490,7 +553,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
 
     private hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? 'rgba(' + parseInt(result[1], 16) + ',' + parseInt(result[2], 16) + ',' + parseInt(result[3], 16) + ',1)' : null;
     }
 
@@ -892,68 +955,5 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             0: var_1,
             1: var_2
         };
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        await this.throttled_update_visible_options();
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: VarPieChartWidgetOptions = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
-                options = options ? new VarPieChartWidgetOptions(
-                    options.bg_color,
-                    options.legend_display,
-                    options.label_display,
-                    options.legend_position,
-                    options.legend_font_color,
-                    options.legend_font_size,
-                    options.legend_box_width,
-                    options.legend_padding,
-                    options.legend_use_point_style,
-                    options.title_display,
-                    options.title_font_color,
-                    options.title_font_size,
-                    options.title_padding,
-                    options.cutout_percentage,
-                    options.rotation,
-                    options.circumference,
-                    options.has_dimension,
-                    options.max_dimension_values,
-                    options.sort_dimension_by_vo_field_ref,
-                    options.sort_dimension_by_asc,
-                    options.dimension_is_vo_field_ref,
-                    options.dimension_vo_field_ref,
-                    options.dimension_custom_filter_name,
-                    options.dimension_custom_filter_segment_type,
-                    options.filter_type,
-                    options.filter_additional_params,
-                    options.var_id_1,
-                    options.filter_custom_field_filters_1,
-                    options.color_palette,
-                    options.bg_colors,
-                    options.bg_gradient,
-                    options.bg_color_1,
-                    options.border_color_1,
-                    options.border_width_1,
-                    options.var_id_2,
-                    options.filter_custom_field_filters_2,
-                    options.bg_color_2,
-                    options.border_color_2,
-                    options.border_width_2,
-                    options.max_is_sum_of_var_1_and_2) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

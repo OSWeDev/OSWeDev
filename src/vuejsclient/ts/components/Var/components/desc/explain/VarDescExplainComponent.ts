@@ -71,6 +71,14 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return Object.keys(this.vars_deps).length > 10;
     }
 
+    get show_help_tooltip() {
+        if (!this.var_conf) {
+            return false;
+        }
+
+        return this.var_conf.show_help_tooltip;
+    }
+
     get shown_vars_deps(): { [dep_name: string]: string } {
         if (!this.vars_deps_has_mode_than_10_elts) {
             return this.vars_deps;
@@ -93,60 +101,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return res;
     }
 
-    private async switch_show_help_tooltip() {
-
-        if (!this.var_conf) {
-            return;
-        }
-
-        this.var_conf.show_help_tooltip = !this.var_conf.show_help_tooltip;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.var_conf);
-    }
-
-    get show_help_tooltip() {
-        if (!this.var_conf) {
-            return false;
-        }
-
-        return this.var_conf.show_help_tooltip;
-    }
-
-    private async var_datas_updater() {
-
-        const old_value_type = this.var_data ? this.var_data.value_type : null;
-        const old_value = this.var_data ? this.var_data.value : null;
-        this.var_data = this.var_param ? VarsClientController.cached_var_datas[this.var_param.index] : null;
-
-        const var_datas: VarDataValueResVO[] = [];
-        for (const i in this.deps_params) {
-            const dep_param = this.deps_params[i];
-            var_datas.push(VarsClientController.cached_var_datas[dep_param.index]);
-        }
-        this.var_datas_deps = var_datas;
-
-        const promises = [];
-
-        // Si on a une nouvelle data on recharge les DS
-        if (this.var_data && (!this.var_data.is_computing) && (old_value != null) && (old_value != this.var_data.value)) {
-            promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
-        }
-
-        // Si on change de type de valeur on recharge les deps et les aggregated
-        if (this.var_data && (!this.var_data.is_computing) && (old_value_type != null) && (old_value_type != this.var_data.value_type)) {
-            promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
-            promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
-            promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
-        }
-
-        await all_promises(promises);
-    }
-
     get is_aggregator(): boolean {
         return ObjectHandler.hasAtLeastOneAttribute(this.aggregated_var_datas);
-    }
-
-    private var_id_from_name(name: string): number {
-        return VarsController.var_conf_by_name[name].id;
     }
 
     get params_from_var_dep_id(): { [var_dep_id: string]: VarDataBaseVO[] } {
@@ -179,33 +135,6 @@ export default class VarDescExplainComponent extends VueComponentBase {
     //     }
     //     return res;
     // }
-
-    @Watch('var_param', { immediate: true })
-    private async load_param_infos(new_param: VarDataBaseVO, old_param: VarDataBaseVO) {
-
-        this.limit_10_var_deps = true;
-
-        if ((!this.var_param) || (!VarsController.var_conf_by_id[this.var_param.var_id])) {
-            this.var_conf = null;
-            return;
-        }
-
-        this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
-        this.deps_loading = true;
-
-        const promises = [];
-
-        promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
-        promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
-        promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
-        promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
-
-        await all_promises(promises);
-
-        this.onChangeVarParam(new_param, old_param);
-
-        this.deps_loading = false;
-    }
 
     get self_param_loaded() {
         if (this.deps_loading) {
@@ -302,6 +231,24 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return res;
     }
 
+    get var_id(): number {
+
+        if (!this.var_param) {
+            return null;
+        }
+
+        return this.var_param.var_id;
+    }
+
+    get var_name(): string {
+
+        if (!this.var_id) {
+            return null;
+        }
+
+        return this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
+    }
+
     get public_explaination_code_text(): string {
         if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
             return null;
@@ -358,6 +305,98 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return ObjectHandler.hasAtLeastOneAttribute(this.deps_params);
     }
 
+    @Watch('var_param', { immediate: true })
+    private async load_param_infos(new_param: VarDataBaseVO, old_param: VarDataBaseVO) {
+
+        this.limit_10_var_deps = true;
+
+        if ((!this.var_param) || (!VarsController.var_conf_by_id[this.var_param.var_id])) {
+            this.var_conf = null;
+            return;
+        }
+
+        this.var_conf = VarsController.var_conf_by_id[this.var_param.var_id];
+        this.deps_loading = true;
+
+        const promises = [];
+
+        promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
+        promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
+        promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
+        promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
+
+        await all_promises(promises);
+
+        this.onChangeVarParam(new_param, old_param);
+
+        this.deps_loading = false;
+    }
+
+    @Watch('deps_params')
+    private async onChangeDepsParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
+
+        if ((!new_var_params) && (!old_var_params)) {
+            return;
+        }
+
+        // On doit vérifier qu'ils sont bien différents
+        if (new_var_params && old_var_params && VarsController.isSameParamArray(Object.values(new_var_params), Object.values(old_var_params))) {
+            return;
+        }
+
+        if (old_var_params && ObjectHandler.hasAtLeastOneAttribute(old_var_params)) {
+            await this.unregister(old_var_params);
+        }
+
+        if (new_var_params && ObjectHandler.hasAtLeastOneAttribute(new_var_params)) {
+            await this.register(new_var_params);
+        }
+    }
+
+    private async switch_show_help_tooltip() {
+
+        if (!this.var_conf) {
+            return;
+        }
+
+        this.var_conf.show_help_tooltip = !this.var_conf.show_help_tooltip;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.var_conf);
+    }
+
+    private async var_datas_updater() {
+
+        const old_value_type = this.var_data ? this.var_data.value_type : null;
+        const old_value = this.var_data ? this.var_data.value : null;
+        this.var_data = this.var_param ? VarsClientController.cached_var_datas[this.var_param.index] : null;
+
+        const var_datas: VarDataValueResVO[] = [];
+        for (const i in this.deps_params) {
+            const dep_param = this.deps_params[i];
+            var_datas.push(VarsClientController.cached_var_datas[dep_param.index]);
+        }
+        this.var_datas_deps = var_datas;
+
+        const promises = [];
+
+        // Si on a une nouvelle data on recharge les DS
+        if (this.var_data && (!this.var_data.is_computing) && (old_value != null) && (old_value != this.var_data.value)) {
+            promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
+        }
+
+        // Si on change de type de valeur on recharge les deps et les aggregated
+        if (this.var_data && (!this.var_data.is_computing) && (old_value_type != null) && (old_value_type != this.var_data.value_type)) {
+            promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
+            promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.var_conf_by_id[this.var_param.var_id].name))());
+            promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
+        }
+
+        await all_promises(promises);
+    }
+
+    private var_id_from_name(name: string): number {
+        return VarsController.var_conf_by_name[name].id;
+    }
+
     private async destroyed() {
         await this.unregister(this.deps_params);
     }
@@ -379,27 +418,6 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         if (deps_params && ObjectHandler.hasAtLeastOneAttribute(deps_params)) {
             await VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
-        }
-    }
-
-    @Watch('deps_params')
-    private async onChangeDepsParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
-
-        if ((!new_var_params) && (!old_var_params)) {
-            return;
-        }
-
-        // On doit vérifier qu'ils sont bien différents
-        if (new_var_params && old_var_params && VarsController.isSameParamArray(Object.values(new_var_params), Object.values(old_var_params))) {
-            return;
-        }
-
-        if (old_var_params && ObjectHandler.hasAtLeastOneAttribute(old_var_params)) {
-            await this.unregister(old_var_params);
-        }
-
-        if (new_var_params && ObjectHandler.hasAtLeastOneAttribute(new_var_params)) {
-            await this.register(new_var_params);
         }
     }
 
@@ -528,23 +546,4 @@ export default class VarDescExplainComponent extends VueComponentBase {
         ConsoleHandler.log('prompt:' + prompt);
         return prompt;
     }
-
-    get var_id(): number {
-
-        if (!this.var_param) {
-            return null;
-        }
-
-        return this.var_param.var_id;
-    }
-
-    get var_name(): string {
-
-        if (!this.var_id) {
-            return null;
-        }
-
-        return this.var_id + ' | ' + this.t(VarsController.get_translatable_name_code_by_var_id(this.var_id));
-    }
-
 }

@@ -1,6 +1,7 @@
 @import "skin-variables.scss";
 
 .checklist_item_modal {
+
     .field .inline_input_show_clear,
     .field .inline_input_hide_clear,
     .field .inline_input_is_editing,
@@ -37,19 +38,20 @@
     }
 
     .ts_range_input,
-    .has_value + input {
+    .has_value+input {
         border: 1px solid lightgrey;
         padding: 0 5px;
     }
 
-    .has_value + input,
-    .inline_input_mode .has_value + input,
-    .field_label + div,
-    .inline_input_mode .field_label + div,
+    .has_value+input,
+    .inline_input_mode .has_value+input,
+    .field_label+div,
+    .inline_input_mode .field_label+div,
     .ts_range_input,
     .inline_input_mode .ts_range_input,
     .multiselect,
-    .inline_input_mode .multiselect {
+    .inline_input_mode .multiselect,
+    .field_label+input {
         display: inline-block;
         width: 26em;
         margin-left: 1em;
@@ -60,8 +62,15 @@
         margin-left: 1em;
     }
 
-    .form-group > label:not([role="checkbox"]) {
+    // Cas du label dans un formulaire
+    .form-group>label:not([role="checkbox"]) {
         width: 20em;
+    }
+
+    // Cas du label dans un formulaire de création au sein d'un formulaire
+    .crud_create_form_body .form-group>label:not([role=checkbox]),
+    .crud_update_form_body .form-group>label:not([role=checkbox]) {
+        width: 16em;
     }
 
     input[type~="text"]:not([readonly="readonly"]),
@@ -77,6 +86,7 @@
 
     .inline_input_mode,
     .inline_input_mode.auto_validate_inline_input {
+
         input[type~="number"],
         input[type~="text"],
         input[type~="password"],
@@ -103,6 +113,18 @@
                 width: 100%;
             }
         }
+    }
+
+    .field {
+        .btn-group.link_ref {
+            float: right;
+        }
+    }
+
+    .crud_create_form_body .multiselect>.multiselect__tags>input,
+    .crud_update_form_body .multiselect>.multiselect__tags>input {
+        border: none !important;
+        margin: 0;
     }
 }
 

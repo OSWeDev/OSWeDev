@@ -163,9 +163,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         DAOServerController.GLOBAL_UPDATE_BLOCKER = false;
 
-        await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
+        await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
-        await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        await PushDataServerController.notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
     }
 
     public async end_planned_maintenance(): Promise<void> {
@@ -185,10 +185,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = Dates.now();
 
-        await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
+        await PushDataServerController.broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(planned_maintenance);
         if (session && !!session.uid) {
-            await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
+            await PushDataServerController.notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
         }
     }
 

@@ -56,6 +56,7 @@ import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 const debounce = require('lodash/debounce');
 import CRUDUpdateFormComponent from '../update/CRUDUpdateFormComponent';
 import CRUDCreateFormComponent from '../create/CRUDCreateFormComponent';
+import CRUDCreateFormController from '../create/CRUDCreateFormController';
 
 @Component({
     template: require('./CRUDComponentField.pug'),
@@ -265,6 +266,14 @@ export default class CRUDComponentField extends VueComponentBase
 
     get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
         return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
+    }
+
+    get display_field(): boolean {
+        return (
+            (this.field.type == 'INPUT') ||
+            (this.field.datatable_field_uid == this.field.module_table_field_id) ||
+            (this.field.semaphore_auto_update_datatable_field_uid_with_vo_type && (this.field.datatable_field_uid == (this.field.moduleTable.vo_type + '___' + this.field.module_table_field_id)))
+        ) && this.field.isVisibleUpdateOrCreate(this.vo);
     }
 
     get field_type(): string {
@@ -1912,7 +1921,18 @@ export default class CRUDComponentField extends VueComponentBase
                     return;
                 }
 
-                this.vo_of_field_value = (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor();
+                // On ajoute une option de surcharge à ce niveau qui permette de préremplir le formulaire inline,
+                //  en fonction de la valeur de l'objet en cours / du champs
+                if (CRUDCreateFormController.hook_preinit_new_vo_for_creation_when_opened_from_vo_field &&
+                    CRUDCreateFormController.hook_preinit_new_vo_for_creation_when_opened_from_vo_field[this.field.vo_type_id] &&
+                    CRUDCreateFormController.hook_preinit_new_vo_for_creation_when_opened_from_vo_field[this.field.vo_type_id][this.field.datatable_field_uid]) {
+                    this.vo_of_field_value = CRUDCreateFormController.hook_preinit_new_vo_for_creation_when_opened_from_vo_field[this.field.vo_type_id][this.field.datatable_field_uid](
+                        this.vo, this.field, this.field_value, (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor()
+                    );
+                } else {
+
+                    this.vo_of_field_value = (this.field as ReferenceDatatableField<any>).targetModuleTable.voConstructor();
+                }
             } else {
                 if (!this.field_value) {
                     return;

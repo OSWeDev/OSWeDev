@@ -1249,6 +1249,9 @@ export default class ContextQueryServerController {
             // Si on ignore_access_hook, on ignore les droits aussi
             if ((!context_query.is_server) && !ContextAccessServerController.check_access_to_api_type_ids_fields(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'build_select_query_not_count', 'OUT_check_access_failed');
+
+                ConsoleHandler.warn('WARNING: build_select_query_not_count without access and not as server:base_api_type_id:' +
+                    context_query.base_api_type_id + '-access_type:' + access_type + '-is_server:' + context_query.is_server + '-StackContext:IS_CLIENT:' + StackContext.get('IS_CLIENT') + '-StackContext:UID:' + StackContext.get('UID'));
                 return null;
             }
 
@@ -1839,6 +1842,7 @@ export default class ContextQueryServerController {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[context_field.api_type_id];
 
+            // JNE : WTF ?
             if ((!!moduletable) && context_field.field_name) {
                 const all_required_field_names = all_required_fields?.map((field) => field.field_name);
 
@@ -1854,6 +1858,11 @@ export default class ContextQueryServerController {
                         (!all_required_field_names.find((required_field) => required_field === context_field.field_name))
                     )
                 ) {
+                    ConsoleHandler.warn('build_select_query_not_count_segment:Return null for field_name:' + context_field.field_name + ' in vo_type:' + context_field.api_type_id + ' but not sure why...' +
+                        ' - all_required_field_names:' + (all_required_field_names ? all_required_field_names.join(',') : 'N/A') +
+                        ' - context_field:' + context_field.field_name +
+                        ' - moduletable.get_field_by_id(context_field.field_name):' + (moduletable.get_field_by_id(context_field.field_name) ? 'OK' : 'KO') +
+                        ' - all_required_fields:' + (all_required_fields ? all_required_fields.map((f) => f.field_name).join(',') : 'N/A'));
                     return null;
                 }
             }
@@ -1872,7 +1881,7 @@ export default class ContextQueryServerController {
              *
              * Dans le cas d'un join entre contextquery, on arrive aussi ici a condition d'avoir un field issue du join
              */
-            if (!query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
+            if (context_field.api_type_id && !query_wrapper.tables_aliases_by_type[context_field.api_type_id]) {
 
                 aliases_n = await ContextQueryServerController.join_api_type_id(
                     context_query,
@@ -1892,14 +1901,44 @@ export default class ContextQueryServerController {
             }
             first = false;
 
-            const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                context_field.api_type_id,
-                context_field.field_name,
-                context_field.aggregator,
-                context_field.alias ?? context_field.field_name
-            );
+            const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_ContextQueryFieldVO(context_field);
 
-            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_name ?? context_field.alias);
+            let field_full_name = '';
+
+            // On tente de gérer un CONCAT mais au plus simple. Pas de récursion, certainement beaucoup de cas ignorés ... à retravailler suivant les besoins
+            // Bon on ajoute le COALESCE à nouveau pour un cas ultra spécifique, il faut généraliser l'écriture des opérateurs...
+            if (context_field.operator == ContextQueryFieldVO.FIELD_OPERATOR_CONCAT) {
+
+                field_full_name = "CONCAT(" + context_field.operator_fields.map((field_to_concat: ContextQueryFieldVO) => {
+                    if (field_to_concat.static_value != null) {
+                        return "'" + field_to_concat.static_value + "'";
+                    } else if (!field_to_concat.operator) {
+                        return query_wrapper.tables_aliases_by_type[field_to_concat.api_type_id] + "." + (field_to_concat.field_name ?? field_to_concat.alias);
+                    } else if (field_to_concat.operator == ContextQueryFieldVO.FIELD_OPERATOR_COALESCE) {
+                        return "COALESCE(" + field_to_concat.operator_fields.map((field_to_coalesce: ContextQueryFieldVO) => {
+                            if (field_to_coalesce.static_value != null) {
+                                return "'" + field_to_coalesce.static_value + "'";
+                            } else if (!field_to_coalesce.operator) {
+                                return query_wrapper.tables_aliases_by_type[field_to_coalesce.api_type_id] + "." + (field_to_coalesce.field_name ?? field_to_coalesce.alias);
+                            } else if (field_to_coalesce.operator == ContextQueryFieldVO.FIELD_OPERATOR_NULLIF) {
+                                // No comment
+                                return "NULLIF(" + field_to_coalesce.operator_fields.map((field_to_nullif: ContextQueryFieldVO) => {
+                                    if (field_to_nullif.static_value != null) {
+                                        return "'" + field_to_nullif.static_value + "'";
+                                    } else if (!field_to_nullif.operator) {
+                                        return query_wrapper.tables_aliases_by_type[field_to_nullif.api_type_id] + "." + (field_to_nullif.field_name ?? field_to_nullif.alias);
+                                    } else {
+                                        throw new Error('Not Implemented');
+                                    }
+                                }).join(", ") + ")";
+                            }
+                        }).join(", ") + ")";
+                    }
+                }).join(", ") + ")";
+
+            } else {
+                field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + (context_field.field_name ?? context_field.alias);
+            }
 
             if (
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
@@ -1917,7 +1956,16 @@ export default class ContextQueryServerController {
                 alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
             }
 
-            const field_alias = ((alias && context_field.field_name) ? " as " + alias : '');
+            let field_alias = '';
+
+            /**
+             * Dans le cas d'un champs classique, on peut utiliser un alias
+             * Dans le cas d'un opérateur, on peut aussi utiliser un alias (c'est d'ailleurs presque nécessaire)
+             */
+            if (alias && (context_field.field_name || (context_field.operator != null))) {
+                field_alias = ' as ' + alias;
+            }
+
             let handled = false;
 
             switch (context_field.aggregator) {
@@ -2007,6 +2055,7 @@ export default class ContextQueryServerController {
 
             const moduletable = ModuleTableController.module_tables_by_vo_type[active_api_type_id];
             if (!moduletable) {
+                ConsoleHandler.error('build_select_query_not_count_segment:No moduletable for vo_type:' + active_api_type_id);
                 return null;
             }
 
@@ -2304,8 +2353,7 @@ export default class ContextQueryServerController {
                             `(${query_wrapper.tables_aliases_by_type[sort_by.vo_type]}.${sort_by.field_name}) as ` +
                             `${sort_alias}`;
 
-                        const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                            sort_by.vo_type, sort_by.field_name, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
+                        const parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_SortByVO(sort_by, sort_alias);
 
                         query_wrapper.fields.push(parameterizedQueryWrapperField);
 
@@ -2778,7 +2826,7 @@ export default class ContextQueryServerController {
         if (context_query.query_limit) {
 
             // Si on a une limite, mais pas de sort à ce stade il faut alerter
-            if ((context_query.query_limit > 1) && ((!context_query.sort_by || !context_query.sort_by.length))) {
+            if ((context_query.query_limit > 1) && ((!context_query.sort_by || !context_query.sort_by.length)) && !ConfigurationService.node_configuration.silent_no_sort_by_but_query_limit) {
                 ConsoleHandler.error('get_limit:No sort_by, but query_limit:' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
                     'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
                     'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
@@ -2818,9 +2866,12 @@ export default class ContextQueryServerController {
 
             // Si on a une limite, mais pas de sort à ce stade il faut alerter
             if (!context_query.sort_by || !context_query.sort_by.length) {
-                ConsoleHandler.warn('check_limit:No sort_by, but query_limit: AUTO SETTING ORDER TO FIRST COL :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
-                    'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
-                    'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+
+                if (!ConfigurationService.node_configuration.silent_no_sort_by_but_query_limit) {
+                    ConsoleHandler.warn('check_limit:No sort_by, but query_limit: AUTO SETTING ORDER TO FIRST COL :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +
+                        'When using LIMIT, it is important to use an ORDER BY clause that constrains the result rows into a unique order.Otherwise you will get an unpredictable subset of the query\'s rows. ' +
+                        'You might be asking for the tenth through twentieth rows, but tenth through twentieth in what ordering ? The ordering is unknown, unless you specified ORDER BY.');
+                }
 
                 if ((!context_query.fields) || (!context_query.fields.length)) {
                     ConsoleHandler.error('check_limit:No sort_by, but query_limit: NO FIELD :' + context_query.query_limit + ':SORT IS MANDATORY WHEN LIMIT IS SET: cf https://www.postgresql.org/docs/16/queries-limit.html : ' +

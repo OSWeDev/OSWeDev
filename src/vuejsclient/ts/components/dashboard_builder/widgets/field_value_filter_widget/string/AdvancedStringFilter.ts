@@ -10,7 +10,8 @@ export default class AdvancedStringFilter {
         'adv_str_fltr.est_vide',
         'adv_str_fltr.nest_pas_vide',
         'adv_str_fltr.est_null',
-        'adv_str_fltr.nest_pas_null'
+        'adv_str_fltr.nest_pas_null',
+        'adv_str_fltr.regexp',
     ];
     public static FILTER_TYPE_CONTIENT: number = 0;
     public static FILTER_TYPE_CONTIENT_PAS: number = 1;
@@ -22,6 +23,7 @@ export default class AdvancedStringFilter {
     public static FILTER_TYPE_NEST_PAS_VIDE: number = 7;
     public static FILTER_TYPE_EST_NULL: number = 8;
     public static FILTER_TYPE_NEST_PAS_NULL: number = 9;
+    public static FILTER_TYPE_REGEXP: number = 10;
 
     public static LINK_TYPE_LABELS: string[] = [
         'adv_str_fltr.et',

@@ -96,8 +96,8 @@ export default class ModulePowershellServer extends ModuleServerBase {
                 return null;
             }
 
-            login = await PushDataServerController.getInstance().notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.login.___LABEL___');
-            pwd = await PushDataServerController.getInstance().notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.pwd.___LABEL___');
+            login = await PushDataServerController.notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.login.___LABEL___');
+            pwd = await PushDataServerController.notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.pwd.___LABEL___');
 
             if ((!login) || (!pwd)) {
                 ConsoleHandler.error('ask_user_credentials_and_change_ps_user:login ou mot de passe manquant');

@@ -150,6 +150,10 @@ export default class MatroidIndexHandler {
         // Si on est sur un matroid index on a déjà fait l'union
         ranges = is_matroid_index ? ranges : RangeHandler.getRangesUnion(ranges);
 
+        if (!ranges || !ranges.length) {
+            return null;
+        }
+
         let res: string = '';
 
         ranges.forEach((range) => {

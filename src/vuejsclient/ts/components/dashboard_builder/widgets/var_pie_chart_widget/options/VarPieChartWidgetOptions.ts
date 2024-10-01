@@ -173,7 +173,7 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
             /**
              * Paramètres du widget
              */
-            '#f0210a',
+            '#e3dede',
 
             /**
              * Paramètres du graph

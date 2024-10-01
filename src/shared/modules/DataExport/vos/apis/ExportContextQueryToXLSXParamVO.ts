@@ -17,6 +17,36 @@ import ExportVarcolumnConfVO from '../ExportVarcolumnConfVO';
  */
 export default class ExportContextQueryToXLSXParamVO extends AbstractVO implements IAPIParamTranslator<ExportContextQueryToXLSXParamVO> {
 
+    public constructor(
+        public filename?: string,
+        public context_query?: ContextQueryVO,
+        public ordered_column_list?: string[],
+        public column_labels?: { [field_name: string]: string },
+
+        public exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+        public columns: TableColumnDescVO[] = null,
+        public fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
+        public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
+        public active_field_filters: FieldFiltersVO = null,
+        public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
+        public active_api_type_ids: string[] = null,
+        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
+
+        public is_secured: boolean = false,
+        public file_access_policy_name: string = null,
+        public target_user_id: number = null,
+        public do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+
+        public export_active_field_filters?: boolean,
+        public export_vars_indicator?: boolean,
+        public send_email_with_export_notification?: boolean,
+
+        // public vars_indicator?: ExportVarIndicatorVO[],
+        public vars_indicator?: ExportVarIndicatorVO,
+    ) {
+        super();
+    }
+
     public static fromParams(
         filename: string,
         context_query: ContextQueryVO,
@@ -37,6 +67,7 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
         export_active_field_filters?: boolean,
         export_vars_indicator?: boolean,
         send_email_with_export_notification?: boolean,
+        // vars_indicator?: ExportVarIndicatorVO[],
         vars_indicator?: ExportVarIndicatorVO,
     ): ExportContextQueryToXLSXParamVO {
 
@@ -66,38 +97,9 @@ export default class ExportContextQueryToXLSXParamVO extends AbstractVO implemen
             param.do_not_use_filter_by_datatable_field_uid,
             param.export_active_field_filters,
             param.export_vars_indicator,
-            param.send_email_with_export_notification, ,
+            param.send_email_with_export_notification,
             param.vars_indicator,
         ];
-    }
-
-    public constructor(
-        public filename?: string,
-        public context_query?: ContextQueryVO,
-        public ordered_column_list?: string[],
-        public column_labels?: { [field_name: string]: string },
-
-        public exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
-        public columns: TableColumnDescVO[] = null,
-        public fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
-        public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConfVO } = null,
-        public active_field_filters: FieldFiltersVO = null,
-        public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
-        public active_api_type_ids: string[] = null,
-        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
-
-        public is_secured: boolean = false,
-        public file_access_policy_name: string = null,
-        public target_user_id: number = null,
-        public do_not_use_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
-
-        public export_active_field_filters?: boolean,
-        public export_vars_indicator?: boolean,
-        public send_email_with_export_notification?: boolean,
-
-        public vars_indicator?: ExportVarIndicatorVO,
-    ) {
-        super();
     }
 
     public from(props: Partial<ExportContextQueryToXLSXParamVO>): this {

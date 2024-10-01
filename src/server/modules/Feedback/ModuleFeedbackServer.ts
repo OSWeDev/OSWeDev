@@ -24,7 +24,14 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
 import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
+import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
+import TeamsWebhookContentAdaptiveCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAdaptiveCardVO';
+import TeamsWebhookContentAttachmentsVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentAttachmentsVO';
+import TeamsWebhookContentColumnSetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnSetVO';
+import TeamsWebhookContentColumnVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentColumnVO';
+import TeamsWebhookContentImageVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentImageVO';
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
+import TeamsWebhookContentTextBlockVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentTextBlockVO';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -48,7 +55,6 @@ import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
 const { parse } = require('flatted/cjs');
-
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public static FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS: string = 'FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS';
@@ -441,16 +447,16 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
             feedback.id = ires.id;
 
-            // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
-            this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
-                // , api_logs
-            );
+            // // On n'attend pas la réponse pour Teams, à cause des temps d'interaction avec GPT
+            // this.handle_feedback_gpt_to_teams(feedback, uid, user_infos, feedback_infos, routes, console_logs_errors
+            //     // , api_logs
+            // );
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             const mail: MailVO = await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
             feedback.confirmation_mail_id = mail ? mail.id : null;
 
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
+            await PushDataServerController.notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
             StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
@@ -459,122 +465,122 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error(error);
             StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
+            await PushDataServerController.notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return null;
         }
     }
 
-    private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
-        // , api_logs: string
-    ) {
-        const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
-        if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
+    // On va mettre en place un assistant pour remplacer le feedback dans tous les cas, et cette version n'est ni valide, ni utilisée
+    // private async handle_feedback_gpt_to_teams(feedback: FeedbackVO, uid: number, user_infos: string, feedback_infos: string, routes: string, console_logs_errors: string
+    //     // , api_logs: string
+    // ) {
+    //     const FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleFeedbackServer.FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS, false, 60000);
+    //     if (FEEDBACK_SEND_GPT_RESPONSE_TO_TEAMS) {
 
-            // const gpt_assistant_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
+    //         // const gpt_assistant_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID);
 
-            // if (!gpt_assistant_id) {
-            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: Le paramètre ' + ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID + ' doit être renseigné pour envoyer les réponses GPT aux équipes');
-            //     return;
-            // }
+    //         // if (!gpt_assistant_id) {
+    //         //     ConsoleHandler.error('handle_feedback_gpt_to_teams: Le paramètre ' + ModuleFeedbackServer.FEEDBACK_ASSISTANT_ID + ' doit être renseigné pour envoyer les réponses GPT aux équipes');
+    //         //     return;
+    //         // }
 
-            // const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_id(gpt_assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>();
+    //         // const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID).filter_by_id(gpt_assistant_id).exec_as_server().select_vo<GPTAssistantAPIAssistantVO>();
 
-            // if (!assistant) {
-            //     ConsoleHandler.error('handle_feedback_gpt_to_teams: L\'assistant GPT ' + gpt_assistant_id + ' n\'existe pas');
-            //     return;
-            // }
+    //         // if (!assistant) {
+    //         //     ConsoleHandler.error('handle_feedback_gpt_to_teams: L\'assistant GPT ' + gpt_assistant_id + ' n\'existe pas');
+    //         //     return;
+    //         // }
 
-            // const gtp_4_brief: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
-            //     assistant.gpt_assistant_id,
-            //     null,
-            //     ' - Titre du formulaire : ' + feedback.title + ' ' +
-            //     ' - Message : ' + feedback.message + ' ' +
-            //     ' - Infos de l\'utilisateur : ' + user_infos +
-            //     ' - feedback_infos : ' + feedback_infos,
-            //     null,
-            //     uid);
+    //         // const gtp_4_brief: GPTAssistantAPIThreadMessageVO[] = await GPTAssistantAPIServerController.ask_assistant(
+    //         //     assistant.gpt_assistant_id,
+    //         //     null,
+    //         //     ' - Titre du formulaire : ' + feedback.title + ' ' +
+    //         //     ' - Message : ' + feedback.message + ' ' +
+    //         //     ' - Infos de l\'utilisateur : ' + user_infos +
+    //         //     ' - feedback_infos : ' + feedback_infos,
+    //         //     null,
+    //         //     uid);
 
 
-            const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
-                GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
-                uid,
-                'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
-                // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
-                'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
-                'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. Le format HTML doit être compatible avec Teams. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
-                'Ci-après les éléments constituant le formulaire de contact client : {' +
-                ' - Titre du formulaire : ' + feedback.title + ' ' +
-                ' - Message : ' + feedback.message + ' ' +
-                ' - Infos de l\'utilisateur : ' + user_infos +
-                ' - feedback_infos : ' + feedback_infos +
-                ' - console_logs_errors : ' + console_logs_errors
-                // ' - api_logs : ' + api_logs
-            ));
-            const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
-            if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
-                const teamsWebhookContent = new TeamsWebhookContentVO();
-                teamsWebhookContent.title = (ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url;
-                teamsWebhookContent.summary = gtp_4_brief.content;
+    //         const gtp_4_brief = await ModuleGPTServer.getInstance().generate_response(new GPTCompletionAPIConversationVO(), GPTCompletionAPIMessageVO.createNew(
+    //             GPTCompletionAPIMessageVO.GPTMSG_ROLE_TYPE_USER,
+    //             uid,
+    //             'Tu es à la Hotline de Wedev et tu viens de recevoir un formulaire de contact sur la solution ' + ConfigurationService.node_configuration.app_title + '. ' +
+    //             // 'Sur cette solution, @julien@wedev.fr s\'occupe du DEV et de la technique, et @Michael s\'occupe de la facturation. ' +
+    //             'Tu dois réaliser un résumé en français de 75 à 150 mots de ce formulaire avec les informations qui te semblent pertinentes pour comprendre le besoin client à destination des membre de l\'équipe WEDEV. ' +
+    //             'Formattes le message en HTML pour être le plus lisible / synthétique / efficace possible. Le format HTML doit être compatible avec Teams. ' + // du et des bons interlocuteurs dans l\'équipe, en les citant avant de leur indiquer la partie qui les concerne. ' +
+    //             'Ci-après les éléments constituant le formulaire de contact client : {' +
+    //             ' - Titre du formulaire : ' + feedback.title + ' ' +
+    //             ' - Message : ' + feedback.message + ' ' +
+    //             ' - Infos de l\'utilisateur : ' + user_infos +
+    //             ' - feedback_infos : ' + feedback_infos +
+    //             ' - console_logs_errors : ' + console_logs_errors
+    //             // ' - api_logs : ' + api_logs
+    //         ));
+    //         const TEAMS_WEBHOOK: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.TEAMS_WEBHOOK_PARAM_NAME);
+    //         if (gtp_4_brief && TEAMS_WEBHOOK && gtp_4_brief.content) {
+    //             const teamsWebhookContent = new TeamsWebhookContentVO();
+    //             const body = [];
+    //             const actions = [];
+    //             let title_Text = new TeamsWebhookContentTextBlockVO().set_size('Medium').set_weight('Bolder').set_text((ConfigurationService.node_configuration.is_main_prod_env ? '[PROD] ' : '[TEST] ') + 'Nouveau FEEDBACK Utilisateur - ' + ConfigurationService.node_configuration.base_url);
+    //             body.push(title_Text);
 
-                if (feedback.screen_capture_1_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_1_id, 1, teamsWebhookContent);
-                }
-                if (feedback.screen_capture_2_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_2_id, 2, teamsWebhookContent);
-                }
-                if (feedback.screen_capture_3_id) {
-                    await this.handle_screen_capture(feedback.screen_capture_3_id, 3, teamsWebhookContent);
-                }
+    //             if (feedback.screen_capture_1_id) {
+    //                 await this.handle_screen_capture(feedback.screen_capture_1_id, 1, body);
+    //             }
+    //             if (feedback.screen_capture_2_id) {
+    //                 await this.handle_screen_capture(feedback.screen_capture_2_id, 2, body);
+    //             }
+    //             if (feedback.screen_capture_3_id) {
+    //                 await this.handle_screen_capture(feedback.screen_capture_3_id, 3, body);
+    //             }
 
-                if (feedback.file_attachment_1_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_1_id, 1, teamsWebhookContent);
-                }
-                if (feedback.file_attachment_2_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_2_id, 2, teamsWebhookContent);
-                }
-                if (feedback.file_attachment_3_id) {
-                    await this.handle_file_attachement(feedback.file_attachment_3_id, 3, teamsWebhookContent);
-                }
+    //             if (feedback.file_attachment_1_id) {
+    //                 await this.handle_file_attachement(feedback.file_attachment_1_id, 1, body);
+    //             }
+    //             if (feedback.file_attachment_2_id) {
+    //                 await this.handle_file_attachement(feedback.file_attachment_2_id, 2, body);
+    //             }
+    //             if (feedback.file_attachment_3_id) {
+    //                 await this.handle_file_attachement(feedback.file_attachment_3_id, 3, body);
+    //             }
 
-                teamsWebhookContent.sections.push(
-                    new TeamsWebhookContentSectionVO().set_text('<h2>' + feedback.title + '</h2>' +
-                        '<p>' + gtp_4_brief.content + '</p>'));
+    //             const feedback_Title = new TeamsWebhookContentTextBlockVO().set_weight('Bolder').set_text(feedback.title);
+    //             body.push(feedback_Title);
+    //             const feedback_Column = new TeamsWebhookContentColumnSetVO().set_columns([new TeamsWebhookContentColumnVO().set_items([new TeamsWebhookContentTextBlockVO().set_text(gtp_4_brief.content).set_size('small')])]).set_style('emphasis');
+    //             body.push(feedback_Column);
+    //             // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
+    //             const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
+    //             if ((!!feedback.id) && !!dashboard_feedback_id) {
+    //                 actions.push(new TeamsWebhookContentActionOpenUrlVO().set_url(ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id).set_title('Consulter'));
+    //             }
+    //             teamsWebhookContent.attachments.push(new TeamsWebhookContentAttachmentsVO().set_content(new TeamsWebhookContentAdaptiveCardVO().set_body(body).set_actions(actions)));
 
-                // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
-                const dashboard_feedback_id = await ModuleParams.getInstance().getParamValueAsInt(ModuleFeedbackServer.DASHBOARD_FEEDBACK_ID_PARAM_NAME);
-                if ((!!feedback.id) && !!dashboard_feedback_id) {
-                    teamsWebhookContent.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
-                        new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                            ConfigurationService.node_configuration.base_url + 'admin#/dashboard/view/' + dashboard_feedback_id)]));
-                }
+    //             await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
+    //         }
+    //     }
+    // }
 
-                await TeamsAPIServerController.send_to_teams_webhook(TEAMS_WEBHOOK, teamsWebhookContent);
-            }
-        }
-    }
+    // private async handle_file_attachement(screen_capture_id: number, num: number, body: any[]) {
+    //     const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+    //     if (!file) {
+    //         return '';
+    //     }
+    //     const file_url = ConfigurationService.node_configuration.base_url + file.path;
+    //     const message = new TeamsWebhookContentTextBlockVO().set_text('[Pièce jointe ' + num + '](\"' + file_url + '\")');
+    //     body.push(message);
+    // }
 
-    private async handle_file_attachement(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
-        if (!file) {
-            return '';
-        }
-        const file_url = ConfigurationService.node_configuration.base_url + file.path;
-
-        message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Pièce jointe ' + num + '</a>'));
-    }
-
-    private async handle_screen_capture(screen_capture_id: number, num: number, message: TeamsWebhookContentVO) {
-        const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
-        if (!file) {
-            return '';
-        }
-        const file_url = ConfigurationService.node_configuration.base_url + file.path;
-
-        message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<a href=\"' + file_url + '\">Capture écran ' + num + '</a>')
-                .set_activityImage(file_url));
-    }
+    // private async handle_screen_capture(screen_capture_id: number, num: number, body: any[]) {
+    //     const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(screen_capture_id).select_vo<FileVO>();
+    //     if (!file) {
+    //         return '';
+    //     }
+    //     const file_url = ConfigurationService.node_configuration.base_url + file.path;
+    //     const message = new TeamsWebhookContentTextBlockVO().set_text('[Capture écran ' + num + '](\"' + file_url + '\")');
+    //     body.push(new TeamsWebhookContentImageVO().set_url(file_url));
+    //     body.push(message);
+    // }
 
     // private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
     //     let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);

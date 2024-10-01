@@ -33,6 +33,7 @@ export default class ForkServerController {
     public static forks_availability: { [uid: number]: number } = {};
     public static forks_reload_asap: { [uid: number]: boolean } = {};
     public static forks_alive: { [uid: number]: boolean } = {};
+    public static forks_alive_historic_pids: { [uid: number]: number[] } = {};
 
     // On informe chaque thread de son identité auprès du parent pour permettre de faire des communications identifiées et plus tard inter-threads
     public static forks_uid_sent: { [uid: number]: boolean } = {};

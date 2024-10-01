@@ -1,8 +1,3 @@
-import ConfigurationService from '../../../../server/env/ConfigurationService';
-import ThrottledQueryServerController from '../../../../server/modules/DAO/ThrottledQueryServerController';
-import VarsServerCallBackSubsController from '../../../../server/modules/Var/VarsServerCallBackSubsController';
-import VarsServerController from '../../../../server/modules/Var/VarsServerController';
-import VarsClientsSubsCacheHolder from '../../../../server/modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ParameterizedQueryWrapperField from '../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
@@ -10,7 +5,14 @@ import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBas
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../../env/ConfigurationService';
+import ThrottledQueryServerController from '../../../modules/DAO/ThrottledQueryServerController';
+import VarsServerCallBackSubsController from '../../../modules/Var/VarsServerCallBackSubsController';
+import VarsServerController from '../../../modules/Var/VarsServerController';
+import VarsClientsSubsCacheHolder from '../../../modules/Var/bgthreads/processes/VarsClientsSubsCacheHolder';
 import ModuleTableServerController from '../../DAO/ModuleTableServerController';
+import VarsComputationHole from '../bgthreads/processes/VarsComputationHole';
 import UpdateIsComputableVarDAGNode from './UpdateIsComputableVarDAGNode';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
@@ -199,7 +201,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * @param already_tried_load_cache_complet par défaut false, il faut mettre true uniquement si on a déjà essayé de charger la var en base de données et qu'on a pas réussi
      * @returns {VarDAGNode}
      */
-    public static async getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
+    public static async getInstance(
+        var_dag: VarDAG,
+        var_data: VarDataBaseVO,
+        already_tried_load_cache_complet: boolean = false,
+        // ignore_waiting_for_computation_holes: boolean = false, TODO FIXME: il y a une difficulté avec cette logique, il faudrait la revoir. On est sur un sémaphore de création, donc on n'aura qu'une valeur prise en compte pour ce param, mais si c'est false la première fois et true la deuxième, on est bloqués à vie... car le deuxième est une dep dont on a besoin pour résoudre l'arbre et le premier est peut-etre une ligne d'un export qui va bloquer en attendant le hole...
+    ): Promise<VarDAGNode> {
 
         if (var_dag.nodes[var_data.index]) {
             return var_dag.nodes[var_data.index];
@@ -213,7 +220,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         if (!VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index]) {
-            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet);
+            const promise = VarDAGNode.getInstance_semaphored(var_dag, var_data, already_tried_load_cache_complet/*, ignore_waiting_for_computation_holes*/);
             VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index] = promise.finally(() => {
                 delete VarDAGNode.getInstance_semaphores[var_dag.uid][var_data.index];
             });
@@ -243,12 +250,7 @@ export default class VarDAGNode extends DAGNodeBase {
         const parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
 
         let fields: string = 't.id';
-        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-            _type,
-            'id',
-            null,
-            'id'
-        );
+        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = ParameterizedQueryWrapperField.get_id_field(_type);
 
         parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
 
@@ -256,12 +258,7 @@ export default class VarDAGNode extends DAGNodeBase {
         for (const i in base_moduletable_fields) {
             const field = base_moduletable_fields[i];
 
-            parameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                _type,
-                field.field_name,
-                null,
-                field.field_name
-            );
+            parameterizedQueryWrapperField = ParameterizedQueryWrapperField.FROM_ModuleTableFieldVO(field);
             parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
             fields += ', t.' + field.field_name;
         }
@@ -296,7 +293,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * @private
      * @throws Error si on essaie d'ajouter une var avec un maxrange quelque part qui casserait tout
      */
-    private static async getInstance_semaphored(var_dag: VarDAG, var_data: VarDataBaseVO, already_tried_load_cache_complet: boolean = false): Promise<VarDAGNode> {
+    private static async getInstance_semaphored(
+        var_dag: VarDAG,
+        var_data: VarDataBaseVO,
+        already_tried_load_cache_complet: boolean = false,
+        // ignore_waiting_for_computation_holes: boolean = false, TODO FIXME: il y a une difficulté avec cette logique, il faudrait la revoir. On est sur un sémaphore de création, donc on n'aura qu'une valeur prise en compte pour ce param, mais si c'est false la première fois et true la deuxième, on est bloqués à vie... car le deuxième est une dep dont on a besoin pour résoudre l'arbre et le premier est peut-etre une ligne d'un export qui va bloquer en attendant le hole...
+    ): Promise<VarDAGNode> {
 
         /**
          * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
@@ -316,6 +318,13 @@ export default class VarDAGNode extends DAGNodeBase {
                 resolve(var_dag.nodes[var_data.index]);
                 return;
             }
+
+            // ATTENTION FIXME TODO outre le pb remonté sur ce param, si on veut réactiver il faut aussi s'assurer que lors de l'invalidation, les var datas à remettre dans l'arbre sont bien ajoutés en ignore_waiting_for_computation_holes
+            // if (!ignore_waiting_for_computation_holes) {
+            //     while (VarsComputationHole.waiting_for_computation_hole || VarsComputationHole.currently_in_a_hole_semaphore) {
+            //         await ThreadHandler.sleep(10, 'VarDAGNode.getInstance_semaphored:waiting_for_computation_hole');
+            //     }
+            // }
 
             const node = new VarDAGNode(var_dag, var_data);
 

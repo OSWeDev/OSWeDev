@@ -242,6 +242,11 @@ export default class ModuleForkServer extends ModuleServerBase {
     private async handle_alive_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         ForkServerController.forks_alive[msg.message_content] = true;
 
+        if (!ForkServerController.forks_alive_historic_pids[msg.message_content]) {
+            ForkServerController.forks_alive_historic_pids[msg.message_content] = [];
+        }
+        ForkServerController.forks_alive_historic_pids[msg.message_content].push(sendHandle.pid);
+
         ForkServerController.forks_waiting_to_be_alive--;
         if (ForkServerController.forks_waiting_to_be_alive <= 0) {
             ForkServerController.forks_are_initialized = true;

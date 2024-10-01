@@ -1,6 +1,6 @@
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../../shared/modules/Stats/StatsController';
-import VarDAGNode from '../../../../../server/modules/Var/vos/VarDAGNode';
+import VarDAGNode from '../../../../modules/Var/vos/VarDAGNode';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
@@ -17,6 +17,10 @@ export default abstract class VarsProcessBase {
      * Quand on sélectionne trop de noeuds et qu'on timeout, on les met en attente pour le prochain run
      */
     protected waiting_valid_nodes: { [node_name: string]: VarDAGNode } = null;
+
+    protected thread_sleep_coef: number = 1;
+    protected thread_sleep_max_coef: number = 10;
+    protected thread_sleep_evol_coef: number = 1.1;
 
     /**
      * Si on a 0 workers, on ne fait pas de traitement en parallèle on part du principe que le traitement est synchrone (donc sans await, sans pipeline, ...)
@@ -37,8 +41,8 @@ export default abstract class VarsProcessBase {
 
     public async work(): Promise<void> {
 
-        // // On initialise le fait qu'on est pas en train d'attendre une invalidation
-        VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
+        // // // On initialise le fait qu'on est pas en train d'attendre une invalidation
+        // VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
 
         const promise_pipeline = this.as_batch ? null : new PromisePipeline(ConfigurationService.node_configuration.max_varsprocessdeploydeps, 'VarsProcessBase.' + this.name, true);
         let waiting_for_invalidation_time_in = null;
@@ -83,39 +87,39 @@ export default abstract class VarsProcessBase {
 
             // // if (!has_client_nodes) {
             // if (!has_node) {
-            if (this.has_nodes_to_process_in_current_tree) {
-                // Si on a des nodes dans l'arbre, on va regarder si le process n'est pas bloqué
-                CurrentVarDAGHolder.check_current_vardag_throttler();
-            }
+            // if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.has_running_or_waiting_promises))) {
 
-            if ((!this.has_nodes_to_process_in_current_tree) && ((!promise_pipeline) || (!promise_pipeline.has_running_or_waiting_promises))) {
+            //     // On checke une invalidation en attente
+            //     const updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
+            //     if (updated_waiting_for_invalidation_time_in) {
 
-                // On checke une invalidation en attente
-                const updated_waiting_for_invalidation_time_in = await this.handle_invalidations(promise_pipeline, waiting_for_invalidation_time_in);
-                if (updated_waiting_for_invalidation_time_in) {
+            //         if (ConfigurationService.node_configuration.debug_vars_processes) {
+            //             ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
+            //         }
+            //         waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
+            //         continue;
+            //     }
+            // }
 
-                    if (ConfigurationService.node_configuration.debug_vars_processes) {
-                        ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':handle_invalidations:updated_waiting_for_invalidation_time_in:' + updated_waiting_for_invalidation_time_in);
-                    }
-                    waiting_for_invalidation_time_in = updated_waiting_for_invalidation_time_in;
-                    continue;
+            if (valid_nodes && Object.keys(valid_nodes).length) {
+                if (!this.as_batch) {
+                    did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
+                } else {
+                    did_something = await this.handle_batch_worker(valid_nodes);
                 }
             }
 
-            if (!this.as_batch) {
-                did_something = await this.handle_individual_worker(promise_pipeline, valid_nodes);
-            } else {
-                did_something = await this.handle_batch_worker(valid_nodes);
-            }
-
             if (!did_something) {
-
                 if (ConfigurationService.node_configuration.debug_vars_processes) {
                     ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':work:LOOP:did_something:false');
                 }
 
-                await ThreadHandler.sleep(this.thread_sleep, this.name);
+                this.thread_sleep_coef = Math.min(this.thread_sleep_max_coef, this.thread_sleep_coef * this.thread_sleep_evol_coef);
+            } else {
+                this.thread_sleep_coef = 1;
             }
+
+            await ThreadHandler.sleep(this.thread_sleep * this.thread_sleep_coef, this.name);
 
             // On attend d'avoir un slot de disponible si besoin avant de refaire une boucle
             if (promise_pipeline) {
@@ -128,44 +132,44 @@ export default abstract class VarsProcessBase {
         }
     }
 
-    private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
+    // private async handle_invalidations(promise_pipeline: PromisePipeline, waiting_for_invalidation_time_in: number): Promise<number> {
 
-        // On checke une invalidation en attente
-        if (VarsComputationHole.waiting_for_computation_hole) {
-            if (!VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
+    //     // On checke une invalidation en attente
+    //     if (VarsComputationHole.waiting_for_computation_hole) {
+    //         if (!VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
 
-                if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-                    ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:IN');
-                }
+    //             if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+    //                 ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:IN');
+    //             }
 
-                if ((!!this.MAX_Workers) && (!this.as_batch)) {
+    //             if ((!!this.MAX_Workers) && (!this.as_batch)) {
 
-                    const pipeline_end_wait_for_invalidation_time_in = Dates.now_ms();
-                    // On doit attendre la fin du pipeline, pour indiquer qu'on est prêt à faire l'invalidation
-                    await promise_pipeline.end();
+    //                 const pipeline_end_wait_for_invalidation_time_in = Dates.now_ms();
+    //                 // On doit attendre la fin du pipeline, pour indiquer qu'on est prêt à faire l'invalidation
+    //                 await promise_pipeline.end();
 
-                    StatsController.register_stat_DUREE('VarsProcessBase', this.name, "pipeline_end_wait_for_invalidation", Dates.now_ms() - pipeline_end_wait_for_invalidation_time_in);
-                }
+    //                 StatsController.register_stat_DUREE('VarsProcessBase', this.name, "pipeline_end_wait_for_invalidation", Dates.now_ms() - pipeline_end_wait_for_invalidation_time_in);
+    //             }
 
-                waiting_for_invalidation_time_in = Dates.now_ms();
-                VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = true;
-            }
-            await ThreadHandler.sleep(this.thread_sleep, this.name);
-            return waiting_for_invalidation_time_in;
-        }
+    //             waiting_for_invalidation_time_in = Dates.now_ms();
+    //             VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = true;
+    //         }
+    //         await ThreadHandler.sleep(this.thread_sleep, this.name);
+    //         return waiting_for_invalidation_time_in;
+    //     }
 
-        // // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
-        // if (VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
-        //     VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
-        //     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
+    //     // // si on était en attente et que l'invalidation vient de se terminer, on indique qu'on reprend le travail
+    //     // if (VarsComputationHole.processes_waiting_for_computation_hole_end[this.name]) {
+    //     //     VarsComputationHole.processes_waiting_for_computation_hole_end[this.name] = false;
+    //     //     StatsController.register_stat_DUREE('VarsProcessBase', this.name, "waiting_for_invalidation", Dates.now_ms() - waiting_for_invalidation_time_in);
 
-        //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
-        //         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
-        //     }
-        // }
+    //     //     if (ConfigurationService.node_configuration.debug_vars_invalidation) {
+    //     //         ConsoleHandler.log('VarsProcessBase:' + this.name + ':handle_invalidations:waiting_for_invalidation_time_in:OUT');
+    //     //     }
+    //     // }
 
-        return null;
-    }
+    //     return null;
+    // }
 
     private async handle_individual_worker(promise_pipeline: PromisePipeline, valid_nodes: { [node_name: string]: VarDAGNode }): Promise<boolean> {
         const self = this;
@@ -257,6 +261,15 @@ export default abstract class VarsProcessBase {
     private get_valid_nodes(): { [node_name: string]: VarDAGNode } {
 
         if (!CurrentVarDAGHolder.current_vardag) {
+            return null;
+        }
+
+        if (VarsComputationHole.currently_in_a_hole_semaphore) {
+
+            if (ConfigurationService.node_configuration.debug_vars_processes) {
+                ConsoleHandler.throttle_log('VarsProcessBase:' + this.name + ':get_valid_nodes:IN:currently_in_a_hole_semaphore');
+            }
+
             return null;
         }
 

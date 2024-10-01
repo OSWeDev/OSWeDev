@@ -10,23 +10,50 @@ import ManualTasksController from '../../../shared/modules/Cron/ManualTasksContr
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleGPT from '../../../shared/modules/GPT/ModuleGPT';
+import GPTAssistantAPIAssistantFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantFunctionVO';
+import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import GPTAssistantAPIRunStepVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunStepVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
+import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
+import GPTAssistantAPIVectorStoreFileBatchVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileBatchVO';
+import GPTAssistantAPIVectorStoreFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreFileVO';
+import GPTAssistantAPIVectorStoreVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIVectorStoreVO';
 import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
 import GPTCompletionAPIMessageVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import GPTAssistantAPIServerController from './GPTAssistantAPIServerController';
+import AssistantVoTypeDescription from './functions/get_vo_type_description/AssistantVoTypeDescription';
+import GPTAssistantAPIFunctionGetVoTypeDescriptionController from './functions/get_vo_type_description/GPTAssistantAPIFunctionGetVoTypeDescriptionController';
+import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
+import GPTAssistantAPIServerSyncController from './sync/GPTAssistantAPIServerSyncController';
+import GPTAssistantAPIServerSyncFilesController from './sync/GPTAssistantAPIServerSyncFilesController';
+import GPTAssistantAPIServerSyncRunStepsController from './sync/GPTAssistantAPIServerSyncRunStepsController';
+import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
+import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import GPTAssistantAPIServerSyncThreadsController from './sync/GPTAssistantAPIServerSyncThreadsController';
+import GPTAssistantAPIServerSyncVectorStoreFileBatchesController from './sync/GPTAssistantAPIServerSyncVectorStoreFileBatchesController';
+import GPTAssistantAPIServerSyncVectorStoreFilesController from './sync/GPTAssistantAPIServerSyncVectorStoreFilesController';
+import GPTAssistantAPIServerSyncVectorStoresController from './sync/GPTAssistantAPIServerSyncVectorStoresController';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -52,42 +79,145 @@ export default class ModuleGPTServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_reload_openai_runs_datas] = this.reload_openai_runs_datas;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
 
-    public async reload_openai_runs_datas() {
-        const run_vos = await query(GPTAssistantAPIRunVO.API_TYPE_ID).exec_as_server().select_vos<GPTAssistantAPIRunVO>();
-        for (const i in run_vos) {
-            const run_vo = run_vos[i];
-            if (run_vo.gpt_run_id) {
+    public async sync_openai_datas() {
+        await GPTAssistantAPIServerSyncController.sync_all_datas();
+    }
 
-                if (!run_vo.gpt_thread_id) {
-                    const thread_vo = await query(GPTAssistantAPIThreadVO.API_TYPE_ID).filter_by_id(run_vo.thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID).select_vo<GPTAssistantAPIThreadVO>();
-                    run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
-                }
+    /**
+     * Le re_run a pour but de générer une nouvelle solution à un problème déjà répondu mais dont la réponse n'est pas satisfaisante, ou dont les conditions ont changé
+     * Idéalement on veut garder la trace des runs précédents pour pouvoir les comparer et expliquer pourquoi on a choisi la nouvelle solution (il faudrait donc aussi pouvoir dire si on préfère la nouvelle ou pas, et pourquoi)
+     * @param run_id
+     */
+    public async rerun(run_id: number): Promise<GPTAssistantAPIRunVO> {
 
-                const run_gpt = await ModuleGPTServer.openai.beta.threads.runs.retrieve(run_vo.gpt_thread_id, run_vo.gpt_run_id);
-                await GPTAssistantAPIServerController.update_run_if_needed(run_vo, run_gpt);
-            }
-        }
+        // On doit récupérer le thread pour lequel on veut faire un nouveau run
+        // On récupère tous les thrads messages pour ce thread
+        // On isole les messages du run qu'on veut refaire, ainsi que les messages suivants le run (quelque soit leur role)
+
+        throw new Error('Method not implemented.');
     }
 
     public async ask_assistant(
         assistant_id: string,
         thread_id: string,
+        thread_title: string,
         content: string,
         files: FileVO[],
         user_id: number = null
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
-        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, content, files, user_id);
+        return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id);
+    }
+
+    public async assistant_function_get_vo_type_description_controller(
+        thread_vo: GPTAssistantAPIThreadVO,
+        api_type_id: string,
+    ): Promise<AssistantVoTypeDescription> {
+        return await GPTAssistantAPIFunctionGetVoTypeDescriptionController.run_action(thread_vo, api_type_id);
     }
 
     // istanbul ignore next: cannot test configure
     public async configure() {
 
         const preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        const preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        const preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+
+        const postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        const postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+
         preCreateTrigger.registerHandler(GPTCompletionAPIConversationVO.API_TYPE_ID, this, this.handleTriggerPreCreateGPTCompletionAPIConversationVO);
+
+        /**
+         * On défini les triggers des synchros avec OpenAI
+         *  Fonctionnement : En pre : on demande un push vers OpenAI si le on est informé d'une synchro nécessaire, on refuse la mise à jour et on log une erreur. On devrait pouvoir push la modif ou alors faut pas pouvoir la faire.
+         */
+
+        /**
+         * GPTAssistantAPIAssistantFunctionVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_AssistantFunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_AssistantFunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_AssistantFunctionVO);
+
+        // GPTAssistantAPIAssistantVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_create_trigger_handler_for_AssistantVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_update_trigger_handler_for_AssistantVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIAssistantVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.pre_delete_trigger_handler_for_AssistantVO);
+
+        // GPTAssistantAPIFileVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_create_trigger_handler_for_FileVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_update_trigger_handler_for_FileVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncFilesController, GPTAssistantAPIServerSyncFilesController.pre_delete_trigger_handler_for_FileVO);
+
+        // GPTAssistantAPIThreadVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_create_trigger_handler_for_ThreadVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_update_trigger_handler_for_ThreadVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIThreadVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadsController, GPTAssistantAPIServerSyncThreadsController.pre_delete_trigger_handler_for_ThreadVO);
+
+        // GPTAssistantAPIVectorStoreFileBatchVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_create_trigger_handler_for_VectorStoreFileBatchVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_update_trigger_handler_for_VectorStoreFileBatchVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreFileBatchVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFileBatchesController, GPTAssistantAPIServerSyncVectorStoreFileBatchesController.pre_delete_trigger_handler_for_VectorStoreFileBatchVO);
+
+        // GPTAssistantAPIVectorStoreFileVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_create_trigger_handler_for_VectorStoreFileVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_update_trigger_handler_for_VectorStoreFileVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreFileVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoreFilesController, GPTAssistantAPIServerSyncVectorStoreFilesController.pre_delete_trigger_handler_for_VectorStoreFileVO);
+
+        // GPTAssistantAPIVectorStoreVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_create_trigger_handler_for_VectorStoreVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_update_trigger_handler_for_VectorStoreVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIVectorStoreVO.API_TYPE_ID, GPTAssistantAPIServerSyncVectorStoresController, GPTAssistantAPIServerSyncVectorStoresController.pre_delete_trigger_handler_for_VectorStoreVO);
+
+        /**
+         * GPTAssistantAPIFunctionParamVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_AssistantFunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_AssistantFunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIAssistantFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_AssistantFunctionVO);
+
+        /**
+         * GPTAssistantAPIFunctionVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_create_trigger_handler_for_FunctionVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_update_trigger_handler_for_FunctionVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIFunctionVO.API_TYPE_ID, GPTAssistantAPIServerSyncAssistantsController, GPTAssistantAPIServerSyncAssistantsController.post_delete_trigger_handler_for_FunctionVO);
+
+        // GPTAssistantAPIRunStepVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_create_trigger_handler_for_RunStepVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_update_trigger_handler_for_RunStepVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIRunStepVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunStepsController, GPTAssistantAPIServerSyncRunStepsController.pre_delete_trigger_handler_for_RunStepVO);
+
+        // GPTAssistantAPIRunVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_create_trigger_handler_for_RunVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_update_trigger_handler_for_RunVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, GPTAssistantAPIServerSyncRunsController, GPTAssistantAPIServerSyncRunsController.pre_delete_trigger_handler_for_RunVO);
+
+        /**
+         * GPTAssistantAPIThreadMessageContentVO
+         * On est en post, car on pousse l'assistant qui ensuite fait des requetes pour charger les fonctions depuis la bdd
+         */
+        postCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_create_trigger_handler_for_ThreadMessageContentVO);
+        postUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_update_trigger_handler_for_ThreadMessageContentVO);
+        postDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.post_delete_trigger_handler_for_ThreadMessageContentVO);
+
+
+        // GPTAssistantAPIThreadMessageVO
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_create_trigger_handler_for_ThreadMessageVO);
+        preUpdateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_update_trigger_handler_for_ThreadMessageVO);
+        preDeleteTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, GPTAssistantAPIServerSyncThreadMessagesController, GPTAssistantAPIServerSyncThreadMessagesController.pre_delete_trigger_handler_for_ThreadMessageVO);
+
+        // Juste pour init la date
+        preCreateTrigger.registerHandler(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, this, this.pre_create_trigger_handler_for_ThreadMessageVO);
 
         if (!ConfigurationService.node_configuration.open_api_api_key) {
             ConsoleHandler.warn('OPEN_API_API_KEY is not set in configuration');
@@ -97,6 +227,94 @@ export default class ModuleGPTServer extends ModuleServerBase {
         ModuleGPTServer.openai = new OpenAI({
             apiKey: ConfigurationService.node_configuration.open_api_api_key
         });
+
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_QUEUED] },
+            "GPTAssistantAPIRunVO.STATUS_QUEUED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_IN_PROGRESS] },
+            "GPTAssistantAPIRunVO.STATUS_IN_PROGRESS"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION] },
+            "GPTAssistantAPIRunVO.STATUS_REQUIRES_ACTION"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_CANCELLING] },
+            "GPTAssistantAPIRunVO.STATUS_CANCELLING"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_CANCELLED] },
+            "GPTAssistantAPIRunVO.STATUS_CANCELLED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_FAILED] },
+            "GPTAssistantAPIRunVO.STATUS_FAILED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_COMPLETED] },
+            "GPTAssistantAPIRunVO.STATUS_COMPLETED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_INCOMPLETE] },
+            "GPTAssistantAPIRunVO.STATUS_INCOMPLETE"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunVO.STATUS_EXPIRED] },
+            "GPTAssistantAPIRunVO.STATUS_EXPIRED"
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_FINE_TUNE] },
+            'GPTAssistantAPIFileVO.PURPOSE_FINE_TUNE'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_FINE_TUNE_RESULTS] },
+            'GPTAssistantAPIFileVO.PURPOSE_FINE_TUNE_RESULTS'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS] },
+            'GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS_OUTPUT] },
+            'GPTAssistantAPIFileVO.PURPOSE_ASSISTANTS_OUTPUT'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_BATCH] },
+            'GPTAssistantAPIFileVO.PURPOSE_BATCH'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_BATCH_OUTPUT] },
+            'GPTAssistantAPIFileVO.PURPOSE_BATCH_OUTPUT'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIFileVO.TO_OPENAI_PURPOSE_MAP[GPTAssistantAPIFileVO.PURPOSE_VISION] },
+            'GPTAssistantAPIFileVO.PURPOSE_VISION'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_IN_PROGRESS] },
+            "GPTAssistantAPIRunStepVO.STATUS_IN_PROGRESS"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_CANCELLED] },
+            "GPTAssistantAPIRunStepVO.STATUS_CANCELLED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_FAILED] },
+            "GPTAssistantAPIRunStepVO.STATUS_FAILED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_COMPLETED] },
+            "GPTAssistantAPIRunStepVO.STATUS_COMPLETED"
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': GPTAssistantAPIRunStepVO.TO_OPENAI_STATUS_MAP[GPTAssistantAPIRunStepVO.STATUS_EXPIRED] },
+            "GPTAssistantAPIRunStepVO.STATUS_EXPIRED"
+        ));
     }
 
     public async handleTriggerPreCreateGPTCompletionAPIConversationVO(vo: GPTCompletionAPIConversationVO): Promise<boolean> {
@@ -143,9 +361,36 @@ export default class ModuleGPTServer extends ModuleServerBase {
         POLICY_ASSISTANT_FILES_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_ASSISTANT_FILES_ACCESS, DefaultTranslationVO.create_new({
             'fr-fr': 'Accès aux fichiers issus de GPT'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_ask_assistant: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_ask_assistant.group_id = group.id;
+        POLICY_ask_assistant.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_ask_assistant.translatable_name = ModuleGPT.POLICY_ask_assistant;
+        POLICY_ask_assistant = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_ask_assistant, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: ask_assistant'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_rerun: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_rerun.group_id = group.id;
+        POLICY_rerun.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_rerun.translatable_name = ModuleGPT.POLICY_rerun;
+        POLICY_rerun = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_rerun, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: rerun'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_generate_response: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_generate_response.group_id = group.id;
+        POLICY_generate_response.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_generate_response.translatable_name = ModuleGPT.POLICY_generate_response;
+        POLICY_generate_response = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_generate_response, DefaultTranslationVO.create_new({
+            'fr-fr': 'API: generate_response'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    // istanbul ignore next: cannot test extern apis
+    /**
+     * istanbul ignore next: cannot test extern apis
+     * @deprecated use Assistants instead => cheaper / faster / better control. Will be removed soon
+     */
     public async generate_response(conversation: GPTCompletionAPIConversationVO, newPrompt: GPTCompletionAPIMessageVO): Promise<GPTCompletionAPIMessageVO> {
         try {
             const modelId = await ModuleParams.getInstance().getParamValueAsString(ModuleGPT.PARAM_NAME_MODEL_ID, "gpt-4-turbo-preview", 60000);
@@ -197,14 +442,17 @@ export default class ModuleGPTServer extends ModuleServerBase {
     // istanbul ignore next: cannot test extern apis
     private async call_api(modelId: string, currentMessages: ChatCompletionMessageParam[]): Promise<any> {
         try {
-            if (!ModuleGPTServer.openai?.chat?.completions) {
-                return null;
+            if (ConfigurationService.node_configuration.block_openai_sync_push_to_openai) {
+                throw new Error('OpenAI sync is blocked');
             }
 
-            return await ModuleGPTServer.openai.chat.completions.create({
-                model: modelId,
-                messages: currentMessages as ChatCompletionMessageParam[],
-            });
+            return await GPTAssistantAPIServerController.wrap_api_call(
+                ModuleGPTServer?.openai?.chat?.completions?.create,
+                ModuleGPTServer?.openai?.chat?.completions,
+                {
+                    model: modelId,
+                    messages: currentMessages as ChatCompletionMessageParam[],
+                });
         } catch (err) {
             ConsoleHandler.error(err);
         }
@@ -230,5 +478,10 @@ export default class ModuleGPTServer extends ModuleServerBase {
         }
 
         return null;
+    }
+
+    private pre_create_trigger_handler_for_ThreadMessageVO(vo: GPTAssistantAPIThreadMessageVO): boolean {
+        vo.date = vo.created_at ? vo.created_at : Dates.now();
+        return true;
     }
 }

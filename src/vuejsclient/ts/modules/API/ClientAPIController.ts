@@ -168,7 +168,7 @@ export default class ClientAPIController implements IAPIController {
             delete ClientAPIController.api_waiting_for_result_notif_solvers[api_res_typed.api_call_id];
             delete ClientAPIController.api_waiting_for_result_notif_waiting_for_solvers[api_res_typed.api_call_id];
 
-            return APIControllerWrapper.try_translate_vo_from_api(api_res) as U;
+            return api_res as U;
         }
 
         return api_res;

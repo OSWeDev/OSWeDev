@@ -7,36 +7,25 @@ import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserSessionVO from '../../../../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import TableWidgetManager from '../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
 import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
-import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
 import AccessPolicyVueController from './AccessPolicyVueController';
-import ModuleTableController from '../../../../shared/modules/DAO/ModuleTableController';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): AccessPolicyAdminVueModule {
-        if (!AccessPolicyAdminVueModule.instance) {
-            AccessPolicyAdminVueModule.instance = new AccessPolicyAdminVueModule();
-        }
-
-        return AccessPolicyAdminVueModule.instance;
-    }
-
     private static instance: AccessPolicyAdminVueModule = null;
 
     private constructor() {
@@ -52,10 +41,19 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         ];
     }
 
+    // istanbul ignore next: nothing to test
+    public static getInstance(): AccessPolicyAdminVueModule {
+        if (!AccessPolicyAdminVueModule.instance) {
+            AccessPolicyAdminVueModule.instance = new AccessPolicyAdminVueModule();
+        }
+
+        return AccessPolicyAdminVueModule.instance;
+    }
+
     public initialize() {
 
         Vue.component('Impersonatecomponent', async () => (await import('./user/impersonate/ImpersonateComponent')));
-        TableWidgetController.register_component(
+        TableWidgetManager.register_component(
             ComponentDatatableFieldVO.createNew(
                 'impersonate',
                 'Impersonatecomponent',
@@ -63,7 +61,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendinitpwdcomponent', async () => (await import('./user/sendinitpwd/SendInitPwdComponent')));
-        TableWidgetController.register_component(
+        TableWidgetManager.register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
                 'Sendinitpwdcomponent',
@@ -71,7 +69,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ).setModuleTable(ModuleTableController.module_tables_by_vo_type[UserVO.API_TYPE_ID])
         );
         Vue.component('Sendrecapturecomponent', async () => (await import('./user/sendrecapture/SendRecaptureComponent')));
-        TableWidgetController.register_component(
+        TableWidgetManager.register_component(
             ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
                 'Sendrecapturecomponent',
