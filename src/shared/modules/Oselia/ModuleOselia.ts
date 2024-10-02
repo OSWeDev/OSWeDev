@@ -93,7 +93,7 @@ export default class ModuleOselia extends Module {
 
     public open_oselia_db: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
     public link_user_to_oselia_referrer: (referrer_code: string, user_email: string, referrer_user_uid: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_link_user_to_oselia_referrer);
-    public create_thread: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<number> = APIControllerWrapper.sah(ModuleOselia.APINAME_create_thread);
+    public create_thread: () => Promise<number> = APIControllerWrapper.sah(ModuleOselia.APINAME_create_thread);
     public get_referrer_name: (referrer_user_ott: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
     public accept_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
     public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
@@ -210,11 +210,11 @@ export default class ModuleOselia extends Module {
             UserParamStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<OpenOseliaDBParamVO, number>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, number>(
             null,
             ModuleOselia.APINAME_create_thread,
             null,
-            OpenOseliaDBParamVOStatic
+            null
         ));
     }
 

@@ -679,7 +679,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 VueAppController.getInstance().data_user.id.toString()
             );
 
-            const new_thread: number = await ModuleOselia.getInstance().create_thread(ott, null, null);
+            const new_thread: number = await ModuleOselia.getInstance().create_thread();
             if (new_thread) {
                 this.set_active_field_filter({
                     field_id: field_names<GPTAssistantAPIThreadVO>().id,

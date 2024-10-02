@@ -69,6 +69,7 @@ import SocketWrapper from '../PushData/vos/SocketWrapper';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -676,84 +677,60 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     private async create_thread(
-        referrer_user_ott: string,
-        openai_thread_id: string,
-        openai_assistant_id: string,
         req: Request,
         res: Response) {
-        /**
-         * On checke le OTT
-         */
-        const user_referrer_ott = await query(OseliaUserReferrerOTTVO.API_TYPE_ID)
-            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott)
-            .exec_as_server()
-            .select_vo<OseliaUserReferrerOTTVO>();
-
-        if (!user_referrer_ott) {
-            ConsoleHandler.error('OTT not found:' + referrer_user_ott);
-            return;
-        }
-
-        const user_referrer: OseliaUserReferrerVO = await query(OseliaUserReferrerVO.API_TYPE_ID)
-            .filter_by_id(user_referrer_ott.user_referrer_id)
-            .exec_as_server()
-            .select_vo<OseliaUserReferrerVO>();
-        if (!user_referrer) {
-            ConsoleHandler.error('Referrer not found:user_referrer_id:' + user_referrer_ott.user_referrer_id);
-            return;
-        }
 
         /**
          * On commence par checker le referrer
-         * Puis le user lié au referrer, et le fait que la liaison soit validée, sinon on renvoie vers la demande de confirmation du lien
          */
         const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
-            .filter_by_id(user_referrer.referrer_id)
+            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_origin, ConfigurationService.node_configuration.base_url)
             .exec_as_server()
             .select_vo<OseliaReferrerVO>();
-
+            
         if (!referrer) {
-            ConsoleHandler.error('Referrer not found:referrer_id:' + user_referrer.referrer_id);
+            ConsoleHandler.error('No internal "Self" referrer');
             return;
         }
 
         const user = await query(UserVO.API_TYPE_ID)
-            .filter_by_id(user_referrer.user_id)
+            .filter_by_id(StackContext.get('UID'))
             .exec_as_server()
             .select_vo<UserVO>();
         if ((!user) || user.archived || user.blocked || user.invalidated) {
-            ConsoleHandler.error('User not valid:referrer_user_uid:' + user_referrer.referrer_user_uid + ':uid:' + user_referrer.user_id);
+            ConsoleHandler.error('User not valid:uid:' + user.id);
 
             await this.send_hook_trigger_datas_to_referrer(
                 referrer,
                 'post',
                 referrer.trigger_hook_open_oselia_db_reject_url,
-                ['User not valid (archived, blocked or invalidated):' + user_referrer.referrer_user_uid],
+                ['User not valid (archived, blocked or invalidated):' + user.id],
                 referrer.triggers_hook_external_api_authentication_id
             );
 
             return;
         }
 
-        if (!user_referrer.user_validated) {
-            // L'utilisateur est lié, tout est ok, mais il n'a pas encore validé la liaison. On l'envoie sur une page de validation
+        // ML: Pas sûr de quoi faire ici
+        // if (!user_referrer.user_validated) {
+        //     // L'utilisateur est lié, tout est ok, mais il n'a pas encore validé la liaison. On l'envoie sur une page de validation
 
-            /**
-             * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
-             */
-            if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
-                await ModuleAccessPolicyServer.getInstance().login(user.id);
-            }
+        //     /**
+        //      * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+        //      */
+        //     if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+        //         await ModuleAccessPolicyServer.getInstance().login(user.id);
+        //     }
 
-            return;
-        }
+        //     return;
+        // }
 
         /**
          * On récupère le thread : on le crée si on reçoit null, et dans tous les cas on crée et on récupère le thread depuis OpenAI si on ne le connait pas encore
          * Si un assistant est passé en param, on le force dans le thread
          */
-        openai_assistant_id = openai_assistant_id ? openai_assistant_id : null;
-        openai_thread_id = openai_thread_id ? openai_thread_id : null;
+        let openai_assistant_id = null;
+        let openai_thread_id = null;
         if ((!openai_assistant_id) && referrer.default_assistant_id) {
             const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
                 .filter_by_id(referrer.default_assistant_id)
