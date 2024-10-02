@@ -5,7 +5,7 @@ import GPTAssistantAPIToolResourcesVO from './GPTAssistantAPIToolResourcesVO';
 export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
 
     public static OSELIA_THREAD_TITLE_BUILDER_ASSISTANT_NAME: string = 'Oselia - Thread Title Builder';
-    public static OSELIA_THREAD_HELPER_ASSISTANT_NAME: string = "Helper"
+    public static OSELIA_THREAD_HELPER_ASSISTANT_NAME: string = "Helper";
     public static API_TYPE_ID: string = "gpt_assistant_thread";
 
     public id: number;

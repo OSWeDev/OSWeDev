@@ -438,9 +438,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_info(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_info(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_info_oselia:Error while sending message to Teams:" + error);
@@ -455,9 +453,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_warn(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_warn(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_warn_oselia:Error while sending message to Teams:" + error);
@@ -472,9 +468,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_success(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_success(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_success_oselia:Error while sending message to Teams:" + error);
@@ -489,9 +483,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         try {
             // On envoie une notification à Teams
-            const open_oselia: ActionURLVO = await TeamsAPIServerController.create_action_button_open_oselia(thread_vo.id);
-            const action_button_teams = new TeamsWebhookContentActionOpenUrlVO().set_url(ActionURLServerTools.get_action_full_url(open_oselia)).set_title('Osélia');
-            await TeamsAPIServerController.send_teams_oselia_error(title, content, thread_vo.id, [action_button_teams]);
+            await TeamsAPIServerController.send_teams_oselia_error(title, content, thread_vo.id);
             return 'Message envoyé';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:send_message_to_teams_error_oselia:Error while sending message to Teams:" + error);

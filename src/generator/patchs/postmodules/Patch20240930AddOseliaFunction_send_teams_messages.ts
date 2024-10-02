@@ -130,7 +130,7 @@ export default class Patch20240930AddOseliaFunction_send_teams_messages implemen
         // content: string,
         const content_param: GPTAssistantAPIFunctionParamVO = new GPTAssistantAPIFunctionParamVO();
         content_param.gpt_funcparam_name = 'content';
-        content_param.gpt_funcparam_description = 'Le contenu du message à envoyer - format compatible Teams (markdown)';
+        content_param.gpt_funcparam_description = 'Le contenu du message à envoyer - format compatible Teams (markdown limité)';
         content_param.function_id = func.id;
         content_param.type = GPTAssistantAPIFunctionParamVO.TYPE_STRING;
         content_param.required = true;

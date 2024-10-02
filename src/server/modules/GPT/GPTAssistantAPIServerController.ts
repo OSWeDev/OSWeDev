@@ -1,4 +1,5 @@
 import { Thread } from 'openai/resources/beta/threads/threads';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -32,9 +33,6 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-import GPTAssistantAPIThreadMessageContentImageURLVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageURLVO';
-import { readFileSync } from 'fs';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -59,7 +57,7 @@ export default class GPTAssistantAPIServerController {
                 if (error.statusCode === 429) {
                     console.log(`Rate limit exceeded. Attempt ${attempt} of ${maxRetries}. Retrying in ${delay / 1000} seconds...`);
                     await ThreadHandler.sleep(delay, 'OpenAI - Rate limit exceeded');
-                } if ((error.statusCode === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
+                } if ((error.status === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
                     ConsoleHandler.error('GPTAssistantAPIServerController.wrap_api_call:\'tool_outputs\' too large: ' + JSON.stringify(error));
                     // TODO FIXME : Handle this error properly args.tool_outputs = null par exemple ou plutôt en forwardant le message d'erreur clairement ? ou en ellipsis sur le res trop long ?
                     throw error;
@@ -760,7 +758,7 @@ export default class GPTAssistantAPIServerController {
      * @param files ATTENTION : Limité à 10 fichiers dans l'API GPT pour le moment
      * @param user_id id de l'utilisateur qui demande
      * @param thread_title titre de la discussion => pour éviter de passer par le système de génération de titre
-     * @param hide_content si on veut cacher le contenu du message
+     * @param hide_prompt si on veut cacher le contenu du prompt/message initial
      * @returns
      */
     public static async ask_assistant(
@@ -770,7 +768,8 @@ export default class GPTAssistantAPIServerController {
         content_text: string,
         files: FileVO[],
         user_id: number = null,
-        hide_content: boolean = false): Promise<GPTAssistantAPIThreadMessageVO[]> {
+        hide_prompt: boolean = false,
+    ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
 
@@ -846,7 +845,7 @@ export default class GPTAssistantAPIServerController {
                 user_id,
                 content_text,
                 files,
-                hide_content
+                hide_prompt
             );
 
             //  La discussion est en place, on peut demander à l'assistant de répondre
@@ -1336,14 +1335,59 @@ export default class GPTAssistantAPIServerController {
 
                         await all_promises(promises);
 
-                        // Submit tool outputs
-                        await GPTAssistantAPIServerController.wrap_api_call(
-                            ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
-                            ModuleGPTServer.openai.beta.threads.runs,
-                            thread_vo.gpt_thread_id,
-                            run.id,
-                            { tool_outputs: tool_outputs }
-                        );
+                        // // On doit vérifier que les outputs sont bien limités à 512kb comme demandé par OpenAI
+                        // // (512kb et non kB donc a priori en nombre de lettres ça fait plutôt 512 / 8 = 64k lettres)
+                        // // et si ce n'est pas le cas, on doit les tronquer et ajouter un message d'erreur
+                        // let total_size = 0;
+                        // const max_size = 60 * 1024; // On laisse un peu de marge pour les messages d'erreur et être sûr de ne pas dépasser
+                        // for (const i in tool_outputs) {
+                        //     const this_elt_size = tool_outputs[i].output.length;
+
+                        //     if ((total_size + this_elt_size) > max_size) {
+                        //         tool_outputs[i].output = ((max_size - total_size) > 0) ?
+                        //             tool_outputs[i].output.substring(0, max_size - total_size) :
+                        //             "";
+                        //         tool_outputs[i].output += "[... output too big, truncated to respect OpenAI 512kb limits. try filtering the request ...]";
+                        //     }
+                        //     total_size += this_elt_size;
+                        // }
+
+                        try {
+                            // Submit tool outputs
+                            await GPTAssistantAPIServerController.wrap_api_call(
+                                ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                                ModuleGPTServer.openai.beta.threads.runs,
+                                thread_vo.gpt_thread_id,
+                                run.id,
+                                { tool_outputs: tool_outputs }
+                            );
+                        } catch (error) {
+
+                            if ((error.status === 400) && error.error && error.error.message && error.error.message.includes('\'tool_outputs\' too large')) {
+
+                                // Submit tool outputs - on a un message d'erreur, on doit tronquer les outputs - mais on sait pas lesquels - on log pour le moment la taille pour en déduire une limite à fixer en amont
+                                let total_size = 0;
+                                for (const i in tool_outputs) {
+                                    const this_elt_size = tool_outputs[i].output.length;
+
+                                    total_size += this_elt_size;
+                                    ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - output size:i:' + i + ':' + this_elt_size + ':total:' + total_size);
+
+                                    tool_outputs[i].output = '[... output too big, truncated to respect OpenAI 512kb limits. try filtering the request ...]';
+                                }
+
+                                await GPTAssistantAPIServerController.wrap_api_call(
+                                    ModuleGPTServer.openai.beta.threads.runs.submitToolOutputs,
+                                    ModuleGPTServer.openai.beta.threads.runs,
+                                    thread_vo.gpt_thread_id,
+                                    run.id,
+                                    { tool_outputs: tool_outputs }
+                                );
+                            } else {
+                                ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
+                                throw error;
+                            }
+                        }
                         break;
 
                     } else {

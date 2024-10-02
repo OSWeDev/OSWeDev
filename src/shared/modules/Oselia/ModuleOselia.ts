@@ -1,5 +1,4 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ConsoleHandler from '../../tools/ConsoleHandler';
 import { field_names } from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import ExternalAPIAuthentificationVO from '../API/vos/ExternalAPIAuthentificationVO';
@@ -12,7 +11,6 @@ import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
-import Dates from '../FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
@@ -23,19 +21,18 @@ import OseliaAssistantPriceVO from './vos/OseliaAssistantPriceVO';
 import OseliaChatVO from './vos/OseliaChatVO';
 import OseliaImagePriceVO from './vos/OseliaImagePriceVO';
 import OseliaModelVO from './vos/OseliaModelVO';
+import OseliaPromptVO from './vos/OseliaPromptVO';
 import OseliaReferrerExternalAPIVO from './vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from './vos/OseliaReferrerVO';
+import OseliaRunVO from './vos/OseliaRunVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
 import OseliaTokenPriceVO from './vos/OseliaTokenPriceVO';
 import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from './vos/OseliaUserReferrerVO';
 import OseliaVisionPriceVO from './vos/OseliaVisionPriceVO';
 import OpenOseliaDBParamVO, { OpenOseliaDBParamVOStatic } from './vos/apis/OpenOseliaDBParamVO';
-import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
-import ModuleDAO from '../DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
-import ModuleFile from '../File/ModuleFile';
 import OseliaScreenshotParamVO, { OseliaScreenshotParamVOStatic } from './vos/apis/OseliaScreenshotParamVO';
+import RequestOseliaUserConnectionParamVO, { RequestOseliaUserConnectionParamVOStatic } from './vos/apis/RequestOseliaUserConnectionParamVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
@@ -116,6 +113,48 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaVisionPriceVO();
         this.initializeOseliaImagePriceVO();
         this.initializeOseliaAssistantPriceVO();
+
+        this.initializeOseliaRunVO();
+    }
+
+    public initializeOseliaRunVO() {
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().name, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'étape', true);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().assistant_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Assistant', true)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIAssistantVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread - si création', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le contenu', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().content_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false)
+            .set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().prompt_parameters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres du prompt', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().file_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Fichiers', false)
+            .set_many_to_one_target_moduletable_name(FileVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().use_splitter, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Découper la tâche', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().use_validator, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Utiliser le validateur', true, true, false);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début du découpage', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin du découpage', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().waiting_split_end_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début d\'attente des runs enfants', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().waiting_split_end_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin d\'attente des runs enfants', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début du run', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin du run', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début de validation', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin de validation', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', false).setEnumValues(OseliaRunVO.STATE_LABELS);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().parent_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run parent', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
+
+        ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
     }
 
     public initializeOseliaChatVO() {
