@@ -40,6 +40,7 @@ import UserParamVO, { UserParamStatic } from '../API/vos/apis/UserParamVO';
 import OseliaThreadUsersVO from './vos/OseliaThreadUserVO';
 import OseliaThreadUserVO from './vos/OseliaThreadUserVO';
 import OseliaThreadRoleVO from './vos/OseliaThreadRoleVO';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 export default class ModuleOselia extends Module {
 
     public static MODULE_NAME: string = 'Oselia';
@@ -80,6 +81,7 @@ export default class ModuleOselia extends Module {
     public static APINAME_get_screen_track: string = "oselia__get_screen_track";
     public static APINAME_account_waiting_link_status: string = "oselia__account_waiting_link_status";
     public static APINAME_send_join_request: string = "oselia__send_join_request";
+    public static APINAME_create_thread: string = "oselia__create_thread";
 
     // public static APINAME_get_thread_text_content: string = "get_thread_text_content";
 
@@ -91,7 +93,7 @@ export default class ModuleOselia extends Module {
 
     public open_oselia_db: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_open_oselia_db);
     public link_user_to_oselia_referrer: (referrer_code: string, user_email: string, referrer_user_uid: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_link_user_to_oselia_referrer);
-
+    public create_thread: (referrer_user_ott: string, openai_thread_id: string, openai_assistant_id: string) => Promise<number> = APIControllerWrapper.sah(ModuleOselia.APINAME_create_thread);
     public get_referrer_name: (referrer_user_ott: string) => Promise<string> = APIControllerWrapper.sah(ModuleOselia.APINAME_get_referrer_name);
     public accept_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_accept_link);
     public refuse_link: (referrer_user_ott: string) => Promise<void> = APIControllerWrapper.sah(ModuleOselia.APINAME_refuse_link);
@@ -206,6 +208,13 @@ export default class ModuleOselia extends Module {
             ModuleOselia.APINAME_send_join_request,
             [UserVO.API_TYPE_ID, GPTAssistantAPIThreadVO.API_TYPE_ID],
             UserParamStatic
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<OpenOseliaDBParamVO, number>(
+            null,
+            ModuleOselia.APINAME_create_thread,
+            null,
+            OpenOseliaDBParamVOStatic
         ));
     }
 

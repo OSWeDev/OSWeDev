@@ -102,6 +102,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_send_join_request, this.send_join_request.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_set_screen_track, this.set_screen_track.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_get_screen_track, this.get_screen_track.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleOselia.APINAME_create_thread, this.create_thread.bind(this));
     }
 
     // istanbul ignore next: cannot test configure
@@ -674,6 +675,147 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ModuleOseliaServer.screen_track;
     }
 
+    private async create_thread(
+        referrer_user_ott: string,
+        openai_thread_id: string,
+        openai_assistant_id: string,
+        req: Request,
+        res: Response) {
+        /**
+         * On checke le OTT
+         */
+        const user_referrer_ott = await query(OseliaUserReferrerOTTVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaUserReferrerOTTVO>().ott, referrer_user_ott)
+            .exec_as_server()
+            .select_vo<OseliaUserReferrerOTTVO>();
+
+        if (!user_referrer_ott) {
+            ConsoleHandler.error('OTT not found:' + referrer_user_ott);
+            return;
+        }
+
+        const user_referrer: OseliaUserReferrerVO = await query(OseliaUserReferrerVO.API_TYPE_ID)
+            .filter_by_id(user_referrer_ott.user_referrer_id)
+            .exec_as_server()
+            .select_vo<OseliaUserReferrerVO>();
+        if (!user_referrer) {
+            ConsoleHandler.error('Referrer not found:user_referrer_id:' + user_referrer_ott.user_referrer_id);
+            return;
+        }
+
+        /**
+         * On commence par checker le referrer
+         * Puis le user lié au referrer, et le fait que la liaison soit validée, sinon on renvoie vers la demande de confirmation du lien
+         */
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_id(user_referrer.referrer_id)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            ConsoleHandler.error('Referrer not found:referrer_id:' + user_referrer.referrer_id);
+            return;
+        }
+
+        const user = await query(UserVO.API_TYPE_ID)
+            .filter_by_id(user_referrer.user_id)
+            .exec_as_server()
+            .select_vo<UserVO>();
+        if ((!user) || user.archived || user.blocked || user.invalidated) {
+            ConsoleHandler.error('User not valid:referrer_user_uid:' + user_referrer.referrer_user_uid + ':uid:' + user_referrer.user_id);
+
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                referrer.trigger_hook_open_oselia_db_reject_url,
+                ['User not valid (archived, blocked or invalidated):' + user_referrer.referrer_user_uid],
+                referrer.triggers_hook_external_api_authentication_id
+            );
+
+            return;
+        }
+
+        if (!user_referrer.user_validated) {
+            // L'utilisateur est lié, tout est ok, mais il n'a pas encore validé la liaison. On l'envoie sur une page de validation
+
+            /**
+             * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+             */
+            if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+                await ModuleAccessPolicyServer.getInstance().login(user.id);
+            }
+
+            return;
+        }
+
+        /**
+         * On récupère le thread : on le crée si on reçoit null, et dans tous les cas on crée et on récupère le thread depuis OpenAI si on ne le connait pas encore
+         * Si un assistant est passé en param, on le force dans le thread
+         */
+        openai_assistant_id = openai_assistant_id ? openai_assistant_id : null;
+        openai_thread_id = openai_thread_id ? openai_thread_id : null;
+        if ((!openai_assistant_id) && referrer.default_assistant_id) {
+            const default_assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                .filter_by_id(referrer.default_assistant_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIAssistantVO>();
+
+            openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
+        }
+
+        const assistant_vo: GPTAssistantAPIAssistantVO =
+            openai_assistant_id ? await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(openai_assistant_id) : null;
+
+        const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
+            user.id,
+            null,
+            assistant_vo ? assistant_vo.id : null,
+        );
+
+        /**
+         * Si le referrer n'est pas lié au thread, on le lie
+         * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
+         */
+        const current_referrer: OseliaReferrerVO =
+            await query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1)
+                .select_vo<OseliaReferrerVO>();
+
+        if (current_referrer && (current_referrer.id != referrer.id)) {
+            ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
+
+            await this.send_hook_trigger_datas_to_referrer(
+                referrer,
+                'post',
+                referrer.trigger_hook_open_oselia_db_reject_url,
+                ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
+                referrer.triggers_hook_external_api_authentication_id
+            );
+
+            return;
+        }
+
+        if (!current_referrer) {
+
+            const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+            thread_referrer.thread_id = thread.thread_vo.id;
+            thread_referrer.referrer_id = referrer.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+        }
+
+        /**
+         * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+         */
+        if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+            await ModuleAccessPolicyServer.getInstance().login(user.id);
+        }
+
+        return thread.thread_vo.id;
+    }
+
     private async open_oselia_db(
         referrer_user_ott: string,
         openai_thread_id: string,
@@ -768,62 +910,69 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             openai_assistant_id = default_assistant ? default_assistant.gpt_assistant_id : null;
         }
+
+
         const assistant_vo: GPTAssistantAPIAssistantVO =
             openai_assistant_id ? await GPTAssistantAPIServerSyncAssistantsController.get_assistant_or_sync(openai_assistant_id) : null;
-        const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
-            user.id,
-            openai_thread_id,
-            assistant_vo ? assistant_vo.id : null,
-        );
 
-        /**
-         * Si le referrer n'est pas lié au thread, on le lie
-         * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
-         */
-        const current_referrer: OseliaReferrerVO =
-            await query(OseliaReferrerVO.API_TYPE_ID)
-                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
-                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
-                .exec_as_server()
-                .set_limit(1)
-                .select_vo<OseliaReferrerVO>();
-
-        if (current_referrer && (current_referrer.id != referrer.id)) {
-            ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
-
-            await this.send_hook_trigger_datas_to_referrer(
-                referrer,
-                'post',
-                referrer.trigger_hook_open_oselia_db_reject_url,
-                ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
-                referrer.triggers_hook_external_api_authentication_id
+        if (openai_thread_id) {
+            const thread: { thread_gpt: Thread; thread_vo: GPTAssistantAPIThreadVO } = await GPTAssistantAPIServerController.get_thread(
+                user.id,
+                openai_thread_id,
+                assistant_vo ? assistant_vo.id : null,
             );
 
-            res.redirect(referrer.failed_open_oselia_db_target_url);
-            return;
+            /**
+             * Si le referrer n'est pas lié au thread, on le lie
+             * Si un referrer est déjà lié, et que ce n'est pas celui-ci, on renvoie une erreur
+             */
+            const current_referrer: OseliaReferrerVO =
+                await query(OseliaReferrerVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread.thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                    .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                    .exec_as_server()
+                    .set_limit(1)
+                    .select_vo<OseliaReferrerVO>();
+
+            if (current_referrer && (current_referrer.id != referrer.id)) {
+                ConsoleHandler.error('Thread already linked to another referrer:' + referrer.id + ':' + current_referrer.id);
+
+                await this.send_hook_trigger_datas_to_referrer(
+                    referrer,
+                    'post',
+                    referrer.trigger_hook_open_oselia_db_reject_url,
+                    ['Thread already linked to another referrer:openai_thread_id:' + openai_thread_id],
+                    referrer.triggers_hook_external_api_authentication_id
+                );
+
+                res.redirect(referrer.failed_open_oselia_db_target_url);
+                return;
+            }
+
+            if (!current_referrer) {
+
+                const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+                thread_referrer.thread_id = thread.thread_vo.id;
+                thread_referrer.referrer_id = referrer.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+            }
+
+            /**
+             * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
+             */
+            if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
+                await ModuleAccessPolicyServer.getInstance().login(user.id);
+            }
+
+            ModuleDAOServer.getInstance().deleteVOs_as_server([user_referrer_ott]);
+
+            /**
+             * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
+             */
+            res.redirect('/f/oselia/' + thread.thread_vo.id);
+        } else {
+            res.redirect('/f/oselia/' + '_' + '/' + referrer_user_ott);
         }
-
-        if (!current_referrer) {
-
-            const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
-            thread_referrer.thread_id = thread.thread_vo.id;
-            thread_referrer.referrer_id = referrer.id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
-        }
-
-        /**
-         * TODO FIXME vérifier niveau sécu ce qu'on peut faire ou pas à ce niveau... un peu perplexe, mais pour le moment on va login auto
-         */
-        if (ModuleAccessPolicyServer.getLoggedUserId() != user.id) {
-            await ModuleAccessPolicyServer.getInstance().login(user.id);
-        }
-
-        ModuleDAOServer.getInstance().deleteVOs_as_server([user_referrer_ott]);
-
-        /**
-         * Enfin, on redirige vers la page de discussion avec le paramètre qui va bien pour init le thread
-         */
-        res.redirect('/f/oselia/' + thread.thread_vo.id);
     }
 
     private async send_hook_trigger_datas_to_referrer(

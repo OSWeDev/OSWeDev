@@ -9,6 +9,8 @@ import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../dashboard_builder/page/DashboardPageStore';
 import './OseliaDBComponent.scss';
 import { ModuleOseliaGetter } from '../../dashboard_builder/widgets/oselia_thread_widget/OseliaStore';
+import OseliaReferrerVO from '../../../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaUserReferrerOTTVO from '../../../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 
 @Component({
     template: require('./OseliaDBComponent.pug'),
@@ -20,6 +22,9 @@ export default class OseliaDBComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private thread_vo_id: number;
+
+    @Prop({ default: null })
+    private referrer_user_ott: string;
 
     @ModuleDashboardPageAction
     private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
@@ -41,16 +46,30 @@ export default class OseliaDBComponent extends VueComponentBase {
             return;
         }
 
-        this.set_active_field_filters(
-            Object.assign(
-                new FieldFiltersVO(),
-                {
-                    [GPTAssistantAPIThreadVO.API_TYPE_ID]: {
-                        'id': filter(GPTAssistantAPIThreadVO.API_TYPE_ID, 'id').by_id(this.thread_vo_id)
-                    }
-                },
-                this.get_active_field_filters,
-            )
-        );
+        if (this.referrer_user_ott && !this.thread_vo_id) {
+            this.set_active_field_filters(
+                Object.assign(
+                    new FieldFiltersVO(),
+                    {
+                        [OseliaUserReferrerOTTVO.API_TYPE_ID]: {
+                            'id': filter(OseliaUserReferrerOTTVO.API_TYPE_ID, 'ott').by_text_eq(this.referrer_user_ott)
+                        }
+                    },
+                    this.get_active_field_filters,
+                )
+            );
+        } else {
+            this.set_active_field_filters(
+                Object.assign(
+                    new FieldFiltersVO(),
+                    {
+                        [GPTAssistantAPIThreadVO.API_TYPE_ID]: {
+                            'id': filter(GPTAssistantAPIThreadVO.API_TYPE_ID, 'id').by_id(this.thread_vo_id)
+                        }
+                    },
+                    this.get_active_field_filters,
+                )
+            );
+        }
     }
 }

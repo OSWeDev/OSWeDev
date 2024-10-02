@@ -157,7 +157,12 @@ export default class OseliaThreadTitleBuilderBGThread implements IBGThread {
                 .filter_boolean_value('hidden', false)
                 .using(GPTAssistantAPIThreadMessageVO.API_TYPE_ID)
                 .set_sort(new SortByVO(GPTAssistantAPIThreadMessageContentVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageContentVO>().id, true))
+                .set_limit(1)
                 .select_vo<GPTAssistantAPIThreadMessageContentVO>();
+            if (!message_content) {
+                continue;
+            }
+
             if ((!message_content.content_type_text) || (!message_content.content_type_text.value)) {
                 continue;
             }
