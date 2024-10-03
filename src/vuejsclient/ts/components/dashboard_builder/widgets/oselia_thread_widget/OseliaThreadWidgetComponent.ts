@@ -127,7 +127,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private data_received: any = null;
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
-    private referrer: OseliaReferrerVO = null;
+    private send_message_create: boolean = false;
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
@@ -240,14 +240,17 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             return;
         }
 
-        await this.set_referrer();
         await this.set_thread();
 
-        if (!this.thread && this.referrer) {
+        if (!this.thread) {
             this.is_creating_thread = true;
         } else {
-            this.is_creating_thread = false;
+            if (this.is_creating_thread) {
+                this.is_creating_thread = false;
+                this.send_message_create = true;
+            }
         }
+
         this.is_loading_thread = false;
         this.has_access_to_thread = !!this.thread;
     }
@@ -444,11 +447,15 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         await this.set_assistant();
         await this.register_single_vo_updates(GPTAssistantAPIThreadVO.API_TYPE_ID, this.thread.id, reflect<this>().thread);
 
+
         // On check qu'on a un assistant et un seul
         if (this.assistant) {
             this.try_set_can_run_assistant(true);
         }
-
+        if (this.send_message_create && this.new_message_text && this.new_message_text.length > 0) {
+            await this.send_message();
+            this.send_message_create = false;
+        }
         // On récupère les contenus du message
         await this.register_vo_updates_on_list(
             GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
@@ -459,6 +466,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.$nextTick(() => {
             this.scroll_to_bottom();
         });
+
     }
 
     private thread_message_updated() {
@@ -468,37 +476,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         });
     }
 
-
-    private async set_referrer() {
-        const context_query_select = await query(OseliaReferrerVO.API_TYPE_ID)
-            .using(this.get_dashboard_api_type_ids)
-            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                FieldFiltersVOManager.clean_field_filters_for_request(this.get_active_field_filters)
-            ));
-        FieldValueFilterWidgetManager.add_discarded_field_paths(context_query_select, this.get_discarded_field_paths);
-        context_query_select.query_distinct = true;
-
-        const context_query_count: ContextQueryVO = cloneDeep(context_query_select);
-        const nb_ref = await context_query_count.select_count();
-        if (!nb_ref) {
-            if (this.referrer) {
-                this.referrer = null;
-            }
-            return;
-        }
-
-        if (nb_ref > 1) {
-            if (this.referrer) {
-                this.referrer = null;
-            }
-            return;
-        }
-        const ref = await context_query_select.select_vo<OseliaReferrerVO>()
-        if (!ref) {
-            return;
-        }
-        this.referrer = ref;
-    }
     private async set_thread() {
 
         // On check qu'on a un thread et un seul
@@ -518,6 +495,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!nb_threads) {
             if (this.thread) {
                 this.thread = null;
+            }
+            if (context_query_select.filters.length > 0) {
+                for (let filter of context_query_select.filters) {
+                    if ((filter.field_name == field_names<GPTAssistantAPIThreadVO>().id) && (filter.param_numeric)) {
+                        await ModuleOselia.getInstance().send_join_request(VueAppController.getInstance().data_user.id, filter.param_numeric);
+                        return;
+                    }
+                }
             }
             return;
         }
@@ -579,7 +564,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!assistant) {
             return;
         }
-
         this.assistant = assistant;
     }
 
@@ -673,12 +657,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            const ott = await ModuleOselia.getInstance().link_user_to_oselia_referrer(
-                this.referrer.referrer_code,
-                VueAppController.getInstance().data_user.email,
-                VueAppController.getInstance().data_user.id.toString()
-            );
-
             const new_thread: number = await ModuleOselia.getInstance().create_thread();
             if (new_thread) {
                 this.set_active_field_filter({
@@ -690,7 +668,6 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 await this.set_thread();
                 this.is_loading_thread = false;
                 this.has_access_to_thread = !!this.thread;
-                await this.send_message();
                 return;
             } else {
                 return;
@@ -731,7 +708,11 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
                 // Empêche le comportement par défaut
                 event.preventDefault();
                 // Exécute la fonction send
-                this.send_message();
+                if (this.is_creating_thread) {
+                    this.send_create_thread_message();
+                } else {
+                    this.send_message();
+                }
             }
         }
     }

@@ -258,7 +258,6 @@ export default abstract class GeneratorBase {
             Patch20240930AddOseliaFunction_get_thread_text_content.getInstance(),
 
             Patch20240930AddOseliaFunction_send_teams_messages.getInstance(),
-
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

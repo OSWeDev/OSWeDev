@@ -23,9 +23,6 @@ export default class OseliaDBComponent extends VueComponentBase {
     @Prop({ default: null })
     private thread_vo_id: number;
 
-    @Prop({ default: null })
-    private referrer_user_ott: string;
-
     @ModuleDashboardPageAction
     private set_active_field_filters: (active_field_filters: FieldFiltersVO) => void;
 
@@ -46,19 +43,7 @@ export default class OseliaDBComponent extends VueComponentBase {
             return;
         }
 
-        if (this.referrer_user_ott && !this.thread_vo_id) {
-            this.set_active_field_filters(
-                Object.assign(
-                    new FieldFiltersVO(),
-                    {
-                        [OseliaUserReferrerOTTVO.API_TYPE_ID]: {
-                            'id': filter(OseliaUserReferrerOTTVO.API_TYPE_ID, 'ott').by_text_eq(this.referrer_user_ott)
-                        }
-                    },
-                    this.get_active_field_filters,
-                )
-            );
-        } else {
+        if (this.thread_vo_id) {
             this.set_active_field_filters(
                 Object.assign(
                     new FieldFiltersVO(),
