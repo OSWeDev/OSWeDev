@@ -87,6 +87,16 @@ export default class EvolizClientVO {
         payterm: { paytermid: number, label: string },
         // Payment condition type
         paytype: { paytypeid: number, label: string },
+        // Client's default vat rate
+        vat_rate: number,
+        // Client's default rebate in percent
+        rebate_percent: number,
+        // Analytic axis of document, multiple analytics are not supported yet from the API
+        analytic: { id: number, code: string, label: string, enabled: boolean },
+        // Client's default vat exoneration reason code, refer to vat exoneration reasons codes
+        vat_exoneration: string,
+        // Client's default custom vat exoneration reason
+        vat_exoneration_other_reason: string,
         // Penalty rate
         penalty: number,
         // Use legal mention about penalty rate
