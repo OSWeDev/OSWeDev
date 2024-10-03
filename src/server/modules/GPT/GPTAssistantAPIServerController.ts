@@ -33,6 +33,7 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -769,6 +770,8 @@ export default class GPTAssistantAPIServerController {
         files: FileVO[],
         user_id: number = null,
         hide_prompt: boolean = false,
+        oselia_run: OseliaRunVO = null,
+        oselia_run_purpose_state: number = null, // On utilise les states d'Osélia run pour identifier le but de ce run en particulier dans le run Osélia
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
@@ -855,6 +858,25 @@ export default class GPTAssistantAPIServerController {
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // Si on a un oselia_run, on le lie
+            if (oselia_run) {
+
+                switch (oselia_run_purpose_state) {
+                    case OseliaRunVO.STATE_SPLITTING:
+                        oselia_run.split_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_RUNNING:
+                        oselia_run.run_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_VALIDATING:
+                        oselia_run.validation_gpt_run_id = run_vo.id;
+                        break;
+                    default:
+                        throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+            }
 
             // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
 

@@ -118,6 +118,7 @@ import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_cards from './patc
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './patchs/premodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions';
 import Patch20240930AddOseliaFunction_get_thread_text_content from './patchs/postmodules/Patch20240930AddOseliaFunction_get_thread_text_content';
 import Patch20240930AddOseliaFunction_send_teams_messages from './patchs/postmodules/Patch20240930AddOseliaFunction_send_teams_messages';
+import Patch20241003AddParamForSplitterAndValidator from './patchs/postmodules/Patch20241003AddParamForSplitterAndValidator';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -257,6 +258,7 @@ export default abstract class GeneratorBase {
             Patch20240930AddOseliaFunction_get_thread_text_content.getInstance(),
 
             Patch20240930AddOseliaFunction_send_teams_messages.getInstance(),
+            Patch20241003AddParamForSplitterAndValidator.getInstance(),
 
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];

@@ -12,6 +12,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -28,6 +29,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
@@ -64,6 +66,7 @@ import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import OseliaRunServerController from './OseliaRunServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -180,6 +183,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postUpdateTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
         postDeleteTrigger.registerHandler(OseliaReferrerVO.API_TYPE_ID, this, this.clear_reapply_referrers_triggers_OnAllThreads);
+
+        postCreateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread_on_u);
+        postDeleteTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.reset_has_no_run_ready_to_handle_on_thread);
+
+        postUpdateTrigger.registerHandler(GPTAssistantAPIRunVO.API_TYPE_ID, this, this.update_oselia_run_step_on_u_gpt_run);
+
+        postUpdateTrigger.registerHandler(OseliaRunVO.API_TYPE_ID, this, this.update_parent_oselia_run_step_on_u_oselia_run);
 
         preCreateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp);
         preUpdateTrigger.registerHandler(ExternalAPIAuthentificationVO.API_TYPE_ID, this, this.init_api_key_from_mdp_preu);
@@ -334,7 +345,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 });
 
             const data = (response as ChatCompletion).choices[0];
-            ConsoleHandler.log('Images analysé avec succès : ' + file_vo.path)
+            ConsoleHandler.log('Images analysé avec succès : ' + file_vo.path);
             return data.message.content;
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:analyse_image:Error while analysing image:" + error);
@@ -362,9 +373,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 StackContext.get('CLIENT_TAB_ID'),
                 assistant.gpt_assistant_id,
                 thread_vo.gpt_thread_id
-            )
+            );
 
-            ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Screenshot pris avec succès')
+            ConsoleHandler.log('ModuleOseliaServer:take_screenshot:Screenshot pris avec succès');
             return ' ';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:take_screenshot:Error while taking screenshot:" + error);
@@ -403,7 +414,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                     const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
 
-                    const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt'
+                    const file_name = 'oselia_' + new_thread.gpt_thread_id + '.txt';
                     const text_file = new FileVO();
                     text_file.path = ModuleFile.FILES_ROOT + 'upload/' + file_name;
                     text_file.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(text_file)).id;
@@ -643,6 +654,20 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
     }
 
+    /**
+     * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
+     */
+    public async append_new_child_run_step(
+        thread_vo: GPTAssistantAPIThreadVO,
+    ) {
+        const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.run)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        const new_run_step = new OseliaRunVO();
+        new_run_step.assistant_id
+    }
 
     private async set_screen_track(track: MediaStreamTrack): Promise<void> {
         ModuleOseliaServer.screen_track = track;
@@ -1475,4 +1500,167 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     //     }
     //     await promise_pipeline.end();
     // }
+
+    private async reset_has_no_run_ready_to_handle_on_thread(run: OseliaRunVO) {
+        if ((!run) || (!run.thread_id)) {
+            return;
+        }
+
+        const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(run.thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!thread) {
+            return;
+        }
+
+        thread.has_no_run_ready_to_handle = false;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread);
+    }
+
+    private async reset_has_no_run_ready_to_handle_on_thread_on_u(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
+        await this.reset_has_no_run_ready_to_handle_on_thread(vo_holder.post_update_vo);
+    }
+
+    private async update_oselia_run_step_on_u_gpt_run(vo_holder: DAOUpdateVOHolder<GPTAssistantAPIRunVO>) {
+        const gpt_run: GPTAssistantAPIRunVO = vo_holder.post_update_vo;
+
+        if (!gpt_run) {
+            return;
+        }
+
+        // On update uniquement si le gpt_run est terminé
+        if (
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_COMPLETED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_CANCELLED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_CANCELLING) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_EXPIRED) &&
+            (gpt_run.status != GPTAssistantAPIRunVO.STATUS_FAILED)
+        ) {
+            return;
+        }
+
+        const run = await query(OseliaRunVO.API_TYPE_ID)
+            .add_filters([
+                ContextFilterVO.or([
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id).by_num_eq(gpt_run.id),
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_gpt_run_id).by_num_eq(gpt_run.id),
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_gpt_run_id).by_num_eq(gpt_run.id),
+                ])
+            ])
+            .exec_as_server()
+            .select_vo<OseliaRunVO>();
+
+        if (!run) {
+            return;
+        }
+
+        // Si le run GPT est en erreur, on met le run Osélia en erreur
+        switch (gpt_run.status) {
+            case GPTAssistantAPIRunVO.STATUS_CANCELLED:
+            case GPTAssistantAPIRunVO.STATUS_CANCELLING:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_CANCELLED);
+                return;
+            case GPTAssistantAPIRunVO.STATUS_EXPIRED:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_EXPIRED);
+                return;
+            case GPTAssistantAPIRunVO.STATUS_FAILED:
+                if (gpt_run.last_error && gpt_run.last_error.message) {
+                    run.error_msg = gpt_run.last_error.code + ':' + gpt_run.last_error.message;
+                }
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                return;
+        }
+
+
+        switch (run.state) {
+            case OseliaRunVO.STATE_SPLITTING:
+
+                const children = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.id)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                if ((!children) || (children.length == 0)) {
+                    // Si on a pas d'enfants, il y a eu une erreur dans le gpt_run dédié au split, qui visiblement n'a pas fait son taf correctement
+                    run.error_msg = 'No children runs created on a split run, but gpt_run is ended';
+                    // FIXME TODO on pourrait ajouter des actions urls en fait au message pour proposer de reboot le split / run
+                    await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                    return;
+                }
+
+                run.split_end_date = Dates.now();
+                run.waiting_split_end_start_date = Dates.now();
+                run.state = OseliaRunVO.STATE_WAITING_SPLITS_END; // on a pas vraiment besoin du STATE_SPLIT_ENDED, on passe en STATE_WAITING_SPLITS_END directement (et donc les 2 dates)
+                break;
+            case OseliaRunVO.STATE_RUNNING:
+                run.state = OseliaRunVO.STATE_RUN_ENDED;
+                run.run_end_date = Dates.now();
+                break;
+            case OseliaRunVO.STATE_VALIDATING:
+
+                // Si on arrive ici, c'est que le gpt_run de validation s'est terminé SANS validation, donc a priori on a un souci à résoudre,
+                //  et pour autant, il n'y a pas eu de relance automatique du prompt avec correctif
+                //  je sais pas exactement ce que ça veut dire pour le moment, on va en faire un échec, une erreur de validation, et on verra si ça prend du sens par la suite
+                run.error_msg = 'Validation GPT Run ended without validation or rerun. This is unexpected.';
+                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+                break;
+            default:
+                throw new Error('update_oselia_run_step_on_u_gpt_run:Unexpected run state:' + run.state + ':' + run.id);
+        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+    }
+
+    private async update_parent_oselia_run_step_on_u_oselia_run(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
+        const run_vo = vo_holder.post_update_vo;
+
+        if (!run_vo) {
+            return;
+        }
+
+        // Pas de parent, on ne fait rien
+        if (!run_vo.parent_id) {
+            return;
+        }
+
+        // Si on a pas terminé ce run, on ne fait rien
+        if (run_vo.state != OseliaRunVO.STATE_RUN_ENDED) {
+            return;
+        }
+
+        const parent_run = await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_id(run_vo.parent_id)
+            .exec_as_server()
+            .select_vo<OseliaRunVO>();
+
+        if (!parent_run) {
+            return;
+        }
+
+        // Si tous les runs enfants sont terminés, on peut passer le parent en terminé
+        const children_runs = await query(OseliaRunVO.API_TYPE_ID)
+            .filter_by_id(parent_run.id, OseliaRunVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos<OseliaRunVO>();
+
+        let all_children_ended = true;
+        for (const i in children_runs) {
+            if (children_runs[i].state != OseliaRunVO.STATE_RUN_ENDED) {
+                all_children_ended = false;
+                break;
+            }
+        }
+
+        if (all_children_ended) {
+            parent_run.state = OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED;
+            parent_run.waiting_split_end_end_date = Dates.now();
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+        }
+    }
 }

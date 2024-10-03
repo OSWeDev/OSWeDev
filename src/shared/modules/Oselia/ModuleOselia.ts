@@ -12,6 +12,7 @@ import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIRunVO from '../GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
 import DefaultTranslationVO from '../Translation/vos/DefaultTranslationVO';
@@ -125,11 +126,17 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', false)
             .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_title, ModuleTableFieldVO.FIELD_TYPE_string, 'Titre du thread - si création', false);
-        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_content, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le contenu', true, true, false);
-        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().content_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
-        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false)
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_prompt, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer le prompt', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().hide_outputs, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Masquer les messages Osélia', true, true, false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_content_text, ModuleTableFieldVO.FIELD_TYPE_string, 'Contenu', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_prompt_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Prompt', false)
             .set_many_to_one_target_moduletable_name(OseliaPromptVO.API_TYPE_ID);
-        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().prompt_parameters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres du prompt', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initial_prompt_parameters, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres du prompt', false);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_run_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - run', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_splitter_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - splitter', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().initialised_validator_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Prompt initialisé - validateur', false);
+
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false)
             .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().file_id_ranges, ModuleTableFieldVO.FIELD_TYPE_refrange_array, 'Fichiers', false)
@@ -149,9 +156,20 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', false).setEnumValues(OseliaRunVO.STATE_LABELS);
 
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().childrens_are_multithreaded, ModuleTableFieldVO.FIELD_TYPE_boolean, 'Les enfants sont multithreadés', true, true, false);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - SPLIT', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - RUN', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run - VALIDATION', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().parent_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Run parent', false)
             .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
+
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().error_msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message d\'erreur', false);
 
         ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);

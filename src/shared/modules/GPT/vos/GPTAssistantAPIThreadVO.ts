@@ -74,5 +74,18 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
      */
     public has_content: boolean;
 
+    /**
+     * Permet de savoir si un run est potientiellement prêt à être traité sur ce thread
+     *  en gros c'est à false par défaut, on passe à true sur toute modif/création/suppression de run
+     *  et le bgthread repasse à false si après vérif on est toujours bloqué par un process en cours
+     *  ça permet juste de pas bloquer le bgthread sur des threads qui sont stucks pour x,y raisons (par exemple on coupe le serveur au milieu du traitement, si on reprend pas sur erreur, c'est stuck)
+     */
+    public has_no_run_ready_to_handle: boolean;
+
+    /**
+     * Lien vers le run en cours côté GPT, ou le dernier run en date
+     */
+    public last_gpt_run_id: number;
+
     public oswedev_created_at: number;
 }
