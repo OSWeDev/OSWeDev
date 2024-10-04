@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
-import fs, { createWriteStream } from "fs";
+import fs, { copyFileSync, createWriteStream } from "fs";
 import { ChatCompletion, ImagesResponse } from 'openai/resources';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
@@ -74,6 +74,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ModuleVersionedServer from '../Versioned/ModuleVersionedServer';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
+import ActionURLUserVO from '../../../shared/modules/ActionURL/vos/ActionURLUserVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -169,7 +170,15 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Nous allons vous demander l\'autorisation de capturer votre écran, veuillez accepter' },
             'oselia.screenshot.notify.___LABEL___'));
-
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande envoyée' },
+            'oselia.join_request.notify.sent.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande acceptée' },
+            'oselia.join_request.notify.accept.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': 'Demande refusée' },
+            'oselia.join_request.notify.deny.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
             { 'fr-fr': 'Accepter' },
             'oselia.join_request.accept.___LABEL___'));
@@ -419,7 +428,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                     }
 
                     const message = "Bonjour, analyse le fichier texte que je t'envoies, il contient le contenu d'une conversation entre un utilisateur et Osélia, tu dois analyser la conversation et synthétiser de façon concise les informations importantes.";
-                    const messages_contents: string = await this.get_thread_text_content(thread_vo.id);
+                    const messages_contents: string = await ModuleOseliaServer.getInstance().get_thread_text_content(thread_vo.id);
 
                     const new_thread = (await GPTAssistantAPIServerController.get_thread(null, null, assistant.id)).thread_vo;
 
@@ -1276,13 +1285,21 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                         accept_action.action_callback_function_name = reflect<ModuleOseliaServer>().accept_join_request;
                         accept_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-                        accept_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, target_thread_id: target_thread.id });
+                        accept_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, target_thread_id: target_thread.id, thread_message_id: new_thread_message.id });
                         accept_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_SUCCESS;
                         accept_action.button_translatable_name = 'oselia.join_request.accept';
                         accept_action.button_translatable_name_params_json = null;
                         accept_action.button_fc_icon_classnames = ['fa-duotone', 'fa-badge-check'];
                         accept_action.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action)).id;
-                        await ActionURLServerTools.add_right_for_admins_on_action_url(accept_action);
+                        const accept_action_owner = new ActionURLUserVO();
+                        accept_action_owner.user_id = owner_user.id;
+                        accept_action_owner.action_id = accept_action.id;
+                        accept_action_owner.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action_owner)).id;
+
+                        const accept_action_user = new ActionURLUserVO();
+                        accept_action_user.user_id = asking_user_id;
+                        accept_action_user.action_id = accept_action.id;
+                        accept_action_user.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_action_user)).id;
 
 
                         const accept_button = new GPTAssistantAPIThreadMessageContentVO();
@@ -1291,8 +1308,6 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         accept_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
                         accept_button.gpt_thread_message_id = new_thread_message.gpt_id;
                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(accept_button)
-                        await ActionURLServerTools.create_info_cr(accept_action, 'Accepter');
-
 
                         const deny_action = new ActionURLVO();
 
@@ -1303,14 +1318,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                         deny_action.action_callback_function_name = reflect<ModuleOseliaServer>().refuse_join_request;
                         deny_action.action_callback_module_name = ModuleOseliaServer.getInstance().name;
-                        deny_action.params_json = JSON.stringify({ asking_user_id: asking_user.id });
+                        deny_action.params_json = JSON.stringify({ asking_user_id: asking_user.id, thread_message_id: new_thread_message.id });
 
                         deny_action.button_bootstrap_type = ActionURLVO.BOOTSTRAP_BUTTON_TYPE_DANGER;
                         deny_action.button_translatable_name = 'oselia.join_request.deny';
                         deny_action.button_fc_icon_classnames = ['fa-duotone', 'fa-ban'];
                         deny_action.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action)).id;
-                        await ActionURLServerTools.create_info_cr(deny_action, 'Refuser');
-                        await ActionURLServerTools.add_right_for_admins_on_action_url(deny_action);
+
+                        const deny_action_owner = new ActionURLUserVO();
+                        deny_action_owner.user_id = owner_user.id;
+                        deny_action_owner.action_id = deny_action.id;
+                        deny_action_owner.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action_owner)).id;
+
+                        const deny_action_user = new ActionURLUserVO();
+                        deny_action_user.user_id = asking_user_id;
+                        deny_action_user.action_id = deny_action.id;
+                        deny_action_user.id = (await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_action_user)).id;
 
                         const deny_button = new GPTAssistantAPIThreadMessageContentVO();
                         deny_button.content_type_action_url_id = deny_action.id;
@@ -1318,6 +1341,12 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                         deny_button.type = GPTAssistantAPIThreadMessageContentVO.TYPE_ACTION_URL;
                         deny_button.gpt_thread_message_id = new_thread_message.gpt_id;
                         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(deny_button)
+
+                        await PushDataServerController.notifySimpleINFO(
+                            asking_user_id,
+                            StackContext.get('CLIENT_TAB_ID'),
+                            'oselia.join_request.notify.sent.___LABEL___'
+                        );
                         ConsoleHandler.log('ModuleOseliaServer:send_join_request:Sent join request to the owner of the thread');
                         return;
                     }
@@ -1339,7 +1368,8 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
         const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
         const target_thread_id = JSON.parse(action_url.params_json).target_thread_id;
-        if (!asking_user_id || !target_thread_id) {
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_id || !target_thread_message_id) {
             ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur, ou le thread visé pour l\'action URL: ' + action_url.action_name);
             return ActionURLServerTools.create_error_cr(action_url, 'Impossible d\'ajouter l\'utilisateur à la conversation Osélia');
         }
@@ -1354,22 +1384,47 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<OseliaThreadRoleVO>()).id; // User
         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_user_vo);
 
-        // await PushDataServerController.notifyScreenshot(
-        //     asking_user_id,
-        //     StackContext.get('CLIENT_TAB_ID'),
-        //     assistant.gpt_assistant_id,
-        //     thread_vo.gpt_thread_id
-        // );
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            StackContext.get('CLIENT_TAB_ID'),
+            'oselia.join_request.notify.accept.___LABEL___'
+        );
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vos();
+        for (let action_url of current_message_action_urls) {
+            if (action_url.params_json && JSON.parse(action_url.params_json).thread_message_id == target_thread_message_id) {
+                action_url.action_remaining_counter = 0;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+            }
+        }
         return ActionURLServerTools.create_info_cr(action_url, 'Ajout dans la conversation Osélia');
     }
 
-    private async add_user_to_thread() {
-
-    }
-
     public async refuse_join_request(action_url: ActionURLVO, uid: number, req: Request, res: Response): Promise<ActionURLCRVO> {
-        return ActionURLServerTools.create_error_cr(action_url, 'Impossible de trouver la discussion Oselia');
-        return ActionURLServerTools.create_info_cr(action_url, 'Redirection vers la discussion avec Osélia');
+        const asking_user_id = JSON.parse(action_url.params_json).asking_user_id;
+        const target_thread_message_id = JSON.parse(action_url.params_json).thread_message_id;
+        if (!asking_user_id || !target_thread_message_id) {
+            ConsoleHandler.error('Impossible de trouver l\'utilisateur demandeur pour l\'action URL: ' + action_url.action_name);
+            return ActionURLServerTools.create_error_cr(action_url, 'Impossible de refuser l\'ajout à la conversation Osélia');
+        }
+
+        await PushDataServerController.notifySimpleINFO(
+            asking_user_id,
+            null,
+            'oselia.join_request.notify.deny.___LABEL___'
+        );
+
+        const current_message_action_urls: ActionURLVO[] = await query(ActionURLVO.API_TYPE_ID)
+            .filter_by_text_including(field_names<ActionURLVO>().params_json, 'thread_message_id: ' + target_thread_message_id.toString())
+            .exec_as_server()
+            .select_vos();
+        for (let action_url of current_message_action_urls) {
+            action_url.action_remaining_counter = 0;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(action_url);
+        }
+
+        return ActionURLServerTools.create_info_cr(action_url, 'Refus d\'ajout dans la discussion Oselia');
     }
 
     private async clear_referrers_triggers() {

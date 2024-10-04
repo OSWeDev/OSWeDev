@@ -171,7 +171,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     @Watch('data_received')
-    private async onchange_data_receieved() {
+    private async onchange_data_received() {
         const files = [];
         if (this.data_received.length > 0) {
             for (let row of this.data_received) {
@@ -658,16 +658,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             }
 
             const new_thread: number = await ModuleOselia.getInstance().create_thread();
+
             if (new_thread) {
                 this.set_active_field_filter({
                     field_id: field_names<GPTAssistantAPIThreadVO>().id,
                     vo_type: GPTAssistantAPIThreadVO.API_TYPE_ID,
                     active_field_filter: filter(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().id).by_id(new_thread)
                 });
-
-                await this.set_thread();
-                this.is_loading_thread = false;
-                this.has_access_to_thread = !!this.thread;
                 return;
             } else {
                 return;
