@@ -232,7 +232,6 @@ export default class RangeHandler {
      */
     public static get_ranges_according_to_segment_type<U extends IRange>(ranges: U[], target_segment_type: number, strict: boolean = false): U[] {
 
-        let has_changed: boolean = false;
         const res: U[] = [];
 
         for (const i in ranges) {
@@ -267,7 +266,6 @@ export default class RangeHandler {
                 true,
                 true,
                 target_segment_type));
-            has_changed = true;
         }
 
         // if (!has_changed) {
@@ -935,7 +933,7 @@ export default class RangeHandler {
         return res;
     }
 
-    public static cloneArrayFrom<T, U extends IRange>(from: U[]): U[] {
+    public static cloneArrayFrom<U extends IRange>(from: U[]): U[] {
 
         if (!from) {
             return null;
@@ -1171,7 +1169,7 @@ export default class RangeHandler {
      * @param range_cutter
      * @param range_to_cut
      */
-    public static cut_range<T, U extends IRange>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
+    public static cut_range<U extends IRange>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
 
         if (!range_to_cut) {
             return null;
@@ -1360,7 +1358,7 @@ export default class RangeHandler {
      * @param range_cutter
      * @param ranges_to_cut
      */
-    public static cut_ranges<T, U extends IRange>(range_cutter: U, ranges_to_cut: U[]): RangesCutResult<U> {
+    public static cut_ranges<U extends IRange>(range_cutter: U, ranges_to_cut: U[]): RangesCutResult<U> {
 
         let res: RangesCutResult<U> = null;
 
@@ -1373,7 +1371,7 @@ export default class RangeHandler {
         return res;
     }
 
-    public static cuts_ranges<T, U extends IRange>(ranges_cutter: U[], ranges_to_cut: U[]): RangesCutResult<U> {
+    public static cuts_ranges<U extends IRange>(ranges_cutter: U[], ranges_to_cut: U[]): RangesCutResult<U> {
 
         if (!ranges_to_cut) {
             return null;
@@ -1395,7 +1393,7 @@ export default class RangeHandler {
         return (res && (res.chopped_items || res.remaining_items)) ? res : null;
     }
 
-    public static addCutResults<T, U extends IRange>(a: RangesCutResult<U>, b: RangesCutResult<U>): RangesCutResult<U> {
+    public static addCutResults<U extends IRange>(a: RangesCutResult<U>, b: RangesCutResult<U>): RangesCutResult<U> {
 
         if (!a) {
             return b;
@@ -1570,7 +1568,7 @@ export default class RangeHandler {
         }
     }
 
-    public static cloneFrom<T, U extends IRange>(from: U): U {
+    public static cloneFrom<U extends IRange>(from: U): U {
         if (!from) {
             return null;
         }
@@ -2427,7 +2425,7 @@ export default class RangeHandler {
      * @param rangeLiteral
      * @deprecated
      */
-    public static parseRangeBDD<T, U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
+    public static parseRangeBDD<U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
         if (!rangeLiteral) {
             return null;
         }
