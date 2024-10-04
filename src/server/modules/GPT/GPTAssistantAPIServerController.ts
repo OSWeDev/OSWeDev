@@ -1005,8 +1005,10 @@ export default class GPTAssistantAPIServerController {
         hide_content: boolean = false
     ): Promise<GPTAssistantAPIThreadMessageVO> {
         let has_image_file: boolean = false;
+        let has_sound_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
         const files_images: FileVO[] = [];
+        const files_sound: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {
 
             asking_message_vo = new GPTAssistantAPIThreadMessageVO();
@@ -1038,6 +1040,10 @@ export default class GPTAssistantAPIServerController {
                     assistant_files.push(assistant_file_vo);
                     file_ids.push(assistant_file_vo.gpt_file_id);
 
+                    if (file.path.match(/\.(mp3|wav)$/i)) {
+                        has_sound_file = true;
+                        files_sound.push(file);
+                    }
                     if (file.path.match(/\.(jpg|jpeg|png|gif)$/i)) {
                         has_image_file = true;
                         files_images.push(file);
@@ -1129,6 +1135,12 @@ export default class GPTAssistantAPIServerController {
                     content.weight = 0;
                     content.hidden = true;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
+                }
+            }
+            if (has_sound_file) {
+                for (const sounds of files_sound) {
+                    // Create audio item to pass to realtime
+                    // await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
                 }
             }
             asking_message_vo.is_ready = true;

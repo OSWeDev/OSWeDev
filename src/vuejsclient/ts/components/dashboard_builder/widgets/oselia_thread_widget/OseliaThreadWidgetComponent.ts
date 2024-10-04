@@ -343,6 +343,10 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         }
     }
 
+    private async start_voice_record() {
+        // start voice record
+    }
+
     private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
         let file: File;
         if (files) {

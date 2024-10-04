@@ -85,9 +85,14 @@
                                                     img(:src="'/vuejsclient/public/img/xlsx.png'")
                                                 template(v-else-if="key == '.txt'")
                                                     img(:src="'/vuejsclient/public/img/txt.png'")
+                                                template(v-else-if="key == '.mp3'")
+                                                    audio(preload="auto", autobuffer, controls)
+                                                        source(:src="'/' + value.path")
                         .thread_message_input_textarea
                             textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                         .thread_message_input_buttons
+                            .thread_message_input_voice 
+                                button.fa-solid.fa-microphone(v-on:click='start_voice_record')
                             .thread_message_input_file_system
                                 button.fa-solid.fa-files(v-on:click='open_file_system_upload')
                             .thread_message_input_file
@@ -144,9 +149,14 @@
                                                         img(:src="'/vuejsclient/public/img/xlsx.png'")
                                                     template(v-else-if="key == '.txt'")
                                                         img(:src="'/vuejsclient/public/img/txt.png'")
+                                                    template(v-else-if="key == '.mp3'")
+                                                        audio(preload="auto", autobuffer, controls)
+                                                            source(:src="'/' + value.path")
                             .thread_message_input_textarea
                                 textarea(v-model='new_message_text' rows="1" @keydown="handle_new_message_text_keydown" ref='new_message_textarea_ref')
                             .thread_message_input_buttons
+                                .thread_message_input_voice 
+                                    button.fa-solid.fa-microphone(v-on:click='start_voice_record')
                                 .thread_message_input_file_system
                                     button.fa-solid.fa-files(v-on:click='open_file_system_upload')
                                 .thread_message_input_file
