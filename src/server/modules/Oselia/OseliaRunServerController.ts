@@ -11,11 +11,33 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
 import OseliaServerController from './OseliaServerController';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
+import ModuleOseliaServer from './ModuleOseliaServer';
 
 export default class OseliaRunServerController {
 
     public static PARAM_NAME_SPLITTER_PROMPT_PREFIX: string = 'OseliaServerController.SPLITTER_PROMPT_PREFIX';
     public static PARAM_NAME_VALIDATOR_PROMPT_PREFIX: string = 'OseliaServerController.VALIDATOR_PROMPT_PREFIX';
+
+    public static async get_oselia_run_from_grp_run_id(gpt_run_id: number): Promise<OseliaRunVO> {
+
+        if (!gpt_run_id) {
+            throw new Error('get_oselia_run_from_grp_run_id: No gpt_run_id provided');
+        }
+
+        return await query(OseliaRunVO.API_TYPE_ID)
+            .add_filters([
+                ContextFilterVO.or([
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id).by_num_eq(gpt_run_id),
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_gpt_run_id).by_num_eq(gpt_run_id),
+                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_gpt_run_id).by_num_eq(gpt_run_id),
+                ])
+            ])
+            .exec_as_server()
+            .select_vo<OseliaRunVO>();
+    }
 
     public static async split_run(
         run: OseliaRunVO,
@@ -24,6 +46,15 @@ export default class OseliaRunServerController {
     ) {
 
         try {
+
+            const append_new_child_run_step_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().append_new_child_run_step)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIFunctionVO>();
+            if (!append_new_child_run_step_function) {
+                throw new Error('split_run: No append_new_child_run_step_function found');
+            }
 
             await this.initialise_prompts_if_needed(run, assistant, thread);
 
@@ -37,7 +68,9 @@ export default class OseliaRunServerController {
                 files,
                 run.user_id,
                 true,
-                FIXME TODO ADD Tools for SPLIT
+                run,
+                run.state,
+                [append_new_child_run_step_function],
             );
         } catch (error) {
             throw new Error('Error in split_run: ' + error.message);
@@ -64,6 +97,8 @@ export default class OseliaRunServerController {
                 files,
                 run.user_id,
                 true,
+                run,
+                run.state,
             );
         } catch (error) {
             throw new Error('Error in run_run: ' + error.message);
@@ -78,6 +113,21 @@ export default class OseliaRunServerController {
 
         try {
 
+            const validate_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().validate_oselia_run)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIFunctionVO>();
+            const refuse_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().refuse_oselia_run)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIFunctionVO>();
+
+            if ((!validate_run_function) || (!refuse_run_function)) {
+                throw new Error('validate_run: No validate_run_function or refuse_run_function found');
+            }
+
             await this.initialise_prompts_if_needed(run, assistant, thread);
 
             const files = await this.get_run_files(run);
@@ -90,7 +140,9 @@ export default class OseliaRunServerController {
                 files,
                 run.user_id,
                 true,
-                FIXME TODO ADD Tools for validation
+                run,
+                run.state,
+                [validate_run_function, refuse_run_function],
             );
         } catch (error) {
             throw new Error('Error in validate_run: ' + error.message);

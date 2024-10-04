@@ -19,6 +19,7 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
         "OseliaRunVO.STATE_ERROR",
         "OseliaRunVO.STATE_CANCELLED",
         "OseliaRunVO.STATE_EXPIRED",
+        "OseliaRunVO.STATE_NEEDS_RERUN"
     ];
     public static STATE_TODO: number = 0;
     public static STATE_SPLITTING: number = 1;
@@ -33,6 +34,7 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public static STATE_ERROR: number = 10;
     public static STATE_CANCELLED: number = 11;
     public static STATE_EXPIRED: number = 12;
+    public static STATE_NEEDS_RERUN: number = 13;
 
 
     public id: number;
@@ -211,6 +213,11 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
     public childrens_are_multithreaded: boolean;
 
     public error_msg: string;
+
+    public rerun_reason: string;
+    public rerun_new_initial_prompt: string;
+    public rerun_name: string;
+    public rerun_of_run_id: number;
 
     /**
      * FIXME todo on doit pouvoir planifier des runs facilement dans le temps, pour lancer dans 10 minutes par exemple une relance si on a pas eu de réponse à une question, ... et escalader en envoyant un mail ...

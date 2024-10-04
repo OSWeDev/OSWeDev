@@ -170,6 +170,10 @@ export default class ModuleOselia extends Module {
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().weight, ModuleTableFieldVO.FIELD_TYPE_int, 'Poids', true, true, 0);
 
         ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().error_msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Message d\'erreur', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_reason, ModuleTableFieldVO.FIELD_TYPE_string, 'Raison du rerun', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_new_initial_prompt, ModuleTableFieldVO.FIELD_TYPE_string, 'Nouveau prompt initial pour rerun', false);
+        ModuleTableFieldController.create_new(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().rerun_of_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Rerun de', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
 
         ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);

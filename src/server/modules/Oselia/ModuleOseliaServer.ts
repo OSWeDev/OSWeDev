@@ -12,7 +12,6 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ActionURLCRVO from '../../../shared/modules/ActionURL/vos/ActionURLCRVO';
 import ActionURLVO from '../../../shared/modules/ActionURL/vos/ActionURLVO';
-import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -63,10 +62,11 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import TeamsAPIServerController from '../TeamsAPI/TeamsAPIServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
+import OseliaRunServerController from './OseliaRunServerController';
 import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
+import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
-import OseliaRunServerController from './OseliaRunServerController';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -163,6 +163,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaThreadTitleBuilderBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(OseliaOldRunsResyncBGThread.getInstance());
+        ModuleBGThreadServer.getInstance().registerBGThread(OseliaRunBGThread.getInstance());
 
         ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_clear_reapply_referrers_triggers_OnThisThread, this.clear_reapply_referrers_triggers_OnThisThread.bind(this));
         // ForkedTasksController.register_task(ModuleOseliaServer.TASK_NAME_init_missing_thread_titles, this.init_missing_thread_titles.bind(this));
@@ -655,18 +656,149 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     /**
-     * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
+     * Fonction pour l'assistant qui permet de valider un run oselia
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
      */
-    public async append_new_child_run_step(
+    public async validate_oselia_run(
         thread_vo: GPTAssistantAPIThreadVO,
     ) {
+        if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+            return;
+        }
+
         const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
-            .filter_by_id(thread_vo.run)
+            .filter_by_id(thread_vo.last_gpt_run_id)
             .exec_as_server()
             .select_vo<GPTAssistantAPIRunVO>();
 
-        const new_run_step = new OseliaRunVO();
-        new_run_step.assistant_id
+        if (!gpt_run) {
+            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+            return;
+        }
+
+        const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+        if (!oselia_run) {
+            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+            return;
+        }
+
+        await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_VALIDATION_ENDED);
+    }
+
+    /**
+     * Fonction pour l'assistant qui permet de refuser un run oselia et demander une nouvelle exécution avec un prompt modifié
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param rerun_reason la raison du rerun - version longue
+     * @param rerun_name le nom du rerun - la raison en très court
+     * @param rerun_new_initial_prompt le nouveau prompt qui permettra de corriger le run
+     */
+    public async refuse_oselia_run(
+        thread_vo: GPTAssistantAPIThreadVO,
+        rerun_reason: string,
+        rerun_name: string,
+        rerun_new_initial_prompt: string,
+    ) {
+        if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+            return;
+        }
+
+        const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.last_gpt_run_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        if (!gpt_run) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+            return;
+        }
+
+        const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+        if (!oselia_run) {
+            ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+            return;
+        }
+
+        oselia_run.rerun_new_initial_prompt = rerun_new_initial_prompt;
+        oselia_run.rerun_reason = rerun_reason;
+        oselia_run.rerun_name = rerun_name;
+        await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_NEEDS_RERUN);
+    }
+
+    /**
+     * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param name le nom de la tâche
+     * @param prompt le prompt de la tâche
+     * @param weight le poids de la tâche - pour l'ordre d'exécution
+     * @param use_validator si la tâche doit être validée automatiquement - par défaut non pour le moment
+     * @param hide_outputs si les sorties doivent être cachées - par défaut non pour le moment
+     */
+    public async append_new_child_run_step(
+        thread_vo: GPTAssistantAPIThreadVO,
+        name: string,
+        prompt: string,
+        weight: number,
+        use_validator: boolean,
+        hide_outputs: boolean,
+    ): Promise<string> {
+
+        try {
+
+            if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+                return;
+            }
+
+            const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
+                .filter_by_id(thread_vo.last_gpt_run_id)
+                .exec_as_server()
+                .select_vo<GPTAssistantAPIRunVO>();
+
+            if (!gpt_run) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+                return;
+            }
+
+            const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
+            if (!oselia_run) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+                return;
+            }
+
+            const new_run_step = new OseliaRunVO();
+
+            // TODO FIXME : on peut envisager par la suite de changer d'assistant pour les sous-étapes. Cela dit on
+            //  aura peut-etre surtout une autre fonction qui défini un run à par entière, issue du realtime, et qui
+            //  lui se demandera quel assistant est adapté
+            new_run_step.assistant_id = gpt_run.assistant_id;
+
+            new_run_step.thread_id = thread_vo.id;
+            new_run_step.parent_run_id = oselia_run.id;
+            new_run_step.childrens_are_multithreaded = false; // On ne propose pas de créer un split pour le moment donc ce param est inutile.
+            new_run_step.file_id_ranges = oselia_run.file_id_ranges;
+            new_run_step.hide_outputs = hide_outputs;
+            new_run_step.hide_prompt = true;
+            new_run_step.initial_content_text = prompt;
+            new_run_step.initial_prompt_id = null;
+            new_run_step.initial_prompt_parameters = null;
+            new_run_step.name = name;
+            new_run_step.parent_run_id = oselia_run.id;
+            new_run_step.start_date = Dates.now();
+            new_run_step.state = OseliaRunVO.STATE_TODO;
+            new_run_step.thread_title = null;
+            new_run_step.use_splitter = false;
+            new_run_step.use_validator = use_validator;
+            new_run_step.user_id = oselia_run.user_id;
+            new_run_step.weight = weight;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_run_step);
+
+            return 'OK - Tâche ajoutée';
+        } catch (error) {
+            ConsoleHandler.error("ModuleOseliaServer:append_new_child_run_step:Error while appending new child run step:" + error);
+            return "Erreur lors de l'ajout de la tâche:" + error;
+        }
     }
 
     private async set_screen_track(track: MediaStreamTrack): Promise<void> {
@@ -1541,16 +1673,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return;
         }
 
-        const run = await query(OseliaRunVO.API_TYPE_ID)
-            .add_filters([
-                ContextFilterVO.or([
-                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().split_gpt_run_id).by_num_eq(gpt_run.id),
-                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().run_gpt_run_id).by_num_eq(gpt_run.id),
-                    filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().validation_gpt_run_id).by_num_eq(gpt_run.id),
-                ])
-            ])
-            .exec_as_server()
-            .select_vo<OseliaRunVO>();
+        const run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
 
         if (!run) {
             return;
@@ -1579,8 +1702,42 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 return;
         }
 
-
+        let needs_update = true;
         switch (run.state) {
+            case OseliaRunVO.STATE_NEEDS_RERUN:
+                // On doit relancer le run du coup suite à la fait du gpt_run
+                // On crée un nouveau OseliaRun en weight +1 et on décale tous les runs (suivants) de ce niveau de 1
+                const current_level_next_runs = await query(OseliaRunVO.API_TYPE_ID)
+                    .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, run.parent_run_id)
+                    .filter_by_num_sup(field_names<OseliaRunVO>().weight, run.weight)
+                    .exec_as_server()
+                    .select_vos<OseliaRunVO>();
+                for (const i in current_level_next_runs) {
+                    current_level_next_runs[i].weight++;
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(current_level_next_runs);
+
+                run.state = OseliaRunVO.STATE_DONE;
+
+                const rerun = new OseliaRunVO();
+                rerun.assistant_id = run.assistant_id;
+                rerun.childrens_are_multithreaded = run.childrens_are_multithreaded;
+                rerun.file_id_ranges = run.file_id_ranges;
+                rerun.hide_outputs = run.hide_outputs;
+                rerun.hide_prompt = run.hide_prompt;
+                rerun.initial_content_text = run.rerun_new_initial_prompt;
+                rerun.initial_prompt_id = null;
+                rerun.initial_prompt_parameters = null;
+                rerun.name = run.rerun_name;
+                rerun.parent_run_id = run.parent_run_id;
+                rerun.weight = run.weight + 1;
+                rerun.user_id = run.user_id;
+                rerun.state = OseliaRunVO.STATE_TODO;
+                rerun.start_date = Dates.now();
+                rerun.thread_id = run.thread_id;
+                rerun.rerun_of_run_id = run.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rerun);
+                break;
             case OseliaRunVO.STATE_SPLITTING:
 
                 const children = await query(OseliaRunVO.API_TYPE_ID)
@@ -1612,9 +1769,14 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
                 break;
             default:
-                throw new Error('update_oselia_run_step_on_u_gpt_run:Unexpected run state:' + run.state + ':' + run.id);
+                needs_update = false;
+                // throw new Error('update_oselia_run_step_on_u_gpt_run:Unexpected run state:' + run.state + ':' + run.id);
+                break;
         }
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+
+        if (needs_update) {
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
+        }
     }
 
     private async update_parent_oselia_run_step_on_u_oselia_run(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {

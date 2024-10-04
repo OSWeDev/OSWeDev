@@ -2,6 +2,7 @@ import { IDatabase } from "pg-promise";
 import OseliaServerController from "../../../server/modules/Oselia/OseliaServerController";
 import ModuleParams from "../../../shared/modules/Params/ModuleParams";
 import IGeneratorWorker from "../../IGeneratorWorker";
+import OseliaRunServerController from "../../../server/modules/Oselia/OseliaRunServerController";
 
 
 export default class Patch20241003AddParamForSplitterAndValidator implements IGeneratorWorker {
@@ -23,7 +24,7 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
 
     public async work(db: IDatabase<unknown>) {
         await ModuleParams.getInstance().setParamValue(
-            OseliaServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX,
+            OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX,
             '<Dans un premier temps, génère un plan d\'action en 1 ou plusieurs étapes (max 4), qui te serviront ensuite de prompts dans les prochains runs, pour répondre au mieux à cette demande. ' +
             'Le découpage doit être efficace, en utilisant le minimum d\'étapes pour répondre, et chaque étape doit être utile. Il est par exemple inutile de faire une étape pour se préparer à une demande à venir. ' +
             'Quand tu définis une étape, tu peux indiquer que l\'étape doit être validée. Dans ce cas, 2 runs seront lancés, 1 pour faire l\'action, et un second dans la foulée pour vérifier le résultat. ' +
@@ -33,8 +34,8 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
             'Pour le moment tu ne dois fournir que le plan d\'action en appelant la fonction internal_splitter pour chaque étape à réaliser>'
         );
         await ModuleParams.getInstance().setParamValue(
-            OseliaServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX,
-            '<Tu dois maintenant valider que l\'on a bien les réponses au prompt suivant, et qu\'il n\'y a pas eu d\'hallucination de la part de l\'assistant>'
+            OseliaRunServerController.PARAM_NAME_VALIDATOR_PROMPT_PREFIX,
+            '<Tu dois maintenant valider que l\'on a bien les réponses au prompt suivant, et qu\'il n\'y a pas eu d\'hallucination de la part de l\'assistant. Si tu refuses, tu dois indiquer la raison, un nom pour le rerun qui sera lancé pour corriger avec tes retours, et un prompt pour ce nouveau run de l\'assistant>'
         );
     }
 }

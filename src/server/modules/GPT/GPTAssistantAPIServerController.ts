@@ -18,6 +18,7 @@ import GPTAssistantAPIThreadVO from '../../../shared/modules/GPT/vos/GPTAssistan
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import OseliaReferrerExternalAPIVO from '../../../shared/modules/Oselia/vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
@@ -33,7 +34,6 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
-import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -772,6 +772,7 @@ export default class GPTAssistantAPIServerController {
         hide_prompt: boolean = false,
         oselia_run: OseliaRunVO = null,
         oselia_run_purpose_state: number = null, // On utilise les states d'Osélia run pour identifier le but de ce run en particulier dans le run Osélia
+        additional_run_tools: GPTAssistantAPIFunctionVO[] = null,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
@@ -857,7 +858,22 @@ export default class GPTAssistantAPIServerController {
             run_vo.thread_id = thread_vo.id;
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
+
+            // On ajoute la possibilité de rajouter des fonctions dédiées à un run
+            if (additional_run_tools && additional_run_tools.length) {
+                run_vo.tools = [];
+                const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(additional_run_tools);
+
+                if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
+                    run_vo.tools.push(...get_tools_definition_from_functions);
+                }
+            }
+
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // On lie le run à la discussion
+            thread_vo.last_gpt_run_id = run_vo.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
 
             // Si on a un oselia_run, on le lie
             if (oselia_run) {
@@ -887,6 +903,25 @@ export default class GPTAssistantAPIServerController {
             } =
                 await GPTAssistantAPIServerController.get_availableFunctions_and_availableFunctionsParameters(assistant_vo, user_id, gpt_thread_id);
 
+            /**
+             * On ajoute les fonctions dédiées à ce run
+             */
+            if (additional_run_tools && additional_run_tools.length) {
+                const promises = [];
+                for (const i in additional_run_tools) {
+                    const tool = additional_run_tools[i];
+                    availableFunctions[tool.gpt_function_name] = tool;
+
+                    promises.push((async () => {
+                        const funct_params = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+                            .filter_by_num_eq(field_names<GPTAssistantAPIFunctionParamVO>().function_id, tool.id)
+                            .exec_as_server()
+                            .select_vos<GPTAssistantAPIFunctionParamVO>();
+                        availableFunctionsParameters[tool.id] = funct_params;
+                    })());
+                }
+                await all_promises(promises);
+            }
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment

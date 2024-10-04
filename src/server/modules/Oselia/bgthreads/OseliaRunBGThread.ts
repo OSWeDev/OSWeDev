@@ -1,26 +1,18 @@
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
-import GPTAssistantAPIThreadMessageContentVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
-import GPTAssistantAPIThreadMessageVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
 import OseliaRunVO from '../../../../shared/modules/Oselia/vos/OseliaRunVO';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler, { field_names } from '../../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import GPTAssistantAPIServerController from '../../GPT/GPTAssistantAPIServerController';
-import GPTAssistantAPIServerSyncThreadMessagesController from '../../GPT/sync/GPTAssistantAPIServerSyncThreadMessagesController';
 import OseliaRunServerController from '../OseliaRunServerController';
-import OseliaServerController from '../OseliaServerController';
 import OseliaRunBGThreadException from './OseliaRunBGThreadException';
 
 export default class OseliaRunBGThread implements IBGThread {
@@ -296,14 +288,12 @@ export default class OseliaRunBGThread implements IBGThread {
     ) {
         if (run.use_splitter) {
 
-            run.state = OseliaRunVO.STATE_SPLITTING;
-            run.split_start_date = Dates.now();
+            await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_SPLITTING);
             await OseliaRunServerController.split_run(run, thread, assistant);
             return;
         }
 
-        run.state = OseliaRunVO.STATE_RUNNING;
-        run.run_start_date = Dates.now();
+        await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_RUNNING);
         await OseliaRunServerController.run_run(run, thread, assistant);
     }
 

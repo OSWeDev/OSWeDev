@@ -119,6 +119,9 @@ import Patch20240926AddOseliaFunction_TRELLO_trello_get_board_actions from './pa
 import Patch20240930AddOseliaFunction_get_thread_text_content from './patchs/postmodules/Patch20240930AddOseliaFunction_get_thread_text_content';
 import Patch20240930AddOseliaFunction_send_teams_messages from './patchs/postmodules/Patch20240930AddOseliaFunction_send_teams_messages';
 import Patch20241003AddParamForSplitterAndValidator from './patchs/postmodules/Patch20241003AddParamForSplitterAndValidator';
+import Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step from './patchs/premodules/Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step';
+import Patch20241004AddOseliaFunction_OSELIA_refuse_run from './patchs/premodules/Patch20241004AddOseliaFunction_OSELIA_refuse_run';
+import Patch20241004AddOseliaFunction_OSELIA_validate_run from './patchs/premodules/Patch20241004AddOseliaFunction_OSELIA_validate_run';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -260,6 +263,9 @@ export default abstract class GeneratorBase {
             Patch20240930AddOseliaFunction_send_teams_messages.getInstance(),
             Patch20241003AddParamForSplitterAndValidator.getInstance(),
 
+            Patch20241004AddOseliaFunction_OSELIA_refuse_run.getInstance(),
+            Patch20241004AddOseliaFunction_OSELIA_validate_run.getInstance(),
+            Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }
