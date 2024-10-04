@@ -77,6 +77,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             this.internal_semaphore = true;
 
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
             CurrentVarDAGHolder.current_vardag = new VarDAG();
 
             // On initialise ce qui a besoin de l'être

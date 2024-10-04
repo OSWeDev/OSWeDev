@@ -6,6 +6,10 @@ import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
 
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+        return ds_res;
+    }
+
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
      *  et on fournit une fonction simple pour traduire le var_data en clé unique de manière à gérer le cache

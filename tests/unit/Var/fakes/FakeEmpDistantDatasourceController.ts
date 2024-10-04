@@ -1,5 +1,6 @@
 import DataSourceControllerMatroidIndexedBase from '../../../../src/server/modules/Var/datasource/DataSourceControllerMatroidIndexedBase';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
+import VarDataBaseVO from '../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
 import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
 import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
@@ -7,6 +8,8 @@ import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
 export default class FakeEmpDistantDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
     public static fake_distant_datas: FakeEmpDistantVO[] = [];
+
+    protected static instance: FakeEmpDistantDatasourceController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): FakeEmpDistantDatasourceController {
@@ -19,10 +22,12 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
         return FakeEmpDistantDatasourceController.instance;
     }
 
-    protected static instance: FakeEmpDistantDatasourceController = null;
-
     public get_data_index(var_data: FakeEmpDayDataVO): TSRange[] {
         return var_data.ts_ranges;
+    }
+
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+        return ds_res;
     }
 
     public async get_data(param: FakeEmpDayDataVO): Promise<FakeEmpDistantVO[]> {

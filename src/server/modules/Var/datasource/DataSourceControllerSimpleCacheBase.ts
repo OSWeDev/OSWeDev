@@ -7,9 +7,6 @@ import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerSimpleCacheBase extends DataSourceControllerBase {
 
-    private nodes_waiting_for_semaphore: { [var_data_index: string]: VarDAGNode } = {};
-    private promises_waiting_for_semaphore: { [var_data_index: string]: any } = {};
-
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
      *  et on fournit une fonction simple pour traduire le var_data en clé unique de manière à gérer le cache
@@ -17,7 +14,11 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
      *  typiquement si on charge toujours la même data indépendemment du var_data....
      */
     public get_data_index(var_data: VarDataBaseVO): any {
-        return null;
+        return 'c';
+    }
+
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+        return ds_res;
     }
 
     /**
@@ -34,23 +35,36 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         const time_load_node_data_in = Dates.now_ms();
 
-        if (!CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]) {
-            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name] = {};
-        }
+        const data_index: string = this.get_data_index(node.var_data);
 
-        if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'] === 'undefined') {
+        if (typeof CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index] === 'undefined') {
 
-            this.nodes_waiting_for_semaphore[node.var_data.index] = node;
+            if (!CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name]) {
+                CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name] = {};
+            }
+
+            if (!CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index]) {
+                CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index] = {};
+            }
+            CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][node.var_data.index] = node;
+
+            if (!CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name]) {
+                CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name] = {};
+            }
+
+            if (!CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index]) {
+                CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index] = {};
+            }
 
             /**
              * On ajoute un sémaphore pour éviter de faire 10 fois la requête sur un batch
              */
-            if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['semaphore'] === true) {
+            if (CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index] === true) {
                 return new Promise((resolve, reject) => {
-                    this.promises_waiting_for_semaphore[node.var_data.index] = resolve;
+                    CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][node.var_data.index] = resolve;
                 });
             }
-            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['semaphore'] = true;
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index] = true;
 
             StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
 
@@ -60,16 +74,18 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
 
             // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
             StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
-            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
+            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index] = ((typeof data === 'undefined') ? null : data);
 
-            const nodes_waiting_for_semaphore_indexes = Object.keys(this.nodes_waiting_for_semaphore);
+            const nodes_waiting_for_semaphore_indexes = Object.keys(CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index]);
+            delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[this.name][data_index];
+
             for (const i in nodes_waiting_for_semaphore_indexes) {
                 const index = nodes_waiting_for_semaphore_indexes[i];
-                this.nodes_waiting_for_semaphore[index].datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'];
-                delete this.nodes_waiting_for_semaphore[index];
+                CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index].datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index];
+                delete CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index];
 
-                const cb = this.promises_waiting_for_semaphore[index];
-                delete this.promises_waiting_for_semaphore[index];
+                const cb = CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][index];
+                delete CurrentBatchDSCacheHolder.promises_waiting_for_semaphore[this.name][data_index][index];
                 if (cb) {
                     await cb("DataSourceControllerSimpleCacheBase.promises_waiting_for_semaphore");
                 }
@@ -82,7 +98,7 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             return;
         }
 
-        node.datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name]['c'];
+        node.datasources[this.name] = CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index];
 
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_FROM_CACHE');
     }

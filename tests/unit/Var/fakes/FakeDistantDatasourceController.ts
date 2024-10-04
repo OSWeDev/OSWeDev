@@ -1,5 +1,6 @@
 import DataSourceControllerTSRangeIndexedBase from '../../../../src/server/modules/Var/datasource/DataSourceControllerTSRangeIndexedBase';
 import TSRange from '../../../../src/shared/modules/DataRender/vos/TSRange';
+import VarDataBaseVO from '../../../../src/shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../src/shared/tools/RangeHandler';
 import FakeDataVO from './vos/FakeDataVO';
 import FakeDistantVO from './vos/FakeDistantVO';
@@ -7,6 +8,8 @@ import FakeDistantVO from './vos/FakeDistantVO';
 export default class FakeDistantDatasourceController extends DataSourceControllerTSRangeIndexedBase {
 
     public static fake_distant_datas: FakeDistantVO[] = [];
+
+    protected static instance: FakeDistantDatasourceController = null;
 
     // istanbul ignore next: nothing to test
     public static getInstance(): FakeDistantDatasourceController {
@@ -19,10 +22,12 @@ export default class FakeDistantDatasourceController extends DataSourceControlle
         return FakeDistantDatasourceController.instance;
     }
 
-    protected static instance: FakeDistantDatasourceController = null;
-
     public get_data_index(var_data: FakeDataVO): TSRange[] {
         return var_data.ts_ranges;
+    }
+
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+        return ds_res;
     }
 
     public async get_data(param: FakeDataVO): Promise<{ [date_value: number]: FakeDistantVO }> {

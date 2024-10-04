@@ -166,6 +166,7 @@ export default class VarsProcessInvalidator {
         } else if ((Dates.now() - this.last_clear_datasources_cache) > 10 * 60) { // 10 minutes
             this.last_clear_datasources_cache = Dates.now();
             CurrentBatchDSCacheHolder.current_batch_ds_cache = {};
+            CurrentBatchDSCacheHolder.semaphore_batch_ds_cache = {};
             return;
         }
 
@@ -194,6 +195,7 @@ export default class VarsProcessInvalidator {
                 const ds = datasources_dependencies[i];
 
                 delete CurrentBatchDSCacheHolder.current_batch_ds_cache[ds.name];
+                delete CurrentBatchDSCacheHolder.semaphore_batch_ds_cache[ds.name];
             }
         }
     }
