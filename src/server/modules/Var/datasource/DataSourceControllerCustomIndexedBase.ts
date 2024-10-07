@@ -11,9 +11,69 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
 
     public static max_range_index_value: number = 0;
 
+    /**
+     * Permet de changer le param du node pour élargir la plage de données à charger
+     */
+    public target_segment_type: number = null;
+    /**
+     * Champ à modifier du node pour élargir la plage de données à charger
+     */
+    public field_target_segment_type: string = null;
+    /**
+     * Fonction qui permet de récupérer les datas à partir du cache si on a un target_segment_type et field_target_segment_type
+     */
+    public function_target_segment_type: (var_data: VarDataBaseVO, ds_res: any) => any = null;
+
     public abstract zero_is_max_range: boolean;
 
-    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+    /**
+     * Fonction qui permet de récupérer les datas à partir du cache
+     */
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
+        // Si j'ai un target segment type et field, je retourne le résultat de la fonction
+        if ((this.target_segment_type !== null) && (!!this.field_target_segment_type)) {
+            if (!this.function_target_segment_type) {
+                throw new Error('get_data_from_cache: missing function_target_segment_type in ' + this.name);
+            }
+
+            const res = this.function_target_segment_type(var_data, ds_res);
+
+            return (res && (index_value !== null)) ? res[index_value] : res;
+        }
+
+        return (index_value != null) ? ds_res[index_value] : ds_res;
+    }
+
+    /**
+     * Fonction de base qui permet de récupérer les datas à partir du cache si on a un target_segment_type et field_target_segment_type
+     * Il faut que le format des datas soit un objet avec des dates en clé {[i: number]: {[date: number]: any}}
+     */
+    public default_function_target_segment_type(var_data: VarDataBaseVO, ds_res: any): any {
+        // Si j'ai un target segment type et field, je fais le traitement de base
+        if (!!this.field_target_segment_type) {
+            const res: any = {};
+
+            if (!var_data || !ds_res) {
+                return res;
+            }
+
+            for (const i in ds_res) {
+                if (!ds_res[i]) {
+                    continue;
+                }
+
+                if (!res[i]) {
+                    res[i] = {};
+                }
+
+                RangeHandler.foreach_ranges_sync(var_data[this.field_target_segment_type], (date: number) => {
+                    res[i][date] = ds_res[i][date];
+                });
+            }
+
+            return res;
+        }
+
         return ds_res;
     }
 
@@ -30,7 +90,26 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
         StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         const time_load_node_data_in = Dates.now_ms();
 
-        const data_indexs: { [i: number]: { index: string, ts_ranges: TSRange[] } } = this.get_data_index(node.var_data);
+        let var_data_for_calc: VarDataBaseVO = node.var_data;
+
+        // On vérifie qu'on a bien les données nécessaires pour le traitement
+        if (
+            (this.target_segment_type !== null) && (!this.field_target_segment_type) ||
+            (this.target_segment_type == null) && (this.field_target_segment_type)
+        ) {
+            throw new Error('load_node_data: missing target_segment_type or field_target_segment_type in ' + this.name);
+        }
+
+        // Si j'ai un target segment type, je dois le récupérer et l'appliquer sur le var data pour le reste du traitement
+        if ((this.target_segment_type !== null) && (!!this.field_target_segment_type)) {
+            var_data_for_calc = VarDataBaseVO.cloneFromVarId(var_data_for_calc, var_data_for_calc.var_id, true);
+
+            if (!!var_data_for_calc[this.field_target_segment_type]) {
+                var_data_for_calc[this.field_target_segment_type] = RangeHandler.get_ranges_according_to_segment_type(var_data_for_calc[this.field_target_segment_type], this.target_segment_type);
+            }
+        }
+
+        const data_indexs: { [i: number]: { index: string, ts_ranges: TSRange[] } } = this.get_data_index(var_data_for_calc);
 
         if ((!data_indexs)) {
             node.datasources[this.name] = null;
@@ -75,7 +154,7 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
                 StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 const time_in = Dates.now_ms();
 
-                const datas = await this.get_data(node.var_data);
+                const datas = await this.get_data(var_data_for_calc);
 
                 const time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
@@ -112,12 +191,14 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
                         if (is_max_range) {
                             CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index.index][index].datasources[this.name] = this.get_data_from_cache(
                                 CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index.index][index].var_data,
-                                CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index]
+                                CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index],
+                                null
                             );
                         } else {
                             CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index.index][index].datasources[this.name][i] = this.get_data_from_cache(
                                 CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index.index][index].var_data,
-                                CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index]
+                                { [i]: CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index] },
+                                parseInt(i)
                             );
                         }
                     }
@@ -139,12 +220,14 @@ export default abstract class DataSourceControllerCustomIndexedBase extends Data
                 if (is_max_range) {
                     node.datasources[this.name] = this.get_data_from_cache(
                         node.var_data,
-                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index]
+                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index],
+                        null
                     );
                 } else {
                     node.datasources[this.name][i] = this.get_data_from_cache(
                         node.var_data,
-                        CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index]
+                        { [i]: CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index.index] },
+                        parseInt(i)
                     );
                 }
             }

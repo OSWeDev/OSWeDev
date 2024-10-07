@@ -47,5 +47,5 @@ export default abstract class DataSourceControllerBase {
      * Stratégie de chargement des données en fonction du var_data contenu dans le node
      * @param node
      */
-    public abstract get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any;
+    public abstract get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any;
 }

@@ -10,7 +10,7 @@ import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerTSRangeIndexedBase extends DataSourceControllerBase {
 
-    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
         return ds_res;
     }
 
@@ -98,7 +98,8 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
                     if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]) {
                         CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index].datasources[this.name][data_index] = this.get_data_from_cache(
                             CurrentBatchDSCacheHolder.nodes_waiting_for_semaphore[this.name][data_index][index].var_data,
-                            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]
+                            CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index],
+                            null
                         );
                     }
 
@@ -118,7 +119,8 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
             if (CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]) {
                 node.datasources[this.name][data_index] = this.get_data_from_cache(
                     node.var_data,
-                    CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index]
+                    CurrentBatchDSCacheHolder.current_batch_ds_cache[this.name][data_index],
+                    null
                 );
             }
         });

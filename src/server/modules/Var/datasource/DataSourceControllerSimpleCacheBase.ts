@@ -17,7 +17,7 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
         return 'c';
     }
 
-    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
         return ds_res;
     }
 

@@ -26,7 +26,7 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
         return var_data.ts_ranges;
     }
 
-    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any): any {
+    public get_data_from_cache(var_data: VarDataBaseVO, ds_res: any, index_value: number): any {
         return ds_res;
     }
 
