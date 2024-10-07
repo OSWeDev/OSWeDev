@@ -133,6 +133,32 @@
                             .btn-primary.create_dashboard_page
                                 i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
+                            .col-sm-4
+                                .viewport_selector
+                                    multiselect(
+                                        :preselect-first="false"
+                                        :multiple="false"
+                                        v-model="selected_viewport"
+                                        :placeholder="label('dashboard_builder.select_viewport')"
+                                        :options="viewports_options"
+                                        :custom-label="viewport_label"
+                                        :allow-empty="false",
+
+                                        autocomplete="off"
+
+                                        :searchable="true"
+                                        :internal-search="true"
+
+                                        track-by="id"
+
+                                        :id="'viewport_selector'"
+
+                                        :select-label='label("multiselect.selectLabel")'
+                                        :select-group-label='label("multiselect.selectGroupLabel")'
+                                        :selected-label='label("multiselect.selectedLabel")'
+                                        :deselect-label='label("multiselect.deselectLabel")'
+                                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
         template(v-if='!page')
             .row
                 .col-sm-12
@@ -170,7 +196,9 @@
                         :dashboard_page='page' 
                         :dashboard_pages='pages'
                         :dashboard='dashboard' 
-                        :selected_widget='selected_widget' 
+                        :selected_widget='selected_widget'
+                        :viewports='viewports'
+                        :selected_viewport='selected_viewport'
 
                         @select_widget='select_widget'
                         @select_page='select_page'
