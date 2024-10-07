@@ -32,6 +32,7 @@ import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionOpenUrlVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
@@ -661,10 +662,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
      */
     public async validate_oselia_run(
         thread_vo: GPTAssistantAPIThreadVO,
-    ) {
+    ): Promise<string> {
         if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-            return;
+            return 'Impossible de trouver le thread ou le dernier run gpt';
         }
 
         const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -674,16 +675,17 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!gpt_run) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-            return;
+            return 'Impossible de trouver le run gpt';
         }
 
         const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
         if (!oselia_run) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-            return;
+            return 'Impossible de trouver le run oselia associé au run gpt';
         }
 
         await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_VALIDATION_ENDED);
+        return 'OK - Run validé';
     }
 
     /**
@@ -698,10 +700,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         rerun_reason: string,
         rerun_name: string,
         rerun_new_initial_prompt: string,
-    ) {
+    ): Promise<string> {
         if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-            return;
+            return 'Impossible de trouver le thread ou le dernier run gpt';
         }
 
         const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -711,19 +713,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!gpt_run) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-            return;
+            return 'Impossible de trouver le run gpt';
         }
 
         const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
         if (!oselia_run) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-            return;
+            return 'Impossible de trouver le run oselia associé au run gpt';
         }
 
         oselia_run.rerun_new_initial_prompt = rerun_new_initial_prompt;
         oselia_run.rerun_reason = rerun_reason;
         oselia_run.rerun_name = rerun_name;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
         await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_NEEDS_RERUN);
+
+        return 'OK - Run refusé et demande de rerun effectuée';
     }
 
     /**
@@ -746,9 +751,24 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         try {
 
+            if (!name) {
+                ConsoleHandler.error('append_new_child_run_step:Name is mandatory');
+                return 'Le nom est obligatoire';
+            }
+
+            if (!prompt) {
+                ConsoleHandler.error('append_new_child_run_step:Prompt is mandatory');
+                return 'Le prompt est obligatoire';
+            }
+
+            if (!weight) {
+                ConsoleHandler.error('append_new_child_run_step:Weight is mandatory');
+                return 'Le poids est obligatoire';
+            }
+
             if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-                return;
+                return 'Impossible de trouver le thread ou le dernier run gpt';
             }
 
             const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -758,13 +778,20 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if (!gpt_run) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-                return;
+                return 'Impossible de trouver le run gpt';
             }
 
             const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
             if (!oselia_run) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-                return;
+                return 'Impossible de trouver le run oselia associé au run gpt';
+            }
+
+            const prefix_prompt_step_oselia = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+
+            if (!prefix_prompt_step_oselia) {
+                ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le paramètre de configuration:' + OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
+                return 'Impossible de trouver le paramètre de configuration';
             }
 
             const new_run_step = new OseliaRunVO();
@@ -778,9 +805,9 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             new_run_step.parent_run_id = oselia_run.id;
             new_run_step.childrens_are_multithreaded = false; // On ne propose pas de créer un split pour le moment donc ce param est inutile.
             new_run_step.file_id_ranges = oselia_run.file_id_ranges;
-            new_run_step.hide_outputs = hide_outputs;
+            new_run_step.hide_outputs = (hide_outputs == null) ? false : hide_outputs;
             new_run_step.hide_prompt = true;
-            new_run_step.initial_content_text = prompt;
+            new_run_step.initial_content_text = prefix_prompt_step_oselia + prompt;
             new_run_step.initial_prompt_id = null;
             new_run_step.initial_prompt_parameters = null;
             new_run_step.name = name;
@@ -789,7 +816,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             new_run_step.state = OseliaRunVO.STATE_TODO;
             new_run_step.thread_title = null;
             new_run_step.use_splitter = false;
-            new_run_step.use_validator = use_validator;
+            new_run_step.use_validator = (use_validator == null) ? false : use_validator;
             new_run_step.user_id = oselia_run.user_id;
             new_run_step.weight = weight;
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_run_step);
@@ -1703,6 +1730,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         let needs_update = true;
+        let new_state = null;
         switch (run.state) {
             case OseliaRunVO.STATE_NEEDS_RERUN:
                 // On doit relancer le run du coup suite à la fait du gpt_run
@@ -1717,7 +1745,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
                 }
                 await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(current_level_next_runs);
 
-                run.state = OseliaRunVO.STATE_DONE;
+                new_state = OseliaRunVO.STATE_RERUN_ASKED;
 
                 const rerun = new OseliaRunVO();
                 rerun.assistant_id = run.assistant_id;
@@ -1754,10 +1782,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                 run.split_end_date = Dates.now();
                 run.waiting_split_end_start_date = Dates.now();
-                run.state = OseliaRunVO.STATE_WAITING_SPLITS_END; // on a pas vraiment besoin du STATE_SPLIT_ENDED, on passe en STATE_WAITING_SPLITS_END directement (et donc les 2 dates)
+                new_state = OseliaRunVO.STATE_WAITING_SPLITS_END; // on a pas vraiment besoin du STATE_SPLIT_ENDED, on passe en STATE_WAITING_SPLITS_END directement (et donc les 2 dates)
                 break;
             case OseliaRunVO.STATE_RUNNING:
-                run.state = OseliaRunVO.STATE_RUN_ENDED;
+                new_state = OseliaRunVO.STATE_RUN_ENDED;
                 run.run_end_date = Dates.now();
                 break;
             case OseliaRunVO.STATE_VALIDATING:
@@ -1777,6 +1805,10 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         if (needs_update) {
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run);
         }
+
+        if (new_state != null) {
+            await OseliaRunServerController.update_oselia_run_state(run, new_state);
+        }
     }
 
     private async update_parent_oselia_run_step_on_u_oselia_run(vo_holder: DAOUpdateVOHolder<OseliaRunVO>) {
@@ -1787,17 +1819,17 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         }
 
         // Pas de parent, on ne fait rien
-        if (!run_vo.parent_id) {
+        if (!run_vo.parent_run_id) {
             return;
         }
 
         // Si on a pas terminé ce run, on ne fait rien
-        if (run_vo.state != OseliaRunVO.STATE_RUN_ENDED) {
+        if (OseliaRunBGThread.END_STATES.indexOf(run_vo.state) < 0) {
             return;
         }
 
         const parent_run = await query(OseliaRunVO.API_TYPE_ID)
-            .filter_by_id(run_vo.parent_id)
+            .filter_by_id(run_vo.parent_run_id)
             .exec_as_server()
             .select_vo<OseliaRunVO>();
 
@@ -1807,22 +1839,37 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         // Si tous les runs enfants sont terminés, on peut passer le parent en terminé
         const children_runs = await query(OseliaRunVO.API_TYPE_ID)
-            .filter_by_id(parent_run.id, OseliaRunVO.API_TYPE_ID)
+            .filter_by_num_eq(field_names<OseliaRunVO>().parent_run_id, parent_run.id)
             .exec_as_server()
             .select_vos<OseliaRunVO>();
 
         let all_children_ended = true;
+        let has_child_error = false;
         for (const i in children_runs) {
-            if (children_runs[i].state != OseliaRunVO.STATE_RUN_ENDED) {
+            const child_state = children_runs[i].state;
+
+            if (OseliaRunBGThread.END_STATES.indexOf(child_state) < 0) {
                 all_children_ended = false;
                 break;
+            }
+
+            if (OseliaRunBGThread.ERROR_END_STATES.indexOf(child_state) >= 0) {
+                has_child_error = true;
             }
         }
 
         if (all_children_ended) {
-            parent_run.state = OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED;
+
             parent_run.waiting_split_end_end_date = Dates.now();
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+
+            if (has_child_error) {
+                parent_run.error_msg = 'Some children runs ended with errors/expired/cancelled';
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_ERROR);
+            } else {
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(parent_run);
+                OseliaRunServerController.update_oselia_run_state(parent_run, OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED);
+            }
         }
     }
 }

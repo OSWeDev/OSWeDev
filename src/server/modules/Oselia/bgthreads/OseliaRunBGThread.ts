@@ -17,13 +17,11 @@ import OseliaRunBGThreadException from './OseliaRunBGThreadException';
 
 export default class OseliaRunBGThread implements IBGThread {
 
-    private static instance: OseliaRunBGThread = null;
-
     /**
      * Les états qu'on peut faire avancer. ça n'empêche pas de créer des bgthreads ou cron pour corriger des blocages d'état et faire de la reprise sur erreur par ailleurs
      * mais ici on s'intéresse aux états qui peuvent avancer. Pas ended, pas en erreur, pas en attente des enfants, pas en cours
      */
-    private static VALID_NEXT_RUN_STATES: number[] = [
+    public static VALID_NEXT_RUN_STATES: number[] = [
         OseliaRunVO.STATE_TODO,
         // OseliaRunVO.STATE_SPLIT_ENDED, Si le split a eu lieu et est terminé, on est théoriquement passé en STATE_WAITING_SPLITS_END et c'est les enfants qui doivent passer ce run en STATE_WAIT_SPLITS_END_ENDED qui nous permet de continuer
         OseliaRunVO.STATE_WAIT_SPLITS_END_ENDED,
@@ -34,7 +32,7 @@ export default class OseliaRunBGThread implements IBGThread {
     /**
      * Les états qui indiquent un run en attente ou qu'on peut faire avancer, mais pas terminé ni en erreur
      */
-    private static EN_COURS_RUN_STATES: number[] = [
+    public static EN_COURS_RUN_STATES: number[] = [
         OseliaRunVO.STATE_TODO,
         OseliaRunVO.STATE_SPLITTING,
         OseliaRunVO.STATE_SPLIT_ENDED,
@@ -45,6 +43,24 @@ export default class OseliaRunBGThread implements IBGThread {
         OseliaRunVO.STATE_VALIDATING,
         OseliaRunVO.STATE_VALIDATION_ENDED,
     ];
+
+    public static END_STATES: number[] = [
+        OseliaRunVO.STATE_DONE,
+        OseliaRunVO.STATE_ERROR,
+        OseliaRunVO.STATE_CANCELLED,
+        OseliaRunVO.STATE_EXPIRED,
+        OseliaRunVO.STATE_RERUN_ASKED,
+    ];
+
+    public static ERROR_END_STATES: number[] = [
+        // OseliaRunVO.STATE_DONE, // On ne considère pas les runs terminés comme en erreur
+        OseliaRunVO.STATE_ERROR,
+        OseliaRunVO.STATE_CANCELLED,
+        OseliaRunVO.STATE_EXPIRED,
+        // OseliaRunVO.STATE_RERUN_ASKED, // On ne considère pas les runs en rerun comme en erreur car c'est le statut du rerun qui est important
+    ];
+
+    private static instance: OseliaRunBGThread = null;
 
     public current_timeout: number = 10;
     public MAX_timeout: number = 100;
@@ -123,7 +139,7 @@ export default class OseliaRunBGThread implements IBGThread {
             await this.promise_pipeline.push(async () => {
 
                 try {
-                    await this.handle_next_thread_run(run, assistant, thread);
+                    await this.handle_next_thread_run(assistant, thread);
 
                 } catch (error) {
                     ConsoleHandler.error('OseliaRunBGThread: ' + error);
@@ -134,7 +150,7 @@ export default class OseliaRunBGThread implements IBGThread {
             });
 
             this.stats_out('ok', time_in);
-            return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+            return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
 
         } catch (error) {
             ConsoleHandler.error(error);
@@ -152,7 +168,6 @@ export default class OseliaRunBGThread implements IBGThread {
     }
 
     private async handle_next_thread_run(
-        run: OseliaRunVO,
         assistant: GPTAssistantAPIAssistantVO,
         thread: GPTAssistantAPIThreadVO,
     ) {
@@ -197,7 +212,7 @@ export default class OseliaRunBGThread implements IBGThread {
                 throw new Error('OseliaRunBGThread.handle_next_thread_run: next_handleable_run.state not handled: ' + next_handleable_run.state);
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_handleable_run);
+        // await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(next_handleable_run);
     }
 
     /**
@@ -220,6 +235,13 @@ export default class OseliaRunBGThread implements IBGThread {
             if (!current_run) {
                 throw new Error('OseliaRunBGThread.get_next_handleable_run: No next parent run found for thread but tried to get one, which might be a deadlock: ' + thread_to_handle.id + ' - ' + thread_to_handle.thread_title);
             }
+        }
+
+        /**
+         * Si c'est une erreur, on ne peut pas continuer, on doit arrêter le traitement
+         */
+        if (OseliaRunBGThread.ERROR_END_STATES.indexOf(current_run.state) > -1) {
+            throw new OseliaRunBGThreadException();
         }
 
         /**

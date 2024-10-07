@@ -15,11 +15,13 @@ import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/v
 import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import ModuleOseliaServer from './ModuleOseliaServer';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class OseliaRunServerController {
 
     public static PARAM_NAME_SPLITTER_PROMPT_PREFIX: string = 'OseliaServerController.SPLITTER_PROMPT_PREFIX';
     public static PARAM_NAME_VALIDATOR_PROMPT_PREFIX: string = 'OseliaServerController.VALIDATOR_PROMPT_PREFIX';
+    public static PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX: string = 'OseliaServerController.STEP_OSELIA_PROMPT_PREFIX';
 
     public static async get_oselia_run_from_grp_run_id(gpt_run_id: number): Promise<OseliaRunVO> {
 
@@ -71,6 +73,7 @@ export default class OseliaRunServerController {
                 run,
                 run.state,
                 [append_new_child_run_step_function],
+                run.referrer_id,
             );
         } catch (error) {
             throw new Error('Error in split_run: ' + error.message);
@@ -99,6 +102,8 @@ export default class OseliaRunServerController {
                 true,
                 run,
                 run.state,
+                null,
+                run.referrer_id,
             );
         } catch (error) {
             throw new Error('Error in run_run: ' + error.message);
@@ -143,6 +148,7 @@ export default class OseliaRunServerController {
                 run,
                 run.state,
                 [validate_run_function, refuse_run_function],
+                run.referrer_id,
             );
         } catch (error) {
             throw new Error('Error in validate_run: ' + error.message);
@@ -212,6 +218,11 @@ export default class OseliaRunServerController {
         return assistant;
     }
 
+    /**
+     *
+     * @param run ATTENTION le run doit être rechargé juste avant depuis la base de données, sans quoi il a pu être modifié par un autre thread
+     * @param state
+     */
     public static async update_oselia_run_state(
         run: OseliaRunVO,
         state: number
@@ -262,6 +273,17 @@ export default class OseliaRunServerController {
                 run.end_date = Dates.now();
                 // Dans le cas d'une erreur, on envoie une info sur teams
                 await TeamsAPIServerController.send_teams_oselia_error("Erreur sur un run Osélia [" + run.id + "] " + run.name, run.error_msg ? run.error_msg : 'Le run Osélia a rencontré une erreur', run.thread_id);
+                break;
+            case OseliaRunVO.STATE_NEEDS_RERUN:
+                run.rerun_ask_date = Dates.now();
+                break;
+            case OseliaRunVO.STATE_RERUN_ASKED:
+                run.end_date = Dates.now();
+
+                if (ConfigurationService.node_configuration.debug_reruns_of_oselia) {
+                    // Dans le cas d'un rerun, on envoie une info sur teams
+                    await TeamsAPIServerController.send_teams_oselia_warn("Rerun d'un run Osélia [" + run.id + "] " + run.name, run.rerun_name + '<br>' + run.rerun_reason + '<br>' + run.rerun_new_initial_prompt, run.thread_id);
+                }
                 break;
             default:
                 throw new Error('OseliaRunBGThread.update_oselia_run_state: Not Implemented');

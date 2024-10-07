@@ -77,6 +77,8 @@ export default interface IEnvParam {
     debug_export_context_query_to_xlsx_translated_datas?: boolean;
     debug_export_context_query_to_xlsx_xlsx_datas?: boolean;
 
+    debug_reruns_of_oselia?: boolean;
+
     start_maintenance_acceptation_code: string;
     auto_end_maintenance_on_start: boolean;
     code_google_analytics: string;

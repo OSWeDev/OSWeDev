@@ -773,6 +773,7 @@ export default class GPTAssistantAPIServerController {
         oselia_run: OseliaRunVO = null,
         oselia_run_purpose_state: number = null, // On utilise les states d'Osélia run pour identifier le but de ce run en particulier dans le run Osélia
         additional_run_tools: GPTAssistantAPIFunctionVO[] = null,
+        referrer_id: number = null,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
 
         // Objectif : Lancer le Run le plus vite possible, pour ne pas perdre de temps
@@ -859,16 +860,6 @@ export default class GPTAssistantAPIServerController {
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
 
-            // On ajoute la possibilité de rajouter des fonctions dédiées à un run
-            if (additional_run_tools && additional_run_tools.length) {
-                run_vo.tools = [];
-                const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(additional_run_tools);
-
-                if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
-                    run_vo.tools.push(...get_tools_definition_from_functions);
-                }
-            }
-
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
 
             // On lie le run à la discussion
@@ -923,15 +914,38 @@ export default class GPTAssistantAPIServerController {
                 await all_promises(promises);
             }
 
+            // On ajoute la possibilité de rajouter des fonctions dédiées à un run - en complément des fonctions de l'assistant
+            if (additional_run_tools && additional_run_tools.length) {
+                run_vo.tools = [];
+                const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
+
+                if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
+                    run_vo.tools.push(...get_tools_definition_from_functions);
+                }
+            }
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a
             // TODO FIXME : on ne prend en compte que le dernier referrer pour le moment
-            const referrer: OseliaReferrerVO =
-                await query(OseliaReferrerVO.API_TYPE_ID)
-                    .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
-                    .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
-                    .exec_as_server()
-                    .set_limit(1)
-                    .select_vo<OseliaReferrerVO>();
+            const referrer_query = query(OseliaReferrerVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<OseliaThreadReferrerVO>().thread_id, thread_vo.id, OseliaThreadReferrerVO.API_TYPE_ID)
+                .set_sort(new SortByVO(OseliaThreadReferrerVO.API_TYPE_ID, field_names<OseliaThreadReferrerVO>().id, false))
+                .exec_as_server()
+                .set_limit(1);
+            if (referrer_id) {
+                referrer_query.filter_by_id(referrer_id);
+            }
+            let referrer: OseliaReferrerVO = await referrer_query.select_vo<OseliaReferrerVO>();
+
+            if (referrer_id && (!referrer || (referrer.id != referrer_id))) {
+                referrer = await query(OseliaReferrerVO.API_TYPE_ID).filter_by_id(referrer_id).exec_as_server().select_vo<OseliaReferrerVO>();
+                const thread_referrer = new OseliaThreadReferrerVO();
+                thread_referrer.thread_id = thread_vo.id;
+                thread_referrer.referrer_id = referrer.id;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
+            }
+
             const referrer_external_apis: OseliaReferrerExternalAPIVO[] = referrer ?
                 await query(OseliaReferrerExternalAPIVO.API_TYPE_ID)
                     .filter_by_id(referrer.id, OseliaReferrerVO.API_TYPE_ID)
