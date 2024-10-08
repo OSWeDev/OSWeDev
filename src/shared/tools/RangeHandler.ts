@@ -1004,7 +1004,7 @@ export default class RangeHandler {
         return '[' + min_str + ', ' + max_str + (prefer_inclusive_max ? ']' : ')');
     }
 
-    public static rangesFromIndex(index: string, range_type: number): IRange[] {
+    public static rangesFromIndex<T extends IRange>(index: string, range_type: number): T[] {
         return MatroidIndexHandler.from_normalized_ranges(index, range_type);
     }
 
