@@ -49,6 +49,7 @@ import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 import DashboardActiveonViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardActiveonViewportVO';
+import { clone, cloneDeep } from 'lodash';
 
 @Component({
     template: require('./CMSBuilderComponent.pug'),
@@ -1189,7 +1190,13 @@ export default class CMSBuilderComponent extends VueComponentBase {
         const default_positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == default_viewport.id);
 
         // On récupère toutes les positions des pages widgets pour le viewport actuel
-        const positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        let positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        // Si on n'a pas de positions, on va les créer par le trigger d'update
+        if (!(positions?.length > 1)) {
+            await ModuleDAO.getInstance().insertOrUpdateVOs(default_positions);
+
+            positions = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        }
 
         if (set_position_default) {
 
