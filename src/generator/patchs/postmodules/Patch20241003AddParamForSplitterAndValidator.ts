@@ -39,7 +39,8 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
             'tu ne trouves pas dans les appels de fonctions ou dans les éléments disponibles dans la discussion, ou dans la discussion elle-même, le lien entre un nom et un code, ' +
             'mais pourtant ce lien est nécessaire pour justifier le message de l\'assistant. Dans ce cas, demande la source du lien ou de vérifier que ce lien est bien justifié. ' +
             'Si tu peux faire appel aux fonctions qui te permettraient d\'avoir les infos qui te manquent, tente de les appeler directement, et si après cela il te manque encore des infos, fait un bilan de ce que tu as fait et ce qu\'il te manque puis refuse pour avoir le complément. ' +
-            'Si tu refuses, tu dois indiquer la raison, un nom pour le rerun qui sera lancé pour corriger avec tes retours, et un prompt pour ce nouveau run de l\'assistant. Tu ne peux pas refuser de faire une action, tu peux simplement refuser la réponse qui a déjà été formulée dans la discussion>'
+            'Si tu refuses, tu dois indiquer la raison, un nom pour le rerun qui sera lancé pour corriger avec tes retours, et un prompt pour ce nouveau run de l\'assistant. ' +
+            'Tu ne peux pas refuser de faire une action, tu peux simplement refuser la réponse qui a déjà été formulée dans la discussion. Dans TOUS les cas tu dois OBLIGATOIREMENT appeler l\'une ou l\'autre fonction - validate_oselia_run ou refuse_oselia_run>'
         );
 
         await ModuleParams.getInstance().setParamValue(

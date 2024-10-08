@@ -860,33 +860,6 @@ export default class GPTAssistantAPIServerController {
             run_vo.gpt_assistant_id = assistant_vo.gpt_assistant_id;
             run_vo.gpt_thread_id = thread_vo.gpt_thread_id;
 
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
-
-            // On lie le run à la discussion
-            thread_vo.last_gpt_run_id = run_vo.id;
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
-
-            // Si on a un oselia_run, on le lie
-            if (oselia_run) {
-
-                switch (oselia_run_purpose_state) {
-                    case OseliaRunVO.STATE_SPLITTING:
-                        oselia_run.split_gpt_run_id = run_vo.id;
-                        break;
-                    case OseliaRunVO.STATE_RUNNING:
-                        oselia_run.run_gpt_run_id = run_vo.id;
-                        break;
-                    case OseliaRunVO.STATE_VALIDATING:
-                        oselia_run.validation_gpt_run_id = run_vo.id;
-                        break;
-                    default:
-                        throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
-                }
-                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
-            }
-
-            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
-
             // On récupère les fonctions configurées sur cet assistant
             const { availableFunctions, availableFunctionsParameters }: {
                 availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
@@ -919,6 +892,31 @@ export default class GPTAssistantAPIServerController {
                 run_vo.tools = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
+
+            // On lie le run à la discussion
+            thread_vo.last_gpt_run_id = run_vo.id;
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_vo);
+
+            // Si on a un oselia_run, on le lie
+            if (oselia_run) {
+
+                switch (oselia_run_purpose_state) {
+                    case OseliaRunVO.STATE_SPLITTING:
+                        oselia_run.split_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_RUNNING:
+                        oselia_run.run_gpt_run_id = run_vo.id;
+                        break;
+                    case OseliaRunVO.STATE_VALIDATING:
+                        oselia_run.validation_gpt_run_id = run_vo.id;
+                        break;
+                    default:
+                        throw new Error('ask_assistant:oselia_run_purpose_state:Not implemented');
+                }
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run);
+            }
+
+            // à cette étape, le RUN est lancé côté OpenAI, on peut faire les chargements potentiellement nécessaires pour les fonctions
 
 
             // On récupère aussi les informations liées au referrer si il y en a un, de manière à préparer l'exécution des fonctions du referre si on en a

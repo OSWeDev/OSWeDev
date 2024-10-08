@@ -37,7 +37,7 @@ import TeamsWebhookContentActionOpenUrlVO from '../../../shared/modules/TeamsAPI
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslationVO from '../../../shared/modules/Translation/vos/DefaultTranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { field_names } from '../../../shared/tools/ObjectHandler';
+import { field_names, reflect } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ExternalAPIServerController from '../API/ExternalAPIServerController';
@@ -68,6 +68,7 @@ import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -1792,9 +1793,52 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
                 // Si on arrive ici, c'est que le gpt_run de validation s'est terminé SANS validation, donc a priori on a un souci à résoudre,
                 //  et pour autant, il n'y a pas eu de relance automatique du prompt avec correctif
-                //  je sais pas exactement ce que ça veut dire pour le moment, on va en faire un échec, une erreur de validation, et on verra si ça prend du sens par la suite
-                run.error_msg = 'Validation GPT Run ended without validation or rerun. This is unexpected.';
-                await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
+
+                // On tente de relancer le run avec un prompt de correction indiquant qu'il faut dans tous les cas valider ou refuser mais on peut pas rester comme ça
+                ConsoleHandler.warn('update_oselia_run_step_on_u_gpt_run:Validation GPT Run ended without validation or rerun. This is unexpected:' + run.id + ': auto rerun');
+
+                const assistant = await OseliaRunServerController.get_run_assistant(run);
+                const thread = await OseliaRunServerController.get_run_thread(run, assistant);
+                const files = await OseliaRunServerController.get_run_files(run);
+
+                const validate_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().validate_oselia_run)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+                const refuse_run_function = await query(GPTAssistantAPIFunctionVO.API_TYPE_ID)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_name, ModuleOseliaServer.getInstance().name)
+                    .filter_by_text_eq(field_names<GPTAssistantAPIFunctionVO>().module_function, reflect<ModuleOseliaServer>().refuse_oselia_run)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIFunctionVO>();
+
+                if ((!validate_run_function) || (!refuse_run_function)) {
+                    throw new Error('validate_run:forgot to validate: No validate_run_function or refuse_run_function found');
+                }
+
+                const prompt_prefix_validator = await ModuleParams.getInstance().getParamValueAsString(
+                    OseliaRunServerController.PARAM_NAME_REMEMBER_TO_VALIDATE_PROMPT_PREFIX,
+                    'Il est obligatoire de valider ou refuser explicitement le run en appelant la fonction validate_run_function ou refuse_run_function.'
+                );
+
+                await GPTAssistantAPIServerController.ask_assistant(
+                    assistant.gpt_assistant_id,
+                    thread.gpt_thread_id,
+                    run.thread_title,
+                    prompt_prefix_validator,
+                    files,
+                    run.user_id,
+                    true,
+                    run,
+                    run.state,
+                    [validate_run_function, refuse_run_function],
+                    run.referrer_id,
+                );
+
+                needs_update = false;
+                // //  je sais pas exactement ce que ça veut dire pour le moment, on va en faire un échec, une erreur de validation, et on verra si ça prend du sens par la suite
+                // run.error_msg = 'Validation GPT Run ended without validation or rerun. This is unexpected.';
+                // await OseliaRunServerController.update_oselia_run_state(run, OseliaRunVO.STATE_ERROR);
                 break;
             default:
                 needs_update = false;

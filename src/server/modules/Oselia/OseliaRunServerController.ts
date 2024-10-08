@@ -21,6 +21,7 @@ export default class OseliaRunServerController {
 
     public static PARAM_NAME_SPLITTER_PROMPT_PREFIX: string = 'OseliaServerController.SPLITTER_PROMPT_PREFIX';
     public static PARAM_NAME_VALIDATOR_PROMPT_PREFIX: string = 'OseliaServerController.VALIDATOR_PROMPT_PREFIX';
+    public static PARAM_NAME_REMEMBER_TO_VALIDATE_PROMPT_PREFIX: string = 'OseliaServerController.REMEMBER_TO_VALIDATE_PROMPT_PREFIX';
     public static PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX: string = 'OseliaServerController.STEP_OSELIA_PROMPT_PREFIX';
 
     public static async get_oselia_run_from_grp_run_id(gpt_run_id: number): Promise<OseliaRunVO> {
@@ -294,7 +295,7 @@ export default class OseliaRunServerController {
     /**
      * @param run
      */
-    private static async get_run_files(run: OseliaRunVO): Promise<FileVO[]> {
+    public static async get_run_files(run: OseliaRunVO): Promise<FileVO[]> {
         if (!run) {
             throw new Error('get_run_files: No run provided');
         }
