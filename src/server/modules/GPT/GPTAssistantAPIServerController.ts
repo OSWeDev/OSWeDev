@@ -916,12 +916,7 @@ export default class GPTAssistantAPIServerController {
 
             // On ajoute la possibilité de rajouter des fonctions dédiées à un run - en complément des fonctions de l'assistant
             if (additional_run_tools && additional_run_tools.length) {
-                run_vo.tools = [];
-                const get_tools_definition_from_functions = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
-
-                if (get_tools_definition_from_functions && get_tools_definition_from_functions.length) {
-                    run_vo.tools.push(...get_tools_definition_from_functions);
-                }
+                run_vo.tools = await GPTAssistantAPIServerSyncAssistantsController.get_tools_definition_from_functions(Object.values(availableFunctions));
             }
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(run_vo);
 

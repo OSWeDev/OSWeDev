@@ -44,7 +44,7 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
 
         await ModuleParams.getInstance().setParamValue(
             OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX,
-            '<Tu dois te limiter à cette étape - cf découpage ci-dessus> '
+            '<Tu dois te limiter à cette étape> '
         );
     }
 }

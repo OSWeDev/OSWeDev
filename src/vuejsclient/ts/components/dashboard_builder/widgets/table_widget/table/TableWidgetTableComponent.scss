@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "skin-variables.scss";
 
 .table_widget_component {
@@ -19,10 +20,12 @@
 
     >.row {
         height: -webkit-fill-available;
-        
+
         .selected {
-            background: lighten($color: $button_primary_bg_color, $amount: 30%);
+            background: color.adjust($color: $button_primary_bg_color, $lightness: 30%);
+            // background: lighten($color: $button_primary_bg_color, $amount: 30%);
         }
+
         >.col-sm-12 {
             height: -webkit-fill-available;
 
@@ -66,7 +69,7 @@
         .export_button {
             font-size: 14px;
         }
-        
+
         .col-sm-2 {
             margin-top: 6px;
             margin-bottom: 0.2em;
