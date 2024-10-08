@@ -36,6 +36,7 @@
     "author": "Wedev",
     "license": "Apache-2.0",
     "dependencies": {
+        "@3scarecrow/vue-quarter-select": "2.0.0",
         "@fullcalendar/daygrid": "5.3.2",
         "@fullcalendar/interaction": "5.3.1",
         "@fullcalendar/vue": "5.3.1",
@@ -161,7 +162,6 @@
         "zlib": "1.0.5"
     },
     "devDependencies": {
-        "@3scarecrow/vue-quarter-select": "2.0.0",
         "@playwright/test": "1.35.1",
         "@stylistic/eslint-plugin": "1.6.3",
         "@types/adm-zip": "0.5.0",
