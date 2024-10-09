@@ -1209,11 +1209,20 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         const default_positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == default_viewport.id);
 
         // On récupère toutes les positions des pages widgets pour le viewport actuel
-        const positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        let positions: DashboardPageWidgetVO[] = page_widgets.filter((pw) => pw.dashboard_viewport_id == this.selected_viewport.id);
+        // Si on n'a pas de positions, on va les créer
+        if (!(positions?.length > 1)) {
+
+            positions = ObjectHandler.clone_vos(default_positions);
+            for (const i in positions) {
+                const pos = positions[i];
+                pos.dashboard_viewport_id = this.selected_viewport.id;
+                delete pos.id;
+            }
+
+        }
 
         if (set_position_default) {
-
-            const positions_tosave: DashboardPageWidgetVO[] = [];
             // Pour chaque page widget, on crée une position par défaut
             for (const i in positions) {
                 const pos: DashboardPageWidgetVO = positions[i];
@@ -1229,30 +1238,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 } else {
                     pos.x = 0;
                     // y = y du précédent + h du précédent
-                    pos.y = positions_tosave[parseInt(i) - 1].y + positions_tosave[parseInt(i) - 1].h;
+                    pos.y = positions[parseInt(i) - 1].y + positions[parseInt(i) - 1].h;
                 }
-
-                positions_tosave.push(pos);
             }
-
-            await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
-
-        } else {
-            const positions_tosave: DashboardPageWidgetVO[] = [];
-            for (const i in positions) {
-                const default_pos: DashboardPageWidgetVO = default_positions.find((p) => p.i == default_positions[i].i);
-                const pos: DashboardPageWidgetVO = positions[i];
-
-                pos.h = default_pos.h;
-                pos.w = default_pos.w;
-                pos.x = default_pos.x;
-                pos.y = default_pos.y;
-
-                positions_tosave.push(pos);
-            }
-
-            await ModuleDAO.getInstance().insertOrUpdateVOs(positions_tosave);
         }
+
+        await ModuleDAO.getInstance().insertOrUpdateVOs(positions);
 
         action_viewport.active = !action_viewport.active;
 
