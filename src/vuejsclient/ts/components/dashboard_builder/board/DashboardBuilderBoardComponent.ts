@@ -243,14 +243,32 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
          * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
          */
         if (this.selected_widget && this.selected_widget.id) {
-            const page_widget = this.widgets.find(
-                (w) => w.id == this.selected_widget.id
-            );
+
+            let page_widget: DashboardPageWidgetVO = null;
+            if (this.selected_widget?.dashboard_viewport_id == this.selected_viewport?.id) {
+
+                page_widget = this.widgets.find(
+                    (w) => w.id == this.selected_widget.id
+                );
+
+            } else {
+                // Si on est sur un autre viewport, on cherche le widget correspondant
+                page_widget = this.widgets.find(
+                    (w) => w.i == this.selected_widget.i && w.dashboard_viewport_id == this.selected_viewport.id
+                );
+
+                if (!page_widget) {
+                    // Si on ne trouve pas, on prend le premier widget du viewport
+                    page_widget = this.widgets.find(
+                        (w) => w.dashboard_viewport_id == this.selected_viewport.id
+                    );
+                }
+            }
 
             this.set_page_widget(page_widget);
             this.select_widget(page_widget);
-        }
 
+        }
         // On récupère les positions pour le viewport selectionné pour les insérer dans le layout
         const position_layout: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
             .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, this.dashboard_page.id)
@@ -270,7 +288,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         );
 
         widgets = widgets ? widgets.filter((w) =>
-            !this.get_widgets_invisibility[w.id]
+            !this.get_widgets_invisibility[w.id] && (w.dashboard_viewport_id == this.selected_viewport.id)
         ) : null;
 
         if (widgets?.length) {

@@ -3700,33 +3700,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_i(e);
         await ModuleDashboardBuilderServer.getInstance().check_DashboardPageWidgetVO_weight(e);
-        await ModuleDashboardBuilderServer.getInstance().duplicate_for_others_viewports(e);
 
         return true;
-    }
-
-    private async duplicate_for_others_viewports(widget: DashboardPageWidgetVO) {
-        if (!widget) {
-            return;
-        }
-
-        const viewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos();
-        const viewport_of_widget: DashboardViewportVO = await query(DashboardViewportVO.API_TYPE_ID).filter_by_id(widget.dashboard_viewport_id).select_vo();
-        const duplicates: DashboardPageWidgetVO[] = [];
-        for (const i in viewports) {
-            const viewport = viewports[i];
-
-            if (viewport.id == viewport_of_widget.id) {
-                continue;
-            }
-
-            const widget_copy = cloneDeep(widget);
-            widget_copy.dashboard_viewport_id = viewport.id;
-
-            duplicates.push(widget_copy);
-        }
-
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(duplicates);
     }
 
     private async check_DashboardPageWidgetVO_weight(e: DashboardPageWidgetVO) {
