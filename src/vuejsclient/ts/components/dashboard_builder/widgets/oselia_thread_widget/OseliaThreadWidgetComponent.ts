@@ -128,7 +128,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private dashboard_export_id: number = null;
     private is_creating_thread: boolean = false;
     private send_message_create: boolean = false;
-
+    private is_recording_voice: boolean = false;
+    private voice_record: MediaRecorder = null;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -344,9 +345,46 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private async start_voice_record() {
-        // start voice record
+        const audioChunks = [];
+    
+        if (!this.is_recording_voice) {
+            // Commencer l'enregistrement vocal
+            try {
+                await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this.voice_record = new MediaRecorder(stream);
+    
+                if (!this.voice_record) {
+                    return;
+                }
+    
+                this.voice_record.start();
+    
+                // Collecte des données à chaque fois que des données sont disponibles
+                this.voice_record.ondataavailable = (e) => {
+                    audioChunks.push(e.data);
+                };
+    
+                // Lorsque l'enregistrement est arrêté, créez le fichier audio et jouez-le
+                this.voice_record.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+                    // Téléverser le fichier une fois qu'il est créé
+                    const file = new File([blob], "audio.mp3", { type: "audio/mpeg-3" });
+                    this.do_upload_file(null, file);
+                };
+            } catch (err) {
+                console.error("Error accessing microphone", err);
+            }
+        } else {
+            // Arrêter l'enregistrement vocal
+            if (this.voice_record && this.voice_record.state === "recording") {
+                this.voice_record.stop();  // Cela déclenche l'événement 'onstop' ci-dessus
+            }
+        }
+    
+        this.is_recording_voice = !this.is_recording_voice;
     }
-
+    
     private async do_upload_file(fileHandle?: FileSystemFileHandle, files?: File) {
         let file: File;
         if (files) {
@@ -358,6 +396,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         const formData = new FormData();
         const file_name = 'oselia_file_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.' + file.name.split('.').pop();
         formData.append('file', file, file_name);
+        
         await AjaxCacheClientController.getInstance().post(
             null,
             '/ModuleFileServer/upload',

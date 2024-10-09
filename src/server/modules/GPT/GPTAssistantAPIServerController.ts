@@ -38,6 +38,9 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import OseliaThreadRoleVO from '../../../shared/modules/Oselia/vos/OseliaThreadRoleVO';
 import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
+import GPTCompletionAPIConversationVO from '../../../shared/modules/GPT/vos/GPTCompletionAPIConversationVO';
+import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
+import GPTRealtimeAPISessionVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPISessionVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -973,6 +976,44 @@ export default class GPTAssistantAPIServerController {
         return new_messages;
     }
 
+
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public static async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
+        try {
+            if(!session_id) {
+                // Création d'une nouvelle session
+                this.create_realtime_session();
+            }
+        } catch(error) {
+            ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
+        }
+        return;
+    }
+
+    private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
+        try {
+            const session = new GPTRealtimeAPISessionVO();
+            session.object = "realtime.session";
+            session.model = "gpt-4o-realtime-preview-2024-10-01";
+            session.modalities = ["text", "voice"];
+            session.voice = "alloy";
+            session.instructions = "";
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
+        } catch(error) {
+
+        }
+        return;
+    }
+
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {
             const thread_gpt: Thread = (thread_vo.gpt_thread_id) ? await GPTAssistantAPIServerController.wrap_api_call(
@@ -1008,7 +1049,6 @@ export default class GPTAssistantAPIServerController {
         let has_sound_file: boolean = false;
         let asking_message_vo: GPTAssistantAPIThreadMessageVO = null;
         const files_images: FileVO[] = [];
-        const files_sound: FileVO[] = [];
         if (new_msg_content_text || (new_msg_files && new_msg_files.length)) {
 
             asking_message_vo = new GPTAssistantAPIThreadMessageVO();
@@ -1040,10 +1080,6 @@ export default class GPTAssistantAPIServerController {
                     assistant_files.push(assistant_file_vo);
                     file_ids.push(assistant_file_vo.gpt_file_id);
 
-                    if (file.path.match(/\.(mp3|wav)$/i)) {
-                        has_sound_file = true;
-                        files_sound.push(file);
-                    }
                     if (file.path.match(/\.(jpg|jpeg|png|gif)$/i)) {
                         has_image_file = true;
                         files_images.push(file);
@@ -1135,12 +1171,6 @@ export default class GPTAssistantAPIServerController {
                     content.weight = 0;
                     content.hidden = true;
                     await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
-                }
-            }
-            if (has_sound_file) {
-                for (const sounds of files_sound) {
-                    // Create audio item to pass to realtime
-                    // await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(content);
                 }
             }
             asking_message_vo.is_ready = true;

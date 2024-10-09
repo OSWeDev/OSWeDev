@@ -65,6 +65,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import OseliaThreadUserVO from '../../../shared/modules/Oselia/vos/OseliaThreadUserVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import GPTRealtimeAPIConversationItemVO from '../../../shared/modules/GPT/vos/GPTRealtimeAPIConversationItemVO';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -91,6 +92,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_generate_response, this.generate_response.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_ask_assistant, this.ask_assistant.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_rerun, this.rerun.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGPT.APINAME_connect_to_realtime_voice, this.connect_to_realtime_voice.bind(this));
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleGPT.MANUAL_TASK_NAME_sync_openai_datas] = this.sync_openai_datas;
     }
@@ -123,6 +125,21 @@ export default class ModuleGPTServer extends ModuleServerBase {
         hide_content: boolean,
     ): Promise<GPTAssistantAPIThreadMessageVO[]> {
         return await GPTAssistantAPIServerController.ask_assistant(assistant_id, thread_id, thread_title, content, files, user_id, hide_content);
+    }
+
+    /**
+     * Demander un run d'un assistant suite à un nouveau message
+     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+     * @param user_id contenu text du nouveau message
+     * @returns
+     */
+    public async connect_to_realtime_voice(
+        session_id: string,
+        conversation_id: string,
+        user_id: number
+    ): Promise<GPTRealtimeAPIConversationItemVO[]> {
+        return await GPTAssistantAPIServerController.connect_to_realtime_voice(session_id, conversation_id, user_id);
     }
 
     public async assistant_function_get_vo_type_description_controller(

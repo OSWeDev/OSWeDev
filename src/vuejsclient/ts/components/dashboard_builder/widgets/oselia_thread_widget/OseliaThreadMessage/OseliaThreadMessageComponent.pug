@@ -52,6 +52,9 @@
                                         img(:src="'/vuejsclient/public/img/xlsx.png'")
                                     template(v-else-if="key == '.txt'")
                                         img(:src="'/vuejsclient/public/img/txt.png'")
+                                    template(v-else-if="key == '.mp3'")
+                                        audio(preload="auto", autobuffer, controls)
+                                            source(:src="'/' + value.path")  
                                     span 
                                     .thread_message_attachment_content                                    
                                         .thread_message_attachment_content_title 
