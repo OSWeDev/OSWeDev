@@ -221,7 +221,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
     }
 
-    private mounted() {
+    private async mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
@@ -231,6 +231,25 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
 
         this.nb_columns = this.selected_viewport?.nb_columns ? this.selected_viewport.nb_columns : DashboardBuilderBoardComponent.GridLayout_DEFAULT_NB_COLUMNS;
+
+        // Si on a pas de viewport selectionné (cas du viewer), on prend le plus grand possible selon la taille de l'écran
+        if (!this.selected_viewport) {
+            const screen_width = window.innerWidth;
+            let dviewports: DashboardViewportVO[] = await query(DashboardViewportVO.API_TYPE_ID).select_vos<DashboardViewportVO>();
+            let selected_viewport: DashboardViewportVO = dviewports.find((v) => v.is_default == true);
+
+            for (let i in dviewports) {
+                const viewport = dviewports[i];
+
+                if (viewport.screen_min_width <= screen_width &&
+                    (viewport.screen_min_width > selected_viewport.screen_min_width || selected_viewport.screen_min_width > screen_width)) {
+                    selected_viewport = viewport;
+                }
+
+            }
+
+            this.selected_viewport = selected_viewport;
+        }
     }
 
     private async rebuild_page_layout() {
