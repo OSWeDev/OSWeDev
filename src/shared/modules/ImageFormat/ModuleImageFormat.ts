@@ -1,6 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ManualTasksController from '../Cron/ManualTasksController';
 import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
@@ -28,6 +29,8 @@ export default class ModuleImageFormat extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleImageFormat.MODULE_NAME + '.BO_ACCESS';
 
     public static APINAME_get_formatted_image: string = "get_formatted_image";
+
+    public static MANUAL_TASK_NAME_clean_formatted_image = ModuleImageFormat.MODULE_NAME + ' : clean_formatted_image';
 
     // istanbul ignore next: nothing to test
     public static getInstance(): ModuleImageFormat {
@@ -63,6 +66,8 @@ export default class ModuleImageFormat extends Module {
 
         this.initializeImageFormatVO();
         this.initializeFormattedImageVO();
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleImageFormat.MANUAL_TASK_NAME_clean_formatted_image] = null;
     }
 
     private initializeImageFormatVO() {

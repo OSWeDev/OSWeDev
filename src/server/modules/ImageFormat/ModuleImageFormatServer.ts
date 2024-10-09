@@ -8,7 +8,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -16,17 +16,17 @@ import ModuleImageFormat from '../../../shared/modules/ImageFormat/ModuleImageFo
 import FormattedImageVO from '../../../shared/modules/ImageFormat/vos/FormattedImageVO';
 import ImageFormatVO from '../../../shared/modules/ImageFormat/vos/ImageFormatVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
-import { field_names } from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
@@ -74,6 +74,12 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
         postUpdateTrigger.registerHandler(ImageFormatVO.API_TYPE_ID, this, this.handleTriggerPostUpdateImageFormat);
+
+        const postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        postDeleteTrigger.registerHandler(FormattedImageVO.API_TYPE_ID, this, this.handleTriggerPostDeleteFormattedImage);
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleImageFormat.MANUAL_TASK_NAME_clean_formatted_image] =
+            this.clean_formatted_image.bind(this);
     }
 
     // istanbul ignore next: cannot test registerServerApiHandlers
@@ -112,6 +118,21 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         try {
             if (fs.existsSync(rep)) {
                 fs.rmdirSync(rep, { recursive: true });
+            }
+        } catch (e) {
+            ConsoleHandler.error(e);
+        }
+    }
+
+    private async handleTriggerPostDeleteFormattedImage(vo: FormattedImageVO, exec_as_server?: boolean) {
+        if (!vo?.formatted_src) {
+            return;
+        }
+
+        // On supprime le fichier s'il existe toujours
+        try {
+            if (fs.existsSync(vo.formatted_src)) {
+                fs.unlinkSync(vo.formatted_src);
             }
         } catch (e) {
             ConsoleHandler.error(e);
@@ -336,5 +357,62 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             ConsoleHandler.error(error);
             return null;
         }
+    }
+
+    private async clean_formatted_image() {
+        // ETAPE 1 - On récupère tous les FormattedImage et on supprime les vos qui n'ont plus de fichier
+        const formatted_images: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).select_vos<FormattedImageVO>();
+        const formatted_image_by_formatted_src: { [formatted_src: string]: FormattedImageVO } = {};
+        let todelete: FormattedImageVO[] = [];
+
+        for (const i in formatted_images) {
+            const formatted_image: FormattedImageVO = formatted_images[i];
+
+            if (!formatted_image?.formatted_src || !fs.existsSync(formatted_image.formatted_src)) {
+                todelete.push(formatted_image);
+                continue;
+            }
+
+            formatted_image_by_formatted_src[formatted_image.formatted_src] = formatted_image;
+        }
+
+        if (todelete?.length > 0) {
+            await ModuleDAOServer.getInstance().deleteVOs_as_server(todelete);
+        }
+
+        // ETAPE 2 - On récupère les fichiers dans les dossiers et sous dossiers de ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE et on supprime les fichiers qui n'ont pas de FormattedImage associé
+        const files: string[] = this.getAllFiles(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE);
+
+        for (const i in files) {
+            const file: string = files[i];
+
+            if (!formatted_image_by_formatted_src[file]) {
+                fs.unlinkSync(file);
+            }
+        }
+    }
+
+    private getAllFiles(dirPath: string): string[] {
+        let files: string[] = [];
+
+        if (!fs.existsSync(dirPath)) {
+            return files;
+        }
+
+        const filesAndDirs: string[] = fs.readdirSync(dirPath);
+
+        for (const i in filesAndDirs) {
+            const fileOrDir: string = filesAndDirs[i];
+            let fullPath: string = dirPath + fileOrDir;
+
+            if (fs.statSync(fullPath).isDirectory()) {
+                fullPath += '/';
+                files = files.concat(this.getAllFiles(fullPath));
+            } else {
+                files.push(fullPath);
+            }
+        }
+
+        return files;
     }
 }
