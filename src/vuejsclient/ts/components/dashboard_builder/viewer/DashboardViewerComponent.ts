@@ -21,6 +21,7 @@ import SharedFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import FieldFiltersVO from '../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
 import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -83,6 +84,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
     private page: DashboardPageVO = null;
 
     private selected_widget: DashboardPageWidgetVO = null;
+    private viewports: DashboardViewportVO[] = [];
+    private selected_viewport: DashboardViewportVO = null;
 
     private can_edit: boolean = false;
 
@@ -205,6 +208,25 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(
             ModuleDashboardBuilder.POLICY_BO_ACCESS
         );
+
+        // Si on a pas de viewport selectionné (cas du viewer), on prend le plus grand possible selon la taille de l'écran
+        if (!this.selected_viewport) {
+            const screen_width = window.innerWidth;
+            this.viewports = await query(DashboardViewportVO.API_TYPE_ID).select_vos<DashboardViewportVO>();
+            let selected_viewport: DashboardViewportVO = this.viewports.find((v) => v.is_default == true);
+
+            for (let i in this.viewports) {
+                const viewport = this.viewports[i];
+
+                if (viewport.screen_min_width <= screen_width &&
+                    (viewport.screen_min_width > selected_viewport.screen_min_width || selected_viewport.screen_min_width > screen_width)) {
+                    selected_viewport = viewport;
+                }
+
+            }
+
+            this.selected_viewport = selected_viewport;
+        }
 
         this.loading = false;
     }

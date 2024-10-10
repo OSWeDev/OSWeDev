@@ -1228,7 +1228,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 const pos: DashboardPageWidgetVO = positions[i];
 
                 // On va mettre toutes les positions avec la même hauteur que le viewport par défaut mais on adapte la largeur
-                pos.w = (default_positions[i].w > this.selected_viewport.screen_min_width) ? this.selected_viewport.screen_min_width : default_positions[i].w;
+                pos.w = (default_positions[i].w > this.selected_viewport.nb_columns) ? this.selected_viewport.nb_columns : default_positions[i].w;
                 pos.h = default_positions[i].h;
 
                 // Pour les positions x et y, on va mettre le 1er à 0 0 et les autres à la suite en dessous
