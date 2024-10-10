@@ -405,7 +405,7 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
         const res: GPTAssistantAPIToolResourcesVO = new GPTAssistantAPIToolResourcesVO();
 
         const promise_pipeline = new PromisePipeline(ConfigurationService.node_configuration.max_pool / 2);
-        if (data.code_interpreter) {
+        if (data.code_interpreter && data.code_interpreter.file_ids && data.code_interpreter.file_ids.length) {
             res.code_interpreter_gpt_file_ids = cloneDeep(data.code_interpreter.file_ids);
 
             const code_interpreter_file_ids_ranges: NumRange[] = [];
@@ -419,13 +419,18 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
                     }
 
-                    code_interpreter_file_ids_ranges.push(RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(assistant_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: file not found:' + gpt_file_id);
+                    }
+
+                    code_interpreter_file_ids_ranges.push(range);
                 });
             }
             res.code_interpreter_file_ids_ranges = code_interpreter_file_ids_ranges;
         }
 
-        if (data.file_search) {
+        if (data.file_search && data.file_search.vector_store_ids && data.file_search.vector_store_ids.length) {
             res.file_search_gpt_vector_store_ids = cloneDeep(data.file_search.vector_store_ids);
 
             const file_search_vector_store_ids_ranges: NumRange[] = [];
@@ -439,7 +444,12 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
                         throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
                     }
 
-                    file_search_vector_store_ids_ranges.push(RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT));
+                    const range = RangeHandler.create_single_elt_NumRange(vector_store_file.id, NumSegment.TYPE_INT);
+                    if (!range) {
+                        throw new Error('GPTAssistantAPIToolResourcesVO: vector store not found:' + gpt_vector_store_id);
+                    }
+
+                    file_search_vector_store_ids_ranges.push(range);
                 });
             }
             res.file_search_vector_store_ids_ranges = file_search_vector_store_ids_ranges;
@@ -458,13 +468,13 @@ export default class GPTAssistantAPIServerSyncAssistantsController {
 
         const res: AssistantCreateParams.ToolResources = {};
 
-        if (vo.code_interpreter_gpt_file_ids) {
+        if (vo.code_interpreter_gpt_file_ids && vo.code_interpreter_gpt_file_ids.length) {
             res.code_interpreter = {
                 file_ids: cloneDeep(vo.code_interpreter_gpt_file_ids)
             };
         }
 
-        if (vo.file_search_gpt_vector_store_ids) {
+        if (vo.file_search_gpt_vector_store_ids && vo.file_search_gpt_vector_store_ids.length) {
             res.file_search = {
                 vector_store_ids: cloneDeep(vo.file_search_gpt_vector_store_ids)
             };

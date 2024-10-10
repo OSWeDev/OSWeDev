@@ -666,7 +666,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-            return 'Impossible de trouver le thread ou le dernier run gpt';
+            return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -676,13 +676,13 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!gpt_run) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-            return 'Impossible de trouver le run gpt';
+            return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
         if (!oselia_run) {
             ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-            return 'Impossible de trouver le run oselia associé au run gpt';
+            return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         await OseliaRunServerController.update_oselia_run_state(oselia_run, OseliaRunVO.STATE_VALIDATION_ENDED);
@@ -704,7 +704,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     ): Promise<string> {
         if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-            return 'Impossible de trouver le thread ou le dernier run gpt';
+            return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -714,13 +714,13 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
         if (!gpt_run) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-            return 'Impossible de trouver le run gpt';
+            return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
         if (!oselia_run) {
             ConsoleHandler.error('refuse_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-            return 'Impossible de trouver le run oselia associé au run gpt';
+            return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         oselia_run.rerun_new_initial_prompt = rerun_new_initial_prompt;
@@ -754,22 +754,22 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if (!name) {
                 ConsoleHandler.error('append_new_child_run_step:Name is mandatory');
-                return 'Le nom est obligatoire';
+                return 'ERREUR: Le nom est obligatoire. Corriger et relancer la fonction';
             }
 
             if (!prompt) {
                 ConsoleHandler.error('append_new_child_run_step:Prompt is mandatory');
-                return 'Le prompt est obligatoire';
+                return 'ERREUR: Le prompt est obligatoire. Corriger et relancer la fonction';
             }
 
-            if (!weight) {
+            if (weight == null) {
                 ConsoleHandler.error('append_new_child_run_step:Weight is mandatory');
-                return 'Le poids est obligatoire';
+                return 'ERREUR: Le poids est obligatoire. Corriger et relancer la fonction';
             }
 
             if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
-                return 'Impossible de trouver le thread ou le dernier run gpt';
+                return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
             }
 
             const gpt_run = await query(GPTAssistantAPIRunVO.API_TYPE_ID)
@@ -779,20 +779,20 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             if (!gpt_run) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
-                return 'Impossible de trouver le run gpt';
+                return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
             }
 
             const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
             if (!oselia_run) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
-                return 'Impossible de trouver le run oselia associé au run gpt';
+                return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
             }
 
             const prefix_prompt_step_oselia = await ModuleParams.getInstance().getParamValueAsString(OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
 
             if (!prefix_prompt_step_oselia) {
                 ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le paramètre de configuration:' + OseliaRunServerController.PARAM_NAME_STEP_OSELIA_PROMPT_PREFIX);
-                return 'Impossible de trouver le paramètre de configuration';
+                return 'ERREUR: Impossible de trouver le paramètre de configuration. Il peut être pertinent de retenter un appel à la fonction';
             }
 
             const new_run_step = new OseliaRunVO();
@@ -825,7 +825,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             return 'OK - Tâche ajoutée';
         } catch (error) {
             ConsoleHandler.error("ModuleOseliaServer:append_new_child_run_step:Error while appending new child run step:" + error);
-            return "Erreur lors de l'ajout de la tâche:" + error;
+            return "Erreur lors de l'ajout de la tâche:" + error + ". Il peut être pertinent de corriger si possible et de retenter un appel à la fonction";
         }
     }
 

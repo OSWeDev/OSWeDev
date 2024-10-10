@@ -90,7 +90,6 @@ export default class OseliaRunVO implements IDistantVOBase, IVersionedVO {
 
     /**
      * Cacher les messages de l'étape
-     *   TODO FIXME : est-ce qu'on ne devrait pas cacher les messages de l'assistant en cas de split ou de validate ?
      */
     public hide_outputs: boolean;
 
