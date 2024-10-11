@@ -11,6 +11,9 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { field_names } from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import GPTAssistantAPIServerController from '../GPT/GPTAssistantAPIServerController';
+import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
+import ConfigurationService from '../../env/ConfigurationService';
+import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 
 export default class OseliaServerController {
 
@@ -187,5 +190,27 @@ export default class OseliaServerController {
         }
 
         return res;
+    }
+
+    public static async get_self_referrer(): Promise<OseliaReferrerVO> {
+        const referrer = await query(OseliaReferrerVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaReferrerVO>().referrer_origin, ConfigurationService.node_configuration.base_url)
+            .exec_as_server()
+            .select_vo<OseliaReferrerVO>();
+
+        if (!referrer) {
+            ConsoleHandler.error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
+            throw new Error('OseliaServerController:get_self_referrer:Referrer SELF not found !');
+        }
+
+        return referrer;
+    }
+
+    public static async link_thread_to_referrer(thread: GPTAssistantAPIThreadVO, referrer: OseliaReferrerVO) {
+
+        const thread_referrer: OseliaThreadReferrerVO = new OseliaThreadReferrerVO();
+        thread_referrer.thread_id = thread.id;
+        thread_referrer.referrer_id = referrer.id;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread_referrer);
     }
 }

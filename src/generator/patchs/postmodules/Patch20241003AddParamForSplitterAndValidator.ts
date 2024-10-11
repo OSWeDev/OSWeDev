@@ -24,7 +24,7 @@ export default class Patch20241003AddParamForSplitterAndValidator implements IGe
     public async work(db: IDatabase<unknown>) {
         await ModuleParams.getInstance().setParamValue(
             OseliaRunServerController.PARAM_NAME_SPLITTER_PROMPT_PREFIX,
-            '<Dans un premier temps, génère un plan d\'action en 1 ou plusieurs étapes (max 4), qui te serviront ensuite de prompts dans les prochains runs, pour répondre au mieux à cette demande. ' +
+            '<Dans un premier temps, génère un plan d\'action en 1 ou plusieurs étapes, qui te serviront ensuite de prompts dans les prochains runs, pour répondre au mieux à cette demande. ' +
             'Le découpage doit être efficace, en utilisant le minimum d\'étapes pour répondre, et chaque étape doit être utile. Il est par exemple inutile de faire une étape pour se préparer à une demande à venir ou pour valider une étape (puisqu\'il existe un paramètre pour faire une validation automatique). ' +
             'Quand tu définis une étape, tu peux indiquer que l\'étape doit être validée. Dans ce cas, 2 runs seront lancés, 1 pour faire l\'action, et un second dans la foulée pour vérifier le résultat. ' +
             'Pour chaque étape tu dois définir un nom en moins de 50 caractères pour indiquer clairement ce que tu vas faire. ' +

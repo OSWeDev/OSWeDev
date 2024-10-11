@@ -11,6 +11,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../Mailer/TemplateHandlerServer';
 import default_mail_html_template from './default_export_mail_html_template.html';
 import default_mail_html_template_error from './default_export_mail_html_template_error.html';
 import ModuleDataExportServer from './ModuleDataExportServer';
@@ -105,10 +106,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 };
             }
 
-            const translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
-                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated, user.lang_id, mail_param);
+            const translated_mail_subject: string = await TemplateHandlerServer.apply_template(
+                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated, user.lang_id, true, mail_param);
 
-            const prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, mail_param);
+            const prepared_html: string = await TemplateHandlerServer.apply_template(content, user.lang_id, true, mail_param);
 
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,

@@ -13,6 +13,7 @@ import { field_names } from '../../../../shared/tools/ObjectHandler';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import TemplateHandlerServer from '../../Mailer/TemplateHandlerServer';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
@@ -100,7 +101,7 @@ export default class PasswordInitialisation {
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
                 subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(initpwd_mail_html_template, user.lang_id, {
+                html: await TemplateHandlerServer.apply_template(initpwd_mail_html_template, user.lang_id, true, {
                     EMAIL: user.email,
                     UID: user.id.toString(),
                     CODE_CHALLENGE: user.recovery_challenge
@@ -145,7 +146,7 @@ export default class PasswordInitialisation {
         // Using SendInBlue
         await SendInBlueSmsServerController.getInstance().send(
             SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
-            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+            await TemplateHandlerServer.apply_template(translation.translated, user.lang_id, true, {
                 EMAIL: user.email,
                 UID: user.id.toString(),
                 CODE_CHALLENGE: user.recovery_challenge
