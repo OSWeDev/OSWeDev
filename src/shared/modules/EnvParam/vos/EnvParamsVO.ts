@@ -235,6 +235,7 @@ export default class EnvParamsVO implements IDistantVOBase {
     // BLOCK_TEAMS_MESSAGES?: boolean;
     public block_teams_messages: boolean;
 
+    public unblock_realtime_api: boolean = false;
     // logo_path?: string;
     public logo_path: string;
 

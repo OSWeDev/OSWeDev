@@ -130,6 +130,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private send_message_create: boolean = false;
     private is_recording_voice: boolean = false;
     private voice_record: MediaRecorder = null;
+    private use_realtime_voice: boolean = false;
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
 
@@ -201,6 +202,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     }
 
     private mounted() {
+        this.use_realtime_voice = ConfigurationService.node_configuration.unblock_realtime_api;
         this.frame = parent.document.getElementById('OseliaContainer');
 
         window.addEventListener('paste', e => {
@@ -350,7 +352,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.is_recording_voice) {
             // Commencer l'enregistrement vocal
             try {
-                await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
+                // await ModuleGPT.getInstance().connect_to_realtime_voice(null,null,this.data_user.id);
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 this.voice_record = new MediaRecorder(stream);
     

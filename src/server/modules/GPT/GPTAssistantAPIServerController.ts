@@ -977,42 +977,42 @@ export default class GPTAssistantAPIServerController {
     }
 
 
-    /**
-     * Demander un run d'un assistant suite à un nouveau message
-     * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
-     * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
-     * @param user_id contenu text du nouveau message
-     * @returns
-     */
-    public static async connect_to_realtime_voice(
-        session_id: string,
-        conversation_id: string,
-        user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
-        try {
-            if(!session_id) {
-                // Création d'une nouvelle session
-                this.create_realtime_session();
-            }
-        } catch(error) {
-            ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
-        }
-        return;
-    }
+    // /**
+    //  * Demander un run d'un assistant suite à un nouveau message
+    //  * @param session_id null pour une nouvelle session, id de la session au sens de l'API GPT
+    //  * @param conversation_id null pour un nouveau thread, sinon l'id du thread au sens de l'API GPT
+    //  * @param user_id contenu text du nouveau message
+    //  * @returns
+    //  */
+    // public static async connect_to_realtime_voice(
+    //     session_id: string,
+    //     conversation_id: string,
+    //     user_id: number): Promise<GPTRealtimeAPIConversationItemVO[]> {
+    //     try {
+    //         if(!session_id) {
+    //             // Création d'une nouvelle session
+    //             this.create_realtime_session();
+    //         }
+    //     } catch(error) {
+    //         ConsoleHandler.error('GPTAssistantAPIServerController.connect_to_realtime_voice: ' + error);
+    //     }
+    //     return;
+    // }
 
-    private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
-        try {
-            const session = new GPTRealtimeAPISessionVO();
-            session.object = "realtime.session";
-            session.model = "gpt-4o-realtime-preview-2024-10-01";
-            session.modalities = ["text", "voice"];
-            session.voice = "alloy";
-            session.instructions = "";
-            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
-        } catch(error) {
+    // private static async create_realtime_session(): Promise<GPTRealtimeAPISessionVO> {
+    //     try {
+    //         const session = new GPTRealtimeAPISessionVO();
+    //         session.object = "realtime.session";
+    //         session.model = "gpt-4o-realtime-preview-2024-10-01";
+    //         session.modalities = ["text", "voice"];
+    //         session.voice = "alloy";
+    //         session.instructions = "";
+    //         await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(session);
+    //     } catch(error) {
 
-        }
-        return;
-    }
+    //     }
+    //     return;
+    // }
 
     private static async resync_thread_messages(thread_vo: GPTAssistantAPIThreadVO) {
         try {

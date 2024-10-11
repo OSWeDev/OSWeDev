@@ -113,6 +113,7 @@ export default class EnvParam implements IEnvParam {
     public debug_add_var_columns_values_for_xlsx_datas?: boolean = false;
 
     public block_teams_messages?: boolean = true;
+    public unblock_realtime_api?: boolean = false;
 
     // TEAMS Webhooks
     public teams_webhook_send_message?: string = null;
