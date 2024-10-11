@@ -14,6 +14,22 @@ import { field_names } from '../../../tools/ObjectHandler';
  */
 export default class DashboardPageWidgetVOManager {
 
+    private static instance: DashboardPageWidgetVOManager = null;
+
+    public page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
+    public page_widgets: DashboardPageWidgetVO[] = null; // The last loaded page_widgets
+
+    protected constructor() { }
+
+    // istanbul ignore next: nothing to test
+    public static getInstance(): DashboardPageWidgetVOManager {
+        if (!DashboardPageWidgetVOManager.instance) {
+            DashboardPageWidgetVOManager.instance = new DashboardPageWidgetVOManager();
+        }
+
+        return DashboardPageWidgetVOManager.instance;
+    }
+
     /**
      * check_page_widget_vo_access
      * - Check if user has access to page_widget vo
@@ -537,20 +553,4 @@ export default class DashboardPageWidgetVOManager {
 
         return page_widget;
     }
-
-    // istanbul ignore next: nothing to test
-    public static getInstance(): DashboardPageWidgetVOManager {
-        if (!DashboardPageWidgetVOManager.instance) {
-            DashboardPageWidgetVOManager.instance = new DashboardPageWidgetVOManager();
-        }
-
-        return DashboardPageWidgetVOManager.instance;
-    }
-
-    private static instance: DashboardPageWidgetVOManager = null;
-
-    public page_widgets_by_page_id: { [page_id: number]: DashboardPageWidgetVO[] } = {};
-    public page_widgets: DashboardPageWidgetVO[] = null; // The last loaded page_widgets
-
-    protected constructor() { }
 }

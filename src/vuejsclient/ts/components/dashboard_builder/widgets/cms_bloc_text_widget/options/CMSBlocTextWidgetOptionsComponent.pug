@@ -28,6 +28,7 @@
                     placeholder=''
                     
                     name="titre_alignement_selector"
+                    
                 )
 
         .widget_subtitle_label {{ label('cms_bloc_text.widget_option.sous_titre') }}
@@ -58,10 +59,11 @@
                     placeholder=''
                     
                     name="sous_titre_alignement_selector"
+                    
                 )
 
         .widget_title_label {{ label('cms_bloc_text.widget_option.contenu') }}
-            textarea.form-control(type='text', v-model='contenu')
+            Vuequilleditor(v-model='contenu')
 
             .input_label {{ label('cms_bloc_text.widget_option.alignement_contenu') }}
             .input_wrapper
@@ -84,4 +86,5 @@
                     placeholder=''
                     
                     name="contenu_alignement_selector"
+                    
                 )

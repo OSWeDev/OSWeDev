@@ -323,6 +323,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
                     page_widget.page_id = self.dashboard_page.id;
                     page_widget.widget_id = widget.id;
+                    page_widget.dashboard_viewport_id = self.selected_viewport.id;
 
                     let max_weight: number = 0;
                     self.widgets.forEach((w) => {
@@ -369,7 +370,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                     }
 
                     // On reload les widgets
-                    const widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    const widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                        .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, self.dashboard_page.id)
+                        .filter_by_num_eq(field_names<DashboardPageWidgetVO>().dashboard_viewport_id, self.selected_viewport.id)
+                        .select_vos<DashboardPageWidgetVO>();
 
                     if (widgets?.length) {
                         widgets.sort((a, b) => {

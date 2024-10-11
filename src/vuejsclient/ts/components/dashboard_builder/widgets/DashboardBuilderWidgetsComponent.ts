@@ -11,6 +11,7 @@ import './DashboardBuilderWidgetsComponent.scss';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import { field_names } from '../../../../../shared/tools/ObjectHandler';
+import DashboardViewportVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardViewportVO';
 
 @Component({
     template: require('./DashboardBuilderWidgetsComponent.pug'),
@@ -27,6 +28,12 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     @Prop()
     private dashboard_pages: DashboardPageVO[];
+
+    @Prop()
+    private viewports: DashboardViewportVO[];
+
+    @Prop()
+    private selected_viewport: DashboardViewportVO;
 
     @Prop({ default: null })
     private selected_widget: DashboardPageWidgetVO;

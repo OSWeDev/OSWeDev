@@ -110,29 +110,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private tmp_column_dynamic_time_segment: DataFilterOption = null;
     private page_widget_options: DashboardPageWidgetVO[] = [];
 
-    private async switch_kanban_use_weight() {
-        this.kanban_use_weight = !this.kanban_use_weight;
-        this.column.kanban_use_weight = this.kanban_use_weight;
-        this.$emit('update_column', this.column);
-    }
-
-    private async switch_kanban_column() {
-        if (!this.kanban_column) {
-            // On doit vérifier et retirer le param des autres colonnes si une autre était déjà active
-            for (const i in this.widget_options.columns) {
-                const column: TableColumnDescVO = this.widget_options.columns[i];
-                if (column.kanban_column) {
-                    column.kanban_column = false;
-                    this.$emit('update_column', column);
-                    break;
-                }
-            }
-        }
-        this.kanban_column = !this.kanban_column;
-        this.column.kanban_column = this.kanban_column;
-        this.$emit('update_column', this.column);
-    }
-
     get column_type_has_weight(): boolean {
         if (!this.column) {
             return false;
@@ -170,69 +147,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
     }
 
-    private show_if_any_filter_active_label(page_widget_id: number): string {
-        const page_widget = this.page_widget_by_id[page_widget_id];
-        if (!page_widget) {
-            return "[" + page_widget_id + "] " + "???";
-        }
-        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
-            return "[" + page_widget.id + "] " + "???";
-        }
-        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
-    }
-
-    private hide_if_any_filter_active_label(page_widget_id: number): string {
-        const page_widget = this.page_widget_by_id[page_widget_id];
-        if (!page_widget) {
-            return "[" + page_widget_id + "] " + "???";
-        }
-        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
-            return "[" + page_widget.id + "] " + "???";
-        }
-        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
-    }
-
-    private do_not_user_filter_active_ids_label(page_widget_id: number): string {
-        const page_widget = this.page_widget_by_id[page_widget_id];
-        if (!page_widget) {
-            return "[" + page_widget_id + "] " + "???";
-        }
-        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
-        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
-            return "[" + page_widget.id + "] " + "???";
-        }
-        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
-    }
-
-    private async update_additional_options(additional_options: string) {
-        if (!this.column) {
-            return;
-        }
-
-        this.column.filter_additional_params = additional_options;
-        this.$emit('update_column', this.column);
-    }
-
-    private async update_filter_type(filter_type: string) {
-        if (!this.column) {
-            return;
-        }
-
-        this.column.filter_type = filter_type;
-        this.$emit('update_column', this.column);
-    }
-
-    private async change_custom_filter(field_id: string, custom_filter: string) {
-        if (!this.object_column) {
-            return;
-        }
-
-        this.custom_filter_names[field_id] = custom_filter;
-        await this.throttled_update_custom_filter();
-    }
-
     get fields_that_could_get_custom_filter(): string[] {
         const res: string[] = [];
 
@@ -265,19 +179,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res;
     }
 
-    private async update_custom_filter() {
-        if ((!this.object_column) || (!this.object_column.var_id)) {
-            return;
-        }
-
-        if (ObjectHandler.are_equal(this.object_column.filter_custom_field_filters, this.custom_filter_names)) {
-            return;
-        }
-
-        this.object_column.filter_custom_field_filters = this.custom_filter_names;
-        this.$emit('update_column', this.object_column);
-    }
-
     get vo_ref_tooltip(): string {
         if (!this.field || !this.table) {
             if (this.column?.var_id) {
@@ -286,7 +187,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+        const field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
             ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         return this.t(this.table.label.code_text) +
             ' > ' +
@@ -320,7 +221,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+        const field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
             ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
         const res: string[] = [
             this.t(this.table.label.code_text),
@@ -340,37 +241,206 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return res.join(' > ');
     }
 
-    private unhide_options() {
-        this.show_options = true;
+    get vars_options(): string[] {
+        return Object.keys(VarsController.var_conf_by_name);
     }
 
-    private hide_options() {
-        this.show_options = false;
+    get component_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        if (!TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+            return [];
+        }
+
+        const res = TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+
+        return res.map((c) => c.translatable_title);
     }
 
-    private async mounted() {
-        const promises = [];
-        const self = this;
+    get widget_options(): TableWidgetOptionsVO {
+        if (!this.page_widget) {
+            return null;
+        }
 
-        promises.push(((async () => {
-            const all_ids = await query(DashboardWidgetVO.API_TYPE_ID)
-                .field(field_names<DashboardWidgetVO>().id)
-                .set_query_distinct()
-                .filter_is_true(field_names<DashboardWidgetVO>().is_filter)
-                .select_vos<DashboardWidgetVO>();
-            self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
-        })()));
-        promises.push(((async () => {
-            const policies = await query(AccessPolicyVO.API_TYPE_ID).field(field_names<AccessPolicyVO>().translatable_name).select_vos<AccessPolicyVO>();
+        let options: TableWidgetOptionsVO = null;
+        try {
+            if (this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
+                options = options ? new TableWidgetOptionsVO().from(options) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
 
-            self.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
-        })()));
-
-        await all_promises(promises);
+        return options;
     }
 
-    private filter_by_access_label(translatable_name: string): string {
-        return this.label(translatable_name);
+    get can_be_editable(): boolean {
+        // Si la colonne est de type VAR, on accepte la modif
+        if (this.column.type == TableColumnDescVO.TYPE_var_ref) {
+            return true;
+        }
+
+        if (!this.column) {
+            return false;
+        }
+
+        if (this.column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+
+        if (this.column.api_type_id != this.widget_options.crud_api_type_id) {
+            return false;
+        }
+
+        if (!this.field) {
+            return false;
+        }
+
+        switch (this.field.field_type) {
+            case ModuleTableFieldVO.FIELD_TYPE_amount:
+            case ModuleTableFieldVO.FIELD_TYPE_boolean:
+            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableFieldVO.FIELD_TYPE_email:
+            case ModuleTableFieldVO.FIELD_TYPE_enum:
+            case ModuleTableFieldVO.FIELD_TYPE_float:
+            case ModuleTableFieldVO.FIELD_TYPE_int:
+            case ModuleTableFieldVO.FIELD_TYPE_prct:
+            case ModuleTableFieldVO.FIELD_TYPE_string:
+            case ModuleTableFieldVO.FIELD_TYPE_color:
+                return true;
+        }
+
+        return false;
+    }
+
+    get is_fkey(): boolean {
+        return this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key);
+    }
+
+    get object_column() {
+        if (!this.column) {
+            this.custom_filter_names = {};
+            return null;
+        }
+
+        this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
+
+        return Object.assign(new TableColumnDescVO(), this.column);
+    }
+
+    get translatable_name_code_text() {
+        if (!this.object_column) {
+            return null;
+        }
+
+        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
+    }
+
+    get can_filter_by_table(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options.can_filter_by;
+    }
+
+    get default_column_label(): string {
+        if (!this.object_column) {
+            return null;
+        }
+
+        switch (this.object_column.type) {
+            case TableColumnDescVO.TYPE_component:
+                if (!this.object_column.component_name) {
+                    return null;
+                }
+
+                return this.t(TableWidgetController.components_by_translatable_title[this.object_column.component_name].translatable_title);
+            case TableColumnDescVO.TYPE_vo_field_ref:
+                if ((!this.object_column.api_type_id) || (!this.object_column.field_id)) {
+                    return null;
+                }
+
+                const field = ModuleTableController.module_tables_by_vo_type[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
+
+                if (!field) {
+                    return this.object_column.field_id;
+                }
+
+                let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
+                    ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
+                return field_label ? this.t(field_label.code_text) : null;
+            case TableColumnDescVO.TYPE_var_ref:
+                if (!this.object_column.var_id) {
+                    return null;
+                }
+
+                return this.t(VarsController.get_translatable_name_code_by_var_id(this.object_column.var_id));
+            case TableColumnDescVO.TYPE_header:
+                if (!this.object_column.header_name) {
+                    return null;
+                }
+                return this.t(this.object_column.header_name);
+        }
+
+        return null;
+    }
+
+    get sort_asc(): number {
+        return TableColumnDescVO.SORT_asc;
+    }
+
+    get sort_desc(): number {
+        return TableColumnDescVO.SORT_desc;
+    }
+
+    get is_type_var_ref(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
+    }
+
+    get is_type_number_vo_field_ref(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && this.is_simple_number(this.field.field_type);
+    }
+
+    get is_type_html(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_html);
+    }
+
+    get segmentation_type_options(): DataFilterOption[] {
+        const res: DataFilterOption[] = [];
+
+        for (const segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            const new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            res.push(new_opt);
+        }
+
+        return res;
+    }
+
+    get column_dynamic_page_widget_is_type_date(): boolean {
+        if (!this.column_dynamic_page_widget) {
+            return false;
+        }
+
+        const options = JSON.parse(this.column_dynamic_page_widget.json_options);
+
+        if (!options?.vo_field_ref) {
+            return false;
+        }
+
+        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
     }
 
     @Watch('column.filter_by_access')
@@ -582,6 +652,205 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
+    @Watch('new_column_select_type_component')
+    private async onchange_new_column_select_type_component() {
+        if (!this.new_column_select_type_component) {
+            return;
+        }
+
+        if (this.object_column) {
+            return;
+        }
+
+        const new_column = new TableColumnDescVO();
+        new_column.type = TableColumnDescVO.TYPE_component;
+        new_column.component_name = this.new_column_select_type_component;
+        new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
+        new_column.sortable = true;
+        new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
+        new_column.can_filter_by = false;
+        new_column.column_width = 0;
+        new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
+
+        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
+        this.$emit('add_column', new_column);
+    }
+
+    @Watch('new_column_select_type_var_ref')
+    private async onchange_new_column_select_type_var_ref() {
+        if (!this.new_column_select_type_var_ref) {
+            return;
+        }
+
+        if (this.object_column) {
+            return;
+        }
+
+        const new_column = new TableColumnDescVO();
+        new_column.type = TableColumnDescVO.TYPE_var_ref;
+        new_column.var_id = VarsController.var_conf_by_name[this.new_column_select_type_var_ref].id;
+        new_column.var_unicity_id = Dates.now();
+        new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
+        new_column.sortable = true;
+        new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
+        new_column.can_filter_by = false;
+        new_column.column_width = 0;
+        new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
+
+        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
+        this.$emit('add_column', new_column);
+    }
+
+    private async update_custom_filter() {
+        if ((!this.object_column) || (!this.object_column.var_id)) {
+            return;
+        }
+
+        if (ObjectHandler.are_equal(this.object_column.filter_custom_field_filters, this.custom_filter_names)) {
+            return;
+        }
+
+        this.object_column.filter_custom_field_filters = this.custom_filter_names;
+        this.$emit('update_column', this.object_column);
+    }
+
+    private async switch_kanban_use_weight() {
+        this.kanban_use_weight = !this.kanban_use_weight;
+        this.column.kanban_use_weight = this.kanban_use_weight;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_kanban_column() {
+        if (!this.kanban_column) {
+            // On doit vérifier et retirer le param des autres colonnes si une autre était déjà active
+            for (const i in this.widget_options.columns) {
+                const column: TableColumnDescVO = this.widget_options.columns[i];
+                if (column.kanban_column) {
+                    column.kanban_column = false;
+                    this.$emit('update_column', column);
+                    break;
+                }
+            }
+        }
+        this.kanban_column = !this.kanban_column;
+        this.column.kanban_column = this.kanban_column;
+        this.$emit('update_column', this.column);
+    }
+
+    private show_if_any_filter_active_label(page_widget_id: number): string {
+        const page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
+
+    private hide_if_any_filter_active_label(page_widget_id: number): string {
+        const page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
+
+    private do_not_user_filter_active_ids_label(page_widget_id: number): string {
+        const page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        const options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
+
+    private async update_additional_options(additional_options: string) {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.filter_additional_params = additional_options;
+        this.$emit('update_column', this.column);
+    }
+
+    private async update_filter_type(filter_type: string) {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.filter_type = filter_type;
+        this.$emit('update_column', this.column);
+    }
+
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        if (!this.object_column) {
+            return;
+        }
+
+        this.custom_filter_names[field_id] = custom_filter;
+        await this.throttled_update_custom_filter();
+    }
+
+    private unhide_options() {
+        this.show_options = true;
+    }
+
+    private hide_options() {
+        this.show_options = false;
+    }
+
+    private async mounted() {
+        const promises = [];
+        const self = this;
+
+        promises.push(((async () => {
+            const all_ids = await query(DashboardWidgetVO.API_TYPE_ID)
+                .field(field_names<DashboardWidgetVO>().id)
+                .set_query_distinct()
+                .filter_is_true(field_names<DashboardWidgetVO>().is_filter)
+                .select_vos<DashboardWidgetVO>();
+            self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
+        })()));
+        promises.push(((async () => {
+            const policies = await query(AccessPolicyVO.API_TYPE_ID).field(field_names<AccessPolicyVO>().translatable_name).select_vos<AccessPolicyVO>();
+
+            self.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
+        })()));
+
+        await all_promises(promises);
+    }
+
+    private filter_by_access_label(translatable_name: string): string {
+        return this.label(translatable_name);
+    }
+
     private async update_column_width() {
 
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
@@ -721,121 +990,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.tmp_font_color_header = null;
     }
 
-    get vars_options(): string[] {
-        return Object.keys(VarsController.var_conf_by_name);
-    }
-
-    get component_options(): string[] {
-        if ((!this.page_widget) || (!this.widget_options)) {
-            return [];
-        }
-
-        if (!this.widget_options.crud_api_type_id) {
-            return [];
-        }
-
-        if (!TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
-            return [];
-        }
-
-        let res = TableWidgetController.components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
-
-        return res.map((c) => c.translatable_title);
-    }
-
-    get widget_options(): TableWidgetOptionsVO {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: TableWidgetOptionsVO = null;
-        try {
-            if (this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as TableWidgetOptionsVO;
-                options = options ? new TableWidgetOptionsVO().from(options) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
-    }
-
     private var_label(var_name: string): string {
         return VarsController.var_conf_by_name[var_name].id + ' | ' + this.t(VarsController.get_translatable_name_code(var_name));
     }
 
     private component_label(translatable_title: string): string {
         return this.t(translatable_title);
-    }
-
-    @Watch('new_column_select_type_component')
-    private async onchange_new_column_select_type_component() {
-        if (!this.new_column_select_type_component) {
-            return;
-        }
-
-        if (this.object_column) {
-            return;
-        }
-
-        const new_column = new TableColumnDescVO();
-        new_column.type = TableColumnDescVO.TYPE_component;
-        new_column.component_name = this.new_column_select_type_component;
-        new_column.id = this.get_new_column_id();
-        new_column.readonly = true;
-        new_column.exportable = true;
-        new_column.hide_from_table = false;
-        new_column.sortable = true;
-        new_column.filter_by_access = null;
-        new_column.show_if_any_filter_active = [];
-        new_column.do_not_user_filter_active_ids = [];
-        new_column.enum_bg_colors = null;
-        new_column.enum_fg_colors = null;
-        new_column.can_filter_by = false;
-        new_column.column_width = 0;
-        new_column.default_sort_field = null;
-        new_column.filter_custom_field_filters = {};
-        new_column.kanban_column = false;
-
-        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
-        this.$emit('add_column', new_column);
-    }
-
-    @Watch('new_column_select_type_var_ref')
-    private async onchange_new_column_select_type_var_ref() {
-        if (!this.new_column_select_type_var_ref) {
-            return;
-        }
-
-        if (this.object_column) {
-            return;
-        }
-
-        const new_column = new TableColumnDescVO();
-        new_column.type = TableColumnDescVO.TYPE_var_ref;
-        new_column.var_id = VarsController.var_conf_by_name[this.new_column_select_type_var_ref].id;
-        new_column.var_unicity_id = Dates.now();
-        new_column.id = this.get_new_column_id();
-        new_column.readonly = true;
-        new_column.exportable = true;
-        new_column.hide_from_table = false;
-        new_column.sortable = true;
-        new_column.filter_by_access = null;
-        new_column.show_if_any_filter_active = [];
-        new_column.do_not_user_filter_active_ids = [];
-        new_column.enum_bg_colors = null;
-        new_column.enum_fg_colors = null;
-        new_column.can_filter_by = false;
-        new_column.column_width = 0;
-        new_column.default_sort_field = null;
-        new_column.filter_custom_field_filters = {};
-        new_column.kanban_column = false;
-
-        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
-        this.$emit('add_column', new_column);
-
-
     }
 
     private allowDrop(event) {
@@ -937,7 +1097,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     // creation de la column dynamic
     private add_dynamic_column(event) {
 
-        let new_column = new TableColumnDescVO();
+        const new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_dynamic;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
@@ -1092,117 +1252,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     /**
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré
      */
-    get can_be_editable(): boolean {
-        // Si la colonne est de type VAR, on accepte la modif
-        if (this.column.type == TableColumnDescVO.TYPE_var_ref) {
-            return true;
-        }
 
-        if (!this.column) {
-            return false;
-        }
-
-        if (this.column.type != TableColumnDescVO.TYPE_vo_field_ref) {
-            return false;
-        }
-
-        if (this.column.api_type_id != this.widget_options.crud_api_type_id) {
-            return false;
-        }
-
-        if (!this.field) {
-            return false;
-        }
-
-        switch (this.field.field_type) {
-            case ModuleTableFieldVO.FIELD_TYPE_amount:
-            case ModuleTableFieldVO.FIELD_TYPE_boolean:
-            case ModuleTableFieldVO.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableFieldVO.FIELD_TYPE_email:
-            case ModuleTableFieldVO.FIELD_TYPE_enum:
-            case ModuleTableFieldVO.FIELD_TYPE_float:
-            case ModuleTableFieldVO.FIELD_TYPE_int:
-            case ModuleTableFieldVO.FIELD_TYPE_prct:
-            case ModuleTableFieldVO.FIELD_TYPE_string:
-            case ModuleTableFieldVO.FIELD_TYPE_color:
-                return true;
-        }
-
-        return false;
-    }
-
-    get is_fkey(): boolean {
-        return this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_foreign_key);
-    }
-
-    get object_column() {
-        if (!this.column) {
-            this.custom_filter_names = {};
-            return null;
-        }
-
-        this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
-
-        return Object.assign(new TableColumnDescVO(), this.column);
-    }
-
-    get translatable_name_code_text() {
-        if (!this.object_column) {
-            return null;
-        }
-
-        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
-    }
-
-    get can_filter_by_table(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        return this.widget_options.can_filter_by;
-    }
-
-    get default_column_label(): string {
-        if (!this.object_column) {
-            return null;
-        }
-
-        switch (this.object_column.type) {
-            case TableColumnDescVO.TYPE_component:
-                if (!this.object_column.component_name) {
-                    return null;
-                }
-
-                return this.t(TableWidgetController.components_by_translatable_title[this.object_column.component_name].translatable_title);
-            case TableColumnDescVO.TYPE_vo_field_ref:
-                if ((!this.object_column.api_type_id) || (!this.object_column.field_id)) {
-                    return null;
-                }
-
-                const field = ModuleTableController.module_tables_by_vo_type[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
-
-                if (!field) {
-                    return this.object_column.field_id;
-                }
-
-                let field_label = ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type] ?
-                    ModuleTableFieldController.default_field_translation_by_vo_type_and_field_name[this.table.vo_type][this.field.field_name] : null;
-                return field_label ? this.t(field_label.code_text) : null;
-            case TableColumnDescVO.TYPE_var_ref:
-                if (!this.object_column.var_id) {
-                    return null;
-                }
-
-                return this.t(VarsController.get_translatable_name_code_by_var_id(this.object_column.var_id));
-            case TableColumnDescVO.TYPE_header:
-                if (!this.object_column.header_name) {
-                    return null;
-                }
-                return this.t(this.object_column.header_name);
-        }
-
-        return null;
-    }
 
     private remove_column() {
         this.$emit('remove_column', this.object_column);
@@ -1218,18 +1268,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
-    get sort_asc(): number {
-        return TableColumnDescVO.SORT_asc;
-    }
-
-    get sort_desc(): number {
-        return TableColumnDescVO.SORT_desc;
-    }
-
-    get is_type_var_ref(): boolean {
-        return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
-    }
-
     private is_simple_number(field_type: string): boolean {
         if (field_type == ModuleTableFieldVO.FIELD_TYPE_int
             || field_type == ModuleTableFieldVO.FIELD_TYPE_enum
@@ -1240,43 +1278,5 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         } else {
             return false;
         }
-    }
-
-    get is_type_number_vo_field_ref(): boolean {
-        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && this.is_simple_number(this.field.field_type);
-    }
-
-    get is_type_html(): boolean {
-        return this.object_column.type == TableColumnDescVO.TYPE_vo_field_ref && this.field && (this.field.field_type == ModuleTableFieldVO.FIELD_TYPE_html);
-    }
-
-    get segmentation_type_options(): DataFilterOption[] {
-        let res: DataFilterOption[] = [];
-
-        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
-            let new_opt: DataFilterOption = new DataFilterOption(
-                DataFilterOption.STATE_SELECTABLE,
-                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
-                parseInt(segmentation_type)
-            );
-
-            res.push(new_opt);
-        }
-
-        return res;
-    }
-
-    get column_dynamic_page_widget_is_type_date(): boolean {
-        if (!this.column_dynamic_page_widget) {
-            return false;
-        }
-
-        let options = JSON.parse(this.column_dynamic_page_widget.json_options);
-
-        if (!options?.vo_field_ref) {
-            return false;
-        }
-
-        return VOFieldRefVOHandler.is_type_date(options.vo_field_ref);
     }
 }

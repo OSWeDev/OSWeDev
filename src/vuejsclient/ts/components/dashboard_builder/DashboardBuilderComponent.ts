@@ -522,7 +522,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (const i in pages) {
             const page = pages[i];
 
-            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id).select_vos<DashboardPageWidgetVO>();
+            const this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq(field_names<DashboardPageWidgetVO>().page_id, page.id)
+                .select_vos<DashboardPageWidgetVO>();
             if (this_page_widgets && this_page_widgets.length) {
                 export_vos = export_vos.concat(this_page_widgets.map((p) => ModuleTableController.translate_vos_to_api(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
