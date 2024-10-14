@@ -19,6 +19,7 @@ export default class OseliaRunTemplateServerController {
         referrer: OseliaReferrerVO = null,
         thread_vo: GPTAssistantAPIThreadVO = null,
         user: UserVO = null,
+        parent_run_id: number = null,
     ): Promise<OseliaRunVO> {
 
         try {
@@ -47,6 +48,7 @@ export default class OseliaRunTemplateServerController {
             oselia_run.name = template.name;
             oselia_run.start_date = Dates.now();
             oselia_run.state = template.state;
+            oselia_run.parent_run_id = parent_run_id;
 
             /**
              * Si le state de départ est pas TODO, on doit figer les dates de début et de fin des taches déjà réalisées

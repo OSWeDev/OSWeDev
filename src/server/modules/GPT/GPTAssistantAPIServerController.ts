@@ -34,6 +34,7 @@ import ModuleGPTServer from './ModuleGPTServer';
 import GPTAssistantAPIServerSyncAssistantsController from './sync/GPTAssistantAPIServerSyncAssistantsController';
 import GPTAssistantAPIServerSyncRunsController from './sync/GPTAssistantAPIServerSyncRunsController';
 import GPTAssistantAPIServerSyncThreadMessagesController from './sync/GPTAssistantAPIServerSyncThreadMessagesController';
+import OseliaRunFunctionCallVO from '../../../shared/modules/Oselia/vos/OseliaRunFunctionCallVO';
 
 export default class GPTAssistantAPIServerController {
 
@@ -964,6 +965,7 @@ export default class GPTAssistantAPIServerController {
 
             await GPTAssistantAPIServerController.handle_run(
                 run_vo,
+                oselia_run,
                 thread_vo,
                 availableFunctions,
                 availableFunctionsParameters,
@@ -1220,6 +1222,7 @@ export default class GPTAssistantAPIServerController {
 
     private static async handle_run(
         run_vo: GPTAssistantAPIRunVO,
+        oselia_run: OseliaRunVO,
         thread_vo: GPTAssistantAPIThreadVO,
         availableFunctions: { [functionName: string]: GPTAssistantAPIFunctionVO },
         availableFunctionsParameters: { [function_id: number]: GPTAssistantAPIFunctionParamVO[] },
@@ -1266,6 +1269,7 @@ export default class GPTAssistantAPIServerController {
 
                             promises.push((async () => {
                                 let function_response = null;
+                                const oselia_run_function_call_vo = new OseliaRunFunctionCallVO();
 
                                 try {
 
@@ -1334,14 +1338,38 @@ export default class GPTAssistantAPIServerController {
                                                     break;
                                             }
 
-                                            function_response = await ExternalAPIServerController.call_external_api(
-                                                method,
-                                                external_api_url,
-                                                function_args,
-                                                referrer_external_api.external_api_authentication_id,
-                                                referrer_external_api.accept,
-                                                referrer_external_api.content_type,
-                                            );
+                                            await all_promises([
+                                                (async () => {
+                                                    // On stocke l'info qu'on a lancé un appel de fonction externe
+                                                    oselia_run_function_call_vo.creation_date = Dates.now();
+                                                    oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                                                    oselia_run_function_call_vo.external_api_id = referrer_external_api.id;
+                                                    oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call.function.arguments);
+                                                    oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
+                                                    oselia_run_function_call_vo.gpt_function_id = function_vo.id;
+                                                    oselia_run_function_call_vo.gpt_run_id = run_vo.id;
+                                                    oselia_run_function_call_vo.start_date = Dates.now();
+                                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                                    oselia_run_function_call_vo.thread_id = thread_vo.id;
+                                                    oselia_run_function_call_vo.user_id = thread_vo.user_id;
+                                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+                                                })(),
+                                                (async () => {
+                                                    function_response = await ExternalAPIServerController.call_external_api(
+                                                        method,
+                                                        external_api_url,
+                                                        function_args,
+                                                        referrer_external_api.external_api_authentication_id,
+                                                        referrer_external_api.accept,
+                                                        referrer_external_api.content_type,
+                                                    );
+                                                })()
+                                            ]);
+
+                                            oselia_run_function_call_vo.end_date = Dates.now();
+                                            oselia_run_function_call_vo.result = function_response;
+                                            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
+                                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                             if (ConfigurationService.node_configuration.debug_oselia_referrer_origin) {
                                                 ConsoleHandler.log('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - REFERRER ExternalAPI Call - answer - ' + JSON.stringify(function_response));
@@ -1354,6 +1382,12 @@ export default class GPTAssistantAPIServerController {
                                             ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - Failed REFERRER ExternalAPI Call - referrer - ' +
                                                 referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
                                             function_response = "TECHNICAL MALFUNCTION : REFERRER ExternalAPI Call Failed.";
+
+                                            oselia_run_function_call_vo.end_date = Dates.now();
+                                            oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+                                            oselia_run_function_call_vo.error_msg = error;
+                                            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
                                             throw new Error('Failed REFERRER ExternalAPI Call - referrer - ' +
                                                 referrer.name + ' - external api name - ' + referrer_external_api.name + ' - error: ' + error);
                                         }
@@ -1362,8 +1396,18 @@ export default class GPTAssistantAPIServerController {
                                     const function_to_call: () => Promise<any> = ModulesManager.getInstance().getModuleByNameAndRole(function_vo.module_name, ModuleServerBase.SERVER_MODULE_ROLE_NAME)[function_vo.module_function];
                                     const ordered_args = function_vo.ordered_function_params_from_GPT_arguments(function_vo, thread_vo, function_args, availableFunctionsParameters[function_vo.id]);
 
+                                    oselia_run_function_call_vo.creation_date = Dates.now();
+                                    oselia_run_function_call_vo.oselia_run_id = oselia_run ? oselia_run.id : null;
+                                    oselia_run_function_call_vo.function_call_parameters_initial = JSON.parse(tool_call.function.arguments);
+                                    oselia_run_function_call_vo.function_call_parameters_transcripted = function_args;
+                                    oselia_run_function_call_vo.gpt_function_id = function_vo.id;
+                                    oselia_run_function_call_vo.gpt_run_id = run_vo.id;
+                                    oselia_run_function_call_vo.thread_id = thread_vo.id;
+                                    oselia_run_function_call_vo.user_id = thread_vo.user_id;
+
                                     // Si la fonction est définie comme utilisant un PromisePipeline, on l'utilise, et on l'initialise si il est pas encore créé
                                     if (function_vo.use_promise_pipeline) {
+                                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                         if (!GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id]) {
                                             GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id] = new PromisePipeline(function_vo.promise_pipeline_max_concurrency, 'Oselia-PromisePipeline-' + function_vo.gpt_function_name);
@@ -1372,6 +1416,10 @@ export default class GPTAssistantAPIServerController {
                                         // On attend non seulement le push mais la résolution de la méthode push
                                         await (await GPTAssistantAPIServerController.promise_pipeline_by_function[function_vo.id].push(async () => {
                                             try {
+                                                oselia_run_function_call_vo.start_date = Dates.now();
+                                                oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
                                                 function_response = await function_to_call.call(null, ...ordered_args);
                                             } catch (error) {
                                                 ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - PromisePipeline inner promise - error: ' + error);
@@ -1379,8 +1427,17 @@ export default class GPTAssistantAPIServerController {
                                             }
                                         }))();
                                     } else {
+                                        oselia_run_function_call_vo.start_date = Dates.now();
+                                        oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_RUNNING;
+                                        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
+
                                         function_response = await function_to_call.call(null, ...ordered_args);
                                     }
+
+                                    oselia_run_function_call_vo.end_date = Dates.now();
+                                    oselia_run_function_call_vo.result = function_response;
+                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_DONE;
+                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
 
                                     function_response = await this.handle_function_response(function_response, tool_outputs, function_vo, tool_call.id);
                                     return;
@@ -1388,6 +1445,11 @@ export default class GPTAssistantAPIServerController {
                                 } catch (error) {
                                     ConsoleHandler.error('GPTAssistantAPIServerController.ask_assistant: run requires_action - submit_tool_outputs - error: ' + error);
                                     function_response = "TECHNICAL MALFUNCTION : submit_tool_outputs - error: " + error;
+
+                                    oselia_run_function_call_vo.end_date = Dates.now();
+                                    oselia_run_function_call_vo.state = OseliaRunFunctionCallVO.STATE_ERROR;
+                                    oselia_run_function_call_vo.error_msg = error;
+                                    await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(oselia_run_function_call_vo);
                                 }
                                 tool_outputs.push({
                                     tool_call_id: tool_call.id,

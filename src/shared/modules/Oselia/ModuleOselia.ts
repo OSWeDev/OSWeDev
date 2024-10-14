@@ -11,7 +11,9 @@ import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
+import GPTAssistantAPIAssistantFunctionVO from '../GPT/vos/GPTAssistantAPIAssistantFunctionVO';
 import GPTAssistantAPIAssistantVO from '../GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadVO from '../GPT/vos/GPTAssistantAPIThreadVO';
 import Module from '../Module';
@@ -25,6 +27,7 @@ import OseliaModelVO from './vos/OseliaModelVO';
 import OseliaPromptVO from './vos/OseliaPromptVO';
 import OseliaReferrerExternalAPIVO from './vos/OseliaReferrerExternalAPIVO';
 import OseliaReferrerVO from './vos/OseliaReferrerVO';
+import OseliaRunFunctionCallVO from './vos/OseliaRunFunctionCallVO';
 import OseliaRunTemplateVO from './vos/OseliaRunTemplateVO';
 import OseliaRunVO from './vos/OseliaRunVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
@@ -118,6 +121,33 @@ export default class ModuleOselia extends Module {
 
         this.initializeOseliaRunVO();
         this.initializeOseliaRunTemplateVO();
+
+        this.initializeOseliaRunFunctionCallVO();
+    }
+
+    public initializeOseliaRunFunctionCallVO() {
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().gpt_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Run', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Osélia Run', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().gpt_function_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'GPT Function', false)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIFunctionVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().external_api_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'External API', false)
+            .set_many_to_one_target_moduletable_name(OseliaReferrerExternalAPIVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().function_call_parameters_initial, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres de la fonction - initial', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().function_call_parameters_transcripted, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Paramètres de la fonction - transcripté', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().result, ModuleTableFieldVO.FIELD_TYPE_plain_vo_obj, 'Résultat', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().user_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Utilisateur', false)
+            .set_many_to_one_target_moduletable_name(UserVO.API_TYPE_ID);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().creation_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de création', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().start_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de début', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().end_date, ModuleTableFieldVO.FIELD_TYPE_tstz, 'Date de fin', false);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().state, ModuleTableFieldVO.FIELD_TYPE_enum, 'Etat', true, false, OseliaRunFunctionCallVO.STATE_TODO).setEnumValues(OseliaRunFunctionCallVO.STATE_LABELS);
+        ModuleTableFieldController.create_new(OseliaRunFunctionCallVO.API_TYPE_ID, field_names<OseliaRunFunctionCallVO>().error_msg, ModuleTableFieldVO.FIELD_TYPE_string, 'Erreur', false);
+
+        ModuleTableController.create_new(this.name, OseliaRunFunctionCallVO, null, 'Oselia - Run Function Call');
     }
 
     public initializeOseliaRunTemplateVO() {
@@ -212,6 +242,10 @@ export default class ModuleOselia extends Module {
 
         ModuleTableController.create_new(this.name, OseliaRunVO, null, 'Oselia - Run');
         VersionedVOController.getInstance().registerModuleTable(ModuleTableController.module_tables_by_vo_type[OseliaRunVO.API_TYPE_ID]);
+
+        // On ajoute le lien vers OseliaRunVO dans le ThreadGPT
+        ModuleTableFieldController.create_new(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_oselia_run_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Dernier run Osélia', false)
+            .set_many_to_one_target_moduletable_name(OseliaRunVO.API_TYPE_ID);
     }
 
     public initializeOseliaChatVO() {

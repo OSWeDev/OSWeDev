@@ -64,7 +64,7 @@
                                                 | {{ label('oselia_thread_widget_component.thread_message_attachment_file') }}
                 .thread_message_body(ref='thread_message_body_ref')
                     template(v-for='(message_content, i) in thread_message_contents')
-                        template(v-if="!message_content.hidden")
+                        template(v-if="get_show_hidden_messages || (!message_content.hidden)")
                             .thread_message_body_content(:class='"thread_message_body_content_type_" + message_content.type') 
                                 template(v-if='is_editing_content[i]')
                                     .thread_message_body_edit

@@ -40,6 +40,8 @@ import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import OseliaRunVO from '../../../../../../shared/modules/Oselia/vos/OseliaRunVO';
 @Component({
     template: require('./OseliaThreadWidgetComponent.pug'),
     components: {
@@ -52,6 +54,11 @@ import ModuleOselia from '../../../../../../shared/modules/Oselia/ModuleOselia';
     }
 })
 export default class OseliaThreadWidgetComponent extends VueComponentBase {
+
+    @ModuleOseliaGetter
+    private get_show_hidden_messages: boolean;
+    @ModuleOseliaAction
+    private set_show_hidden_messages: (show_hidden_messages: boolean) => void;
 
     @ModuleOseliaAction
     private set_left_panel_open: (left_panel_open: boolean) => void;
@@ -98,6 +105,8 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
 
     public thread_messages: GPTAssistantAPIThreadMessageVO[] = [];
     public thread: GPTAssistantAPIThreadVO = null;
+    public oselia_runs: OseliaRunVO[] = [];
+
     private has_access_to_thread: boolean = false;
     private is_loading_thread: boolean = true;
     private assistant_is_busy: boolean = false;
@@ -116,6 +125,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
     private wait_for_data: boolean = false;
     private data_received: any = null;
     private dashboard_export_id: number = null;
+    private has_access_to_debug: boolean = false;
 
     private throttle_load_thread = ThrottleHelper.declare_throttle_without_args(this.load_thread.bind(this), 10);
     private throttle_register_thread = ThrottleHelper.declare_throttle_without_args(this.register_thread.bind(this), 10);
@@ -187,8 +197,14 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         this.set_left_panel_open(true);
     }
 
-    private mounted() {
+    private switch_show_hidden_messages() {
+        this.set_show_hidden_messages(!this.get_show_hidden_messages);
+    }
+
+    private async mounted() {
         this.frame = parent.document.getElementById('OseliaContainer');
+
+        this.has_access_to_debug = await ModuleAccessPolicy.getInstance().testAccess(ModuleOselia.POLICY_BO_ACCESS);
 
         window.addEventListener('paste', e => {
             if (e.clipboardData.files.length > 0) {
@@ -217,6 +233,7 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
         if (!this.page_widget) {
 
             this.thread_messages = [];
+            this.oselia_runs = [];
             this.assistant = null;
             this.is_loading_thread = false;
             this.has_access_to_thread = false;
@@ -422,6 +439,13 @@ export default class OseliaThreadWidgetComponent extends VueComponentBase {
             GPTAssistantAPIThreadMessageVO.API_TYPE_ID,
             reflect<this>().thread_messages,
             [filter(GPTAssistantAPIThreadMessageVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadMessageVO>().thread_id).by_num_eq(this.thread.id)]
+        );
+
+        // On récupère les contenus des runs
+        await this.register_vo_updates_on_list(
+            OseliaRunVO.API_TYPE_ID,
+            reflect<this>().oselia_runs,
+            [filter(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().thread_id).by_num_eq(this.thread.id)]
         );
 
         this.$nextTick(() => {

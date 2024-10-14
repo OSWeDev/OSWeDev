@@ -227,8 +227,9 @@ export default class OseliaRunBGThread implements IBGThread {
             current_run = await query(OseliaRunVO.API_TYPE_ID)
                 .filter_by_num_has(field_names<OseliaRunVO>().state, OseliaRunBGThread.EN_COURS_RUN_STATES)
                 .filter_by_id(thread_to_handle.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
-                .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_id)
+                .filter_is_null_or_empty(field_names<OseliaRunVO>().parent_run_id)
                 .set_sort(new SortByVO(OseliaRunVO.API_TYPE_ID, field_names<OseliaRunVO>().version_timestamp, true))
+                .set_discarded_field_path(GPTAssistantAPIThreadVO.API_TYPE_ID, field_names<GPTAssistantAPIThreadVO>().last_oselia_run_id)
                 .set_limit(1)
                 .select_vo<OseliaRunVO>();
 

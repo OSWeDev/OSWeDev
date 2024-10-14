@@ -87,5 +87,10 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
      */
     public last_gpt_run_id: number;
 
+    /**
+     * Lien vers le run en cours côté Oselia, ou le dernier run en date
+     */
+    public last_oselia_run_id: number;
+
     public oswedev_created_at: number;
 }

@@ -1,9 +1,13 @@
 import Component from 'vue-class-component';
+import VueMarkdown from 'vue-markdown-render';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import FieldFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FieldFiltersVO';
+import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
+import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
 import GPTAssistantAPIThreadMessageVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageVO';
 import GPTAssistantAPIThreadVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadVO';
@@ -16,20 +20,14 @@ import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTra
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
+import ImageViewComponent from '../../../../image/View/ImageViewComponent';
 import MailIDEventsComponent from '../../../../mail_id_events/MailIDEventsComponent';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import TablePaginationComponent from '../../table_widget/pagination/TablePaginationComponent';
+import { ModuleOseliaGetter } from '../OseliaStore';
+import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
 import OseliaThreadMessageActionURLComponent from '../OseliaThreadMessageActionURL/OseliaThreadMessageActionURLComponent';
 import './OseliaThreadMessageComponent.scss';
-import VueMarkdown from 'vue-markdown-render';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import OseliaThreadFeedbackComponent from '../OseliaThreadFeedback/OseliaThreadFeedbackComponent';
-import ImageViewComponent from '../../../../image/View/ImageViewComponent';
-import GPTAssistantAPIThreadMessageAttachmentVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageAttachmentVO';
-import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
-import GPTAssistantAPIFileVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIFileVO';
-import GPTAssistantAPIThreadMessageContentFileCitationVO from '../../../../../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentFileCitationVO';
 
 @Component({
     template: require('./OseliaThreadMessageComponent.pug'),
@@ -50,6 +48,9 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: FieldFiltersVO;
+
+    @ModuleOseliaGetter
+    private get_show_hidden_messages: boolean;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -81,7 +82,6 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
     private changed_input: boolean[] = [];
 
     private show_feedback: boolean = false;
-    private show_current_message: boolean = false;
     private markdown_options = {
         html: true,
         linkify: true,
@@ -127,6 +127,22 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
         return GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_USER;
     }
 
+    get show_current_message(): boolean {
+
+        if (this.get_show_hidden_messages) {
+            return true;
+        }
+
+        for (const content of this.thread_message_contents) {
+            if (content.hidden == false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     get is_self_user() {
 
         if ((!this.thread_message) || (!this.thread_message.user_id)) {
@@ -164,7 +180,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
 
     @Watch('thread_message_contents', { deep: true })
     private on_change_thread_message_contents() {
-        for (let content of this.thread_message_contents) {
+
+        for (const content of this.thread_message_contents) {
             if (this.thread_message.role == GPTAssistantAPIThreadMessageVO.GPTMSG_ROLE_ASSISTANT) {
                 if (content.content_type_text.value && content.content_type_text.value.length > 0) {
                     if (content.content_type_text.value.includes("<certitude")) {
@@ -183,10 +200,8 @@ export default class OseliaThreadMessageComponent extends VueComponentBase {
                 }
 
             }
-            if (content.hidden == false) {
-                this.show_current_message = true;
-            }
         }
+
         this.is_editing_content = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
         this.changed_input = this.thread_message_contents ? this.thread_message_contents.map(() => false) : [];
     }
