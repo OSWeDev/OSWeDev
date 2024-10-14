@@ -20,6 +20,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     private color: string = null;
     private text_color: string = null;
     private about_blank: boolean = null;
+    private radius: number = null;
     private start_update: boolean = false;
 
     get widget_options(): CMSLinkButtonWidgetOptionsVO {
@@ -41,7 +42,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
     }
 
     get style(): string {
-        return 'background-color: ' + this.color + '; color: ' + this.text_color + ';';
+        return 'background-color: ' + this.color + '; color: ' + this.text_color + ';' + (this.radius ? 'border-radius: ' + this.radius + 'px;' : '');
     }
 
     @Watch('widget_options', { immediate: true, deep: true })
@@ -52,6 +53,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
             this.color = '#003c7d';
             this.text_color = '#ffffff';
             this.about_blank = false;
+            this.radius = null;
 
             return;
         }
@@ -60,6 +62,7 @@ export default class CMSLinkButtonWidgetComponent extends VueComponentBase {
         this.color = this.widget_options.color;
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;
+        this.radius = this.widget_options.radius;
     }
 
     private async mounted() {

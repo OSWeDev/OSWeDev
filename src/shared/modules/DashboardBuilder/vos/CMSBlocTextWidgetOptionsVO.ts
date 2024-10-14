@@ -12,7 +12,6 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
     public sous_titre: string;
     public alignement_sous_titre: string;
     public contenu: string;
-    public alignement_contenu: string;
 
     public static createNew(
         titre: string,
@@ -20,7 +19,6 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
         sous_titre: string,
         alignement_sous_titre: string,
         contenu: string,
-        alignement_contenu: string,
     ): CMSBlocTextWidgetOptionsVO {
         const res = new CMSBlocTextWidgetOptionsVO();
 
@@ -29,7 +27,6 @@ export default class CMSBlocTextWidgetOptionsVO extends AbstractVO {
         res.sous_titre = sous_titre;
         res.alignement_sous_titre = alignement_sous_titre;
         res.contenu = contenu;
-        res.alignement_contenu = alignement_contenu;
 
         return res;
     }

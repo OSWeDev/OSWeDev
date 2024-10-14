@@ -30,7 +30,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
     private alignement_sous_titre: string = null;
     private alignement_sous_titre_selected: string = null;
     private contenu: string = null;
-    private alignement_contenu: string = null;
     private alignement_contenu_selected: string = null;
 
     private alignement_options: string[] = [
@@ -39,6 +38,20 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_DROITE),
         this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_JUSTIFIE),
     ];
+
+    private optionsEditeur = {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
+                [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
+                [{ 'indent': '-1' }, { 'indent': '+1' }],       // outdent/indent
+                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
+                [{ 'align': [] }],                              // Bouton pour l'alignement (gauche, centre, droite, justifié)
+                ['clean']                                       // Bouton pour effacer la mise en forme
+            ]
+        }
+    }
 
     private next_update_options: CMSBlocTextWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -72,10 +85,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.alignement_sous_titre = this.alignement_sous_titre_selected;
     }
 
-    @Watch('alignement_contenu_selected')
-    private async onchange_alignement_contenu_selected() {
-        this.alignement_contenu = this.alignement_contenu_selected;
-    }
 
     @Watch('widget_options', { immediate: true, deep: true })
     private async onchange_widget_options() {
@@ -85,7 +94,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             this.contenu = null;
             this.alignement_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
             this.alignement_sous_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
-            this.alignement_contenu = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
 
             return;
         }
@@ -94,7 +102,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         this.contenu = this.widget_options.contenu;
         this.alignement_titre = this.widget_options.alignement_titre;
         this.alignement_sous_titre = this.widget_options.alignement_sous_titre;
-        this.alignement_contenu = this.widget_options.alignement_contenu;
     }
 
     @Watch('titre')
@@ -113,14 +120,12 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             || this.widget_options.contenu != this.contenu
             || this.widget_options.alignement_titre != this.alignement_titre
             || this.widget_options.alignement_sous_titre != this.alignement_sous_titre
-            || this.widget_options.alignement_contenu != this.alignement_contenu
         ) {
             this.next_update_options.titre = this.titre;
             this.next_update_options.sous_titre = this.sous_titre;
             this.next_update_options.contenu = this.contenu;
             this.next_update_options.alignement_titre = this.alignement_titre;
             this.next_update_options.alignement_sous_titre = this.alignement_sous_titre;
-            this.next_update_options.alignement_contenu = this.alignement_contenu;
 
             await this.throttled_update_options();
         }
@@ -138,7 +143,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
 
         this.alignement_titre_selected = this.next_update_options.alignement_titre;
         this.alignement_sous_titre_selected = this.next_update_options.alignement_sous_titre;
-        this.alignement_contenu_selected = this.next_update_options.alignement_contenu;
 
         await this.throttled_update_options();
     }
@@ -150,7 +154,6 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
             "",
             this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE),
             "",
-            this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE),
         );
     }
 

@@ -7,6 +7,9 @@ import VueComponentBase from '../../../VueComponentBase';
 import './CMSBlocTextWidgetComponent.scss';
 import CMSBlocTextWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/CMSBlocTextWidgetOptionsVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 
 @Component({
     template: require('./CMSBlocTextWidgetComponent.pug'),
@@ -32,7 +35,6 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
     private alignement_titre: string = null;
     private alignement_sous_titre: string = null;
-    private alignement_contenu: string = null;
 
     private style_titre: string = null;
     private style_sous_titre: string = null;
@@ -69,11 +71,9 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
             this.alignement_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
             this.alignement_sous_titre = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
-            this.alignement_contenu = this.label(CMSBlocTextWidgetOptionsVO.ALIGNER_GAUCHE);
 
             this.style_titre = this.base_style + this.style_alignments(this.alignement_titre);
             this.style_sous_titre = this.base_style + this.style_alignments(this.alignement_sous_titre);
-            this.style_contenu = this.base_style + this.style_alignments(this.alignement_contenu);
 
             return;
         }
@@ -83,11 +83,9 @@ export default class CMSBlocTextWidgetComponent extends VueComponentBase {
 
         this.alignement_titre = this.widget_options.alignement_titre;
         this.alignement_sous_titre = this.widget_options.alignement_sous_titre;
-        this.alignement_contenu = this.widget_options.alignement_contenu;
 
         this.style_titre = this.base_style + this.style_alignments(this.widget_options.alignement_titre);
         this.style_sous_titre = this.base_style + this.style_alignments(this.widget_options.alignement_sous_titre);
-        this.style_contenu = this.base_style + this.style_alignments(this.widget_options.alignement_contenu);
     }
 
     private async mounted() {

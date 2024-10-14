@@ -29,6 +29,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     private text_color: string = null;
     private about_blank: boolean = false;
     private is_text_color_white: boolean = true;
+    private radius: number = null;
 
     private next_update_options: CMSLinkButtonWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -60,6 +61,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.text_color = '#ffffff';
             this.about_blank = false;
             this.is_text_color_white = true;
+            this.radius = 0;
 
             return;
         }
@@ -69,6 +71,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
         this.text_color = this.widget_options.text_color;
         this.about_blank = this.widget_options.about_blank;
         this.is_text_color_white = (this.widget_options.text_color == '#ffffff');
+        this.radius = this.widget_options.radius;
     }
 
     @Watch('url')
@@ -76,6 +79,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
     @Watch('color')
     @Watch('text_color')
     @Watch('about_blank')
+    @Watch('radius')
     private async onchange_bloc_text() {
         if (!this.widget_options) {
             return;
@@ -85,6 +89,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.widget_options.title != this.title ||
             this.widget_options.about_blank != this.about_blank ||
             this.widget_options.text_color != this.text_color ||
+            this.widget_options.radius != this.radius ||
             this.widget_options.color != this.color) {
 
             this.next_update_options.url = this.url;
@@ -92,6 +97,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             this.next_update_options.color = this.color;
             this.next_update_options.text_color = this.text_color;
             this.next_update_options.about_blank = this.about_blank;
+            this.next_update_options.radius = this.radius;
 
             this.is_text_color_white = (this.text_color == '#ffffff');
 
@@ -121,6 +127,7 @@ export default class CMSLinkButtonWidgetOptionsComponent extends VueComponentBas
             '#003c7d',
             '#ffffff',
             false,
+            0,
         );
     }
 

@@ -6,4 +6,4 @@ include ../../../../../views/mixins/loading.pug
     template(v-if='sous_titre')
         h2(v-html="sous_titre" :style="style_sous_titre")
     template(v-if='contenu')
-        div(v-html="contenu" style="word-wrap: break-word;")
+        div(v-html="contenu" class="ql-editor" style="word-wrap: break-word;")

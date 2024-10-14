@@ -63,28 +63,4 @@
                 )
 
         .widget_title_label {{ label('cms_bloc_text.widget_option.contenu') }}
-            Vuequilleditor(v-model='contenu')
-
-            .input_label {{ label('cms_bloc_text.widget_option.alignement_contenu') }}
-            .input_wrapper
-                multiselect.var_name_selector(
-                    :preselect-first="false"
-                    :multiple="false"
-                    v-model="alignement_contenu_selected"
-                    :options="alignement_options"
-                    :allow-empty="false",
-
-                    :searchable="true"
-                    :internal-search="true"
-                    
-                    select-label=''
-                    select-group-label=''
-                    selected-label=''
-                    deselect-label=''
-                    deselect-group-label=''
-
-                    placeholder=''
-                    
-                    name="contenu_alignement_selector"
-                    
-                )
+            Vuequilleditor(v-model='contenu', :options="optionsEditeur")

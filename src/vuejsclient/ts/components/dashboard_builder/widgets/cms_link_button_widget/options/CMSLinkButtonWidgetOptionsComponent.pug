@@ -36,3 +36,11 @@
             :width="100"
             :labels="{checked: label('cms_link_button.widget_option.text_color.blanc'), unchecked: label('cms_link_button.widget_option.text_color.noir')}"
         )
+
+        .radius_bloc 
+            .input_label {{ label('cms_image.widget_option.radius') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="radius"
+                )

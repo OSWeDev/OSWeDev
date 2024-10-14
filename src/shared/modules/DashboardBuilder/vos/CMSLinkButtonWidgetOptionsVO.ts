@@ -7,6 +7,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
     public color: string;
     public text_color: string;
     public about_blank: boolean;
+    public radius: number;
 
     public static createNew(
         url: string,
@@ -14,6 +15,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         color: string,
         text_color: string,
         about_blank: boolean,
+        radius: number
     ): CMSLinkButtonWidgetOptionsVO {
         const res = new CMSLinkButtonWidgetOptionsVO();
 
@@ -22,6 +24,7 @@ export default class CMSLinkButtonWidgetOptionsVO extends AbstractVO {
         res.color = color;
         res.text_color = text_color;
         res.about_blank = about_blank;
+        res.radius = radius;
 
         return res;
     }
