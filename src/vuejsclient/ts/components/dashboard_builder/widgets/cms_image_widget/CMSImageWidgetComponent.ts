@@ -74,7 +74,7 @@ export default class CMSImageWidgetComponent extends VueComponentBase {
         this.radius = this.widget_options.radius;
 
         if (this.file_id) {
-            let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
+            const file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo();
             this.file_path = file ? file.path : null;
         }
     }

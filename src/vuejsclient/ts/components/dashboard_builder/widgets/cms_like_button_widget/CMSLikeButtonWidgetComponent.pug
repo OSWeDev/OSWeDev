@@ -1,0 +1,9 @@
+include ../../../../../views/mixins/loading.pug
+
+.cms_like_button_widget_component
+    .row
+        .col-md-9
+            button(@click="switch_like" id="like_button")
+                i.fa-solid.fa-heart(id="like_icon")
+        .col-md-3
+            span {{ nb_likes }}

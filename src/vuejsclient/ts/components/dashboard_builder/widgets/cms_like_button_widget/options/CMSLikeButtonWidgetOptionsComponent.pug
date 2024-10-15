@@ -1,0 +1,13 @@
+.cms_like_button_widget_options_component
+    .cms_like_button_widget_options_component_wrapper
+
+        .widget_button_color {{ label("cms_like_button.widget_option.color") }}
+        color-picker(v-model="color" @change='throttled_update_options')
+
+        .radius_bloc 
+            .input_label {{ label('cms_like_button.widget_option.radius') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="radius"
+                )

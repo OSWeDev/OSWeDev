@@ -184,6 +184,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_CMSBlocText();
         await this.initializeWidget_CMSImage();
         await this.initializeWidget_CMSLinkButton();
+        await this.initializeWidget_CMSLikeButton();
     }
 
     private async initializeWidget_BulkOps() {
@@ -768,5 +769,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('CMSLinkButtonwidgetcomponent', () => import('./widgets/cms_link_button_widget/CMSLinkButtonWidgetComponent'));
         Vue.component('CMSLinkButtonwidgetoptionscomponent', () => import('./widgets/cms_link_button_widget/options/CMSLinkButtonWidgetOptionsComponent'));
         Vue.component('CMSLinkButtonwidgeticoncomponent', () => import('./widgets/cms_link_button_widget/icon/CMSLinkButtonWidgetIconComponent'));
+    }
+
+    private async initializeWidget_CMSLikeButton() {
+        const CMSLikeButton = new DashboardWidgetVO();
+
+        CMSLikeButton.default_height = 5;
+        CMSLikeButton.default_width = 2;
+        CMSLikeButton.name = DashboardWidgetVO.WIDGET_NAME_cmslikebutton;
+        CMSLikeButton.widget_component = 'CMSLikeButtonwidgetcomponent';
+        CMSLikeButton.options_component = 'CMSLikeButtonwidgetoptionscomponent';
+        CMSLikeButton.weight = 3;
+        CMSLikeButton.default_background = '#f5f5f5';
+        CMSLikeButton.icon_component = 'CMSLikeButtonwidgeticoncomponent';
+        CMSLikeButton.is_filter = true;
+        CMSLikeButton.is_cms_compatible = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(CMSLikeButton, null, null);
+
+        Vue.component('CMSLikeButtonwidgetcomponent', () => import('./widgets/cms_like_button_widget/CMSLikeButtonWidgetComponent'));
+        Vue.component('CMSLikeButtonwidgetoptionscomponent', () => import('./widgets/cms_like_button_widget/options/CMSLikeButtonWidgetOptionsComponent'));
+        Vue.component('CMSLikeButtonwidgeticoncomponent', () => import('./widgets/cms_like_button_widget/icon/CMSLikeButtonWidgetIconComponent'));
     }
 }

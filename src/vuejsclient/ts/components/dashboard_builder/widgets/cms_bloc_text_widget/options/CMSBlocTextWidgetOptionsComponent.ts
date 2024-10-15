@@ -43,15 +43,15 @@ export default class CMSBlocTextWidgetOptionsComponent extends VueComponentBase 
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline', 'strike'],      // Boutons pour le gras, italique, souligné, barré
+                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],  // Boutons pour les listes
                 [{ 'script': 'sub' }, { 'script': 'super' }],   // indice et exposant
                 [{ 'indent': '-1' }, { 'indent': '+1' }],       // outdent/indent
-                [{ 'color': [] }, { 'background': [] }],        // dropdown with defaults from theme
                 [{ 'align': [] }],                              // Bouton pour l'alignement (gauche, centre, droite, justifié)
                 ['clean']                                       // Bouton pour effacer la mise en forme
             ]
         }
-    }
+    };
 
     private next_update_options: CMSBlocTextWidgetOptionsVO = null;
     private throttled_update_options = ThrottleHelper.declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });

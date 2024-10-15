@@ -3576,6 +3576,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_builder.viewport_not_activated.no.___LABEL___'
         ));
 
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Couleur" },
+            'cms_like_button.widget_option.color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Arrondir les angles (valeur en degrés)" },
+            'cms_like_button.widget_option.radius.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new(
+            { 'fr-fr': "Bouton \"J'aime\"" },
+            'dashboards.widgets.icons_tooltips.cmslikebutton.___LABEL___'
+        ));
+
         const preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);

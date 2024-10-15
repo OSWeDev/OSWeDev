@@ -41,6 +41,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public static WIDGET_NAME_cmsbloctext: string = 'cmsbloctext';
     public static WIDGET_NAME_cmsimage: string = 'cmsimage';
     public static WIDGET_NAME_cmslinkbutton: string = 'cmslinkbutton';
+    public static WIDGET_NAME_cmslikebutton: string = 'cmslikebutton';
 
     public id: number;
     public _type: string = DashboardWidgetVO.API_TYPE_ID;
