@@ -25,7 +25,7 @@
                     :value="title_display" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
         template(v-if='title_display')
             .title_font_color
@@ -45,7 +45,7 @@
                         type="number"
                         v-model="title_padding"
                     )
-        
+
         .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.chart_legend_options') }}
         .field_legend_display
             .input_label {{ label('var_radar_chart_widget_options_component.legend_display') }}
@@ -55,7 +55,7 @@
                     :value="legend_display" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                 )
         template(v-if='legend_display')
             .legend_position 
@@ -70,7 +70,7 @@
 
                         :searchable="true"
                         :internal-search="true"
-                        
+
                         select-label=''
                         select-group-label=''
                         selected-label=''
@@ -78,7 +78,7 @@
                         deselect-group-label=''
 
                         placeholder=''
-                        
+
                         name="legend_position_selector_1"
                     )
             .legend_font_color
@@ -113,97 +113,120 @@
                         :value="legend_use_point_style" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )
 
         .options_separator_lvl1 {{ label('var_radar_chart_widget_options_component.separator.datas_options') }}
 
-        template(v-if='has_dimension')
-            .field_dimension_is_vo_field_ref
-                .input_label {{ label('var_radar_chart_widget_options_component.dimension_is_vo_field_ref') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_dimension_is_vo_field_ref" 
-                        :value="dimension_is_vo_field_ref" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
-            
-            template(v-if='dimension_is_vo_field_ref')
-                .field_ref
-                    .input_label {{ label('var_radar_chart_widget_options_component.dimension_vo_field_ref') }}
+        .dimension_params
+            template(v-if='has_dimension')
+                .field_dimension_is_vo_field_ref
+                    .input_label {{ label('var_radar_chart_widget_options_component.dimension_is_vo_field_ref') }}
                     .input_wrapper
-                        Singlevofieldrefholdercomponent(
-                            :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
-                            :page_widget_id='page_widget ? page_widget.id : null'
+                        toggle-button(
+                            @change="switch_dimension_is_vo_field_ref" 
+                            :value="dimension_is_vo_field_ref" 
+                            :sync="false"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                         )
 
-            template(v-else)
-                .dimension_custom_filter_name
-                    .field_label {{ label('var_radar_chart_widget_options_component.field_that_could_get_custom_filter') }}
-                    .custom_filter 
+                template(v-if='dimension_is_vo_field_ref')
+                    .field_ref
+                        .input_label {{ label('var_radar_chart_widget_options_component.dimension_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                template(v-else)
+                    .dimension_custom_filter_name
+                        .field_label {{ label('var_radar_chart_widget_options_component.field_that_could_get_custom_filter') }}
+                        .custom_filter 
+                            input(
+                                type="text"
+                                v-model="dimension_custom_filter_name"
+                                :disabled="true"
+                            )
+                        .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                            template(v-for='custom_filter in get_custom_filters')
+                                .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
+
+                    .dimension_custom_filter_segment_type 
+                        .input_label {{ label('var_radar_chart_widget_options_component.dimension_custom_filter_segment_type') }}
+                        .input_wrapper
+                            multiselect.var_name_selector(
+                                :preselect-first="false"
+                                :multiple="false"
+                                v-model="tmp_selected_dimension_custom_filter_segment_type"
+                                :options="dimension_custom_filter_segment_types_values"
+                                :allow-empty="false",
+
+                                :searchable="true"
+                                :internal-search="true"
+
+                                select-label=''
+                                select-group-label=''
+                                selected-label=''
+                                deselect-label=''
+                                deselect-group-label=''
+
+                                placeholder=''
+
+                                name="dimension_custom_filter_segment_type_selector_1"
+                            )
+
+                .max_dimension_values
+                    .input_label {{ label('var_radar_chart_widget_options_component.max_dimension_values') }}
+                    .input_wrapper
                         input(
-                            type="text"
-                            v-model="dimension_custom_filter_name"
-                            :disabled="true"
-                        )
-                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                        template(v-for='custom_filter in get_custom_filters')
-                            .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
-                            
-                .dimension_custom_filter_segment_type 
-                    .input_label {{ label('var_radar_chart_widget_options_component.dimension_custom_filter_segment_type') }}
-                    .input_wrapper
-                        multiselect.var_name_selector(
-                            :preselect-first="false"
-                            :multiple="false"
-                            v-model="tmp_selected_dimension_custom_filter_segment_type"
-                            :options="dimension_custom_filter_segment_types_values"
-                            :allow-empty="false",
-
-                            :searchable="true"
-                            :internal-search="true"
-                            
-                            select-label=''
-                            select-group-label=''
-                            selected-label=''
-                            deselect-label=''
-                            deselect-group-label=''
-
-                            placeholder=''
-                            
-                            name="dimension_custom_filter_segment_type_selector_1"
+                            type="number"
+                            v-model="max_dimension_values"
+                            v-tooltip="label('var_radar_chart_widget_options_component.max_dimension_values.tooltip')"
                         )
 
-            .max_dimension_values
-                .input_label {{ label('var_radar_chart_widget_options_component.max_dimension_values') }}
+                template(v-if='dimension_is_vo_field_ref')
+                    .field_ref
+                        .input_label {{ label('var_radar_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
+                template(v-if="sort_dimension_by_vo_field_ref")
+                    .field_sort_dimension_by_asc
+                        .input_label {{ label('var_radar_chart_widget_options_component.sort_dimension_by_asc') }}
+                        .input_wrapper
+                            toggle-button(
+                                @change="switch_sort_dimension_by_asc" 
+                                :value="sort_dimension_by_asc" 
+                                :sync="false"
+                                :width="60"
+                                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
+                            )
+
+        .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.multiple_dataset') }}
+        .multiple_dataset_params
+            .field_ref.multiple_dataset_vo_field_ref
+                .input_label {{ label('var_radar_chart_widget_options_component.multiple_dataset_vo_field_ref') }}
                 .input_wrapper
-                    input(
-                        type="number"
-                        v-model="max_dimension_values"
-                        v-tooltip="label('var_radar_chart_widget_options_component.max_dimension_values.tooltip')"
+                    Singlevofieldrefholdercomponent(
+                        :vo_field_ref="multiple_dataset_vo_field_ref" @remove_field_ref="remove_multiple_dataset_vo_field_ref" @add_field_ref="add_multiple_dataset_vo_field_ref"
+                        :page_widget_id='page_widget ? page_widget.id : null'
                     )
 
-            template(v-if='dimension_is_vo_field_ref')
-                .field_ref
-                    .input_label {{ label('var_radar_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
+            template(v-if="multiple_dataset_vo_field_ref")
+                .max_dataset_values
+                    .input_label {{ label('var_radar_chart_widget_options_component.max_dataset_values') }}
                     .input_wrapper
-                        Singlevofieldrefholdercomponent(
-                            :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
-                            :page_widget_id='page_widget ? page_widget.id : null'
+                        input(
+                            type="number"
+                            v-model="max_dataset_values"
+                            v-tooltip="label('var_radar_chart_widget_options_component.max_dataset_values.tooltip')"
                         )
 
-            .field_sort_dimension_by_asc
-                .input_label {{ label('var_radar_chart_widget_options_component.sort_dimension_by_asc') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_sort_dimension_by_asc" 
-                        :value="sort_dimension_by_asc" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
 
         .options_separator_lvl2 {{ label('var_radar_chart_widget_options_component.separator.datas_filter_options') }}
         .widget_filter_options(v-if='title_name_code_text && widget_options')
@@ -229,7 +252,7 @@
 
                     :searchable="true"
                     :internal-search="true"
-                    
+
                     select-label=''
                     select-group-label=''
                     selected-label=''
@@ -237,7 +260,7 @@
                     deselect-group-label=''
 
                     placeholder=''
-                    
+
                     name="var_name_selector_1"
                 )
                     .lang_selector_option(slot="noOptions") -
@@ -249,7 +272,7 @@
                     :code_text="widget_options.get_var_name_code_text(page_widget.id, widget_options.var_id_1)" 
                     :is_editable="true"
                 )
-                    
+
         .bg_color_1
             .explication {{ label("var_radar_chart_widget_options_component.bg_color_1") }}
             color-picker(v-model="bg_color_1" @change='throttled_update_colors')
@@ -293,7 +316,7 @@
 
                         :searchable="true"
                         :internal-search="true"
-                        
+
                         select-label=''
                         select-group-label=''
                         selected-label=''
@@ -301,7 +324,7 @@
                         deselect-group-label=''
 
                         placeholder=''
-                        
+
                         name="var_name_selector_2"
                     )
                         .lang_selector_option(slot="noOptions") -
@@ -341,5 +364,5 @@
                         :value="max_is_sum_of_var_1_and_2" 
                         :sync="false"
                         :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}" 
                     )

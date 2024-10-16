@@ -328,6 +328,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_radar_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Sélectionner le champ permettant de faire du multi dataset (plusieurs radars superposés)'
+        }, 'var_radar_chart_widget_options_component.multiple_dataset_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
+            'fr-fr': 'Maximum de radars superposés'
+        }, 'var_radar_chart_widget_options_component.max_dataset_values.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(DefaultTranslationVO.create_new({
             'fr-fr': 'Options du graphique'
         }, 'var_radar_chart_widget_options_component.separator.chart_options.___LABEL___'));
 
