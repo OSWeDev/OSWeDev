@@ -2,7 +2,7 @@ import { debounce, isEqual } from 'lodash';
 import { Radar } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
-import { _adapters } from 'chart.js';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarRadarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarRadarDataSetDescriptor';
@@ -300,7 +300,7 @@ export default class VarRadarChart extends VueComponentBase {
 
     public async created() {
         let chart = Chart;
-        chart.register(ChartDataLabels);
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
