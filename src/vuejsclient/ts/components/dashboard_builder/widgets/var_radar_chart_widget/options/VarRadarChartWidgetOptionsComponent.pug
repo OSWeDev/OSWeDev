@@ -1,6 +1,16 @@
 .var_radar_chart_widget_options_component
 
     template(v-if='widget_options')
+        .hide_filter
+            .input_label {{ label('var_radar_chart_widget_options_component.hide_filter') }}
+
+            toggle-button(
+                @change="switch_hide_filter" 
+                :value="hide_filter" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: t('YES'), unchecked: t('NO')}" 
+            )
 
         .options_separator_lvl1 {{ label('var_radar_chart_widget_options_component.separator.widget_options') }}
         .widget_title(v-if='title_name_code_text')

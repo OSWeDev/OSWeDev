@@ -14,7 +14,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-import VarPieChartWidgetOptions from '../../../dashboard_builder/widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 @Component({
     template: require('./VarPieChartComponent.pug'),
@@ -75,7 +74,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     public async created() {
         let chart = Chart;
-        chart.register(ChartDataLabels)
+        chart.register(ChartDataLabels);
         window['Chart'] = chart;
         Chart['helpers'] = helpers;
 
@@ -220,12 +219,12 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            console.log('unregister')
+            console.log('unregister');
             await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            console.log('register')
+            console.log('register');
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
@@ -317,7 +316,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         const self = this;
         let plugins = [
             this.plugins
-        ]
+        ];
 
         return plugins;
     }
@@ -344,19 +343,19 @@ export default class VarPieChartComponent extends VueComponentBase {
 
             if (this.hovered) {
                 if (this.hovered_index == j) {
-                    if(this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                    if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                         if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
                             backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "1"));
                         } else {
-                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF')
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + 'FF');
                         }
                     }
                 } else {
-                        if(this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                    if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                         if (this.var_dataset_descriptor.backgrounds[j].includes('rgba')) {
                             backgrounds.push(this.var_dataset_descriptor.backgrounds[j].replace(/[^,]+(?=\))/, "0.2"));
                         } else {
-                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33')
+                            backgrounds.push(this.var_dataset_descriptor.backgrounds[j].slice(0, this.var_dataset_descriptor.backgrounds[j].length - 2) + '33');
                         }
                     }
                 }
@@ -463,12 +462,12 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (const i in this.var_params) {
             if (this.getlabel && this.getlabel(this.var_params[i])) {
                 if (this.getlabel(this.var_params[i]).length <= 1) {
-                    res.push(this.getlabel(this.var_params[i]))
+                    res.push(this.getlabel(this.var_params[i]));
                 } else {
-                    res.push(this.getlabel(this.var_params[i])[i])
+                    res.push(this.getlabel(this.var_params[i])[i]);
                 }
             } else {
-                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)))
+                res.push(this.t(VarsController.get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
             }
         }
         return res;

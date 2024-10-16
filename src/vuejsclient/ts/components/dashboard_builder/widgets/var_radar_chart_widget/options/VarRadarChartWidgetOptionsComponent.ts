@@ -64,6 +64,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
     private title_display: boolean = false;
     private has_dimension: boolean = true;
     private sort_dimension_by_asc: boolean = false;
+    private hide_filter: boolean = false;
     private dimension_is_vo_field_ref: boolean = false;
 
     private legend_font_size: string = null;
@@ -267,6 +268,18 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         }
 
         this.next_update_options.sort_dimension_by_asc = !this.next_update_options.sort_dimension_by_asc;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_hide_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
 
         await this.throttled_update_options();
     }
@@ -516,6 +529,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
                         (this.widget_options.max_dataset_values == options.max_dataset_values) &&
                         (this.widget_options.sort_dimension_by_vo_field_ref == options.sort_dimension_by_vo_field_ref) &&
                         (this.widget_options.sort_dimension_by_asc == options.sort_dimension_by_asc) &&
+                        (this.widget_options.hide_filter == options.hide_filter) &&
 
                         (this.widget_options.dimension_is_vo_field_ref == options.dimension_is_vo_field_ref) &&
                         ObjectHandler.are_equal(this.widget_options.dimension_vo_field_ref, options.dimension_vo_field_ref) &&
@@ -567,6 +581,7 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
             this.max_dimension_values = '10';
             this.max_dataset_values = '10';
             this.sort_dimension_by_asc = true;
+            this.hide_filter = false;
             this.dimension_is_vo_field_ref = true;
             this.dimension_custom_filter_name = null;
             this.tmp_selected_dimension_custom_filter_segment_type = this.dimension_custom_filter_segment_types[0];
@@ -623,6 +638,9 @@ export default class VarRadarChartWidgetOptionsComponent extends VueComponentBas
         }
         if (this.sort_dimension_by_asc != this.widget_options.sort_dimension_by_asc) {
             this.sort_dimension_by_asc = this.widget_options.sort_dimension_by_asc;
+        }
+        if (this.hide_filter != this.widget_options.hide_filter) {
+            this.hide_filter = this.widget_options.hide_filter;
         }
         if (this.dimension_is_vo_field_ref != this.widget_options.dimension_is_vo_field_ref) {
             this.dimension_is_vo_field_ref = this.widget_options.dimension_is_vo_field_ref;

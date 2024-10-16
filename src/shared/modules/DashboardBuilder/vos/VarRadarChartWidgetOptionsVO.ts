@@ -85,6 +85,7 @@ export default class VarRadarChartWidgetOptionsVO extends AbstractVO {
 
         public multiple_dataset_vo_field_ref?: VOFieldRefVO,
         public max_dataset_values?: number,  // Permet de limiter le nombre de datasets affichés (par défaut 10)
+        public hide_filter?: boolean,
     ) {
         super();
     }
