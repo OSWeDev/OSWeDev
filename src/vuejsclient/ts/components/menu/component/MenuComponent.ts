@@ -1,7 +1,5 @@
-import { indexOf } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../VueComponentBase';
 import MenuController from '../MenuController';
 import './MenuComponent.scss';

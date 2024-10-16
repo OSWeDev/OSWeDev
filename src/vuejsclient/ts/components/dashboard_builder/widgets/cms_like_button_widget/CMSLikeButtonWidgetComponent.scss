@@ -1,18 +1,24 @@
 .cms_like_button_widget_component {
 
-    button {
-        height: 80px;
-        width: 80px;
+    .row {
 
-        .fa-solid {
-            font-weight: 300 !important;
-            font-size: 30px;
-        }
-    }
+        display: flex;
+        justify-content: center;
     
-    .col-md-3 {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+        button {
+            height: 60px;
+            width: 60px;
+    
+            .fa-solid {
+                font-weight: 300 !important;
+                font-size: 25px;
+            }
+        }
+        
+        .col-md-3 {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
     }
 }
