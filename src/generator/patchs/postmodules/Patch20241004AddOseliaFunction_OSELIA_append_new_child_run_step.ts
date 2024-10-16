@@ -106,6 +106,44 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_weight);
         }
 
+        let argument_use_splitter = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'use_splitter')
+            .filter_by_id(append_new_child_run_step_function.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_use_splitter) {
+            argument_use_splitter = new GPTAssistantAPIFunctionParamVO();
+            argument_use_splitter.archived = false;
+            argument_use_splitter.function_id = append_new_child_run_step_function.id;
+            argument_use_splitter.gpt_funcparam_description = "Est-ce que la tâche doit être divisée automatiquement pour faciliter l'exécution ? Par défaut ne pas diviser, sauf indication contraire";
+            argument_use_splitter.gpt_funcparam_name = "use_splitter";
+            argument_use_splitter.required = true;
+            argument_use_splitter.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
+            argument_use_splitter.not_in_function_params = false;
+            argument_use_splitter.weight = 3;
+            argument_use_splitter.default_json_value = JSON.stringify(false);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_use_splitter);
+        }
+
+        let argument_childrens_are_multithreaded = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'childrens_are_multithreaded')
+            .filter_by_id(append_new_child_run_step_function.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_childrens_are_multithreaded) {
+            argument_childrens_are_multithreaded = new GPTAssistantAPIFunctionParamVO();
+            argument_childrens_are_multithreaded.archived = false;
+            argument_childrens_are_multithreaded.function_id = append_new_child_run_step_function.id;
+            argument_childrens_are_multithreaded.gpt_funcparam_description = "Uniquement si in_a_separate_thread && use_splitter : Est-ce que les sous-tâches peuvent être exécutée en // ? Ce n'est possible que si elles sont dans des nouveaux threads";
+            argument_childrens_are_multithreaded.gpt_funcparam_name = "childrens_are_multithreaded";
+            argument_childrens_are_multithreaded.required = true;
+            argument_childrens_are_multithreaded.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
+            argument_childrens_are_multithreaded.not_in_function_params = false;
+            argument_childrens_are_multithreaded.weight = 4;
+            argument_childrens_are_multithreaded.default_json_value = JSON.stringify(false);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_childrens_are_multithreaded);
+        }
+
         let argument_use_validator = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
             .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'use_validator')
             .filter_by_id(append_new_child_run_step_function.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
@@ -120,7 +158,8 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_use_validator.required = true;
             argument_use_validator.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
             argument_use_validator.not_in_function_params = false;
-            argument_use_validator.weight = 3;
+            argument_use_validator.weight = 5;
+            argument_use_validator.default_json_value = JSON.stringify(false);
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_use_validator);
         }
 
@@ -138,8 +177,47 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_hide_outputs.required = true;
             argument_hide_outputs.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
             argument_hide_outputs.not_in_function_params = false;
-            argument_hide_outputs.weight = 4;
+            argument_hide_outputs.weight = 6;
+            argument_hide_outputs.default_json_value = JSON.stringify(false);
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_hide_outputs);
+        }
+
+        let argument_in_a_separate_thread = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'in_a_separate_thread')
+            .filter_by_id(append_new_child_run_step_function.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_in_a_separate_thread) {
+            argument_in_a_separate_thread = new GPTAssistantAPIFunctionParamVO();
+            argument_in_a_separate_thread.archived = false;
+            argument_in_a_separate_thread.function_id = append_new_child_run_step_function.id;
+            argument_in_a_separate_thread.gpt_funcparam_description = "Est-ce que le run de cette tâche doit être exécuté dans un thread séparé qui n'aura pas accès au contexte du thread actuel, mais pourra communiquer avec lui via des messages / cache";
+            argument_in_a_separate_thread.gpt_funcparam_name = "in_a_separate_thread";
+            argument_in_a_separate_thread.required = true;
+            argument_in_a_separate_thread.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
+            argument_in_a_separate_thread.not_in_function_params = false;
+            argument_in_a_separate_thread.weight = 7;
+            argument_in_a_separate_thread.default_json_value = JSON.stringify(false);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_in_a_separate_thread);
+        }
+
+        let argument_assistant_id = await query(GPTAssistantAPIFunctionParamVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIFunctionParamVO>().gpt_funcparam_name, 'assistant_id')
+            .filter_by_id(append_new_child_run_step_function.id, GPTAssistantAPIFunctionVO.API_TYPE_ID)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIFunctionParamVO>();
+        if (!argument_assistant_id) {
+            argument_assistant_id = new GPTAssistantAPIFunctionParamVO();
+            argument_assistant_id.archived = false;
+            argument_assistant_id.function_id = append_new_child_run_step_function.id;
+            argument_assistant_id.gpt_funcparam_description = "Que assistant (via son id) doit exécuter cette tâche. Par défaut - 0 ou null - on conserve l'assistant actuel";
+            argument_assistant_id.gpt_funcparam_name = "assistant_id";
+            argument_assistant_id.required = true;
+            argument_assistant_id.type = GPTAssistantAPIFunctionParamVO.TYPE_INTEGER;
+            argument_assistant_id.not_in_function_params = false;
+            argument_assistant_id.weight = 8;
+            argument_assistant_id.default_json_value = JSON.stringify(0);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(argument_assistant_id);
         }
     }
 }

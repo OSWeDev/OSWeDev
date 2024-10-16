@@ -19,6 +19,7 @@ import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import GPTAssistantAPIAssistantVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIAssistantVO';
+import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 import GPTAssistantAPIRunVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIRunVO';
 import GPTAssistantAPIThreadMessageContentImageFileVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentImageFileVO';
 import GPTAssistantAPIThreadMessageContentVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIThreadMessageContentVO';
@@ -29,6 +30,7 @@ import ModuleOselia from '../../../shared/modules/Oselia/ModuleOselia';
 import OseliaController from '../../../shared/modules/Oselia/OseliaController';
 import OseliaReferrerVO from '../../../shared/modules/Oselia/vos/OseliaReferrerVO';
 import OseliaRunVO from '../../../shared/modules/Oselia/vos/OseliaRunVO';
+import OseliaThreadCacheVO from '../../../shared/modules/Oselia/vos/OseliaThreadCacheVO';
 import OseliaThreadReferrerVO from '../../../shared/modules/Oselia/vos/OseliaThreadReferrerVO';
 import OseliaUserReferrerOTTVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerOTTVO';
 import OseliaUserReferrerVO from '../../../shared/modules/Oselia/vos/OseliaUserReferrerVO';
@@ -68,7 +70,6 @@ import OseliaServerController from './OseliaServerController';
 import OseliaOldRunsResyncBGThread from './bgthreads/OseliaOldRunsResyncBGThread';
 import OseliaRunBGThread from './bgthreads/OseliaRunBGThread';
 import OseliaThreadTitleBuilderBGThread from './bgthreads/OseliaThreadTitleBuilderBGThread';
-import GPTAssistantAPIFunctionVO from '../../../shared/modules/GPT/vos/GPTAssistantAPIFunctionVO';
 
 export default class ModuleOseliaServer extends ModuleServerBase {
 
@@ -665,7 +666,7 @@ export default class ModuleOseliaServer extends ModuleServerBase {
         thread_vo: GPTAssistantAPIThreadVO,
     ): Promise<string> {
         if ((!thread_vo) || (!thread_vo.last_gpt_run_id)) {
-            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le thread ou le dernier run gpt:' + JSON.stringify(thread_vo));
             return 'ERREUR: Impossible de trouver le thread ou le dernier run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
@@ -675,13 +676,13 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             .select_vo<GPTAssistantAPIRunVO>();
 
         if (!gpt_run) {
-            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le run gpt:' + thread_vo.last_gpt_run_id);
             return 'ERREUR: Impossible de trouver le run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
         const oselia_run = await OseliaRunServerController.get_oselia_run_from_grp_run_id(gpt_run.id);
         if (!oselia_run) {
-            ConsoleHandler.error('append_new_child_run_step:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
+            ConsoleHandler.error('validate_oselia_run:Impossible de trouver le run oselia associé au run gpt:' + gpt_run.id);
             return 'ERREUR: Impossible de trouver le run oselia associé au run gpt. Il peut être pertinent de retenter un appel à la fonction';
         }
 
@@ -733,21 +734,55 @@ export default class ModuleOseliaServer extends ModuleServerBase {
     }
 
     /**
+     * Fonction pour charger un assistant depuis son nom
+     * @param thread_vo le thread qui gère la discussion avec l'assistant
+     * @param assistant_name le nom de l'assistant à charger
+     */
+    public async get_assistant(
+        thread_vo: GPTAssistantAPIThreadVO,
+        assistant_name: string,
+    ): Promise<string> {
+        if (!thread_vo) {
+            ConsoleHandler.error('get_assistant:Impossible de trouver le thread:' + JSON.stringify(thread_vo));
+            return 'ERREUR TECHNIQUE: Impossible de trouver le thread. Il peut être pertinent de retenter un appel à la fonction';
+        }
+
+        const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<GPTAssistantAPIAssistantVO>().nom, assistant_name)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIRunVO>();
+
+        if (!assistant) {
+            ConsoleHandler.error('get_assistant:Impossible de trouver l\'assistant:' + assistant_name);
+            return 'ERREUR: Impossible de trouver l\'assistant par son nom. Corriger et relancer la fonction';
+        }
+
+        return JSON.stringify(assistant);
+    }
+
+
+    /**
      * La méthode qui devient une fonction pour l'assistant et qui permet de définir les tâches à venir
      * @param thread_vo le thread qui gère la discussion avec l'assistant
      * @param name le nom de la tâche
      * @param prompt le prompt de la tâche
      * @param weight le poids de la tâche - pour l'ordre d'exécution
-     * @param use_validator si la tâche doit être validée automatiquement - par défaut non pour le moment
-     * @param hide_outputs si les sorties doivent être cachées - par défaut non pour le moment
+     * @param use_validator si la tâche doit être validée automatiquement - par défaut non
+     * @param hide_outputs si les sorties doivent être cachées - par défaut non
+     * @param in_a_separate_thread si la tâche doit être exécutée dans un thread séparé - par défaut non
+     * @param assistant_id l'id de l'assistant à utiliser pour la tâche - par défaut 0 ou null pour indiquer l'assistant actuel
      */
     public async append_new_child_run_step(
         thread_vo: GPTAssistantAPIThreadVO,
         name: string,
         prompt: string,
         weight: number,
+        use_splitter: boolean,
+        childrens_are_multithreaded: boolean,
         use_validator: boolean,
         hide_outputs: boolean,
+        in_a_separate_thread: boolean,
+        assistant_id: number,
     ): Promise<string> {
 
         try {
@@ -797,14 +832,24 @@ export default class ModuleOseliaServer extends ModuleServerBase {
 
             const new_run_step = new OseliaRunVO();
 
-            // TODO FIXME : on peut envisager par la suite de changer d'assistant pour les sous-étapes. Cela dit on
-            //  aura peut-etre surtout une autre fonction qui défini un run à par entière, issue du realtime, et qui
-            //  lui se demandera quel assistant est adapté
-            new_run_step.assistant_id = gpt_run.assistant_id;
+            // Si un assistant_id est fourni on le teste
+            if ((!!assistant_id) && (assistant_id != gpt_run.assistant_id)) {
+                const assistant = await query(GPTAssistantAPIAssistantVO.API_TYPE_ID)
+                    .filter_by_id(assistant_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIAssistantVO>();
 
-            new_run_step.thread_id = thread_vo.id;
+                if (!assistant) {
+                    ConsoleHandler.error('append_new_child_run_step:Assistant not found:' + assistant_id);
+                    return 'ERREUR: Assistant [id:' + assistant_id + '] non trouvé. Corriger et relancer la fonction';
+                }
+            }
+
+            new_run_step.assistant_id = (!!assistant_id) ? assistant_id : gpt_run.assistant_id;
+
+            new_run_step.thread_id = in_a_separate_thread ? null : thread_vo.id;
             new_run_step.parent_run_id = oselia_run.id;
-            new_run_step.childrens_are_multithreaded = false; // On ne propose pas de créer un split pour le moment donc ce param est inutile.
+            new_run_step.childrens_are_multithreaded = (childrens_are_multithreaded == null) ? false : childrens_are_multithreaded;
             new_run_step.file_id_ranges = oselia_run.file_id_ranges;
             new_run_step.hide_outputs = (hide_outputs == null) ? false : hide_outputs;
             new_run_step.hide_prompt = true;
@@ -816,10 +861,26 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             new_run_step.start_date = Dates.now();
             new_run_step.state = OseliaRunVO.STATE_TODO;
             new_run_step.thread_title = null;
-            new_run_step.use_splitter = false;
+            new_run_step.use_splitter = (use_splitter == null) ? false : use_splitter;
             new_run_step.use_validator = (use_validator == null) ? false : use_validator;
             new_run_step.user_id = oselia_run.user_id;
             new_run_step.weight = weight;
+
+
+            if (in_a_separate_thread) {
+                // On le crée tout de suite pour le lien en parent au thread actuel
+                const thread: {
+                    thread_gpt: Thread;
+                    thread_vo: GPTAssistantAPIThreadVO;
+                } = await GPTAssistantAPIServerController.get_thread(new_run_step.user_id, null, new_run_step.assistant_id);
+
+                new_run_step.thread_id = thread.thread_vo.id;
+                thread.thread_vo.thread_title = (thread_vo.thread_title ? '[SUB] ' + thread_vo.thread_title + ' : ' : '[SUB] ') + new_run_step.name;
+                thread.thread_vo.needs_thread_title_build = false;
+                thread.thread_vo.thread_title_auto_build_locked = true;
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(thread.thread_vo);
+            }
+
             await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_run_step);
 
             return 'OK - Tâche ajoutée';
@@ -827,6 +888,127 @@ export default class ModuleOseliaServer extends ModuleServerBase {
             ConsoleHandler.error("ModuleOseliaServer:append_new_child_run_step:Error while appending new child run step:" + error);
             return "Erreur lors de l'ajout de la tâche:" + error + ". Il peut être pertinent de corriger si possible et de retenter un appel à la fonction";
         }
+    }
+
+    /**
+     * Fonction pour interroger le cache du thread (ou du thread parent de manière récursive)
+     * @param thread_vo
+     * @param key
+     * @returns en priorité la valeur du cache local au thread si on trouve, sinon on cherche dans le cache du thread parent, et si on trouve rien c'est null.
+     */
+    public async get_cache_value(
+        thread_vo: GPTAssistantAPIThreadVO,
+        key: string,
+    ): Promise<string> {
+
+        /**
+         * Par défaut on cherche en local et si on trouve pas on cherche chez le thread_parent si yen a un
+         */
+
+        if (!thread_vo) {
+            ConsoleHandler.error('get_cache_value:Thread not found');
+            return 'ERREUR Technique: Thread non trouvé: réeesayer';
+        }
+
+        if (!key) {
+            ConsoleHandler.error('get_cache_value:Key is mandatory');
+            return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        const cache = await query(OseliaThreadCacheVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadCacheVO>().key, key)
+            .exec_as_server()
+            .select_vo<OseliaThreadCacheVO>();
+
+        if (cache) {
+            return cache.value;
+        }
+
+        if (!thread_vo.parent_thread_id) {
+            return null;
+        }
+
+        const parent_thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_id(thread_vo.parent_thread_id)
+            .exec_as_server()
+            .select_vo<GPTAssistantAPIThreadVO>();
+
+        if (!parent_thread) {
+            ConsoleHandler.error('get_cache_value:Parent thread not found');
+            return 'ERREUR Technique: Thread parent non trouvé: réeesayer';
+        }
+
+        return await this.get_cache_value(parent_thread, key);
+    }
+
+    /**
+     * Fonction pour mettre à jour le cache du thread (ou des threads parents à la demande)
+     * @param thread_vo
+     * @param key
+     * @param value la valeur à mettre à jour au format string
+     * @param thread_id si on veut mettre à jour le cache d'un autre thread que le thread actuel (uniquement un thread parent de celui-ci)
+     * @returns OK , KO
+     */
+    public async set_cache_value(
+        thread_vo: GPTAssistantAPIThreadVO,
+        key: string,
+        value: string,
+        thread_id: number,
+    ): Promise<string> {
+
+        if (!thread_vo) {
+            ConsoleHandler.error('set_cache_value:Thread not found');
+            return 'ERREUR Technique: Thread non trouvé: réeesayer';
+        }
+
+        if (!key) {
+            ConsoleHandler.error('set_cache_value:Key is mandatory');
+            return 'ERREUR: La clé est obligatoire: corriger et réessayer';
+        }
+
+        // Si on fourni un thread_id, on doit check qu'il existe et qu'il s'agit d'un thread parent du thread actuel
+        if ((!!thread_id) && (thread_id != thread_vo.id)) {
+
+            let thread_parent_id = thread_vo.parent_thread_id;
+            while (thread_parent_id && (thread_parent_id != thread_id)) {
+                const thread = await query(GPTAssistantAPIThreadVO.API_TYPE_ID)
+                    .filter_by_id(thread_id)
+                    .exec_as_server()
+                    .select_vo<GPTAssistantAPIThreadVO>();
+
+                if (!thread) {
+                    ConsoleHandler.error('set_cache_value:Thread not found:' + thread_id);
+                    return 'ERREUR: Thread non trouvé: corriger et réeesayer';
+                }
+                thread_parent_id = thread.parent_thread_id;
+            }
+
+            if (!thread_parent_id) {
+                ConsoleHandler.error('set_cache_value:Thread not parent of thread:' + thread_id);
+                return 'ERREUR: Thread non parent du thread: corriger et réeesayer';
+            }
+        }
+
+        // Si on fourni pas de thread_id, on prend le thread actuel
+        thread_id = (!!thread_id) ? thread_id : thread_vo.id;
+
+        let cache = await query(OseliaThreadCacheVO.API_TYPE_ID)
+            .filter_by_id(thread_id, GPTAssistantAPIThreadVO.API_TYPE_ID)
+            .filter_by_text_eq(field_names<OseliaThreadCacheVO>().key, key)
+            .exec_as_server()
+            .select_vo<OseliaThreadCacheVO>();
+
+        if (!cache) {
+            cache = new OseliaThreadCacheVO();
+            cache.thread_id = thread_id;
+            cache.key = key;
+        }
+
+        cache.value = value;
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cache);
+
+        return 'OK';
     }
 
     private async set_screen_track(track: MediaStreamTrack): Promise<void> {

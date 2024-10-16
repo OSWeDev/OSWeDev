@@ -124,6 +124,9 @@ import Patch20241004AddOseliaFunction_OSELIA_refuse_run from './patchs/postmodul
 import Patch20241004AddOseliaFunction_OSELIA_validate_run from './patchs/postmodules/Patch20241004AddOseliaFunction_OSELIA_validate_run';
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_board from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_board';
 import Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions from './patchs/postmodules/Patch20240926AddOseliaFunction_TRELLO_trello_get_card_actions';
+import Patch20241016AddOseliaFunction_OSELIA_get_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_cache_value';
+import Patch20241016AddOseliaFunction_OSELIA_set_cache_value from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_set_cache_value';
+import Patch20241016AddOseliaFunction_OSELIA_get_assistant from './patchs/postmodules/Patch20241016AddOseliaFunction_OSELIA_get_assistant';
 // import Patch20240409AddOseliaPromptForFeedback from './patchs/postmodules/Patch20240409AddOseliaPromptForFeedback';
 
 export default abstract class GeneratorBase {
@@ -270,6 +273,10 @@ export default abstract class GeneratorBase {
             Patch20241004AddOseliaFunction_OSELIA_refuse_run.getInstance(),
             Patch20241004AddOseliaFunction_OSELIA_validate_run.getInstance(),
             Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_step.getInstance(),
+
+            Patch20241016AddOseliaFunction_OSELIA_get_cache_value.getInstance(),
+            Patch20241016AddOseliaFunction_OSELIA_set_cache_value.getInstance(),
+            Patch20241016AddOseliaFunction_OSELIA_get_assistant.getInstance(),
             // Patch20240409AddOseliaPromptForFeedback.getInstance(),
         ];
     }

@@ -17,6 +17,11 @@ export default class GPTAssistantAPIThreadVO implements IDistantVOBase {
     public current_default_assistant_id: number;
 
     /**
+     * Le thread parent. Par exemple on peut choisir de splitt une tâche depuis un run sur le thread A, et créer les threads B et C nouveaux pour les lancer en //. Dans ce cas, le thread est B par exemple mais le parent_thread_id est A
+     */
+    public parent_thread_id: number;
+
+    /**
      * Un run est en cours sur ce thread
      */
     public oselia_is_running: boolean;

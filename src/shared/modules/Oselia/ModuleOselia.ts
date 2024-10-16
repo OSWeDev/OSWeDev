@@ -7,8 +7,10 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleTableCompositeUniqueKeyController from '../DAO/ModuleTableCompositeUniqueKeyController';
 import ModuleTableController from '../DAO/ModuleTableController';
 import ModuleTableFieldController from '../DAO/ModuleTableFieldController';
+import ModuleTableCompositeUniqueKeyVO from '../DAO/vos/ModuleTableCompositeUniqueKeyVO';
 import ModuleTableFieldVO from '../DAO/vos/ModuleTableFieldVO';
 import FileVO from '../File/vos/FileVO';
 import GPTAssistantAPIAssistantFunctionVO from '../GPT/vos/GPTAssistantAPIAssistantFunctionVO';
@@ -30,6 +32,7 @@ import OseliaReferrerVO from './vos/OseliaReferrerVO';
 import OseliaRunFunctionCallVO from './vos/OseliaRunFunctionCallVO';
 import OseliaRunTemplateVO from './vos/OseliaRunTemplateVO';
 import OseliaRunVO from './vos/OseliaRunVO';
+import OseliaThreadCacheVO from './vos/OseliaThreadCacheVO';
 import OseliaThreadReferrerVO from './vos/OseliaThreadReferrerVO';
 import OseliaTokenPriceVO from './vos/OseliaTokenPriceVO';
 import OseliaUserReferrerOTTVO from './vos/OseliaUserReferrerOTTVO';
@@ -123,6 +126,18 @@ export default class ModuleOselia extends Module {
         this.initializeOseliaRunTemplateVO();
 
         this.initializeOseliaRunFunctionCallVO();
+
+        this.initializeOseliaThreadCacheVO();
+    }
+
+    public initializeOseliaThreadCacheVO() {
+        const field_thread_id = ModuleTableFieldController.create_new(OseliaThreadCacheVO.API_TYPE_ID, field_names<OseliaThreadCacheVO>().thread_id, ModuleTableFieldVO.FIELD_TYPE_foreign_key, 'Thread', true)
+            .set_many_to_one_target_moduletable_name(GPTAssistantAPIThreadVO.API_TYPE_ID);
+        const field_key = ModuleTableFieldController.create_new(OseliaThreadCacheVO.API_TYPE_ID, field_names<OseliaThreadCacheVO>().key, ModuleTableFieldVO.FIELD_TYPE_string, 'Nom de l\'entrée', true);
+        ModuleTableFieldController.create_new(OseliaThreadCacheVO.API_TYPE_ID, field_names<OseliaThreadCacheVO>().value, ModuleTableFieldVO.FIELD_TYPE_string, 'Valeur', false);
+
+        VersionedVOController.getInstance().registerModuleTable(ModuleTableController.create_new(this.name, OseliaThreadCacheVO, null, 'Oselia - Thread Cache'));
+        ModuleTableCompositeUniqueKeyController.add_composite_unique_key_to_vo_type(OseliaThreadCacheVO.API_TYPE_ID, [field_thread_id, field_key]);
     }
 
     public initializeOseliaRunFunctionCallVO() {
