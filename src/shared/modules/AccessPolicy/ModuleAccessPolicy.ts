@@ -94,6 +94,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_logout = "logout";
     public static APINAME_delete_session = "delete_session";
     public static APINAME_get_my_sid = "get_my_sid";
+    public static APINAME_get_my_session_id = "get_my_session_id";
     public static APINAME_sendrecapture = "sendrecapture";
 
     public static APINAME_GET_AVATAR_URL = ModuleAccessPolicy.MODULE_NAME + "__get_avatar_url";
@@ -125,6 +126,7 @@ export default class ModuleAccessPolicy extends Module {
     public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
     public delete_session: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_delete_session);
     public get_my_sid: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_sid);
+    public get_my_session_id: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_session_id);
     public send_session_share_email: (url: string, email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_email);
     public send_session_share_sms: (text: string, phone: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_sms);
     public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
@@ -192,8 +194,14 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
-            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
+            null,
             ModuleAccessPolicy.APINAME_get_my_sid,
+            []
+        ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
+            null,
+            ModuleAccessPolicy.APINAME_get_my_session_id,
             []
         ));
 

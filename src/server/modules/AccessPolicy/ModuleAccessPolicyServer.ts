@@ -972,6 +972,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_delete_session, this.delete_session.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_session_id, this.get_my_session_id.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_email, this.send_session_share_email.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
@@ -2306,6 +2307,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // }
         // return session.id;
         return res.req.cookies['sid'];
+    }
+
+    private get_my_session_id(req: Request, res: Response) {
+        // let session = StackContext.get('SESSION');
+        // if (!session) {
+        //     return null;
+        // }
+        // return session.id;
+        return res.req.sessionID;
     }
 
     private async delete_session() {
