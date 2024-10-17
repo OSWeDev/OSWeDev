@@ -2,7 +2,7 @@ import { debounce, isEqual } from 'lodash';
 import { Chart as VueChart } from 'vue-chartjs';
 import Chart from "chart.js/auto";
 import * as helpers from "chart.js/helpers";
-import { _adapters } from 'chart.js';
+import { _adapters, CategoryScale, LinearScale, LogarithmicScale, RadialLinearScale, TimeScale } from 'chart.js';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import DatesChartJsAdapters from '../../../../../../shared/modules/FormatDatesNombres/Dates/DatesChartJsAdapters';
 import VarMixedChartDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarMixedChartDataSetDescriptor';
@@ -100,14 +100,210 @@ export default class VarMixedChartComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
-    public async created() {
-        let chart = Chart;
-        chart.register(ChartDataLabels)
-        window['Chart'] = chart;
-        Chart['helpers'] = helpers;
 
-        // await import("chart.js-plugin-labels-dv");
-        await import("chartjs-plugin-datalabels");
+    /**
+     * charts_data
+     * @see https://www.chartjs.org/docs/latest/getting-started/usage.html
+     */
+    get charts_data(): { labels: string[], datasets: IChartDataset[] } {
+        if (!this.all_data_loaded) {
+            return null;
+        }
+
+        return {
+            labels: this.labels, // Abscisses
+            datasets: this.datasets // Ordonnées (charts datasets definition)
+        };
+    }
+
+    /**
+     * charts_options
+     * @see https://www.chartjs.org/docs/latest/general/options.html
+     *
+     * @returns {IChartOptions}
+     */
+    get charts_options(): IChartOptions {
+        const self = this;
+
+        return Object.assign(
+            {
+                options: {
+                    animations: {
+                        tension: {
+                            duration: 2000,
+                            easing: 'easeInOutElastic',
+                            from: 1,
+                            to: 0,
+                            loop: false
+                        }
+                    }
+                },
+
+                // @see https://www.chartjs.org/docs/latest/general/options.html#plugin-options
+                plugins: {
+                    labels: false,
+                },
+
+                onClick: (point: any, event: any) => {
+                    if (!self.isDescMode) {
+                        return;
+                    }
+
+                    self.$modal.show(
+                        VarDatasRefsParamSelectComponent,
+                        { var_params: this.charts_var_params },
+                        {
+                            width: 465,
+                            height: 'auto',
+                            scrollable: true
+                        }
+                    );
+                }
+            },
+            this.options
+        );
+    }
+
+    /**
+     * Build datasets by chart_id @see https://www.chartjs.org/docs/latest/charts/mixed.html#mixed-chart-types
+     *
+     * @returns {IChartDataset[]}
+     */
+    get datasets(): IChartDataset[] {
+        if (!this.all_data_loaded) {
+            return null;
+        }
+
+        const datasets = this.get_charts_datasets();
+
+        return Object.values(datasets);
+    }
+
+    /**
+     * labels
+     *  - All charts should have the same labels
+     *
+     * @returns {string[]}
+     */
+    get labels(): string[] {
+        const res = [];
+
+        for (const chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
+
+            for (const i in chart_var_params) {
+                const var_param: VarDataBaseVO = chart_var_params[i];
+
+                if (this.getlabel && this.getlabel(var_param)) {
+                    res.push(this.getlabel(var_param));
+                } else {
+                    res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)));
+                }
+            }
+
+            break;
+        }
+
+        return res;
+    }
+
+    get all_data_loaded(): boolean {
+
+        if (
+            !(this.charts_var_dataset_descriptor) ||
+            !(this.charts_var_params) ||
+            !(this.charts_scales_options)
+        ) {
+            return false;
+        }
+
+        for (let chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
+
+            for (let i in chart_var_params) {
+                const var_param: VarDataBaseVO = chart_var_params[i];
+
+                if ((!this.charts_var_datas) ||
+                    (!this.charts_var_datas[chart_key]) ||
+                    (!this.charts_var_datas[chart_key][var_param.id]) ||
+                    (typeof this.charts_var_datas[chart_key][var_param.id].value === 'undefined')
+                ) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Watch('charts_var_params', { immediate: true })
+    private async onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
+
+        // On doit vérifier qu'ils sont bien différents
+        if (isEqual(new_charts_var_params, old_charts_var_params)) {
+            return;
+        }
+
+        if (!!old_charts_var_params) {
+            for (const chart_key in old_charts_var_params) {
+                const old_chart_var_params = old_charts_var_params[chart_key];
+
+                await VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
+            }
+        }
+
+        if (!!new_charts_var_params) {
+            for (const chart_key in new_charts_var_params) {
+                const new_chart_var_params = new_charts_var_params[chart_key];
+
+                await VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
+            }
+        }
+
+        // this.set_datasets();
+        // this.set_labels();
+        // this.onchange_all_data_loaded();
+    }
+
+    @Watch('charts_var_dataset_descriptor')
+    private async onchange_charts_var_dataset_descriptor(
+        new_var_dataset_descriptor: VarMixedChartDataSetDescriptor,
+        old_var_dataset_descriptor: VarMixedChartDataSetDescriptor
+    ) {
+
+        // On doit vérifier qu'ils sont bien différents
+        new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
+        old_var_dataset_descriptor = old_var_dataset_descriptor ? old_var_dataset_descriptor : null;
+
+        let same: boolean = true;
+        if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
+            ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
+            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_name != old_var_dataset_descriptor.var_name))) {
+            same = false;
+        }
+        if (same) {
+            return;
+        }
+
+        for (const chart_key in this.charts_var_params) {
+            const chart_var_params = this.charts_var_params[chart_key];
+
+            // sur chaque dimension
+            if ((!!old_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
+                await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
+            }
+
+            if ((!!new_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
+                await VarsClientController.getInstance().registerParams(chart_var_params, this.varUpdateCallbacks);
+            }
+        }
+
+        // this.onchange_all_data_loaded();
+    }
+
+    @Watch('data')
+    private async onchange_datasets() {
+        await this.debounced_render_or_update_chart_js();
     }
 
     @Watch('charts_data')
@@ -119,6 +315,15 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
         this.current_mixed_charts_data = this.charts_data;
         this.current_mixed_charts_options = this.charts_options;
+    }
+
+    public async created() {
+        let chart = Chart;
+        chart.register(ChartDataLabels, CategoryScale, LinearScale, LogarithmicScale, TimeScale, RadialLinearScale);
+        window['Chart'] = chart;
+        Chart['helpers'] = helpers;
+
+        await import("chartjs-plugin-datalabels");
     }
 
     /**
@@ -292,11 +497,11 @@ export default class VarMixedChartComponent extends VueComponentBase {
             if (yAxisID != null) {
                 return Object.assign({}, obj, { yAxisID: yAxisID });
             } else {
-                return obj
+                return obj;
             }
 
         } else {
-            return
+            return;
         }
 
     }
@@ -315,35 +520,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
 
             await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
         }
-    }
-
-    get all_data_loaded(): boolean {
-
-        if (
-            !(this.charts_var_dataset_descriptor) ||
-            !(this.charts_var_params) ||
-            !(this.charts_scales_options)
-        ) {
-            return false;
-        }
-
-        for (let chart_key in this.charts_var_params) {
-            const chart_var_params = this.charts_var_params[chart_key];
-
-            for (let i in chart_var_params) {
-                const var_param: VarDataBaseVO = chart_var_params[i];
-
-                if ((!this.charts_var_datas) ||
-                    (!this.charts_var_datas[chart_key]) ||
-                    (!this.charts_var_datas[chart_key][var_param.id]) ||
-                    (typeof this.charts_var_datas[chart_key][var_param.id].value === 'undefined')
-                ) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {
@@ -368,149 +544,6 @@ export default class VarMixedChartComponent extends VueComponentBase {
         }
 
         return this.filter.apply(null, params);
-    }
-
-    @Watch('charts_var_params', { immediate: true })
-    private async onchange_charts_var_params(new_charts_var_params: { [chart_id: string]: VarDataBaseVO[] }, old_charts_var_params: { [chart_index: string]: VarDataBaseVO[] }) {
-
-        // On doit vérifier qu'ils sont bien différents
-        if (isEqual(new_charts_var_params, old_charts_var_params)) {
-            return;
-        }
-
-        if (!!old_charts_var_params) {
-            for (const chart_key in old_charts_var_params) {
-                const old_chart_var_params = old_charts_var_params[chart_key];
-
-                await VarsClientController.getInstance().unRegisterParams(old_chart_var_params, this.varUpdateCallbacks);
-            }
-        }
-
-        if (!!new_charts_var_params) {
-            for (const chart_key in new_charts_var_params) {
-                const new_chart_var_params = new_charts_var_params[chart_key];
-
-                await VarsClientController.getInstance().registerParams(new_chart_var_params, this.varUpdateCallbacks);
-            }
-        }
-
-        // this.set_datasets();
-        // this.set_labels();
-        // this.onchange_all_data_loaded();
-    }
-
-    @Watch('charts_var_dataset_descriptor')
-    private async onchange_charts_var_dataset_descriptor(
-        new_var_dataset_descriptor: VarMixedChartDataSetDescriptor,
-        old_var_dataset_descriptor: VarMixedChartDataSetDescriptor
-    ) {
-
-        // On doit vérifier qu'ils sont bien différents
-        new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
-        old_var_dataset_descriptor = old_var_dataset_descriptor ? old_var_dataset_descriptor : null;
-
-        let same: boolean = true;
-        if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
-            ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
-            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_name != old_var_dataset_descriptor.var_name))) {
-            same = false;
-        }
-        if (same) {
-            return;
-        }
-
-        for (const chart_key in this.charts_var_params) {
-            const chart_var_params = this.charts_var_params[chart_key];
-
-            // sur chaque dimension
-            if ((!!old_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
-                await VarsClientController.getInstance().unRegisterParams(chart_var_params, this.varUpdateCallbacks);
-            }
-
-            if ((!!new_var_dataset_descriptor) && (chart_var_params) && chart_var_params.length) {
-                await VarsClientController.getInstance().registerParams(chart_var_params, this.varUpdateCallbacks);
-            }
-        }
-
-        // this.onchange_all_data_loaded();
-    }
-
-    /**
-     * charts_data
-     * @see https://www.chartjs.org/docs/latest/getting-started/usage.html
-     */
-    get charts_data(): { labels: string[], datasets: IChartDataset[] } {
-        if (!this.all_data_loaded) {
-            return null;
-        }
-
-        return {
-            labels: this.labels, // Abscisses
-            datasets: this.datasets // Ordonnées (charts datasets definition)
-        };
-    }
-
-    /**
-     * charts_options
-     * @see https://www.chartjs.org/docs/latest/general/options.html
-     *
-     * @returns {IChartOptions}
-     */
-    get charts_options(): IChartOptions {
-        const self = this;
-
-        return Object.assign(
-            {
-                options: {
-                    animations: {
-                        tension: {
-                            duration: 2000,
-                            easing: 'easeInOutElastic',
-                            from: 1,
-                            to: 0,
-                            loop: false
-                        }
-                    }
-                },
-
-                // @see https://www.chartjs.org/docs/latest/general/options.html#plugin-options
-                plugins: {
-                    labels: false,
-                },
-
-                onClick: (point: any, event: any) => {
-                    if (!self.isDescMode) {
-                        return;
-                    }
-
-                    self.$modal.show(
-                        VarDatasRefsParamSelectComponent,
-                        { var_params: this.charts_var_params },
-                        {
-                            width: 465,
-                            height: 'auto',
-                            scrollable: true
-                        }
-                    );
-                }
-            },
-            this.options
-        );
-    }
-
-    /**
-     * Build datasets by chart_id @see https://www.chartjs.org/docs/latest/charts/mixed.html#mixed-chart-types
-     *
-     * @returns {IChartDataset[]}
-     */
-    get datasets(): IChartDataset[] {
-        if (!this.all_data_loaded) {
-            return null;
-        }
-
-        const datasets = this.get_charts_datasets();
-
-        return Object.values(datasets);
     }
 
     private render_chart_js() {
@@ -555,38 +588,5 @@ export default class VarMixedChartComponent extends VueComponentBase {
             // Issu de Bar
             this.$data._chart.update();
         }
-    }
-
-    @Watch('data')
-    private async onchange_datasets() {
-        await this.debounced_render_or_update_chart_js();
-    }
-
-    /**
-     * labels
-     *  - All charts should have the same labels
-     *
-     * @returns {string[]}
-     */
-    get labels(): string[] {
-        const res = [];
-
-        for (const chart_key in this.charts_var_params) {
-            const chart_var_params = this.charts_var_params[chart_key];
-
-            for (const i in chart_var_params) {
-                const var_param: VarDataBaseVO = chart_var_params[i];
-
-                if (this.getlabel && this.getlabel(var_param)) {
-                    res.push(this.getlabel(var_param))
-                } else {
-                    res.push(this.t(VarsController.get_translatable_name_code_by_var_id(var_param.var_id)))
-                }
-            }
-
-            break;
-        }
-
-        return res;
     }
 }
