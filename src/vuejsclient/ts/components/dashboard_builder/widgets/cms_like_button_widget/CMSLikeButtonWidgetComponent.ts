@@ -78,20 +78,6 @@ export default class CMSLikeButtonWidgetComponent extends VueComponentBase {
             this.nb_likes = ranges_exploded.length;
         }
 
-        const like_button = document.getElementById('like_button');
-        const like_icon = document.getElementById('like_icon');
-        if (this.user_liked) {
-            like_button.style.backgroundColor = this.color;
-            like_button.style.border = 'none';
-            like_button.style.borderRadius = this.radius + 'px';
-            like_icon.style.color = 'white';
-        } else {
-            like_button.style.backgroundColor = 'white';
-            like_button.style.border = '1px solid ' + this.color;
-            like_button.style.borderRadius = this.radius + 'px';
-            like_icon.style.color = this.color;
-        }
-
         this.onchange_widget_options();
     }
 
