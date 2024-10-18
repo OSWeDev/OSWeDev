@@ -115,7 +115,7 @@ export default class Patch20241004AddOseliaFunction_OSELIA_append_new_child_run_
             argument_use_splitter = new GPTAssistantAPIFunctionParamVO();
             argument_use_splitter.archived = false;
             argument_use_splitter.function_id = append_new_child_run_step_function.id;
-            argument_use_splitter.gpt_funcparam_description = "Est-ce que la tâche doit être divisée automatiquement pour faciliter l'exécution ? Par défaut ne pas diviser, sauf indication contraire";
+            argument_use_splitter.gpt_funcparam_description = "Est-ce que la tâche doit être divisée automatiquement pour faciliter l'exécution ? Par défaut ne pas diviser (donc false), sauf indication contraire explicite sur une étape donnée";
             argument_use_splitter.gpt_funcparam_name = "use_splitter";
             argument_use_splitter.required = true;
             argument_use_splitter.type = GPTAssistantAPIFunctionParamVO.TYPE_BOOLEAN;
