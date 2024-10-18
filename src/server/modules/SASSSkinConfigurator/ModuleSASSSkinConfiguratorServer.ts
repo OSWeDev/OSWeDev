@@ -105,7 +105,21 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
 
     private getSassVariableDefinition(name: string, value: string): string {
-        return "$" + name + ": " + (((value == '') || (typeof value == 'undefined')) ? 'null' : value) + ";";
+        let res: string = "$" + name + ": ";
+
+        if (((value == '') || (typeof value == 'undefined'))) {
+            res += "''";
+        } else {
+            if (value.startsWith('"') || value.startsWith("'") || (name.indexOf('_url') < 0)) {
+                res += value;
+            } else {
+                res += "'" + value + "'";
+            }
+        }
+
+        res += ";";
+
+        return res;
     }
 
     // private async handlePostUpdateParam(update: DAOUpdateVOHolder<ParamVO>) {
